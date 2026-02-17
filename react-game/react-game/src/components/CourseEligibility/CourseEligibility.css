@@ -29,6 +29,114 @@
   color: #666;
 }
 
+.eligibility-prefilled-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.prefilled-label {
+  color: #555;
+  font-weight: 600;
+}
+.prefilled-value {
+  color: #333;
+  font-weight: 500;
+}
+.prefilled-sep {
+  color: #667eea;
+  font-weight: 700;
+}
+.prefilled-edit-link {
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  color: #667eea;
+  background: transparent;
+  border: 1px solid #667eea;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.prefilled-edit-link:hover {
+  background: #667eea;
+  color: white;
+}
+.eligibility-loading-step {
+  text-align: center;
+  padding: 2rem;
+}
+.eligibility-loading-step .step-title {
+  color: #666;
+  margin: 0;
+}
+
+.eligibility-class-below-10 {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+.eligibility-class-below-10 .step-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+}
+.eligibility-below-10-message {
+  color: #666;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+.eligibility-class-below-10 .back-button {
+  margin-top: 0.5rem;
+}
+
+.eligibility-confirm-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.eligibility-confirm-popup {
+  max-width: 360px;
+}
+.eligibility-confirm-message {
+  margin: 0 0 1.5rem;
+  color: #444;
+  font-size: 0.95rem;
+}
+.eligibility-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.eligibility-confirm-yes,
+.eligibility-confirm-no {
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+}
+.eligibility-confirm-yes {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+.eligibility-confirm-no {
+  background: #e0e0e0;
+  color: #333;
+}
+.eligibility-confirm-yes:hover,
+.eligibility-confirm-no:hover {
+  opacity: 0.9;
+}
+
+.step-indicator-minimal {
+  margin-bottom: 1.5rem;
+}
 .step-indicator {
   display: flex;
   align-items: center;

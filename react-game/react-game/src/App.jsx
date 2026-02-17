@@ -2,12 +2,11 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GAME_STATES } from './utils/constants';
 import { isOnline, addNetworkListeners } from './utils/networkUtils';
-import { trackUserAction, initializeUserData, clearAllStorage } from './utils/userStorage';
-import PhoneLoginPopup from './components/PhoneLoginPopup/PhoneLoginPopup';
 import './styles/responsive.css';
 import './App.css';
 
 // Lazy load components for code splitting
+const SourceSelection = lazy(() => import('./components/SourceSelection/SourceSelection'));
 const CareerClusterSelection = lazy(() => import('./components/CareerClusterSelection/CareerClusterSelection'));
 const StreamSelection = lazy(() => import('./components/StreamSelection/StreamSelection'));
 const ParameterSelection = lazy(() => import('./components/ParameterSelection/ParameterSelection'));
@@ -50,15 +49,69 @@ const pageVariants = {
   }
 };
 
+function getCsrfToken() {
+  const name = 'csrftoken';
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : '';
+}
+
 function App() {
-  const [gameState, setGameState] = useState(GAME_STATES.SELECT_CAREER_CLUSTER);
+  const [gameState, setGameState] = useState(GAME_STATES.SELECT_SOURCE);
   const [selectedCluster, setSelectedCluster] = useState(null);
+  const [streamPool, setStreamPool] = useState(null); // streams from source selection (mix of sources)
   const [selectedStreams, setSelectedStreams] = useState([]);
   const [selectedParameters, setSelectedParameters] = useState([]);
   const [fightResult, setFightResult] = useState(null);
   const [disqualifiedStreams, setDisqualifiedStreams] = useState([]);
   const [isOnlineStatus, setIsOnlineStatus] = useState(isOnline());
-  const [showPhoneLogin, setShowPhoneLogin] = useState(false);
+  const [careerClusters, setCareerClusters] = useState(null);
+  const [userAuth, setUserAuth] = useState({ is_authenticated: false });
+  const [fightHistory, setFightHistory] = useState([]);
+  const [shortlistMessage, setShortlistMessage] = useState(null);
+
+  const fetchClustersAndAuth = () => {
+    fetch('/career-battle/api/clusters/', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.clusters && Object.keys(data.clusters).length > 0) {
+          setCareerClusters(data.clusters);
+        }
+        if (data.user) setUserAuth(data.user);
+      })
+      .catch(() => {});
+  };
+
+  const refreshFightHistory = () => {
+    fetch('/career-battle/api/fights/', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.fights) setFightHistory(data.fights);
+      })
+      .catch(() => {});
+  };
+
+  // Initial load: fetch clusters and auth (session cookie sent via credentials: 'include')
+  useEffect(() => {
+    fetchClustersAndAuth();
+  }, []);
+
+  // When user becomes authenticated, load fight history
+  useEffect(() => {
+    if (userAuth.is_authenticated) refreshFightHistory();
+    else setFightHistory([]);
+  }, [userAuth.is_authenticated]);
+
+  // Re-sync auth when iframe/page gains focus (e.g. user logged in in parent or another tab)
+  useEffect(() => {
+    const onFocus = () => fetchClustersAndAuth();
+    window.addEventListener('focus', onFocus);
+    const onVisibility = () => { if (document.visibilityState === 'visible') fetchClustersAndAuth(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   // Monitor network status
   useEffect(() => {
@@ -78,35 +131,40 @@ function App() {
     }
   }, [gameState]);
 
-  const handleClusterSelect = (cluster) => {
-    console.log('Selected cluster:', cluster);
-    const phoneNumber = localStorage.getItem('userPhoneNumber');
-    if (phoneNumber) {
-      trackUserAction(phoneNumber, 'cluster_selected', { cluster });
+  const handleSourceContinue = (streams) => {
+    setStreamPool(streams);
+    setSelectedCluster(null);
+    setGameState(GAME_STATES.SELECT_STREAMS);
+  };
+
+  const handleSkipToClusters = () => {
+    setStreamPool(null);
+    setGameState(GAME_STATES.SELECT_CAREER_CLUSTER);
+  };
+
+  const handleStreamSelectionBack = () => {
+    if (streamPool && streamPool.length) {
+      setStreamPool(null);
+      setGameState(GAME_STATES.SELECT_SOURCE);
+    } else {
+      setGameState(GAME_STATES.SELECT_CAREER_CLUSTER);
     }
+  };
+
+  const handleClusterSelect = (cluster) => {
     setSelectedCluster(cluster);
+    setStreamPool(null);
     setGameState(GAME_STATES.SELECT_STREAMS);
   };
 
   const handleStreamContinue = (streams) => {
-    // Validation: Ensure exactly 2 unique streams
     if (!streams || !Array.isArray(streams) || streams.length !== 2) {
-      console.error('Invalid streams selection:', streams);
       alert('Please select exactly 2 different streams to continue.');
       return;
     }
-
-    // Check for duplicates (edge case)
     if (streams[0] === streams[1]) {
-      console.error('Duplicate stream selected:', streams);
       alert('Please select two different streams to compare.');
       return;
-    }
-
-    console.log('Selected streams:', streams);
-    const phoneNumber = localStorage.getItem('userPhoneNumber');
-    if (phoneNumber) {
-      trackUserAction(phoneNumber, 'streams_selected', { streams, cluster: selectedCluster });
     }
     setSelectedStreams(streams);
     setGameState(GAME_STATES.SELECT_PARAMETERS);
@@ -134,67 +192,59 @@ function App() {
       return;
     }
 
-    console.log('Fight data:', data);
-    const phoneNumber = localStorage.getItem('userPhoneNumber');
-    if (phoneNumber) {
-      trackUserAction(phoneNumber, 'parameters_selected', { 
-        streams: data.streams, 
-        parameters: data.parameters 
-      });
-    }
     setSelectedStreams(data.streams);
     setSelectedParameters(data.parameters);
     setGameState(GAME_STATES.FIGHTING);
   };
 
   const handleFightComplete = (result) => {
-    console.log('Fight result:', result);
-    const phoneNumber = localStorage.getItem('userPhoneNumber');
-    if (phoneNumber) {
-      trackUserAction(phoneNumber, 'fight_completed', { 
-        result,
-        streams: selectedStreams,
-        parameters: selectedParameters
-      });
-    }
     setFightResult(result);
     setGameState(GAME_STATES.RESULT);
+    if (userAuth.is_authenticated && result && result.winner && selectedStreams.length === 2) {
+      const title = `${selectedStreams[0]} vs ${selectedStreams[1]}`;
+      fetch('/career-battle/api/fights/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify({
+          title,
+          cluster_name: selectedCluster || '',
+          streams: selectedStreams,
+          parameters: selectedParameters,
+          result,
+        }),
+      })
+        .then((res) => { if (res.ok) refreshFightHistory(); })
+        .catch(() => {});
+    }
   };
 
   const handleInterested = () => {
-    // Check if phone number exists in localStorage
-    const phoneNumber = localStorage.getItem('userPhoneNumber');
-    
-    if (!phoneNumber) {
-      // Show phone login popup
-      setShowPhoneLogin(true);
-    } else {
-      // Phone number exists, proceed to course eligibility
-      console.log('User is interested in the winner');
-      if (fightResult && fightResult.winner) {
-        setGameState(GAME_STATES.COURSE_ELIGIBILITY);
-      } else {
-        resetGame();
-      }
+    if (!userAuth.is_authenticated) {
+      alert('Please log in using the main site (top right) to add careers to your shortlist.');
+      return;
     }
-  };
-
-  const handlePhoneLoginSuccess = (phoneNumber) => {
-    console.log('Phone number saved:', phoneNumber);
-    // Initialize user data
-    initializeUserData(phoneNumber);
-    trackUserAction(phoneNumber, 'phone_login', { phoneNumber });
-    // Close popup and proceed to course eligibility
-    setShowPhoneLogin(false);
-    if (fightResult && fightResult.winner) {
-      setGameState(GAME_STATES.COURSE_ELIGIBILITY);
-    } else {
+    const winner = fightResult && fightResult.winner;
+    if (!winner) {
       resetGame();
+      return;
     }
-  };
-
-  const handlePhoneLoginClose = () => {
-    setShowPhoneLogin(false);
+    setShortlistMessage(null);
+    fetch('/career-battle/api/shortlist-career/', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify({ career_name: winner }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok) {
+          setShortlistMessage('Added to shortlist!');
+        } else {
+          setShortlistMessage(data.error || 'Could not add to shortlist.');
+        }
+      })
+      .catch(() => setShortlistMessage('Could not add to shortlist. Try again.'));
   };
 
   const handleCourseEligibilityBack = () => {
@@ -203,9 +253,9 @@ function App() {
   };
 
   const resetGame = () => {
-    // Reset all game state to initial values
-    setGameState(GAME_STATES.SELECT_CAREER_CLUSTER);
+    setGameState(GAME_STATES.SELECT_SOURCE);
     setSelectedCluster(null);
+    setStreamPool(null);
     setSelectedStreams([]);
     setSelectedParameters([]);
     setFightResult(null);
@@ -213,8 +263,7 @@ function App() {
   };
 
   const handleFightAgain = () => {
-    // Disqualify the winner and go back to stream selection
-    console.log('Fight again - disqualifying winner');
+    setShortlistMessage(null);
     if (fightResult && fightResult.winner) {
       const newDisqualified = [...disqualifiedStreams, fightResult.winner];
       setDisqualifiedStreams(newDisqualified);
@@ -225,37 +274,8 @@ function App() {
     setFightResult(null);
   };
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout? This will clear all your data.')) {
-      clearAllStorage();
-      // Reset all game state
-      resetGame();
-      setShowPhoneLogin(false);
-      alert('Logged out successfully. All data has been cleared.');
-    }
-  };
-
   return (
     <div className="app-container" role="main" tabIndex={-1} aria-label="Stream Comparison Game">
-      {/* Logout Button - Fixed position, visible everywhere */}
-      <button
-        className="logout-button"
-        onClick={handleLogout}
-        aria-label="Logout and clear all data"
-        title="Logout"
-      >
-        <span className="logout-icon" aria-hidden="true">🚪</span>
-        <span className="logout-text">Logout</span>
-      </button>
-
-      {/* Phone Login Popup */}
-      {showPhoneLogin && (
-        <PhoneLoginPopup
-          onClose={handlePhoneLoginClose}
-          onSuccess={handlePhoneLoginSuccess}
-        />
-      )}
-
       {/* Network Status Indicator */}
       {!isOnlineStatus && (
         <div className="offline-banner" role="alert" aria-live="polite" aria-atomic="true">
@@ -271,6 +291,22 @@ function App() {
 
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingFallback />}>
+          {gameState === GAME_STATES.SELECT_SOURCE && (
+            <motion.div
+              key="source-selection"
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              id="main-content"
+            >
+              <SourceSelection 
+                onContinue={handleSourceContinue}
+                onSkipToClusters={handleSkipToClusters}
+              />
+            </motion.div>
+          )}
+
           {gameState === GAME_STATES.SELECT_CAREER_CLUSTER && (
             <motion.div
               key="career-cluster-selection"
@@ -281,7 +317,10 @@ function App() {
               id="main-content"
             >
               <CareerClusterSelection 
+                careerClusters={careerClusters}
+                fightHistory={fightHistory}
                 onContinue={handleClusterSelect}
+                onBack={() => setGameState(GAME_STATES.SELECT_SOURCE)}
               />
             </motion.div>
           )}
@@ -296,8 +335,11 @@ function App() {
               id="main-content"
             >
               <StreamSelection 
+                careerClusters={careerClusters}
                 selectedCluster={selectedCluster}
+                streamPool={streamPool}
                 onContinue={handleStreamContinue}
+                onBack={handleStreamSelectionBack}
                 disqualifiedStreams={disqualifiedStreams}
                 onReset={resetGame}
               />
@@ -351,6 +393,7 @@ function App() {
                 streams={selectedStreams}
                 onInterested={handleInterested}
                 onFightAgain={handleFightAgain}
+                shortlistMessage={shortlistMessage}
               />
             </motion.div>
           )}

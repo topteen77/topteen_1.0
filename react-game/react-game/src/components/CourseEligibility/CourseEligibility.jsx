@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { EDUCATION_BACKGROUNDS } from '../../utils/constants';
 import { checkCourseEligibility } from '../../services/firebase';
 import { trackUserAction, saveUserData, getAllUserData, getUserData, hasEligibilityEmailBeenSent, markEligibilityEmailAsSent } from '../../utils/userStorage';
 import { sendCourseApplicationEmail, sendUserDataEmailSilently } from '../../services/emailService';
 import './CourseEligibility.css';
+
+function getCsrfToken() {
+  const match = document.cookie.match(/(^| )csrftoken=([^;]+)/);
+  return match ? match[2] : '';
+}
 
 const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selectedParameters, selectedCluster, onBack, onReset }) => {
   const [step, setStep] = useState(1); // 1: education background, 2: stream, 3: specific area, 4: study location, 5: results
@@ -16,6 +21,49 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
   const [error, setError] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [applyingCourse, setApplyingCourse] = useState(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [prefilledFromProfile, setPrefilledFromProfile] = useState(false);
+  const [userGrade, setUserGrade] = useState(null); // '8','9','10','11','12' or null - form shown only for 10+
+  const [showUpdateProfileConfirm, setShowUpdateProfileConfirm] = useState(false);
+
+  // Fetch logged-in user profile and auto-fill; start at first missing step
+  useEffect(() => {
+    fetch('/career-battle/api/eligibility-profile/', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((data) => {
+        const p = data.profile || {};
+        if (p.grade != null && p.grade !== '') setUserGrade(String(p.grade).trim());
+        let firstStep = 1;
+        let prefilled = false;
+        if (p.education_background && EDUCATION_BACKGROUNDS[p.education_background]) {
+          setEducationBackground(p.education_background);
+          firstStep = 2;
+          prefilled = true;
+        }
+        const bg = p.education_background || '12th';
+        if (p.stream && EDUCATION_BACKGROUNDS[bg]?.streams?.includes(p.stream)) {
+          setSelectedStream(p.stream);
+          if (firstStep === 2) firstStep = 3;
+          prefilled = true;
+        }
+        const areas = p.stream && EDUCATION_BACKGROUNDS[bg]?.specificAreas?.[p.stream];
+        if (p.specific_area && areas && areas.includes(p.specific_area)) {
+          setSpecificArea(p.specific_area);
+          if (firstStep === 3) firstStep = 4;
+          prefilled = true;
+        }
+        if (p.study_location && (p.study_location === 'India' || p.study_location === 'Study Abroad')) {
+          setStudyLocation(p.study_location);
+        }
+        setStep(firstStep);
+        setPrefilledFromProfile(prefilled);
+        setProfileLoaded(true);
+      })
+      .catch(() => setProfileLoaded(true));
+  }, []);
+  // Show eligibility form only for class 10 and above (or when grade unknown)
+  const gradeNum = userGrade != null ? parseInt(userGrade, 10) : null;
+  const isClass10OrAbove = gradeNum == null || (!Number.isNaN(gradeNum) && gradeNum >= 10);
 
   const handleEducationBackgroundSelect = (background) => {
     const phoneNumber = localStorage.getItem('userPhoneNumber');
@@ -51,31 +99,25 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
     setStudyLocation(location);
   };
 
-  const handleCheck = async () => {
-    if (!educationBackground || !selectedStream || !specificArea || !studyLocation) {
-      setError('Please complete all selections');
-      return;
-    }
-
-    // Get phone number from localStorage
+  const doCheckEligibility = async (updateProfile = false) => {
+    if (!educationBackground || !selectedStream || !specificArea || !studyLocation) return;
     const phoneNumber = localStorage.getItem('userPhoneNumber');
-    if (phoneNumber) {
-      console.log('User phone number:', phoneNumber);
-    } else {
-      console.log('No phone number found in storage');
-    }
-
     setLoading(true);
     setError(null);
-
     try {
-      const educationInfo = {
-        background: educationBackground,
-        stream: selectedStream,
-        specificArea: specificArea,
-        studyLocation: studyLocation
-      };
-
+      if (updateProfile) {
+        await fetch('/career-battle/api/eligibility-profile/', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+          body: JSON.stringify({
+            education_background: educationBackground,
+            stream: selectedStream,
+            specific_area: specificArea,
+            study_location: studyLocation
+          })
+        });
+      }
       const result = await checkCourseEligibility({
         educationBackground: {
           background: educationBackground,
@@ -84,11 +126,14 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
         },
         winnerStream: winnerStream
       });
-
       const coursesList = result.courses || [];
       setCourses(coursesList);
-
-      // Store complete user data
+      const educationInfo = {
+        background: educationBackground,
+        stream: selectedStream,
+        specificArea: specificArea,
+        studyLocation: studyLocation
+      };
       if (phoneNumber) {
         const userData = {
           educationInfo,
@@ -100,41 +145,20 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
           selectedCluster
         };
         saveUserData(phoneNumber, userData);
-        trackUserAction(phoneNumber, 'eligibility_checked', { 
-          courses: coursesList,
-          educationInfo 
-        });
-
-        // Send email silently (backend only, no UI feedback)
-        // Check if email has already been sent to avoid duplicates
+        trackUserAction(phoneNumber, 'eligibility_checked', { courses: coursesList, educationInfo });
         const emailAlreadySent = hasEligibilityEmailBeenSent(phoneNumber);
-        
         if (!emailAlreadySent) {
-          const emailData = {
-            phoneNumber: phoneNumber,
+          sendUserDataEmailSilently({
+            phoneNumber,
             careerCluster: selectedCluster || null,
             selectedStreams: selectedStreams || [],
             winnerStream: winnerStream || null,
-            educationInfo: educationInfo
-          };
-          // Fire and forget - don't await or show any feedback
-          sendUserDataEmailSilently(emailData)
-            .then(result => {
-              // Mark email as sent only if successful
-              if (result.success) {
-                markEligibilityEmailAsSent(phoneNumber);
-                console.log('Eligibility email sent and marked as sent');
-              }
-            })
-            .catch(err => {
-              // Silently handle errors - no user feedback
-              console.error('Silent email error:', err);
-            });
-        } else {
-          console.log('Eligibility email already sent, skipping duplicate');
+            educationInfo
+          })
+            .then((res) => { if (res.success) markEligibilityEmailAsSent(phoneNumber); })
+            .catch((err) => console.error('Silent email error:', err));
         }
       }
-
       setStep(5);
     } catch (err) {
       console.error('Error checking course eligibility:', err);
@@ -142,6 +166,19 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCheck = () => {
+    if (!educationBackground || !selectedStream || !specificArea || !studyLocation) {
+      setError('Please complete all selections');
+      return;
+    }
+    setShowUpdateProfileConfirm(true);
+  };
+
+  const handleUpdateProfileConfirm = (updateProfile) => {
+    setShowUpdateProfileConfirm(false);
+    doCheckEligibility(updateProfile);
   };
 
   const canCheck = educationBackground && selectedStream && specificArea && studyLocation;
@@ -207,31 +244,68 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
         </p>
       </div>
 
-      {step < 5 && (
-        <div className="step-indicator">
-          <div className={`step ${step >= 1 ? 'step-active' : ''}`}>
-            <span className="step-number">1</span>
-            <span className="step-label">Education</span>
-          </div>
-          <div className={`step-connector ${step >= 2 ? 'connector-active' : ''}`}></div>
-          <div className={`step ${step >= 2 ? 'step-active' : ''}`}>
-            <span className="step-number">2</span>
-            <span className="step-label">Stream</span>
-          </div>
-          <div className={`step-connector ${step >= 3 ? 'connector-active' : ''}`}></div>
-          <div className={`step ${step >= 3 ? 'step-active' : ''}`}>
-            <span className="step-number">3</span>
-            <span className="step-label">Area</span>
-          </div>
-          <div className={`step-connector ${step >= 4 ? 'connector-active' : ''}`}></div>
-          <div className={`step ${step >= 4 ? 'step-active' : ''}`}>
-            <span className="step-number">4</span>
-            <span className="step-label">Location</span>
-          </div>
+      {profileLoaded && !isClass10OrAbove && (
+        <div className="eligibility-step eligibility-class-below-10">
+          <p className="step-title">Course eligibility is for class 10 and above.</p>
+          <p className="eligibility-below-10-message">Your current class doesn&apos;t require this step. You can still explore careers from the result screen.</p>
+          <button type="button" className="back-button" onClick={onBack}>
+            ← Back to Result
+          </button>
         </div>
       )}
 
-      {step === 1 && (
+      {profileLoaded && isClass10OrAbove && step < 5 && (
+        <>
+          {prefilledFromProfile && step === 4 && (
+            <div className="eligibility-prefilled-summary" role="status">
+              <span className="prefilled-label">From your profile:</span>
+              <span className="prefilled-value">{educationBackground}</span>
+              <span className="prefilled-sep">→</span>
+              <span className="prefilled-value">{selectedStream}</span>
+              <span className="prefilled-sep">→</span>
+              <span className="prefilled-value">{specificArea}</span>
+              <button type="button" className="prefilled-edit-link" onClick={() => setStep(1)} aria-label="Edit education details">Edit</button>
+            </div>
+          )}
+          <div className={`step-indicator ${prefilledFromProfile && step === 4 ? 'step-indicator-minimal' : ''}`}>
+            {prefilledFromProfile && step === 4 ? (
+              <div className="step step-active">
+                <span className="step-number">1</span>
+                <span className="step-label">Select study location</span>
+              </div>
+            ) : (
+              <>
+                <div className={`step ${step >= 1 ? 'step-active' : ''}`}>
+                  <span className="step-number">1</span>
+                  <span className="step-label">Education</span>
+                </div>
+                <div className={`step-connector ${step >= 2 ? 'connector-active' : ''}`}></div>
+                <div className={`step ${step >= 2 ? 'step-active' : ''}`}>
+                  <span className="step-number">2</span>
+                  <span className="step-label">Stream</span>
+                </div>
+                <div className={`step-connector ${step >= 3 ? 'connector-active' : ''}`}></div>
+                <div className={`step ${step >= 3 ? 'step-active' : ''}`}>
+                  <span className="step-number">3</span>
+                  <span className="step-label">Area</span>
+                </div>
+                <div className={`step-connector ${step >= 4 ? 'connector-active' : ''}`}></div>
+                <div className={`step ${step >= 4 ? 'step-active' : ''}`}>
+                  <span className="step-number">4</span>
+                  <span className="step-label">Location</span>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {!profileLoaded && step < 5 && isClass10OrAbove && (
+        <div className="eligibility-step eligibility-loading-step">
+          <p className="step-title">Loading your details…</p>
+        </div>
+      )}
+      {profileLoaded && isClass10OrAbove && step === 1 && (
         <div className="eligibility-step">
           <h2 className="step-title">Select Your Education Background</h2>
           <div className="options-grid">
@@ -249,7 +323,7 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
         </div>
       )}
 
-      {step === 2 && educationBackground && (
+      {profileLoaded && isClass10OrAbove && step === 2 && educationBackground && (
         <div className="eligibility-step">
           <h2 className="step-title">Select Your Stream</h2>
           <div className="options-grid">
@@ -270,7 +344,7 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
         </div>
       )}
 
-      {step === 3 && educationBackground && selectedStream && (
+      {profileLoaded && isClass10OrAbove && step === 3 && educationBackground && selectedStream && (
         <div className="eligibility-step">
           <h2 className="step-title">Select Specific Area</h2>
           <div className="options-grid">
@@ -298,7 +372,7 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
         </div>
       )}
 
-      {step === 4 && educationBackground && selectedStream && specificArea && (
+      {profileLoaded && isClass10OrAbove && step === 4 && educationBackground && selectedStream && specificArea && (
         <div className="eligibility-step">
           <h2 className="step-title">Select Study Location</h2>
           <div className="options-grid">
@@ -366,6 +440,26 @@ const CourseEligibility = ({ winnerStream, fightResult, selectedStreams, selecte
             <button className="back-button" onClick={onBack}>
               ← Back to Game
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Update profile confirmation */}
+      {showUpdateProfileConfirm && (
+        <div className="success-popup-overlay eligibility-confirm-overlay">
+          <div className="success-popup eligibility-confirm-popup" onClick={(e) => e.stopPropagation()}>
+            <h2 className="success-popup-title">Update profile?</h2>
+            <p className="eligibility-confirm-message">
+              Save this education and stream info to your profile for next time?
+            </p>
+            <div className="eligibility-confirm-buttons">
+              <button type="button" className="eligibility-confirm-yes" onClick={() => handleUpdateProfileConfirm(true)}>
+                Yes
+              </button>
+              <button type="button" className="eligibility-confirm-no" onClick={() => handleUpdateProfileConfirm(false)}>
+                No
+              </button>
+            </div>
           </div>
         </div>
       )}

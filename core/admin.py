@@ -30,6 +30,9 @@ from .models import (
     FourPillarsAssessmentProfile,
     MIAssessmentResult,
     EQAssessmentResult,
+    CareerBattleFight,
+    CareerBattleEligibilityProfile,
+    CounsellingSession,
 )
 # Register your models here.
 
@@ -271,6 +274,41 @@ admin.site.register(CommonFAQ)
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)
+
+
+@admin.register(CareerBattleFight)
+class CareerBattleFightAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'title', 'cluster_name', 'winner_display', 'created')
+    list_filter = ('created',)
+    search_fields = ('title', 'user__email', 'cluster_name')
+    readonly_fields = ('user', 'title', 'cluster_name', 'streams', 'parameters', 'result', 'created')
+    ordering = ('-created',)
+
+    def winner_display(self, obj):
+        return (obj.result or {}).get('winner') or '—'
+    winner_display.short_description = 'Winner'
+
+
+@admin.register(CounsellingSession)
+class CounsellingSessionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'session_id_short', 'first_message_at', 'last_message_at', 'crisis_flagged')
+    list_filter = ('crisis_flagged', 'last_message_at')
+    search_fields = ('session_id', 'user__email')
+    readonly_fields = ('user', 'session_id', 'first_message_at', 'last_message_at', 'crisis_flagged')
+    ordering = ('-last_message_at',)
+
+    def session_id_short(self, obj):
+        return (obj.session_id or '')[:20] + '...' if obj.session_id and len(obj.session_id) > 20 else (obj.session_id or '—')
+    session_id_short.short_description = 'Session ID'
+
+
+@admin.register(CareerBattleEligibilityProfile)
+class CareerBattleEligibilityProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'education_background', 'stream', 'specific_area', 'study_location', 'updated')
+    list_filter = ('education_background', 'stream', 'study_location')
+    search_fields = ('user__email', 'stream', 'specific_area')
+    readonly_fields = ('updated',)
+    ordering = ('-updated',)
 
 
 @admin.register(MIAssessmentResult)

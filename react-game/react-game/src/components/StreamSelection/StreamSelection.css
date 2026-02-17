@@ -188,9 +188,28 @@
 /* Footer with Continue Button */
 .stream-selection-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  gap: 1rem;
   padding: 1rem 0;
   margin-top: auto;
+}
+
+.stream-selection-footer .back-button {
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  color: #333;
+}
+.stream-selection-footer .back-button:hover {
+  border-color: #1976d2;
+  color: #1976d2;
 }
 
 .continue-button {

@@ -80,13 +80,18 @@ const ParameterSelection = ({ selectedStreams, onFight }) => {
                 }
               }}
             >
-              <div className="parameter-checkbox">
+              {/* Stop propagation so checkbox/label click doesn't also trigger parent onClick (avoids double-toggle) */}
+              <div className="parameter-checkbox" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
                   id={parameter.id}
                   checked={isSelected}
-                  onChange={() => handleParameterToggle(parameter.id)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleParameterToggle(parameter.id);
+                  }}
                   className="checkbox-input"
+                  onClick={(e) => e.stopPropagation()}
                 />
                 <label htmlFor={parameter.id} className="checkbox-label">
                   <span className="checkbox-custom">
@@ -97,9 +102,9 @@ const ParameterSelection = ({ selectedStreams, onFight }) => {
                 </label>
               </div>
               <div className="parameter-content">
-                <label htmlFor={parameter.id} className="parameter-label" id={`parameter-${parameter.id}-label`}>
+                <span className="parameter-label" id={`parameter-${parameter.id}-label`}>
                   {parameter.label}
-                </label>
+                </span>
                 <p className="parameter-description" id={`parameter-${parameter.id}-desc`}>{parameter.description}</p>
               </div>
             </div>

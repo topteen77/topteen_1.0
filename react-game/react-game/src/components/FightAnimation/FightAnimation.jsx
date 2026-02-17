@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import { compareStreamsWithLLM } from '../../services/llmService';
 import './FightAnimation.css';
 
+const BATTLE_PHRASES = [
+  'Analyzing streams...',
+  'Comparing skills...',
+  'Checking match-up...',
+  'Choosing a winner...',
+  'Almost there...',
+];
+
 const FightAnimation = ({ streams, parameters, onComplete }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,6 +17,7 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [battlePhrase, setBattlePhrase] = useState(BATTLE_PHRASES[0]);
   const MAX_RETRIES = 2;
 
   const performComparison = () => {
@@ -62,6 +71,12 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
     performComparison();
   }, [streams, parameters, onComplete]);
 
+  useEffect(() => {
+    if (!loading) return;
+    const idx = Math.floor(progress / 25) % BATTLE_PHRASES.length;
+    setBattlePhrase(BATTLE_PHRASES[idx]);
+  }, [loading, progress]);
+
   const handleRetry = () => {
     if (retryCount < MAX_RETRIES) {
       setIsRetrying(true);
@@ -78,38 +93,49 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
 
   return (
     <div className="fight-animation-container" role="region" aria-labelledby="fight-title" aria-live="polite">
+      <div className="fight-arena-ring" aria-hidden="true"></div>
+
       <div className="fight-header">
         <h1 id="fight-title" className="fight-title">
-          <span aria-hidden="true">⚔️</span> Battle in Progress! <span aria-hidden="true">⚔️</span>
+          <span className="fight-title-icon" aria-hidden="true">⚔</span>
+          {loading ? 'BATTLE!' : error ? 'Error' : 'Done!'}
+          <span className="fight-title-icon" aria-hidden="true">⚔</span>
         </h1>
         <p className="fight-subtitle" id="fight-status">
-          {loading ? 'Analyzing your streams...' : error ? 'Error occurred' : 'Analysis complete'}
+          {loading ? battlePhrase : error ? 'Something went wrong' : 'Winner incoming!'}
         </p>
       </div>
 
       {/* Fight Arena */}
       <div className="fight-arena" role="group" aria-label="Fighting streams">
         <div className="fighter fighter-left" role="group" aria-label={`Fighter: ${streams[0]}`}>
-          <div className="fighter-name">{streams[0]}</div>
-          <div className="fighter-avatar">
-            <div className="fighter-body"></div>
-            <div className="fighter-punch punch-left"></div>
+          <div className="fighter-card">
+            <div className="fighter-name">{streams[0]}</div>
+            <div className="fighter-avatar">
+              <div className="fighter-body fighter-red"></div>
+              <div className="fighter-punch punch-left"></div>
+            </div>
           </div>
         </div>
 
-        <div className="vs-badge" aria-label="versus" aria-hidden="true">VS</div>
+        <div className="vs-badge" aria-label="versus">
+          <span className="vs-text">VS</span>
+        </div>
 
         <div className="fighter fighter-right" role="group" aria-label={`Fighter: ${streams[1]}`}>
-          <div className="fighter-name">{streams[1]}</div>
-          <div className="fighter-avatar">
-            <div className="fighter-body"></div>
-            <div className="fighter-punch punch-right"></div>
+          <div className="fighter-card">
+            <div className="fighter-name">{streams[1]}</div>
+            <div className="fighter-avatar">
+              <div className="fighter-body fighter-blue"></div>
+              <div className="fighter-punch punch-right"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Progress Indicator */}
-      <div className="progress-container" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label="Comparison progress">
+      {/* Progress - Power bar style */}
+      <div className="progress-container" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label="Battle progress">
+        <div className="progress-label">{loading ? 'Powering up...' : 'Complete!'}</div>
         <div className="progress-bar">
           <div 
             className="progress-fill" 
@@ -119,21 +145,20 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
         </div>
         <div className="progress-text" aria-live="polite" aria-atomic="true">
           {loading ? (
-            <span>Processing comparison... {Math.round(progress)}%</span>
+            <span>{Math.round(progress)}%</span>
           ) : error ? (
             <span className="error-text">
-              Error: {error.reasoning || error.error || 'Unknown error'}
+              {error.reasoning || error.error || 'Unknown error'}
               {error.errorCode && ` (${error.errorCode})`}
             </span>
           ) : (
-            <span className="success-text">✓ Analysis Complete!</span>
+            <span className="success-text">✓ Ready!</span>
           )}
         </div>
       </div>
 
-      {/* Loading Spinner */}
       {loading && (
-        <div className="loading-spinner">
+        <div className="loading-spinner" aria-hidden="true">
           <div className="spinner"></div>
         </div>
       )}

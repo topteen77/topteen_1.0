@@ -619,6 +619,28 @@
 }
 
 /* Action Buttons */
+.shortlist-message {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.shortlist-message-success {
+  background: rgba(76, 175, 80, 0.12);
+  color: #1b5e20;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.shortlist-message-info {
+  background: rgba(158, 158, 158, 0.15);
+  color: #424242;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
 .action-buttons-section {
   display: flex;
   gap: 1.5rem;
