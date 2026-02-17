@@ -1,479 +1,1025 @@
-            <div class="table-responsive mt-4">
-              <table class="table table-striped table-bordered">
-                <!-- thead matches first row of original: Area / Stream , What to Do , Key Skills -->
-                <thead>
-                  <tr style="background-color: #f2f2f2;">
-                    <th style="width:17%">Area / Stream</th>
-                    <th style="width:53%">What to Do — topics, projects, practicals</th>
-                    <th style="width:30%">Key Skills (exact from doc)</th>
+<style>
+  .cp-accordion .accordion-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    padding: .75rem 1rem;
+  }
+
+  .cp-accordion .box-icon {
+    font-size: 16px;
+    color: #495057;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #6c757d;
+    border-radius: 4px;
+    background: #fff;
+    flex: 0 0 22px;
+  }
+
+  .cp-accordion .toggle-icon {
+    margin-left: auto;
+    font-size: 18px;
+    color: #495057;
+    transition: transform .2s ease;
+  }
+
+  .cp-accordion table th {
+    background: #f8f9fa;
+  }
+
+  .cp-accordion .section-table {
+    margin-bottom: 0;
+  }
+
+  .cp-accordion .table-responsive tr th {
+    background: #f4f4ff;
+  }
+</style>
+
+<div class="cp-accordion accordion mt-4" id="careerAccordion">
+	
+	
+	
+  <!-- Core Academics -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingCore">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCore"
+        aria-expanded="true" aria-controls="collapseCore">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> SCIENCE STREAM (PCM/PCB/PCMB)
+        
+
+      </button>
+    </h2>
+    <div id="collapseCore" class="accordion-collapse collapse show" aria-labelledby="headingCore"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+               <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                </thead>
-                <tbody>
-                  <!-- ================================================================= -->
-                  <!-- ||                         SCIENCE STREAM                       || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🔬 SCIENCE STREAM (PCM/PCB/PCMB)</strong></td>
-                  </tr>
-                  <!-- PHYSICS -->
-                  <tr>
+            </thead>
+            <tbody>
+         <tr>
                     <td><strong>⚛️ Physics</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Mechanics, Waves &amp; Oscillations, Thermal Physics &amp; Thermodynamics, Electrostatics &amp; Current Electricity, Magnetism &amp; EMI, Ray &amp; Wave Optics, Introductory Modern Physics (Photoelectric Effect, Dual Nature).</li>
-                        <li><strong>Practical:</strong> Lab experiments (pendulum, circuit analysis, optics) – 12+ experiments, journal writing, viva, PhET simulations.</li>
-                        <li><strong>Interdisciplinary:</strong> Renewable energy models (solar efficiency), sustainability challenges.</li>
+                        <li><strong>Topics:</strong> Mechanics, Waves &amp; Oscillations, Thermal Physics &amp; Thermodynamics,
+                          Electrostatics &amp; Current Electricity, Magnetism &amp; EMI, Ray &amp; Wave Optics, Introductory Modern
+                          Physics (Photoelectric Effect, Dual Nature).</li>
+                        <li><strong>Practical:</strong> Lab experiments (pendulum, circuit analysis, optics) – 12+
+                          experiments, journal writing, viva, PhET simulations.</li>
+                        <li><strong>Interdisciplinary:</strong> Renewable energy models (solar efficiency),
+                          sustainability challenges.</li>
                         <li><strong>Field exposure:</strong> Virtual/physical visits to research labs/power plants.</li>
                       </ul>
                     </td>
-                    <td><span>Conceptual Clarity</span> · <span>Experimental Design</span> · <span>Data Analysis</span> · <span>Practical Application</span> · <span>Interdisciplinary Thinking</span> · <span>Research Orientation</span></td>
+                    <td><span class="skill-pill">Conceptual Clarity</span> <span class="skill-pill">Experimental
+                        Design</span> <span class="skill-pill">Data Analysis</span> <span class="skill-pill">Practical
+                        Application</span> <span class="skill-pill">Interdisciplinary Thinking</span> <span class="skill-pill">Research Orientation</span></td>
                   </tr>
                   <!-- CHEMISTRY -->
                   <tr>
                     <td><strong>🧪 Chemistry</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Atomic Structure, Periodicity, Chemical Bonding, States of Matter, Gas Laws, Thermodynamics, Thermochemistry, Equilibrium, Ionic Equilibria, Electrochemistry, Organic (Nomenclature, Hydrocarbons, Functional Groups).</li>
-                        <li><strong>Lab work:</strong> Volumetric analysis, qualitative testing, detailed reporting, safety protocols, green chemistry experiments (eco-friendly synthesis).</li>
-                        <li><strong>Focus:</strong> Competitive exam foundation (JEE/NEET), conceptual problem-solving, real-world applications (chemistry in medicine).</li>
-                        <li><strong>Tech integration:</strong> Molecular modeling software for visualizing structures.</li>
+                        <li><strong>Topics:</strong> Atomic Structure, Periodicity, Chemical Bonding, States of Matter,
+                          Gas Laws, Thermodynamics, Thermochemistry, Equilibrium, Ionic Equilibria, Electrochemistry,
+                          Organic (Nomenclature, Hydrocarbons, Functional Groups).</li>
+                        <li><strong>Lab work:</strong> Volumetric analysis, qualitative testing, detailed reporting,
+                          safety protocols, green chemistry experiments (eco-friendly synthesis).</li>
+                        <li><strong>Focus:</strong> Competitive exam foundation (JEE/NEET), conceptual problem-solving,
+                          real-world applications (chemistry in medicine).</li>
+                        <li><strong>Tech integration:</strong> Molecular modeling software for visualizing structures.
+                        </li>
                       </ul>
                     </td>
-                    <td><span>Analytical Thinking</span> · <span>Lab Safety &amp; Reporting</span> · <span>Problem-Solving</span> · <span>Precision in Measurement</span> · <span>Tech Visualization</span> · <span>Sustainable Practices</span></td>
+                    <td><span class="skill-pill">Analytical Thinking</span> <span class="skill-pill">Lab Safety &amp;
+                        Reporting</span> <span class="skill-pill">Problem-Solving</span> <span class="skill-pill">Precision in Measurement</span> <span class="skill-pill">Tech
+                        Visualization</span> <span class="skill-pill">Sustainable Practices</span></td>
                   </tr>
                   <!-- BIOLOGY -->
                   <tr>
                     <td><strong>🧬 Biology (PCB/PCMB)</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Biomolecules, Cell Structure &amp; Division, Genetics &amp; Inheritance, Plant Physiology, Animal Physiology (Digestion to Excretion), Ecology &amp; Biodiversity, Evolution Theories, Biotechnology Basics.</li>
-                        <li><strong>Practical:</strong> Slide prep, field observations, microscope use, dissections (where applicable), virtual labs for ethical alternatives.</li>
-                        <li><strong>Real-world linkages:</strong> Health crises (pandemics), conservation strategies, genetic engineering ethics, biotech advancements.</li>
-                        <li><strong>Projects:</strong> Local biodiversity surveys, health awareness campaigns (nutrition drives).</li>
+                        <li><strong>Topics:</strong> Biomolecules, Cell Structure &amp; Division, Genetics &amp; Inheritance,
+                          Plant Physiology, Animal Physiology (Digestion to Excretion), Ecology &amp; Biodiversity,
+                          Evolution Theories, Biotechnology Basics.</li>
+                        <li><strong>Practical:</strong> Slide prep, field observations, microscope use, dissections
+                          (where applicable), virtual labs for ethical alternatives.</li>
+                        <li><strong>Real-world linkages:</strong> Health crises (pandemics), conservation strategies,
+                          genetic engineering ethics, biotech advancements.</li>
+                        <li><strong>Projects:</strong> Local biodiversity surveys, health awareness campaigns (nutrition
+                          drives).</li>
                       </ul>
+
                     </td>
-                    <td><span>Observational Skills</span> · <span>Experimental Design</span> · <span>Ecological Awareness</span> · <span>Scientific Inquiry</span> · <span>Ethical Reasoning</span> · <span>Community Impact</span></td>
+                    <td><span class="skill-pill">Observational Skills</span> <span class="skill-pill">Experimental
+                        Design</span> <span class="skill-pill">Ecological Awareness</span> <span class="skill-pill">Scientific Inquiry</span> <span class="skill-pill">Ethical Reasoning</span>
+                      <span class="skill-pill">Community Impact</span></td>
                   </tr>
                   <!-- MATHEMATICS -->
                   <tr>
                     <td><strong>📐 Mathematics</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Sets, Relations &amp; Functions, Trigonometric Functions, Limits &amp; Derivatives, Sequence &amp; Series, Coordinate Geometry (Straight Line, Conic Sections), Probability &amp; Binomial Theorem, Statistics (Dispersion, Correlation, Regression).</li>
-                        <li><strong>Emphasis:</strong> Problem-solving, real-world applications (calculus in physics, stats in research), NCERT Exemplar HOTS, case-study numericals.</li>
+                        <li><strong>Topics:</strong> Sets, Relations &amp; Functions, Trigonometric Functions, Limits &amp;
+                          Derivatives, Sequence &amp; Series, Coordinate Geometry (Straight Line, Conic Sections),
+                          Probability &amp; Binomial Theorem, Statistics (Dispersion, Correlation, Regression).</li>
+                        <li><strong>Emphasis:</strong> Problem-solving, real-world applications (calculus in physics,
+                          stats in research), NCERT Exemplar HOTS, case-study numericals.</li>
                         <li><strong>Tools:</strong> GeoGebra, Desmos, Python for math modeling.</li>
                         <li><strong>Challenges:</strong> Inter-school math Olympiads, weekly puzzle contests.</li>
                       </ul>
                     </td>
-                    <td><span>Logical Deduction</span> · <span>Spatial Reasoning</span> · <span>Data Analysis</span> · <span>Software Familiarity</span> · <span>Application-Based Thinking</span> · <span>Competitive Problem-Solving</span></td>
+                    <td><span class="skill-pill">Logical Deduction</span> <span class="skill-pill">Spatial
+                        Reasoning</span> <span class="skill-pill">Data Analysis</span> <span class="skill-pill">Software
+                        Familiarity</span> <span class="skill-pill">Application-Based Thinking</span> <span class="skill-pill">Competitive Problem-Solving</span></td>
                   </tr>
                   <!-- COMPUTER SCIENCE (OPTIONAL) -->
                   <tr>
                     <td><strong>💻 Computer Science (Optional)</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Python Fundamentals, Data Structures (Lists, Stacks, Queues), Relational Databases &amp; SQL, Version Control (Git Basics), HTML/CSS Starter Sites, Unit Testing &amp; Debugging, Intro to AI/ML Concepts (neural networks basics).</li>
-                        <li><strong>Projects:</strong> Data visualization with Matplotlib, web application / chatbot.</li>
+                        <li><strong>Topics:</strong> Python Fundamentals, Data Structures (Lists, Stacks, Queues),
+                          Relational Databases &amp; SQL, Version Control (Git Basics), HTML/CSS Starter Sites, Unit Testing
+                          &amp; Debugging, Intro to AI/ML Concepts (neural networks basics).</li>
+                        <li><strong>Projects:</strong> Data visualization with Matplotlib, web application / chatbot.
+                        </li>
                         <li><strong>Focus:</strong> Future-ready tech skills for IT, engineering, data science.</li>
                         <li><strong>Hackathons:</strong> Coding competitions, app development challenges.</li>
                       </ul>
                     </td>
-                    <td><span>Programming Logic</span> · <span>Database Management</span> · <span>Web Development</span> · <span>Debugging</span> · <span>AI Awareness</span> · <span>Project Execution</span></td>
+                    <td><span class="skill-pill">Programming Logic</span> <span class="skill-pill">Database
+                        Management</span> <span class="skill-pill">Web Development</span> <span class="skill-pill">Debugging</span> <span class="skill-pill">AI Awareness</span> <span class="skill-pill">Project Execution</span></td>
                   </tr>
                   <!-- COMPETITIVE EXAM START-UP (SCIENCE) -->
                   <tr>
                     <td><strong>🎯 Competitive Exam Start-Up (Science)</strong></td>
                     <td>
                       <ul>
-                        <li>JEE, NEET, KVPY, NSEJS/NSEC Olympiads – concept sheets, diagram drills, weekly mixed-chapter timed quizzes, doubt-resolution "error log" meetings, personalized coaching.</li>
-                        <li><strong>Resources:</strong> H.C. Verma Vol-I, O.P. Tandon, NCERT Exemplars, Khan Academy, BYJU'S.</li>
-                        <li><strong>Strategy:</strong> Workshops on exam patterns, time management, stress handling.</li>
+                        <li>JEE, NEET, KVPY, NSEJS/NSEC Olympiads – concept sheets, diagram drills, weekly mixed-chapter
+                          timed quizzes, doubt-resolution "error log" meetings, personalized coaching.</li>
+                        <li><strong>Resources:</strong> H.C. Verma Vol-I, O.P. Tandon, NCERT Exemplars, Khan Academy,
+                          BYJU'S.</li>
+                        <li><strong>Strategy:</strong> Workshops on exam patterns, time management, stress handling.
+                        </li>
                       </ul>
                     </td>
-                    <td><span>Exam Strategy</span> · <span>Time Management</span> · <span>Error Analysis</span> · <span>Conceptual Mastery</span> · <span>Competitive Readiness</span> · <span>Stress Control</span></td>
+                    <td><span class="skill-pill">Exam Strategy</span> <span class="skill-pill">Time Management</span>
+                      <span class="skill-pill">Error Analysis</span> <span class="skill-pill">Conceptual Mastery</span>
+                      <span class="skill-pill">Competitive Readiness</span> <span class="skill-pill">Stress
+                        Control</span></td>
                   </tr>
                   <!-- PRACTICAL WORK (interdisciplinary) -->
                   <tr>
                     <td><strong>🧪🔌 Practical Work (Science)</strong></td>
                     <td>
                       <ul>
-                        <li>Structured lab journals: Physics, Chemistry, Biology (12+ experiments each, detailed diagrams &amp; analysis).</li>
+                        <li>Structured lab journals: Physics, Chemistry, Biology (12+ experiments each, detailed
+                          diagrams &amp; analysis).</li>
                         <li>CS capstone: data visualization tool, interactive website.</li>
-                        <li>Interdisciplinary projects: renewable energy models, health-tech innovations linking science &amp; societal impact.</li>
-                        <li>Industry exposure: virtual tours of research facilities, webinars with scientists/engineers.</li>
+                        <li>Interdisciplinary projects: renewable energy models, health-tech innovations linking science
+                          &amp; societal impact.</li>
+                        <li>Industry exposure: virtual tours of research facilities, webinars with scientists/engineers.
+                        </li>
                       </ul>
                     </td>
-                    <td><span>Hands-On Learning</span> · <span>Report Writing</span> · <span>Interdisciplinary Innovation</span> · <span>Project Management</span> · <span>Industry Awareness</span></td>
+                    <td><span class="skill-pill">Hands-On Learning</span> <span class="skill-pill">Report Writing</span>
+                      <span class="skill-pill">Interdisciplinary Innovation</span> <span class="skill-pill">Project
+                        Management</span> <span class="skill-pill">Industry Awareness</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||                        COMMERCE STREAM                       || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>💼 COMMERCE STREAM</strong></td>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Examination Support -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingExam">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExam"
+        aria-expanded="false" aria-controls="collapseExam">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> COMMERCE STREAM
+        
+
+      </button>
+    </h2>
+    <div id="collapseExam" class="accordion-collapse collapse" aria-labelledby="headingExam"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+              <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <!-- ACCOUNTANCY -->
-                  <tr>
+            </thead>
+            <tbody>
+        <tr>
                     <td><strong>📊 Accountancy</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Journal &amp; Ledger Posting, Trial Balance &amp; Rectification, Bank Reconciliation, Depreciation (SLM/WDV), Provision &amp; Reserve, Partnership Fundamentals, Financial Statements, Cash Flow Analysis, Company Accounts Intro.</li>
-                        <li><strong>Focus:</strong> Practical accounting skills, real-world business scenarios, case studies on financial mismanagement, Tally software.</li>
-                        <li><strong>Projects:</strong> Simulated company audits, financial planning for small businesses.</li>
+                        <li><strong>Topics:</strong> Journal &amp; Ledger Posting, Trial Balance &amp; Rectification, Bank
+                          Reconciliation, Depreciation (SLM/WDV), Provision &amp; Reserve, Partnership Fundamentals,
+                          Financial Statements, Cash Flow Analysis, Company Accounts Intro.</li>
+                        <li><strong>Focus:</strong> Practical accounting skills, real-world business scenarios, case
+                          studies on financial mismanagement, Tally software.</li>
+                        <li><strong>Projects:</strong> Simulated company audits, financial planning for small
+                          businesses.</li>
                       </ul>
                     </td>
-                    <td><span>Financial Accuracy</span> · <span>Ledger Management</span> · <span>Analytical Skills</span> · <span>Practical Accounting</span> · <span>Tech Application</span> · <span>Audit Skills</span></td>
+                    <td><span class="skill-pill">Financial Accuracy</span> <span class="skill-pill">Ledger
+                        Management</span> <span class="skill-pill">Analytical Skills</span> <span class="skill-pill">Practical Accounting</span> <span class="skill-pill">Tech Application</span>
+                      <span class="skill-pill">Audit Skills</span></td>
                   </tr>
                   <!-- BUSINESS STUDIES -->
                   <tr>
                     <td><strong>🏢 Business Studies</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Nature &amp; Purpose of Business, Forms of Organization, Public-Private Sector, Entrepreneurship Traits, Marketing Management, CSR, Organizational Behavior.</li>
-                        <li><strong>Activities:</strong> Case studies on modern businesses, startup ecosystems, ethical dilemmas in corporate settings.</li>
-                        <li><strong>Field engagement:</strong> Virtual interactions with entrepreneurs, business webinars.</li>
+                        <li><strong>Topics:</strong> Nature &amp; Purpose of Business, Forms of Organization, Public-Private
+                          Sector, Entrepreneurship Traits, Marketing Management, CSR, Organizational Behavior.</li>
+                        <li><strong>Activities:</strong> Case studies on modern businesses, startup ecosystems, ethical
+                          dilemmas in corporate settings.</li>
+                        <li><strong>Field engagement:</strong> Virtual interactions with entrepreneurs, business
+                          webinars.</li>
                       </ul>
                     </td>
-                    <td><span>Strategic Thinking</span> · <span>Market Analysis</span> · <span>Entrepreneurial Mindset</span> · <span>Ethical Awareness</span> · <span>Networking</span> · <span>Case Study Analysis</span></td>
+                    <td><span class="skill-pill">Strategic Thinking</span> <span class="skill-pill">Market
+                        Analysis</span> <span class="skill-pill">Entrepreneurial Mindset</span> <span class="skill-pill">Ethical Awareness</span> <span class="skill-pill">Networking</span> <span class="skill-pill">Case Study Analysis</span></td>
                   </tr>
                   <!-- ECONOMICS -->
                   <tr>
                     <td><strong>💰 Economics</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Microeconomics:</strong> Demand-Supply, Elasticity, Market Equilibrium, Consumer Behavior.</li>
-                        <li><strong>Macroeconomics:</strong> National Income, Money &amp; Banking, Government Budget, Balance of Payments.</li>
+                        <li><strong>Microeconomics:</strong> Demand-Supply, Elasticity, Market Equilibrium, Consumer
+                          Behavior.</li>
+                        <li><strong>Macroeconomics:</strong> National Income, Money &amp; Banking, Government Budget,
+                          Balance of Payments.</li>
                         <li><strong>Intro to Econometrics:</strong> Correlation, Basic Regression.</li>
-                        <li><strong>Focus:</strong> Market dynamics, monetary policies, global economics (inflation, trade policies).</li>
-                        <li><strong>Projects:</strong> Local market trends / national budget impacts using real data.</li>
+                        <li><strong>Focus:</strong> Market dynamics, monetary policies, global economics (inflation,
+                          trade policies).</li>
+                        <li><strong>Projects:</strong> Local market trends / national budget impacts using real data.
+                        </li>
                       </ul>
                     </td>
-                    <td><span>Economic Analysis</span> · <span>Policy Interpretation</span> · <span>Data Correlation</span> · <span>Global Perspective</span> · <span>Research Skills</span> · <span>Trend Analysis</span></td>
+                    <td><span class="skill-pill">Economic Analysis</span> <span class="skill-pill">Policy
+                        Interpretation</span> <span class="skill-pill">Data Correlation</span> <span class="skill-pill">Global Perspective</span> <span class="skill-pill">Research Skills</span>
+                      <span class="skill-pill">Trend Analysis</span></td>
                   </tr>
                   <!-- MATHEMATICS (Optional) + INFORMATICS PRACTICES -->
                   <tr>
                     <td><strong>📈 Maths (Opt) / IP</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Business Maths:</strong> Profit-Loss, Interest, Annuities, Statistics (Mean, Median, Mode, SD, Variance), Permutations &amp; Combinations, Linear Programming, Index Numbers &amp; Time-Series.</li>
-                        <li><strong>Informatics Practices:</strong> Python Pandas Dataframes, SQL Joins, Matplotlib, Networks &amp; Cyber-Ethics, Cloud basics, e-business demos.</li>
+                        <li><strong>Business Maths:</strong> Profit-Loss, Interest, Annuities, Statistics (Mean, Median,
+                          Mode, SD, Variance), Permutations &amp; Combinations, Linear Programming, Index Numbers &amp;
+                          Time-Series.</li>
+                        <li><strong>Informatics Practices:</strong> Python Pandas Dataframes, SQL Joins, Matplotlib,
+                          Networks &amp; Cyber-Ethics, Cloud basics, e-business demos.</li>
                         <li>Projects: data analysis tools, e-business models, cybersecurity campaigns.</li>
                       </ul>
                     </td>
-                    <td><span>Quantitative Analysis</span> · <span>Statistical Interpretation</span> · <span>Data Manipulation</span> · <span>Visualization</span> · <span>Cyber-Ethics</span> · <span>Financial Modeling</span></td>
+                    <td><span class="skill-pill">Quantitative Analysis</span> <span class="skill-pill">Statistical
+                        Interpretation</span> <span class="skill-pill">Data Manipulation</span> <span class="skill-pill">Visualization</span> <span class="skill-pill">Cyber-Ethics</span> <span class="skill-pill">Financial Modeling</span></td>
                   </tr>
                   <!-- COMPETITIVE EXAM – COMMERCE -->
                   <tr>
                     <td><strong>📋 Competitive Exam Start-Up (Commerce)</strong></td>
                     <td>
                       <ul>
-                        <li>CA Foundation, CS Executive, CMA Entrance, CUET-Commerce, IPMAT – working papers, MCQs, numerical drills, sectional mocks, online test series.</li>
-                        <li>Focus: Foundation readiness for professional certifications, exam strategies, career pathways in finance/law.</li>
+                        <li>CA Foundation, CS Executive, CMA Entrance, CUET-Commerce, IPMAT – working papers, MCQs,
+                          numerical drills, sectional mocks, online test series.</li>
+                        <li>Focus: Foundation readiness for professional certifications, exam strategies, career
+                          pathways in finance/law.</li>
                         <li>Resources: ICAI materials, past papers, Unacademy.</li>
                       </ul>
                     </td>
-                    <td><span>Exam Readiness</span> · <span>Numerical Proficiency</span> · <span>Time-Bound Practice</span> · <span>Professional Orientation</span> · <span>Strategic Planning</span></td>
+                    <td><span class="skill-pill">Exam Readiness</span> <span class="skill-pill">Numerical
+                        Proficiency</span> <span class="skill-pill">Time-Bound Practice</span> <span class="skill-pill">Professional Orientation</span> <span class="skill-pill">Strategic
+                        Planning</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||                      HUMANITIES/ARTS STREAM                  || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🎭 HUMANITIES / ARTS STREAM</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Career Planning & Stream Selection -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingCareer">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+        data-bs-target="#collapseCareer" aria-expanded="false" aria-controls="collapseCareer">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> HUMANITIES / ARTS STREAM
+        
+
+      </button>
+    </h2>
+    <div id="collapseCareer" class="accordion-collapse collapse" aria-labelledby="headingCareer"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <!-- POLITICAL SCIENCE -->
-                  <tr>
+            </thead>
+            <tbody>
+            <tr>
                     <td><strong>⚖️ Political Science</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Constitution Philosophy, Rights &amp; Duties, Government Organs, Political Ideologies, UN &amp; Global Governance, Indian Constitution, IR, Comparative Politics.</li>
-                        <li><strong>Activities:</strong> Debates, mock parliaments, Model UN, analysis of elections/global summits.</li>
+                        <li><strong>Topics:</strong> Constitution Philosophy, Rights &amp; Duties, Government Organs,
+                          Political Ideologies, UN &amp; Global Governance, Indian Constitution, IR, Comparative Politics.
+                        </li>
+                        <li><strong>Activities:</strong> Debates, mock parliaments, Model UN, analysis of
+                          elections/global summits.</li>
                         <li><strong>Projects:</strong> Research on local governance, international policy impacts.</li>
                       </ul>
                     </td>
-                    <td><span>Critical Analysis</span> · <span>Civic Awareness</span> · <span>Debate Skills</span> · <span>Global Understanding</span> · <span>Policy Research</span> · <span>Diplomatic Thinking</span></td>
+                    <td><span class="skill-pill">Critical Analysis</span> <span class="skill-pill">Civic
+                        Awareness</span> <span class="skill-pill">Debate Skills</span> <span class="skill-pill">Global
+                        Understanding</span> <span class="skill-pill">Policy Research</span> <span class="skill-pill">Diplomatic Thinking</span></td>
                   </tr>
                   <!-- HISTORY -->
                   <tr>
                     <td><strong>🏛️ History</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Early Human Societies, Medieval Kingdoms, Delhi Sultanate, Mughal Empire, Industrial &amp; French Revolutions, Indian Nationalism, World History, Historiography, Cultural Heritage.</li>
-                        <li><strong>Projects:</strong> Timeline creations, source-based analysis, virtual museum tours, local history documentation.</li>
-                        <li><strong>Focus:</strong> Connecting historical events to modern socio-political contexts.</li>
+                        <li><strong>Topics:</strong> Early Human Societies, Medieval Kingdoms, Delhi Sultanate, Mughal
+                          Empire, Industrial &amp; French Revolutions, Indian Nationalism, World History, Historiography,
+                          Cultural Heritage.</li>
+                        <li><strong>Projects:</strong> Timeline creations, source-based analysis, virtual museum tours,
+                          local history documentation.</li>
+                        <li><strong>Focus:</strong> Connecting historical events to modern socio-political contexts.
+                        </li>
                       </ul>
                     </td>
-                    <td><span>Historical Interpretation</span> · <span>Research Skills</span> · <span>Analytical Writing</span> · <span>Contextual Understanding</span> · <span>Cultural Appreciation</span></td>
+                    <td><span class="skill-pill">Historical Interpretation</span> <span class="skill-pill">Research
+                        Skills</span> <span class="skill-pill">Analytical Writing</span> <span class="skill-pill">Contextual Understanding</span> <span class="skill-pill">Cultural
+                        Appreciation</span></td>
                   </tr>
                   <!-- GEOGRAPHY -->
                   <tr>
                     <td><strong>🌍 Geography</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Geomorphology, Climatology &amp; Oceanography, Population Dynamics, Resource Distribution, GIS Intro &amp; Map Layers, Physical &amp; Human Geography, Environmental Studies, Urbanization Trends.</li>
-                        <li><strong>Practical:</strong> Map analysis, field surveys, GIS tools for spatial visualization.</li>
+                        <li><strong>Topics:</strong> Geomorphology, Climatology &amp; Oceanography, Population Dynamics,
+                          Resource Distribution, GIS Intro &amp; Map Layers, Physical &amp; Human Geography, Environmental
+                          Studies, Urbanization Trends.</li>
+                        <li><strong>Practical:</strong> Map analysis, field surveys, GIS tools for spatial
+                          visualization.</li>
                         <li><strong>Projects:</strong> Climate change impacts, sustainable urban planning.</li>
                       </ul>
                     </td>
-                    <td><span>Spatial Analysis</span> · <span>Environmental Awareness</span> · <span>GIS Familiarity</span> · <span>Research &amp; Mapping</span> · <span>Sustainable Planning</span></td>
+                    <td><span class="skill-pill">Spatial Analysis</span> <span class="skill-pill">Environmental
+                        Awareness</span> <span class="skill-pill">GIS Familiarity</span> <span class="skill-pill">Research &amp; Mapping</span> <span class="skill-pill">Sustainable
+                        Planning</span></td>
                   </tr>
                   <!-- SOCIOLOGY -->
                   <tr>
                     <td><strong>👥 Sociology</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Culture &amp; Socialization, Stratification Systems, Institutions (Family, Religion, Economy), Social Change &amp; Globalization, Research Tools (Survey, Interview), Gender Studies.</li>
-                        <li><strong>Focus:</strong> Understanding societal structures, inequalities through case studies (caste, class, gender).</li>
+                        <li><strong>Topics:</strong> Culture &amp; Socialization, Stratification Systems, Institutions
+                          (Family, Religion, Economy), Social Change &amp; Globalization, Research Tools (Survey,
+                          Interview), Gender Studies.</li>
+                        <li><strong>Focus:</strong> Understanding societal structures, inequalities through case studies
+                          (caste, class, gender).</li>
                         <li><strong>Activities:</strong> Community surveys, awareness campaigns on social issues.</li>
                       </ul>
                     </td>
-                    <td><span>Sociological Insight</span> · <span>Research Methodology</span> · <span>Cultural Sensitivity</span> · <span>Critical Observation</span> · <span>Social Advocacy</span></td>
+                    <td><span class="skill-pill">Sociological Insight</span> <span class="skill-pill">Research
+                        Methodology</span> <span class="skill-pill">Cultural Sensitivity</span> <span class="skill-pill">Critical Observation</span> <span class="skill-pill">Social Advocacy</span>
+                    </td>
                   </tr>
                   <!-- PSYCHOLOGY -->
                   <tr>
                     <td><strong>🧠 Psychology</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Topics:</strong> Methods of Psychology, Sensation &amp; Perception, Learning &amp; Memory, Motive &amp; Emotion, Statistics for Behavioral Data, Human Behavior, Cognitive &amp; Developmental Psychology, Abnormal Psychology Intro.</li>
-                        <li><strong>Activities:</strong> Behavioral experiments, case study discussions, mental health stigma workshops, peer counseling basics.</li>
-                        <li><strong>Projects:</strong> Analysis of stress factors among teens, learning style assessments.</li>
+                        <li><strong>Topics:</strong> Methods of Psychology, Sensation &amp; Perception, Learning &amp; Memory,
+                          Motive &amp; Emotion, Statistics for Behavioral Data, Human Behavior, Cognitive &amp; Developmental
+                          Psychology, Abnormal Psychology Intro.</li>
+                        <li><strong>Activities:</strong> Behavioral experiments, case study discussions, mental health
+                          stigma workshops, peer counseling basics.</li>
+                        <li><strong>Projects:</strong> Analysis of stress factors among teens, learning style
+                          assessments.</li>
                       </ul>
                     </td>
-                    <td><span>Behavioral Analysis</span> · <span>Statistical Application</span> · <span>Empathy</span> · <span>Experimental Design</span> · <span>Mental Health Awareness</span></td>
+                    <td><span class="skill-pill">Behavioral Analysis</span> <span class="skill-pill">Statistical
+                        Application</span> <span class="skill-pill">Empathy</span> <span class="skill-pill">Experimental
+                        Design</span> <span class="skill-pill">Mental Health Awareness</span></td>
                   </tr>
                   <!-- OPTIONAL SUBJECTS &amp; COMPETITIVE (ARTS) -->
                   <tr>
                     <td><strong>🎨 Optional Subjects &amp; Competitive (Arts)</strong></td>
                     <td>
                       <ul>
-                        <li><strong>Electives:</strong> Fine Arts (Studio, Art History), Home Science (Nutrition, Textile), Legal Studies (Moot, Case Law), Mass Media (Scripting, Digital Content), Foreign Language (A1-A2, Cultural Immersion).</li>
-                        <li><strong>Competitive:</strong> CLAT, NID/NIFT (situation tests, portfolio), IPMAT, CUET-Arts (source-based), early UPSC (current affairs, essay).</li>
+                        <li><strong>Electives:</strong> Fine Arts (Studio, Art History), Home Science (Nutrition,
+                          Textile), Legal Studies (Moot, Case Law), Mass Media (Scripting, Digital Content), Foreign
+                          Language (A1-A2, Cultural Immersion).</li>
+                        <li><strong>Competitive:</strong> CLAT, NID/NIFT (situation tests, portfolio), IPMAT, CUET-Arts
+                          (source-based), early UPSC (current affairs, essay).</li>
                         <li>Exhibitions, portfolio building, interview skills.</li>
                       </ul>
                     </td>
-                    <td><span>Specialized Skills</span> · <span>Creative Expression</span> · <span>Practical Application</span> · <span>Career Alignment</span> · <span>Cultural Fluency</span> · <span>Portfolio Development</span></td>
+                    <td><span class="skill-pill">Specialized Skills</span> <span class="skill-pill">Creative
+                        Expression</span> <span class="skill-pill">Practical Application</span> <span class="skill-pill">Career Alignment</span> <span class="skill-pill">Cultural Fluency</span>
+                      <span class="skill-pill">Portfolio Development</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||                   VOCATIONAL / SKILL COURSES                 || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🛠️ VOCATIONAL &amp; SKILL COURSES (NSQF)</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill Enrichment -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingSkill">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSkill"
+        aria-expanded="false" aria-controls="collapseSkill">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> VOCATIONAL & SKILL COURSES (NSQF)
+        
+
+      </button>
+    </h2>
+    <div id="collapseSkill" class="accordion-collapse collapse" aria-labelledby="headingSkill"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+             <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+               <tr>
                     <td><strong>🛒 Retail</strong></td>
-                    <td>Inventory control, customer experience design, POS tech, visual merchandising, e‑commerce basics. Internship diary, retail simulations, guest talks.</td>
-                    <td><span>Customer Service</span> · <span>Inventory Management</span> · <span>Tech Application</span> · <span>E‑Commerce Skills</span></td>
+                    <td>Inventory control, customer experience design, POS tech, visual merchandising, e‑commerce
+                      basics. Internship diary, retail simulations, guest talks.</td>
+                    <td><span class="skill-pill">Customer Service</span> <span class="skill-pill">Inventory
+                        Management</span> <span class="skill-pill">Tech Application</span> <span class="skill-pill">E‑Commerce Skills</span></td>
                   </tr>
                   <tr>
                     <td><strong>🖥️ IT/ITES</strong></td>
-                    <td>PC assembly, troubleshooting, networking protocols, JavaScript interactivity, cybersecurity fundamentals, cloud basics. Certifications: CompTIA ITF+, Cisco Essentials; hackathons.</td>
-                    <td><span>Technical Proficiency</span> · <span>Problem-Solving</span> · <span>Networking Basics</span> · <span>Certification Readiness</span> · <span>Cybersecurity Awareness</span></td>
+                    <td>PC assembly, troubleshooting, networking protocols, JavaScript interactivity, cybersecurity
+                      fundamentals, cloud basics. Certifications: CompTIA ITF+, Cisco Essentials; hackathons.</td>
+                    <td><span class="skill-pill">Technical Proficiency</span> <span class="skill-pill">Problem-Solving</span> <span class="skill-pill">Networking Basics</span>
+                      <span class="skill-pill">Certification Readiness</span> <span class="skill-pill">Cybersecurity
+                        Awareness</span></td>
                   </tr>
                   <tr>
                     <td><strong>⚕️ Healthcare</strong></td>
-                    <td>Anatomy fundamentals, nutrition basics, first aid &amp; CPR, patient-care communication, infection control, medical ethics. Clinical internship log, hospital exposure, health camps.</td>
-                    <td><span>Medical Knowledge</span> · <span>Patient Empathy</span> · <span>Emergency Response</span> · <span>Practical Care</span> · <span>Community Health</span></td>
+                    <td>Anatomy fundamentals, nutrition basics, first aid &amp; CPR, patient-care communication, infection
+                      control, medical ethics. Clinical internship log, hospital exposure, health camps.</td>
+                    <td><span class="skill-pill">Medical Knowledge</span> <span class="skill-pill">Patient
+                        Empathy</span> <span class="skill-pill">Emergency Response</span> <span class="skill-pill">Practical Care</span> <span class="skill-pill">Community Health</span></td>
                   </tr>
                   <tr>
                     <td><strong>🏨 Hospitality &amp; Tourism</strong></td>
-                    <td>Front-office etiquette, menu planning, event micro-planning, luggage handling, cultural tourism, sustainable practices. Virtual tours, role-plays, eco-tourism packages.</td>
-                    <td><span>Hospitality Skills</span> · <span>Event Coordination</span> · <span>Customer Interaction</span> · <span>Sustainable Tourism</span></td>
+                    <td>Front-office etiquette, menu planning, event micro-planning, luggage handling, cultural tourism,
+                      sustainable practices. Virtual tours, role-plays, eco-tourism packages.</td>
+                    <td><span class="skill-pill">Hospitality Skills</span> <span class="skill-pill">Event
+                        Coordination</span> <span class="skill-pill">Customer Interaction</span> <span class="skill-pill">Sustainable Tourism</span></td>
                   </tr>
                   <tr>
                     <td><strong>🌾 Agriculture (Opt.)</strong></td>
-                    <td>Soil health, crop rotation, organic farming, agri-tech (drone), farm-to-table. Field visits, composting projects, agri-tech demos.</td>
-                    <td><span>Agricultural Knowledge</span> · <span>Sustainable Farming</span> · <span>Tech Application</span> · <span>Environmental Responsibility</span></td>
+                    <td>Soil health, crop rotation, organic farming, agri-tech (drone), farm-to-table. Field visits,
+                      composting projects, agri-tech demos.</td>
+                    <td><span class="skill-pill">Agricultural Knowledge</span> <span class="skill-pill">Sustainable
+                        Farming</span> <span class="skill-pill">Tech Application</span> <span class="skill-pill">Environmental Responsibility</span></td>
                   </tr>
                   <tr>
                     <td><strong>📋 Assessment Mode (Vocational)</strong></td>
-                    <td>Skill demonstration tests, log-book, industry mentor rubrics, NSQF credit, portfolio submissions, entry-level certifications.</td>
-                    <td><span>Practical Competence</span> · <span>Industry Alignment</span> · <span>Reflective Learning</span> · <span>Skill Validation</span> · <span>Certification Readiness</span></td>
+                    <td>Skill demonstration tests, log-book, industry mentor rubrics, NSQF credit, portfolio
+                      submissions, entry-level certifications.</td>
+                    <td><span class="skill-pill">Practical Competence</span> <span class="skill-pill">Industry
+                        Alignment</span> <span class="skill-pill">Reflective Learning</span> <span class="skill-pill">Skill Validation</span> <span class="skill-pill">Certification
+                        Readiness</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||               CAREER MAPPING &amp; STREAM RELEVANCE              || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🧭 CAREER MAPPING &amp; STREAM RELEVANCE</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Growth & Well-Being -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingPersonal">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePersonal"
+        aria-expanded="false" aria-controls="collapsePersonal">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> CAREER MAPPING &amp; STREAM RELEVANCE
+        
+
+      </button>
+    </h2>
+    <div id="collapsePersonal" class="accordion-collapse collapse" aria-labelledby="headingPersonal"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+              <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+              <tr>
                     <td><strong>🧑‍🏫 Individual Counseling</strong></td>
-                    <td>MBTI, Big Five, RIASEC, Aptitude Percentile Charts, Stream-Fit Radar, VAK Learning Styles. Personalized guidance, skill gaps, unconventional paths, mid-year review.</td>
-                    <td><span>Self-Awareness</span> · <span>Strength Identification</span> · <span>Career Alignment</span> · <span>Decision-Making</span> · <span>Adaptive Planning</span></td>
+                    <td>MBTI, Big Five, RIASEC, Aptitude Percentile Charts, Stream-Fit Radar, VAK Learning Styles.
+                      Personalized guidance, skill gaps, unconventional paths, mid-year review.</td>
+                    <td><span class="skill-pill">Self-Awareness</span> <span class="skill-pill">Strength
+                        Identification</span> <span class="skill-pill">Career Alignment</span> <span class="skill-pill">Decision-Making</span> <span class="skill-pill">Adaptive Planning</span></td>
                   </tr>
                   <tr>
                     <td><strong>🗓️ Monthly Career Mapping</strong></td>
-                    <td>Seminars &amp; guest talks (surgeons, civil servants, startup founders, AI experts, sustainability consultants). Case studies: Engg, Medicine, Design, Social Impact. Alumni Q&amp;A, virtual job-shadowing, "Day as a Doctor", Startup Pitch Challenge.</td>
-                    <td><span>Career Exploration</span> · <span>Industry Insight</span> · <span>Networking</span> · <span>Aspiration Building</span> · <span>Real-World Exposure</span></td>
+                    <td>Seminars &amp; guest talks (surgeons, civil servants, startup founders, AI experts, sustainability
+                      consultants). Case studies: Engg, Medicine, Design, Social Impact. Alumni Q&amp;A, virtual
+                      job-shadowing, "Day as a Doctor", Startup Pitch Challenge.</td>
+                    <td><span class="skill-pill">Career Exploration</span> <span class="skill-pill">Industry
+                        Insight</span> <span class="skill-pill">Networking</span> <span class="skill-pill">Aspiration
+                        Building</span> <span class="skill-pill">Real-World Exposure</span></td>
                   </tr>
                   <tr>
                     <td><strong>📓 Career Journals &amp; Portfolios</strong></td>
-                    <td>Monthly reflection prompts, SWOT analysis, SMART goals, shadow-day worksheets, digital career portfolio (research summaries, project outcomes, personal statements).</td>
-                    <td><span>Reflective Thinking</span> · <span>Goal Setting</span> · <span>Career Planning</span> · <span>Self-Assessment</span> · <span>Digital Documentation</span></td>
+                    <td>Monthly reflection prompts, SWOT analysis, SMART goals, shadow-day worksheets, digital career
+                      portfolio (research summaries, project outcomes, personal statements).</td>
+                    <td><span class="skill-pill">Reflective Thinking</span> <span class="skill-pill">Goal Setting</span>
+                      <span class="skill-pill">Career Planning</span> <span class="skill-pill">Self-Assessment</span>
+                      <span class="skill-pill">Digital Documentation</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||                 STUDY HABITS &amp; ACADEMIC RIGOR                || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>⏳ STUDY HABITS &amp; ACADEMIC RIGOR</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enrichment Activities & Hobbies -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingEnrich">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+        data-bs-target="#collapseEnrich" aria-expanded="false" aria-controls="collapseEnrich">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div>  STUDY HABITS &amp; ACADEMIC RIGOR
+        
+
+      </button>
+    </h2>
+    <div id="collapseEnrich" class="accordion-collapse collapse" aria-labelledby="headingEnrich"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+             <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+              <tr>
                     <td><strong>⏰ Time Management</strong></td>
-                    <td>Digital planners (Trello, Google Calendar, Notion), deep-work 90-min blocks, weekly retrospectives, workshops on procrastination &amp; peak loads.</td>
-                    <td><span>Discipline</span> · <span>Prioritization</span> · <span>Progress Tracking</span> · <span>Focused Learning</span> · <span>Anti-Procrastination</span></td>
+                    <td>Digital planners (Trello, Google Calendar, Notion), deep-work 90-min blocks, weekly
+                      retrospectives, workshops on procrastination &amp; peak loads.</td>
+                    <td><span class="skill-pill">Discipline</span> <span class="skill-pill">Prioritization</span> <span class="skill-pill">Progress Tracking</span> <span class="skill-pill">Focused Learning</span>
+                      <span class="skill-pill">Anti-Procrastination</span></td>
                   </tr>
                   <tr>
                     <td><strong>📝 Advanced Note-Taking &amp; Revision</strong></td>
-                    <td>Cornell + Mind Mapping, Notion databases, Anki decks, Quizlet, peer teaching, visual summaries/infographics.</td>
-                    <td><span>Organized Learning</span> · <span>Retention Strategies</span> · <span>Visual Thinking</span> · <span>Tech-Savvy Study</span> · <span>Peer Instruction</span></td>
+                    <td>Cornell + Mind Mapping, Notion databases, Anki decks, Quizlet, peer teaching, visual
+                      summaries/infographics.</td>
+                    <td><span class="skill-pill">Organized Learning</span> <span class="skill-pill">Retention
+                        Strategies</span> <span class="skill-pill">Visual Thinking</span> <span class="skill-pill">Tech-Savvy Study</span> <span class="skill-pill">Peer Instruction</span></td>
                   </tr>
                   <tr>
                     <td><strong>📑 Exam Techniques</strong></td>
-                    <td>Pomodoro practice, past-year paper tagging, error-log heat-map reviews, mock exam simulations, strategy workshops (question prioritization).</td>
-                    <td><span>Exam Strategy</span> · <span>Error Analysis</span> · <span>Time-Bound Practice</span> · <span>Continuous Improvement</span> · <span>Stress Management</span></td>
+                    <td>Pomodoro practice, past-year paper tagging, error-log heat-map reviews, mock exam simulations,
+                      strategy workshops (question prioritization).</td>
+                    <td><span class="skill-pill">Exam Strategy</span> <span class="skill-pill">Error Analysis</span>
+                      <span class="skill-pill">Time-Bound Practice</span> <span class="skill-pill">Continuous
+                        Improvement</span> <span class="skill-pill">Stress Management</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||                 SKILL DEVELOPMENT &amp; ENRICHMENT               || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>⚡ SKILL DEVELOPMENT &amp; ENRICHMENT</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Awareness -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingGlobal">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGlobal"
+        aria-expanded="false" aria-controls="collapseGlobal">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> SKILL DEVELOPMENT &amp; ENRICHMENT
+        
+
+      </button>
+    </h2>
+    <div id="collapseGlobal" class="accordion-collapse collapse" aria-labelledby="headingGlobal"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+              <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+                <tr>
                     <td><strong>💡 Digital Fluency</strong></td>
-                    <td>Excel (pivot, VLOOKUP), Google Suite mastery, Data Studio, Tableau, AI tools (ChatGPT), HTML/CSS résumé site, MIT App Inventor, cybersecurity workshops.</td>
-                    <td><span>Data Visualization</span> · <span>Tech Proficiency</span> · <span>Collaborative Work</span> · <span>AI Familiarity</span> · <span>Web Design</span></td>
+                    <td>Excel (pivot, VLOOKUP), Google Suite mastery, Data Studio, Tableau, AI tools (ChatGPT), HTML/CSS
+                      résumé site, MIT App Inventor, cybersecurity workshops.</td>
+                    <td><span class="skill-pill">Data Visualization</span> <span class="skill-pill">Tech
+                        Proficiency</span> <span class="skill-pill">Collaborative Work</span> <span class="skill-pill">AI Familiarity</span> <span class="skill-pill">Web Design</span></td>
                   </tr>
                   <tr>
                     <td><strong>🗣️ Communication &amp; Soft Skills</strong></td>
-                    <td>Debates, MUN, TED-style talks, creative writing, APA/MLA citation, podcast editing (Audacity), YouTube content, negotiation, cross-cultural communication.</td>
-                    <td><span>Public Speaking</span> · <span>Persuasive Communication</span> · <span>Research Writing</span> · <span>Media Production</span> · <span>Cultural Fluency</span></td>
+                    <td>Debates, MUN, TED-style talks, creative writing, APA/MLA citation, podcast editing (Audacity),
+                      YouTube content, negotiation, cross-cultural communication.</td>
+                    <td><span class="skill-pill">Public Speaking</span> <span class="skill-pill">Persuasive
+                        Communication</span> <span class="skill-pill">Research Writing</span> <span class="skill-pill">Media Production</span> <span class="skill-pill">Cultural Fluency</span></td>
                   </tr>
                   <tr>
                     <td><strong>🧩 Critical Thinking &amp; Problem Solving</strong></td>
-                    <td>Harvard case-method, design-thinking empathy maps, logic puzzle leagues, data-storytelling, ethical dilemmas, interdisciplinary (Econ+Geo).</td>
-                    <td><span>Analytical Thinking</span> · <span>Creative Problem-Solving</span> · <span>Logical Reasoning</span> · <span>Innovative Mindset</span> · <span>Ethical Decision-Making</span></td>
+                    <td>Harvard case-method, design-thinking empathy maps, logic puzzle leagues, data-storytelling,
+                      ethical dilemmas, interdisciplinary (Econ+Geo).</td>
+                    <td><span class="skill-pill">Analytical Thinking</span> <span class="skill-pill">Creative
+                        Problem-Solving</span> <span class="skill-pill">Logical Reasoning</span> <span class="skill-pill">Innovative Mindset</span> <span class="skill-pill">Ethical
+                        Decision-Making</span></td>
                   </tr>
                   <tr>
                     <td><strong>💰 Financial Literacy &amp; Entrepreneurship</strong></td>
-                    <td>Personal finance, stock basics, crypto awareness, financial scams prevention. Virtual trading, Shark Tank pitches, micro-business plan, crowdfunding mock campaigns.</td>
-                    <td><span>Budgeting</span> · <span>Investment Awareness</span> · <span>Financial Decision-Making</span> · <span>Entrepreneurial Thinking</span> · <span>Risk Assessment</span></td>
+                    <td>Personal finance, stock basics, crypto awareness, financial scams prevention. Virtual trading,
+                      Shark Tank pitches, micro-business plan, crowdfunding mock campaigns.</td>
+                    <td><span class="skill-pill">Budgeting</span> <span class="skill-pill">Investment Awareness</span>
+                      <span class="skill-pill">Financial Decision-Making</span> <span class="skill-pill">Entrepreneurial
+                        Thinking</span> <span class="skill-pill">Risk Assessment</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||                 COMPETITIVE EXAM ECOSYSTEM                   || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>📚 COMPETITIVE EXAM ECOSYSTEM</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Environmental Sustainability -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingEnv">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnv"
+        aria-expanded="false" aria-controls="collapseEnv">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> COMPETITIVE EXAM ECOSYSTEM
+        
+
+      </button>
+    </h2>
+    <div id="collapseEnv" class="accordion-collapse collapse" aria-labelledby="headingEnv"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+                <tr>
                     <td><strong>🎯 Mock Tests</strong></td>
-                    <td>Weekly JEE/NEET unit tests, monthly CLAT full-length, SAT diagnostics, NSEA/NSEC Olympiad sheets, CUET mocks; Testbook/Gradeup adaptive testing.</td>
-                    <td><span>Exam Readiness</span> · <span>Performance Tracking</span> · <span>Error Correction</span> · <span>Endurance Building</span></td>
+                    <td>Weekly JEE/NEET unit tests, monthly CLAT full-length, SAT diagnostics, NSEA/NSEC Olympiad
+                      sheets, CUET mocks; Testbook/Gradeup adaptive testing.</td>
+                    <td><span class="skill-pill">Exam Readiness</span> <span class="skill-pill">Performance
+                        Tracking</span> <span class="skill-pill">Error Correction</span> <span class="skill-pill">Endurance Building</span></td>
                   </tr>
                   <tr>
                     <td><strong>📘 Coaching/MOOCs</strong></td>
-                    <td>Hybrid weekend batches, IIT-PAL YouTube, Coursera (Data Science Math, Python for Everybody), Unacademy doubt-solves, peer study groups.</td>
-                    <td><span>Structured Preparation</span> · <span>Resource Utilization</span> · <span>Self-Paced Learning</span> · <span>Doubt Resolution</span></td>
+                    <td>Hybrid weekend batches, IIT-PAL YouTube, Coursera (Data Science Math, Python for Everybody),
+                      Unacademy doubt-solves, peer study groups.</td>
+                    <td><span class="skill-pill">Structured Preparation</span> <span class="skill-pill">Resource
+                        Utilization</span> <span class="skill-pill">Self-Paced Learning</span> <span class="skill-pill">Doubt Resolution</span></td>
                   </tr>
                   <tr>
                     <td><strong>📖 Reference Library</strong></td>
-                    <td>H.C. Verma Vol-I, O.P. Tandon, M.L. Khanna, NCERT Exemplars, Lucent GK, R.S. Aggarwal, JSTOR, Springer, e-books.</td>
-                    <td><span>Resource Mastery</span> · <span>In-Depth Study</span> · <span>Exam-Specific Knowledge</span> · <span>Digital Research</span></td>
+                    <td>H.C. Verma Vol-I, O.P. Tandon, M.L. Khanna, NCERT Exemplars, Lucent GK, R.S. Aggarwal, JSTOR,
+                      Springer, e-books.</td>
+                    <td><span class="skill-pill">Resource Mastery</span> <span class="skill-pill">In-Depth Study</span>
+                      <span class="skill-pill">Exam-Specific Knowledge</span> <span class="skill-pill">Digital
+                        Research</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||            CO-CURRICULAR &amp; COMMUNITY ENGAGEMENT              || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🏅 CO-CURRICULAR &amp; COMMUNITY ENGAGEMENT</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parental & Community Involvement -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingParent">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseParent"
+        aria-expanded="false" aria-controls="collapseParent">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> CO-CURRICULAR &amp; COMMUNITY ENGAGEMENT
+        
+
+      </button>
+    </h2>
+    <div id="collapseParent" class="accordion-collapse collapse" aria-labelledby="headingParent"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+             <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
+            </thead>
+            <tbody>
+             
                   <tr>
                     <td><strong>📌 Club Leadership &amp; Innovation</strong></td>
-                    <td>Eco Audit Head, School Magazine Chief Editor, Robotics Captain, Entrepreneurship Secretary, Coding Club Mentor; tech expos, app for eco-tracking.</td>
-                    <td><span>Leadership</span> · <span>Event Organization</span> · <span>Team Collaboration</span> · <span>Innovative Thinking</span></td>
+                    <td>Eco Audit Head, School Magazine Chief Editor, Robotics Captain, Entrepreneurship Secretary,
+                      Coding Club Mentor; tech expos, app for eco-tracking.</td>
+                    <td><span class="skill-pill">Leadership</span> <span class="skill-pill">Event Organization</span>
+                      <span class="skill-pill">Team Collaboration</span> <span class="skill-pill">Innovative
+                        Thinking</span></td>
                   </tr>
                   <tr>
                     <td><strong>🤝 Community Service &amp; Social Impact</strong></td>
-                    <td>E-waste drives, financial literacy workshops, tree-planting hackathons, NGO internships, tutoring underprivileged, measurable outcomes.</td>
-                    <td><span>Social Responsibility</span> · <span>Community Impact</span> · <span>Civic Engagement</span> · <span>Empathy</span></td>
+                    <td>E-waste drives, financial literacy workshops, tree-planting hackathons, NGO internships,
+                      tutoring underprivileged, measurable outcomes.</td>
+                    <td><span class="skill-pill">Social Responsibility</span> <span class="skill-pill">Community
+                        Impact</span> <span class="skill-pill">Civic Engagement</span> <span class="skill-pill">Empathy</span></td>
                   </tr>
                   <tr>
                     <td><strong>🏆 Skill-Based Projects &amp; Competitions</strong></td>
-                    <td>Kaggle mini-analysis, nutrition posters, prototype business canvas, photography challenges; science fairs, hackathons, interdisciplinary health-startup ideas.</td>
-                    <td><span>Research Skills</span> · <span>Practical Application</span> · <span>Creative Output</span> · <span>Competitive Spirit</span> · <span>Cross-Disciplinary Innovation</span></td>
+                    <td>Kaggle mini-analysis, nutrition posters, prototype business canvas, photography challenges;
+                      science fairs, hackathons, interdisciplinary health-startup ideas.</td>
+                    <td><span class="skill-pill">Research Skills</span> <span class="skill-pill">Practical
+                        Application</span> <span class="skill-pill">Creative Output</span> <span class="skill-pill">Competitive Spirit</span> <span class="skill-pill">Cross-Disciplinary
+                        Innovation</span></td>
                   </tr>
                   <tr>
                     <td><strong>⚽ Sports &amp; Wellness</strong></td>
-                    <td>Football, Basketball, Cricket, Chess, Yoga, Zumba, fitness challenges, nutrition workshops, sleep seminars, sports injury prevention.</td>
-                    <td><span>Physical Health</span> · <span>Discipline</span> · <span>Stress Management</span> · <span>Strategic Thinking</span></td>
+                    <td>Football, Basketball, Cricket, Chess, Yoga, Zumba, fitness challenges, nutrition workshops,
+                      sleep seminars, sports injury prevention.</td>
+                    <td><span class="skill-pill">Physical Health</span> <span class="skill-pill">Discipline</span> <span class="skill-pill">Stress Management</span> <span class="skill-pill">Strategic Thinking</span>
+                    </td>
                   </tr>
                   <tr>
                     <td><strong>🎨 Arts &amp; Cultural Engagement</strong></td>
-                    <td>Music (guitar, tabla, choir), Dance (classical, modern), Visual Arts (digital art, 3D), Theatre, Script Writing, School YouTube, cultural festivals.</td>
-                    <td><span>Creativity</span> · <span>Cultural Appreciation</span> · <span>Self-Expression</span> · <span>Digital Creativity</span> · <span>Event Participation</span></td>
+                    <td>Music (guitar, tabla, choir), Dance (classical, modern), Visual Arts (digital art, 3D), Theatre,
+                      Script Writing, School YouTube, cultural festivals.</td>
+                    <td><span class="skill-pill">Creativity</span> <span class="skill-pill">Cultural Appreciation</span>
+                      <span class="skill-pill">Self-Expression</span> <span class="skill-pill">Digital Creativity</span>
+                      <span class="skill-pill">Event Participation</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||               EMOTIONAL &amp; PERSONAL GROWTH                    || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🌱 EMOTIONAL &amp; PERSONAL GROWTH</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+	
+	  <!-- Parental & Community Involvement -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingEmotional">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEmotional"
+        aria-expanded="false" aria-controls="collapseEmotional">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> EMOTIONAL &amp; PERSONAL GROWTH
+        
+
+      </button>
+    </h2>
+    <div id="collapseEmotional" class="accordion-collapse collapse" aria-labelledby="headingEmotional"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+             
+                   <tr>
                     <td><strong>💆 Stress Management</strong></td>
-                    <td>5-4-3-2-1 grounding, box-breathing, digital detox, mindfulness apps (Headspace), stress-relief zones, group discussions.</td>
-                    <td><span>Stress Control</span> · <span>Self-Care</span> · <span>Emotional Regulation</span> · <span>Mindfulness Practice</span></td>
+                    <td>5-4-3-2-1 grounding, box-breathing, digital detox, mindfulness apps (Headspace), stress-relief
+                      zones, group discussions.</td>
+                    <td><span class="skill-pill">Stress Control</span> <span class="skill-pill">Self-Care</span> <span class="skill-pill">Emotional Regulation</span> <span class="skill-pill">Mindfulness
+                        Practice</span></td>
                   </tr>
                   <tr>
                     <td><strong>🪞 Self-Reflection &amp; Growth Mindset</strong></td>
-                    <td>Reflection journals, gratitude logs, Kanban boards, peer-coaching, workshops on embracing failure, incremental goals.</td>
-                    <td><span>Reflective Thinking</span> · <span>Goal Tracking</span> · <span>Personal Growth</span> · <span>Resilience</span></td>
+                    <td>Reflection journals, gratitude logs, Kanban boards, peer-coaching, workshops on embracing
+                      failure, incremental goals.</td>
+                    <td><span class="skill-pill">Reflective Thinking</span> <span class="skill-pill">Goal
+                        Tracking</span> <span class="skill-pill">Personal Growth</span> <span class="skill-pill">Resilience</span></td>
                   </tr>
                   <tr>
                     <td><strong>🛡️ Mental Health Safety Net</strong></td>
-                    <td>On-campus therapist, peer-listener certificate, anonymous helpline, virtual counseling, mental health campaigns, stigma reduction.</td>
-                    <td><span>Emotional Safety</span> · <span>Mental Health Awareness</span> · <span>Support Seeking</span> · <span>Peer Empathy</span></td>
+                    <td>On-campus therapist, peer-listener certificate, anonymous helpline, virtual counseling, mental
+                      health campaigns, stigma reduction.</td>
+                    <td><span class="skill-pill">Emotional Safety</span> <span class="skill-pill">Mental Health
+                        Awareness</span> <span class="skill-pill">Support Seeking</span> <span class="skill-pill">Peer
+                        Empathy</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||              GLOBAL AWARENESS &amp; SUSTAINABILITY               || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>🌍 GLOBAL AWARENESS &amp; SUSTAINABILITY</strong></td>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+	
+		  <!-- GLOBAL AWARENESS &amp; SUSTAINABILITY -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headinggws">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsegws"
+        aria-expanded="false" aria-controls="collapsegws">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> GLOBAL AWARENESS &amp; SUSTAINABILITY
+        
+
+      </button>
+    </h2>
+    <div id="collapsegws" class="accordion-collapse collapse" aria-labelledby="headinggws"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+             
+                   <tr>
                     <td><strong>🌐 Global Issues &amp; Citizenship</strong></td>
-                    <td>Discussions on climate, globalization, human rights; virtual exchange, essay contests, MUN, SDGs, international careers.</td>
-                    <td><span>Global Citizenship</span> · <span>Cross-Cultural Understanding</span> · <span>Diplomatic Thinking</span> · <span>Research Skills</span></td>
+                    <td>Discussions on climate, globalization, human rights; virtual exchange, essay contests, MUN,
+                      SDGs, international careers.</td>
+                    <td><span class="skill-pill">Global Citizenship</span> <span class="skill-pill">Cross-Cultural
+                        Understanding</span> <span class="skill-pill">Diplomatic Thinking</span> <span class="skill-pill">Research Skills</span></td>
                   </tr>
                   <tr>
                     <td><strong>♻️ Environmental Sustainability</strong></td>
-                    <td>Eco-literacy workshops, carbon footprint, circular economy, school garden, composting, energy audits, green innovation competitions.</td>
-                    <td><span>Environmental Responsibility</span> · <span>Sustainable Thinking</span> · <span>Community Impact</span> · <span>Innovation</span> · <span>Practical Problem-Solving</span></td>
+                    <td>Eco-literacy workshops, carbon footprint, circular economy, school garden, composting, energy
+                      audits, green innovation competitions.</td>
+                    <td><span class="skill-pill">Environmental Responsibility</span> <span class="skill-pill">Sustainable Thinking</span> <span class="skill-pill">Community Impact</span>
+                      <span class="skill-pill">Innovation</span> <span class="skill-pill">Practical
+                        Problem-Solving</span></td>
                   </tr>
-            
-                  <!-- ================================================================= -->
-                  <!-- ||              PARENTAL &amp; COMMUNITY INVOLVEMENT                || -->
-                  <!-- ================================================================= -->
-                  <tr>
-                    <td colspan="3" style="text-align:center; background:#eef;"><strong>👪 PARENTAL &amp; COMMUNITY INVOLVEMENT</strong></td>
+
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+	
+		  <!--PARENTAL &amp; COMMUNITY INVOLVEMENT -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingparen">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsparen"
+        aria-expanded="false" aria-controls="collapseparen">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> PARENTAL &amp; COMMUNITY INVOLVEMENT
+        
+
+      </button>
+    </h2>
+    <div id="collapseparen" class="accordion-collapse collapse" aria-labelledby="headingparen"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+             
+                   <tr>
                     <td><strong>🏡 Family &amp; Community Engagement</strong></td>
                     <td>
                       <ul>
                         <li>Parent workshops: stream challenges, competitive exams, adolescent needs, admissions.</li>
-                        <li>Family events: Career Nights, Cultural Performances, Sports Days, Community Service Days.</li>
+                        <li>Family events: Career Nights, Cultural Performances, Sports Days, Community Service Days.
+                        </li>
                         <li>Collaboration with NGOs, community mentorship, parent-led skill workshops.</li>
                         <li>Parent-Teacher-Student triad meetings (quarterly goal-setting, career planning).</li>
                       </ul>
                     </td>
-                    <td><span>Family Bonding</span> · <span>Community Connection</span> · <span>Collaborative Growth</span> · <span>Mentorship</span> · <span>Social Networking</span> · <span>Support Systems</span></td>
+                    <td><span class="skill-pill">Family Bonding</span> <span class="skill-pill">Community
+                        Connection</span> <span class="skill-pill">Collaborative Growth</span> <span class="skill-pill">Mentorship</span> <span class="skill-pill">Social Networking</span> <span class="skill-pill">Support Systems</span></td>
                   </tr>
-                  <!-- end of all sections -->
-                </tbody>
-              </table>
-            </div>
+
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+</div>
+
+<script>
+  // Swap boxicons classes for plus/minus on accordion toggle
+  (function () {
+    const accordion = document.getElementById('careerAccordion');
+    if (!accordion) return;
+
+    function setToggleIcon(collapseEl, expanded) {
+      const btnToggle = collapseEl.previousElementSibling.querySelector('.toggle-icon');
+      if (!btnToggle) return;
+      btnToggle.classList.remove('bx-plus', 'bx-minus');
+      btnToggle.classList.add(expanded ? 'bx-minus' : 'bx-plus');
+    }
+
+    accordion.addEventListener('show.bs.collapse', function (e) {
+      setToggleIcon(e.target, true);
+    });
+    accordion.addEventListener('hide.bs.collapse', function (e) {
+      setToggleIcon(e.target, false);
+    });
+
+    // Initialize icons based on current state
+    Array.from(accordion.querySelectorAll('.accordion-collapse')).forEach(function (c) {
+      setToggleIcon(c, c.classList.contains('show'));
+    });
+  })();
+</script>
