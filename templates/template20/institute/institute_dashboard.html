@@ -52,6 +52,13 @@
     border-left: 1px solid #e0e0e0;
     overflow-y: auto;
   }
+  /* Ensure modals appear above the student details panel */
+  .modal {
+    z-index: 1200 !important;
+  }
+  .modal-backdrop {
+    z-index: 1150 !important;
+  }
   .student-details-panel.show {
     right: 0;
   }
@@ -1550,118 +1557,200 @@
     }
   });
 
-  // Initialize Student Details Panel
-  let studentHoverTimeout;
-  let studentPanelHoverTimeout;
-  
-  function initializeStudentRowHover() {
+  // Initialize Student Details Panel to open on CLICK (not hover)
+  function initializeStudentRowHandlers() {
     const panel = document.getElementById('studentDetailsPanel');
     const closeBtn = document.getElementById('closeStudentPanelBtn');
     const studentRows = document.querySelectorAll('.student-row');
-    
+
     if (!panel) return;
     
+    // #region agent log - initialization start
+    try {
+      fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: 'institute_dashboard.js:init', message: 'initializeStudentRowHandlers start', data: { studentRowsCount: studentRows.length }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-init' })
+      }).catch(()=>{});
+    } catch(e) {}
+    // #endregion
+
     // Close panel handler (only add once)
-    if (closeBtn && !closeBtn.hasAttribute('data-hover-initialized')) {
-      closeBtn.setAttribute('data-hover-initialized', 'true');
+    if (closeBtn && !closeBtn.hasAttribute('data-click-initialized')) {
+      closeBtn.setAttribute('data-click-initialized', 'true');
       closeBtn.addEventListener('click', function() {
-        clearTimeout(studentHoverTimeout);
-        clearTimeout(studentPanelHoverTimeout);
         panel.classList.remove('show');
-        // Clear student ID when panel is closed
         panel.setAttribute('data-student-id', '');
-        // Disable buttons
         const editBtn = document.getElementById('panel-edit-student-btn');
         const passwordBtn = document.getElementById('panel-change-password-btn');
         if (editBtn) editBtn.disabled = true;
         if (passwordBtn) passwordBtn.disabled = true;
       });
     }
-    
-    // Hover handlers for each row (use event delegation to avoid duplicates)
+
     studentRows.forEach(row => {
-      // Skip if already initialized
-      if (row.hasAttribute('data-hover-initialized')) {
-        return;
-      }
-      row.setAttribute('data-hover-initialized', 'true');
-      
-      row.addEventListener('mouseenter', function() {
-        clearTimeout(studentHoverTimeout);
-        clearTimeout(studentPanelHoverTimeout);
-        studentHoverTimeout = setTimeout(() => {
-          // Get data from row
-          const studentId = row.getAttribute('data-student-id') || '';
-          const name = row.getAttribute('data-student-name') || '-';
-          const email = row.getAttribute('data-student-email') || '-';
-          const contact = row.getAttribute('data-student-contact') || '-';
-          const studentClass = row.getAttribute('data-student-class') || '-';
-          const stream = row.getAttribute('data-student-stream') || '-';
-          const created = row.getAttribute('data-student-created') || '-';
-          
-          // Store student ID and class ID in panel
-          panel.setAttribute('data-student-id', studentId);
-          const classId = row.getAttribute('data-student-class-id') || '';
-          panel.setAttribute('data-student-class-id', classId);
-          
-          // Enable/disable buttons based on student ID
-          const editBtn = document.getElementById('panel-edit-student-btn');
-          const passwordBtn = document.getElementById('panel-change-password-btn');
-          if (editBtn) editBtn.disabled = !studentId;
-          if (passwordBtn) passwordBtn.disabled = !studentId;
-          
-          // Update panel content
-          const nameEl = document.getElementById('panel-student-name');
-          const emailEl = document.getElementById('panel-student-email');
-          const contactEl = document.getElementById('panel-student-contact');
-          const classEl = document.getElementById('panel-student-class');
-          const streamEl = document.getElementById('panel-student-stream');
-          const createdEl = document.getElementById('panel-student-created');
-          
-          if (nameEl) nameEl.textContent = name;
-          if (emailEl) emailEl.textContent = email;
-          if (contactEl) contactEl.textContent = contact;
-          if (classEl) classEl.textContent = studentClass;
-          if (streamEl) streamEl.textContent = stream;
-          if (createdEl) createdEl.textContent = created;
-          
-          // Show panel
-          panel.classList.add('show');
-        }, 200); // Small delay to prevent flickering
-      });
-      
-      row.addEventListener('mouseleave', function() {
-        clearTimeout(studentHoverTimeout);
-        // Don't hide immediately - wait a bit in case mouse moves to panel
-        studentHoverTimeout = setTimeout(() => {
-          // Check if mouse is over panel
-          if (!panel.matches(':hover')) {
-            panel.classList.remove('show');
-          }
-        }, 300);
+      if (row.hasAttribute('data-click-initialized')) return;
+      row.setAttribute('data-click-initialized', 'true');
+
+      // #region agent log - binding handler
+      try {
+        const rid = row.getAttribute('data-student-id') || '';
+        fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location: 'institute_dashboard.js:bind', message: 'binding click handler', data: { rowId: rid }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-bind' })
+        }).catch(()=>{});
+      } catch(e) {}
+      // #endregion
+
+      row.addEventListener('click', function(e) {
+        // Populate panel content from data- attributes
+        const studentId = row.getAttribute('data-student-id') || '';
+        const name = row.getAttribute('data-student-name') || '-';
+        const email = row.getAttribute('data-student-email') || '-';
+        const contact = row.getAttribute('data-student-contact') || '-';
+        const studentClass = row.getAttribute('data-student-class') || '-';
+        const stream = row.getAttribute('data-student-stream') || '-';
+        const created = row.getAttribute('data-student-created') || '-';
+
+        panel.setAttribute('data-student-id', studentId);
+        const classId = row.getAttribute('data-student-class-id') || '';
+        panel.setAttribute('data-student-class-id', classId);
+
+        const editBtn = document.getElementById('panel-edit-student-btn');
+        const passwordBtn = document.getElementById('panel-change-password-btn');
+        if (editBtn) editBtn.disabled = !studentId;
+        if (passwordBtn) passwordBtn.disabled = !studentId;
+
+        const nameEl = document.getElementById('panel-student-name');
+        const emailEl = document.getElementById('panel-student-email');
+        const contactEl = document.getElementById('panel-student-contact');
+        const classEl = document.getElementById('panel-student-class');
+        const streamEl = document.getElementById('panel-student-stream');
+        const createdEl = document.getElementById('panel-student-created');
+
+        if (nameEl) nameEl.textContent = name;
+        if (emailEl) emailEl.textContent = email;
+        if (contactEl) contactEl.textContent = contact;
+        if (classEl) classEl.textContent = studentClass;
+        if (streamEl) streamEl.textContent = stream;
+        if (createdEl) createdEl.textContent = created;
+
+        // Show panel
+        panel.classList.add('show');
+        
+        // #region agent log - click fired
+        try {
+          fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location: 'institute_dashboard.js:click', message: 'student-row clicked', data: { studentId: studentId }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-click' })
+          }).catch(()=>{});
+        } catch(e) {}
+        // #endregion
       });
     });
-    
-    // Keep panel open when hovering over it (only add once)
-    if (!panel.hasAttribute('data-hover-initialized')) {
-      panel.setAttribute('data-hover-initialized', 'true');
-      panel.addEventListener('mouseenter', function() {
-        clearTimeout(studentPanelHoverTimeout);
-      });
-      
-      panel.addEventListener('mouseleave', function() {
-        clearTimeout(studentPanelHoverTimeout);
-        studentPanelHoverTimeout = setTimeout(() => {
-          panel.classList.remove('show');
-        }, 300);
-      });
-    }
   }
-  
+
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
-    initializeStudentRowHover();
+    initializeStudentRowHandlers();
   });
+
+  // Delegated click handler to support AJAX-loaded rows
+  (function() {
+    const wrapper = document.getElementById('students-table-wrapper');
+    const panel = document.getElementById('studentDetailsPanel');
+    if (!wrapper || !panel) return;
+
+    // #region agent log - delegation init
+    try {
+      fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: 'institute_dashboard.js:delegation-init', message: 'delegation handler initialized', data: {}, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-delegation' })
+      }).catch(()=>{});
+    } catch(e) {}
+    // #endregion
+
+    wrapper.addEventListener('click', function(ev) {
+      const row = ev.target.closest('.student-row');
+      if (!row) return;
+      try {
+        const studentId = row.getAttribute('data-student-id') || '';
+        const name = row.getAttribute('data-student-name') || '-';
+        const email = row.getAttribute('data-student-email') || '-';
+        const contact = row.getAttribute('data-student-contact') || '-';
+        const studentClass = row.getAttribute('data-student-class') || '-';
+        const stream = row.getAttribute('data-student-stream') || '-';
+        const created = row.getAttribute('data-student-created') || '-';
+
+        panel.setAttribute('data-student-id', studentId);
+        panel.setAttribute('data-student-class-id', row.getAttribute('data-student-class-id') || '');
+
+        const editBtn = document.getElementById('panel-edit-student-btn');
+        const passwordBtn = document.getElementById('panel-change-password-btn');
+        if (editBtn) editBtn.disabled = !studentId;
+        if (passwordBtn) passwordBtn.disabled = !studentId;
+
+        document.getElementById('panel-student-name').textContent = name;
+        document.getElementById('panel-student-email').textContent = email;
+        document.getElementById('panel-student-contact').textContent = contact;
+        document.getElementById('panel-student-class').textContent = studentClass;
+        document.getElementById('panel-student-stream').textContent = stream;
+        document.getElementById('panel-student-created').textContent = created;
+
+        panel.classList.add('show');
+
+        // #region agent log - delegation click
+        try {
+          fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ location: 'institute_dashboard.js:delegation-click', message: 'delegated click', data: { studentId }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-delegation-click' })
+          }).catch(()=>{});
+        } catch(e) {}
+        // #endregion
+      } catch (err) {
+        console.error('Error handling delegated student row click', err);
+      }
+    });
+  })();
+
+  // #region agent log - modal shown listener
+  try {
+    document.addEventListener('shown.bs.modal', function(e) {
+      try {
+        const mid = e && e.target && e.target.id ? e.target.id : 'unknown';
+        fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ location: 'institute_dashboard.js:modal-shown', message: 'bootstrap modal shown', data: { modalId: mid }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H2-modal-show' })
+        }).catch(()=>{});
+      } catch(err) {}
+    });
+  } catch(e) {}
+  // #endregion
+
+  // Ensure student details panel is hidden whenever any modal is opening,
+  // so the modal/backdrop receive clicks (prevents panel blocking modal).
+  try {
+    document.addEventListener('show.bs.modal', function(e) {
+      try {
+        const panel = document.getElementById('studentDetailsPanel');
+        if (panel && panel.classList.contains('show')) {
+          panel.classList.remove('show');
+          panel.setAttribute('data-student-id', '');
+          const editBtn = document.getElementById('panel-edit-student-btn');
+          const passwordBtn = document.getElementById('panel-change-password-btn');
+          if (editBtn) editBtn.disabled = true;
+          if (passwordBtn) passwordBtn.disabled = true;
+        }
+      } catch (err) {
+        console.error('Error hiding student panel on modal show', err);
+      }
+    });
+  } catch(e) {}
 </script>
 
 <!-- Centralized Student Table AJAX Script -->

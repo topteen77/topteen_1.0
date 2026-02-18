@@ -99,6 +99,42 @@ class Configuration(BaseModel):
         return c.value
 
 
+class MasterClass(BaseModel):
+    """
+    Master table of school classes/grades. Admins can create rows (e.g. value=6..12)
+    Templates should use get_active_master_classes() to render dropdowns.
+    """
+    # Numeric value used for storage and comparisons (e.g. 6,7,8,...12)
+    value = models.PositiveSmallIntegerField(unique=True, db_index=True, help_text="Numeric grade value, e.g. 6..12")
+    # Display label e.g. "Class 10"
+    label = models.CharField(max_length=64, help_text="Display label, e.g. 'Class 10'")
+    # If inactive, do not show in dropdowns
+    active = models.BooleanField(default=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("-value",)
+        verbose_name = "Master Class"
+        verbose_name_plural = "Master Classes"
+
+    def __str__(self):
+        return "{}".format(self.label or str(self.value))
+
+    @classmethod
+    def get_active_master_classes(cls, min_value=6, max_value=12):
+        """
+        Return a list/queryset of active MasterClass rows filtered to the requested range,
+        ordered descending by numeric value (so 12..6).
+        """
+        try:
+            return cls.objects.filter(active=True, value__gte=min_value, value__lte=max_value).order_by("-value")
+        except Exception:
+            # In case migrations haven't been run or DB not available, fall back to sensible default
+            # Return a list of simple dicts that templates can iterate over.
+            return [
+                {"value": v, "label": f"Class {v}"} for v in range(max_value, min_value - 1, -1)
+            ]
+
+
 class BaseCSC(BaseModel):
     name=models.CharField(max_length=120)
     class Meta:

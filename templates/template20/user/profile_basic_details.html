@@ -11,6 +11,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
 <style>
+  /* When the birthday input (or any icon-input) is focused, hide the decorative left icon
+     so the browser's native date UI is visible without visual duplication. */
+  .icon-input:focus-within img {
+    display: none !important;
+  }
+  /* Keep padding so text doesn't overlap the left icon when not focused */
+  input[name="userbirthdaydate"] {
+    padding-left: 40px !important;
+  }
+</style>
+<style>
   .profile-onboarding {
     overflow-x: hidden;
     padding-top: 80px;
@@ -358,18 +369,35 @@
             <img src="{{ static('topteenfrontend/assets/images/bookmark.square.png') }}" alt="Grade" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <select name="usergrade" id="usergrade" class="form-control custom-input w-100" style="height: 48px; padding-left: 45px;" required>
               <option value="">Select Grade/Class</option>
-              <option value="1" {% if profile_user.user_profile and profile_user.user_profile.grade == '1' %}selected{% endif %}>Class 1</option>
-              <option value="2" {% if profile_user.user_profile and profile_user.user_profile.grade == '2' %}selected{% endif %}>Class 2</option>
-              <option value="3" {% if profile_user.user_profile and profile_user.user_profile.grade == '3' %}selected{% endif %}>Class 3</option>
-              <option value="4" {% if profile_user.user_profile and profile_user.user_profile.grade == '4' %}selected{% endif %}>Class 4</option>
-              <option value="5" {% if profile_user.user_profile and profile_user.user_profile.grade == '5' %}selected{% endif %}>Class 5</option>
-              <option value="6" {% if profile_user.user_profile and profile_user.user_profile.grade == '6' %}selected{% endif %}>Class 6</option>
-              <option value="7" {% if profile_user.user_profile and profile_user.user_profile.grade == '7' %}selected{% endif %}>Class 7</option>
-              <option value="8" {% if profile_user.user_profile and profile_user.user_profile.grade == '8' %}selected{% endif %}>Class 8</option>
-              <option value="9" {% if profile_user.user_profile and profile_user.user_profile.grade == '9' %}selected{% endif %}>Class 9</option>
-              <option value="10" {% if profile_user.user_profile and profile_user.user_profile.grade == '10' %}selected{% endif %}>Class 10</option>
-              <option value="11" {% if profile_user.user_profile and profile_user.user_profile.grade == '11' %}selected{% endif %}>Class 11</option>
-              <option value="12" {% if profile_user.user_profile and profile_user.user_profile.grade == '12' %}selected{% endif %}>Class 12</option>
+              {# support both Jinja (master_classes()) and Django TEMPLATE (MASTER_CLASSES) #}
+              {% if master_classes is defined %}
+                {% set classes = master_classes() %}
+              {% else %}
+                {% set classes = MASTER_CLASSES %}
+              {% endif %}
+
+              {% set user_grade = None %}
+              {% if profile_user.user_profile and profile_user.user_profile.grade is defined %}
+                {% set user_grade = profile_user.user_profile.grade %}
+              {% endif %}
+
+              {% for cls in classes %}
+                {% set cls_value = cls.value %}
+                <option value="{{ cls_value }}" {% if user_grade is not none and ('' ~ user_grade) == ('' ~ cls_value) %}selected{% endif %}>{{ cls.label }}</option>
+              {% endfor %}
+
+              {# If user's saved grade isn't present in classes (legacy data), show it as selected #}
+              {% if user_grade is not none %}
+                {% set ns = namespace(found=false) %}
+                {% for cls in classes %}
+                  {% if ('' ~ cls.value) == ('' ~ user_grade) %}
+                    {% set ns.found = true %}
+                  {% endif %}
+                {% endfor %}
+                {% if not ns.found and user_grade != '' %}
+                  <option value="{{ user_grade }}" selected>Class {{ user_grade }}</option>
+                {% endif %}
+              {% endif %}
             </select>
           </div>
         </div>
@@ -714,11 +742,13 @@
 
   // Validate form submission - validate all required fields
   function validateFormSubmission() {
-    // Check if we're on the last step (hobbies step, index 4)
+    // If slick is initialized, compute the last slide index dynamically
     if ($('.newPages').hasClass('slick-initialized')) {
+      const slickObj = $('.newPages').slick('getSlick');
       const currentSlide = $('.newPages').slick('slickCurrentSlide');
+      const lastIndex = slickObj && typeof slickObj.slideCount === 'number' ? slickObj.slideCount - 1 : 4;
       // Only validate if we're on the last step
-      if (currentSlide === 4) {
+      if (currentSlide === lastIndex) {
         // Validate all required fields before submission
         if (!validatefigureoutform()) {
           return false;

@@ -196,6 +196,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'app.context_processors.has_payment',
+                # Inject master class list for grade/class dropdowns (Django templates)
+                'core.context_processors.master_classes_processor',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],
