@@ -177,7 +177,10 @@ class ComService:
             response_text = "DEBUG"
             response_status = False
             
-            if settings.DEBUG is False and self.check_duplicate_sms(url) is False:
+            # Allow forcing SMS send in DEBUG via SMARTPING_SMS_FORCE_SEND env var (default: False).
+            force_send_in_debug = getattr(settings, 'SMARTPING_SMS_FORCE_SEND', False)
+            should_send = (not settings.DEBUG or force_send_in_debug) and (not self.check_duplicate_sms(url))
+            if should_send:
                 try:
                     response = requests.get(url, timeout=10)
                     # Safely extract response content
@@ -208,7 +211,7 @@ class ComService:
                     response_status = False
             else:
                 print(f"DEBUG mode or duplicate SMS detected. URL: {url}")
-                response_status = True  # Return True in DEBUG mode
+                response_status = True  # Return True in DEBUG mode or when duplicate detected
             
             # Log the communication
             self.make_log_entry(user, url, choices.CommunicationTypeChooices.SMS, response_text)
