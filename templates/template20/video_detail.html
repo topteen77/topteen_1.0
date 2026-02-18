@@ -12,6 +12,55 @@
 
 {% block content %}
 
+
+<style>
+  .sidebar-widget.vide-cat-widget {
+    background: #f3f2ff87;
+    padding: 8px;
+    border-radius: 20px;
+    position: sticky;
+    top: 80px;
+  }
+  
+  .sidebar-widget .category-list {
+    height: 450px;
+    overflow-y: scroll;
+  }
+  
+  /* Bookmark / shortlist button (detail page) - purple "book" style */
+  .shortlist-video-btn {
+    border-radius: 6px;
+    transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  .shortlist-video-btn.bookmarked,
+  .shortlist-video-btn.active {
+    color: #6b3df0;
+    background: rgba(107,61,240,0.06);
+    border-color: rgba(107,61,240,0.18);
+  }
+  .shortlist-video-btn.bookmarked i,
+  .shortlist-video-btn.active i {
+    color: #6b3df0;
+  }
+
+  .shortlist-video-btn {
+  border: 1px solid #8881fd;
+  color:#6b3df0;
+}
+
+.shortlist-video-btn:hover{
+  background: #6b3df0;
+  color: #fff;
+  border-color: #6b3df0;
+}
+
+.shortlist-video-btn .bx.bxs-bookmark{
+color: #6b3df0 !important;
+
+}
+  
+</style>
+
 <!-- Hero Section -->
 <section class="hero-section-inner pt-md-18 pt-14 pb-5">
   <div class="container">
@@ -22,14 +71,14 @@
       </div>
       <!--breadcrumb-->
 
-      <div class="col-lg-8 col-md-12">
+      <div class="col-lg-9 col-md-12">
         <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Video
         </span>
-        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+        <h1 class="heading-title mt-md-9 mt-8 mb-3 lh-sm">
           {{ video.name }}
         </h1>
-        <div class="video-meta mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="video-meta mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3 lh-sm">
           <div>
             <span class="text-gray fs-14">
               <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
@@ -45,7 +94,7 @@
           </div>
           {% if request.user.is_authenticated %}
           <div>
-            <button type="button" class="btn btn-outline-primary shortlist-video-btn" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" style="white-space: nowrap;">
+            <button type="button" class="btn  shortlist-video-btn" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" style="white-space: nowrap;">
               <i class='bx {% if is_video_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' style="font-size: 18px; color: {% if is_video_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
               <span class="buttontext ms-2">
                 {% if is_video_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
@@ -54,7 +103,7 @@
           </div>
           {% else %}
           <div>
-            <a href="{{ url('student_login') }}" class="btn btn-outline-primary" style="white-space: nowrap;">
+            <a href="{{ url('student_login') }}" class="btn btn-outline-primary custom-outline-button" style="white-space: nowrap;">
               <i class='bx bx-bookmark' style="font-size: 18px;"></i>
               <span class="ms-2">Bookmark</span>
             </a>
@@ -133,8 +182,8 @@
           </div>
 
           <!-- Categories -->
-          <div class="sidebar-widget">
-            <h4 class="widget-title mb-3">Categories</h4>
+          <div class="sidebar-widget vide-cat-widget">
+            <h4 class="widget-title mb-3 text-purple ms-2 fw-700 pt-2"><i class='bx bx-category-alt' ></i> Categories</h4>
             <ul class="category-list">
               <li class="category-item">
                 <a href="{{ url('careers:careervideos') }}" class="text-decoration-none">All Videos</a>
@@ -287,10 +336,17 @@ function shortlistVideo(videoId) {
       const isBookmarked = (data.message === 'Video Shortlisted') || (data.success === 'true' || data.success === true);
       if (isBookmarked) {
         // Video was bookmarked
-        icon.classList.remove('bx-bookmark');
-        icon.classList.add('bxs-bookmark');
-        icon.style.color = '#28a745';
+        if (icon) {
+          icon.classList.remove('bx-bookmark');
+          icon.classList.add('bxs-bookmark');
+          icon.style.color = '#28a745';
+        }
         if (span) span.textContent = 'Remove Bookmark';
+        // Add bookmarked/active state to button for consistent styling & accessibility
+        btn.classList.add('bookmarked', 'active');
+        btn.setAttribute('title', 'Remove bookmark');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.dataset.bookmarked = '1';
         // Show success message
         if (typeof Swal !== 'undefined') {
           Swal.fire({
@@ -305,10 +361,17 @@ function shortlistVideo(videoId) {
         }
       } else {
         // Video was removed from bookmarks
-        icon.classList.remove('bxs-bookmark');
-        icon.classList.add('bx-bookmark');
-        icon.style.color = 'inherit';
+        if (icon) {
+          icon.classList.remove('bxs-bookmark');
+          icon.classList.add('bx-bookmark');
+          icon.style.color = 'inherit';
+        }
         if (span) span.textContent = 'Bookmark';
+        // Remove bookmarked/active state
+        btn.classList.remove('bookmarked', 'active');
+        btn.setAttribute('title', 'Add bookmark');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.dataset.bookmarked = '0';
         // Show success message
         if (typeof Swal !== 'undefined') {
           Swal.fire({

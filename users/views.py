@@ -1421,9 +1421,10 @@ class SignUpPassword(APIView):
             data['message'] = "Passwords do not match. Please make sure both passwords are the same."
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate grade for direct signups (must be 10 or 12)
-        if grade and grade not in ['10', '12']:
-            data['message'] = "Please select a valid class (10 or 12)"
+        # Validate grade for direct signups (allow classes 6 through 12)
+        allowed = [str(v) for v in range(6, 13)]
+        if grade and grade not in allowed:
+            data['message'] = "Please select a valid class (6 to 12)"
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
         sign=Signer()

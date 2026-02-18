@@ -314,8 +314,14 @@ def environment(**options):
     from core.templatetags.activity_tags import inject_activity_ids, get_all_sections
     env.filters['inject_activity_ids'] = inject_activity_ids
     env.filters['get_all_sections'] = get_all_sections
-    
+    # expose master_classes() helper (returns list of {'value','label'}) to Jinja templates
+    try:
+        from core.context_processors import master_classes as _master_classes_fn
+    except Exception:
+        _master_classes_fn = lambda request=None: [{"value": v, "label": f"Class {v}"} for v in range(12, 5, -1)]
+
     env.globals.update({
+        'master_classes': _master_classes_fn,
         'static': staticfiles_storage.url,
         'url': jinja_url,
         'url_':custom_reverse,
