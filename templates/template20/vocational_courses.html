@@ -523,7 +523,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         </span>
      <h1 class="heading-title mt-md-8  mb-3">
               Launch Your Career
-              <span class="text-purple"> After 10th/12th </span>
+              <span class="text-purple"> After 10<sup>th</sup>/12<sup>th</sup> </span>
             </h1>
         <p class="text-gray fs-16">
          Explore a wide range of career opportunities across various fields and industries. Our comprehensive career tracks guide you through the education requirements, skills needed, and potential career paths in each field. Whether you're interested in technology, healthcare, business, arts, or sciences, find the perfect career path that matches your passion and strengths.
@@ -559,12 +559,12 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     <ul class="nav nav-tabs " id="vocationalTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link {% if default_tab == 'after-10' %}active{% endif %}" id="after-10-tab" data-bs-toggle="tab" data-bs-target="#after-10" type="button" role="tab" aria-controls="after-10" aria-selected="{% if default_tab == 'after-10' %}true{% else %}false{% endif %}">
-          After 10
+          After 10<sup>th</sup>
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link {% if default_tab == 'after-12' %}active{% endif %}" id="after-12-tab" data-bs-toggle="tab" data-bs-target="#after-12" type="button" role="tab" aria-controls="after-12" aria-selected="{% if default_tab == 'after-12' %}true{% else %}false{% endif %}">
-          After 12
+          After 12<sup>th</sup>
         </button>
       </li>
     </ul>
@@ -581,7 +581,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         {% set level = levels_data.get('after-10') %}
         {% if level %}
           <div class="category-section course-category">
-            <h2 class="category-header">{{ level.name|title }}</h2>
+            <h2 class="category-header">{{ level.name|title }}<sup>th</sup></h2>
 
             <!-- Dynamic Sub-tabs Container for After 10 -->
             <div class="sub-tabs-container" id="after-10-sub-tabs-container"></div>
@@ -604,7 +604,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                     </div>
                     <div class="blog-content">
                       <h3 class="blog-title mt-0 text-capitalize">{{ course.name }}</h3>
-                      <p class="blog-excerpt text-gray">Click to view full course details.</p>
+                      <!-- <p class="blog-excerpt text-gray">Click to view full course details.</p> -->
                       <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
                         View Details <i class="bx bx-right-arrow-alt"></i>
                       </a>
@@ -624,7 +624,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         {% else %}
           <div class="no-results" style="display: block;">
             <h3>No courses found</h3>
-            <p class="text-gray mb-0">Please check that courses are imported for After 10.</p>
+            <p class="text-gray mb-0">Please check that courses are imported for After 10th.</p>
           </div>
         {% endif %}
       </div>
@@ -634,7 +634,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         {% set level = levels_data.get('after-12') %}
         {% if level %}
           <div class="category-section course-category">
-            <h2 class="category-header">{{ level.name|title }}</h2>
+            <h2 class="category-header">{{ level.name|title }}<sup>th</sup></h2>
 
             <!-- Dynamic Sub-tabs Container for After 12 -->
             <div class="sub-tabs-container" id="after-12-sub-tabs-container"></div>
@@ -657,7 +657,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                     </div>
                     <div class="blog-content">
                       <h3 class="blog-title mt-0 text-capitalize">{{ course.name }}</h3>
-                      <p class="blog-excerpt text-gray">Click to view full course details.</p>
+                      <!-- <p class="blog-excerpt text-gray">Click to view full course details.</p> -->
                       <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
                         View Details <i class="bx bx-right-arrow-alt"></i>
                       </a>
@@ -1134,7 +1134,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         item.dataset.link = course.link;
         
         const title = highlightMatch(course.title, query);
-        const tabLabel = course.tab === 'after-10' ? 'After 10' : 'After 12';
+        const tabLabel = course.tab === 'after-10' ? 'After 10<sup>th</sup>' : 'After 12<sup>th</sup>';
         
         item.innerHTML = `
           <div class="suggestion-title">${title} <span class="suggestion-tab">${tabLabel}</span></div>

@@ -1,21 +1,86 @@
-<div class="table-responsive mt-4">
-              <table class="table table-striped table-bordered" style="width:100%">
-                <thead>
-                  <tr>
+<style>
+  .cp-accordion .accordion-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    padding: .75rem 1rem;
+  }
+
+  .cp-accordion .box-icon {
+    font-size: 16px;
+    color: #495057;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #6c757d;
+    border-radius: 4px;
+    background: #fff;
+    flex: 0 0 22px;
+  }
+
+  .cp-accordion .toggle-icon {
+    margin-left: auto;
+    font-size: 18px;
+    color: #495057;
+    transition: transform .2s ease;
+  }
+
+  .cp-accordion table th {
+    background: #f8f9fa;
+  }
+
+  .cp-accordion .section-table {
+    margin-bottom: 0;
+  }
+
+  .cp-accordion .table-responsive tr th {
+    background: #f4f4ff;
+  }
+
+  .skill-pill {
+  display: inline-block;
+  background: rgba(119,85,238,0.12);
+  color: #3F37C9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin: 2px;
+  font-size: 0.85rem;
+}
+</style>
+
+<div class="cp-accordion accordion mt-4" id="careerAccordion">
+	
+	
+	
+  <!-- Core Academics -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingCore">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCore"
+        aria-expanded="true" aria-controls="collapseCore">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> SCIENCE STREAM (PCM/PCB/PCMB)
+        
+
+      </button>
+    </h2>
+    <div id="collapseCore" class="accordion-collapse collapse show" aria-labelledby="headingCore"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+               <tr>
                     <th style="width:17%"> Area / Stream</th>
                     <th style="width:53%"> What to Do — topics, projects, practicals</th>
                     <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                </thead>
-                <tbody>
-                  <!-- ================================================================= -->
-                  <!-- ||                         SCIENCE STREAM                       || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🔬 SCIENCE STREAM (PCM/PCB/PCMB)</strong></td>
-                  </tr>
-                  <!-- PHYSICS -->
-                  <tr>
+            </thead>
+            <tbody>
+         <tr>
                     <td><strong>⚛️ Physics</strong></td>
                     <td>
                       <ul>
@@ -31,8 +96,7 @@
                     </td>
                     <td><span class="skill-pill">Conceptual Clarity</span> <span class="skill-pill">Experimental
                         Design</span> <span class="skill-pill">Data Analysis</span> <span class="skill-pill">Practical
-                        Application</span> <span class="skill-pill">Interdisciplinary Thinking</span> <span
-                        class="skill-pill">Research Orientation</span></td>
+                        Application</span> <span class="skill-pill">Interdisciplinary Thinking</span> <span class="skill-pill">Research Orientation</span></td>
                   </tr>
                   <!-- CHEMISTRY -->
                   <tr>
@@ -51,8 +115,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Analytical Thinking</span> <span class="skill-pill">Lab Safety &amp;
-                        Reporting</span> <span class="skill-pill">Problem-Solving</span> <span
-                        class="skill-pill">Precision in Measurement</span> <span class="skill-pill">Tech
+                        Reporting</span> <span class="skill-pill">Problem-Solving</span> <span class="skill-pill">Precision in Measurement</span> <span class="skill-pill">Tech
                         Visualization</span> <span class="skill-pill">Sustainable Practices</span></td>
                   </tr>
                   <!-- BIOLOGY -->
@@ -70,10 +133,10 @@
                         <li><strong>Projects:</strong> Local biodiversity surveys, health awareness campaigns (nutrition
                           drives).</li>
                       </ul>
+
                     </td>
                     <td><span class="skill-pill">Observational Skills</span> <span class="skill-pill">Experimental
-                        Design</span> <span class="skill-pill">Ecological Awareness</span> <span
-                        class="skill-pill">Scientific Inquiry</span> <span class="skill-pill">Ethical Reasoning</span>
+                        Design</span> <span class="skill-pill">Ecological Awareness</span> <span class="skill-pill">Scientific Inquiry</span> <span class="skill-pill">Ethical Reasoning</span>
                       <span class="skill-pill">Community Impact</span></td>
                   </tr>
                   <!-- MATHEMATICS -->
@@ -92,8 +155,7 @@
                     </td>
                     <td><span class="skill-pill">Logical Deduction</span> <span class="skill-pill">Spatial
                         Reasoning</span> <span class="skill-pill">Data Analysis</span> <span class="skill-pill">Software
-                        Familiarity</span> <span class="skill-pill">Application-Based Thinking</span> <span
-                        class="skill-pill">Competitive Problem-Solving</span></td>
+                        Familiarity</span> <span class="skill-pill">Application-Based Thinking</span> <span class="skill-pill">Competitive Problem-Solving</span></td>
                   </tr>
                   <!-- COMPUTER SCIENCE (OPTIONAL) -->
                   <tr>
@@ -110,9 +172,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Programming Logic</span> <span class="skill-pill">Database
-                        Management</span> <span class="skill-pill">Web Development</span> <span
-                        class="skill-pill">Debugging</span> <span class="skill-pill">AI Awareness</span> <span
-                        class="skill-pill">Project Execution</span></td>
+                        Management</span> <span class="skill-pill">Web Development</span> <span class="skill-pill">Debugging</span> <span class="skill-pill">AI Awareness</span> <span class="skill-pill">Project Execution</span></td>
                   </tr>
                   <!-- COMPETITIVE EXAM START-UP (SCIENCE) -->
                   <tr>
@@ -151,14 +211,39 @@
                         Management</span> <span class="skill-pill">Industry Awareness</span></td>
                   </tr>
 
-                  <!-- ================================================================= -->
-                  <!-- ||                        COMMERCE STREAM                       || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>💼 COMMERCE STREAM</strong></td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Examination Support -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingExam">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExam"
+        aria-expanded="false" aria-controls="collapseExam">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> COMMERCE STREAM
+        
+
+      </button>
+    </h2>
+    <div id="collapseExam" class="accordion-collapse collapse" aria-labelledby="headingExam"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+              <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <!-- ACCOUNTANCY -->
-                  <tr>
+            </thead>
+            <tbody>
+        <tr>
                     <td><strong>📊 Accountancy</strong></td>
                     <td>
                       <ul>
@@ -172,8 +257,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Financial Accuracy</span> <span class="skill-pill">Ledger
-                        Management</span> <span class="skill-pill">Analytical Skills</span> <span
-                        class="skill-pill">Practical Accounting</span> <span class="skill-pill">Tech Application</span>
+                        Management</span> <span class="skill-pill">Analytical Skills</span> <span class="skill-pill">Practical Accounting</span> <span class="skill-pill">Tech Application</span>
                       <span class="skill-pill">Audit Skills</span></td>
                   </tr>
                   <!-- BUSINESS STUDIES -->
@@ -190,9 +274,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Strategic Thinking</span> <span class="skill-pill">Market
-                        Analysis</span> <span class="skill-pill">Entrepreneurial Mindset</span> <span
-                        class="skill-pill">Ethical Awareness</span> <span class="skill-pill">Networking</span> <span
-                        class="skill-pill">Case Study Analysis</span></td>
+                        Analysis</span> <span class="skill-pill">Entrepreneurial Mindset</span> <span class="skill-pill">Ethical Awareness</span> <span class="skill-pill">Networking</span> <span class="skill-pill">Case Study Analysis</span></td>
                   </tr>
                   <!-- ECONOMICS -->
                   <tr>
@@ -211,8 +293,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Economic Analysis</span> <span class="skill-pill">Policy
-                        Interpretation</span> <span class="skill-pill">Data Correlation</span> <span
-                        class="skill-pill">Global Perspective</span> <span class="skill-pill">Research Skills</span>
+                        Interpretation</span> <span class="skill-pill">Data Correlation</span> <span class="skill-pill">Global Perspective</span> <span class="skill-pill">Research Skills</span>
                       <span class="skill-pill">Trend Analysis</span></td>
                   </tr>
                   <!-- MATHEMATICS (Optional) + INFORMATICS PRACTICES -->
@@ -229,9 +310,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Quantitative Analysis</span> <span class="skill-pill">Statistical
-                        Interpretation</span> <span class="skill-pill">Data Manipulation</span> <span
-                        class="skill-pill">Visualization</span> <span class="skill-pill">Cyber-Ethics</span> <span
-                        class="skill-pill">Financial Modeling</span></td>
+                        Interpretation</span> <span class="skill-pill">Data Manipulation</span> <span class="skill-pill">Visualization</span> <span class="skill-pill">Cyber-Ethics</span> <span class="skill-pill">Financial Modeling</span></td>
                   </tr>
                   <!-- COMPETITIVE EXAM – COMMERCE -->
                   <tr>
@@ -246,19 +325,42 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Exam Readiness</span> <span class="skill-pill">Numerical
-                        Proficiency</span> <span class="skill-pill">Time-Bound Practice</span> <span
-                        class="skill-pill">Professional Orientation</span> <span class="skill-pill">Strategic
+                        Proficiency</span> <span class="skill-pill">Time-Bound Practice</span> <span class="skill-pill">Professional Orientation</span> <span class="skill-pill">Strategic
                         Planning</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||                      HUMANITIES/ARTS STREAM                  || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🎭 HUMANITIES / ARTS STREAM</strong></td>
+  <!-- Career Planning & Stream Selection -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingCareer">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+        data-bs-target="#collapseCareer" aria-expanded="false" aria-controls="collapseCareer">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> HUMANITIES / ARTS STREAM
+        
+
+      </button>
+    </h2>
+    <div id="collapseCareer" class="accordion-collapse collapse" aria-labelledby="headingCareer"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <!-- POLITICAL SCIENCE -->
-                  <tr>
+            </thead>
+            <tbody>
+            <tr>
                     <td><strong>⚖️ Political Science</strong></td>
                     <td>
                       <ul>
@@ -272,8 +374,7 @@
                     </td>
                     <td><span class="skill-pill">Critical Analysis</span> <span class="skill-pill">Civic
                         Awareness</span> <span class="skill-pill">Debate Skills</span> <span class="skill-pill">Global
-                        Understanding</span> <span class="skill-pill">Policy Research</span> <span
-                        class="skill-pill">Diplomatic Thinking</span></td>
+                        Understanding</span> <span class="skill-pill">Policy Research</span> <span class="skill-pill">Diplomatic Thinking</span></td>
                   </tr>
                   <!-- HISTORY -->
                   <tr>
@@ -290,8 +391,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Historical Interpretation</span> <span class="skill-pill">Research
-                        Skills</span> <span class="skill-pill">Analytical Writing</span> <span
-                        class="skill-pill">Contextual Understanding</span> <span class="skill-pill">Cultural
+                        Skills</span> <span class="skill-pill">Analytical Writing</span> <span class="skill-pill">Contextual Understanding</span> <span class="skill-pill">Cultural
                         Appreciation</span></td>
                   </tr>
                   <!-- GEOGRAPHY -->
@@ -308,8 +408,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Spatial Analysis</span> <span class="skill-pill">Environmental
-                        Awareness</span> <span class="skill-pill">GIS Familiarity</span> <span
-                        class="skill-pill">Research &amp; Mapping</span> <span class="skill-pill">Sustainable
+                        Awareness</span> <span class="skill-pill">GIS Familiarity</span> <span class="skill-pill">Research &amp; Mapping</span> <span class="skill-pill">Sustainable
                         Planning</span></td>
                   </tr>
                   <!-- SOCIOLOGY -->
@@ -326,8 +425,7 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Sociological Insight</span> <span class="skill-pill">Research
-                        Methodology</span> <span class="skill-pill">Cultural Sensitivity</span> <span
-                        class="skill-pill">Critical Observation</span> <span class="skill-pill">Social Advocacy</span>
+                        Methodology</span> <span class="skill-pill">Cultural Sensitivity</span> <span class="skill-pill">Critical Observation</span> <span class="skill-pill">Social Advocacy</span>
                     </td>
                   </tr>
                   <!-- PSYCHOLOGY -->
@@ -362,32 +460,53 @@
                       </ul>
                     </td>
                     <td><span class="skill-pill">Specialized Skills</span> <span class="skill-pill">Creative
-                        Expression</span> <span class="skill-pill">Practical Application</span> <span
-                        class="skill-pill">Career Alignment</span> <span class="skill-pill">Cultural Fluency</span>
+                        Expression</span> <span class="skill-pill">Practical Application</span> <span class="skill-pill">Career Alignment</span> <span class="skill-pill">Cultural Fluency</span>
                       <span class="skill-pill">Portfolio Development</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||                   VOCATIONAL / SKILL COURSES                 || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🛠️ VOCATIONAL &amp; SKILL COURSES (NSQF)</strong>
-                    </td>
+  <!-- Skill Enrichment -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingSkill">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSkill"
+        aria-expanded="false" aria-controls="collapseSkill">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> VOCATIONAL & SKILL COURSES (NSQF)
+        
+
+      </button>
+    </h2>
+    <div id="collapseSkill" class="accordion-collapse collapse" aria-labelledby="headingSkill"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+             <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+               <tr>
                     <td><strong>🛒 Retail</strong></td>
                     <td>Inventory control, customer experience design, POS tech, visual merchandising, e‑commerce
                       basics. Internship diary, retail simulations, guest talks.</td>
                     <td><span class="skill-pill">Customer Service</span> <span class="skill-pill">Inventory
-                        Management</span> <span class="skill-pill">Tech Application</span> <span
-                        class="skill-pill">E‑Commerce Skills</span></td>
+                        Management</span> <span class="skill-pill">Tech Application</span> <span class="skill-pill">E‑Commerce Skills</span></td>
                   </tr>
                   <tr>
                     <td><strong>🖥️ IT/ITES</strong></td>
                     <td>PC assembly, troubleshooting, networking protocols, JavaScript interactivity, cybersecurity
                       fundamentals, cloud basics. Certifications: CompTIA ITF+, Cisco Essentials; hackathons.</td>
-                    <td><span class="skill-pill">Technical Proficiency</span> <span
-                        class="skill-pill">Problem-Solving</span> <span class="skill-pill">Networking Basics</span>
+                    <td><span class="skill-pill">Technical Proficiency</span> <span class="skill-pill">Problem-Solving</span> <span class="skill-pill">Networking Basics</span>
                       <span class="skill-pill">Certification Readiness</span> <span class="skill-pill">Cybersecurity
                         Awareness</span></td>
                   </tr>
@@ -396,49 +515,68 @@
                     <td>Anatomy fundamentals, nutrition basics, first aid &amp; CPR, patient-care communication, infection
                       control, medical ethics. Clinical internship log, hospital exposure, health camps.</td>
                     <td><span class="skill-pill">Medical Knowledge</span> <span class="skill-pill">Patient
-                        Empathy</span> <span class="skill-pill">Emergency Response</span> <span
-                        class="skill-pill">Practical Care</span> <span class="skill-pill">Community Health</span></td>
+                        Empathy</span> <span class="skill-pill">Emergency Response</span> <span class="skill-pill">Practical Care</span> <span class="skill-pill">Community Health</span></td>
                   </tr>
                   <tr>
                     <td><strong>🏨 Hospitality &amp; Tourism</strong></td>
                     <td>Front-office etiquette, menu planning, event micro-planning, luggage handling, cultural tourism,
                       sustainable practices. Virtual tours, role-plays, eco-tourism packages.</td>
                     <td><span class="skill-pill">Hospitality Skills</span> <span class="skill-pill">Event
-                        Coordination</span> <span class="skill-pill">Customer Interaction</span> <span
-                        class="skill-pill">Sustainable Tourism</span></td>
+                        Coordination</span> <span class="skill-pill">Customer Interaction</span> <span class="skill-pill">Sustainable Tourism</span></td>
                   </tr>
                   <tr>
                     <td><strong>🌾 Agriculture (Opt.)</strong></td>
                     <td>Soil health, crop rotation, organic farming, agri-tech (drone), farm-to-table. Field visits,
                       composting projects, agri-tech demos.</td>
                     <td><span class="skill-pill">Agricultural Knowledge</span> <span class="skill-pill">Sustainable
-                        Farming</span> <span class="skill-pill">Tech Application</span> <span
-                        class="skill-pill">Environmental Responsibility</span></td>
+                        Farming</span> <span class="skill-pill">Tech Application</span> <span class="skill-pill">Environmental Responsibility</span></td>
                   </tr>
                   <tr>
                     <td><strong>📋 Assessment Mode (Vocational)</strong></td>
                     <td>Skill demonstration tests, log-book, industry mentor rubrics, NSQF credit, portfolio
                       submissions, entry-level certifications.</td>
                     <td><span class="skill-pill">Practical Competence</span> <span class="skill-pill">Industry
-                        Alignment</span> <span class="skill-pill">Reflective Learning</span> <span
-                        class="skill-pill">Skill Validation</span> <span class="skill-pill">Certification
+                        Alignment</span> <span class="skill-pill">Reflective Learning</span> <span class="skill-pill">Skill Validation</span> <span class="skill-pill">Certification
                         Readiness</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||               CAREER MAPPING &amp; STREAM RELEVANCE              || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🧭 CAREER MAPPING &amp; STREAM RELEVANCE</strong>
-                    </td>
+  <!-- Personal Growth & Well-Being -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingPersonal">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePersonal"
+        aria-expanded="false" aria-controls="collapsePersonal">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> CAREER MAPPING &amp; STREAM RELEVANCE
+        
+
+      </button>
+    </h2>
+    <div id="collapsePersonal" class="accordion-collapse collapse" aria-labelledby="headingPersonal"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+              <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+              <tr>
                     <td><strong>🧑‍🏫 Individual Counseling</strong></td>
                     <td>MBTI, Big Five, RIASEC, Aptitude Percentile Charts, Stream-Fit Radar, VAK Learning Styles.
                       Personalized guidance, skill gaps, unconventional paths, mid-year review.</td>
                     <td><span class="skill-pill">Self-Awareness</span> <span class="skill-pill">Strength
-                        Identification</span> <span class="skill-pill">Career Alignment</span> <span
-                        class="skill-pill">Decision-Making</span> <span class="skill-pill">Adaptive Planning</span></td>
+                        Identification</span> <span class="skill-pill">Career Alignment</span> <span class="skill-pill">Decision-Making</span> <span class="skill-pill">Adaptive Planning</span></td>
                   </tr>
                   <tr>
                     <td><strong>🗓️ Monthly Career Mapping</strong></td>
@@ -457,19 +595,43 @@
                       <span class="skill-pill">Career Planning</span> <span class="skill-pill">Self-Assessment</span>
                       <span class="skill-pill">Digital Documentation</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||                 STUDY HABITS &amp; ACADEMIC RIGOR                || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>⏳ STUDY HABITS &amp; ACADEMIC RIGOR</strong></td>
+  <!-- Enrichment Activities & Hobbies -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingEnrich">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+        data-bs-target="#collapseEnrich" aria-expanded="false" aria-controls="collapseEnrich">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div>  STUDY HABITS &amp; ACADEMIC RIGOR
+        
+
+      </button>
+    </h2>
+    <div id="collapseEnrich" class="accordion-collapse collapse" aria-labelledby="headingEnrich"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+             <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+              <tr>
                     <td><strong>⏰ Time Management</strong></td>
                     <td>Digital planners (Trello, Google Calendar, Notion), deep-work 90-min blocks, weekly
                       retrospectives, workshops on procrastination &amp; peak loads.</td>
-                    <td><span class="skill-pill">Discipline</span> <span class="skill-pill">Prioritization</span> <span
-                        class="skill-pill">Progress Tracking</span> <span class="skill-pill">Focused Learning</span>
+                    <td><span class="skill-pill">Discipline</span> <span class="skill-pill">Prioritization</span> <span class="skill-pill">Progress Tracking</span> <span class="skill-pill">Focused Learning</span>
                       <span class="skill-pill">Anti-Procrastination</span></td>
                   </tr>
                   <tr>
@@ -477,8 +639,7 @@
                     <td>Cornell + Mind Mapping, Notion databases, Anki decks, Quizlet, peer teaching, visual
                       summaries/infographics.</td>
                     <td><span class="skill-pill">Organized Learning</span> <span class="skill-pill">Retention
-                        Strategies</span> <span class="skill-pill">Visual Thinking</span> <span
-                        class="skill-pill">Tech-Savvy Study</span> <span class="skill-pill">Peer Instruction</span></td>
+                        Strategies</span> <span class="skill-pill">Visual Thinking</span> <span class="skill-pill">Tech-Savvy Study</span> <span class="skill-pill">Peer Instruction</span></td>
                   </tr>
                   <tr>
                     <td><strong>📑 Exam Techniques</strong></td>
@@ -488,36 +649,58 @@
                       <span class="skill-pill">Time-Bound Practice</span> <span class="skill-pill">Continuous
                         Improvement</span> <span class="skill-pill">Stress Management</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||                 SKILL DEVELOPMENT &amp; ENRICHMENT               || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>⚡ SKILL DEVELOPMENT &amp; ENRICHMENT</strong></td>
+  <!-- Global Awareness -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingGlobal">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGlobal"
+        aria-expanded="false" aria-controls="collapseGlobal">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> SKILL DEVELOPMENT &amp; ENRICHMENT
+        
+
+      </button>
+    </h2>
+    <div id="collapseGlobal" class="accordion-collapse collapse" aria-labelledby="headingGlobal"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+              <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+                <tr>
                     <td><strong>💡 Digital Fluency</strong></td>
                     <td>Excel (pivot, VLOOKUP), Google Suite mastery, Data Studio, Tableau, AI tools (ChatGPT), HTML/CSS
                       résumé site, MIT App Inventor, cybersecurity workshops.</td>
                     <td><span class="skill-pill">Data Visualization</span> <span class="skill-pill">Tech
-                        Proficiency</span> <span class="skill-pill">Collaborative Work</span> <span
-                        class="skill-pill">AI Familiarity</span> <span class="skill-pill">Web Design</span></td>
+                        Proficiency</span> <span class="skill-pill">Collaborative Work</span> <span class="skill-pill">AI Familiarity</span> <span class="skill-pill">Web Design</span></td>
                   </tr>
                   <tr>
                     <td><strong>🗣️ Communication &amp; Soft Skills</strong></td>
                     <td>Debates, MUN, TED-style talks, creative writing, APA/MLA citation, podcast editing (Audacity),
                       YouTube content, negotiation, cross-cultural communication.</td>
                     <td><span class="skill-pill">Public Speaking</span> <span class="skill-pill">Persuasive
-                        Communication</span> <span class="skill-pill">Research Writing</span> <span
-                        class="skill-pill">Media Production</span> <span class="skill-pill">Cultural Fluency</span></td>
+                        Communication</span> <span class="skill-pill">Research Writing</span> <span class="skill-pill">Media Production</span> <span class="skill-pill">Cultural Fluency</span></td>
                   </tr>
                   <tr>
                     <td><strong>🧩 Critical Thinking &amp; Problem Solving</strong></td>
                     <td>Harvard case-method, design-thinking empathy maps, logic puzzle leagues, data-storytelling,
                       ethical dilemmas, interdisciplinary (Econ+Geo).</td>
                     <td><span class="skill-pill">Analytical Thinking</span> <span class="skill-pill">Creative
-                        Problem-Solving</span> <span class="skill-pill">Logical Reasoning</span> <span
-                        class="skill-pill">Innovative Mindset</span> <span class="skill-pill">Ethical
+                        Problem-Solving</span> <span class="skill-pill">Logical Reasoning</span> <span class="skill-pill">Innovative Mindset</span> <span class="skill-pill">Ethical
                         Decision-Making</span></td>
                   </tr>
                   <tr>
@@ -528,28 +711,51 @@
                       <span class="skill-pill">Financial Decision-Making</span> <span class="skill-pill">Entrepreneurial
                         Thinking</span> <span class="skill-pill">Risk Assessment</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||                 COMPETITIVE EXAM ECOSYSTEM                   || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>📚 COMPETITIVE EXAM ECOSYSTEM</strong></td>
+  <!-- Environmental Sustainability -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingEnv">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnv"
+        aria-expanded="false" aria-controls="collapseEnv">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> COMPETITIVE EXAM ECOSYSTEM
+        
+
+      </button>
+    </h2>
+    <div id="collapseEnv" class="accordion-collapse collapse" aria-labelledby="headingEnv"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+                <tr>
                     <td><strong>🎯 Mock Tests</strong></td>
                     <td>Weekly JEE/NEET unit tests, monthly CLAT full-length, SAT diagnostics, NSEA/NSEC Olympiad
                       sheets, CUET mocks; Testbook/Gradeup adaptive testing.</td>
                     <td><span class="skill-pill">Exam Readiness</span> <span class="skill-pill">Performance
-                        Tracking</span> <span class="skill-pill">Error Correction</span> <span
-                        class="skill-pill">Endurance Building</span></td>
+                        Tracking</span> <span class="skill-pill">Error Correction</span> <span class="skill-pill">Endurance Building</span></td>
                   </tr>
                   <tr>
                     <td><strong>📘 Coaching/MOOCs</strong></td>
                     <td>Hybrid weekend batches, IIT-PAL YouTube, Coursera (Data Science Math, Python for Everybody),
                       Unacademy doubt-solves, peer study groups.</td>
                     <td><span class="skill-pill">Structured Preparation</span> <span class="skill-pill">Resource
-                        Utilization</span> <span class="skill-pill">Self-Paced Learning</span> <span
-                        class="skill-pill">Doubt Resolution</span></td>
+                        Utilization</span> <span class="skill-pill">Self-Paced Learning</span> <span class="skill-pill">Doubt Resolution</span></td>
                   </tr>
                   <tr>
                     <td><strong>📖 Reference Library</strong></td>
@@ -559,14 +765,39 @@
                       <span class="skill-pill">Exam-Specific Knowledge</span> <span class="skill-pill">Digital
                         Research</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                  <!-- ================================================================= -->
-                  <!-- ||            CO-CURRICULAR &amp; COMMUNITY ENGAGEMENT              || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🏅 CO-CURRICULAR &amp; COMMUNITY ENGAGEMENT</strong>
-                    </td>
+  <!-- Parental & Community Involvement -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingParent">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseParent"
+        aria-expanded="false" aria-controls="collapseParent">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> CO-CURRICULAR &amp; COMMUNITY ENGAGEMENT
+        
+
+      </button>
+    </h2>
+    <div id="collapseParent" class="accordion-collapse collapse" aria-labelledby="headingParent"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+             <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
+            </thead>
+            <tbody>
+             
                   <tr>
                     <td><strong>📌 Club Leadership &amp; Innovation</strong></td>
                     <td>Eco Audit Head, School Magazine Chief Editor, Robotics Captain, Entrepreneurship Secretary,
@@ -580,24 +811,21 @@
                     <td>E-waste drives, financial literacy workshops, tree-planting hackathons, NGO internships,
                       tutoring underprivileged, measurable outcomes.</td>
                     <td><span class="skill-pill">Social Responsibility</span> <span class="skill-pill">Community
-                        Impact</span> <span class="skill-pill">Civic Engagement</span> <span
-                        class="skill-pill">Empathy</span></td>
+                        Impact</span> <span class="skill-pill">Civic Engagement</span> <span class="skill-pill">Empathy</span></td>
                   </tr>
                   <tr>
                     <td><strong>🏆 Skill-Based Projects &amp; Competitions</strong></td>
                     <td>Kaggle mini-analysis, nutrition posters, prototype business canvas, photography challenges;
                       science fairs, hackathons, interdisciplinary health-startup ideas.</td>
                     <td><span class="skill-pill">Research Skills</span> <span class="skill-pill">Practical
-                        Application</span> <span class="skill-pill">Creative Output</span> <span
-                        class="skill-pill">Competitive Spirit</span> <span class="skill-pill">Cross-Disciplinary
+                        Application</span> <span class="skill-pill">Creative Output</span> <span class="skill-pill">Competitive Spirit</span> <span class="skill-pill">Cross-Disciplinary
                         Innovation</span></td>
                   </tr>
                   <tr>
                     <td><strong>⚽ Sports &amp; Wellness</strong></td>
                     <td>Football, Basketball, Cricket, Chess, Yoga, Zumba, fitness challenges, nutrition workshops,
                       sleep seminars, sports injury prevention.</td>
-                    <td><span class="skill-pill">Physical Health</span> <span class="skill-pill">Discipline</span> <span
-                        class="skill-pill">Stress Management</span> <span class="skill-pill">Strategic Thinking</span>
+                    <td><span class="skill-pill">Physical Health</span> <span class="skill-pill">Discipline</span> <span class="skill-pill">Stress Management</span> <span class="skill-pill">Strategic Thinking</span>
                     </td>
                   </tr>
                   <tr>
@@ -608,19 +836,46 @@
                       <span class="skill-pill">Self-Expression</span> <span class="skill-pill">Digital Creativity</span>
                       <span class="skill-pill">Event Participation</span></td>
                   </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+	
+	  <!-- Parental & Community Involvement -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingEmotional">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEmotional"
+        aria-expanded="false" aria-controls="collapseEmotional">
 
-                  <!-- ================================================================= -->
-                  <!-- ||               EMOTIONAL &amp; PERSONAL GROWTH                    || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🌱 EMOTIONAL &amp; PERSONAL GROWTH</strong></td>
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> EMOTIONAL &amp; PERSONAL GROWTH
+        
+
+      </button>
+    </h2>
+    <div id="collapseEmotional" class="accordion-collapse collapse" aria-labelledby="headingEmotional"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+             
+                   <tr>
                     <td><strong>💆 Stress Management</strong></td>
                     <td>5-4-3-2-1 grounding, box-breathing, digital detox, mindfulness apps (Headspace), stress-relief
                       zones, group discussions.</td>
-                    <td><span class="skill-pill">Stress Control</span> <span class="skill-pill">Self-Care</span> <span
-                        class="skill-pill">Emotional Regulation</span> <span class="skill-pill">Mindfulness
+                    <td><span class="skill-pill">Stress Control</span> <span class="skill-pill">Self-Care</span> <span class="skill-pill">Emotional Regulation</span> <span class="skill-pill">Mindfulness
                         Practice</span></td>
                   </tr>
                   <tr>
@@ -628,8 +883,7 @@
                     <td>Reflection journals, gratitude logs, Kanban boards, peer-coaching, workshops on embracing
                       failure, incremental goals.</td>
                     <td><span class="skill-pill">Reflective Thinking</span> <span class="skill-pill">Goal
-                        Tracking</span> <span class="skill-pill">Personal Growth</span> <span
-                        class="skill-pill">Resilience</span></td>
+                        Tracking</span> <span class="skill-pill">Personal Growth</span> <span class="skill-pill">Resilience</span></td>
                   </tr>
                   <tr>
                     <td><strong>🛡️ Mental Health Safety Net</strong></td>
@@ -640,54 +894,145 @@
                         Empathy</span></td>
                   </tr>
 
-                  <!-- ================================================================= -->
-                  <!-- ||              GLOBAL AWARENESS &amp; SUSTAINABILITY               || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>🌍 GLOBAL AWARENESS &amp; SUSTAINABILITY</strong>
-                    </td>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+	
+		  <!-- GLOBAL AWARENESS &amp; SUSTAINABILITY -->
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headinggws">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsegws"
+        aria-expanded="false" aria-controls="collapsegws">
+
+        <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)"><i
+            class="bx bx-calendar-check"></i></div> GLOBAL AWARENESS &amp; SUSTAINABILITY
+        
+
+      </button>
+    </h2>
+    <div id="collapsegws" class="accordion-collapse collapse" aria-labelledby="headinggws"
+      data-bs-parent="#careerAccordion">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered section-table mb-0">
+            <thead>
+            <tr>
+                    <th style="width:17%"> Area / Stream</th>
+                    <th style="width:53%"> What to Do — topics, projects, practicals</th>
+                    <th style="width:30%"> Key Skills (exact from doc)</th>
                   </tr>
-                  <tr>
+            </thead>
+            <tbody>
+             
+                   <tr>
                     <td><strong>🌐 Global Issues &amp; Citizenship</strong></td>
                     <td>Discussions on climate, globalization, human rights; virtual exchange, essay contests, MUN,
                       SDGs, international careers.</td>
                     <td><span class="skill-pill">Global Citizenship</span> <span class="skill-pill">Cross-Cultural
-                        Understanding</span> <span class="skill-pill">Diplomatic Thinking</span> <span
-                        class="skill-pill">Research Skills</span></td>
+                        Understanding</span> <span class="skill-pill">Diplomatic Thinking</span> <span class="skill-pill">Research Skills</span></td>
                   </tr>
                   <tr>
                     <td><strong>♻️ Environmental Sustainability</strong></td>
                     <td>Eco-literacy workshops, carbon footprint, circular economy, school garden, composting, energy
                       audits, green innovation competitions.</td>
-                    <td><span class="skill-pill">Environmental Responsibility</span> <span
-                        class="skill-pill">Sustainable Thinking</span> <span class="skill-pill">Community Impact</span>
+                    <td><span class="skill-pill">Environmental Responsibility</span> <span class="skill-pill">Sustainable Thinking</span> <span class="skill-pill">Community Impact</span>
                       <span class="skill-pill">Innovation</span> <span class="skill-pill">Practical
                         Problem-Solving</span></td>
                   </tr>
 
-                  <!-- ================================================================= -->
-                  <!-- ||              PARENTAL &amp; COMMUNITY INVOLVEMENT                || -->
-                  <!-- ================================================================= -->
-                  <tr class="section-header">
-                    <td colspan="3" style="text-align:center;"><strong>👪 PARENTAL &amp; COMMUNITY INVOLVEMENT</strong></td>
-                  </tr>
-                  <tr>
-                    <td><strong>🏡 Family &amp; Community Engagement</strong></td>
-                    <td>
-                      <ul>
-                        <li>Parent workshops: stream challenges, competitive exams, adolescent needs, admissions.</li>
-                        <li>Family events: Career Nights, Cultural Performances, Sports Days, Community Service Days.
-                        </li>
-                        <li>Collaboration with NGOs, community mentorship, parent-led skill workshops.</li>
-                        <li>Parent-Teacher-Student triad meetings (quarterly goal-setting, career planning).</li>
-                      </ul>
-                    </td>
-                    <td><span class="skill-pill">Family Bonding</span> <span class="skill-pill">Community
-                        Connection</span> <span class="skill-pill">Collaborative Growth</span> <span
-                        class="skill-pill">Mentorship</span> <span class="skill-pill">Social Networking</span> <span
-                        class="skill-pill">Support Systems</span></td>
-                  </tr>
-                  <!-- end of all sections -->
-                </tbody>
-              </table>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+	
+	
+	
+<!-- PARENTAL & COMMUNITY INVOLVEMENT -->
+<div class="accordion-item">
+  <h2 class="accordion-header" id="headingparen">
+    <button class="accordion-button collapsed" type="button" 
+            data-bs-toggle="collapse" data-bs-target="#collapseparen"
+            aria-expanded="false" aria-controls="collapseparen"
+            id="headingparen-btn">
+      <div class="tip-icon" style="background:linear-gradient(90deg,#6366f1,#4f46e5)">
+        <i class="bx bx-calendar-check"></i>
+      </div> 
+      PARENTAL & COMMUNITY INVOLVEMENT
+    </button>
+  </h2>
+  <div id="collapseparen" class="accordion-collapse collapse" 
+       aria-labelledby="headingparen" data-bs-parent="#careerAccordion">
+    <div class="accordion-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered section-table mb-0">
+          <thead>
+            <tr>
+              <th style="width:17%">Area / Stream</th>
+              <th style="width:53%">What to Do — topics, projects, practicals</th>
+              <th style="width:30%">Key Skills (exact from doc)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>🏡 Family & Community Engagement</strong></td>
+              <td>
+                <ul>
+                  <li>Parent workshops: stream challenges, competitive exams, adolescent needs, admissions.</li>
+                  <li>Family events: Career Nights, Cultural Performances, Sports Days, Community Service Days.</li>
+                  <li>Collaboration with NGOs, community mentorship, parent-led skill workshops.</li>
+                  <li>Parent-Teacher-Student triad meetings (quarterly goal-setting, career planning).</li>
+                </ul>
+              </td>
+              <td>
+                <span class="skill-pill">Family Bonding</span> 
+                <span class="skill-pill">Community Connection</span> 
+                <span class="skill-pill">Collaborative Growth</span> 
+                <span class="skill-pill">Mentorship</span> 
+                <span class="skill-pill">Social Networking</span> 
+                <span class="skill-pill">Support Systems</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
+	
+	
+</div>
+
+<script>
+  // Swap boxicons classes for plus/minus on accordion toggle
+  (function () {
+    const accordion = document.getElementById('careerAccordion');
+    if (!accordion) return;
+
+    function setToggleIcon(collapseEl, expanded) {
+      const btnToggle = collapseEl.previousElementSibling.querySelector('.toggle-icon');
+      if (!btnToggle) return;
+      btnToggle.classList.remove('bx-plus', 'bx-minus');
+      btnToggle.classList.add(expanded ? 'bx-minus' : 'bx-plus');
+    }
+
+    accordion.addEventListener('show.bs.collapse', function (e) {
+      setToggleIcon(e.target, true);
+    });
+    accordion.addEventListener('hide.bs.collapse', function (e) {
+      setToggleIcon(e.target, false);
+    });
+
+    // Initialize icons based on current state
+    Array.from(accordion.querySelectorAll('.accordion-collapse')).forEach(function (c) {
+      setToggleIcon(c, c.classList.contains('show'));
+    });
+  })();
+</script>

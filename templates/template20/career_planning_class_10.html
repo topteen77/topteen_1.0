@@ -12,18 +12,43 @@ Class 10 career planning: board exam preparation, stream selection, psychometric
 
 {% block content %}
 <style>
-.gradient-bg { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
-.fs-60{font-size: 60px;}
-.four-year-section { padding: 48px 0; }
-.focus-point { background: #f6f6ff; border-radius: 7px; padding: 13px; }
-.focus-point p { margin-bottom: 0; }
-.implementation-tips .tip-card { border-radius: 12px; padding: 18px; background: linear-gradient(180deg,#ffffff,#fbfbff); box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%; }
-.tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
-.custom-bullet-list { list-style-type: none; padding-left: 0; }
-.custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
-.custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: linear-gradient(135deg, #7755EE, #3F37C9); border-radius: 50%; }
-.moritoring-img { position: sticky; top: 65px; }
-</style>
+  .gradient-bg { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+  .fs-60{font-size: 60px;}
+  .four-year-section { padding: 48px 0; }
+  .focus-point { background: #f6f6ff; border-radius: 7px; padding: 13px; }
+  .focus-point p { margin-bottom: 0; }
+  .implementation-tips .tip-card { border-radius: 12px; padding: 18px; background: linear-gradient(180deg,#ffffff,#fbfbff); box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%; }
+  .tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
+  
+  .data-assessment-info {
+    background: #f9f9ff;
+    border-radius: 20px;
+    padding: 21px;
+    border: 1px solid #c2bfff;
+  }
+  
+  .data-assessment-info h3 {
+    background: #ffff !important;
+    padding: 11px;
+    margin-top: 0px !important;
+    border-left: 3px solid #3f37c9;
+  }
+  
+  .custom-secondary-button {
+    padding: 12px 35px;
+    font-weight: 600;
+  }
+  
+  .moritoring-img { position: sticky; top: 65px; }
+
+  @media (max-width: 768px) {
+    .custom-secondary-button {
+  margin-bottom: 6px;
+  margin-top: 6px;
+  padding: 6px 35px;
+}
+  }
+  </style>
 
 <main class="py-test-page">
   <section class="hero-section-inner pt-md-18 pt-14 pb-5 gradient-bg">
@@ -32,12 +57,12 @@ Class 10 career planning: board exam preparation, stream selection, psychometric
         <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
         <div class="col-lg-6 col-md-12">
           <span class="highlighter"><img src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="icon" /> Year 2</span>
-          <h1 class="heading-title fs-60">Class 10 <p class="lh-sm fs-sm-20">Board <span class="text-yellow">Preparation &amp; Stream</span> Awareness</p></h1>
+          <h1 class="heading-title fs-60 mt-8">Class 10th <p class="lh-sm fs-sm-20 mt-md-0 mt-2">Board <span class="text-yellow">Preparation &amp; Stream</span> Awareness</p></h1>
           <p class="text-gray fs-16"><strong class="text-purple">Focus:</strong> High-stakes board exam preparation combined with critical decisions about academic streams, fostering academic depth, emotional resilience, career clarity, and the development of future-ready skills through structured support, exploration, and real-world application.</p>
         </div>
         <div class="col-lg-6 col-md-12">
           <div class="right-banner d-md-flex d-none justify-content-end">
-            <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Class 10" />
+            <img class="img-fluid" src="{{ static('images_new/general/four-year-plan.png') }}" alt="Class 10" />
           </div>
         </div>
       </div>
@@ -48,9 +73,11 @@ Class 10 career planning: board exam preparation, stream selection, psychometric
     <div class="container">
       <div class="row">
         <div class="col-md-9 mx-auto custom-faq">
-          <h2 class="fs-28 fw-700 text-center mb-4">Board Preparation <span class="text-purple">Class 10</span></h2>
+          <h2 class="fs-28 fs-sm-20 fw-700 text-center mb-4">Board Preparation <span class="text-purple">Class 10th</span></h2>
           {% include 'template20/career_planning/class_10_table.html' %}
-          <h3 class="fs-26 fw-700 mt-5">Expected Outcomes by Year-End <span class="text-purple">Class 10</span></h3>
+
+          <div class="data-assessment-info">
+          <h3 class="fs-26 fs-sm-20 fw-700 mt-5">Expected Outcomes by Year-End <span class="text-purple">Class 10th</span></h3>
           <p class="text-gray">Purpose: Create a clear, actionable evidence base to track expected outcomes, guide instruction, and inform parents/stakeholders.</p>
           <ul class="custom-bullet-list">
             <li><strong>Board Exam Readiness:</strong> Thorough preparation for the first public examination through systematic practice, conceptual depth, exam strategy, and stress-control tools, evidenced by confidence and high performance in pre-boards and final exams.</li>
@@ -65,13 +92,14 @@ Class 10 career planning: board exam preparation, stream selection, psychometric
             <li><strong>Community Connection:</strong> Strengthened bonds with family and local community through collaborative events, service projects, mentorship opportunities, and shared learning experiences, fostering a support network for personal growth.</li>
           </ul>
         </div>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="implementation-tips bg-light py-md-8 py-5">
     <div class="container">
-      <div class="row"><div class="col-md-8 mx-auto text-center mb-4"><h3 class="fs-26 fw-700">Implementation Tips for <span class="text-purple">Class 10</span> (Year 2)</h3><p class="text-gray">Practical, high-impact recommendations to bring the four-year plan to life.</p></div></div>
+      <div class="row"><div class="col-md-8 mx-auto text-center mb-4"><h3 class="fs-26 fs-sm-20 fw-700">Implementation Tips for <span class="text-purple">Class 10th</span> (Year 2)</h3><p class="text-gray">Practical, high-impact recommendations to bring the four-year plan to life.</p></div></div>
       <div class="row g-4">
         <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#3b82f6,#2563eb)"><i class='bx bx-calendar'></i></div><div><h5 class="fs-16 mb-1">Balanced Timetable</h5><p class="text-gray fs-14 mb-0">Design a structured schedule allocating time for academics (70%), exam preparation (15%), skill-building (10%), and well-being (5%) to prioritize board readiness while maintaining holistic growth. Include buffer time for unexpected challenges.</p></div></div></div></div>
         <div class="col-md-4"><div class="tip-card"><div class="d-flex align-items-start mb-2"><div class="tip-icon" style="background:linear-gradient(90deg,#ef4444,#dc2626)"><i class='bx bx-user-voice'></i></div><div><h5 class="fs-16 mb-1">Mentor Support</h5><p class="text-gray fs-14 mb-0">Assign subject-specific mentors and career counselors to guide students through board preparation and stream selection, with bi-monthly check-ins for personalized academic and emotional support. Include senior student mentors for peer guidance.</p></div></div></div></div>
@@ -96,9 +124,9 @@ Class 10 career planning: board exam preparation, stream selection, psychometric
   <section class="monitoring-section py-md-8 py-5">
     <div class="container">
       <div class="row">
-        <div class="col-md-6"><div class="moritoring-img"><img src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Monitoring" class="img-fluid" /></div></div>
+        <div class="col-md-6 mb-4 mb-md-0"><div class="moritoring-img"><img src="{{ static('images_new/general/monitoring-evaluation.png') }}" alt="Monitoring" class="img-fluid" /></div></div>
         <div class="col-md-6 d-flex flex-column justify-content-center">
-          <h3 class="fs-26 fw-700 mb-5">Monitoring &amp; Evaluation for <span class="text-purple">Class 10</span></h3>
+          <h3 class="fs-26 fs-sm-20 fw-700mb-5">Monitoring &amp; Evaluation for <span class="text-purple">Class 10th</span></h3>
           <ul class="custom-bullet-list">
             <li><strong>Student Feedback:</strong> Conduct mid-term and end-term surveys (anonymous options for sensitive topics) to assess satisfaction with academic support, exam preparation, career guidance, skill-building, and well-being initiatives, using insights to refine the program.</li>
             <li><strong>Progress Reports:</strong> Share detailed quarterly reports with parents, highlighting academic growth, exam readiness, skill acquisition, behavioral development, emotional health, and areas for improvement with actionable, personalized suggestions.</li>
@@ -115,11 +143,11 @@ Class 10 career planning: board exam preparation, stream selection, psychometric
   <section class="py-3">
     <div class="container">
       <div class="row">
-        <div class="col-md-12 text-center">
-          <a href="{{ url('core:career_planning_class_9') }}" class="btn btn-outline-secondary me-2">← Class 9</a>
+        <div class="col-md-12 text-center mb-5">
+          <a href="{{ url('core:career_planning_class_9') }}" class="btn btn-outline-secondary me-2 custom-secondary-button">← Class 9</a>
           <a href="{{ url('core:career_planning') }}" class="btn custom-button purple-button me-2">Career Planning Hub</a>
           <a href="{{ url('core:career_planning_4_year') }}" class="btn custom-button blue-button me-2">4 Year Course Plan</a>
-          <a href="{{ url('core:career_planning_class_11') }}" class="btn btn-outline-secondary">Class 11 →</a>
+          <a href="{{ url('core:career_planning_class_11') }}" class="btn btn-outline-secondary custom-secondary-button">Class 11 →</a>
         </div>
       </div>
     </div>

@@ -7619,6 +7619,7 @@ a:hover {
   line-height: 78px;
   color: #111111;
   clear: both;
+  text-transform: capitalize;
 }
 
 .heading-title p {
@@ -8078,6 +8079,8 @@ div#videoModal {
 
 .blog-box img {
   width: 100%;
+  object-fit: cover;
+  height: 220px;
 }
 
 .blog-info {
@@ -11735,7 +11738,8 @@ width: 82px;
 
 
   .heading-title p {
-    font-size: 23px;
+    font-size: 22px;
+    line-height: 26px;
   }
 
 
@@ -13949,3 +13953,376 @@ position: absolute;
     }
 
         /*** institute register page ***/
+
+
+        /** Extracurricular Activities Section ***/
+
+         /* Activity Cards Styling (from provided HTML) */
+  .activity-card {
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    height: 340px; /* fixed card height */
+  }
+
+  .activity-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--purple) 0%, var(--blue) 100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .activity-card:hover:before {
+    opacity: 1;
+  }
+
+  .activity-list {
+    padding-left: 0;
+    list-style-type: none;
+  }
+
+  .activity-list li {
+    padding: 9px 0;
+    border-bottom: 1px solid #eee;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .activity-list li:last-child {
+    border-bottom: none;
+  }
+
+  .activity-list li a {
+    color: #555;
+    text-decoration: none;
+    display: block;
+    padding-left: 0;
+    position: relative;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    text-transform: capitalize;
+  }
+
+  .activity-list li:hover {
+    padding-left: 8px;
+    background: #f8f9fa;
+  }
+
+  .activity-list li:hover a {
+    color: #3F37C9;
+  }
+
+  .activities-section .card-header {
+    border-bottom: none;
+    padding: 20px;
+    position: relative;
+  }
+
+  .activities-section .card-header h3 {
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+
+  .activities-section .card-header h3 i {
+    margin-right: 10px;
+    font-size: 1.7rem;
+    background: #fff;
+    border-radius: 50px;
+    padding: 7px;
+    color: #3f37c9;
+  }
+
+  .activities-section .card-body {
+    padding: 15px;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  /* Make activity list scroll when items exceed card space */
+  .activities-section .activity-list {
+    padding-left: 0;
+    list-style-type: none;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .activities-section .activity-list li a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .activities-section .activity-list li a i.bx {
+    font-size: 1rem;
+    color: #bdbdbd;
+    transition: transform 0.18s ease, color 0.18s ease;
+    margin-left: 8px;
+  }
+
+  .activities-section .activity-list li:hover a i.bx {
+    transform: translateX(4px);
+    color: #3F37C9;
+  }
+
+  /* Thin custom scrollbar for webkit browsers */
+  .activities-section .activity-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  .activities-section .activity-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.08);
+    border-radius: 6px;
+  }
+
+  .activities-section .activities-section .highlighter, .activities-section .ext-benefits .highlighter {
+    float: inherit;
+  }
+
+  /* Light top gradient overlay for activities section */
+  .activities-section {
+    position: relative;
+    z-index: 0;
+    background: #c4c4ff;
+  background: linear-gradient(0deg, rgba(196, 196, 255, 0) 0%, rgb(249, 249, 255) 100%);
+  }
+
+
+  .vocational-card {
+    background: #FFF4E9C9;
+    background: linear-gradient(90deg, rgba(255, 244, 233, 1) 0%, rgba(250, 230, 205, 1) 50%);
+    padding: 33px;
+    border-radius: 20px;
+  }
+
+  .voc-left .heading-title {
+    line-height: 49px;
+  }
+
+  .cards-n {
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #d7d0d0;
+  }
+
+  .voc-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+  }
+
+  .voc-list li {
+    display: flex;
+    align-items: start;
+    padding: 4px 0;
+    color: #222;
+    font-weight: 600;
+    line-height: 19px;
+  }
+
+  .voc-list li .bx {
+    color: #7a6ef8;
+    font-size: 18px;
+    margin-right: 8px;
+  }
+
+  .extracurricular-tabs {
+    background-image: url("{{ static('images/extracurricular-bg.png') }}") !important;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  /* Enhanced tab UI */
+  .extracurricular-tabs .card {
+    overflow: visible;
+  }
+
+
+
+  .extracurricular-tabs .list-group-item {
+    border: 0;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: 1.25rem;
+    padding-right: 1rem;
+    transition: all .15s ease-in-out;
+  }
+
+  .extracurricular-tabs .list-group-item:hover {
+    background: rgba(98, 0, 238, 0.03);
+    transform: translateX(3px);
+  }
+
+  .extracurricular-tabs .list-group-item.active {
+    background: linear-gradient(90deg, rgba(98, 0, 238, 0.06), rgba(99, 102, 241, 0.03));
+    border-left: 3px solid #6b3df0;
+    color: #2b2b2b;
+  }
+
+  .extracurricular-tabs .list-group-item .nav-title {
+    font-weight: 700;
+  }
+
+  .extracurricular-tabs .list-group-item .nav-desc {
+    font-size: 13px;
+    color: #6c6c6c;
+    margin-top: 4px;
+  }
+
+  .extracurricular-tabs .tab-content h3 {
+    margin-bottom: .75rem;
+  }
+
+  .extracurricular-tabs .tab-content ul li {
+    color: rgb(71, 71, 71);
+  }
+
+  .extracurricular-tabs ul li a {
+    color: #6b3df0;
+  }
+
+  #list-resources a {
+	color: #3F37C9;
+	text-decoration: underline !important;
+}
+
+  /* Make left column sticky on large screens */
+  @media(min-width:992px) {
+    .extracurricular-tabs .col-lg-4 {
+      position: sticky;
+      top: 120px;
+      align-self: flex-start;
+    }
+
+    /* Fixed height and scrollable left nav on desktop */
+    .extracurricular-tabs .list-group {
+      height: 450px;
+      max-height: 450px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: .5rem;
+      /* avoid content touching scrollbar */
+    }
+
+    .extracurricular-tabs .list-group-item {
+      white-space: normal;
+    }
+  }
+
+  /* Mobile: turn the list into a horizontal scrollable nav */
+  @media(max-width:991px) {
+    .extracurricular-tabs .list-group {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: .5rem 0;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      flex-direction: row;
+    }
+
+    .extracurricular-tabs .list-group-item {
+      border-radius: .5rem;
+      white-space: normal;
+      width: auto;
+      min-width: max-content;
+      border: 1px solid #d8cbfb;
+    }
+
+    .voc-left .heading-title {
+      line-height: 33px;
+    }
+
+
+    .extracurricular-tabs .list-group-item .nav-desc {
+      display: none;
+    }
+
+    .extracurricular-tabs .tab-content {
+      padding-top: 1rem;
+    }
+  }
+
+  /* Subtle card look for content */
+  .extracurricular-tabs .card-body {
+    background: #fff;
+  }
+
+  .extracurricular-tabs .tab-content p,
+  .extracurricular-tabs .tab-content li {
+    line-height: 1.6;
+  }
+
+  a.list-group-item .bx {
+    font-size: 20px;
+    color: #6b3df0;
+  }
+
+  /* Tab content scroll area: fixed min/max height on desktop, scroll when content overflows */
+  .extracurricular-tabs .scroll-nav-tabs {
+    min-height: 450px;
+    max-height: 450px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 8px;
+    /* keeps content from touching scrollbar */
+  }
+
+  @media (max-width: 991px) {
+    .extracurricular-tabs .scroll-nav-tabs {
+      min-height: auto;
+      max-height: none;
+      overflow-y: visible;
+      padding-right: 0;
+    }
+  }
+
+
+  
+        /** Extracurricular Activities Section ***/
+
+
+        .custom-bullet-list {
+          list-style-type: none;
+          padding-left: 0;
+        }
+    
+        .custom-bullet-list li {
+          position: relative;
+          padding-left: 25px;
+          margin-bottom: 15px;
+          font-size: 16px;
+  font-weight: 400;
+        }
+    
+        .custom-bullet-list li::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 5px;
+          width: 19px;
+          height: 18px;
+          background-image: url('../images_new/icons/small-blue-tick.png');
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          border-radius: 50%;
+        }

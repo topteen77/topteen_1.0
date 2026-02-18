@@ -16,7 +16,7 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
 .fs-60{font-size: 60px;}
 .four-year-section { padding: 48px 0; }
 .four-year-accordion .accordion-button .year-icon {
-  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center;
   border-radius: 10px; margin-right: 12px; color: #fff;
   background: linear-gradient(90deg,#7755EE,#3F37C9); font-size: 18px;
 }
@@ -27,9 +27,9 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
   box-shadow: 0 10px 30px rgba(15,23,42,0.06); height: 100%;
 }
 .tip-icon { min-width:46px; min-height:46px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; margin-right:12px; background:linear-gradient(90deg,#22c55e,#16a34a); color:#fff; font-size:20px; }
-.custom-bullet-list { list-style-type: none; padding-left: 0; }
-.custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
-.custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: linear-gradient(135deg, #7755EE, #3F37C9); border-radius: 50%; }
+
+
+
 .moritoring-img { position: sticky; top: 65px; }
 </style>
 
@@ -39,12 +39,12 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
       <div class="row">
         <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
         <div class="col-lg-6 col-md-12">
-          <h1 class="heading-title mt-md-9 fs-60 mt-8">Four-Year <p class="lh-sm fs-sm-20"><span class="text-yellow">Success Plan</span> (Classes 9–12)</p></h1>
+          <h1 class="heading-title mt-md-9 fs-60 mt-8">Four-Year <p class="lh-sm fs-sm-20"><span class="text-yellow">Success Plan</span> (Classes 9th – 12th)</p></h1>
           <p class="text-gray fs-16"><strong class="text-purple">Purpose:</strong> To build a robust academic foundation, cultivate 21st-century skills, facilitate informed stream and career decisions, foster global awareness, and prepare students for future-ready careers and higher education while prioritizing well-being and inclusivity.</p>
         </div>
         <div class="col-lg-6 col-md-12">
           <div class="right-banner d-md-flex d-none justify-content-end">
-            <img class="img-fluid" src="{{ static('images_new/careers/career-planning-banner.svg') }}" alt="Four-Year Plan" />
+            <img class="img-fluid" src="{{ static('images_new/general/four-year-plan.png') }}" alt="Four-Year Plan" />
           </div>
         </div>
       </div>
@@ -54,12 +54,12 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
   <section class="four-year-section">
     <div class="container">
       <div class="row">
-        <div class="col-md-9 mx-auto custom-faq">
+        <div class="col-md-9 mx-auto custom-faq career-acd">
           <h2 class="fs-28 fw-700 text-center mb-4">Four-Year Plan Overview</h2>
           <div class="accordion four-year-accordion" id="fourYearAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"><span class="year-icon me-2"><i class='bx bx-calendar'></i></span>Year 1 – Class 9: Foundation Building &amp; Early Exploration</button>
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"><span class="year-icon me-2"><i class='bx bx-calendar'></i></span>Year 1 – Class 9th: Foundation Building &amp; Early Exploration</button>
               </h2>
               <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#fourYearAccordion">
                 <div class="accordion-body">
@@ -80,13 +80,15 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
                       </tbody>
                     </table>
                   </div>
-                  <a href="{{ url('core:career_planning_class_9') }}" class="btn custom-button blue-button mt-3">Read Class 9 Details</a>
+                  <div class="d-flex justify-content-center">
+                    <a href="{{ url('core:career_planning_class_9') }}" class="btn custom-button blue-button mt-3">Read Class 9 Details</a>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"><span class="year-icon me-2" style="background:linear-gradient(90deg,#0ea5e9,#22c55e)"><i class='bx bx-book-open'></i></span>Year 2 – Class 10: Board Readiness &amp; Stream Discovery</button>
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo"><span class="year-icon me-2" style="background:linear-gradient(90deg,#0ea5e9,#22c55e)"><i class='bx bx-book-open'></i></span>Year 2 – Class 10th: Board Readiness &amp; Stream Discovery</button>
               </h2>
               <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#fourYearAccordion">
                 <div class="accordion-body">
@@ -107,13 +109,15 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
                       </tbody>
                     </table>
                   </div>
-                  <a href="{{ url('core:career_planning_class_10') }}" class="btn custom-button blue-button mt-3">Read Class 10 Details</a>
+                  <div class="d-flex justify-content-center">
+                    <a href="{{ url('core:career_planning_class_10') }}" class="btn custom-button blue-button mt-3">Read Class 10 Details</a>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"><span class="year-icon me-2" style="background:linear-gradient(90deg,#ec4899,#f97316)"><i class='bx bx-briefcase'></i></span>Year 3 – Class 11: Stream Specialisation &amp; Career Mapping</button>
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree"><span class="year-icon me-2" style="background:linear-gradient(90deg,#ec4899,#f97316)"><i class='bx bx-briefcase'></i></span>Year 3 – Class 11th: Stream Specialisation &amp; Career Mapping</button>
               </h2>
               <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#fourYearAccordion">
                 <div class="accordion-body">
@@ -142,13 +146,15 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
                     <li><strong>Industry Readiness:</strong> Guest Lectures by Industry Experts, Virtual Job-Shadowing, Freelancing Platforms (e.g., Upwork).</li>
                     <li><strong>Well-Being &amp; Inclusivity:</strong> Workshops on Stress Management for Competitive Exams, Neurodiversity Awareness, Safe Spaces for Identity and Inclusion.</li>
                   </ul>
-                  <a href="{{ url('core:career_planning_class_11') }}" class="btn custom-button blue-button mt-3">Read Class 11 Details</a>
+                  <div class="d-flex justify-content-center">
+                    <a href="{{ url('core:career_planning_class_11') }}" class="btn custom-button blue-button mt-3">Read Class 11 Details</a>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="accordion-item">
               <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour"><span class="year-icon me-2" style="background:linear-gradient(90deg,#facc15,#fb923c)"><i class='bx bx-award'></i></span>Year 4 – Class 12: Board Success &amp; Higher Education Launch</button>
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour"><span class="year-icon me-2" style="background:linear-gradient(90deg,#facc15,#fb923c)"><i class='bx bx-award'></i></span>Year 4 – Class 12th: Board Success &amp; Higher Education Launch</button>
               </h2>
               <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#fourYearAccordion">
                 <div class="accordion-body">
@@ -184,7 +190,10 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
                       </tbody>
                     </table>
                   </div>
-                  <a href="{{ url('core:career_planning_class_12') }}" class="btn custom-button blue-button mt-3">Read Class 12 Details</a>
+
+                  <div class="d-flex justify-content-center">
+                    <a href="{{ url('core:career_planning_class_12') }}" class="btn custom-button blue-button mt-3">Read Class 12 Details</a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -224,7 +233,7 @@ Four-Year Success Plan (Classes 9–12): build a strong academic foundation, fos
       <div class="row">
         <div class="col-md-6">
           <div class="moritoring-img">
-            <img src="{{ static('images_new/careers/career-planning-banner-2.svg') }}" alt="Monitoring &amp; Evaluation" class="img-fluid" />
+            <img src="{{ static('images_new/general/monitoring-evaluation.png') }}" alt="Monitoring &amp; Evaluation" class="img-fluid" />
           </div>
         </div>
         <div class="col-md-6 d-flex flex-column justify-content-center">
