@@ -3,6 +3,8 @@ import logging
 import re
 import os
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
@@ -1613,19 +1615,38 @@ def counsel_chat_api(request):
         "session_id": session_id,
         "context": context,
     }
+    # Use a session with limited retries and configurable timeout to avoid long blocking calls.
+    timeout = getattr(settings, "COUNSELLING_REQUEST_TIMEOUT", 60)
+    retries = getattr(settings, "COUNSELLING_REQUEST_RETRIES", 2)
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=retries,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["POST"],
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     try:
-        resp = requests.post(
+        logger.debug("Counselling request -> %s (timeout=%s, retries=%s) payload_size=%d", engine_url, timeout, retries, len(json.dumps(payload)))
+        resp = session.post(
             f"{engine_url}/counsel",
             json=payload,
             headers={"Authorization": f"Bearer {api_key}"},
-            timeout=60,
+            timeout=timeout,
         )
+        # Log response time if available
+        try:
+            logger.debug("Counselling response status=%s elapsed=%s", resp.status_code, getattr(resp.elapsed, "total_seconds", lambda: None)())
+        except Exception:
+            pass
+    except requests.exceptions.ReadTimeout as e:
+        logger.exception("Counselling engine read timeout: %s", e)
+        return JsonResponse({"error": "Counselling service timed out"}, status=504)
     except requests.RequestException as e:
         logger.exception("Counselling engine request failed: %s", e)
-        return JsonResponse(
-            {"error": "Counselling service unavailable"},
-            status=503,
-        )
+        return JsonResponse({"error": "Counselling service unavailable"}, status=503)
     if resp.status_code == 401:
         return JsonResponse({"error": "Invalid API key to counselling engine"}, status=502)
     if resp.status_code != 200:

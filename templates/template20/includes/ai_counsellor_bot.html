@@ -6,9 +6,7 @@
   .ai-counsel-bot-btn svg { width: 28px; height: 28px; }
   .ai-counsel-bot-panel { display: none; position: absolute; bottom: 72px; right: 0; width: 380px; min-width: 320px; max-width: calc(100vw - 32px); height: 520px; min-height: 360px; max-height: calc(100vh - 120px); background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); flex-direction: column; overflow: hidden; border: 1px solid #e9ecef; }
   .ai-counsel-bot-wrap.open .ai-counsel-bot-panel { display: flex; }
-  .ai-counsel-bot-resize-bar { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; background: #e9ecef; border-top: 1px solid #dee2e6; cursor: nwse-resize; font-size: 0.75rem; color: #6c757d; flex-shrink: 0; user-select: none; }
-  .ai-counsel-bot-resize-bar:hover { background: #dee2e6; color: #0d6efd; }
-  .ai-counsel-bot-resize-bar svg { width: 16px; height: 16px; opacity: 0.8; }
+  /* Resize handle removed - kept styles for future use if needed */
   .ai-counsel-bot-header { padding: 14px 16px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .ai-counsel-bot-header h3 { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .ai-counsel-bot-close { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; line-height: 1; opacity: 0.9; }
@@ -25,7 +23,7 @@
   .ai-counsel-bot-header .ai-counsel-bot-header-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .ai-counsel-bot-suggested { padding: 8px 12px; background: #fff; border-top: 1px solid #eee; flex-shrink: 0; }
   .ai-counsel-bot-suggested-title { font-size: 0.75rem; color: #6c757d; margin-bottom: 6px; }
-  .ai-counsel-bot-suggested-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ai-counsel-bot-suggested-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 4px; }
   .ai-counsel-bot-suggested-btn { padding: 5px 10px; background: #e7f1ff; border: 1px solid #b6d4fe; border-radius: 16px; font-size: 0.8rem; cursor: pointer; color: #0d6efd; }
   .ai-counsel-bot-suggested-btn:hover { background: #cfe2ff; }
   .ai-counsel-bot-input-row { display: flex; gap: 8px; padding: 10px 12px; background: #fff; border-top: 1px solid #dee2e6; flex-shrink: 0; }
@@ -33,9 +31,7 @@
   .ai-counsel-bot-input-row button { padding: 8px 14px; background: #0d6efd; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
   .ai-counsel-bot-input-row button:disabled { opacity: 0.6; cursor: not-allowed; }
   .ai-counsel-bot-loading { color: #6c757d; font-style: italic; font-size: 0.85rem; }
-  .ai-counsel-bot-full-link { padding: 6px 12px; text-align: center; background: #f1f5f9; border-top: 1px solid #eee; }
-  .ai-counsel-bot-full-link a { font-size: 0.8rem; color: #0d6efd; text-decoration: none; }
-  .ai-counsel-bot-full-link a:hover { text-decoration: underline; }
+  /* Full-link removed */
   @media (max-width: 480px) { .ai-counsel-bot-panel { width: 100%; right: 0; bottom: 72px; } }
 </style>
 <div class="ai-counsel-bot-wrap" id="aiCounselBotWrap">
@@ -56,19 +52,12 @@
         <div class="ai-counsel-bot-msg-body">Hi! I'm here to help with career and stream choices. Ask me anything or pick a question below.</div>
       </div>
     </div>
-    <div class="ai-counsel-bot-suggested" id="aiCounselBotSuggested">
-      <div class="ai-counsel-bot-suggested-title">Suggested questions</div>
-      <div class="ai-counsel-bot-suggested-list" id="aiCounselBotSuggestedList"></div>
-    </div>
+    <!-- Suggested questions will be rendered inline with the AI response -->
     <div class="ai-counsel-bot-input-row">
       <input type="text" id="aiCounselBotInput" placeholder="Type your message... (Press Enter to send)" maxlength="2000" autocomplete="off" aria-label="Your message" />
       <button type="button" id="aiCounselBotSend" aria-label="Send">Send</button>
     </div>
-    <div class="ai-counsel-bot-full-link"><a href="{{ url('core:career_counselling') }}">Open full counselling page &rarr;</a></div>
-    <div class="ai-counsel-bot-resize-bar" id="aiCounselBotResize" aria-label="Drag to resize chat window" title="Drag to resize">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 11H3v2h18v-2zm0 5H3v2h18v-2z"/></svg>
-      <span>Drag to resize</span>
-    </div>
+    <!-- full counselling link and resize handle removed -->
   </div>
 </div>
 <script>
@@ -83,24 +72,11 @@
   var inputEl = document.getElementById('aiCounselBotInput');
   var sendBtn = document.getElementById('aiCounselBotSend');
   var welcomeEl = document.getElementById('aiCounselBotWelcome');
-  var suggestedList = document.getElementById('aiCounselBotSuggestedList');
   var crisisActive = false;
-  var defaultSuggested = ['What are the best streams for me?', 'I like science and maths – what careers suit me?', 'Walk me through steps for Grade 11'];
 
-  function renderSuggested(questions) {
-    if (!suggestedList) return;
-    suggestedList.innerHTML = '';
-    var qs = (questions && questions.length) ? questions : defaultSuggested;
-    qs.forEach(function(q) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ai-counsel-bot-suggested-btn';
-      btn.textContent = q;
-      btn.addEventListener('click', function() { sendMsg(q); });
-      suggestedList.appendChild(btn);
-    });
-  }
-  renderSuggested();
+  // Default suggested questions shown initially (scrollable)
+  var defaultSuggested = ['What are the best streams for me?', 'I like science and maths – what careers suit me?', 'Walk me through steps for Grade 11', 'How do I pick a college?', 'What are top careers in IT?'];
+  // Suggested questions will be rendered with the bot response when present.
 
   var MIN_W = 320, MIN_H = 360;
   var DEFAULT_W = 380, DEFAULT_H = 520;
@@ -108,31 +84,9 @@
     var saved = sessionStorage.getItem('ai_counsel_bot_size');
     if (saved) { var p = JSON.parse(saved); if (p.w >= MIN_W && p.h >= MIN_H) { panel.style.width = p.w + 'px'; panel.style.height = p.h + 'px'; } }
   } catch (e) {}
-  document.getElementById('aiCounselBotBtn').addEventListener('click', function() { wrap.classList.add('open'); });
+  document.getElementById('aiCounselBotBtn').addEventListener('click', function() { wrap.classList.add('open'); try { inputEl && inputEl.focus(); } catch(e) {} });
   document.getElementById('aiCounselBotClose').addEventListener('click', function() { wrap.classList.remove('open'); });
-  (function() {
-    var resizeEl = document.getElementById('aiCounselBotResize');
-    if (!resizeEl || !panel) return;
-    resizeEl.addEventListener('mousedown', function(e) {
-      e.preventDefault();
-      var startX = e.clientX, startY = e.clientY;
-      var startW = panel.offsetWidth, startH = panel.offsetHeight;
-      function move(e) {
-        var dw = e.clientX - startX, dh = e.clientY - startY;
-        var w = Math.max(MIN_W, Math.min(window.innerWidth - 32, startW + dw));
-        var h = Math.max(MIN_H, Math.min(window.innerHeight - 120, startH + dh));
-        panel.style.width = w + 'px';
-        panel.style.height = h + 'px';
-      }
-      function stop() {
-        document.removeEventListener('mousemove', move);
-        document.removeEventListener('mouseup', stop);
-        try { sessionStorage.setItem('ai_counsel_bot_size', JSON.stringify({ w: panel.offsetWidth, h: panel.offsetHeight })); } catch (e) {}
-      }
-      document.addEventListener('mousemove', move);
-      document.addEventListener('mouseup', stop);
-    });
-  })();
+  // Resize handle removed; no JS resize behavior.
 
   var avatarUrl = (panel && panel.getAttribute('data-avatar-url')) || '';
 
@@ -142,7 +96,7 @@
     return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
-  function addMsg(text, isUser, isCrisis, careerSuggestions, roadmap) {
+  function addMsg(text, isUser, isCrisis, careerSuggestions, roadmap, suggestedQuestions) {
     text = isUser ? text : stripHtml(text);
     var wrapEl = document.createElement('div');
     wrapEl.className = 'ai-counsel-bot-msg ' + (isUser ? 'user' : 'bot') + (isCrisis ? ' crisis' : '');
@@ -170,6 +124,28 @@
           cards.appendChild(card);
         });
         body.appendChild(cards);
+      }
+      // Render suggested questions (if provided) inline below the message
+      if (suggestedQuestions && suggestedQuestions.length) {
+        var sugWrap = document.createElement('div');
+        sugWrap.style.marginTop = '8px';
+        sugWrap.className = 'ai-counsel-bot-suggested';
+        var title = document.createElement('div');
+        title.className = 'ai-counsel-bot-suggested-title';
+        title.textContent = 'Suggested questions';
+        sugWrap.appendChild(title);
+        var list = document.createElement('div');
+        list.className = 'ai-counsel-bot-suggested-list';
+        suggestedQuestions.forEach(function(q) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'ai-counsel-bot-suggested-btn';
+          btn.textContent = q;
+          btn.addEventListener('click', function() { sendMsg(q); });
+          list.appendChild(btn);
+        });
+        sugWrap.appendChild(list);
+        body.appendChild(sugWrap);
       }
       if (roadmap && roadmap.phases && roadmap.phases.length) {
         var r = document.createElement('div');
@@ -200,10 +176,43 @@
         r.textContent = 'Roadmap: ' + roadmap.phases.map(function(ph) { return ph.phase_name; }).join(' → ');
         wrapEl.appendChild(r);
       }
+      // For user messages, we do not render suggested questions here.
     }
     messagesEl.appendChild(wrapEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
+
+  // Render initial suggested questions under welcome message (if any)
+  function renderInitialSuggested() {
+    try {
+      if (!defaultSuggested || !defaultSuggested.length) return;
+      // avoid duplicate
+      if (document.getElementById('aiCounselBotInitialSuggested')) return;
+      var sugWrap = document.createElement('div');
+      sugWrap.id = 'aiCounselBotInitialSuggested';
+      sugWrap.className = 'ai-counsel-bot-suggested';
+      sugWrap.style.marginTop = '8px';
+      var title = document.createElement('div');
+      title.className = 'ai-counsel-bot-suggested-title';
+      title.textContent = 'Suggested questions';
+      sugWrap.appendChild(title);
+      var list = document.createElement('div');
+      list.className = 'ai-counsel-bot-suggested-list';
+      defaultSuggested.forEach(function(q) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ai-counsel-bot-suggested-btn';
+        btn.textContent = q;
+        btn.addEventListener('click', function() { sendMsg(q); });
+        list.appendChild(btn);
+      });
+      sugWrap.appendChild(list);
+      // insert after welcome element if exists, else append to messages
+      if (welcomeEl && welcomeEl.parentNode) welcomeEl.parentNode.insertBefore(sugWrap, welcomeEl.nextSibling);
+      else messagesEl.appendChild(sugWrap);
+    } catch (e) {}
+  }
+  renderInitialSuggested();
 
   function setLoading(on) {
     sendBtn.disabled = on;
@@ -233,9 +242,11 @@
 
   function sendMsg(msg) {
     msg = (msg || (inputEl && inputEl.value) || '').trim();
-    if (msg.length < 3) return;
+    if (msg.length < 1) return;
     if (crisisActive) return;
     if (inputEl) inputEl.value = '';
+    // remove initial suggested block once user sends a message
+    try { var init = document.getElementById('aiCounselBotInitialSuggested'); if (init && init.parentNode) init.parentNode.removeChild(init); } catch (e) {}
     addMsg(msg, true);
     setLoading(true);
     var payload = { message: msg };
@@ -258,20 +269,83 @@
         sessionStorage.setItem('counsel_session_id', sessionId);
       }
       if (data.crisis_flag) crisisActive = true;
-      addMsg(data.response_text || '', false, !!data.crisis_flag, data.career_suggestions, data.tactical_roadmap);
-      renderSuggested(data.suggested_questions);
+      // Pass suggested_questions so they render inline with the bot response
+      addMsg(data.response_text || '', false, !!data.crisis_flag, data.career_suggestions, data.tactical_roadmap, data.suggested_questions);
     };
     xhr.onerror = function() { setLoading(false); addMsg('Connection error. Please try again.', false); };
     xhr.send(JSON.stringify(payload));
   }
 
+  // Support IME composition and ensure Enter sends the message (Shift+Enter will not send)
+  var isComposing = false;
+  if (inputEl) {
+    inputEl.addEventListener('compositionstart', function() { isComposing = true; });
+    inputEl.addEventListener('compositionend', function() { isComposing = false; });
+    inputEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+        e.preventDefault();
+        e.stopPropagation();
+        sendMsg();
+      }
+    });
+  }
   sendBtn.addEventListener('click', function() { sendMsg(); });
-  inputEl.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-      sendMsg();
-    }
-  });
+  // End main IIFE. Inject UI enhancements: maximize/restore button and CSS overrides so we don't need to change HTML template.
+  (function() {
+    // CSS for maximized panel
+    var css = '\
+    .ai-counsel-bot-header { gap:8px; } \
+    .ai-counsel-bot-header-actions { display:flex; gap:8px; align-items:center; } \
+    .ai-counsel-bot-header button { background: rgba(255,255,255,0.12); border: none; color: #fff; cursor: pointer; padding: 6px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; } \
+    .ai-counsel-bot-wrap.maximized .ai-counsel-bot-panel { position: fixed !important; right: 50% !important; transform: translateX(50%) !important; bottom: auto !important; top: 72px !important; width: min(820px, calc(100vw - 40px)) !important; height: min(720px, calc(100vh - 120px)) !important; max-width: calc(100vw - 40px) !important; max-height: calc(100vh - 120px) !important; border-radius: 12px !important; }';
+    var st = document.createElement('style'); st.appendChild(document.createTextNode(css)); document.head.appendChild(st);
+
+    try {
+      var header = document.querySelector('.ai-counsel-bot-header');
+      if (header) {
+        var actions = document.createElement('div'); actions.className = 'ai-counsel-bot-header-actions';
+        // Create maximize button
+        var maxBtn = document.createElement('button'); maxBtn.type = 'button'; maxBtn.id = 'aiCounselBotMax'; maxBtn.title = 'Maximize / Restore';
+        maxBtn.innerHTML = '<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"currentColor\" width=\"16\" height=\"16\"><path d=\"M3 3h8v2H5v6H3V3zm10 0h8v8h-2V5h-6V3zM5 13H3v8h8v-2H5v-6zm16 0v10h-10v-2h8v-8h2z\"/></svg>';
+        // Move existing close button into actions if present
+        var closeBtn = header.querySelector('.ai-counsel-bot-close');
+        if (closeBtn) {
+          header.removeChild(closeBtn);
+          actions.appendChild(maxBtn);
+          actions.appendChild(closeBtn);
+        } else {
+          actions.appendChild(maxBtn);
+        }
+        // Append actions to header (keeps h3 first)
+        header.appendChild(actions);
+
+        // Restore maximized state
+        try {
+          var maximized = sessionStorage.getItem('ai_counsel_bot_maximized');
+          if (maximized === '1') {
+            wrap.classList.add('maximized', 'open');
+          }
+        } catch (e) {}
+
+        maxBtn.addEventListener('click', function() {
+          if (wrap.classList.contains('maximized')) {
+            wrap.classList.remove('maximized');
+            try { sessionStorage.setItem('ai_counsel_bot_maximized', '0'); } catch (e) {}
+          } else {
+            wrap.classList.add('maximized');
+            wrap.classList.add('open');
+            try { sessionStorage.setItem('ai_counsel_bot_maximized', '1'); } catch (e) {}
+          }
+          // Restore saved size when leaving maximized state
+          try {
+            if (!wrap.classList.contains('maximized')) {
+              var saved = sessionStorage.getItem('ai_counsel_bot_size');
+              if (saved) { var p = JSON.parse(saved); if (p.w >= MIN_W && p.h >= MIN_H) { panel.style.width = p.w + 'px'; panel.style.height = p.h + 'px'; } }
+            }
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
+  })();
 })();
 </script>

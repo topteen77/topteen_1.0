@@ -670,6 +670,11 @@ CHATBOT_VISIBILITY = config('CHATBOT_VISIBILITY', default='home-only')
 COUNSELLING_ENGINE_URL = config('COUNSELLING_ENGINE_URL', default='http://localhost:8000')
 TOPTEEN_COUNSELLING_API_KEY = config('TOPTEEN_COUNSELLING_API_KEY', default='dev-key')
 
+# Requests to counselling engine: timeout (seconds) and retry attempts
+# Increase timeout if engine does heavy work or cold-starts; keep retries small to avoid duplicate work.
+COUNSELLING_REQUEST_TIMEOUT = config('COUNSELLING_REQUEST_TIMEOUT', default=60, cast=int)
+COUNSELLING_REQUEST_RETRIES = config('COUNSELLING_REQUEST_RETRIES', default=2, cast=int)
+
 # @manish
 # Master password settings
 MASTER_PASSWORD = config('MASTER_PASSWORD', default='')
