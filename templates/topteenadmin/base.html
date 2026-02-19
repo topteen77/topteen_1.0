@@ -19,6 +19,18 @@
 		<link href="{{static("topteenadmin/assets/plugins/global/plugins.bundle.css")}}" rel="stylesheet" type="text/css" />
 		<link href="{{static("topteenadmin/assets/css/style.bundle.css")}}" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
+		<!-- Force main content area visible (override theme hiding) -->
+		<style>
+			#kt_content,
+			#kt_content_container,
+			#kt_post,
+			.post.d-flex.flex-column-fluid {
+				visibility: visible !important;
+				display: flex !important;
+				opacity: 1 !important;
+			}
+			#kt_content { flex-direction: column; }
+		</style>
         {% block additional_header %}
         {% endblock %}
 	</head>
@@ -1112,27 +1124,42 @@
 				});
 			})();
 			</script>
-		<!-- Ensure main content stays visible if theme JS errors (e.g. career list page) -->
+		<!-- Ensure main content stays visible (theme must not hide it) -->
 		<script>
 		(function() {
 			function ensureContentVisible() {
 				var content = document.getElementById('kt_content');
 				var container = document.getElementById('kt_content_container');
-				if (content && content.offsetParent === null) {
-					content.style.visibility = 'visible';
-					content.style.display = '';
+				var post = document.getElementById('kt_post');
+				if (content) {
+					content.style.setProperty('visibility', 'visible', 'important');
+					content.style.setProperty('display', 'flex', 'important');
+					content.style.setProperty('opacity', '1', 'important');
 				}
-				if (container && container.offsetParent === null) {
-					container.style.visibility = 'visible';
-					container.style.display = '';
+				if (container) {
+					container.style.setProperty('visibility', 'visible', 'important');
+					container.style.setProperty('display', 'block', 'important');
+					container.style.setProperty('opacity', '1', 'important');
 				}
+				if (post) {
+					post.style.setProperty('visibility', 'visible', 'important');
+					post.style.setProperty('display', 'flex', 'important');
+					post.style.setProperty('opacity', '1', 'important');
+				}
+			}
+			function run() {
+				ensureContentVisible();
+				setTimeout(ensureContentVisible, 50);
+				setTimeout(ensureContentVisible, 200);
+				setTimeout(ensureContentVisible, 500);
+				setTimeout(ensureContentVisible, 1000);
 			}
 			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', ensureContentVisible);
+				document.addEventListener('DOMContentLoaded', run);
 			} else {
-				ensureContentVisible();
+				run();
 			}
-			setTimeout(ensureContentVisible, 100);
+			window.addEventListener('load', run);
 		})();
 		</script>
         {% block endscript %}
