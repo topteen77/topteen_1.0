@@ -268,8 +268,10 @@
                 {% endif %}
 
                 {% if career.get_max_salary() %}
+                <div class="career-salary-block">
                 <h4>Salary Range</h4>
                 <p>{{ career.get_max_salary() }}</p>
+                </div>
                 {% endif %}
               </div>
             </div>
@@ -386,7 +388,7 @@
                 <p class="blog-excerpt">{{ profession.summary|truncate(150) }}</p>
                 {% endif %}
                 {% if profession.get_salary_display() %}
-                <p class="text-gray fs-14">{{ profession.get_salary_display() }}</p>
+                <div class="career-salary-block"><p class="text-gray fs-14">{{ profession.get_salary_display() }}</p></div>
                 {% endif %}
               </div>
             </div>
