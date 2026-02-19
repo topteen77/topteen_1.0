@@ -12,6 +12,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count
 from django.utils import timezone
 from django.views import View
+from django.views.generic import TemplateView
 from .models import Counselor, FollowUpStatus
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
@@ -940,10 +941,24 @@ def CounselorCoursepayment(request):
             payment_record.save()
             payment_record_id = payment_record.id
     
+    # Build signed success/fail URLs for redirect after payment (like psychometric flow)
+    success_url = None
+    fail_url = None
+    if payment_record_id:
+        from django.core.signing import Signer
+        from urllib.parse import quote, unquote
+        sign = Signer()
+        enc_id = sign.sign_object({'enc_id': payment_record_id})
+        enc_id_quoted = quote(enc_id, safe='')
+        success_url = request.build_absolute_uri(reverse('counselor:counselor_course_payment_success', kwargs={'enc_id': enc_id_quoted}))
+        fail_url = request.build_absolute_uri(reverse('counselor:counselor_course_payment_fail', kwargs={'enc_id': enc_id_quoted}))
+    
     context = {
         'key': settings.RAZORPAY_API_KEY,
         'payment': razorpay_order,
         'payment_record_id': payment_record_id,
+        'counselor_course_payment_success_url': success_url,
+        'counselor_course_payment_fail_url': fail_url,
         'chapter_count': chapter_count,
         'part_count': part_count,
         'question_count': question_count,
@@ -953,6 +968,69 @@ def CounselorCoursepayment(request):
     return render(request, 'template20/counselor/course_payment.html', context)
 def display_pdfs(request):
     return render(request, 'template20/counselor/display_pdfs.html')
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class CounselorCoursePaymentSuccess(TemplateView):
+    """Payment success page: show summary, transaction ID, receipt link, and Start course button."""
+    template_name = 'template20/counselor/course_payment_success.html'
+
+    def get_context_data(self, **kwargs):
+        from django.core.signing import Signer
+        from urllib.parse import unquote
+        from payments.models import Payment
+        from core import choices
+        from invoices.models import Invoice
+
+        ctx = super().get_context_data(**kwargs)
+        enc_id = kwargs.get('enc_id')
+        if not enc_id:
+            return ctx
+        try:
+            enc_id = unquote(enc_id)
+            sign = Signer()
+            signobj = sign.unsign_object(enc_id)
+            payment_id = signobj.get('enc_id')
+        except Exception:
+            return ctx
+        payment = Payment.objects.filter(
+            id=payment_id,
+            user=self.request.user,
+            obj_type=choices.PaymentObjectType.COUNSELOR,
+            is_success=choices.YesNoChoices.YES,
+        ).first()
+        if not payment:
+            payment = Payment.objects.filter(
+                id=payment_id,
+                user=self.request.user,
+                obj_type=choices.PaymentObjectType.COUNSELOR,
+            ).first()
+        ctx['payment'] = payment
+        try:
+            ctx['invoice_id'] = payment.invoice.id if payment else None
+        except Exception:
+            ctx['invoice_id'] = None
+        course = CounselorCourse.objects.first()
+        counselor = Counselor.objects.first()
+        ctx['course'] = course
+        ctx['counselor'] = counselor
+        if counselor:
+            ctx['start_course_url'] = reverse('counselor:course_learning', args=[counselor.id])
+        else:
+            ctx['start_course_url'] = reverse('counselor:counselor_enrolled_course')
+        return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class CounselorCoursePaymentFail(TemplateView):
+    """Payment fail page: show message and link to try again."""
+    template_name = 'template20/counselor/course_payment_fail.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['payment_page_url'] = reverse('counselor:CounselorCoursepayment')
+        return ctx
+
 
 @login_required(login_url=reverse_lazy('users:login'))
 def update_counselor_course_payment(request):

@@ -52,7 +52,8 @@ def create_invoice_for_payment(payment):
         taxable_value = Decimal(str(amount))
         cgst = sgst = Decimal('0')
     invoice_number = _next_invoice_number(config)
-    transaction_id = payment.gateway_order_id or 'pay-{}'.format(payment.id)
+    # Use gateway payment id (pay_xxx) as transaction ID on receipt; fallback to order id then internal id
+    transaction_id = payment.gateway_payment_id or payment.gateway_order_id or 'pay-{}'.format(payment.id)
     service_label = config.get_service_label(payment.obj_type)
     address_parts = []
     if getattr(user, 'user_profile', None):

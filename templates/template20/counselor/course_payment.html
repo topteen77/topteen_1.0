@@ -520,24 +520,23 @@
               allowEscapeKey: false,
               timer: 2000
             }).then(() => {
-              window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+              window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}";
             });
             return;
           }
           
-          // Show styled success message and redirect immediately
+          // Show styled success message and redirect to success page
           Swal.fire({
             title: 'Payment Successful!',
-            html: 'Your payment has been processed successfully.<br><small>Payment ID: ' + response.razorpay_payment_id + '</small><br><small>Redirecting to course...</small>',
+            html: 'Your payment has been processed successfully.<br><small>Redirecting...</small>',
             icon: 'success',
-            confirmButtonText: 'Continue to Course',
+            confirmButtonText: 'Continue',
             confirmButtonColor: '#5046e5',
             allowOutsideClick: false,
             allowEscapeKey: false,
             timer: 2000
           }).then(() => {
-            // Redirect to enrolled course page after successful payment
-            window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+            window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}";
           });
         } else {
           // Payment saved but verification failed
@@ -561,7 +560,7 @@
             confirmButtonColor: '#5046e5'
           }).then((result) => {
             if (result.isConfirmed) {
-              window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+              window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}";
             }
           });
       });
@@ -581,9 +580,11 @@
     const isAlreadyPaid = errorDescription.toLowerCase().includes('already paid') || 
                           errorDescription.toLowerCase().includes('order is already paid');
     
-    // Show styled error message with SweetAlert
-      Swal.fire({
-        title: 'Payment Failed',
+    // Redirect to fail page (or course if already paid)
+    const failUrl = "{{ counselor_course_payment_fail_url|default('') }}";
+    const courseUrl = "{{ url('counselor:counselor_enrolled_course') }}";
+    Swal.fire({
+      title: 'Payment Failed',
       html: isAlreadyPaid 
         ? 'This payment order has already been processed.<br><small>Redirecting to course...</small>'
         : (errorDescription || 'Your payment could not be processed. Please try again.'),
@@ -594,9 +595,11 @@
       allowOutsideClick: !isAlreadyPaid,
       allowEscapeKey: !isAlreadyPaid
     }).then((result) => {
-      if (isAlreadyPaid || result.isConfirmed) {
-        window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
-    }
+      if (isAlreadyPaid) {
+        window.location.href = courseUrl;
+      } else if (result.isConfirmed) {
+        window.location.href = failUrl || "{{ url('counselor:CounselorCoursepayment') }}";
+      }
     });
   });
   {% endif %}

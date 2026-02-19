@@ -1,0 +1,66 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Payment Successful | Career Counseling Course{% endblock %}
+{% block description_content %}Your payment was successful. Start your course now.{% endblock %}
+
+{% block bodyclass %}{{ super() }} counselor-payment-success-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .counselor-payment-success-page { padding-top: 80px; }
+  .success-card { max-width: 560px; margin: 0 auto; }
+  .summary-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; background: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="counselor-payment-success-page pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <div class="col-lg-4 d-none d-lg-block">
+        {% include 'template20/user/includes/profile_sidebar.html' %}
+      </div>
+      <div class="col-lg-8">
+        <div class="success-card">
+          <h1 class="fs-24 fw-semibold text-dark mb-2">Your Payment is <span class="text-success">Successful</span></h1>
+          <p class="text-gray fs-14 mb-4">Thank you for your payment. An automated receipt will be sent to your registered email.</p>
+
+          <div class="summary-card mb-4">
+            <h2 class="fs-18 fw-semibold text-dark mb-4">Summary</h2>
+            <ul class="list-unstyled mb-0">
+              <li class="d-flex justify-content-between py-3 border-bottom">
+                <span class="text-gray">Career Counseling Course</span>
+                <span class="fw-semibold">₹ {{ payment.amount|default('500') }}</span>
+              </li>
+              <li class="d-flex justify-content-between py-3">
+                <span class="fw-semibold text-dark">Total</span>
+                <span class="fw-semibold text-dark">₹ {{ payment.amount|default('500') }}</span>
+              </li>
+            </ul>
+            {% if payment and payment.gateway_payment_id %}
+            <div class="border-top pt-3 mt-3">
+              <p class="fs-14 text-gray mb-0"><span class="fw-semibold">Transaction ID:</span> <span class="text-dark">{{ payment.gateway_payment_id }}</span></p>
+            </div>
+            {% endif %}
+            {% if invoice_id %}
+            <div class="mt-4">
+              <a href="{{ url('users:invoice_download', args=[invoice_id]) }}" class="btn btn-sm btn-outline-primary me-2" target="_blank" rel="noopener">
+                <i class='bx bx-download me-1'></i>Download receipt (GST invoice)
+              </a>
+              <p class="fs-12 text-gray mt-2 mb-0">This receipt is also available in your <a href="{{ url('users:userhistory') }}" class="text-primary">dashboard</a> under Payment History.</p>
+            </div>
+            {% endif %}
+          </div>
+
+          <a href="{{ start_course_url }}" class="btn btn-primary btn-lg w-100 w-md-auto px-5">
+            Start course
+          </a>
+          <p class="text-center text-gray fs-14 mt-3 mb-0"><a href="{{ url('users:userdashboard') }}" class="text-primary">Back to dashboard</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

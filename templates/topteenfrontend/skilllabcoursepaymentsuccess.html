@@ -117,15 +117,11 @@
                 <p class="text-lg font-bold boldFont">₹ {{skilllab_payment.amount}}</p>
               </li>
             </ul>
-            {% if payment %}
+            {% if payment and payment.gateway_payment_id %}
             <div class="border-t border-[#e5e5e5] pt-4 mt-2 space-y-2">
-              {% if payment.gateway_order_id %}
-              <p class="text-sm text-[#4f4f4f]"><span class="font-semibold">Order ID:</span> <span class="text-[#333333]">{{ payment.gateway_order_id }}</span></p>
-              {% endif %}
-              {% if payment.gateway_payment_id %}
               <p class="text-sm text-[#4f4f4f]"><span class="font-semibold">Transaction ID:</span> <span class="text-[#333333]">{{ payment.gateway_payment_id }}</span></p>
-              {% endif %}
             </div>
+            {% endif %}
             {% if invoice_id %}
             <div class="mt-4 mb-3">
               <a href="{{ url('users:invoice_download', args=[invoice_id]) }}" class="text-[#3f37c9] font-semibold text-sm underline inline-flex items-center gap-1" target="_blank" rel="noopener">
@@ -133,7 +129,6 @@
               </a>
               <p class="text-xs text-[#4f4f4f] mt-1">This receipt is also available in your <a href="{{ url('users:userhistory') }}" class="text-[#3f37c9] underline">dashboard</a> under Payment History.</p>
             </div>
-            {% endif %}
             {% endif %}
 
             <p class="text-xs text-[#4f4f4f] mb-[20px]">
