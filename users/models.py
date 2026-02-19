@@ -291,6 +291,41 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
     def get_institute_status(self):
         return self.user_type==choices.InstituteStatus.APPROVED
 
+    def get_student_display_id(self):
+        """Unique display ID for students (e.g. STU000123). Prefix from Configuration STUDENT_ID_PREFIX."""
+        if self.user_type != choices.UserType.STUDENT:
+            return None
+        from core.models import Configuration
+        prefix = (Configuration.get('STUDENT_ID_PREFIX', 'STU', editable=True) or 'STU').strip() or 'STU'
+        return "{}{}".format(prefix, str(self.id).zfill(6))
+
+    def get_display_student_id(self):
+        """For school students: school ID (e.g. SCH/TT001919). Otherwise: direct student ID from get_student_display_id()."""
+        # #region agent log
+        import json
+        import time as _time
+        _log_path = "/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log"
+        # #endregion
+        if self.user_type != choices.UserType.STUDENT:
+            out = None
+            is_school = False
+        else:
+            from institute.models import StudentManagement
+            sm = StudentManagement.objects.filter(student=self).first()
+            is_school = sm is not None
+            if is_school:
+                out = sm.get_school_student_id()
+            else:
+                out = self.get_student_display_id()
+        # #region agent log
+        try:
+            with open(_log_path, "a") as _f:
+                _f.write(json.dumps({"hypothesisId": "H1", "location": "users/models.py:get_display_student_id", "message": "display_student_id", "data": {"user_id": self.id, "is_school_student": is_school, "display_id": out}, "timestamp": round(_time.time() * 1000)}) + "\n")
+        except Exception:
+            pass
+        # #endregion
+        return out
+
 class UserSearchHistory(BaseModel):
     user=models.ForeignKey(User,blank=True,null=True,on_delete=models.SET_NULL)
     search=models.CharField(max_length=255,null=True,blank=True)

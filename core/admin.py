@@ -38,6 +38,24 @@ from .models import (
 
 
 
+class StudentIdSettingsForm(forms.Form):
+    """Form for Student ID and School Student ID prefixes (Admin-managed)."""
+    STUDENT_ID_PREFIX = forms.CharField(
+        max_length=20,
+        required=False,
+        label='Student ID prefix',
+        help_text='Prefix for direct/school student display ID (e.g. STU → STU000123). Default: STU.',
+        initial='STU',
+    )
+    SCHOOL_STUDENT_ID_PREFIX = forms.CharField(
+        max_length=20,
+        required=False,
+        label='School student ID prefix',
+        help_text='Prefix for school/institute student identifier. Display format: Prefix/StudentID (e.g. SCH → SCH/STU000123). Default: SCH.',
+        initial='SCH',
+    )
+
+
 class PsychometricSettingsForm(forms.Form):
     """Form for psychometric test site settings (Admin-managed)."""
     ENABLE_ANSWERING_CAREFULLY_WIDGET = forms.BooleanField(
@@ -83,8 +101,40 @@ class ConfigurationAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path('psychometric-settings/', self.admin_site.admin_view(self.psychometric_settings_view), name='core_configuration_psychometric_settings'),
+            path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
         ]
         return custom + urls
+
+    def student_id_settings_view(self, request):
+        """Custom admin view for Student ID and School Student ID prefix settings."""
+        from core.models import Configuration
+
+        if request.method == 'POST':
+            form = StudentIdSettingsForm(request.POST)
+            if form.is_valid():
+                for key, field_name in [
+                    ('STUDENT_ID_PREFIX', 'STUDENT_ID_PREFIX'),
+                    ('SCHOOL_STUDENT_ID_PREFIX', 'SCHOOL_STUDENT_ID_PREFIX'),
+                ]:
+                    val = (form.cleaned_data.get(field_name) or '').strip() or ('STU' if key == 'STUDENT_ID_PREFIX' else 'SCH')
+                    config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                    config.value = val
+                    config.save()
+                messages.success(request, 'Student ID settings saved successfully.')
+                return redirect('admin:core_configuration_student_id_settings')
+        else:
+            form = StudentIdSettingsForm(initial={
+                'STUDENT_ID_PREFIX': Configuration.get('STUDENT_ID_PREFIX', 'STU', editable=True),
+                'SCHOOL_STUDENT_ID_PREFIX': Configuration.get('SCHOOL_STUDENT_ID_PREFIX', 'SCH', editable=True),
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Student ID Settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/student_id_settings.html', context)
 
     def psychometric_settings_view(self, request):
         """Custom admin view for Psychometric Test Settings."""
