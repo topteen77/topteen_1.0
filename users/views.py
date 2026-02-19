@@ -1305,7 +1305,8 @@ class LoginSignUp(APIView):
                 print()
                 print(f"From Views",">"*30,username)
                 print()
-                # Create OTP synchronously first to ensure it's available immediately
+                # Create OTP and send immediately (same as Resend OTP) so SMS/email is received
+                # without depending on Celery worker; .delay() was causing first OTP to never send
                 cs = ComService()
                 otp = cs.get_otp(username, otp_type)
                 # Print OTP to terminal for debugging
@@ -1313,8 +1314,7 @@ class LoginSignUp(APIView):
                     print(f"Email OTP for {username}: {otp}")
                 else:
                     print(f"SMS OTP for {username}: {otp}")
-                # Then send email asynchronously
-                send_otp_mail.delay(username,otp_type)
+                send_otp_mail(username, otp_type)
                 
                 data['user_name']=username
                 data["show_otp"]=True
