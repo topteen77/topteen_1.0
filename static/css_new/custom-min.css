@@ -14899,3 +14899,7 @@ position: absolute;
 
 
   /** multiple intelligences page end ***/
+
+  #staticDemo {
+    z-index: 99999 !important;
+  }
