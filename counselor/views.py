@@ -983,6 +983,18 @@ class CounselorCoursePaymentSuccess(TemplateView):
         from invoices.models import Invoice
 
         ctx = super().get_context_data(**kwargs)
+        from core import choices as core_choices
+        is_counselor_user = getattr(self.request.user, 'user_type', None) == core_choices.UserType.COUNSELOR
+        ctx['is_counselor_user'] = is_counselor_user
+        if is_counselor_user:
+            _counselor = Counselor.objects.filter(coun_user=self.request.user).first()
+        else:
+            _counselor = Counselor.objects.first()
+        ctx['counselor'] = _counselor
+        ctx['coun_id'] = _counselor.id if _counselor else None
+        ctx['start_course_url'] = reverse('counselor:course_learning', args=[_counselor.id]) if _counselor else reverse('counselor:counselor_enrolled_course')
+        ctx['counselor_dashboard_url'] = reverse('counselor:CounselorDashboardView', args=[ctx['coun_id']]) if (is_counselor_user and ctx['coun_id']) else None
+
         enc_id = kwargs.get('enc_id')
         if not enc_id:
             return ctx
@@ -1010,14 +1022,7 @@ class CounselorCoursePaymentSuccess(TemplateView):
             ctx['invoice_id'] = payment.invoice.id if payment else None
         except Exception:
             ctx['invoice_id'] = None
-        course = CounselorCourse.objects.first()
-        counselor = Counselor.objects.first()
-        ctx['course'] = course
-        ctx['counselor'] = counselor
-        if counselor:
-            ctx['start_course_url'] = reverse('counselor:course_learning', args=[counselor.id])
-        else:
-            ctx['start_course_url'] = reverse('counselor:counselor_enrolled_course')
+        ctx['course'] = CounselorCourse.objects.first()
         return ctx
 
 
