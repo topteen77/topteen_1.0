@@ -925,8 +925,31 @@
 		
 		<!--begin::Javascript-->
 		<script>var hostUrl = "assets/";</script>
+		<!-- Suppress theme JS errors from breaking the page when elements are missing (noUiSlider, classList, etc.) -->
+		<script>
+		window._topteenadmin_onerror = window.onerror;
+		window.onerror = function(msg, url, line, col, err) {
+			if (typeof msg === 'string' && (msg.indexOf('classList') !== -1 || msg.indexOf('noUiSlider') !== -1 || msg.indexOf('null') !== -1)) {
+				console.warn('Theme init warning (suppressed):', msg);
+				return true;
+			}
+			return _topteenadmin_onerror ? _topteenadmin_onerror.apply(this, arguments) : false;
+		};
+		</script>
 		<!--begin::Global Javascript Bundle(used by all pages)-->
 		<script src="{{static("topteenadmin/assets/plugins/global/plugins.bundle.js")}}"></script>
+		<script>
+		// Guard: prevent noUiSlider and similar from throwing when target element is null
+		(function() {
+			if (typeof window.noUiSlider !== 'undefined' && window.noUiSlider.create) {
+				var _create = window.noUiSlider.create;
+				window.noUiSlider.create = function(el, opts) {
+					if (!el) { return null; }
+					try { return _create.call(window.noUiSlider, el, opts); } catch (e) { return null; }
+				};
+			}
+		})();
+		</script>
 		<script src="{{static("topteenadmin/assets/js/scripts.bundle.js")}}"></script>
 		<!--end::Global Javascript Bundle-->
 		<!--begin::Page Vendors Javascript(used by this page)-->
@@ -1089,6 +1112,29 @@
 				});
 			})();
 			</script>
+		<!-- Ensure main content stays visible if theme JS errors (e.g. career list page) -->
+		<script>
+		(function() {
+			function ensureContentVisible() {
+				var content = document.getElementById('kt_content');
+				var container = document.getElementById('kt_content_container');
+				if (content && content.offsetParent === null) {
+					content.style.visibility = 'visible';
+					content.style.display = '';
+				}
+				if (container && container.offsetParent === null) {
+					container.style.visibility = 'visible';
+					container.style.display = '';
+				}
+			}
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', ensureContentVisible);
+			} else {
+				ensureContentVisible();
+			}
+			setTimeout(ensureContentVisible, 100);
+		})();
+		</script>
         {% block endscript %}
         {% endblock %}
 
