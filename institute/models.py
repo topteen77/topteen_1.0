@@ -250,6 +250,13 @@ class StudentManagement(BaseModel):
         else:
             return "#"
         
+    def get_school_student_id(self):
+        """Unique identifier for school/institute. SCHOOL_STUDENT_ID_PREFIX as prefix, then student ID (e.g. SCH/TT002786 or SCH/ST/TT002786)."""
+        from core.models import Configuration
+        school_prefix = (Configuration.get('SCHOOL_STUDENT_ID_PREFIX', 'SCH', editable=True) or 'SCH').strip() or 'SCH'
+        student_id = self.student.get_student_display_id() if self.student else str(self.id).zfill(6)
+        return "{}/{}".format(school_prefix, student_id)
+
     def __str__(self):
         return f"Student: {self.student}"
 

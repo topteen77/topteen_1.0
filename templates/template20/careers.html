@@ -232,7 +232,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 </section>
 <!-- Hero Section -->
 
-<!-- Mode Toggle Section -->
+<!-- Mode Toggle Section - active button: blue with white text (same as Explore Career detail button) -->
 <section class="pb-3">
   <div class="container">
     <div class="row">
@@ -240,12 +240,12 @@ Explore our comprehensive collection of career paths organized by industry and i
         <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 bg-light rounded-pill">
           <span class="text-muted small me-2">View Mode:</span>
           <a href="{{ url('careers:career') }}?mode=ai" 
-             class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+             class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
              id="ai-mode-btn">
              <span> <i class='bx bx-bot'></i> AI Mode</span>           
           </a>
           <a href="{{ url('careers:career') }}?mode=traditional" 
-             class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+             class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
              id="traditional-mode-btn">
             <i class='bx bx-list-ul'></i> Traditional View
           </a>
@@ -265,8 +265,8 @@ Explore our comprehensive collection of career paths organized by industry and i
         {% if is_ai_mode %}
         <div id="ai-mode-interface" class="ai-mode-section">
           <div class="row">
-            <div class="col-md-10 mx-auto">
-              <!-- Chat Container -->
+            <div class="col-12">
+              <!-- Chat Container (full width so mindmap can use full width) -->
               <div class="chat-container">
                 <!-- Chat Messages Area -->
                 <div id="ai-chat-messages" class="chat-messages">
@@ -325,6 +325,35 @@ Explore our comprehensive collection of career paths organized by industry and i
                         <span></span>
                         <span></span>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI mode: mindmap popup with fading background -->
+        <div class="modal fade" id="career-mindmap-modal" tabindex="-1" aria-labelledby="career-mindmap-modal-label" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+          <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="modal-title" id="career-mindmap-modal-label">✨ Radial Mind Map</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body p-3">
+                <div id="career-mindmap-modal-container" class="radial-mindmap-container" style="height: 70vh; min-height: 400px; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; display: flex; justify-content: center; align-items: center;">
+                  <div id="career-mindmap-modal-loading" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
+                    <div style="text-align: center;">
+                      <div class="spinner-border text-primary" role="status"></div>
+                      <p class="mt-2">Loading mindmap...</p>
+                    </div>
+                  </div>
+                  <svg id="career-mindmap-modal-svg" style="width: 100%; height: 100%; display: none; margin: auto;"></svg>
+                  <div id="career-mindmap-modal-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
+                    <div class="btn-group-vertical" style="gap: 8px;">
+                      <button type="button" class="btn btn-sm btn-light shadow" id="career-mindmap-modal-zoom-in" title="Zoom In">🔍+</button>
+                      <button type="button" class="btn btn-sm btn-light shadow" id="career-mindmap-modal-zoom-out" title="Zoom Out">🔍-</button>
                     </div>
                   </div>
                 </div>
@@ -611,6 +640,29 @@ Explore our comprehensive collection of career paths organized by industry and i
 {% block additionaljs %}
 <!-- AI Mode Styles -->
 <style>
+/* View Mode toggle: active button blue with white text (same as Explore Career detail button #5046e5) */
+.mode-toggle-container .btn-primary.career-view-mode-btn-active,
+.mode-toggle-container a.btn-primary {
+  background-color: #5046e5 !important;
+  border-color: #5046e5 !important;
+  color: #fff !important;
+}
+.mode-toggle-container .btn-primary.career-view-mode-btn-active:hover,
+.mode-toggle-container a.btn-primary:hover {
+  background-color: #4034d4 !important;
+  border-color: #4034d4 !important;
+  color: #fff !important;
+}
+.mode-toggle-container .btn-outline-primary {
+  color: #5046e5;
+  border-color: #5046e5;
+}
+.mode-toggle-container .btn-outline-primary:hover {
+  background-color: rgba(80, 70, 229, 0.08);
+  color: #5046e5;
+  border-color: #5046e5;
+}
+
 /* AI Chat Layout - fixed input above footer, scrollable messages */
 .ai-mode-section {
   position: relative;
@@ -778,6 +830,10 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .chat-message.ai-message .message-text {
   border-radius: 4px 18px 18px 18px;
+}
+.chat-message.ai-message .message-text:has(.ai-mode-mindmap) {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Typing indicator */
@@ -1173,10 +1229,121 @@ Explore our comprehensive collection of career paths organized by industry and i
   margin-bottom: 0.5rem;
 }
 
-/* Mindmap Embed Styles */
+/* Mindmap Embed Styles - full width (break out of column) */
 .career-mindmap-embed {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+.career-mindmap-embed .mindmap-wrapper,
+.career-mindmap-embed .card {
   width: 100%;
-  margin: 1rem 0;
+  max-width: 100%;
+}
+.career-mindmap-embed .radial-mindmap-container {
+  width: 100% !important;
+}
+
+/* AI mode: mindmap centered and responsive (no full-bleed inside chat) */
+#ai-mode-interface .career-mindmap-embed.ai-mode-mindmap {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#ai-mode-interface .ai-mode-mindmap .mindmap-wrapper {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+#ai-mode-interface .ai-mode-mindmap .mindmap-card {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 16px;
+  overflow: visible;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+#ai-mode-interface .ai-mode-mindmap .mindmap-card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 25px;
+}
+#ai-mode-interface .ai-mode-mindmap .mindmap-card-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+#ai-mode-interface .ai-mode-mindmap-container {
+  height: 480px;
+  min-height: 320px;
+  max-height: 70vh;
+  width: 100%;
+  overflow: auto;
+  background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%);
+  border-radius: 12px;
+  position: relative;
+  touch-action: pan-x pan-y;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-overflow-scrolling: touch;
+}
+#ai-mode-interface .ai-mode-mindmap-container svg {
+  flex-shrink: 0;
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+}
+/* Mobile: mindmap responsive and centered */
+@media (max-width: 767.98px) {
+  #ai-mode-interface .ai-mode-mindmap .mindmap-card-header {
+    padding: 10px 16px;
+  }
+  #ai-mode-interface .ai-mode-mindmap .mindmap-card-header h5 {
+    font-size: 1rem;
+  }
+  #ai-mode-interface .ai-mode-mindmap .mindmap-card-body {
+    padding: 0.75rem;
+  }
+  #ai-mode-interface .ai-mode-mindmap-container {
+    height: 360px;
+    min-height: 280px;
+    max-height: 55vh;
+  }
+}
+@media (max-width: 575.98px) {
+  #ai-mode-interface .ai-mode-mindmap-container {
+    height: 320px;
+    min-height: 260px;
+    max-height: 50vh;
+  }
+}
+
+.career-mindmap-inline-cta {
+  padding: 0.5rem 0;
+}
+.career-mindmap-inline-cta .open-mindmap-modal-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: #fff;
+}
+.career-mindmap-inline-cta .open-mindmap-modal-btn:hover {
+  opacity: 0.9;
+  color: #fff;
 }
 
 .mindmap-embed-container {
@@ -1253,6 +1420,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ static('js/radial-mindmap.js') }}"></script>
 <script>
   // Parent->Student context for bookmarking (when parent is suggesting for a specific student)
   window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
@@ -1809,46 +1977,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (/major\s*area|other\s*area/i.test(t)) return { sectionId: 'employment', sectionLabel: 'Employment Areas' };
       return null;
     },
-    applyZoom: function(careerId) {
-      const data = window.radialMindmapData && window.radialMindmapData[careerId];
-      if (!data || !data.svgId || !data.logicalSize) return;
-      const svg = document.getElementById(data.svgId);
-      if (!svg) return;
-      const zoom = data.zoom;
-      const L = data.logicalSize;
-      const cx = L / 2;
-      const cy = L / 2;
-      const viewedSize = L / zoom;
-      const vx = Math.max(0, cx - viewedSize / 2);
-      const vy = Math.max(0, cy - viewedSize / 2);
-      const vw = Math.min(L, viewedSize);
-      const vh = Math.min(L, viewedSize);
-      svg.setAttribute('viewBox', vx + ' ' + vy + ' ' + vw + ' ' + vh);
-      svg.style.transform = 'none';
-    },
     zoomIn: function(careerId) {
-      const data = window.radialMindmapData && window.radialMindmapData[careerId];
-      if (!data) return;
-      const maxZoom = 2.5;
-      data.zoom = Math.min(data.zoom + 0.2, maxZoom);
-      this.applyZoom(careerId);
+      if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomIn(careerId);
     },
     zoomOut: function(careerId) {
-      const data = window.radialMindmapData && window.radialMindmapData[careerId];
-      if (!data) return;
-      const minZoom = 0.5;
-      data.zoom = Math.max(data.zoom - 0.2, minZoom);
-      this.applyZoom(careerId);
-    },
-    handleNodeClick: function(careerId, child, mindmapData) {
-      const topic = (child.topic || child.title || '').toString();
-      const mapped = this.mapTopicToSection(topic);
-      if (mapped && mindmapData && mindmapData.career) {
-        showCareerSectionInChat(careerId, mapped.sectionId, mapped.sectionLabel, mindmapData.career);
-      } else if (child.children && child.children.length > 0) {
-        mindmapData.currentCenter = child;
-        renderRadialMindmapForCareer(careerId, child, mindmapData.containerId, mindmapData.svgId, mindmapData.loadingId, mindmapData.controlsId);
-      }
+      if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomOut(careerId);
     }
   };
   
@@ -1859,14 +1992,73 @@ document.addEventListener('DOMContentLoaded', function() {
   window.radialMindmapZoomIn = function(careerId) { CareersRadialMindmap.zoomIn(careerId); };
   window.radialMindmapZoomOut = function(careerId) { CareersRadialMindmap.zoomOut(careerId); };
   window.radialMindmapReset = function(careerId) {
-    const data = window.radialMindmapData && window.radialMindmapData[careerId];
-    if (!data || !data.svgId || !data.containerId) return;
-    data.zoom = 1;
-    data.currentCenter = data.rootNode;
-    renderRadialMindmapForCareer(careerId, data.rootNode, data.containerId, data.svgId, data.loadingId, data.controlsId);
-    setTimeout(function() { CareersRadialMindmap.applyZoom(careerId); }, 50);
+    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.reset(careerId);
   };
-  
+
+  const MODAL_MINDMAP_INSTANCE_ID = 'career-mindmap-modal';
+
+  function openMindmapModal(career) {
+    const modalEl = document.getElementById('career-mindmap-modal');
+    const titleEl = document.getElementById('career-mindmap-modal-label');
+    const container = document.getElementById('career-mindmap-modal-container');
+    const loadingEl = document.getElementById('career-mindmap-modal-loading');
+    const svgEl = document.getElementById('career-mindmap-modal-svg');
+    const controlsEl = document.getElementById('career-mindmap-modal-controls');
+    if (!modalEl || !container || !svgEl || !loadingEl) return;
+    if (titleEl) titleEl.textContent = '✨ Radial Mind Map - ' + (career.name || '');
+    loadingEl.style.display = 'flex';
+    svgEl.style.display = 'none';
+    svgEl.innerHTML = '';
+    if (controlsEl) controlsEl.style.display = 'none';
+    const modal = typeof bootstrap !== 'undefined' && bootstrap.Modal ? new bootstrap.Modal(modalEl) : null;
+    if (modal) modal.show();
+    if (typeof window.RadialMindmap === 'undefined') return;
+    window.RadialMindmap.init({
+      instanceId: MODAL_MINDMAP_INSTANCE_ID,
+      containerId: 'career-mindmap-modal-container',
+      svgId: 'career-mindmap-modal-svg',
+      loadingId: 'career-mindmap-modal-loading',
+      controlsId: 'career-mindmap-modal-controls',
+      apiUrl: '/careers/api/career/' + (career.slug || '') + '-' + (career.id || '') + '-mindmap/json/',
+      onNodeClick: function(node, ctx) {
+        if (ctx.goToParent || ctx.type === 'center') {
+          window.RadialMindmap.setCenter(MODAL_MINDMAP_INSTANCE_ID, node);
+          return;
+        }
+        const mapped = CareersRadialMindmap.mapTopicToSection((node.topic || node.title || '').toString());
+        if (mapped && career) {
+          showCareerSectionInChat(career.id, mapped.sectionId, mapped.sectionLabel, career, { fromMindmapClick: true });
+        } else if (ctx.hasChildren) {
+          window.RadialMindmap.setCenter(MODAL_MINDMAP_INSTANCE_ID, node);
+        }
+      }
+    });
+  }
+
+  if (chatMessages) {
+    chatMessages.addEventListener('click', function(e) {
+      const btn = e.target.closest('.open-mindmap-modal-btn');
+      if (!btn) return;
+      const dataStr = btn.getAttribute('data-career');
+      if (!dataStr) return;
+      try {
+        const career = JSON.parse(dataStr.replace(/&quot;/g, '"'));
+        openMindmapModal(career);
+      } catch (err) {
+        console.error('Failed to open mindmap modal', err);
+      }
+    });
+  }
+
+  const zoomInBtn = document.getElementById('career-mindmap-modal-zoom-in');
+  const zoomOutBtn = document.getElementById('career-mindmap-modal-zoom-out');
+  if (zoomInBtn) zoomInBtn.addEventListener('click', function() {
+    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomIn(MODAL_MINDMAP_INSTANCE_ID);
+  });
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', function() {
+    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomOut(MODAL_MINDMAP_INSTANCE_ID);
+  });
+
   // Load sample career questions on initial load
   function loadSampleCareerQuestions() {
     const questionChips = document.getElementById('sample-career-questions');
@@ -2032,18 +2224,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Scroll to bottom of chat
-  function scrollToBottom() {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-  
-  // Scroll to updated content (used when info buttons add new content)
-  // Uses requestAnimationFrame to ensure layout is complete, then scrollIntoView for reliability
-  function scrollToUpdatedContent(element) {
-    if (!element) return;
+  // Auto-scroll only when a new chat response is added; scroll to START of that response so it's visible
+  function scrollToStartOfResponse(element) {
+    if (!element || !chatMessages) return;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
   }
@@ -2079,9 +2265,8 @@ document.addEventListener('DOMContentLoaded', function() {
     queryInput.disabled = true;
     searchBtn.disabled = true;
     
-    // Show loading indicator
+    // Show loading indicator (no scroll here – scroll only when new response is added)
     loadingIndicator.style.display = 'flex';
-    scrollToBottom();
     
     // Get filters from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -2130,7 +2315,6 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         addErrorMessage(data.error || 'An error occurred');
       }
-      scrollToBottom();
     })
     .catch(error => {
       loadingIndicator.style.display = 'none';
@@ -2138,7 +2322,6 @@ document.addEventListener('DOMContentLoaded', function() {
       searchBtn.disabled = false;
       addErrorMessage('Network error. Please try again.');
       console.error('Error:', error);
-      scrollToBottom();
     });
   }
   
@@ -2156,7 +2339,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    scrollToStartOfResponse(messageDiv);
   }
   
   function addAIMessage(data) {
@@ -2248,7 +2431,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
       chatMessages.appendChild(messageDiv);
-      scrollToBottom();
+      scrollToStartOfResponse(messageDiv);
       
       // Attach click handler to "View More" button
       if (remainingTracks.length > 0) {
@@ -2398,7 +2581,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
       chatMessages.appendChild(messageDiv);
-      scrollToBottom();
+      scrollToStartOfResponse(messageDiv);
       
       // Attach click handlers to content icons
       const contentIcons = messageDiv.querySelectorAll('.content-icon-item');
@@ -2437,8 +2620,7 @@ document.addEventListener('DOMContentLoaded', function() {
               });
               this.innerHTML = `<i class='bx bx-chevron-up'></i> Show Less`;
               
-              // Scroll to updated content when expanding
-              scrollToUpdatedContent(container);
+              // No auto-scroll on expand (only when new chat response is added)
               
               // Attach click handlers to newly shown icons
               hiddenIcons.forEach(icon => {
@@ -2557,7 +2739,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
       chatMessages.appendChild(messageDiv);
-      scrollToBottom();
+      scrollToStartOfResponse(messageDiv);
       return; // Exit early for section queries
     }
     
@@ -2788,7 +2970,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    scrollToStartOfResponse(messageDiv);
     
     // Attach click handlers to content icons
     const contentIcons = messageDiv.querySelectorAll('.content-icon-item');
@@ -2838,8 +3020,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             this.innerHTML = `<i class='bx bx-chevron-up'></i> Show Less`;
             
-            // Scroll to updated content when expanding
-            scrollToUpdatedContent(container);
+            // No auto-scroll on expand
             
             // Attach click handlers to newly shown icons
             hiddenIcons.forEach(icon => {
@@ -2978,8 +3159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     this.innerHTML = `<i class='bx bx-chevron-up'></i> Show Less`;
                     
-                    // Scroll to updated content when expanding
-                    scrollToUpdatedContent(container);
+                    // No auto-scroll on expand
                     
                     // Attach click handlers to newly shown icons
                     hiddenIcons.forEach(icon => {
@@ -3019,7 +3199,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
       }
-      scrollToBottom();
+      // No auto-scroll on load more (only when new chat response is added)
     })
     .catch(error => {
       console.error('Error loading more careers:', error);
@@ -3053,11 +3233,13 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+    scrollToStartOfResponse(messageDiv);
   }
   
   // Show career section content in a new chat message
-  function showCareerSectionInChat(careerId, sectionId, sectionLabel, careerData) {
+  // options: { fromMindmapClick: true } to skip scroll (scroll only on user question, not on mindmap circle click)
+  function showCareerSectionInChat(careerId, sectionId, sectionLabel, careerData, options) {
+    options = options || {};
     console.log('career details', { careerId, sectionId, sectionLabel });
     
     // Parse career data if it's a string
@@ -3315,49 +3497,18 @@ document.addEventListener('DOMContentLoaded', function() {
           
         case 'mindmap':
         if (career.has_mindmap) {
-          const mindmapContainerId = 'chat-mindmap-container-' + career.id;
-          const loadingId = 'chat-loading-radial-' + career.id;
-          const svgId = 'chat-radial-svg-' + career.id;
-          const controlsId = 'chat-radial-controls-' + career.id;
-          
+          const careerDataAttr = escapeHtml(JSON.stringify(career).replace(/"/g, '&quot;'));
           content += `
-            <div class="career-mindmap-embed">
-              <div class="mindmap-wrapper">
-                <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
-                  <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">
-                    <h5 class="mb-0">✨ Radial Mind Map - ${escapeHtml(career.name)}</h5>
-                    <small style="opacity: 0.9;">Nodes arranged in concentric circles</small>
-                  </div>
-                  <div class="card-body p-3" style="display: flex; justify-content: center; align-items: center;">
-                    <div class="radial-mindmap-container" id="${mindmapContainerId}" style="height: 500px; max-height: 70vh; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">
-                      <div id="${loadingId}" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">
-                        <div style="text-align: center;">
-                          <div class="spinner-border text-primary" role="status"></div>
-                          <p class="mt-2">Loading radial mind map...</p>
-                        </div>
-                      </div>
-                      <svg id="${svgId}" style="width: 100%; height: 100%; display: none; margin: auto;"></svg>
-                      <div id="${controlsId}" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
-                        <div class="btn-group-vertical" style="gap: 8px;">
-                          <button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomIn(${career.id})" title="Zoom In">🔍+</button>
-                          <button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomOut(${career.id})" title="Zoom Out">🔍-</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="career-mindmap-inline-cta">
+              <p class="mb-2">✨ <strong>Mind map:</strong> ${escapeHtml(career.name)}</p>
+              <button type="button" class="btn btn-primary btn-sm open-mindmap-modal-btn" data-career="${careerDataAttr}" title="Open mindmap in popup">
+                <i class='bx bx-network-chart'></i> View mindmap
+              </button>
             </div>
           `;
-          
-          // Initialize mindmap after message is added
+          // After message is added, suggestions for other sections
           setTimeout(function() {
-            initializeChatMindmap(career, mindmapContainerId, svgId, loadingId, controlsId, function() {
-              // Scroll to updated content when mindmap finishes loading
-              scrollToUpdatedContent(messageDiv);
-              // After mindmap loads, show suggestions for other sections
-              showOtherCareerSectionsSuggestions(career);
-            });
+            showOtherCareerSectionsSuggestions(career);
           }, 100);
         }
         break;
@@ -3419,7 +3570,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(messageDiv);
-    scrollToUpdatedContent(messageDiv);
+    // No auto-scroll when opening section (e.g. from mindmap) – only when new chat response is added
     
     // Show questions for other sections of this career + explore other careers (Case 2)
     // Skip for mindmap - it's already handled in the mindmap case above
@@ -3610,7 +3761,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(suggestionDiv);
-    scrollToUpdatedContent(suggestionDiv);
+    // No auto-scroll for suggestions (only when new chat response is added)
     
     // Attach click handlers
     const questionChips = suggestionDiv.querySelectorAll('.question-chip');
@@ -3693,7 +3844,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(suggestionDiv);
-    scrollToBottom();
+    // No auto-scroll for suggestion divs (only when new chat response is added)
     
     // Attach click handlers
     const questionChips = suggestionDiv.querySelectorAll('.question-chip');
@@ -3788,7 +3939,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
       chatMessages.appendChild(suggestionDiv);
-      scrollToBottom();
+      // No auto-scroll for suggestions
       
       // Attach click handler for "Show me more career options"
       const moreOptionsBtn = suggestionDiv.querySelector('[data-query]');
@@ -3863,8 +4014,8 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(suggestionDiv);
-    scrollToBottom();
-    
+    // No auto-scroll for suggestions
+
     // Attach click handlers to suggestion buttons
     const suggestionButtons = suggestionDiv.querySelectorAll('.career-section-suggestion');
     suggestionButtons.forEach(btn => {
@@ -3879,197 +4030,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Initialize mindmap in chat message
+  // Initialize mindmap in chat message - uses single RadialMindmap component
   function initializeChatMindmap(career, containerId, svgId, loadingId, controlsId, onComplete) {
     const container = document.getElementById(containerId);
     const svg = document.getElementById(svgId);
-    const loadingEl = document.getElementById(loadingId);
-    
     if (!container || !svg) return;
-    
-    const apiUrl = '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/';
-    
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        if (!data || data.available === false) {
-          if (loadingEl) {
-            loadingEl.innerHTML = '<div style="text-align: center; padding: 2rem;"><p class="text-muted">Mindmap not available for this career.</p></div>';
-          }
+    if (typeof window.RadialMindmap === 'undefined') {
+      if (onComplete) setTimeout(onComplete, 300);
+      return;
+    }
+    // Prevent any click inside the mindmap from bubbling – chat must not scroll when clicking on mindmap
+    container.setAttribute('data-mindmap-no-scroll', '1');
+    container.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+    window.RadialMindmap.init({
+      instanceId: String(career.id),
+      containerId: containerId,
+      svgId: svgId,
+      loadingId: loadingId,
+      controlsId: controlsId,
+      apiUrl: '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/',
+      onNodeClick: function(node, ctx) {
+        if (ctx.goToParent || ctx.type === 'center') {
+          window.RadialMindmap.setCenter(String(career.id), node);
           return;
         }
-        
-        // Store data for careers page radial (viewBox zoom, no clipping)
-        if (!window.radialMindmapData) window.radialMindmapData = {};
-        window.radialMindmapData[career.id] = {
-          data: data,
-          rootNode: data.data,
-          currentCenter: data.data,
-          nodeMap: {},
-          zoom: 1,
-          containerId: containerId,
-          svgId: svgId,
-          loadingId: loadingId,
-          controlsId: controlsId,
-          career: career,
-          logicalSize: CareersRadialMindmap.LOGICAL_SIZE
-        };
-        
-        // Build node map
-        function buildNodeMap(node, parent) {
-          const nodeKey = node.topic || node.id || 'root';
-          window.radialMindmapData[career.id].nodeMap[nodeKey] = {
-            node: node,
-            parent: parent,
-            children: node.children || []
-          };
-          if (node.children && node.children.length > 0) {
-            node.children.forEach(child => buildNodeMap(child, node));
-          }
+        const mapped = CareersRadialMindmap.mapTopicToSection((node.topic || node.title || '').toString());
+        if (mapped && career) {
+          showCareerSectionInChat(career.id, mapped.sectionId, mapped.sectionLabel, career, { fromMindmapClick: true });
+        } else if (ctx.hasChildren) {
+          window.RadialMindmap.setCenter(String(career.id), node);
         }
-        buildNodeMap(data.data, null);
-        
-        // Render the mindmap
-        renderRadialMindmapForCareer(career.id, data.data, containerId, svgId, loadingId, controlsId);
-        CareersRadialMindmap.applyZoom(career.id);
-        
-        // Call onComplete callback if provided
-        if (onComplete && typeof onComplete === 'function') {
-          setTimeout(onComplete, 500); // Small delay to ensure mindmap is rendered
-        }
-      })
-      .catch(error => {
-        console.error('Error loading mindmap:', error);
-        if (loadingEl) {
-          loadingEl.innerHTML = '<div style="text-align: center; padding: 2rem;"><p class="text-muted">Error loading mindmap. Please try again later.</p></div>';
-        }
-      });
-  }
-  
-  // Render radial mindmap for career - uses fixed logical coords for viewBox zoom (no clipping)
-  function renderRadialMindmapForCareer(careerId, centerNode, containerId, svgId, loadingId, controlsId) {
-    const container = document.getElementById(containerId);
-    const svg = document.getElementById(svgId);
-    const loadingEl = document.getElementById(loadingId);
-    const controlsEl = document.getElementById(controlsId);
-    const mindmapData = window.radialMindmapData[careerId];
-    
-    if (!container || !svg || !mindmapData) return;
-    
-    svg.style.display = 'block';
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (controlsEl) controlsEl.style.display = 'block';
-    
-    const L = CareersRadialMindmap.LOGICAL_SIZE;
-    const isMobile = window.innerWidth <= 768;
-    const centerRadius = isMobile ? 70 : 100;
-    const childDistance = isMobile ? 160 : 220;
-    
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.setAttribute('viewBox', '0 0 ' + L + ' ' + L);
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-    svg.style.width = '100%';
-    svg.style.height = '100%';
-    svg.style.display = 'block';
-    svg.style.pointerEvents = 'auto';
-    svg.innerHTML = '';
-    
-    const centerX = L / 2;
-    const centerY = L / 2;
-    
-    // Add gradients
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const centerGradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    centerGradient.setAttribute('id', 'centerGradient' + careerId);
-    centerGradient.setAttribute('x1', '0%');
-    centerGradient.setAttribute('y1', '0%');
-    centerGradient.setAttribute('x2', '100%');
-    centerGradient.setAttribute('y2', '100%');
-    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', '#667eea');
-    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop2.setAttribute('offset', '100%');
-    stop2.setAttribute('stop-color', '#764ba2');
-    centerGradient.appendChild(stop1);
-    centerGradient.appendChild(stop2);
-    defs.appendChild(centerGradient);
-    svg.appendChild(defs);
-    
-    // Draw center circle
-    const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    centerCircle.setAttribute('cx', centerX);
-    centerCircle.setAttribute('cy', centerY);
-    centerCircle.setAttribute('r', centerRadius);
-    centerCircle.setAttribute('fill', 'url(#centerGradient' + careerId + ')');
-    centerCircle.setAttribute('stroke', '#ffffff');
-    centerCircle.setAttribute('stroke-width', '5');
-    svg.appendChild(centerCircle);
-    
-    // Draw center text
-    const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    centerText.setAttribute('x', centerX);
-    centerText.setAttribute('y', centerY);
-    centerText.setAttribute('text-anchor', 'middle');
-    centerText.setAttribute('dominant-baseline', 'middle');
-    centerText.setAttribute('fill', 'white');
-    centerText.setAttribute('font-size', '18');
-    centerText.setAttribute('font-weight', 'bold');
-    centerText.textContent = centerNode.topic || 'Root';
-    svg.appendChild(centerText);
-    
-    // Draw children if available
-    if (centerNode.children && centerNode.children.length > 0) {
-      const angleStep = (2 * Math.PI) / centerNode.children.length;
-      centerNode.children.forEach((child, index) => {
-        const angle = index * angleStep;
-        const x = centerX + childDistance * Math.cos(angle);
-        const y = centerY + childDistance * Math.sin(angle);
-        
-        // Draw line
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', centerX);
-        line.setAttribute('y1', centerY);
-        line.setAttribute('x2', x);
-        line.setAttribute('y2', y);
-        line.setAttribute('stroke', '#667eea');
-        line.setAttribute('stroke-width', '3');
-        line.setAttribute('opacity', '0.6');
-        svg.insertBefore(line, centerCircle);
-        
-        // Draw child circle - all nodes clickable, pointer-events for reliable clicks
-        const childCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        childCircle.setAttribute('cx', x);
-        childCircle.setAttribute('cy', y);
-        childCircle.setAttribute('r', 65);
-        childCircle.setAttribute('fill', 'hsl(' + (index * 360 / centerNode.children.length) + ', 70%, 60%)');
-        childCircle.setAttribute('stroke', 'white');
-        childCircle.setAttribute('stroke-width', '3');
-        childCircle.setAttribute('data-topic', (child.topic || '').toString());
-        childCircle.style.cursor = 'pointer';
-        childCircle.style.pointerEvents = 'all';
-        childCircle.onclick = function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          CareersRadialMindmap.handleNodeClick(careerId, child, mindmapData);
-        };
-        svg.appendChild(childCircle);
-        
-        // Draw child text
-        const childText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        childText.setAttribute('x', x);
-        childText.setAttribute('y', y);
-        childText.setAttribute('text-anchor', 'middle');
-        childText.setAttribute('dominant-baseline', 'middle');
-        childText.setAttribute('fill', 'white');
-        childText.setAttribute('font-size', '13');
-        childText.setAttribute('font-weight', '700');
-        childText.textContent = child.topic || 'Node';
-        childText.style.pointerEvents = 'none';
-        svg.appendChild(childText);
-      });
-    }
+      }
+    });
+    if (onComplete && typeof onComplete === 'function') setTimeout(onComplete, 500);
   }
   
   function buildCareerCard(career) {
@@ -4551,63 +4546,27 @@ document.addEventListener('DOMContentLoaded', function() {
         function initializeRadialMindmap() {
           const container = document.getElementById(mindmapContainerId);
           const svg = document.getElementById(svgId);
-          const loadingEl = document.getElementById(loadingId);
-          const controlsEl = document.getElementById(controlsId);
-          
-          if (!container || !svg) return;
-          
-          const apiUrl = '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/';
-          
-          fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-              if (!data || data.available === false) {
-                if (loadingEl) {
-                  loadingEl.innerHTML = '<div style="text-align: center; padding: 2rem;"><p class="text-muted">Mindmap not available for this career.</p></div>';
-                }
+          if (!container || !svg || typeof window.RadialMindmap === 'undefined') return;
+          window.RadialMindmap.init({
+            instanceId: String(career.id),
+            containerId: mindmapContainerId,
+            svgId: svgId,
+            loadingId: loadingId,
+            controlsId: controlsId,
+            apiUrl: '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/',
+            onNodeClick: function(node, ctx) {
+              if (ctx.goToParent || ctx.type === 'center') {
+                window.RadialMindmap.setCenter(String(career.id), node);
                 return;
               }
-              
-              // Store data for careers page radial (viewBox zoom)
-              if (!window.radialMindmapData) window.radialMindmapData = {};
-              window.radialMindmapData[career.id] = {
-                data: data,
-                rootNode: data.data,
-                currentCenter: data.data,
-                nodeMap: {},
-                zoom: 1,
-                containerId: mindmapContainerId,
-                svgId: svgId,
-                loadingId: loadingId,
-                controlsId: controlsId,
-                career: career,
-                logicalSize: CareersRadialMindmap.LOGICAL_SIZE
-              };
-              
-              // Build node map
-              function buildNodeMap(node, parent) {
-                const nodeKey = node.topic || node.id || 'root';
-                window.radialMindmapData[career.id].nodeMap[nodeKey] = {
-                  node: node,
-                  parent: parent,
-                  children: node.children || []
-                };
-                if (node.children && node.children.length > 0) {
-                  node.children.forEach(child => buildNodeMap(child, node));
-                }
+              const mapped = CareersRadialMindmap.mapTopicToSection((node.topic || node.title || '').toString());
+              if (mapped && career) {
+                showCareerSectionInChat(career.id, mapped.sectionId, mapped.sectionLabel, career, { fromMindmapClick: true });
+              } else if (ctx.hasChildren) {
+                window.RadialMindmap.setCenter(String(career.id), node);
               }
-              buildNodeMap(data.data, null);
-              
-              // Render the mindmap (global - viewBox zoom, no clipping)
-              renderRadialMindmapForCareer(career.id, data.data, mindmapContainerId, svgId, loadingId, controlsId);
-              CareersRadialMindmap.applyZoom(career.id);
-            })
-            .catch(error => {
-              console.error('Error loading mindmap:', error);
-              if (loadingEl) {
-                loadingEl.innerHTML = '<div style="text-align: center; padding: 2rem;"><p class="text-muted">Error loading mindmap. Please try again later.</p></div>';
-              }
-            });
+            }
+          });
         }
         
         // Uses global renderRadialMindmapForCareer - viewBox zoom, CareersRadialMindmap.handleNodeClick for links
@@ -4724,67 +4683,31 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     
-    // Initialize mindmap after a short delay to ensure DOM is ready
+    // Use same RadialMindmap component (no duplicate code)
     setTimeout(function() {
       const container = document.getElementById(mindmapContainerId);
       const svg = document.getElementById(svgId);
-      const loadingEl = document.getElementById(loadingId);
-      const controlsEl = document.getElementById(controlsId);
-      
-      if (!container || !svg) return;
-      
-      const apiUrl = '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/';
-      
-      fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-          if (!data || data.available === false) {
-            if (loadingEl) {
-              loadingEl.innerHTML = '<div style="text-align: center; padding: 1rem;"><p class="text-muted small">Mindmap not available</p></div>';
-            }
+      if (!container || !svg || typeof window.RadialMindmap === 'undefined') return;
+      window.RadialMindmap.init({
+        instanceId: String(career.id),
+        containerId: mindmapContainerId,
+        svgId: svgId,
+        loadingId: loadingId,
+        controlsId: controlsId,
+        apiUrl: '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/',
+        onNodeClick: function(node, ctx) {
+          if (ctx.goToParent || ctx.type === 'center') {
+            window.RadialMindmap.setCenter(String(career.id), node);
             return;
           }
-          
-          // Store data for careers page radial (viewBox zoom)
-          if (!window.radialMindmapData) window.radialMindmapData = {};
-          window.radialMindmapData[career.id] = {
-            data: data,
-            rootNode: data.data,
-            currentCenter: data.data,
-            nodeMap: {},
-            zoom: 1,
-            containerId: mindmapContainerId,
-            svgId: svgId,
-            loadingId: loadingId,
-            controlsId: controlsId,
-            career: career,
-            logicalSize: CareersRadialMindmap.LOGICAL_SIZE
-          };
-          
-          // Build node map
-          function buildNodeMap(node, parent) {
-            const nodeKey = node.topic || node.id || 'root';
-            window.radialMindmapData[career.id].nodeMap[nodeKey] = {
-              node: node,
-              parent: parent,
-              children: node.children || []
-            };
-            if (node.children && node.children.length > 0) {
-              node.children.forEach(child => buildNodeMap(child, node));
-            }
+          var mapped = CareersRadialMindmap.mapTopicToSection((node.topic || node.title || '').toString());
+          if (mapped && career) {
+            showCareerSectionInChat(career.id, mapped.sectionId, mapped.sectionLabel, career, { fromMindmapClick: true });
+          } else if (ctx.hasChildren) {
+            window.RadialMindmap.setCenter(String(career.id), node);
           }
-          buildNodeMap(data.data, null);
-          
-          // Render the mindmap (viewBox zoom, no clipping)
-          renderRadialMindmapForCareer(career.id, data.data, mindmapContainerId, svgId, loadingId, controlsId);
-          CareersRadialMindmap.applyZoom(career.id);
-        })
-        .catch(error => {
-          console.error('Error loading mindmap:', error);
-          if (loadingEl) {
-            loadingEl.innerHTML = '<div style="text-align: center; padding: 1rem;"><p class="text-muted small">Error loading mindmap</p></div>';
-          }
-        });
+        }
+      });
     }, 100);
     
     return html;
@@ -4888,7 +4811,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(additionalDiv);
-    scrollToBottom();
+    // No auto-scroll for additional content (only when new chat response is added)
   }
 });
 </script>

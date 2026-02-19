@@ -18,7 +18,9 @@
       {% endif %}
     </div>
     <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
-    
+    {% if request.user.user_type == 1 and request.user.get_display_student_id() %}
+    <p class="fs-12 text-gray mb-2">Student ID: <strong>{{ request.user.get_display_student_id() }}</strong></p>
+    {% endif %}
     <div class="d-flex flex-column gap-2">
       <div class="d-flex align-items-center justify-content-center gap-2">
         <i class='bx bx-time-five fs-18 text-gray'></i>

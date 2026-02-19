@@ -42,6 +42,9 @@
 <div class="row-two">
   <div class="col">
     <strong>Bill To</strong><br>
+    {% if invoice.payment.user.get_display_student_id %}
+    <strong>Student ID:</strong> {{ invoice.payment.user.get_display_student_id }}<br>
+    {% endif %}
     <strong>Name:</strong> {{ invoice.customer_name|default:"-" }}<br>
     <strong>Email:</strong> {{ invoice.customer_email|default:"-" }}<br>
     <strong>Address:</strong> {{ invoice.customer_address|default:"-"|linebreaksbr }}

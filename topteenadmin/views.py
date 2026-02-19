@@ -32,7 +32,7 @@ from topteenadmin.filters import (CareerFAQFilter, CareerFilter, CareerMediaFilt
                                   CountryFilter, SkillLabCourseActivityFilter,StateFilter,CityFilter,
                                   ProspectiveRecruiterFilter, SkillFilter,ProfessionFilter,StreamFilter,CourseFilter,CourseFactsFilter,CourseIntakeFilter,
                                   CourseTextFilter,CourseMoneyValueFilter,CourseEnglighRequirementsFilter,SkillLabCourseChapterFilter,
-                                  EntranceExamFilter,BlogFilter,BlogCategoryFilter,BlogTagFilter,CareerClusterFilter,SkillLabCourseFilter,SkillLabCourseActivity,ExamTagsFilter,VideoCategoryFilter,VideosFilter,HobbiesFilter,SubjectFilter,UserFigureOutFilter,StoriesFilter,ApilogFilter,LeadFilter,PsychometricFaqFilter,StudentFilter)
+                                  EntranceExamFilter,BlogFilter,BlogCategoryFilter,BlogTagFilter,CareerClusterFilter,SkillLabCourseFilter,SkillLabCourseActivity,ExamTagsFilter,VideoCategoryFilter,VideosFilter,HobbiesFilter,SubjectFilter,UserFigureOutFilter,StoriesFilter,ApilogFilter,LeadFilter,PsychometricFaqFilter,StudentFilter,VocationalCourseCategoryFilter,VocationalCourseFilter,ExtracurricularActivityCategoryFilter,ExtracurricularActivityFilter)
 
 from .base_views import (BaseCreateView, BaseDeleteView, BaseDetailView,
                          BaseListView, BaseUpdateView)
@@ -50,11 +50,11 @@ from .forms import ( CareerFAQModelForm, CareerMediaModelForm,
                     CourseIntakeModelForm,CourseEnglighRequirementsModelForm,
                     EntranceExamModelForm,CareerTagsForm,BlogModelForm,
                     BlogCategoryModelForm,TagModelForm,CareerClusterModelForm,ReviewModelForm,SkillLabCourseModelForm,SkillLabCourseActivityModelForm,
-                    ExamTagsModelForm,VideosForm,VideoCategoryForm,HobbiesModelForm,SubjectModelForm,UserFigureOutModelForm,StoriesModelForm,LeadModelForm,ApilogModelForm,PsychometricFaqModelForm)
+                    ExamTagsModelForm,VideosForm,VideoCategoryForm,HobbiesModelForm,SubjectModelForm,UserFigureOutModelForm,StoriesModelForm,LeadModelForm,ApilogModelForm,PsychometricFaqModelForm,VocationalCourseCategoryModelForm,VocationalCourseModelForm,ExtracurricularActivityCategoryModelForm,ExtracurricularActivityModelForm)
 
 from colleges.models import (College, CollegeFacts,CollegeImages,CollegeFlatText,RecruitingCompanies,CollegeFacility,
                             CollegeText,RecruitingCompanies,Facility,CollegeRecruitingCompanies,CollegeMoneyValue)
-from core.models import CommonFAQ, Country,City,State,Review,Hobbies,Subject,UserFigureOut,Stories,APILog
+from core.models import CommonFAQ, Country,City,State,Review,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
 from courses.models import (Stream,Course,CourseFacts,CourseIntake,CourseText,CourseMoneyValue,CourseEnglighRequirements)
 from entrance_exams.models import EntranceExam,ExamTags
 from crm.models import Lead
@@ -386,6 +386,168 @@ class CareerPathDetailView(BaseDetailView):
     form_class=CareerPathModelForm
     success_url=reverse_lazy('topteenadminmanaged:careerpathlist')
     active_tab="careerpath"
+
+# Vocational Courses (core)
+class VocationalCourseCategoryListView(BaseListView):
+    template_name = "topteenadmin/vocationalcoursecategory_list.html"
+    title = "Vocational Course Category"
+    active_tab = "vocationalcoursecategory"
+    model = VocationalCourseCategory
+    filterset_class = VocationalCourseCategoryFilter
+    context_object_name = "vocationalcoursecategory_list"
+
+class CreateVocationalCourseCategory(BaseCreateView):
+    template_name = "topteenadmin/vocationalcoursecategory_form.html"
+    model = VocationalCourseCategory
+    form_class = VocationalCourseCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcoursecategorylist')
+    title = "Vocational Course Category"
+    active_tab = "vocationalcoursecategory"
+    success_message = "Vocational course category created successfully."
+
+class VocationalCourseCategoryUpdateView(BaseUpdateView):
+    template_name = "topteenadmin/vocationalcoursecategory_form.html"
+    model = VocationalCourseCategory
+    form_class = VocationalCourseCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcoursecategorylist')
+    title = "Vocational Course Category"
+    active_tab = "vocationalcoursecategory"
+    success_message = "Vocational course category updated successfully."
+
+class VocationalCourseCategoryDeleteView(BaseDeleteView):
+    model = VocationalCourseCategory
+    active_tab = "vocationalcoursecategory"
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcoursecategorylist')
+    success_message = "Vocational course category deleted successfully."
+
+class VocationalCourseCategoryDetailView(BaseDetailView):
+    template_name = "topteenadmin/vocationalcoursecategory_detail.html"
+    model = VocationalCourseCategory
+    title = "Vocational Course Category"
+    form_class = VocationalCourseCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcoursecategorylist')
+    active_tab = "vocationalcoursecategory"
+
+class VocationalCourseListView(BaseListView):
+    template_name = "topteenadmin/vocationalcourse_list.html"
+    title = "Vocational Course"
+    active_tab = "vocationalcourse"
+    model = VocationalCourse
+    filterset_class = VocationalCourseFilter
+    context_object_name = "vocationalcourse_list"
+
+class CreateVocationalCourse(BaseCreateView):
+    template_name = "topteenadmin/vocationalcourse_form.html"
+    model = VocationalCourse
+    form_class = VocationalCourseModelForm
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcourselist')
+    title = "Vocational Course"
+    active_tab = "vocationalcourse"
+    success_message = "Vocational course created successfully."
+
+class VocationalCourseUpdateView(BaseUpdateView):
+    template_name = "topteenadmin/vocationalcourse_form.html"
+    model = VocationalCourse
+    form_class = VocationalCourseModelForm
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcourselist')
+    title = "Vocational Course"
+    active_tab = "vocationalcourse"
+    success_message = "Vocational course updated successfully."
+
+class VocationalCourseDeleteView(BaseDeleteView):
+    model = VocationalCourse
+    active_tab = "vocationalcourse"
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcourselist')
+    success_message = "Vocational course deleted successfully."
+
+class VocationalCourseDetailView(BaseDetailView):
+    template_name = "topteenadmin/vocationalcourse_detail.html"
+    model = VocationalCourse
+    title = "Vocational Course"
+    form_class = VocationalCourseModelForm
+    success_url = reverse_lazy('topteenadminmanaged:vocationalcourselist')
+    active_tab = "vocationalcourse"
+
+# Extracurricular Activities (core)
+class ExtracurricularActivityCategoryListView(BaseListView):
+    template_name = "topteenadmin/extracurricularactivitycategory_list.html"
+    title = "Extracurricular Category"
+    active_tab = "extracurricularactivitycategory"
+    model = ExtracurricularActivityCategory
+    filterset_class = ExtracurricularActivityCategoryFilter
+    context_object_name = "extracurricularactivitycategory_list"
+
+class CreateExtracurricularActivityCategory(BaseCreateView):
+    template_name = "topteenadmin/extracurricularactivitycategory_form.html"
+    model = ExtracurricularActivityCategory
+    form_class = ExtracurricularActivityCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitycategorylist')
+    title = "Extracurricular Category"
+    active_tab = "extracurricularactivitycategory"
+    success_message = "Extracurricular category created successfully."
+
+class ExtracurricularActivityCategoryUpdateView(BaseUpdateView):
+    template_name = "topteenadmin/extracurricularactivitycategory_form.html"
+    model = ExtracurricularActivityCategory
+    form_class = ExtracurricularActivityCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitycategorylist')
+    title = "Extracurricular Category"
+    active_tab = "extracurricularactivitycategory"
+    success_message = "Extracurricular category updated successfully."
+
+class ExtracurricularActivityCategoryDeleteView(BaseDeleteView):
+    model = ExtracurricularActivityCategory
+    active_tab = "extracurricularactivitycategory"
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitycategorylist')
+    success_message = "Extracurricular category deleted successfully."
+
+class ExtracurricularActivityCategoryDetailView(BaseDetailView):
+    template_name = "topteenadmin/extracurricularactivitycategory_detail.html"
+    model = ExtracurricularActivityCategory
+    title = "Extracurricular Category"
+    form_class = ExtracurricularActivityCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitycategorylist')
+    active_tab = "extracurricularactivitycategory"
+
+class ExtracurricularActivityListView(BaseListView):
+    template_name = "topteenadmin/extracurricularactivity_list.html"
+    title = "Extracurricular Activity"
+    active_tab = "extracurricularactivity"
+    model = ExtracurricularActivity
+    filterset_class = ExtracurricularActivityFilter
+    context_object_name = "extracurricularactivity_list"
+
+class CreateExtracurricularActivity(BaseCreateView):
+    template_name = "topteenadmin/extracurricularactivity_form.html"
+    model = ExtracurricularActivity
+    form_class = ExtracurricularActivityModelForm
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitylist')
+    title = "Extracurricular Activity"
+    active_tab = "extracurricularactivity"
+    success_message = "Extracurricular activity created successfully."
+
+class ExtracurricularActivityUpdateView(BaseUpdateView):
+    template_name = "topteenadmin/extracurricularactivity_form.html"
+    model = ExtracurricularActivity
+    form_class = ExtracurricularActivityModelForm
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitylist')
+    title = "Extracurricular Activity"
+    active_tab = "extracurricularactivity"
+    success_message = "Extracurricular activity updated successfully."
+
+class ExtracurricularActivityDeleteView(BaseDeleteView):
+    model = ExtracurricularActivity
+    active_tab = "extracurricularactivity"
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitylist')
+    success_message = "Extracurricular activity deleted successfully."
+
+class ExtracurricularActivityDetailView(BaseDetailView):
+    template_name = "topteenadmin/extracurricularactivity_detail.html"
+    model = ExtracurricularActivity
+    title = "Extracurricular Activity"
+    form_class = ExtracurricularActivityModelForm
+    success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitylist')
+    active_tab = "extracurricularactivity"
 
 class ProfessionListView(BaseListView):
     template_name = "topteenadmin/profession_list.html"

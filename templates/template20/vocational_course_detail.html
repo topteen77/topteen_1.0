@@ -68,14 +68,14 @@
   </section>
   <!-- Hero Section -->
 
-  <!-- Accordion Section -->
-  <section class="vocational-cr-accordion py-md-10 py-7 bg-light mt-8">
+  <!-- Accordion Section (hidden if no accordion items; JS may hide wrapper if all sections blank) -->
+  <section class="vocational-cr-accordion py-md-10 py-7 bg-light mt-8" id="vocational-accordion-section">
     <div class="container">
       <div class="row">
         <div class="col-12 col-md-9 mx-auto">
           <div class="accordion custom-accordion" id="vocAccordion">
             {% if course.content_json %}
-              {# Content will be rendered via JavaScript accordion #}
+              {# Content will be rendered via JavaScript accordion; blank sections are not shown #}
               <div id="vocational-course-accordion-container"></div>
             {% else %}
               {# Fallback to regular HTML content #}
@@ -288,11 +288,16 @@
             // Ensure sectionHtml is a string and trim it
             sectionHtml = String(sectionHtml || '').trim();
             
-            // Check if there's content - simple length check
-            // If HTML string has more than 10 characters, consider it as having content
-            const hasContent = sectionHtml.length > 10;
+            // Check if there's real content: strip HTML and require non-whitespace text
+            let textContent = '';
+            if (sectionHtml) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = sectionHtml;
+                textContent = (tmp.textContent || tmp.innerText || '').trim();
+            }
+            const hasContent = textContent.length > 0 && sectionHtml.length > 10;
             
-            // Skip sections without content - don't show empty headings
+            // Skip sections without content - don't show empty/blank accordions
             if (!hasContent) {
                 return; // Skip this iteration
             }
@@ -370,6 +375,12 @@
             accordionItem.appendChild(collapse);
             container.appendChild(accordionItem);
         });
+        
+        // Hide entire accordion section if no items were added (all sections were blank)
+        const sectionWrapper = document.getElementById('vocational-accordion-section');
+        if (sectionWrapper && container.children.length === 0) {
+            sectionWrapper.style.display = 'none';
+        }
         
         // Initialize Bootstrap collapse functionality
         // Use the parent accordion element that exists in the template
