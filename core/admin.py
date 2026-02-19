@@ -444,7 +444,7 @@ class VocationalCourseCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(VocationalCourse)
 class VocationalCourseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category", "priority", "object_status", "preview_link", "image")
+    list_display = ("id", "name", "category_name_safe", "priority", "object_status", "preview_link", "image_safe")
     list_filter = ("object_status", "category")
     search_fields = ("name", "category__name")
     ordering = ("category__name", "priority", "name")
@@ -502,21 +502,38 @@ class VocationalCourseAdmin(admin.ModelAdmin):
         # Call parent save
         super().save_model(request, obj, form, change)
     
+    def category_name_safe(self, obj):
+        """Display category name without raising if category is missing."""
+        try:
+            return obj.category.name if obj.category_id and getattr(obj, 'category', None) else '-'
+        except Exception:
+            return '-'
+    category_name_safe.short_description = 'Category'
+    category_name_safe.admin_order_field = 'category__name'
+
+    def image_safe(self, obj):
+        """Display image indicator without raising."""
+        try:
+            return 'Yes' if obj.image else '-'
+        except Exception:
+            return '-'
+    image_safe.short_description = 'Image'
+
     def preview_link(self, obj):
         """Display preview link that opens frontend page in new tab"""
-        if obj.id:
-            try:
-                url = reverse("core:vocational_course_detail", kwargs={"pk": obj.pk})
-                return format_html(
-                    '<a href="{}" target="_blank" style="color: green; font-weight: 600; text-decoration: none;">🔍 View</a>',
-                    url,
-                )
-            except Exception as e:
-                return format_html(
-                    '<span style="color: red;">Error: {}</span>',
-                    str(e)
-                )
-        return '-'
+        if not obj or not getattr(obj, 'id', None):
+            return '-'
+        try:
+            url = reverse("core:vocational_course_detail", kwargs={"pk": obj.pk})
+            return format_html(
+                '<a href="{}" target="_blank" style="color: green; font-weight: 600; text-decoration: none;">🔍 View</a>',
+                url,
+            )
+        except Exception as e:
+            return format_html(
+                '<span style="color: red;">Error: {}</span>',
+                str(e)[:50]
+            )
     preview_link.short_description = 'Preview'
     preview_link.admin_order_field = 'name'
 

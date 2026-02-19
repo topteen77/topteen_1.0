@@ -12,7 +12,7 @@ from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTag
 from bs4 import BeautifulSoup
 from django.urls import reverse
 from colleges.models import College, CollegeFacts, CollegeFlatText, CollegeImages, CollegeText, Facility,RecruitingCompanies,CollegeRecruitingCompanies,CollegeFacility,CollegeMoneyValue
-from core.models import City, CommonFAQ, Country, Review,State,Hobbies,Subject,UserFigureOut,Stories,APILog
+from core.models import City, CommonFAQ, Country, Review,State,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
 from courses.models import (Stream,Course,CourseFacts,CourseIntake,CourseText,CourseMoneyValue,CourseEnglighRequirements)
 from entrance_exams.models import EntranceExam,ExamTags
 from skilllab.models import SkillLabCourse,SkillLabCourseActivity,SkillLabCourseChapter
@@ -517,6 +517,31 @@ class HobbiesModelForm(TranslationModelForm):
     class Meta:
         model = Hobbies
         fields = ['name','image']
+
+
+class VocationalCourseCategoryModelForm(TranslationModelForm):
+    class Meta:
+        model = VocationalCourseCategory
+        fields = ['name', 'parent', 'priority', 'image', 'object_status']
+
+
+class VocationalCourseModelForm(TranslationModelForm):
+    class Meta:
+        model = VocationalCourse
+        fields = ['category', 'name', 'image', 'priority', 'object_status']
+
+
+class ExtracurricularActivityCategoryModelForm(TranslationModelForm):
+    class Meta:
+        model = ExtracurricularActivityCategory
+        fields = ['name', 'icon_class', 'css_class', 'priority', 'image', 'object_status']
+
+
+class ExtracurricularActivityModelForm(TranslationModelForm):
+    class Meta:
+        model = ExtracurricularActivity
+        fields = ['category', 'name', 'image', 'url', 'priority', 'object_status']
+
 
 class SubjectModelForm(TranslationModelForm):
     class Meta:
