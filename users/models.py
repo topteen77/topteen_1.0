@@ -254,18 +254,23 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
         name_val = (self.name or "").strip()
         if not name_val or name_val == "Student":
-            self.name = (self.email or self.mobile or "").strip()
+            # str() so mobile (int) from signup doesn't break .strip()
+            self.name = str(self.email or self.mobile or "").strip()
             if self.name:
                 self.save(update_fields=["name"])
         if not self.image:
-            self._grab_avatar()
+            try:
+                self._grab_avatar()
+            except Exception:
+                # Don't fail user save if avatar fetch fails (network/timeout)
+                pass
 
     def _grab_avatar(self):
         colors_lst=['00AA55','1BA39C','03A678','00AA00','26A65B','00A566','4183D7','3477DB','007FAA',\
             '3455DB','0000E0','0000B5','E26A6A','B381B3','E26A6A','BF6EE0','FF00FF','BF55EC','D252B2',\
             '9370DB','D25299','D25852','D2527F','E73C70','F62459','E000E0','AA8F00','AA8F00','D47500',\
             'FF4500','E63022','E76E3C','EF4836','FF0000','DC143C']
-        url="https://ui-avatars.com/api/?name={}&background={}&color=FFF&font-size=0.55&bold=True&size=256".format(self.name,random.choice(colors_lst))
+        url="https://ui-avatars.com/api/?name={}&background={}&color=FFF&font-size=0.55&bold=True&size=256".format(self.name or "User", random.choice(colors_lst))
         # image_content = ContentFile(requests.get(url).content)
         r = requests.get(url,timeout=5)
 
