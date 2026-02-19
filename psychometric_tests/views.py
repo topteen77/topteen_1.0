@@ -621,7 +621,20 @@ class UserPyschometricTestPaymentSuccess(TemplateView):
         signobj=sign.unsign_object(enc_id)
         id=signobj.get('enc_id')
         ctx={}
-        ctx['test_payment']=get_object_or_404(PsychometricTestPayment,id=id)
+        test_payment = get_object_or_404(PsychometricTestPayment, id=id)
+        ctx['test_payment'] = test_payment
+        # Payment record for order id, transaction id and invoice/receipt
+        payment = Payment.objects.filter(
+            user=request.user,
+            obj_id=test_payment.id,
+            obj_type=choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL,
+            is_success=choices.YesNoChoices.YES,
+        ).order_by('-created').first()
+        ctx['payment'] = payment
+        try:
+            ctx['invoice_id'] = payment.invoice.id if payment else None
+        except Exception:
+            ctx['invoice_id'] = None
         ctx['blogs'] = Blog.get_published_objects().all()
         ctx['skilllab_courses']=SkillLabCourse.all_objects()
         ctx["test_type"]={"basic_test_type":choices.PsychometricTestType.BASIC,"advanced_test_type":choices.PsychometricTestType.ADVANCED}
