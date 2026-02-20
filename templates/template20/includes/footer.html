@@ -47,15 +47,16 @@
             </ul>
           </div>
 
-
+          {# Show footer-disclaimer (O*Net) only on: career-videos list, category pages, and video detail pages #}
+          {% if request.path.startswith('/careers/career-videos') %}
           <div class="footer-disclaimer w-100 clearfix">
-
             <p class="ft-title text-purple mt-2">O*Net Framework </p>
 
             <img src="{{ static('images_new/general/ostar.png') }}" alt="O*Net Framework" class="img-fluid" />
             <p class="text-gray fs-14 fw-400">
               This page includes information from <a class="text-purple text-underline" href="https://www.onetcenter.org/"> O*NET Resource Center </a> by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the <a class="text-purple text-underline" href="https://creativecommons.org/licenses/by/4.0/"> CC BY 4.0 </a> license. <strong>O*NET® is a trademark of USDOL/ETA.</strong> </p>
           </div>
+          {% endif %}
 
 
 
