@@ -4471,13 +4471,14 @@ def get_career_recommendations_from_tests(user):
 
 def career_swipe(request):
     """
-    Career swipe demo view - Jinja2 compatible.
-    Accessible without login; after some swipes a login popup is shown.
-    When user logs in, pending "saved" careers (session) are merged into their profile.
+    Career swipe: cluster-first. User chooses cluster(s) → swipe careers from that cluster.
+    Completed clusters are tracked in session and shown as "checked".
     """
-    from careers.models import Career
+    from careers.models import Career, CareerCluster
     from core import choices
+    from core.choices import ObjectStatus
     from django.conf import settings
+    from django.db.models import Q, Count
     
     # Merge pending likes from session into user profile (after login)
     if request.user.is_authenticated and request.session.get('career_swipe_pending_likes'):
@@ -4498,25 +4499,36 @@ def career_swipe(request):
             except (Career.DoesNotExist, ValueError, TypeError):
                 pass
     
-    # Debug logging helper (only in DEBUG mode)
     def debug_log(message):
         if settings.DEBUG:
             print(f"[DEBUG] Career Swipe - {message}")
     
-    # Anonymous users: use default careers only; no profile/test data
+    # Viewed/checked cluster IDs (session)
+    viewed_ids = list(request.session.get('career_swipe_viewed_cluster_ids') or [])
+    try:
+        viewed_ids = [int(x) for x in viewed_ids if x]
+    except (ValueError, TypeError):
+        viewed_ids = []
+    
+    # Selected cluster(s) from GET (?clusters=1 or ?clusters=1,2)
+    cluster_param = (request.GET.get('clusters') or '').strip()
+    selected_cluster_ids = []
+    if cluster_param:
+        for part in cluster_param.split(','):
+            try:
+                selected_cluster_ids.append(int(part.strip()))
+            except (ValueError, TypeError):
+                pass
+    selected_cluster_ids = list(dict.fromkeys(selected_cluster_ids))
+    
+    # Anonymous: no profile/test data
     if not request.user.is_authenticated:
-        careers_queryset = Career.objects.filter(
-            publish_status=choices.PublishStatus.PUBLISHED
-        ).select_related().prefetch_related(
-            'career_cluster', 'skills', 'career_tags'
-        )[:20]
-        career_score_map = {}
-        recommended_careers = []
         has_tests = False
         user_profile_data = None
         has_hobbies = False
         has_interests = False
         show_profile_completion_popup = False
+        recommended_careers = []
     else:
         # Check if user has completed tests
         has_tests = TestSession.objects.filter(
@@ -4565,7 +4577,7 @@ def career_swipe(request):
         # Popup shows if at least one (hobbies OR interests) is missing
         show_profile_completion_popup = not (has_hobbies and has_interests)
         
-        # Get career recommendations based on test results if available
+        # For match % in swipe mode: test-based or profile-based scores
         recommended_careers = []
         if has_tests:
             try:
@@ -4574,95 +4586,116 @@ def career_swipe(request):
             except Exception as e:
                 debug_log(f"Error getting test-based recommendations: {e}")
                 recommended_careers = []
-        
-        # If we have test-based recommendations, use them
-        if recommended_careers:
-            # Use recommended careers from test results
-            careers_queryset = [career for career, score in recommended_careers[:20]]
-            debug_log(f"Using {len(careers_queryset)} test-recommended careers")
-        elif user_profile_data and (has_hobbies or has_interests):
-            # Fallback to profile-based recommendations if no test results but profile is complete
-            debug_log("No test results - Using profile-based recommendations")
-            all_careers = Career.objects.filter(
-                publish_status=choices.PublishStatus.PUBLISHED
-            ).select_related().prefetch_related('career_cluster', 'skills', 'career_tags')
-            
-            scored_careers = []
-            for career in all_careers[:100]:  # Check top 100 for performance
-                score = 50.0  # Base score
-                
-                # Score based on hobbies
-                if user_profile_data.get('hobbies'):
-                    career_tags = [tag.name.lower() for tag in career.career_tags.all()]
-                    hobby_names = [h.lower() for h in user_profile_data['hobbies']]
-                    hobby_matches = sum(1 for hobby in hobby_names if hobby in ' '.join(career_tags))
-                    score += hobby_matches * 10
-                    if hobby_matches > 0:
-                        debug_log(f"  Career '{career.name}' matched {hobby_matches} hobbies")
-                
-                # Score based on subjects/interests
-                if user_profile_data.get('subjects'):
-                    career_skills = [s.name.lower() for s in career.skills.all()]
-                    subject_names = [s.lower() for s in user_profile_data['subjects']]
-                    subject_matches = sum(1 for subject in subject_names if subject in ' '.join(career_skills))
-                    score += subject_matches * 8
-                    if subject_matches > 0:
-                        debug_log(f"  Career '{career.name}' matched {subject_matches} subjects")
-                
-                scored_careers.append((career, min(score, 100.0)))
-            
-            # Sort by score and take top 20
-            scored_careers.sort(key=lambda x: x[1], reverse=True)
-            recommended_careers = scored_careers[:20]
-            careers_queryset = [career for career, score in recommended_careers]
-            
-            debug_log(f"Profile-based recommendations: {len(careers_queryset)} careers")
-            if recommended_careers:
-                debug_log("Top profile-based careers:")
-                for idx, (career, score) in enumerate(recommended_careers[:10], 1):
-                    debug_log(f"  {idx}. {career.name} (Score: {score:.1f}%)")
-        else:
-            # Fallback to all published careers if no test results and no profile data
-            careers_queryset = Career.objects.filter(
-                publish_status=choices.PublishStatus.PUBLISHED
-            ).select_related().prefetch_related(
-                'career_cluster', 'skills', 'career_tags'
-            )[:20]  # Limit for demo
-            debug_log(f"Using {len(careers_queryset)} default published careers (no test results, no profile data)")
     
-    # Prepare career data for template (Jinja2 compatible)
+    show_match_score = request.user.is_authenticated and (has_tests or has_hobbies or has_interests)
+    
+    # Cluster list for picker: from DB (like career-battle), with stream count and sample career names
+    clusters_queryset = CareerCluster.objects.filter(parent__isnull=True).order_by('name')
+    if not clusters_queryset.exists():
+        clusters_queryset = CareerCluster.objects.all().order_by('name')
+    
+    cluster_ids = [c.id for c in clusters_queryset]
+    # One query: all (cluster_id, career_name) for these clusters, published only
+    from collections import defaultdict
+    stream_by_cluster = defaultdict(list)
+    if cluster_ids:
+        for cid, name in Career.objects.filter(
+            career_cluster__id__in=cluster_ids,
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).values_list('career_cluster', 'name').distinct():
+            if name and name not in stream_by_cluster[cid]:
+                stream_by_cluster[cid].append(name)
+    for cid in stream_by_cluster:
+        stream_by_cluster[cid].sort()
+    
+    clusters_with_streams = []
+    for c in clusters_queryset:
+        names = stream_by_cluster.get(c.id, [])
+        clusters_with_streams.append({
+            'cluster': c,
+            'stream_count': len(names),
+            'stream_names': names[:10],
+        })
+    
     careers = []
-    # Create score map from recommended_careers if available
-    career_score_map = {}
-    if recommended_careers:
-        for career, score in recommended_careers:
-            career_score_map[career] = score
+    current_cluster_names = []
+    show_swipe = False
     
-    for career in careers_queryset:
-        # Get match score from recommendations or use default
-        match_score = career_score_map.get(career, 85.0)
+    if selected_cluster_ids:
+        valid_clusters = list(CareerCluster.objects.filter(
+            id__in=selected_cluster_ids,
+            object_status=ObjectStatus.ACTIVE
+        ))
+        valid_ids = [c.id for c in valid_clusters]
+        current_cluster_names = [c.name for c in valid_clusters if c.name]
         
-        career_data = {
-            'career': career,
-            'image_url': career.get_image_url() if career.get_image_url() else '/static/images/career-icon.png',
-            'url': career.url(),
-            'clusters': [c.name for c in career.career_cluster.all()],
-            'skills': [s.name for s in career.skills.all()[:5]],
-            'match_score': round(match_score, 1)
-        }
-        careers.append(career_data)
+        if valid_ids:
+            # Mark these clusters as checked (viewed)
+            for cid in valid_ids:
+                if cid not in viewed_ids:
+                    viewed_ids.append(cid)
+            request.session['career_swipe_viewed_cluster_ids'] = viewed_ids
+            request.session.modified = True
+            
+            careers_queryset = Career.objects.filter(
+                career_cluster__id__in=valid_ids,
+                publish_status=choices.PublishStatus.PUBLISHED
+            ).distinct().select_related().prefetch_related(
+                'career_cluster', 'skills', 'career_tags'
+            )[:50]
+            
+            career_score_map = {}
+            if show_match_score and recommended_careers:
+                for career, score in recommended_careers:
+                    career_score_map[career] = score
+            elif show_match_score and user_profile_data and request.user.is_authenticated:
+                for career in careers_queryset:
+                    score = 50.0
+                    if user_profile_data.get('hobbies'):
+                        career_tags = [t.name.lower() for t in career.career_tags.all()]
+                        hobby_names = [h.lower() for h in user_profile_data['hobbies']]
+                        score += sum(1 for h in hobby_names if h in ' '.join(career_tags)) * 10
+                    if user_profile_data.get('subjects'):
+                        career_skills = [s.name.lower() for s in career.skills.all()]
+                        subject_names = [s.lower() for s in user_profile_data['subjects']]
+                        score += sum(1 for s in subject_names if s in ' '.join(career_skills)) * 8
+                    career_score_map[career] = min(score, 100.0)
+            
+            for career in careers_queryset:
+                match_score = career_score_map.get(career, 85.0) if show_match_score else 0
+                career_data = {
+                    'career': career,
+                    'image_url': career.get_image_url() or '/static/images/career-icon.png',
+                    'url': career.url(),
+                    'clusters': [c.name for c in career.career_cluster.all()],
+                    'skills': [s.name for s in career.skills.all()[:5]],
+                    'match_score': round(match_score, 1)
+                }
+                careers.append(career_data)
+            show_swipe = True
+    
+    clusters = list(clusters_queryset)
+    viewed_cluster_names = list(CareerCluster.objects.filter(id__in=viewed_ids).order_by('name').values_list('name', flat=True)) if viewed_ids else []
     
     from django.urls import reverse
     from urllib.parse import urlencode
     login_next = request.build_absolute_uri(reverse('post_matric:career_swipe'))
-    login_qs = urlencode({'next': login_next})
+    login_qs = urlencode({'next': login_next, 'embed': '1'})
     login_url = reverse('users:login') + '?' + login_qs
     login_url_absolute = request.build_absolute_uri(reverse('users:login') + '?' + login_qs)
     login_url_next_matches = reverse('users:login') + '?' + urlencode({
         'next': request.build_absolute_uri(reverse('post_matric:view_matches'))
     })
+    
     context = {
         'careers': careers,
+        'show_swipe': show_swipe,
+        'clusters': clusters,
+        'clusters_with_streams': clusters_with_streams,
+        'viewed_cluster_ids': viewed_ids,
+        'viewed_cluster_names': viewed_cluster_names,
+        'current_cluster_names': current_cluster_names,
+        'show_match_score': show_match_score,
         'has_tests': has_tests,
         'user_profile_data': user_profile_data,
         'user': request.user,
@@ -4673,6 +4706,7 @@ def career_swipe(request):
         'login_url': login_url,
         'login_url_absolute': login_url_absolute,
         'login_url_next_matches': login_url_next_matches,
+        'career_swipe_next': request.build_absolute_uri(reverse('post_matric:career_swipe')),
     }
     
     return render(request, 'template20/app_post_matric/career_swipe.html', context)

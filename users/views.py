@@ -396,6 +396,17 @@ class LoginView(TemplateView):
                 # Store in session as fallback if client doesn't send next in login POST
                 request.session['login_next_url'] = next_url
         ctx['next_url'] = next_url
+        # When login is shown in an iframe (e.g. career swipe), show context-specific copy
+        if request.GET.get('embed') == '1':
+            if 'career_swipe' in (next_url or ''):
+                ctx['login_embed_heading'] = 'Sign in to save your careers'
+                ctx['login_embed_subtitle'] = 'Enter your email or mobile below. After you sign in, this window will close and your choices will be saved.'
+            else:
+                ctx['login_embed_heading'] = 'Sign in'
+                ctx['login_embed_subtitle'] = 'Enter your details below to continue.'
+        else:
+            ctx['login_embed_heading'] = None
+            ctx['login_embed_subtitle'] = None
         # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
         from .demo_accounts import get_demo_login_context
         ctx.update(get_demo_login_context(request))
