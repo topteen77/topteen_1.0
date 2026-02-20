@@ -8,15 +8,58 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
+{% block header %}
+<div class="career-swipe-top-bar">
+  <a href="{{ url('users:userdashboard') }}" class="career-swipe-back-btn" aria-label="Back">
+    <i class='bx bx-arrow-back'></i> Back
+  </a>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
 {% block bodyclass %}{{ super() }} career-swipe-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <style>
   .career-swipe-page {
-    padding-top: 80px;
+    padding-top: 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+  }
+  .career-swipe-top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 1000;
+  }
+  .career-swipe-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #3f37c9;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .career-swipe-back-btn:hover {
+    background: rgba(63, 55, 201, 0.1);
+    color: #2d26a0;
+  }
+  .career-swipe-back-btn i {
+    font-size: 22px;
   }
   .swipe-container {
     max-width: 400px;
@@ -38,6 +81,7 @@
     transition: transform 0.3s ease, opacity 0.3s ease;
     user-select: none;
     -webkit-user-select: none;
+    overflow: hidden;
   }
   .career-card.dragging {
     transition: none;
@@ -64,13 +108,71 @@
     font-size: 16px;
     margin-bottom: 15px;
   }
+  .career-description-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+  }
   .career-description {
     color: #555;
     font-size: 14px;
     line-height: 1.6;
-    flex-grow: 1;
-    margin-bottom: 20px;
+    max-height: 140px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 0;
   }
+  .career-description::-webkit-scrollbar {
+    width: 4px;
+  }
+  .career-description::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  .career-swipe-hint {
+    text-align: center;
+    margin-top: auto;
+    padding-top: 12px;
+    color: #3f37c9;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .swipe-instructions {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    margin: 0 auto;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+  .swipe-instructions .instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+  .swipe-instructions .instruction-item .instruction-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .swipe-instructions .instruction-item.left .instruction-icon { background: #ff4757; color: white; }
+  .swipe-instructions .instruction-item.right .instruction-icon { background: #2ed573; color: white; }
+  .swipe-instructions .instruction-item.up .instruction-icon { background: #3f37c9; color: white; }
   .match-score {
     position: absolute;
     top: 20px;
@@ -82,25 +184,31 @@
     font-weight: 600;
     font-size: 14px;
   }
-  .swipe-buttons {
+  .swipe-buttons.instruction-panel {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-    padding: 20px;
+    align-items: flex-end;
+    gap: 28px;
+    margin-top: 24px;
+    margin-bottom: 28px;
+    padding: 20px 24px;
   }
   .swipe-btn {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     border: none;
     font-size: 24px;
     cursor: pointer;
-    transition: transform 0.2s;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+  .swipe-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
   }
   .swipe-btn:active {
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   .pass-btn {
     background: #ff4757;
@@ -109,6 +217,26 @@
   .like-btn {
     background: #2ed573;
     color: white;
+  }
+  .swipe-btn-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .swipe-btn-wrap .swipe-btn-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.98);
+    text-align: center;
+  }
+  .swipe-btn-wrap .swipe-up-btn {
+    background: #4040e7;
+    color: white;
+  }
+  .swipe-btn-wrap .swipe-up-btn i {
+    font-size: 28px;
+    line-height: 1;
   }
   .info-banner {
     background: white;
@@ -366,6 +494,24 @@
   .profile-completion-close:hover {
     color: #333;
   }
+  .career-swipe-login-popup-content {
+    max-width: 420px;
+    padding-bottom: 12px;
+  }
+  .career-swipe-login-iframe-wrap {
+    width: 100%;
+    height: 380px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background: #f9f9f9;
+  }
+  .career-swipe-login-iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
   .custom-button {
     padding: 12px 24px;
     border-radius: 10px;
@@ -383,22 +529,41 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.4);
   }
+  .career-discovery-banner {
+    background: white;
+    padding: 20px 24px;
+    border-radius: 16px;
+    margin: 0 auto 20px;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+  }
+  .career-discovery-banner .banner-title {
+    margin-bottom: 8px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .career-discovery-banner .banner-title .career-word {
+    color: #3f37c9;
+  }
+  .career-discovery-banner .banner-title .discovery-word {
+    color: #333;
+  }
+  .career-discovery-banner .banner-sub {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="info-banner">
-    <h2>🎯 Career Discovery</h2>
-    <p>
-      {% if has_tests %}
-        Swipe through careers matched to your test results!
-      {% else %}
-        Swipe through top careers based on your profile!
-      {% endif %}
-    </p>
+<div class="container career-swipe-main" style="padding-top: 72px;">
+  <div class="career-discovery-banner">
+    <h2 class="banner-title">🎯 <span class="career-word">Career</span><span class="discovery-word"> Discovery</span></h2>
+    <p class="banner-sub">Swipe through top careers based on your profile!</p>
   </div>
-
   <div class="swipe-container">
     {% if careers %}
       {% for career_data in careers %}
@@ -421,18 +586,18 @@
             {{ career_data.clusters[0] }}
           {% endif %}
         </div>
-        <p class="career-description">
-          {% if career.display_summary %}
-            {{ career.display_summary }}
-          {% elif career.description %}
-            {{ career.description|truncate(150, end='...') }}
-          {% else %}
-            No description available
-          {% endif %}
-        </p>
-        <div style="text-align: center; margin-top: auto; padding-top: 15px; color: #3f37c9; font-size: 12px;">
-          👆 Swipe up for details
+        <div class="career-description-wrap">
+          <p class="career-description">
+            {% if career.display_summary %}
+              {{ career.display_summary }}
+            {% elif career.description %}
+              {{ career.description|truncate(150, end='...') }}
+            {% else %}
+              No description available
+            {% endif %}
+          </p>
         </div>
+        <div class="career-swipe-hint">👆 Swipe up for details</div>
       </div>
       {% endfor %}
     {% else %}
@@ -443,9 +608,21 @@
     {% endif %}
   </div>
 
-  <div class="swipe-buttons">
-    <button class="swipe-btn pass-btn" onclick="swipeLeft()">✕</button>
-    <button class="swipe-btn like-btn" onclick="swipeRight()">♥</button>
+  <div class="swipe-buttons instruction-panel" aria-label="Swipe actions">
+    <div class="swipe-btn-wrap">
+      <button class="swipe-btn pass-btn" onclick="swipeLeft()" title="Pass">✕</button>
+      <span class="swipe-btn-label">Pass</span>
+    </div>
+    <div class="swipe-btn-wrap">
+      <button class="swipe-btn like-btn" onclick="swipeRight()" title="Save"><i class='bx bx-check' style="font-size: 28px; line-height: 1;"></i></button>
+      <span class="swipe-btn-label">Save</span>
+    </div>
+    <div class="swipe-btn-wrap">
+      <button type="button" class="swipe-btn swipe-up-btn" onclick="swipeUpCurrent()" title="Swipe up for details">
+        <i class='bx bx-up-arrow'></i>
+      </button>
+      <span class="swipe-btn-label">Swipe up</span>
+    </div>
   </div>
 </div>
 
@@ -468,7 +645,7 @@
         ✕ Pass
       </button>
       <button class="details-action-btn details-like-btn" onclick="finalizeSwipe('like')">
-        ♥ Like
+        <i class='bx bx-check'></i> Save
       </button>
     </div>
   </div>
@@ -504,9 +681,58 @@
 </div>
 {% endif %}
 
+<!-- Login popup (built separately – login happens inside popup, no redirect of main page) -->
+<div id="loginRequiredPopup" class="profile-completion-popup" aria-hidden="true">
+  <div class="profile-completion-content career-swipe-login-popup-content">
+    <button type="button" class="profile-completion-close" onclick="closeLoginRequiredPopup()" aria-label="Close">
+      <i class='bx bx-x fs-24'></i>
+    </button>
+    <div class="text-center py-2 pb-2">
+      <h3 class="fs-20 fw-700 text-dark mb-2">Login to save your choices</h3>
+      <p class="text-gray fs-14 mb-2 px-2">Sign in inside the box below. You’ll stay on this page.</p>
+    </div>
+    <div class="career-swipe-login-iframe-wrap">
+      <iframe id="careerSwipeLoginFrame" src="{{ login_url_absolute|e }}" title="Login" class="career-swipe-login-iframe"></iframe>
+    </div>
+    <div class="text-center py-2">
+      <button type="button" class="btn btn-link text-gray fs-14" onclick="closeLoginRequiredPopup()">
+        Continue as guest
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+const userAuthenticated = {{ 'true' if user_authenticated else 'false' }};
+const loginUrl = "{{ login_url|e }}";
+const SWIPE_LOGIN_THRESHOLD = 3;
+let swipeCount = 0;
+
 let currentIndex = 0;
 const cards = document.querySelectorAll('.career-card');
+
+function onSwipeDone() {
+  swipeCount++;
+  if (!userAuthenticated && swipeCount >= SWIPE_LOGIN_THRESHOLD) {
+    showLoginRequiredPopup();
+  }
+}
+
+function showLoginRequiredPopup() {
+  const popup = document.getElementById('loginRequiredPopup');
+  if (popup && !popup.classList.contains('show')) {
+    popup.classList.add('show');
+    popup.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeLoginRequiredPopup() {
+  const popup = document.getElementById('loginRequiredPopup');
+  if (popup) {
+    popup.classList.remove('show');
+    popup.setAttribute('aria-hidden', 'true');
+  }
+}
 
 function swipeLeft() {
   if (currentIndex < cards.length) {
@@ -522,6 +748,7 @@ function swipeLeft() {
     setTimeout(() => {
       card.style.display = 'none';
       currentIndex++;
+      onSwipeDone();
       if (currentIndex >= cards.length) {
         showCompletion();
       }
@@ -543,10 +770,20 @@ function swipeRight() {
     setTimeout(() => {
       card.style.display = 'none';
       currentIndex++;
+      onSwipeDone();
       if (currentIndex >= cards.length) {
         showCompletion();
       }
     }, 300);
+  }
+}
+
+function swipeUpCurrent() {
+  if (currentIndex < cards.length) {
+    const card = cards[currentIndex];
+    if (card && card.style.display !== 'none') {
+      showCareerDetails(card);
+    }
   }
 }
 
@@ -582,14 +819,18 @@ function saveSwipeAction(careerId, action, matchScore) {
   }).catch(err => console.error('Error saving swipe:', err));
 }
 
+const loginUrlNextMatches = "{{ login_url_next_matches|e }}";
+
 function showCompletion() {
   const container = document.querySelector('.swipe-container');
-  container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;"><h2 style="color: #3f37c9; margin-bottom: 20px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 30px;">You\'ve reviewed all careers!</p><p style="font-size: 16px; color: #666; margin-bottom: 30px;">Redirecting to your matches...</p><div class="spinner"></div></div>';
-  
-  // Redirect to matches page after 2 seconds
-  setTimeout(() => {
-    window.location.href = '{{ url("post_matric:view_matches") }}';
-  }, 2000);
+  if (userAuthenticated) {
+    container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;"><h2 style="color: #3f37c9; margin-bottom: 20px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 30px;">You\'ve reviewed all careers!</p><p style="font-size: 16px; color: #666; margin-bottom: 30px;">Redirecting to your matches...</p><div class="spinner"></div></div>';
+    setTimeout(() => {
+      window.location.href = '{{ url("post_matric:view_matches") }}';
+    }, 2000);
+  } else {
+    container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px;"><h2 style="color: #3f37c9; margin-bottom: 20px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 20px;">You\'ve reviewed all careers!</p><p style="font-size: 16px; color: #666; margin-bottom: 24px;">Login to save your interested careers and view your matches.</p><a href="' + loginUrlNextMatches + '" class="btn custom-button purple-button fw-600">Login to see your matches</a></div>';
+  }
 }
 
 // Swipe support for both touch and mouse
@@ -783,6 +1024,7 @@ function finalizeSwipe(action) {
     setTimeout(() => {
       card.style.display = 'none';
       currentIndex++;
+      onSwipeDone();
       if (currentIndex >= cards.length) {
         showCompletion();
       }
@@ -814,6 +1056,24 @@ if (profilePopup) {
     }
   });
 }
+
+// When login completes in popup iframe, it loads this page in the iframe; notify parent to close popup and reload (no redirect of main page)
+(function() {
+  if (window.self !== window.top && userAuthenticated) {
+    try {
+      window.parent.postMessage({ type: 'career_swipe_after_login' }, '*');
+    } catch (e) {}
+  }
+  if (window.self === window.top && userAuthenticated) {
+    closeLoginRequiredPopup();
+  }
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'career_swipe_after_login') {
+      closeLoginRequiredPopup();
+      window.location.reload();
+    }
+  });
+})();
 </script>
 {% endblock %}
 
