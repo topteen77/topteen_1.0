@@ -1641,6 +1641,12 @@ if (profilePopup) {
     document.getElementById('studentLoginEmailStep').style.display = 'block';
     document.getElementById('studentLoginOtpStep').style.display = 'none';
     document.querySelectorAll('.student-popup-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-tab') === 'email'); });
+    var inp = document.getElementById('studentLoginInput');
+    if (inp) inp.placeholder = 'Enter Email or Mobile';
+    var continueBtn = document.getElementById('studentLoginContinueBtn');
+    if (continueBtn) continueBtn.textContent = 'Continue';
+    var wrap = inp && inp.closest('.student-popup-input-wrap');
+    if (wrap) { var icon = wrap.querySelector('i'); if (icon) icon.className = 'bx bx-envelope'; }
   }
   window.studentPopupReset = function() {
     showLoginPanel();
@@ -1713,11 +1719,14 @@ if (profilePopup) {
       document.querySelectorAll('.student-popup-tab').forEach(function(t) { t.classList.remove('active'); });
       this.classList.add('active');
       var isOtp = this.getAttribute('data-tab') === 'otp';
-      document.getElementById('studentLoginEmailStep').style.display = isOtp ? 'none' : 'block';
-      document.getElementById('studentLoginOtpStep').style.display = isOtp ? 'block' : 'none';
+      /* Mobile OTP: show mobile number input first; OTP step only after Send OTP succeeds */
+      document.getElementById('studentLoginEmailStep').style.display = 'block';
+      document.getElementById('studentLoginOtpStep').style.display = 'none';
       var inp = document.getElementById('studentLoginInput');
       var wrap = inp && inp.closest('.student-popup-input-wrap');
+      var continueBtn = document.getElementById('studentLoginContinueBtn');
       if (inp) inp.placeholder = isOtp ? 'Enter Mobile Number' : 'Enter Email or Mobile';
+      if (continueBtn) continueBtn.textContent = isOtp ? 'Send OTP' : 'Continue';
       if (wrap) {
         var icon = wrap.querySelector('i');
         if (icon) icon.className = isOtp ? 'bx bx-mobile-alt' : 'bx bx-envelope';
@@ -1777,8 +1786,8 @@ if (profilePopup) {
     var input = document.getElementById('studentLoginInput').value.trim();
     var errEl = document.getElementById('studentLoginErr');
     errEl.textContent = '';
-    if (!input) { errEl.textContent = 'Enter email or mobile'; return; }
     var isOtpTab = document.querySelector('.student-popup-tab[data-tab="otp"]').classList.contains('active');
+    if (!input) { errEl.textContent = isOtpTab ? 'Enter mobile number' : 'Enter email or mobile'; return; }
     if (isOtpTab) {
       ajaxPost(urls.resendotp, (function() { var f = new FormData(); f.append('user_name', input); return f; })(), function(data) {
         if (data.success !== true && data.message) { errEl.textContent = data.message; return; }
