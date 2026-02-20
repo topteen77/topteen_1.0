@@ -233,7 +233,7 @@ def format_career_for_response(career, include_sections=False):
                     'name': rel_career.name,
                     'slug': rel_career.slug,
                     'url': reverse('careers:careerdetail', args=[rel_career.slug, rel_career.id]),
-                    'summary': rel_career.summary[:100] if rel_career.summary else ''
+                    'summary': (rel_career.get_display_summary() or '')[:100]
                 })
     except:
         pass
@@ -311,7 +311,7 @@ def format_career_for_response(career, include_sections=False):
         'id': career.id,
         'name': career.name,
         'slug': career.slug,
-        'summary': career.summary[:200] if career.summary else '',
+        'summary': (career.get_display_summary() or '')[:200],
         'salary': salary,
         'salary_display': salary_display,
         'has_salary': salary is not None,

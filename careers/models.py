@@ -5,7 +5,13 @@ from django.db import models
 from core.models import BaseModel,SlugModel,SeoModel,PublishableModel
 from ckeditor.fields import RichTextField
 from courses.models import Course
-from .utils import  career_media_directory, get_formated_currency, career_cluster_image_directory, career_track_icon_directory
+from .utils import (
+    career_media_directory,
+    get_formated_currency,
+    career_cluster_image_directory,
+    career_track_icon_directory,
+    extract_summary_from_description,
+)
 from core import choices
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -233,7 +239,7 @@ class CareerPath(BaseModel):
 
 class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     name = models.CharField(max_length=500,null=True)
-    summary = models.CharField(null=True,max_length=250)
+    summary = models.TextField(null=True, blank=True)
     description = RichTextField(null=True)
     image=models.ImageField(upload_to=career_media_directory,null=True,blank=True,max_length=250)
     description_json = models.JSONField(null=True, blank=True, help_text="Stored JSON structure parsed from description field")
@@ -253,7 +259,18 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
         
     def url(self):
         return reverse('careers:careerdetail',args=[self.slug,self.id])
-    
+
+    def get_display_summary(self):
+        """Return summary for display: stored summary if non-empty, else derived from description at runtime."""
+        if self.summary and self.summary.strip():
+            return self.summary
+        return extract_summary_from_description(self.description or '')
+
+    @property
+    def display_summary(self):
+        """Use in templates: {{ career.display_summary }} (templates don't call methods)."""
+        return self.get_display_summary()
+
     def get_image_url(self):
         """Get image URL with default fallback"""
         if self.image and self.image.name:
@@ -553,10 +570,7 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
         if self.description:
             self.description = to_numeric_entities_preserve_html(self.description)
         if self.summary:
-            converted_summary = to_numeric_entities_preserve_html(self.summary)
-            if len(converted_summary) > 250:
-                converted_summary = converted_summary[:247] + '...'
-            self.summary = converted_summary
+            self.summary = to_numeric_entities_preserve_html(self.summary)
         if self.name:
             converted_name = to_numeric_entities_preserve_html(self.name)
             if len(converted_name) > 500:
@@ -614,7 +628,7 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
         if not self.name or not self.name.strip():
             errors.append("Career name is required")
             
-        if not self.summary or not self.summary.strip():
+        if not self.get_display_summary().strip():
             errors.append("Career summary is required")
             
         if not self.description or not self.description.strip():

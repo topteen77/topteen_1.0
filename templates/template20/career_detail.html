@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block description_content %}
-{{ career.summary if career.summary else career.name }}
+{{ career.display_summary if career.display_summary else career.name }}
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
@@ -26,10 +26,10 @@
         <div class="track-header">
           <h1 class="cat-title">{{ career.name }}</h1>
           
-          {% if career.summary %}
+          {% if career.display_summary %}
           <div class="blog-summary-box">
             <h3 class="blog-summary-title">Summary</h3>
-            <p class="blog-summary-text add-read-more show-less-content">{{ career.summary }}</p>
+            <p class="blog-summary-text add-read-more show-less-content">{{ career.display_summary }}</p>
           </div>
           {% endif %}
 

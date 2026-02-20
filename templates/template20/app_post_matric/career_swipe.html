@@ -406,7 +406,7 @@
       <div class="career-card" 
            data-career-id="{{ career.id }}" 
            data-career-name="{{ career.name|e }}"
-           data-career-summary="{{ (career.summary or '')|e }}"
+           data-career-summary="{{ (career.display_summary or '')|e }}"
            data-career-description="{{ (career.description or '')|e }}"
            data-career-image="{{ career_data.image_url }}"
            data-career-clusters="{{ career_data.clusters|join(',') }}"
@@ -422,8 +422,8 @@
           {% endif %}
         </div>
         <p class="career-description">
-          {% if career.summary %}
-            {{ career.summary }}
+          {% if career.display_summary %}
+            {{ career.display_summary }}
           {% elif career.description %}
             {{ career.description|truncate(150, end='...') }}
           {% else %}

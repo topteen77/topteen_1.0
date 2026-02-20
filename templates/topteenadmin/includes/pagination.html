@@ -1,7 +1,7 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 py-4">
 	<!--begin::Per page dropdown & record count-->
 	<div class="d-flex align-items-center gap-3">
-		<select class="form-select form-select-sm w-80px" onchange="window.location.href=buildPaginateUrl({page: 1, per_page: this.value})">
+		<select class="form-select form-select-sm w-80px" onchange="var u=buildPaginateUrl({page: 1, per_page: this.value}); window.topteenAdminLoadUrl ? window.topteenAdminLoadUrl(u) : (window.location.href=u)">
 			{% for value, label in per_page_choices %}
 			<option value="{{ value }}" {{ 'selected' if current_per_page == value|string else '' }}>{{ label }}</option>
 			{% endfor %}

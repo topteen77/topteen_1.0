@@ -238,7 +238,6 @@ class CareerModelForm(TranslationModelForm):
         # Frontend uses base fields (description, name, etc.) so hiding these won't affect output
         translation_fields_to_hide = [
             'name_en',
-            'summary_en', 
             'description_en',
             'role_description_en',
             'eligibility_en',
@@ -263,8 +262,6 @@ class CareerModelForm(TranslationModelForm):
             self.fields['eligibility'].label = 'Eligibility'
         if 'name' in self.fields:
             self.fields['name'].label = 'Name'
-        if 'summary' in self.fields:
-            self.fields['summary'].label = 'Summary'
         if 'pros_cons' in self.fields:
             self.fields['pros_cons'].label = 'Pros & Cons'
         if 'career_paths' in self.fields:
@@ -287,7 +284,7 @@ class CareerModelForm(TranslationModelForm):
         model = Career
         # Show all model fields to mirror Django Admin create/edit
         fields = '__all__'
-        exclude = ['description_json']
+        exclude = ['description_json', 'summary']
         
 
 class CareerClusterModelForm(TranslationModelForm):

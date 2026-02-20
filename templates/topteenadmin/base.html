@@ -870,12 +870,17 @@
 					<!--end::Header-->
     
 					<!--begin::Content-->
-					<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+					<div class="content d-flex flex-column flex-column-fluid position-relative" id="kt_content">
+						<div id="kt_content_inner">
 						{% include 'topteenadmin/includes/breadcrumb.html' %}
 <!--dshfjshjhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhajslkfjlk-->
 						{% block main%}
 						{% endblock %}
 <!--dslkjflkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk-->
+						</div>
+						<div id="kt_content_ajax_loading" class="position-absolute top-0 start-0 end-0 bottom-0 d-none align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 10;">
+							<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+						</div>
 					</div>
 					<!--end::Content-->
 					<!--begin::Footer-->
@@ -1110,8 +1115,132 @@
 					setTimeout(scrollSidebarToActiveLink, 100);
 					setTimeout(scrollSidebarToActiveLink, 600);
 				});
-			})();
-			</script>
+		})();
+		</script>
+		<!-- AJAX navigation: load topteenadmin pages without full reload -->
+		<script>
+		(function() {
+			var contentEl = document.getElementById('kt_content_inner');
+			var loadingEl = document.getElementById('kt_content_ajax_loading');
+			var basePath = '/topteenadmin';
+
+			function isSameOrigin(href) {
+				try {
+					var a = document.createElement('a');
+					a.href = href;
+					return a.origin === window.location.origin;
+				} catch (e) { return false; }
+			}
+
+			function shouldLoadViaAjax(href) {
+				if (!href || !isSameOrigin(href)) return false;
+				try {
+					var a = document.createElement('a');
+					a.href = href;
+					var path = (a.pathname || '').replace(/\/+$/, '') || '/';
+					if (path.indexOf(basePath) !== 0) return false;
+					if (path === basePath + '/logout' || path === basePath + '/login' || path.indexOf(basePath + '/login') === 0) return false;
+					if (path.indexOf(basePath + '/changepassword') === 0 || path.indexOf(basePath + '/forgotpassword') === 0) return false;
+					if (path === basePath + '/profile' || path.indexOf(basePath + '/profile') === 0) return false;
+					if (path.indexOf(basePath + '/media-library') === 0) return false;
+					return true;
+				} catch (e) { return false; }
+			}
+
+			function showLoading() {
+				if (loadingEl) { loadingEl.classList.remove('d-none'); loadingEl.classList.add('d-flex'); }
+			}
+			function hideLoading() {
+				if (loadingEl) { loadingEl.classList.add('d-none'); loadingEl.classList.remove('d-flex'); }
+			}
+
+			function loadPage(url, pushState) {
+				if (!contentEl) return Promise.reject(new Error('No content element'));
+				showLoading();
+				return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, credentials: 'same-origin' })
+					.then(function(r) {
+						if (!r.ok) throw new Error('Load failed: ' + r.status);
+						return r.text();
+					})
+					.then(function(html) {
+						var parser = new DOMParser();
+						var doc = parser.parseFromString(html, 'text/html');
+						var remoteContent = doc.getElementById('kt_content_inner');
+						var remoteContentFallback = doc.getElementById('kt_content');
+						var inner = remoteContent || (remoteContentFallback || null);
+						if (inner) {
+							// Use importNode + replaceChildren so content is adopted into live document (avoids innerHTML re-parse issues)
+							while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild);
+							var children = inner.childNodes;
+							for (var i = 0; i < children.length; i++) {
+								contentEl.appendChild(document.importNode(children[i], true));
+							}
+							// Force main content area visible (theme may hide dynamically inserted nodes)
+							var post = contentEl.querySelector('#kt_post');
+							var container = contentEl.querySelector('#kt_content_container');
+							if (post) { post.style.visibility = 'visible'; post.style.display = ''; post.style.opacity = ''; }
+							if (container) { container.style.visibility = 'visible'; container.style.display = ''; container.style.opacity = ''; }
+						}
+						var titleEl = doc.querySelector('title');
+						if (titleEl && titleEl.textContent) document.title = titleEl.textContent;
+						if (pushState !== false) window.history.pushState({ url: url }, '', url);
+						hideLoading();
+						updateSidebarActive(url);
+					})
+					.catch(function(err) {
+						hideLoading();
+						console.error(err);
+						window.location.href = url;
+					});
+			}
+
+			function updateSidebarActive(currentUrl) {
+				try {
+					var path = (currentUrl || window.location.href).split('?')[0].replace(/\/+$/, '') || '/';
+					var aside = document.getElementById('kt_aside');
+					if (!aside) return;
+					aside.querySelectorAll('.menu-link.active').forEach(function(el) { el.classList.remove('active'); });
+					var best = null;
+					aside.querySelectorAll('.menu-link[href]').forEach(function(link) {
+						var linkPath = (link.getAttribute('href') || '').split('?')[0].replace(/\/+$/, '') || '/';
+						if (linkPath === path) { best = link; return; }
+						if (path.indexOf(linkPath) === 0 && linkPath.length > 1 && (!best || linkPath.length > (best.getAttribute('href') || '').split('?')[0].length)) best = link;
+					});
+					if (best) best.classList.add('active');
+				} catch (e) {}
+			}
+
+			function handleClick(ev) {
+				var a = ev.target.closest('a');
+				if (!a || !a.href) return;
+				if (a.target === '_blank' || a.getAttribute('download')) return;
+				if (!shouldLoadViaAjax(a.href)) return;
+				ev.preventDefault();
+				loadPage(a.href, true);
+			}
+
+			document.addEventListener('click', function(ev) {
+				if (ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
+				handleClick(ev);
+			}, true);
+
+			window.addEventListener('popstate', function(ev) {
+				if (ev.state && ev.state.url && contentEl) loadPage(ev.state.url, false);
+				else if (window.location.pathname.indexOf(basePath) === 0) loadPage(window.location.href, false);
+			});
+
+			if (window.history && window.history.state === null) {
+				window.history.replaceState({ url: window.location.href }, '', window.location.href);
+			}
+			window.topteenAdminLoadUrl = function(url, pushState) { return loadPage(url, pushState !== false); };
+			// Global so pagination per-page dropdown works after AJAX load (injected scripts don't run)
+			window.buildPaginateUrl = window.buildPaginateUrl || function(overrides) {
+				var params = new URLSearchParams(window.location.search);
+				for (var k in overrides) { if (overrides[k] != null) params.set(k, overrides[k]); }
+				return window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+			};
+		})();
+		</script>
 		<!-- Ensure main content stays visible if theme JS errors (e.g. career list page) -->
 		<script>
 		(function() {
