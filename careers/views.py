@@ -318,7 +318,7 @@ class CareerDetail(TemplateView):
     # template_name = "template20/career_detail_mindmap.html"  # Mindmap version
     def html_head(self,career):
         titleb=career.name
-        descriptionb=career.summary
+        descriptionb=career.get_display_summary()
         return build_html_head(title=titleb, description=descriptionb)
     
 
@@ -934,7 +934,7 @@ class CareerDetail(TemplateView):
         # Parse description HTML to extract H1, H2, H3 structure
         mindmap_data = {
             "name": career.name,
-            "summary": career.summary or "",
+            "summary": career.get_display_summary() or "",
             "children": []
         }
         
@@ -1274,7 +1274,7 @@ class CareerDetail(TemplateView):
         
         mindmap_data = {
             "name": career.name,
-            "summary": career.summary or "",
+            "summary": career.get_display_summary() or "",
             "aspects": aspects
         }
         

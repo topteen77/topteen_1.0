@@ -215,6 +215,14 @@
 .cat-accordion .accordion-body {
     padding: 20px 28px 28px;
     background: #fff;
+    color: #000 !important;
+}
+
+.cat-accordion .accordion-body p,
+.cat-accordion .accordion-body div,
+.cat-accordion .accordion-body span,
+.cat-accordion .accordion-body li {
+    color: #000 !important;
 }
 
 .cat-accordion .accordion-body p {

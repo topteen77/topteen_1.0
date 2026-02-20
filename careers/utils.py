@@ -1,3 +1,27 @@
+import re
+from django.utils.html import strip_tags
+
+
+def extract_summary_from_description(html, max_chars=8000):
+    """
+    Extract summary text from description HTML at runtime.
+    Takes all content before the first <h2> or <h3>; if no heading, uses full text (capped).
+    Returns plain text, stripped of HTML and normalized whitespace.
+    """
+    if not html or not html.strip():
+        return ""
+    match = re.search(r'<\s*h[23]\b', html, re.IGNORECASE)
+    if match:
+        html_before_heading = html[: match.start()]
+    else:
+        html_before_heading = html
+    text = strip_tags(html_before_heading)
+    text = re.sub(r'\s+', ' ', text).strip()
+    if len(text) > max_chars:
+        text = text[: max_chars - 3] + '...'
+    return text
+
+
 def career_media_directory(instance, filename):
     return 'upload/career/media/{0}/{1}'.format(instance.id, filename)
 

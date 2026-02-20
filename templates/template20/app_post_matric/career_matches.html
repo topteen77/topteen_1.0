@@ -89,7 +89,7 @@
           </div>
           
           <p class="text-muted mb-3">
-            {{ match.career.summary if match.career.summary else (match.career.description[:100] + '...' if match.career.description else 'No description available') }}
+            {{ match.career.display_summary if match.career.display_summary else (match.career.description|striptags|truncate(100) if match.career.description else 'No description available') }}
           </p>
           
           <div class="d-flex justify-content-between align-items-center">
