@@ -73,10 +73,11 @@ class TopteensDashboard(TemplateView):
     
 class CareerListView(BaseListView):
     template_name = "topteenadmin/career_list.html"
-    title="Career"
-    active_tab="career"
+    title = "Career"
+    active_tab = "career"
     model = Career
     filterset_class = CareerFilter
+    context_object_name = "career_list"
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related('career_cluster')

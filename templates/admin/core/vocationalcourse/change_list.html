@@ -1,0 +1,54 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+<li>
+  <a href="#" id="validate-accordion-btn" class="addlink" title="Check all courses for blank accordion sections (e.g. empty or only &amp;nbsp; between headings)">Validate accordion</a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 10px;">
+  <p class="help" style="margin: 0 0 8px 0;">
+    <strong>How to validate:</strong> Click <strong>Validate accordion</strong> above to check each course for blank sections (e.g. no content between headings, or only empty/&amp;nbsp; paragraphs). Results appear in the <strong>Accordion</strong> column; hover the warning icon for details. Use the <strong>Accordion</strong> filter in the sidebar to show only courses with errors.
+  </p>
+</div>
+{{ block.super }}
+<script>
+(function() {
+  var btn = document.getElementById('validate-accordion-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    var url = '{% url "admin:core_vocationalcourse_validate_accordion" %}';
+    btn.disabled = true;
+    btn.textContent = 'Validating…';
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var results = data.results || {};
+        document.querySelectorAll('.accordion-validation').forEach(function(span) {
+          var pk = span.getAttribute('data-pk');
+          var errors = results[pk] || [];
+          var title = errors.length ? errors.join('\n') : 'OK';
+          if (errors.length) {
+            span.innerHTML = '<span style="color: #ba2121; cursor: help;">&#9888;</span>';
+            span.title = title;
+          } else {
+            span.innerHTML = '—';
+            span.title = title;
+          }
+        });
+      })
+      .catch(function() {
+        alert('Validation request failed.');
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Validate accordion';
+      });
+  });
+})();
+</script>
+{% endblock %}
