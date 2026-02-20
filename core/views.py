@@ -105,7 +105,7 @@ class Home(TemplateView):
         ).first()
         
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
-        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=traditional&cluster=ID
+        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=view-mode&cluster=ID
         clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
         from django.templatetags.static import static
@@ -119,7 +119,7 @@ class Home(TemplateView):
                     continue
                 label = (c.name or '').strip()
                 # Each cluster card links to its own cluster page (all careers for that cluster)
-                url = f"{careers_base_url}?mode=traditional&cluster={c.id}"
+                url = f"{careers_base_url}?mode=view-mode&cluster={c.id}"
                 # Use Career track icon: S3 URL if set, else uploaded file URL, else default SVG (keeps icon with category)
                 icon_url = (
                     getattr(c, 'career_track_icon_s3_url', None) or
@@ -158,7 +158,7 @@ class Home(TemplateView):
                 career_track_cards.append({
                     'label': label,
                     'icon_url': icon_url,
-                    'url': f"{careers_base_url}?mode=traditional",
+                    'url': f"{careers_base_url}?mode=view-mode",
                 })
         ctx['career_track_cards'] = career_track_cards
         ctx['default_career_library_url'] = default_career_library_url
