@@ -8,15 +8,58 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
+{% block header %}
+<div class="career-swipe-top-bar">
+  <a href="{{ url('users:userdashboard') }}" class="career-swipe-back-btn" aria-label="Back">
+    <i class='bx bx-arrow-back'></i> Back
+  </a>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
 {% block bodyclass %}{{ super() }} career-swipe-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <style>
   .career-swipe-page {
-    padding-top: 80px;
+    padding-top: 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+  }
+  .career-swipe-top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 1000;
+  }
+  .career-swipe-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #3f37c9;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .career-swipe-back-btn:hover {
+    background: rgba(63, 55, 201, 0.1);
+    color: #2d26a0;
+  }
+  .career-swipe-back-btn i {
+    font-size: 22px;
   }
   .swipe-container {
     max-width: 400px;
@@ -38,6 +81,7 @@
     transition: transform 0.3s ease, opacity 0.3s ease;
     user-select: none;
     -webkit-user-select: none;
+    overflow: hidden;
   }
   .career-card.dragging {
     transition: none;
@@ -64,13 +108,71 @@
     font-size: 16px;
     margin-bottom: 15px;
   }
+  .career-description-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+  }
   .career-description {
     color: #555;
     font-size: 14px;
     line-height: 1.6;
-    flex-grow: 1;
-    margin-bottom: 20px;
+    max-height: 140px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 0;
   }
+  .career-description::-webkit-scrollbar {
+    width: 4px;
+  }
+  .career-description::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+  .career-swipe-hint {
+    text-align: center;
+    margin-top: auto;
+    padding-top: 12px;
+    color: #3f37c9;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .swipe-instructions {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    margin: 0 auto;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+  .swipe-instructions .instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+  .swipe-instructions .instruction-item .instruction-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .swipe-instructions .instruction-item.left .instruction-icon { background: #ff4757; color: white; }
+  .swipe-instructions .instruction-item.right .instruction-icon { background: #2ed573; color: white; }
+  .swipe-instructions .instruction-item.up .instruction-icon { background: #3f37c9; color: white; }
   .match-score {
     position: absolute;
     top: 20px;
@@ -82,25 +184,31 @@
     font-weight: 600;
     font-size: 14px;
   }
-  .swipe-buttons {
+  .swipe-buttons.instruction-panel {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-    padding: 20px;
+    align-items: flex-end;
+    gap: 28px;
+    margin-top: 24px;
+    margin-bottom: 28px;
+    padding: 20px 24px;
   }
   .swipe-btn {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     border: none;
     font-size: 24px;
     cursor: pointer;
-    transition: transform 0.2s;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+  .swipe-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
   }
   .swipe-btn:active {
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   .pass-btn {
     background: #ff4757;
@@ -109,6 +217,26 @@
   .like-btn {
     background: #2ed573;
     color: white;
+  }
+  .swipe-btn-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .swipe-btn-wrap .swipe-btn-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.98);
+    text-align: center;
+  }
+  .swipe-btn-wrap .swipe-up-btn {
+    background: #4040e7;
+    color: white;
+  }
+  .swipe-btn-wrap .swipe-up-btn i {
+    font-size: 28px;
+    line-height: 1;
   }
   .info-banner {
     background: white;
@@ -333,10 +461,15 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 10000;
     align-items: center;
     justify-content: center;
+    padding: 20px;
+  }
+  #loginRequiredPopup {
+    background: rgba(235, 242, 255, 0.94);
+    backdrop-filter: blur(8px);
   }
   .profile-completion-popup.show {
     display: flex;
@@ -351,21 +484,128 @@
     overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   }
+  #loginRequiredPopup .profile-completion-content.career-swipe-login-popup-content {
+    box-shadow: 0 24px 56px rgba(63, 55, 201, 0.15);
+    border: 1px solid rgba(63, 55, 201, 0.08);
+  }
   .profile-completion-close {
     position: absolute;
-    top: 15px;
-    right: 15px;
+    top: 12px;
+    right: 12px;
     background: none;
     border: none;
-    font-size: 24px;
-    color: #666;
+    font-size: 22px;
+    color: #888;
     cursor: pointer;
-    padding: 5px 10px;
+    padding: 6px;
     z-index: 1;
+    border-radius: 8px;
+    transition: color 0.2s, background 0.2s;
   }
   .profile-completion-close:hover {
     color: #333;
+    background: rgba(0, 0, 0, 0.05);
   }
+  .career-swipe-login-popup-content {
+    max-width: 400px;
+    padding: 28px 24px 20px;
+  }
+  .career-swipe-login-iframe-wrap {
+    width: 100%;
+    height: 380px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background: #f9f9f9;
+  }
+  .career-swipe-login-iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  /* Student login/signup popup – clean professional UI (screen 2 style) */
+  .student-popup-panel { display: none; }
+  .student-popup-panel.active { display: block; }
+  .student-popup-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(63, 55, 201, 0.1);
+    border-radius: 50%;
+    color: #3f37c9;
+    font-size: 32px;
+  }
+  .student-popup-title { font-size: 1.35rem; font-weight: 700; color: #1a1a1a; margin: 0 0 4px; }
+  .student-popup-sub { font-size: 0.9375rem; color: #6b7280; margin: 0 0 20px; line-height: 1.4; }
+  .student-popup-tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+  }
+  .student-popup-tab {
+    flex: 1; padding: 12px 16px;
+    text-align: center; font-size: 15px; font-weight: 600;
+    color: #9ca3af;
+    background: none; border: none; cursor: pointer;
+    transition: color 0.2s;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .student-popup-tab:hover { color: #6b7280; }
+  .student-popup-tab.active { color: #3f37c9; border-bottom-color: #3f37c9; }
+  .student-popup-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px 0 44px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 15px;
+    transition: border-color 0.2s;
+  }
+  .student-popup-input:focus { outline: none; border-color: #3f37c9; }
+  .student-popup-input-wrap { position: relative; margin-bottom: 18px; }
+  .student-popup-input-wrap i {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 20px;
+  }
+  .student-popup-btn {
+    width: 100%;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .student-popup-btn-primary { background: #3f37c9; color: #fff; }
+  .student-popup-btn-primary:hover { background: #3430a8; }
+  .student-popup-btn-outline {
+    background: transparent;
+    color: #3f37c9;
+    border: 2px solid #3f37c9;
+    margin-top: 10px;
+    height: 44px;
+  }
+  .student-popup-btn-outline:hover { background: rgba(63, 55, 201, 0.06); }
+  .student-popup-otp-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .student-popup-otp-row input {
+    width: 44px; height: 48px;
+    text-align: center; font-size: 18px; font-weight: 600;
+    border: 1px solid #e5e7eb; border-radius: 10px;
+  }
+  .student-popup-otp-row input:focus { outline: none; border-color: #3f37c9; }
+  .student-popup-switch { margin-top: 18px; text-align: center; }
+  .student-popup-switch a { color: #3f37c9; font-weight: 600; font-size: 14px; text-decoration: none; }
+  .student-popup-switch a:hover { text-decoration: underline; }
+  .student-popup-err { font-size: 13px; color: #dc2626; margin-bottom: 8px; min-height: 18px; }
+  .student-login-skip { margin-top: 16px; text-align: center; }
+  .student-login-skip button { font-size: 13px; color: #6b7280; }
+  .student-login-skip button:hover { color: #374151; }
   .custom-button {
     padding: 12px 24px;
     border-radius: 10px;
@@ -383,22 +623,227 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.4);
   }
+  .career-discovery-banner {
+    background: white;
+    padding: 20px 24px;
+    border-radius: 16px;
+    margin: 0 auto 20px;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+  }
+  .career-discovery-banner .banner-title {
+    margin-bottom: 8px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .career-discovery-banner .banner-title .career-word {
+    color: #3f37c9;
+  }
+  .career-discovery-banner .banner-title .discovery-word {
+    color: #333;
+  }
+  .career-discovery-banner .banner-sub {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+  }
+  .cluster-picker-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem 2rem;
+  }
+  .cluster-picker-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cluster-picker-sub {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+  .cluster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .cluster-card {
+    display: block;
+    position: relative;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .cluster-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+  }
+  .cluster-card.cluster-card-selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #ffffff 0%, #e8f0ff 100%);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  }
+  .cluster-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .cluster-card .cluster-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  .cluster-streams-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .streams-count-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #667eea;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .streams-list-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .stream-preview-item {
+    padding: 0.25rem 0.5rem;
+    background: #f5f5f5;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #666;
+  }
+  .stream-preview-more {
+    padding: 0.25rem 0.5rem;
+    background: #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #999;
+    font-style: italic;
+  }
+  .cluster-card-checked {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  }
+  .viewed-clusters-wrap {
+    text-align: center;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .viewed-clusters-wrap .label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .viewed-clusters-wrap .names {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+  }
+  .current-cluster-bar {
+    text-align: center;
+    color: rgba(255,255,255,0.95);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="info-banner">
-    <h2>🎯 Career Discovery</h2>
-    <p>
-      {% if has_tests %}
-        Swipe through careers matched to your test results!
-      {% else %}
-        Swipe through top careers based on your profile!
-      {% endif %}
-    </p>
+<div class="container career-swipe-main" style="padding-top: 72px;">
+{% if not show_swipe %}
+  {# Step 1: Select career cluster (like career-battle) #}
+  <div class="cluster-picker-wrap">
+    <h1 class="cluster-picker-title" id="cluster-selection-title">Select Career Cluster</h1>
+    <p class="cluster-picker-sub" id="cluster-selection-description">Choose a career cluster to explore related streams.</p>
+    <div class="cluster-grid" role="group" aria-labelledby="cluster-selection-title" aria-describedby="cluster-selection-description">
+      {% for item in clusters_with_streams %}
+        {% if item.stream_count > 0 %}
+      <a href="{{ url('post_matric:career_swipe') }}?clusters={{ item.cluster.id }}" class="cluster-card {{ 'cluster-card-selected' if item.cluster.id in viewed_cluster_ids else '' }}">
+        <div class="cluster-card-content">
+          <h2 class="cluster-name">{{ item.cluster.name or 'Cluster' }}</h2>
+          <div class="cluster-streams-preview">
+            <span class="streams-count-badge">{{ item.stream_count }} streams</span>
+            <div class="streams-list-preview">
+              {% for name in item.stream_names[:3] %}
+              <span class="stream-preview-item">{{ name }}</span>
+              {% endfor %}
+              {% if item.stream_count > 3 %}
+              <span class="stream-preview-more">+{{ item.stream_count - 3 }} more</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if item.cluster.id in viewed_cluster_ids %}
+          <span class="cluster-card-checked" aria-label="Checked">✓</span>
+          {% endif %}
+        </div>
+      </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% if viewed_cluster_names %}
+    <div class="viewed-clusters-wrap">
+      <div class="label">Clusters you've checked</div>
+      <div class="names">{{ viewed_cluster_names|join(', ') }}</div>
+    </div>
+    {% endif %}
   </div>
-
+{% else %}
+  {# Step 2: Swipe careers from selected cluster(s) #}
+  <div class="career-discovery-banner">
+    <h2 class="banner-title">🎯 <span class="career-word">Career</span><span class="discovery-word"> Discovery</span></h2>
+    <p class="banner-sub">Swipe through top careers based on your profile!</p>
+  </div>
+  {% if current_cluster_names %}
+  <div class="current-cluster-bar">Careers in: {{ current_cluster_names|join(', ') }}</div>
+  {% endif %}
   <div class="swipe-container">
     {% if careers %}
       {% for career_data in careers %}
@@ -413,7 +858,9 @@
            data-career-skills="{{ career_data.skills|join(',') }}"
            data-career-url="{{ career_data.url }}"
            style="z-index: {{ loop.revindex }}">
+        {% if show_match_score %}
         <div class="match-score">Match: {{ career_data.match_score|default(85) }}%</div>
+        {% endif %}
         <img src="{{ career_data.image_url }}" alt="{{ career.name }}" class="career-image">
         <h3 class="career-name">{{ career.name }}</h3>
         <div class="career-cluster">
@@ -421,32 +868,46 @@
             {{ career_data.clusters[0] }}
           {% endif %}
         </div>
-        <p class="career-description">
-          {% if career.display_summary %}
-            {{ career.display_summary }}
-          {% elif career.description %}
-            {{ career.description|truncate(150, end='...') }}
-          {% else %}
-            No description available
-          {% endif %}
-        </p>
-        <div style="text-align: center; margin-top: auto; padding-top: 15px; color: #3f37c9; font-size: 12px;">
-          👆 Swipe up for details
+        <div class="career-description-wrap">
+          <p class="career-description">
+            {% if career.display_summary %}
+              {{ career.display_summary }}
+            {% elif career.description %}
+              {{ career.description|truncate(150, end='...') }}
+            {% else %}
+              No description available
+            {% endif %}
+          </p>
         </div>
+        <div class="career-swipe-hint">👆 Swipe up for details</div>
       </div>
       {% endfor %}
     {% else %}
-      <div class="career-card">
-        <h3>No careers available</h3>
-        <p>Please check back later.</p>
+      <div class="career-card" id="noCareersCard" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <h3>No careers in this cluster</h3>
+        <p class="mb-3">Try another cluster.</p>
+        <a href="{{ url('post_matric:career_swipe') }}" class="btn custom-button purple-button fw-600">Choose another cluster</a>
       </div>
     {% endif %}
   </div>
 
-  <div class="swipe-buttons">
-    <button class="swipe-btn pass-btn" onclick="swipeLeft()">✕</button>
-    <button class="swipe-btn like-btn" onclick="swipeRight()">♥</button>
+  <div class="swipe-buttons instruction-panel" aria-label="Swipe actions">
+    <div class="swipe-btn-wrap">
+      <button class="swipe-btn pass-btn" onclick="swipeLeft()" title="Pass">✕</button>
+      <span class="swipe-btn-label">Pass</span>
+    </div>
+    <div class="swipe-btn-wrap">
+      <button class="swipe-btn like-btn" onclick="swipeRight()" title="Save"><i class='bx bx-check' style="font-size: 28px; line-height: 1;"></i></button>
+      <span class="swipe-btn-label">Save</span>
+    </div>
+    <div class="swipe-btn-wrap">
+      <button type="button" class="swipe-btn swipe-up-btn" onclick="swipeUpCurrent()" title="Swipe up for details">
+        <i class='bx bx-up-arrow'></i>
+      </button>
+      <span class="swipe-btn-label">Swipe up</span>
+    </div>
   </div>
+{% endif %}
 </div>
 
 <!-- Career Details Overlay -->
@@ -468,7 +929,7 @@
         ✕ Pass
       </button>
       <button class="details-action-btn details-like-btn" onclick="finalizeSwipe('like')">
-        ♥ Like
+        <i class='bx bx-check'></i> Save
       </button>
     </div>
   </div>
@@ -504,9 +965,158 @@
 </div>
 {% endif %}
 
+<!-- Student login/signup popup – clean professional UI; AJAX, no redirect; closes on success -->
+<div id="loginRequiredPopup" class="profile-completion-popup" aria-hidden="true">
+  <div class="profile-completion-content career-swipe-login-popup-content">
+    <button type="button" class="profile-completion-close" onclick="closeLoginRequiredPopup()" aria-label="Close">
+      <i class='bx bx-x'></i>
+    </button>
+    <p class="text-center text-gray fs-14 mb-0 pb-2" style="margin-top: -8px;">Sign in to save your careers</p>
+
+    <!-- Panel: Student Login (default) -->
+    <div id="studentLoginPanel" class="student-popup-panel active">
+      <div class="student-popup-icon"><i class='bx bxs-graduation'></i></div>
+      <h2 class="student-popup-title text-center">Student Login</h2>
+      <p class="student-popup-sub text-center">Login using your email or mobile number.</p>
+      <div class="student-popup-tabs">
+        <button type="button" class="student-popup-tab active" data-tab="email">Email Login</button>
+        <button type="button" class="student-popup-tab" data-tab="otp">Mobile OTP</button>
+      </div>
+      <div id="studentLoginEmailStep">
+        <p id="studentLoginErr" class="student-popup-err"></p>
+        <div class="student-popup-input-wrap">
+          <i class='bx bx-envelope'></i>
+          <input type="text" id="studentLoginInput" class="student-popup-input" placeholder="Enter Email or Mobile" autocomplete="username">
+        </div>
+        <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentLoginContinueBtn">Continue</button>
+      </div>
+      <div id="studentLoginOtpStep" style="display: none;">
+        <p class="text-gray fs-14 mb-2">OTP sent to <span id="studentLoginOtpTo" class="fw-600 text-purple"></span></p>
+        <p id="studentLoginOtpErr" class="student-popup-err"></p>
+        <div class="student-popup-otp-row" id="studentLoginOtpInputs"></div>
+        <p class="text-gray fs-14 mb-2">Didn't receive it? <button type="button" class="btn btn-link p-0 text-purple fw-600" id="studentLoginResendOtp">Resend code</button></p>
+        <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentLoginVerifyOtp">Verify OTP</button>
+        <button type="button" class="student-popup-btn student-popup-btn-outline mt-2" id="studentLoginOtpBack">Back</button>
+      </div>
+      <div class="student-popup-switch">
+        <a href="#" id="studentShowSignup">Create account</a>
+      </div>
+    </div>
+
+    <!-- Panel: Login – Password step -->
+    <div id="studentPasswordPanel" class="student-popup-panel">
+      <div class="student-popup-icon"><i class='bx bx-lock-alt'></i></div>
+      <h2 class="student-popup-title text-center">Enter password</h2>
+      <p class="student-popup-sub text-center">For <span id="studentPasswordEmail" class="fw-600 text-purple"></span></p>
+      <p id="studentPasswordErr" class="student-popup-err"></p>
+      <input type="hidden" id="studentPasswordEncUser" value="">
+      <div class="student-popup-input-wrap mb-3">
+        <i class='bx bx-lock'></i>
+        <input type="password" id="studentPasswordInput" class="student-popup-input" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentPasswordSubmit">Continue</button>
+      <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentPasswordBack">Back</button>
+    </div>
+
+    <!-- Panel: Create Account -->
+    <div id="studentSignupPanel" class="student-popup-panel">
+      <div class="student-popup-icon"><i class='bx bxs-graduation'></i></div>
+      <h2 class="student-popup-title text-center">Create Account</h2>
+      <p class="student-popup-sub text-center">Sign up using your email or mobile number.</p>
+      <p id="studentSignupErr" class="student-popup-err"></p>
+      <div class="student-popup-input-wrap">
+        <i class='bx bx-envelope'></i>
+        <input type="text" id="studentSignupInput" class="student-popup-input" placeholder="Enter Email or Mobile" autocomplete="username">
+      </div>
+      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupContinueBtn">Continue</button>
+      <div class="student-popup-switch">
+        <a href="#" id="studentShowLogin">Already have an account? Login</a>
+      </div>
+    </div>
+
+    <!-- Panel: Signup OTP verify -->
+    <div id="studentSignupOtpPanel" class="student-popup-panel">
+      <div class="student-popup-icon"><i class='bx bx-mobile-alt'></i></div>
+      <h2 class="student-popup-title text-center">Verify OTP</h2>
+      <p class="student-popup-sub text-center">Code sent to <span id="studentSignupOtpTo" class="fw-600 text-purple"></span></p>
+      <p id="studentSignupOtpErr" class="student-popup-err"></p>
+      <input type="hidden" id="studentSignupOtpUser" value="">
+      <div class="student-popup-otp-row" id="studentSignupOtpInputs"></div>
+      <p class="text-gray fs-14 mb-2">Didn't receive it? <button type="button" class="btn btn-link p-0 text-purple fw-600" id="studentSignupResendOtp">Resend code</button></p>
+      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupVerifyOtp">Verify &amp; Continue</button>
+      <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentSignupOtpBack">Back</button>
+    </div>
+
+    <!-- Panel: Signup set password -->
+    <div id="studentSignupPwdPanel" class="student-popup-panel">
+      <div class="student-popup-icon"><i class='bx bx-lock-alt'></i></div>
+      <h2 class="student-popup-title text-center">Set password</h2>
+      <p class="student-popup-sub text-center">Choose a password for your account.</p>
+      <p id="studentSignupPwdErr" class="student-popup-err"></p>
+      <input type="hidden" id="studentSignupPwdEncUser" value="">
+      <div class="student-popup-input-wrap mb-2">
+        <i class='bx bx-lock'></i>
+        <input type="password" id="studentSignupPwdInput" class="student-popup-input" placeholder="Password" autocomplete="new-password">
+      </div>
+      <div class="student-popup-input-wrap mb-3">
+        <i class='bx bx-lock'></i>
+        <input type="password" id="studentSignupPwdConfirm" class="student-popup-input" placeholder="Confirm password" autocomplete="new-password">
+      </div>
+      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupPwdSubmit">Create account</button>
+      <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentSignupPwdBack">Back</button>
+    </div>
+
+    <div class="student-login-skip">
+      <button type="button" class="btn btn-link p-0 border-0 bg-transparent" onclick="closeLoginRequiredPopup()">
+        Skip — continue without saving
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+const userAuthenticated = {{ 'true' if user_authenticated else 'false' }};
+const loginUrl = "{{ login_url|e }}";
+const SWIPE_LOGIN_THRESHOLD = 3;
+let swipeCount = 0;
+// Student popup API URLs (for AJAX login/signup)
+const STUDENT_POPUP_URLS = {
+  loginsingup: "{{ url('users:loginsingup') }}",
+  loginpwd: "{{ url('users:loginpwd') }}",
+  loginotp: "{{ url('users:loginotp') }}",
+  resendotp: "{{ url('users:resendotp') }}",
+  signupotpverify: "{{ url('users:signupotpverify') }}",
+  signuppwd: "{{ url('users:signuppwd') }}",
+  next: "{{ career_swipe_next|e }}"
+};
+
 let currentIndex = 0;
-const cards = document.querySelectorAll('.career-card');
+const cards = document.querySelectorAll('.swipe-container .career-card[data-career-id]');
+
+function onSwipeDone() {
+  swipeCount++;
+  if (!userAuthenticated && swipeCount >= SWIPE_LOGIN_THRESHOLD) {
+    showLoginRequiredPopup();
+  }
+}
+
+function showLoginRequiredPopup() {
+  const popup = document.getElementById('loginRequiredPopup');
+  if (popup && !popup.classList.contains('show')) {
+    if (typeof window.studentPopupReset === 'function') window.studentPopupReset();
+    popup.classList.add('show');
+    popup.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeLoginRequiredPopup() {
+  const popup = document.getElementById('loginRequiredPopup');
+  if (popup) {
+    popup.classList.remove('show');
+    popup.setAttribute('aria-hidden', 'true');
+  }
+  if (typeof window.studentPopupReset === 'function') window.studentPopupReset();
+}
 
 function swipeLeft() {
   if (currentIndex < cards.length) {
@@ -522,6 +1132,7 @@ function swipeLeft() {
     setTimeout(() => {
       card.style.display = 'none';
       currentIndex++;
+      onSwipeDone();
       if (currentIndex >= cards.length) {
         showCompletion();
       }
@@ -543,10 +1154,20 @@ function swipeRight() {
     setTimeout(() => {
       card.style.display = 'none';
       currentIndex++;
+      onSwipeDone();
       if (currentIndex >= cards.length) {
         showCompletion();
       }
     }, 300);
+  }
+}
+
+function swipeUpCurrent() {
+  if (currentIndex < cards.length) {
+    const card = cards[currentIndex];
+    if (card && card.style.display !== 'none') {
+      showCareerDetails(card);
+    }
   }
 }
 
@@ -582,14 +1203,23 @@ function saveSwipeAction(careerId, action, matchScore) {
   }).catch(err => console.error('Error saving swipe:', err));
 }
 
+const loginUrlNextMatches = "{{ login_url_next_matches|e }}";
+const chooseAnotherClusterUrl = "{{ url('post_matric:career_swipe')|e }}";
+const viewedClusterNamesStr = "{{ viewed_cluster_names|join(', ')|e }}";
+
 function showCompletion() {
   const container = document.querySelector('.swipe-container');
-  container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;"><h2 style="color: #3f37c9; margin-bottom: 20px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 30px;">You\'ve reviewed all careers!</p><p style="font-size: 16px; color: #666; margin-bottom: 30px;">Redirecting to your matches...</p><div class="spinner"></div></div>';
-  
-  // Redirect to matches page after 2 seconds
-  setTimeout(() => {
-    window.location.href = '{{ url("post_matric:view_matches") }}';
-  }, 2000);
+  if (!container) return;
+  let clusterLine = '';
+  if (viewedClusterNamesStr) {
+    clusterLine = '<p style="font-size: 14px; color: #555; margin-bottom: 20px;">Clusters you\'ve checked: <strong>' + viewedClusterNamesStr + '</strong></p>';
+  }
+  const chooseBtn = '<a href="' + chooseAnotherClusterUrl + '" class="btn custom-button purple-button fw-600 mb-2">Choose another cluster</a>';
+  if (userAuthenticated) {
+    container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px;"><h2 style="color: #3f37c9; margin-bottom: 16px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 12px;">You\'ve reviewed all careers in this cluster.</p>' + clusterLine + '<div style="display: flex; flex-direction: column; gap: 12px;">' + chooseBtn + '<a href="{{ url("post_matric:view_matches")|e }}" class="btn btn-outline-primary fw-600">View my matches</a></div></div>';
+  } else {
+    container.innerHTML = '<div class="career-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px;"><h2 style="color: #3f37c9; margin-bottom: 16px;">🎉 All Done!</h2><p style="font-size: 18px; margin-bottom: 12px;">You\'ve reviewed all careers in this cluster.</p>' + clusterLine + '<p style="font-size: 14px; color: #666; margin-bottom: 16px;">Login to save your interested careers and view matches.</p><div style="display: flex; flex-direction: column; gap: 12px;">' + chooseBtn + '<a href="' + loginUrlNextMatches + '" class="btn btn-outline-primary fw-600">Login to see your matches</a></div></div>';
+  }
 }
 
 // Swipe support for both touch and mouse
@@ -783,6 +1413,7 @@ function finalizeSwipe(action) {
     setTimeout(() => {
       card.style.display = 'none';
       currentIndex++;
+      onSwipeDone();
       if (currentIndex >= cards.length) {
         showCompletion();
       }
@@ -814,6 +1445,343 @@ if (profilePopup) {
     }
   });
 }
+
+// Student login/signup popup – AJAX only, close and reload on success
+(function() {
+  var urls = typeof STUDENT_POPUP_URLS !== 'undefined' ? STUDENT_POPUP_URLS : {};
+  function getCookie(name) {
+    var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+  function csrfHeader() {
+    return { 'X-CSRFToken': getCookie('csrftoken') || getCookie('csrf') };
+  }
+  function showPanel(panelId) {
+    document.querySelectorAll('.student-popup-panel').forEach(function(p) { p.classList.remove('active'); });
+    var p = document.getElementById(panelId);
+    if (p) p.classList.add('active');
+  }
+  function showLoginPanel() {
+    showPanel('studentLoginPanel');
+    document.getElementById('studentLoginEmailStep').style.display = 'block';
+    document.getElementById('studentLoginOtpStep').style.display = 'none';
+    document.querySelectorAll('.student-popup-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-tab') === 'email'); });
+  }
+  window.studentPopupReset = function() {
+    showLoginPanel();
+    document.getElementById('studentLoginInput').value = '';
+    document.getElementById('studentLoginErr').textContent = '';
+    document.getElementById('studentPasswordEncUser').value = '';
+    document.getElementById('studentPasswordInput').value = '';
+    document.getElementById('studentPasswordErr').textContent = '';
+    document.getElementById('studentSignupInput').value = '';
+    document.getElementById('studentSignupErr').textContent = '';
+    document.getElementById('studentSignupOtpUser').value = '';
+    document.getElementById('studentSignupPwdEncUser').value = '';
+    document.getElementById('studentSignupPwdInput').value = '';
+    document.getElementById('studentSignupPwdConfirm').value = '';
+  };
+  function onLoginSuccess() {
+    closeLoginRequiredPopup();
+    window.location.reload();
+  }
+  function buildOtpInputs(containerId, sixDigits) {
+    var c = document.getElementById(containerId);
+    if (!c) return;
+    c.innerHTML = '';
+    for (var i = 0; i < 6; i++) {
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.inputMode = 'numeric';
+      inp.maxLength = 1;
+      inp.className = 'student-popup-otp-row form-control';
+      inp.dataset.idx = i;
+      inp.style.width = '44px';
+      inp.style.height = '48px';
+      inp.style.textAlign = 'center';
+      inp.style.fontSize = '18px';
+      inp.style.fontWeight = '600';
+      inp.style.border = '2px solid #e0e0e0';
+      inp.style.borderRadius = '10px';
+      inp.addEventListener('input', function() {
+        var idx = parseInt(this.dataset.idx, 10);
+        if (this.value.length >= 1 && idx < 5) {
+          var next = c.querySelector('[data-idx="' + (idx + 1) + '"]');
+          if (next) next.focus();
+        }
+      });
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !this.value && parseInt(this.dataset.idx, 10) > 0) {
+          var prev = c.querySelector('[data-idx="' + (parseInt(this.dataset.idx, 10) - 1) + '"]');
+          if (prev) prev.focus();
+        }
+      });
+      c.appendChild(inp);
+    }
+    if (sixDigits) {
+      var getOtp = function() {
+        var arr = [];
+        for (var j = 0; j < 6; j++) {
+          var el = c.querySelector('[data-idx="' + j + '"]');
+          if (el) arr.push(el.value || '');
+        }
+        return arr;
+      };
+      c._getOtp = getOtp;
+    }
+  }
+  buildOtpInputs('studentLoginOtpInputs', true);
+  buildOtpInputs('studentSignupOtpInputs', true);
+
+  document.querySelectorAll('.student-popup-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.student-popup-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      var isOtp = this.getAttribute('data-tab') === 'otp';
+      document.getElementById('studentLoginEmailStep').style.display = isOtp ? 'none' : 'block';
+      document.getElementById('studentLoginOtpStep').style.display = isOtp ? 'block' : 'none';
+      var inp = document.getElementById('studentLoginInput');
+      var wrap = inp && inp.closest('.student-popup-input-wrap');
+      if (inp) inp.placeholder = isOtp ? 'Enter Mobile Number' : 'Enter Email or Mobile';
+      if (wrap) {
+        var icon = wrap.querySelector('i');
+        if (icon) icon.className = isOtp ? 'bx bx-mobile-alt' : 'bx bx-envelope';
+      }
+    });
+  });
+  document.getElementById('studentShowSignup').addEventListener('click', function(e) {
+    e.preventDefault();
+    showPanel('studentSignupPanel');
+  });
+  document.getElementById('studentShowLogin').addEventListener('click', function(e) {
+    e.preventDefault();
+    showLoginPanel();
+  });
+  document.getElementById('studentPasswordBack').addEventListener('click', function() {
+    showLoginPanel();
+  });
+  var studentLoginOtpBackEl = document.getElementById('studentLoginOtpBack');
+  if (studentLoginOtpBackEl) {
+    studentLoginOtpBackEl.addEventListener('click', function() {
+      document.getElementById('studentLoginEmailStep').style.display = 'block';
+      document.getElementById('studentLoginOtpStep').style.display = 'none';
+    });
+  }
+  document.getElementById('studentSignupOtpBack').addEventListener('click', function() {
+    showPanel('studentSignupPanel');
+  });
+  document.getElementById('studentSignupPwdBack').addEventListener('click', function() {
+    showPanel('studentSignupOtpPanel');
+  });
+
+  function ajaxPost(url, formData, onSuccess, onError) {
+    var fd = formData instanceof FormData ? formData : new FormData();
+    if (!fd.has('csrfmiddlewaretoken')) {
+      var csrf = getCookie('csrftoken') || getCookie('csrf');
+      if (csrf) fd.append('csrfmiddlewaretoken', csrf);
+    }
+    fd.append('next', urls.next || '');
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken') || '');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.onload = function() {
+      var data;
+      try { data = JSON.parse(xhr.responseText); } catch (e) { data = {}; }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        if (onSuccess) onSuccess(data);
+      } else {
+        if (onError) onError(data, xhr); else alert(data.message || 'Request failed');
+      }
+    };
+    xhr.onerror = function() { if (onError) onError({}, xhr); else alert('Network error'); };
+    xhr.send(fd);
+  }
+
+  document.getElementById('studentLoginContinueBtn').addEventListener('click', function() {
+    var input = document.getElementById('studentLoginInput').value.trim();
+    var errEl = document.getElementById('studentLoginErr');
+    errEl.textContent = '';
+    if (!input) { errEl.textContent = 'Enter email or mobile'; return; }
+    var isOtpTab = document.querySelector('.student-popup-tab[data-tab="otp"]').classList.contains('active');
+    if (isOtpTab) {
+      ajaxPost(urls.resendotp, (function() { var f = new FormData(); f.append('user_name', input); return f; })(), function(data) {
+        if (data.success !== true && data.message) { errEl.textContent = data.message; return; }
+        document.getElementById('studentLoginOtpTo').textContent = input;
+        document.getElementById('studentLoginEmailStep').style.display = 'none';
+        document.getElementById('studentLoginOtpStep').style.display = 'block';
+        document.getElementById('studentLoginOtpErr').textContent = '';
+        var container = document.getElementById('studentLoginOtpInputs');
+        if (container && container._getOtp) { container.querySelectorAll('input').forEach(function(i) { i.value = ''; }); }
+      }, function(data) { errEl.textContent = data.message || 'Failed to send OTP'; });
+      return;
+    }
+    var fd = new FormData();
+    fd.append('user_name', input);
+    ajaxPost(urls.loginsingup, fd, function(data) {
+      if (data.show_password && data.enc_user_name) {
+        document.getElementById('studentPasswordEncUser').value = data.enc_user_name;
+        document.getElementById('studentPasswordEmail').textContent = data.user_name || input;
+        document.getElementById('studentPasswordErr').textContent = '';
+        document.getElementById('studentPasswordInput').value = '';
+        showPanel('studentPasswordPanel');
+        return;
+      }
+      if (data.show_otp) {
+        document.getElementById('studentLoginOtpTo').textContent = data.user_name || input;
+        document.getElementById('studentLoginEmailStep').style.display = 'none';
+        document.getElementById('studentLoginOtpStep').style.display = 'block';
+        document.getElementById('studentLoginOtpErr').textContent = '';
+        document.getElementById('studentLoginOtpInputs').querySelectorAll('input').forEach(function(i) { i.value = ''; });
+        return;
+      }
+      errEl.textContent = data.message || 'Unable to continue';
+    }, function(data) { errEl.textContent = data.message || 'Request failed'; });
+  });
+
+  document.getElementById('studentPasswordSubmit').addEventListener('click', function() {
+    var enc = document.getElementById('studentPasswordEncUser').value;
+    var pwd = document.getElementById('studentPasswordInput').value;
+    var errEl = document.getElementById('studentPasswordErr');
+    errEl.textContent = '';
+    if (!enc || !pwd) { errEl.textContent = 'Enter password'; return; }
+    var fd = new FormData();
+    fd.append('enc_user_name', enc);
+    fd.append('password', pwd);
+    ajaxPost(urls.loginpwd, fd, function(data) {
+      if (data.success && data.redirect_url) {
+        onLoginSuccess();
+        return;
+      }
+      errEl.textContent = data.message || data.errMsg || 'Login failed';
+    }, function(data) { errEl.textContent = data.message || 'Login failed'; });
+  });
+
+  document.getElementById('studentLoginVerifyOtp').addEventListener('click', function() {
+    var container = document.getElementById('studentLoginOtpInputs');
+    var otpArr = container._getOtp ? container._getOtp() : [];
+    var otpStr = otpArr.join('');
+    var user = document.getElementById('studentLoginOtpTo').textContent.trim();
+    if (otpStr.length !== 6) {
+      document.getElementById('studentLoginOtpErr').textContent = 'Enter 6-digit OTP';
+      return;
+    }
+    var fd = new FormData();
+    fd.append('user_name', user);
+    otpArr.forEach(function(d) { fd.append('otp', d); });
+    document.getElementById('studentLoginOtpErr').textContent = '';
+    ajaxPost(urls.loginotp, fd, function(data) {
+      if (data.success && data.redirect_url) {
+        onLoginSuccess();
+        return;
+      }
+      document.getElementById('studentLoginOtpErr').textContent = data.message || 'Invalid OTP';
+    }, function(data) { document.getElementById('studentLoginOtpErr').textContent = data.message || 'Invalid OTP'; });
+  });
+  document.getElementById('studentLoginResendOtp').addEventListener('click', function() {
+    var user = document.getElementById('studentLoginOtpTo').textContent.trim();
+    if (!user) return;
+    var fd = new FormData();
+    fd.append('user_name', user);
+    ajaxPost(urls.resendotp, fd, function(data) {
+      document.getElementById('studentLoginOtpErr').textContent = data.success ? 'OTP sent again' : (data.message || '');
+    });
+  });
+
+  document.getElementById('studentSignupContinueBtn').addEventListener('click', function() {
+    var input = document.getElementById('studentSignupInput').value.trim();
+    var errEl = document.getElementById('studentSignupErr');
+    errEl.textContent = '';
+    if (!input) { errEl.textContent = 'Enter email or mobile'; return; }
+    var fd = new FormData();
+    fd.append('user_name', input);
+    fd.append('is_signup', 'true');
+    ajaxPost(urls.loginsingup, fd, function(data) {
+      if (data.message && data.show_otp !== true) {
+        errEl.textContent = data.message;
+        return;
+      }
+      if (data.show_otp && data.user_name) {
+        document.getElementById('studentSignupOtpTo').textContent = data.user_name;
+        document.getElementById('studentSignupOtpUser').value = data.user_name;
+        document.getElementById('studentSignupOtpErr').textContent = '';
+        document.getElementById('studentSignupOtpInputs').querySelectorAll('input').forEach(function(i) { i.value = ''; });
+        showPanel('studentSignupOtpPanel');
+        return;
+      }
+      errEl.textContent = data.message || 'Unable to continue';
+    }, function(data) { errEl.textContent = data.message || 'Request failed'; });
+  });
+
+  document.getElementById('studentSignupVerifyOtp').addEventListener('click', function() {
+    var container = document.getElementById('studentSignupOtpInputs');
+    var otpArr = container._getOtp ? container._getOtp() : [];
+    var user = document.getElementById('studentSignupOtpUser').value;
+    if (otpArr.join('').length !== 6) {
+      document.getElementById('studentSignupOtpErr').textContent = 'Enter 6-digit OTP';
+      return;
+    }
+    var fd = new FormData();
+    fd.append('user_name', user);
+    otpArr.forEach(function(d) { fd.append('otp', d); });
+    document.getElementById('studentSignupOtpErr').textContent = '';
+    ajaxPost(urls.signupotpverify, fd, function(data) {
+      if (data.user_exists && data.success && data.redirect_url) {
+        onLoginSuccess();
+        return;
+      }
+      if (data.otp_verify && !data.user_exists && data.enc_user_name) {
+        document.getElementById('studentSignupPwdEncUser').value = data.enc_user_name;
+        document.getElementById('studentSignupPwdInput').value = '';
+        document.getElementById('studentSignupPwdConfirm').value = '';
+        document.getElementById('studentSignupPwdErr').textContent = '';
+        showPanel('studentSignupPwdPanel');
+        return;
+      }
+      document.getElementById('studentSignupOtpErr').textContent = data.message || 'Invalid OTP';
+    }, function(data) { document.getElementById('studentSignupOtpErr').textContent = data.message || 'Invalid OTP'; });
+  });
+  document.getElementById('studentSignupResendOtp').addEventListener('click', function() {
+    var user = document.getElementById('studentSignupOtpUser').value;
+    if (!user) return;
+    var fd = new FormData();
+    fd.append('user_name', user);
+    ajaxPost(urls.resendotp, fd, function(data) {
+      document.getElementById('studentSignupOtpErr').textContent = data.success ? 'OTP sent again' : (data.message || '');
+    });
+  });
+
+  document.getElementById('studentSignupPwdSubmit').addEventListener('click', function() {
+    var enc = document.getElementById('studentSignupPwdEncUser').value;
+    var pwd = document.getElementById('studentSignupPwdInput').value;
+    var confirm = document.getElementById('studentSignupPwdConfirm').value;
+    var errEl = document.getElementById('studentSignupPwdErr');
+    errEl.textContent = '';
+    if (!pwd || pwd.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
+    if (pwd !== confirm) { errEl.textContent = 'Passwords do not match'; return; }
+    var fd = new FormData();
+    fd.append('enc_user_name', enc);
+    fd.append('password', pwd);
+    fd.append('confirm_password', confirm);
+    ajaxPost(urls.signuppwd, fd, function(data) {
+      if (data.success && data.redirect_url) {
+        onLoginSuccess();
+        return;
+      }
+      errEl.textContent = data.message || 'Signup failed';
+    }, function(data) { errEl.textContent = data.message || 'Signup failed'; });
+  });
+
+  document.getElementById('studentLoginInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') document.getElementById('studentLoginContinueBtn').click();
+  });
+  document.getElementById('studentPasswordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') document.getElementById('studentPasswordSubmit').click();
+  });
+  document.getElementById('studentSignupInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') document.getElementById('studentSignupContinueBtn').click();
+  });
+})();
 </script>
 {% endblock %}
 
