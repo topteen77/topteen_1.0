@@ -586,7 +586,8 @@ Explore vocational courses and career tracks across technology, healthcare, busi
             <!-- Dynamic Sub-tabs Container for After 10 -->
             <div class="sub-tabs-container" id="after-10-sub-tabs-container"></div>
 
-            {% for sub in level.children.all() %}
+            {% for item in subcategories_display.get('after-10', []) %}
+            {% set sub = item.sub %}
             <div class="mb-4 tab-data-show-after-10" data-subcategory-id="after-10-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
@@ -594,7 +595,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
-                        <a href="#" class="blog-category category-parent text-capitalize">{{ sub.name }}</a>
+                        <a href="#" class="blog-category category-parent text-capitalize">{{ item.display_name }}</a>
                       </div>
                       {% if course.image %}
                         <img src="{{ course.image.url }}" alt="{{ course.name }}">
@@ -639,7 +640,8 @@ Explore vocational courses and career tracks across technology, healthcare, busi
             <!-- Dynamic Sub-tabs Container for After 12 -->
             <div class="sub-tabs-container" id="after-12-sub-tabs-container"></div>
 
-            {% for sub in level.children.all() %}
+            {% for item in subcategories_display.get('after-12', []) %}
+            {% set sub = item.sub %}
             <div class="mb-4 tab-data-show-after-12" data-subcategory-id="after-12-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
@@ -647,7 +649,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
-                        <a href="#" class="blog-category category-parent text-capitalize">{{ sub.name }}</a>
+                        <a href="#" class="blog-category category-parent text-capitalize">{{ item.display_name }}</a>
                       </div>
                       {% if course.image %}
                         <img src="{{ course.image.url }}" alt="{{ course.name }}">
