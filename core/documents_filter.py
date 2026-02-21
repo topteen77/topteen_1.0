@@ -109,17 +109,12 @@ class AllSearch:
         try:
             es_search=self.searchcollege.query(q) 
             colleges = es_search.execute()[0:]
-        except Exception as e:
-            print(f"Elasticsearch error in college search: {e}")
+        except Exception:
             # Fallback to Django ORM if Elasticsearch fails
             try:
                 from colleges.models import College
                 colleges = list(College.objects.filter(name__icontains=search_term)[:10])
-                print(f"Django ORM fallback found {len(colleges)} colleges")
-            except Exception as e2:
-                print(f"Django ORM fallback error in college search: {e2}")
-                import traceback
-                traceback.print_exc()
+            except Exception:
                 colleges = None
         if colleges is None:
             colleges = []
@@ -132,8 +127,7 @@ class AllSearch:
         try:
             es_search=self.searchcareer.query(q) 
             career = es_search.execute()[0:]
-        except Exception as e:
-            print(f"Elasticsearch error in career search: {e}")
+        except Exception:
             # Fallback to Django ORM if Elasticsearch fails
             try:
                 from careers.models import Career
@@ -142,11 +136,7 @@ class AllSearch:
                     name__icontains=search_term,
                     publish_status=choices.PublishStatus.PUBLISHED
                 )[:10])
-                print(f"Django ORM fallback found {len(career)} careers")
-            except Exception as e2:
-                print(f"Django ORM fallback error in career search: {e2}")
-                import traceback
-                traceback.print_exc()
+            except Exception:
                 career = None
         if career is None:
             career = []
@@ -181,8 +171,7 @@ class AllSearch:
         try:
             from careers.models import Profession
             professions = list(Profession.objects.filter(name__icontains=search)[:10])
-        except Exception as e:
-            print(f"Error searching professions: {e}")
+        except Exception:
             professions = []
         return professions
     
@@ -194,7 +183,6 @@ class AllSearch:
                 DjangoQ(title__icontains=search) | DjangoQ(summary__icontains=search),
                 publish_status=choices.PublishStatus.PUBLISHED
             )[:10])
-        except Exception as e:
-            print(f"Error searching blogs: {e}")
+        except Exception:
             blogs = []
         return blogs

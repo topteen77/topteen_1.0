@@ -1964,10 +1964,10 @@ document.addEventListener('DOMContentLoaded', function() {
     mapTopicToSection: function(topic) {
       if (!topic) return null;
       const t = (topic + '').toLowerCase().replace(/\s+/g, ' ');
+      if (/overview|leading|progressing|profession/i.test(t)) return null;
       if (/salary|expectation/i.test(t)) return { sectionId: 'salary_expectations', sectionLabel: 'Salary Expectations' };
       if (/skill|trend|industry|key\s*soft|softwa/i.test(t)) return { sectionId: 'skills_trends', sectionLabel: 'Skills & Trends' };
       if (/career\s*description|responsibili/i.test(t)) return { sectionId: 'career_description', sectionLabel: 'Career Description' };
-      if (/overview|leading|progressing|profession/i.test(t)) return { sectionId: 'overview', sectionLabel: 'Career Overview' };
       if (/role/i.test(t)) return { sectionId: 'roles', sectionLabel: 'Roles & Responsibilities' };
       if (/eligibility|entrance|study\s*route|institute|criteri/i.test(t)) return { sectionId: 'eligibility', sectionLabel: 'Study Route & Eligibility' };
       if (/course|specialization/i.test(t)) return { sectionId: 'courses_spec', sectionLabel: 'Courses & Specializations' };
@@ -1997,6 +1997,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const MODAL_MINDMAP_INSTANCE_ID = 'career-mindmap-modal';
 
+  (function isolateMindmapModalClicks() {
+    const modalEl = document.getElementById('career-mindmap-modal');
+    if (!modalEl) return;
+    modalEl.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+  })();
+
   function openMindmapModal(career) {
     const modalEl = document.getElementById('career-mindmap-modal');
     const titleEl = document.getElementById('career-mindmap-modal-label');
@@ -2025,11 +2033,15 @@ document.addEventListener('DOMContentLoaded', function() {
           window.RadialMindmap.setCenter(MODAL_MINDMAP_INSTANCE_ID, node);
           return;
         }
+        if (ctx.hasChildren) {
+          window.RadialMindmap.setCenter(MODAL_MINDMAP_INSTANCE_ID, node);
+          return;
+        }
         const mapped = CareersRadialMindmap.mapTopicToSection((node.topic || node.title || '').toString());
         if (mapped && career) {
-          showCareerSectionInChat(career.id, mapped.sectionId, mapped.sectionLabel, career, { fromMindmapClick: true });
-        } else if (ctx.hasChildren) {
-          window.RadialMindmap.setCenter(MODAL_MINDMAP_INSTANCE_ID, node);
+          requestAnimationFrame(function() {
+            showCareerSectionInChat(career.id, mapped.sectionId, mapped.sectionLabel, career, { fromMindmapClick: true });
+          });
         }
       }
     });
@@ -2037,6 +2049,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (chatMessages) {
     chatMessages.addEventListener('click', function(e) {
+      if (e.target.closest('#career-mindmap-modal')) return;
       const btn = e.target.closest('.open-mindmap-modal-btn');
       if (!btn) return;
       const dataStr = btn.getAttribute('data-career');
@@ -2205,6 +2218,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Handle suggested question chips using event delegation
   document.addEventListener('click', function(e) {
+    if (e.target.closest('#career-mindmap-modal')) return;
     const chip = e.target.closest('.question-chip');
     if (chip) {
       // Check if this is a section button (has section-id attribute) - skip it
@@ -2224,12 +2238,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  // Auto-scroll only when a new chat response is added; scroll to START of that response so it's visible
+  // Auto-scroll only when a new chat response is added; scroll chat-messages so the response TOP is at the top of the visible area (not bottom)
   function scrollToStartOfResponse(element) {
     if (!element || !chatMessages) return;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const msgRect = element.getBoundingClientRect();
+        const containerRect = chatMessages.getBoundingClientRect();
+        const scrollDelta = msgRect.top - containerRect.top;
+        chatMessages.scrollTo({ top: chatMessages.scrollTop + scrollDelta, behavior: 'smooth' });
       });
     });
   }
@@ -2592,6 +2609,17 @@ document.addEventListener('DOMContentLoaded', function() {
           const sectionLabel = this.dataset.sectionLabel;
           const careerDataStr = this.dataset.careerData;
           console.log('career details', { careerId, sectionId, sectionLabel });
+          if (sectionId === 'mindmap' && careerDataStr) {
+            try {
+              const career = JSON.parse(careerDataStr.replace(/&quot;/g, '"'));
+              if (career && career.has_mindmap) {
+                openMindmapModal(career);
+                return;
+              }
+            } catch (err) {
+              console.error('Failed to open mindmap from icon', err);
+            }
+          }
           showCareerSectionInChat(careerId, sectionId, sectionLabel, careerDataStr);
         });
       });
@@ -2630,6 +2658,17 @@ document.addEventListener('DOMContentLoaded', function() {
                   const sectionLabel = this.dataset.sectionLabel;
                   const careerDataStr = this.dataset.careerData;
                   console.log('career details', { careerId, sectionId, sectionLabel });
+                  if (sectionId === 'mindmap' && careerDataStr) {
+                    try {
+                      const career = JSON.parse(careerDataStr.replace(/&quot;/g, '"'));
+                      if (career && career.has_mindmap) {
+                        openMindmapModal(career);
+                        return;
+                      }
+                    } catch (err) {
+                      console.error('Failed to open mindmap from icon', err);
+                    }
+                  }
                   showCareerSectionInChat(careerId, sectionId, sectionLabel, careerDataStr);
                 });
               });
@@ -2981,6 +3020,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const sectionLabel = this.dataset.sectionLabel;
         const careerDataStr = this.dataset.careerData;
         console.log('career details', { careerId, sectionId, sectionLabel });
+        if (sectionId === 'mindmap' && careerDataStr) {
+          try {
+            const career = JSON.parse(careerDataStr.replace(/&quot;/g, '"'));
+            if (career && career.has_mindmap) {
+              openMindmapModal(career);
+              return;
+            }
+          } catch (err) {
+            console.error('Failed to open mindmap from icon', err);
+          }
+        }
         showCareerSectionInChat(careerId, sectionId, sectionLabel, careerDataStr);
       });
     });
@@ -3120,6 +3170,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const sectionLabel = this.dataset.sectionLabel;
                 const careerDataStr = this.dataset.careerData;
                 console.log('career details', { careerId, sectionId, sectionLabel });
+                if (sectionId === 'mindmap' && careerDataStr) {
+                  try {
+                    const career = JSON.parse(careerDataStr.replace(/&quot;/g, '"'));
+                    if (career && career.has_mindmap) {
+                      openMindmapModal(career);
+                      return;
+                    }
+                  } catch (err) {
+                    console.error('Failed to open mindmap from icon', err);
+                  }
+                }
                 showCareerSectionInChat(careerId, sectionId, sectionLabel, careerDataStr);
               });
             });
@@ -3279,22 +3340,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (career.description_json && career.description_json.sections) {
       const sections = career.description_json.sections;
       
-      // Map section IDs to description_json section keys
+      // Map section IDs to description_json section keys (used by both info buttons and mindmap node clicks)
       const sectionKeyMap = {
         'roles': 'roles_and_responsibilities',
         'eligibility': 'study_route_and_eligibility_criteria',
         'observations': 'significant_observations',
         'internships': 'internships_and_practical_exposure',
         'courses_spec': 'courses_and_specializations',
-        'courses': 'courses_and_specializations',  // Also map 'courses' to courses_and_specializations
+        'courses': 'courses_and_specializations',
         'employers': 'prominent_employers',
         'salary': 'salary_expectations',
+        'salary_expectations': 'salary_expectations',
         'skills_trends': 'skills_required_industry_trends',
-        'skills': 'skills_required_industry_trends',  // Also map 'skills' to skills_required_industry_trends
-        'trends': 'skills_required_industry_trends',  // Map 'trends' to skills_required_industry_trends
+        'skills': 'skills_required_industry_trends',
+        'trends': 'skills_required_industry_trends',
         'advice': 'advice_for_aspiring',
-        'overview': 'overview',  // Map overview if it exists
-        'career_description': 'career_description'  // Map career_description if it exists
+        'overview': 'overview',
+        'career_description': 'career_description',
+        'employment': 'employment_areas'
       };
       
       // Try to find section by mapped key first (this is the primary method)
@@ -3570,7 +3633,10 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     chatMessages.appendChild(messageDiv);
-    // No auto-scroll when opening section (e.g. from mindmap) – only when new chat response is added
+    // Scroll to this answer when opened from an info button (Advice, Salary, etc.); do NOT scroll when opened from mindmap node click
+    if (!options.fromMindmapClick) {
+      scrollToStartOfResponse(messageDiv);
+    }
     
     // Show questions for other sections of this career + explore other careers (Case 2)
     // Skip for mindmap - it's already handled in the mindmap case above
