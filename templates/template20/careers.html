@@ -85,22 +85,22 @@ Explore our comprehensive collection of career paths organized by industry and i
             }
         }
 
- #ai-mode-btn, #traditional-mode-btn {
+ #ai-mode-btn, #view-mode-btn {
 	padding: 13px 23px;
 }
 
 
-#traditional-mode-btn.btn-outline-primary {
+#view-mode-btn.btn-outline-primary {
 	border: 1px solid rgba(63, 55, 201, 1);
 	color: rgba(63, 55, 201, 1);
 }
 
-#traditional-mode-btn.btn-outline-primary:hover {
+#view-mode-btn.btn-outline-primary:hover {
 	background: rgba(63, 55, 201, 1);
 	color: #fff;
 }
 
-#traditional-mode-btn.btn-primary{
+#view-mode-btn.btn-primary{
 	background: rgba(63, 55, 201, 1);
 	color: #fff;
   border: 1px solid #5e54ac;
@@ -244,10 +244,10 @@ Explore our comprehensive collection of career paths organized by industry and i
              id="ai-mode-btn">
              <span> <i class='bx bx-bot'></i> AI Mode</span>           
           </a>
-          <a href="{{ url('careers:career') }}?mode=traditional" 
+          <a href="{{ url('careers:career') }}?mode=view-mode" 
              class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
-             id="traditional-mode-btn">
-            <i class='bx bx-list-ul'></i> Traditional View
+             id="view-mode-btn">
+            <i class='bx bx-list-ul'></i> View Mode
           </a>
         </div>
       </div>
@@ -363,9 +363,9 @@ Explore our comprehensive collection of career paths organized by industry and i
         </div>
         {% endif %}
 
-        <!-- Traditional View Interface -->
+        <!-- Browse mode interface -->
         {% if not is_ai_mode %}
-        <div id="traditional-mode-interface" class="traditional-mode-section">
+        <div id="view-mode-interface" class="view-mode-section">
         <div class="row">
           <div class="col-md-8 mx-auto">
             <div class="d-flex flex-column justify-content-center align-items-center text-center">
@@ -380,7 +380,7 @@ Explore our comprehensive collection of career paths organized by industry and i
             <form method="POST" action="{{ url('careers:career') }}" id="career-filter-form" class="filter-form">
               <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
               <input type="hidden" name="search" value="{{ search_param }}">
-              <input type="hidden" name="mode" value="traditional">
+              <input type="hidden" name="mode" value="view-mode">
               
               <div class="row g-3 justify-content-center">
                 <!-- Cluster Filter -->
@@ -418,7 +418,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                 <div class="col-md-4 mx-auto">
                   <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
                     <button type="submit" class="btn custom-button purple-button flex-fill">Apply Filters</button>
-                    <a href="{{ url('careers:career') }}?mode=traditional{% if search_param %}&search={{ search_param }}{% endif %}" class="btn d-flex align-items-center justify-content-center btn-outline-secondary flex-fill">Reset</a>
+                    <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}" class="btn d-flex align-items-center justify-content-center btn-outline-secondary flex-fill">Reset</a>
                   </div>
                 </div>
               </div>
@@ -549,7 +549,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         <input type="hidden" name="page" value="{{ careers.previous_page_number() }}">
-                        <input type="hidden" name="mode" value="traditional">
+                        <input type="hidden" name="mode" value="view-mode">
                         {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                         {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
                         {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
@@ -574,7 +574,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                           <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                             <input type="hidden" name="page" value="{{ page_num }}">
-                            <input type="hidden" name="mode" value="traditional">
+                            <input type="hidden" name="mode" value="view-mode">
                             {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                             {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
                             {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
@@ -589,7 +589,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         <input type="hidden" name="page" value="{{ careers.next_page_number() }}">
-                        <input type="hidden" name="mode" value="traditional">
+                        <input type="hidden" name="mode" value="view-mode">
                         {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                         {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
                         {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
@@ -1570,10 +1570,10 @@ Explore our comprehensive collection of career paths organized by industry and i
       // Update Select2 with new values
       $('#clusterFilter').val(newValues).trigger('change');
       
-      // Update URL to preserve mode=traditional and update cluster filters
+      // Update URL to preserve mode=view-mode and update cluster filters
       const urlParams = new URLSearchParams(window.location.search);
       const searchParam = urlParams.get('search') || '';
-      const currentMode = urlParams.get('mode') || 'traditional';
+      const currentMode = urlParams.get('mode') || 'view-mode';
       
       // Build new URL with mode preserved
       let queryParams = [];
@@ -1755,7 +1755,7 @@ Explore our comprehensive collection of career paths organized by industry and i
         const selectedClusters = $('#clusterFilter').val() || [];
         const urlParams = new URLSearchParams(window.location.search);
         const searchParam = urlParams.get('search') || '';
-        const currentMode = urlParams.get('mode') || 'traditional';
+        const currentMode = urlParams.get('mode') || 'view-mode';
         
         // Build new URL preserving mode
         let queryParams = [];
@@ -1813,15 +1813,15 @@ Explore our comprehensive collection of career paths organized by industry and i
         }
       });
       
-      // Ensure mode is set to traditional
+      // Ensure mode is set to view-mode
       if (!$('input[name="mode"]').length) {
         $('<input>').attr({
           type: 'hidden',
           name: 'mode',
-          value: 'traditional'
+          value: 'view-mode'
         }).appendTo('#career-filter-form');
       } else {
-        $('input[name="mode"]').val('traditional');
+        $('input[name="mode"]').val('view-mode');
       }
       
       console.log('Submitting form with POST'); // Debug log
@@ -1900,15 +1900,15 @@ Explore our comprehensive collection of career paths organized by industry and i
         }
       });
       
-      // Ensure mode is set to traditional
+      // Ensure mode is set to view-mode
       if (!$('input[name="mode"]').length) {
         $('<input>').attr({
           type: 'hidden',
           name: 'mode',
-          value: 'traditional'
+          value: 'view-mode'
         }).appendTo($form);
       } else {
-        $('input[name="mode"]').val('traditional');
+        $('input[name="mode"]').val('view-mode');
       }
       
       console.log('Submitting form with POST'); // Debug

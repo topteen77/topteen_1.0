@@ -98,7 +98,7 @@ class Careers(TemplateView):
         
         # Add mode context for template toggle (default to AI mode)
         ctx['view_mode'] = request_data.get('mode', 'ai')
-        ctx['is_ai_mode'] = ctx['view_mode'] != 'traditional'
+        ctx['is_ai_mode'] = ctx['view_mode'] != 'view-mode'
         
         # Add request parameters as context variables for Jinja2 compatibility
         ctx['search_param'] = request_data.get('search', '')
@@ -1858,7 +1858,16 @@ class VideoDetail(TemplateView):
             recent_videos = Videos.objects.exclude(id=video.id).order_by('-created')[:6]
             related_videos = (related_videos | recent_videos).distinct()[:6]
         
+        # Pre-compute thumbnail URLs for related videos (same as career-videos listing)
+        related_video_thumbnails = {}
+        for rv in related_videos:
+            try:
+                related_video_thumbnails[rv.id] = rv.get_thumbnail_url()
+            except Exception:
+                related_video_thumbnails[rv.id] = None
+        
         ctx['related_videos'] = related_videos
+        ctx['related_video_thumbnails'] = related_video_thumbnails
         return ctx
 
     def _breadcrumb(self,video):
