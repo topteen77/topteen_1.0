@@ -15,9 +15,7 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .test-view-page {
-    padding-top: 80px;
-  }
+
   .question {
     display: none;
   }
@@ -25,7 +23,7 @@
     display: block;
   }
   .question-box {
-    background: #f7f7fa;
+    background: #fff;
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
@@ -34,15 +32,24 @@
     display: flex;
     align-items: center;
     margin-bottom: 6px;
-    padding: 6px 10px;
+    padding: 16px 10px;
     border: 2px solid #efefee;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
+    background-color: #fff;
+    width: 75px;
+  height: 75px;
   }
+
+  .user-profile-card {
+	border: 1px solid #dedede;
+	border-radius: 10px;
+	padding: 30px;
+}
   .custom-radio:hover {
-    border-color: #8a2be2;
+    border-color: #3f37c9;
     background: rgba(138, 43, 226, 0.05);
   }
   .custom-radio input[type="radio"] {
@@ -66,8 +73,8 @@
     background: #fff;
   }
   .custom-radio input[type="radio"]:checked ~ .radio-checkmark {
-    background: #8a2be2;
-    border-color: #8a2be2;
+    background: #3f37c9;
+    border-color: #3f37c9;
   }
   .custom-radio input[type="radio"]:checked ~ .radio-checkmark::after {
     content: '\2713';
@@ -76,11 +83,11 @@
     font-weight: bold;
   }
   .custom-radio input[type="radio"]:checked ~ .radio-btn {
-    color: #8a2be2;
+    color: #3f37c9;
     font-weight: 600;
   }
   .custom-radio:has(input[type="radio"]:checked) {
-    border-color: #8a2be2;
+    border-color: #3f37c9;
     background: rgba(138, 43, 226, 0.1);
   }
   .custom-radio .radio-btn {
@@ -91,13 +98,13 @@
   .test-stats-box {
     background: #f7f7fa;
     border-radius: 10px;
-    padding: 20px;
+    padding: 10px;
     text-align: center;
   }
   .test-stats-box .stat-value {
     font-size: 24px;
     font-weight: 700;
-    color: #8a2be2;
+    color: #3f37c9;
   }
   .test-stats-box .stat-label {
     font-size: 12px;
@@ -109,7 +116,7 @@
   @keyframes test-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
   @keyframes test-toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
   .question-image {
-    max-width: 100%;
+    max-width: 295px !important;
     height: auto;
     border-radius: 8px;
     margin: 15px 0;
@@ -152,12 +159,12 @@
   }
   .radio-buttons.image-box {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 15px;
   }
   .radio-buttons.image-box .custom-radio {
     text-align: center;
-    padding: 8px;
+    padding: 4px;
     flex-direction: column;
   }
   .radio-buttons.image-box .radio-checkmark {
@@ -168,8 +175,10 @@
   }
   .radio-buttons.image-box .radio-btn img {
     max-width: 100%;
-    height: auto;
-    border-radius: 5px;
+  height: auto;
+  border-radius: 5px;
+  z-index: 999;
+  position: relative;
   }
   .loader {
     position: relative;
@@ -309,7 +318,17 @@
   @media (min-width: 992px) {
     .answer-quality-widget-desktop-container {
       display: block;
+
     }
+  }
+
+
+ @media (max-width: 767.98px) {
+  .radio-buttons.image-box {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
   }
 </style>
 {% endblock %}
@@ -362,7 +381,7 @@
                     <i class='bx bx-show fs-32 text-purple'></i>
                   </div>
                   <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
-                  <p class="stat-label">Question<br>Displayed</p>
+                  <p class="stat-label">Question Displayed</p>
                 </div>
               </div>
             </div>
@@ -438,13 +457,13 @@
                   <i class='bx bx-show fs-32 text-purple'></i>
                 </div>
                 <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
-                <p class="stat-label">Question<br>Displayed</p>
+                <p class="stat-label">Question Displayed</p>
               </div>
             </div>
           </div>
         </div>
 
-        <h2 class="fs-20 fw-semibold mb-2">Logical Reasoning</h2>
+        <h2 class="fs-20 fw-semibold mb-2 mt-md-6 mt-3">Logical Reasoning</h2>
         
         <div class="alert alert-info d-flex align-items-center mb-3 fs-13">
           <i class='bx bx-info-circle me-2 fs-20'></i>
@@ -462,7 +481,7 @@
           
           {% for question in questions %}
           <div class="question {% if loop.first %}active{% endif %}" id="question{{ loop.index }}">
-            <div class="question-box" data-question-id="{{ question.id }}">
+            <div class="question-box border" data-question-id="{{ question.id }}">
 
               {% if question.question_text and question.question_image %}
               <!-- Case where both text and image are present -->

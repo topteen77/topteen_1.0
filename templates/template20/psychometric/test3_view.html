@@ -15,9 +15,7 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .test-view-page {
-    padding-top: 80px;
-  }
+
   .subtest-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -101,13 +99,40 @@
       grid-column: 1 / span 2;
     }
   }
+
+  .user-profile-card {
+	border: 1px solid #dedede;
+	border-radius: 10px;
+	padding: 30px;
+}
+
+.back-btn-bt{
+	border: 1px solid #dedede;
+  padding: 8px 13px;
+  color: #000 !important;
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+}
+
+.back-btn-bt:hover{
+  background-color: #50B9F9;
+  color: #fff !important;
+
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="test-view-page pb-5">
+<section class="test-view-page pb-5 mt-md-8 mt-3  ">
   <div class="container">
     <div class="row">
+
+      <div class="d-flex align-items-center mb-3 mt-md-0 mt-3">
+        <button type="button" class="back-btn-bt"  onclick="window.history.back();" aria-label="Go back"><i class='bx bx-left-arrow-alt' ></i>  Back</button>
+      </div>
+
+
       <!-- Left Sidebar (Desktop) -->
       <div class="col-lg-4 d-none d-lg-block">
         <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
@@ -170,7 +195,7 @@
         
         <div class="alert alert-info d-flex align-items-center mb-4">
           <i class='bx bx-info-circle me-2 fs-20'></i>
-          <div class="fs-14">Complete all 7 sub-tests to finish the comprehensive aptitude assessment. Each sub-test takes approximately 10 minutes.</div>
+          <div class="fs-14 lh-sm">Complete all 7 sub-tests to finish the comprehensive aptitude assessment. Each sub-test takes approximately 10 minutes.</div>
         </div>
 
         <div class="subtest-grid mb-4">

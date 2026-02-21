@@ -15,9 +15,7 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .test-view-page {
-    padding-top: 80px;
-  }
+
   .question {
     display: none;
   }
@@ -34,15 +32,22 @@
     display: flex;
     align-items: center;
     margin-bottom: 6px;
-    padding: 6px 10px;
+    padding: 16px 10px;
     border: 2px solid #efefee;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
+    background-color: #fff;
   }
+
+  .user-profile-card {
+	border: 1px solid #dedede;
+	border-radius: 10px;
+	padding: 30px;
+}
   .custom-radio:hover {
-    border-color: #8a2be2;
+    border-color: #3f37c9;
     background: rgba(138, 43, 226, 0.05);
   }
   .custom-radio input[type="radio"] {
@@ -66,8 +71,8 @@
     background: #fff;
   }
   .custom-radio input[type="radio"]:checked ~ .radio-checkmark {
-    background: #8a2be2;
-    border-color: #8a2be2;
+    background: #3f37c9;
+    border-color: #3f37c9;
   }
   .custom-radio input[type="radio"]:checked ~ .radio-checkmark::after {
     content: '\2713';
@@ -76,11 +81,11 @@
     font-weight: bold;
   }
   .custom-radio input[type="radio"]:checked ~ .radio-btn {
-    color: #8a2be2;
+    color: #3f37c9;
     font-weight: 600;
   }
   .custom-radio:has(input[type="radio"]:checked) {
-    border-color: #8a2be2;
+    border-color: #3f37c9;
     background: rgba(138, 43, 226, 0.1);
   }
   .custom-radio .radio-btn {
@@ -91,13 +96,13 @@
   .test-stats-box {
     background: #f7f7fa;
     border-radius: 10px;
-    padding: 20px;
+    padding: 8px;
     text-align: center;
   }
   .test-stats-box .stat-value {
     font-size: 24px;
     font-weight: 700;
-    color: #8a2be2;
+    color: #3f37c9;
   }
   .test-stats-box .stat-label {
     font-size: 12px;
@@ -315,7 +320,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="test-view-page pb-5">
+<section class="test-view-page pb-5 pb-5 mt-md-8 mt-3">
   <div class="container">
     <div class="row">
       <!-- Left Sidebar (Desktop) -->
@@ -362,7 +367,7 @@
                     <i class='bx bx-show fs-32 text-purple'></i>
                   </div>
                   <p class="stat-value" id="questionProgress">1/{{ questions|length }}</p>
-                  <p class="stat-label">Question<br>Displayed</p>
+                  <p class="stat-label">Question Displayed</p>
                 </div>
               </div>
             </div>
