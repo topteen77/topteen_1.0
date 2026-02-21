@@ -98,7 +98,7 @@ class Careers(TemplateView):
         
         # Add mode context for template toggle (default to AI mode)
         ctx['view_mode'] = request_data.get('mode', 'ai')
-        ctx['is_ai_mode'] = ctx['view_mode'] != 'traditional'
+        ctx['is_ai_mode'] = ctx['view_mode'] != 'view-mode'
         
         # Add request parameters as context variables for Jinja2 compatibility
         ctx['search_param'] = request_data.get('search', '')
@@ -318,7 +318,7 @@ class CareerDetail(TemplateView):
     # template_name = "template20/career_detail_mindmap.html"  # Mindmap version
     def html_head(self,career):
         titleb=career.name
-        descriptionb=career.summary
+        descriptionb=career.get_display_summary()
         return build_html_head(title=titleb, description=descriptionb)
     
 
@@ -934,7 +934,7 @@ class CareerDetail(TemplateView):
         # Parse description HTML to extract H1, H2, H3 structure
         mindmap_data = {
             "name": career.name,
-            "summary": career.summary or "",
+            "summary": career.get_display_summary() or "",
             "children": []
         }
         
@@ -1274,7 +1274,7 @@ class CareerDetail(TemplateView):
         
         mindmap_data = {
             "name": career.name,
-            "summary": career.summary or "",
+            "summary": career.get_display_summary() or "",
             "aspects": aspects
         }
         
@@ -1858,7 +1858,16 @@ class VideoDetail(TemplateView):
             recent_videos = Videos.objects.exclude(id=video.id).order_by('-created')[:6]
             related_videos = (related_videos | recent_videos).distinct()[:6]
         
+        # Pre-compute thumbnail URLs for related videos (same as career-videos listing)
+        related_video_thumbnails = {}
+        for rv in related_videos:
+            try:
+                related_video_thumbnails[rv.id] = rv.get_thumbnail_url()
+            except Exception:
+                related_video_thumbnails[rv.id] = None
+        
         ctx['related_videos'] = related_videos
+        ctx['related_video_thumbnails'] = related_video_thumbnails
         return ctx
 
     def _breadcrumb(self,video):

@@ -102,7 +102,7 @@
           </div>
           
           <p class="text-muted mb-3">
-            {{ career.summary if career.summary else (career.description[:100] + '...' if career.description else 'No description available') }}
+            {{ career.display_summary if career.display_summary else (career.description|striptags|truncate(100) if career.description else 'No description available') }}
           </p>
           
           <a href="{{ career.url() }}" class="btn btn-primary btn-sm w-100">View Details</a>

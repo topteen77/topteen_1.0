@@ -44,6 +44,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
   .search-career {
     border-radius: 20px;
     padding-left: 40px;
+    padding-right: 40px;
     height: 45px;
   }
   .filter-section .search-icon {
@@ -52,6 +53,34 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     top: 52%;
     transform: translateY(-50%);
     color: #6c757d;
+  }
+  .search-clear-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #e9ecef;
+    color: #6c757d;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.2s, color 0.2s;
+  }
+  .search-clear-btn:hover {
+    background: #dee2e6;
+    color: #495057;
+  }
+  .search-clear-btn.visible {
+    display: flex;
+  }
+  .search-clear-btn i {
+    font-size: 18px;
   }
   .category-header {
     margin: 30px 0 20px;
@@ -549,6 +578,9 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           <div class="position-relative">
             <i class='bx bx-search search-icon'></i>
             <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses..." autocomplete="off">
+            <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" title="Clear search">
+              <i class="bx bx-x"></i>
+            </button>
             <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
           </div>
         </div>
@@ -586,7 +618,8 @@ Explore vocational courses and career tracks across technology, healthcare, busi
             <!-- Dynamic Sub-tabs Container for After 10 -->
             <div class="sub-tabs-container" id="after-10-sub-tabs-container"></div>
 
-            {% for sub in level.children.all() %}
+            {% for item in subcategories_display.get('after-10', []) %}
+            {% set sub = item.sub %}
             <div class="mb-4 tab-data-show-after-10" data-subcategory-id="after-10-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
@@ -594,7 +627,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
-                        <a href="#" class="blog-category category-parent text-capitalize">{{ sub.name }}</a>
+                        <a href="#" class="blog-category category-parent text-capitalize">{{ item.display_name }}</a>
                       </div>
                       {% if course.image %}
                         <img src="{{ course.image.url }}" alt="{{ course.name }}">
@@ -639,7 +672,8 @@ Explore vocational courses and career tracks across technology, healthcare, busi
             <!-- Dynamic Sub-tabs Container for After 12 -->
             <div class="sub-tabs-container" id="after-12-sub-tabs-container"></div>
 
-            {% for sub in level.children.all() %}
+            {% for item in subcategories_display.get('after-12', []) %}
+            {% set sub = item.sub %}
             <div class="mb-4 tab-data-show-after-12" data-subcategory-id="after-12-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
@@ -647,7 +681,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
-                        <a href="#" class="blog-category category-parent text-capitalize">{{ sub.name }}</a>
+                        <a href="#" class="blog-category category-parent text-capitalize">{{ item.display_name }}</a>
                       </div>
                       {% if course.image %}
                         <img src="{{ course.image.url }}" alt="{{ course.name }}">
@@ -979,10 +1013,32 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     // Enhanced search with suggestions across both tabs
     const searchInput = document.getElementById('courseSearch');
     const suggestionsDiv = document.getElementById('searchSuggestions');
+    const searchClearBtn = document.getElementById('searchClearBtn');
     if (!searchInput || !suggestionsDiv) return;
     
     let allCourses = [];
     let selectedIndex = -1;
+
+    function toggleSearchClearButton() {
+      if (searchClearBtn) {
+        if (searchInput.value.trim() !== '') {
+          searchClearBtn.classList.add('visible');
+        } else {
+          searchClearBtn.classList.remove('visible');
+        }
+      }
+    }
+
+    function clearSearchInput() {
+      searchInput.value = '';
+      toggleSearchClearButton();
+      suggestionsDiv.style.display = 'none';
+      selectedIndex = -1;
+      if (typeof filterCourses === 'function') filterCourses('');
+      if (typeof updateResetButtonVisibility === 'function') updateResetButtonVisibility();
+    }
+
+    toggleSearchClearButton();
     
     // Collect all courses from both tabs and sub-tabs
     function collectAllCourses() {
@@ -1235,12 +1291,19 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     let searchTimeout;
     searchInput.addEventListener('input', function() {
       clearTimeout(searchTimeout);
+      toggleSearchClearButton();
       const query = this.value;
-      
       searchTimeout = setTimeout(() => {
         filterCourses(query);
       }, 200);
     });
+
+    // Clear search button: clear text and refresh view
+    if (searchClearBtn) {
+      searchClearBtn.addEventListener('click', function() {
+        clearSearchInput();
+      });
+    }
     
     // Handle keyboard navigation in suggestions
     searchInput.addEventListener('keydown', function(e) {
@@ -1278,15 +1341,21 @@ Explore vocational courses and career tracks across technology, healthcare, busi
       }
     });
     
-    // Re-collect courses when main tab changes
-    const tabButtons = document.querySelectorAll('#vocationalTabs button[data-bs-toggle="tab"]');
-    tabButtons.forEach(button => {
+    // When switching class tab (After 10th / After 12th): clear search so content is not blank, then show new tab content
+    mainTabButtons.forEach(button => {
+      if (button._searchClearListener) return;
+      button._searchClearListener = true;
       button.addEventListener('shown.bs.tab', function() {
-        collectAllCourses();
-        // Re-apply current search if any
-        if (searchInput.value) {
-          filterCourses(searchInput.value);
-        }
+        searchInput.value = '';
+        toggleSearchClearButton();
+        suggestionsDiv.style.display = 'none';
+        selectedIndex = -1;
+        if (typeof updateResetButtonVisibility === 'function') updateResetButtonVisibility();
+        // Run after dynamic tabs are built (same tab handler uses 50ms delay)
+        setTimeout(function() {
+          collectAllCourses();
+          filterCourses('');
+        }, 80);
       });
     });
   });

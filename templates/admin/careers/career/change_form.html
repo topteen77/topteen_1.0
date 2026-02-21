@@ -130,7 +130,13 @@
 .cat-accordion .accordion-body {
     padding: 20px 28px 28px;
     background: #fff;
+    color: #000 !important;
 }
+#accordion-preview-container .accordion-body,
+#accordion-preview-container .accordion-body p,
+#accordion-preview-container .accordion-body div,
+#accordion-preview-container .accordion-body span,
+#accordion-preview-container .accordion-body li { color: #000 !important; }
 </style>
 
 <script>
@@ -525,7 +531,7 @@
             html += '</span>';
             html += '<span style="font-size: 24px; color: #5046e5; font-weight: bold; min-width: 30px; text-align: center;">−</span>';
             html += '</button>';
-            html += '<div id="' + itemId + '" class="accordion-body" style="display: block; padding: 20px 24px; background: #fff; border-top: 1px solid #e4e7fb;">';
+            html += '<div id="' + itemId + '" class="accordion-body" style="display: block; padding: 20px 24px; background: #fff; border-top: 1px solid #e4e7fb; #f4f3f3 !important;">';
             html += item.content;
             html += '</div>';
             html += '</div>';

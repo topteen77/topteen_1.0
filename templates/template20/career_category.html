@@ -120,8 +120,8 @@ Explore careers in {{ cluster_name|title }}. Discover educational requirements, 
               {% endif %}
               #}
 
-              {% if career.summary %}
-              <p class="blog-excerpt">{{ career.summary|truncate(140) }}</p>
+              {% if career.display_summary %}
+              <p class="blog-excerpt">{{ career.display_summary|truncate(140) }}</p>
               {% endif %}
 
               <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="read-more">

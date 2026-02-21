@@ -105,7 +105,7 @@ class Home(TemplateView):
         ).first()
         
         ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
-        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=traditional&cluster=ID
+        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=view-mode&cluster=ID
         clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
         from django.templatetags.static import static
@@ -119,7 +119,7 @@ class Home(TemplateView):
                     continue
                 label = (c.name or '').strip()
                 # Each cluster card links to its own cluster page (all careers for that cluster)
-                url = f"{careers_base_url}?mode=traditional&cluster={c.id}"
+                url = f"{careers_base_url}?mode=view-mode&cluster={c.id}"
                 # Use Career track icon: S3 URL if set, else uploaded file URL, else default SVG (keeps icon with category)
                 icon_url = (
                     getattr(c, 'career_track_icon_s3_url', None) or
@@ -158,7 +158,7 @@ class Home(TemplateView):
                 career_track_cards.append({
                     'label': label,
                     'icon_url': icon_url,
-                    'url': f"{careers_base_url}?mode=traditional",
+                    'url': f"{careers_base_url}?mode=view-mode",
                 })
         ctx['career_track_cards'] = career_track_cards
         ctx['default_career_library_url'] = default_career_library_url
@@ -343,8 +343,35 @@ class VocationalCoursesView(TemplateView):
         if default_tab not in ['after-10', 'after-12']:
             default_tab = 'after-10'
 
+        # Subcategory display names and order (tab order: Integrated, B.Voc, Diploma, Certificate)
+        VOC_SUBCAT_DISPLAY = {
+            "integrated programs": ("Integrated Degree Programs", 1),
+            "b.voc programs": ("Bachelor of Vocational Programs", 2),
+            "diploma courses": ("Diploma", 3),
+            "certificate courses for skill enhancement": ("Certificate", 4),
+        }
+
+        def ordered_children_with_display(children_queryset):
+            children_list = list(children_queryset)
+            used_ids = set()
+            out = []
+            for _key, (display_name, _order) in VOC_SUBCAT_DISPLAY.items():
+                for sub in children_list:
+                    if sub.id in used_ids:
+                        continue
+                    name_lower = sub.name.strip().lower()
+                    if _key in name_lower or name_lower in _key:
+                        out.append({"sub": sub, "display_name": display_name})
+                        used_ids.add(sub.id)
+                        break
+            for sub in children_list:
+                if sub.id not in used_ids:
+                    out.append({"sub": sub, "display_name": sub.name})
+            return out
+
         # Load both levels
         levels_data = {}
+        subcategories_display = {}
         for level_slug in ['after-10', 'after-12']:
             try:
                 level = VocationalCourseCategory.objects.filter(
@@ -369,13 +396,18 @@ class VocationalCoursesView(TemplateView):
                 
                 if level:
                     levels_data[level_slug] = level
+                    subcategories_display[level_slug] = ordered_children_with_display(level.children.all())
+                else:
+                    subcategories_display[level_slug] = []
             except Exception:
                 levels_data[level_slug] = None
+                subcategories_display[level_slug] = []
 
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["breadcrumb"] = {'text': 'Vocational Courses', 'url': reverse('core:vocational_courses')}
         ctx["levels_data"] = levels_data
+        ctx["subcategories_display"] = subcategories_display
         ctx["default_tab"] = default_tab
         ctx["active_level"] = levels_data.get(default_tab)
         return ctx
@@ -424,16 +456,34 @@ class VocationalCourseDetailView(TemplateView):
         except Exception:
             ctx["blogs"] = []
         
+        def breadcrumb_level_label(name):
+            if not name:
+                return name
+            n = (name or "").strip().lower()
+            if n in ("after 10", "after-10"):
+                return "After 10th"
+            if n in ("after 12", "after-12"):
+                return "After 12th"
+            return (name or "").strip().title()
+
+        def breadcrumb_text_caps(text):
+            if not text:
+                return text
+            return (text or "").strip().title()
+
         if level:
+            level_label = breadcrumb_level_label(level.name)
+            course_label = breadcrumb_text_caps(course.name)
             ctx["breadcrumb"] = [
                 {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
-                {"text": level.name, "url": f"/vocational-courses/{level.slug}/"},
-                {"text": course.name, "url": reverse("core:vocational_course_detail", args=[course.pk])},
+                {"text": level_label, "url": f"/vocational-courses/{level.slug}/"},
+                {"text": course_label, "url": reverse("core:vocational_course_detail", args=[course.pk])},
             ]
         else:
+            course_label = breadcrumb_text_caps(course.name)
             ctx["breadcrumb"] = [
                 {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
-                {"text": course.name, "url": reverse("core:vocational_course_detail", args=[course.pk])},
+                {"text": course_label, "url": reverse("core:vocational_course_detail", args=[course.pk])},
             ]
         return ctx
 

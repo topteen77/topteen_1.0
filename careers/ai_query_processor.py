@@ -533,7 +533,7 @@ Only return valid JSON, no other text."""
         """Build comprehensive text representation of a career for embedding"""
         parts = [
             career.name,
-            career.summary,
+            career.get_display_summary(),
             career.description[:500] if career.description else '',
         ]
         
@@ -628,7 +628,7 @@ Only return valid JSON, no other text."""
         for keyword in keywords:
             if keyword in career_name_lower:
                 score += 30
-            if career.summary and keyword in career.summary.lower():
+            if career.get_display_summary() and keyword in career.get_display_summary().lower():
                 score += 20
         
         return min(score, 100)  # Cap at 100
@@ -681,7 +681,7 @@ Only return valid JSON, no other text."""
                     score_breakdown['name_match'] += name_score
             
             # Summary matching
-            career_summary_lower = (career.summary or '').lower()
+            career_summary_lower = (career.get_display_summary() or '').lower()
             for keyword in keywords:
                 if keyword in career_summary_lower:
                     summary_score = 20
@@ -784,7 +784,7 @@ Only return valid JSON, no other text."""
         
         if count == 1:
             career = careers[0]
-            summary_text = career.summary[:150] if career.summary else 'Explore this career to learn more.'
+            summary_text = (career.get_display_summary() or '')[:150] or 'Explore this career to learn more.'
             return f"I found 1 career matching your query: **{career.name}**. {summary_text}"
         
         # Get top categories

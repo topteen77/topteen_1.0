@@ -196,7 +196,7 @@ class CareerAdminForm(forms.ModelForm):
         }
         </style>
         
-        Upload a DOCX file to automatically populate career name, summary and description fields. This will overwrite existing content.
+        Upload a DOCX file to automatically populate career name and description fields. This will overwrite existing content.
         ''',
         widget=forms.FileInput(attrs={
             'accept': '.docx',
@@ -208,7 +208,7 @@ class CareerAdminForm(forms.ModelForm):
     class Meta:
         model = Career
         fields = '__all__'
-        exclude = ['description_json']
+        exclude = ['description_json', 'summary']
         widgets = {
             'career_cluster': CareerClusterSelectWidget(),
         }
@@ -260,7 +260,7 @@ class CareerAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'summary', 'description', 'image', 'publish_status')
+            'fields': ('name', 'description', 'image', 'publish_status')
         }),
         ('Career Cluster Assignment', {
             'fields': ('career_cluster',),
@@ -268,7 +268,7 @@ class CareerAdmin(admin.ModelAdmin):
         }),
         ('DOCX Upload', {
             'fields': ('docx_file',),
-            'description': 'Upload a DOCX file to automatically populate career name, summary and description fields. This will overwrite existing content.',
+            'description': 'Upload a DOCX file to automatically populate career name and description fields. This will overwrite existing content.',
             'classes': ('collapse',),
         }),
         ('Preview & Validation', {

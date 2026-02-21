@@ -136,6 +136,10 @@
     width: 100%;
   }
 }
+
+/* Video modal must sit above backdrop so close button receives clicks (backdrop was blocking) */
+#videoModal.modal { z-index: 13000 !important; }
+#videoModal .modal-dialog { z-index: 13001 !important; }
 </style>
 
 <!-- Hero Section -->
@@ -402,11 +406,11 @@
 <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header position-relative" style="z-index: 10;">
         <h5 class="modal-title" id="videoModalLabel">Video Player</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" id="videoModalCloseBtn" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 11;"></button>
       </div>
-      <div class="modal-body p-0">
+      <div class="modal-body p-0 position-relative" style="z-index: 1;">
         <div class="ratio ratio-16x9">
           <iframe id="videoFrame" src="" allowfullscreen style="display:none;"></iframe>
           <video id="videoPlayer" controls playsinline style="width: 100%; height: 100%; display:none; background:#000;">
@@ -673,6 +677,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoFrame = document.getElementById('videoFrame');
     const videoPlayer = document.getElementById('videoPlayer');
     const videoPlayerSource = document.getElementById('videoPlayerSource');
+
+    // Ensure close button (X) always closes the modal — use delegation so it works even if button is covered
+    document.addEventListener('click', function(e) {
+      if (!e.target || !videoModal.contains(e.target)) return;
+      if (e.target.id === 'videoModalCloseBtn' || e.target.closest('#videoModalCloseBtn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        var inst = bootstrap.Modal.getInstance(videoModal) || bootstrap.Modal.getOrCreateInstance(videoModal);
+        if (inst) inst.hide();
+      }
+    }, true);
 
     function toYouTubeEmbed(url) {
       if (!url) return '';

@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 'name': 'Career Cluster Matching',
                 'icon': 'fas fa-sitemap',
                 'description': 'Explore careers by clusters and find your match',
-                'link_url': '/careers/?mode=traditional',
+                'link_url': '/careers/?mode=view-mode',
                 'order': 3
             },
             {

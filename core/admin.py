@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.html import format_html, strip_tags
 from django.urls import path, reverse
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from django.contrib import messages
 from .models import (
     Configuration,
@@ -36,6 +37,24 @@ from .models import (
 )
 # Register your models here.
 
+
+
+class StudentIdSettingsForm(forms.Form):
+    """Form for Student ID and School Student ID prefixes (Admin-managed)."""
+    STUDENT_ID_PREFIX = forms.CharField(
+        max_length=20,
+        required=False,
+        label='Student ID prefix',
+        help_text='Prefix for direct/school student display ID (e.g. STU → STU000123). Default: STU.',
+        initial='STU',
+    )
+    SCHOOL_STUDENT_ID_PREFIX = forms.CharField(
+        max_length=20,
+        required=False,
+        label='School student ID prefix',
+        help_text='Prefix for school/institute student identifier. Display format: Prefix/StudentID (e.g. SCH → SCH/STU000123). Default: SCH.',
+        initial='SCH',
+    )
 
 
 class PsychometricSettingsForm(forms.Form):
@@ -83,8 +102,40 @@ class ConfigurationAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path('psychometric-settings/', self.admin_site.admin_view(self.psychometric_settings_view), name='core_configuration_psychometric_settings'),
+            path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
         ]
         return custom + urls
+
+    def student_id_settings_view(self, request):
+        """Custom admin view for Student ID and School Student ID prefix settings."""
+        from core.models import Configuration
+
+        if request.method == 'POST':
+            form = StudentIdSettingsForm(request.POST)
+            if form.is_valid():
+                for key, field_name in [
+                    ('STUDENT_ID_PREFIX', 'STUDENT_ID_PREFIX'),
+                    ('SCHOOL_STUDENT_ID_PREFIX', 'SCHOOL_STUDENT_ID_PREFIX'),
+                ]:
+                    val = (form.cleaned_data.get(field_name) or '').strip() or ('STU' if key == 'STUDENT_ID_PREFIX' else 'SCH')
+                    config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                    config.value = val
+                    config.save()
+                messages.success(request, 'Student ID settings saved successfully.')
+                return redirect('admin:core_configuration_student_id_settings')
+        else:
+            form = StudentIdSettingsForm(initial={
+                'STUDENT_ID_PREFIX': Configuration.get('STUDENT_ID_PREFIX', 'STU', editable=True),
+                'SCHOOL_STUDENT_ID_PREFIX': Configuration.get('SCHOOL_STUDENT_ID_PREFIX', 'SCH', editable=True),
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Student ID Settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/student_id_settings.html', context)
 
     def psychometric_settings_view(self, request):
         """Custom admin view for Psychometric Test Settings."""
@@ -392,10 +443,108 @@ class VocationalCourseCategoryAdmin(admin.ModelAdmin):
     inlines = (VocationalCourseInline,)
 
 
+# Section headings used on vocational course detail accordion (must match template20/vocational_course_detail.html)
+VOCATIONAL_ACCORDION_HEADINGS = [
+    'Eligibility & Admission',
+    'Duration & Structure',
+    'Curriculum Highlights',
+    'Skills Required',
+    'Pros & Cons',
+    'Internship & Industry Collaborations',
+    'Certification & Accreditation',
+    'Learning Outcomes',
+    'Career Growth & Prospects',
+    'Employment Sectors & Employers',
+    'Conclusion',
+]
+
+
+def _html_is_effectively_blank(html):
+    """
+    Return True if section HTML is effectively blank. Covers:
+    - Empty or only whitespace.
+    - Only empty tags e.g. <p>&nbsp;</p> or <p></p> (after unescape, strip_tags -> empty).
+    - No content between h2s: first block is just heading then next heading with nothing in between.
+    - Only one h2 then empty tags (no second h2): strip first <h2>...</h2>, remainder is empty.
+    """
+    import re
+    import html as html_module
+    raw = (html or '').strip()
+    if len(raw) <= 10:
+        return True
+    # Strip tags and unescape so &nbsp; and empty tags become visible
+    text = strip_tags(raw)
+    text = html_module.unescape(text)
+    text = text.strip()
+    if not text or not text.replace('\xa0', ' ').strip():
+        return True
+    # No content between first </h2> and next <h2>: content between h2s is empty/whitespace only
+    between = re.search(r'</h2>\s*(.*?)\s*<h2', raw, re.IGNORECASE | re.DOTALL)
+    if between:
+        between_html = between.group(1).strip()
+        between_text = strip_tags(between_html)
+        between_text = html_module.unescape(between_text).strip()
+        if not between_text or not between_text.replace('\xa0', ' ').strip():
+            return True
+    # Only first h2 then empty tags (e.g. <h2>Eligibility</h2><p>&nbsp;</p>), or last section (e.g. Conclusion) with no content after its h2
+    after_first_h2 = re.sub(r'^.*?</h2>\s*', '', raw, flags=re.IGNORECASE | re.DOTALL)
+    after_text = strip_tags(after_first_h2)
+    after_text = html_module.unescape(after_text).strip()
+    if not after_text or not after_text.replace('\xa0', ' ').strip():
+        return True
+    return False
+
+
+class AccordionErrorsFilter(admin.SimpleListFilter):
+    """Filter vocational courses by accordion validation (uses last validation result from session)."""
+    title = 'Accordion'
+    parameter_name = 'accordion'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('', 'All'),
+            ('1', 'With accordion errors'),
+            ('0', 'No errors'),
+        )
+
+    def queryset(self, request, queryset):
+        error_pks = request.session.get('vocational_accordion_errors') or []
+        if self.value() == '1':
+            return queryset.filter(pk__in=error_pks) if error_pks else queryset.none()
+        if self.value() == '0':
+            return queryset.exclude(pk__in=error_pks)
+        return queryset
+
+
+def _vocational_accordion_blank_sections(course):
+    """Return list of section names that are blank (same logic as frontend accordion). Includes Overview from content_json."""
+    import re
+    errors = []
+    data = getattr(course, 'content_json', None) or {}
+    # Check overview (hero section) for blank content
+    overview = data.get('overview')
+    if overview is None or _html_is_effectively_blank(str(overview).strip()):
+        errors.append('Overview: blank')
+    sections = data.get('sections') or {}
+    for heading in VOCATIONAL_ACCORDION_HEADINGS:
+        key = re.sub(r'[^a-z0-9]+', '_', heading.lower()).strip('_')
+        section = sections.get(key) if isinstance(sections, dict) else None
+        if section is None:
+            errors.append(f'{heading}: blank')
+            continue
+        if isinstance(section, str):
+            html = section
+        else:
+            html = (section.get('html') or section.get('content') or section.get('body') or '')
+        if _html_is_effectively_blank(html or ''):
+            errors.append(f'{heading}: blank')
+    return errors
+
+
 @admin.register(VocationalCourse)
 class VocationalCourseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category", "priority", "object_status", "preview_link", "image")
-    list_filter = ("object_status", "category")
+    list_display = ("id", "name", "accordion_validation", "category_name_safe", "priority", "object_status", "preview_link", "image_safe")
+    list_filter = (AccordionErrorsFilter, "object_status", "category")
     search_fields = ("name", "category__name")
     ordering = ("category__name", "priority", "name")
     fieldsets = (
@@ -413,7 +562,8 @@ class VocationalCourseAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("created", "modified")
     change_form_template = "admin/core/vocationalcourse/change_form.html"
-    
+    change_list_template = "admin/core/vocationalcourse/change_list.html"
+
     class Media:
         css = {
             'all': ('admin/css/hide_content_json.css',)
@@ -452,23 +602,75 @@ class VocationalCourseAdmin(admin.ModelAdmin):
         # Call parent save
         super().save_model(request, obj, form, change)
     
+    def category_name_safe(self, obj):
+        """Display category name without raising if category is missing."""
+        try:
+            return obj.category.name if obj.category_id and getattr(obj, 'category', None) else '-'
+        except Exception:
+            return '-'
+    category_name_safe.short_description = 'Category'
+    category_name_safe.admin_order_field = 'category__name'
+
+    def image_safe(self, obj):
+        """Display image indicator without raising."""
+        try:
+            return 'Yes' if obj.image else '-'
+        except Exception:
+            return '-'
+    image_safe.short_description = 'Image'
+
     def preview_link(self, obj):
         """Display preview link that opens frontend page in new tab"""
-        if obj.id:
-            try:
-                url = reverse("core:vocational_course_detail", kwargs={"pk": obj.pk})
-                return format_html(
-                    '<a href="{}" target="_blank" style="color: green; font-weight: 600; text-decoration: none;">🔍 View</a>',
-                    url,
-                )
-            except Exception as e:
-                return format_html(
-                    '<span style="color: red;">Error: {}</span>',
-                    str(e)
-                )
-        return '-'
+        if not obj or not getattr(obj, 'id', None):
+            return '-'
+        try:
+            url = reverse("core:vocational_course_detail", kwargs={"pk": obj.pk})
+            return format_html(
+                '<a href="{}" target="_blank" style="color: green; font-weight: 600; text-decoration: none;">🔍 View</a>',
+                url,
+            )
+        except Exception as e:
+            return format_html(
+                '<span style="color: red;">Error: {}</span>',
+                str(e)[:50]
+            )
     preview_link.short_description = 'Preview'
     preview_link.admin_order_field = 'name'
+
+    def accordion_validation(self, obj):
+        """Placeholder for validation result; filled by JS after 'Validate accordion' is run."""
+        if not obj or not getattr(obj, 'id', None):
+            return '—'
+        return format_html(
+            '<span class="accordion-validation" data-pk="{}" data-name="{}" title="">—</span>',
+            obj.pk,
+            obj.name[:50] if obj.name else '',
+        )
+    accordion_validation.short_description = 'Accordion'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                'validate_accordion/',
+                self.admin_site.admin_view(self.validate_accordion_view),
+                name='core_vocationalcourse_validate_accordion',
+            ),
+        ]
+        return custom + urls
+
+    def validate_accordion_view(self, request):
+        """Return JSON mapping course pk -> list of blank section error strings; store error PKs in session for sidebar filter."""
+        qs = self.get_queryset(request)
+        results = {}
+        error_pks = []
+        for course in qs:
+            errors = _vocational_accordion_blank_sections(course)
+            results[str(course.pk)] = errors
+            if errors:
+                error_pks.append(course.pk)
+        request.session['vocational_accordion_errors'] = error_pks
+        return JsonResponse({'results': results})
 
 
 class EbookAdminForm(forms.ModelForm):

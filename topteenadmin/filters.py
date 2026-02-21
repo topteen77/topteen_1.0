@@ -3,7 +3,7 @@ import django_filters
 from django.db.models import Count, Q
 from blog.models import Blog,BlogCategory,BlogTag
 from colleges.models import College,CollegeImages,CollegeFlatText,CollegeFacts,CollegeFacility, CollegeText,Facility,CollegeMoneyValue, RecruitingCompanies,CollegeRecruitingCompanies
-from core.models import CommonFAQ, Country, Review,State,City,Hobbies,Subject,UserFigureOut,Stories,APILog
+from core.models import CommonFAQ, Country, Review,State,City,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
 from core import choices
 from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, Profession,Skill,ProspectiveRecruiter,ProspectiveEmploymentArea,CareerCluster,CareerTags,CareerPathStep,VideoCategory,Videos
 from .base_filters import NamedBaseFilter,BaseFilter       
@@ -206,6 +206,30 @@ class CareerClusterFilter(NamedBaseFilter):
     class Meta:
         model = CareerCluster
         fields = ['name']
+
+
+class VocationalCourseCategoryFilter(NamedBaseFilter):
+    class Meta:
+        model = VocationalCourseCategory
+        fields = ['name']
+
+
+class VocationalCourseFilter(NamedBaseFilter):
+    class Meta:
+        model = VocationalCourse
+        fields = ['name', 'category']
+
+
+class ExtracurricularActivityCategoryFilter(NamedBaseFilter):
+    class Meta:
+        model = ExtracurricularActivityCategory
+        fields = ['name']
+
+
+class ExtracurricularActivityFilter(NamedBaseFilter):
+    class Meta:
+        model = ExtracurricularActivity
+        fields = ['name', 'category']
         
 class CityFilter(NamedBaseFilter):
     class Meta:

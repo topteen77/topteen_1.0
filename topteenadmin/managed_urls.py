@@ -85,6 +85,34 @@ urlpatterns = [
     path('careers/careerfaq/change/<pk>',views.CareerFAQUpdateView.as_view(),name="careerfaqedit"),
     path('careers/careerfaq/delete/<pk>',views.CareerFAQDeleteView.as_view(),name='careerfaqdelete'),
 
+    # Vocational Course Category CRUD
+    path('core/vocationalcoursecategory/list', views.VocationalCourseCategoryListView.as_view(), name="vocationalcoursecategorylist"),
+    path('core/vocationalcoursecategory/view/<pk>', views.VocationalCourseCategoryDetailView.as_view(), name='vocationalcoursecategorydetail'),
+    path('core/vocationalcoursecategory/add', views.CreateVocationalCourseCategory.as_view(), name="vocationalcoursecategorycreate"),
+    path('core/vocationalcoursecategory/change/<pk>', views.VocationalCourseCategoryUpdateView.as_view(), name="vocationalcoursecategoryedit"),
+    path('core/vocationalcoursecategory/delete/<pk>', views.VocationalCourseCategoryDeleteView.as_view(), name='vocationalcoursecategorydelete'),
+
+    # Vocational Course CRUD
+    path('core/vocationalcourse/list', views.VocationalCourseListView.as_view(), name="vocationalcourselist"),
+    path('core/vocationalcourse/view/<pk>', views.VocationalCourseDetailView.as_view(), name='vocationalcoursedetail'),
+    path('core/vocationalcourse/add', views.CreateVocationalCourse.as_view(), name="vocationalcoursecreate"),
+    path('core/vocationalcourse/change/<pk>', views.VocationalCourseUpdateView.as_view(), name="vocationalcourseedit"),
+    path('core/vocationalcourse/delete/<pk>', views.VocationalCourseDeleteView.as_view(), name='vocationalcoursedelete'),
+
+    # Extracurricular Activity Category CRUD
+    path('core/extracurricularactivitycategory/list', views.ExtracurricularActivityCategoryListView.as_view(), name="extracurricularactivitycategorylist"),
+    path('core/extracurricularactivitycategory/view/<pk>', views.ExtracurricularActivityCategoryDetailView.as_view(), name='extracurricularactivitycategorydetail'),
+    path('core/extracurricularactivitycategory/add', views.CreateExtracurricularActivityCategory.as_view(), name="extracurricularactivitycategorycreate"),
+    path('core/extracurricularactivitycategory/change/<pk>', views.ExtracurricularActivityCategoryUpdateView.as_view(), name="extracurricularactivitycategoryedit"),
+    path('core/extracurricularactivitycategory/delete/<pk>', views.ExtracurricularActivityCategoryDeleteView.as_view(), name='extracurricularactivitycategorydelete'),
+
+    # Extracurricular Activity CRUD
+    path('core/extracurricularactivity/list', views.ExtracurricularActivityListView.as_view(), name="extracurricularactivitylist"),
+    path('core/extracurricularactivity/view/<pk>', views.ExtracurricularActivityDetailView.as_view(), name='extracurricularactivitydetail'),
+    path('core/extracurricularactivity/add', views.CreateExtracurricularActivity.as_view(), name="extracurricularactivitycreate"),
+    path('core/extracurricularactivity/change/<pk>', views.ExtracurricularActivityUpdateView.as_view(), name="extracurricularactivityedit"),
+    path('core/extracurricularactivity/delete/<pk>', views.ExtracurricularActivityDeleteView.as_view(), name='extracurricularactivitydelete'),
+
     #category CRUD
     path('careers/videocategory/list',views.CategoryListView.as_view(),name="videocategorylist"),
     path('careers/videocategory/view/<pk>',views.CategoryDetailView.as_view(),name='videocategorydetail'),

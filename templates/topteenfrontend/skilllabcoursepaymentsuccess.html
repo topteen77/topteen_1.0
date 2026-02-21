@@ -117,6 +117,19 @@
                 <p class="text-lg font-bold boldFont">₹ {{skilllab_payment.amount}}</p>
               </li>
             </ul>
+            {% if payment and payment.gateway_payment_id %}
+            <div class="border-t border-[#e5e5e5] pt-4 mt-2 space-y-2">
+              <p class="text-sm text-[#4f4f4f]"><span class="font-semibold">Transaction ID:</span> <span class="text-[#333333]">{{ payment.gateway_payment_id }}</span></p>
+            </div>
+            {% endif %}
+            {% if invoice_id %}
+            <div class="mt-4 mb-3">
+              <a href="{{ url('users:invoice_download', args=[invoice_id]) }}" class="text-[#3f37c9] font-semibold text-sm underline inline-flex items-center gap-1" target="_blank" rel="noopener">
+                <i class='bx bx-download'></i> Download receipt (GST invoice)
+              </a>
+              <p class="text-xs text-[#4f4f4f] mt-1">This receipt is also available in your <a href="{{ url('users:userhistory') }}" class="text-[#3f37c9] underline">dashboard</a> under Payment History.</p>
+            </div>
+            {% endif %}
 
             <p class="text-xs text-[#4f4f4f] mb-[20px]">
               Reference site about Lorem Ipsum, giving information on its

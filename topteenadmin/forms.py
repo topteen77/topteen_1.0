@@ -12,7 +12,7 @@ from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTag
 from bs4 import BeautifulSoup
 from django.urls import reverse
 from colleges.models import College, CollegeFacts, CollegeFlatText, CollegeImages, CollegeText, Facility,RecruitingCompanies,CollegeRecruitingCompanies,CollegeFacility,CollegeMoneyValue
-from core.models import City, CommonFAQ, Country, Review,State,Hobbies,Subject,UserFigureOut,Stories,APILog
+from core.models import City, CommonFAQ, Country, Review,State,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
 from courses.models import (Stream,Course,CourseFacts,CourseIntake,CourseText,CourseMoneyValue,CourseEnglighRequirements)
 from entrance_exams.models import EntranceExam,ExamTags
 from skilllab.models import SkillLabCourse,SkillLabCourseActivity,SkillLabCourseChapter
@@ -238,7 +238,6 @@ class CareerModelForm(TranslationModelForm):
         # Frontend uses base fields (description, name, etc.) so hiding these won't affect output
         translation_fields_to_hide = [
             'name_en',
-            'summary_en', 
             'description_en',
             'role_description_en',
             'eligibility_en',
@@ -263,8 +262,6 @@ class CareerModelForm(TranslationModelForm):
             self.fields['eligibility'].label = 'Eligibility'
         if 'name' in self.fields:
             self.fields['name'].label = 'Name'
-        if 'summary' in self.fields:
-            self.fields['summary'].label = 'Summary'
         if 'pros_cons' in self.fields:
             self.fields['pros_cons'].label = 'Pros & Cons'
         if 'career_paths' in self.fields:
@@ -287,7 +284,7 @@ class CareerModelForm(TranslationModelForm):
         model = Career
         # Show all model fields to mirror Django Admin create/edit
         fields = '__all__'
-        exclude = ['description_json']
+        exclude = ['description_json', 'summary']
         
 
 class CareerClusterModelForm(TranslationModelForm):
@@ -517,6 +514,31 @@ class HobbiesModelForm(TranslationModelForm):
     class Meta:
         model = Hobbies
         fields = ['name','image']
+
+
+class VocationalCourseCategoryModelForm(TranslationModelForm):
+    class Meta:
+        model = VocationalCourseCategory
+        fields = ['name', 'parent', 'priority', 'image', 'object_status']
+
+
+class VocationalCourseModelForm(TranslationModelForm):
+    class Meta:
+        model = VocationalCourse
+        fields = ['category', 'name', 'image', 'priority', 'object_status']
+
+
+class ExtracurricularActivityCategoryModelForm(TranslationModelForm):
+    class Meta:
+        model = ExtracurricularActivityCategory
+        fields = ['name', 'icon_class', 'css_class', 'priority', 'image', 'object_status']
+
+
+class ExtracurricularActivityModelForm(TranslationModelForm):
+    class Meta:
+        model = ExtracurricularActivity
+        fields = ['category', 'name', 'image', 'url', 'priority', 'object_status']
+
 
 class SubjectModelForm(TranslationModelForm):
     class Meta:

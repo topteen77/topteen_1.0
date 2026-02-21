@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block description_content %}
-{{ career.summary if career.summary else career.name }}
+{{ career.display_summary if career.display_summary else career.name }}
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
@@ -26,10 +26,10 @@
         <div class="track-header">
           <h1 class="cat-title">{{ career.name }}</h1>
           
-          {% if career.summary %}
+          {% if career.display_summary %}
           <div class="blog-summary-box">
             <h3 class="blog-summary-title">Summary</h3>
-            <p class="blog-summary-text add-read-more show-less-content">{{ career.summary }}</p>
+            <p class="blog-summary-text add-read-more show-less-content">{{ career.display_summary }}</p>
           </div>
           {% endif %}
 
@@ -455,6 +455,33 @@
 {% block additionaljs %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
+  /* Read more/less for career summary */
+  .add-read-more.show-less-content .second-section,
+  .add-read-more.show-less-content .read-less {
+    display: none;
+  }
+  .add-read-more.show-more-content .read-more {
+    display: none;
+  }
+  .add-read-more.show-more-content .ellipsis {
+    display: none;
+  }
+  .add-read-more .read-more,
+  .add-read-more .read-less {
+    font-weight: bold;
+    margin-left: 2px;
+    color: #5046e5;
+    cursor: pointer;
+  }
+  .blog-summary-box .add-read-more {
+    overflow: visible;
+    display: block;
+  }
+  .blog-summary-box .add-read-more.show-more-content .first-section,
+  .blog-summary-box .add-read-more.show-more-content .second-section {
+    display: inline;
+  }
+
   /* Career Mindmap Styles */
   .career-mindmap-standalone {
     margin: 40px 0;
@@ -736,31 +763,39 @@
       });
     });
 
-    // Read more/less functionality
+    // Read more/less functionality - split at word boundary to avoid "emerg...encies" mid-word cut
     const readMoreElements = document.querySelectorAll('.add-read-more');
+    const READ_MORE_LIMIT = 200;
     readMoreElements.forEach(function(element) {
-      const text = element.textContent;
-      if (text.length > 200) {
-        const shortText = text.substring(0, 200) + '...';
-        const fullText = text;
-        element.innerHTML = '<span class="first-section">' + shortText + '</span><span class="second-section">' + fullText.substring(200) + '</span><span class="read-more">Read More</span><span class="read-less">Read Less</span>';
-        
-        const readMoreBtn = element.querySelector('.read-more');
-        const readLessBtn = element.querySelector('.read-less');
-        
-        if (readMoreBtn) {
-          readMoreBtn.addEventListener('click', function() {
-            element.classList.remove('show-less-content');
-            element.classList.add('show-more-content');
-          });
-        }
-        
-        if (readLessBtn) {
-          readLessBtn.addEventListener('click', function() {
-            element.classList.remove('show-more-content');
-            element.classList.add('show-less-content');
-          });
-        }
+      const text = (element.textContent || '').trim();
+      if (text.length <= READ_MORE_LIMIT) return;
+      // Split at last space before limit so we never cut a word in half
+      let splitAt = READ_MORE_LIMIT;
+      const lastSpace = text.lastIndexOf(' ', READ_MORE_LIMIT);
+      if (lastSpace > READ_MORE_LIMIT * 0.5) splitAt = lastSpace;
+      const firstPart = text.substring(0, splitAt);
+      const secondPart = text.substring(splitAt).trim();
+      function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+      element.innerHTML = '<span class="first-section">' + escapeHtml(firstPart) + ' <span class="ellipsis">...</span></span><span class="second-section"> ' + escapeHtml(secondPart) + '</span><span class="read-more">Read More</span><span class="read-less">Read Less</span>';
+
+      const readMoreBtn = element.querySelector('.read-more');
+      const readLessBtn = element.querySelector('.read-less');
+
+      if (readMoreBtn) {
+        readMoreBtn.addEventListener('click', function() {
+          element.classList.remove('show-less-content');
+          element.classList.add('show-more-content');
+        });
+      }
+      if (readLessBtn) {
+        readLessBtn.addEventListener('click', function() {
+          element.classList.remove('show-more-content');
+          element.classList.add('show-less-content');
+        });
       }
     });
 

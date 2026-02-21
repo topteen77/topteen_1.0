@@ -151,8 +151,8 @@
                 <div class="logo-header text-center my-4">
                   <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
                 </div>
-                <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">Enter your details</h2>
-                <p class="text-gray fs-15">Make a new doc to bring your word, data, and teams together. For free</p>
+                <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">{% if login_embed_heading %}{{ login_embed_heading }}{% else %}Enter your details{% endif %}</h2>
+                <p class="text-gray fs-15">{% if login_embed_subtitle %}{{ login_embed_subtitle }}{% else %}Sign in or create an account to access your dashboard and save your progress.{% endif %}</p>
                 
                 <div id="errorMsg" class="text-danger fs-12 mb-2" style="display: none;"></div>
                 <div id="errorMsgSinguplogin" class="text-danger fs-12 mb-2" style="display: none;"></div>

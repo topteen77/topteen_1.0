@@ -396,6 +396,17 @@ class LoginView(TemplateView):
                 # Store in session as fallback if client doesn't send next in login POST
                 request.session['login_next_url'] = next_url
         ctx['next_url'] = next_url
+        # When login is shown in an iframe (e.g. career swipe), show context-specific copy
+        if request.GET.get('embed') == '1':
+            if 'career_swipe' in (next_url or ''):
+                ctx['login_embed_heading'] = 'Sign in to save your careers'
+                ctx['login_embed_subtitle'] = 'Enter your email or mobile below. After you sign in, this window will close and your choices will be saved.'
+            else:
+                ctx['login_embed_heading'] = 'Sign in'
+                ctx['login_embed_subtitle'] = 'Enter your details below to continue.'
+        else:
+            ctx['login_embed_heading'] = None
+            ctx['login_embed_subtitle'] = None
         # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
         from .demo_accounts import get_demo_login_context
         ctx.update(get_demo_login_context(request))
@@ -1305,7 +1316,8 @@ class LoginSignUp(APIView):
                 print()
                 print(f"From Views",">"*30,username)
                 print()
-                # Create OTP synchronously first to ensure it's available immediately
+                # Create OTP and send immediately (same as Resend OTP) so SMS/email is received
+                # without depending on Celery worker; .delay() was causing first OTP to never send
                 cs = ComService()
                 otp = cs.get_otp(username, otp_type)
                 # Print OTP to terminal for debugging
@@ -1313,8 +1325,7 @@ class LoginSignUp(APIView):
                     print(f"Email OTP for {username}: {otp}")
                 else:
                     print(f"SMS OTP for {username}: {otp}")
-                # Then send email asynchronously
-                send_otp_mail.delay(username,otp_type)
+                send_otp_mail(username, otp_type)
                 
                 data['user_name']=username
                 data["show_otp"]=True

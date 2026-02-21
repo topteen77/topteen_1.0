@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:core_configuration_changelist' %}">Configuration</a>
+&rsaquo; Student ID Settings
+</div>
+{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 20px; color: #666;">Configure prefixes for student identifiers. Used on dashboard, header, and payment receipts. Changes take effect immediately.</p>
+
+<form method="post" id="student-id-settings-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <h2>Student ID configuration</h2>
+    <div class="form-row">
+      <div>
+        <label for="id_STUDENT_ID_PREFIX" style="font-weight: 600;">{{ form.STUDENT_ID_PREFIX.label }}</label>
+        {{ form.STUDENT_ID_PREFIX }}
+        {% if form.STUDENT_ID_PREFIX.help_text %}
+        <p class="help" style="margin: 5px 0 0 0; color: #666; font-size: 12px;">{{ form.STUDENT_ID_PREFIX.help_text }}</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="form-row" style="margin-top: 16px;">
+      <div>
+        <label for="id_SCHOOL_STUDENT_ID_PREFIX" style="font-weight: 600;">{{ form.SCHOOL_STUDENT_ID_PREFIX.label }}</label>
+        {{ form.SCHOOL_STUDENT_ID_PREFIX }}
+        {% if form.SCHOOL_STUDENT_ID_PREFIX.help_text %}
+        <p class="help" style="margin: 5px 0 0 0; color: #666; font-size: 12px;">{{ form.SCHOOL_STUDENT_ID_PREFIX.help_text }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </fieldset>
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save settings" class="default">
+    <a href="{% url 'admin:core_configuration_changelist' %}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

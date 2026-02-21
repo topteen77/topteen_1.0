@@ -72,7 +72,7 @@ def _blog_category_short(name):
 # Create your views here.
 class Blogs(TemplateView):
     template_name = "template20/blogs.html"
-    PAGE_SIZE=5
+    PAGE_SIZE = 6
     def html_head(self):
         name='Blog List'
         return build_html_head(title=name, description=name)
@@ -283,7 +283,7 @@ class ToggleBlogBookmark(APIView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 def category_filter(request,category_slug, *args, **kwargs):
-    page_size=5
+    page_size = 6
     category = get_object_or_404(BlogCategory,slug=category_slug)
     blog = Blog.get_published_objects().filter(category=category).order_by('-modified')
     categories = BlogCategory.objects.all()
@@ -310,7 +310,7 @@ def category_filter(request,category_slug, *args, **kwargs):
     return render(request,"template20/blogs.html",ctx)
 
 def blogtag_filter(request,tagslug, *args, **kwargs):
-    page_size=5
+    page_size = 6
     blogtag=get_object_or_404(BlogTag,slug=tagslug)
     blogs = Blog.get_published_objects().filter(tags=blogtag).order_by('-modified')
     latest_blogs =Blog.get_published_objects().order_by('-created')[:3]

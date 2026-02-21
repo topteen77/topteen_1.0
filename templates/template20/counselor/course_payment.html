@@ -196,7 +196,7 @@
         <h1 class="fs-28 fw-bold mb-4">Career Counseling Course</h1>
         
         <div class="card mb-4">
-          <img src="{{ static('images_new/general/career-counselling-banner.png') }}" 
+          <img src="{{ static('images/career-counselling-banner.png') }}" 
                class="course-banner-img" 
                alt="Career Counseling Course Banner"
                onerror="this.src='{{ static('images/career-icon.png') }}'">
@@ -246,25 +246,19 @@
       <!-- Sidebar - Desktop -->
       <div class="col-lg-4 d-none d-lg-block">
         <div class="price-card">
-          <div class="price-header">Book Now</div>
+          <div class="price-header">Course Overview</div>
           
-          <div class="price-section">
-            <div>
-              <span class="price-strike">₹2999/-</span>
-              <span class="price-current">₹ 999/-</span>
-            </div>
-          </div>
           
           <ul class="feature-list">
             <li class="feature-item">
               <img src="{{ static('images_new/icons/assessment-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
-              <span>Total Assessments - <strong>{{ part_count|default(10) }}</strong></span>
+              <span>Assessments - <strong>{{ part_count|default(10) }}</strong></span>
             </li>
             <li class="feature-item">
               <img src="{{ static('images_new/icons/chapter-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
-              <span>Number of Chapters - <strong>{{ chapter_count|default(15) }}</strong></span>
+              <span>Total Chapters - <strong>{{ chapter_count|default(15) }}</strong></span>
             </li>
-            <li class="feature-item">
+            <!-- <li class="feature-item">
               <img src="{{ static('images_new/icons/question-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
               <span>Number of Questions - <strong>{{ question_count|default(180) }}</strong></span>
             </li>
@@ -275,8 +269,15 @@
             <li class="feature-item">
               <img src="{{ static('images_new/icons/mobile-icon.png') }}" alt="icon" class="feature-icon" onerror="this.style.display='none'">
               <span>Access on Mobile</span>
-            </li>
+            </li> -->
           </ul>
+
+          <div class="price-section">
+            <div>
+              <span class="price-strike">₹2999/-</span>
+              <span class="price-current">₹ 999/-</span>
+            </div>
+          </div>
           
           <div class="text-center mt-4">
             {% if user_authenticated %}
@@ -285,7 +286,7 @@
             </button>
             {% else %}
             <button id="rzp-button1" class="btn custom-button purple-button w-100">
-              <i class='bx bx-log-in me-2'></i> Login to Purchase
+              <i class='bx bx-calendar-check me-2'></i> Book Now
             </button>
             {% endif %}
           </div>
@@ -309,7 +310,7 @@
     <i class='bx bx-x'></i>
   </button>
   
-  <div class="price-header mb-4">Book Now</div>
+  <div class="price-header mb-4">Course Overview</div>
   
   <div class="price-section">
     <div>
@@ -348,7 +349,7 @@
     </button>
     {% else %}
     <button id="rzp-button-mobile" class="btn custom-button purple-button w-100">
-      <i class='bx bx-log-in me-2'></i> Login to Purchase
+      <i class='bx bx-calendar-check me-2'></i> Book Now
     </button>
     {% endif %}
   </div>
@@ -520,24 +521,23 @@
               allowEscapeKey: false,
               timer: 2000
             }).then(() => {
-              window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+              window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}";
             });
             return;
           }
           
-          // Show styled success message and redirect immediately
+          // Show styled success message and redirect to success page
           Swal.fire({
             title: 'Payment Successful!',
-            html: 'Your payment has been processed successfully.<br><small>Payment ID: ' + response.razorpay_payment_id + '</small><br><small>Redirecting to course...</small>',
+            html: 'Your payment has been processed successfully.<br><small>Redirecting...</small>',
             icon: 'success',
-            confirmButtonText: 'Continue to Course',
+            confirmButtonText: 'Continue',
             confirmButtonColor: '#5046e5',
             allowOutsideClick: false,
             allowEscapeKey: false,
             timer: 2000
           }).then(() => {
-            // Redirect to enrolled course page after successful payment
-            window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+            window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}";
           });
         } else {
           // Payment saved but verification failed
@@ -561,7 +561,7 @@
             confirmButtonColor: '#5046e5'
           }).then((result) => {
             if (result.isConfirmed) {
-              window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
+              window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}";
             }
           });
       });
@@ -581,9 +581,11 @@
     const isAlreadyPaid = errorDescription.toLowerCase().includes('already paid') || 
                           errorDescription.toLowerCase().includes('order is already paid');
     
-    // Show styled error message with SweetAlert
-      Swal.fire({
-        title: 'Payment Failed',
+    // Redirect to fail page (or course if already paid)
+    const failUrl = "{{ counselor_course_payment_fail_url|default('') }}";
+    const courseUrl = "{{ url('counselor:counselor_enrolled_course') }}";
+    Swal.fire({
+      title: 'Payment Failed',
       html: isAlreadyPaid 
         ? 'This payment order has already been processed.<br><small>Redirecting to course...</small>'
         : (errorDescription || 'Your payment could not be processed. Please try again.'),
@@ -594,9 +596,11 @@
       allowOutsideClick: !isAlreadyPaid,
       allowEscapeKey: !isAlreadyPaid
     }).then((result) => {
-      if (isAlreadyPaid || result.isConfirmed) {
-        window.location.href = "{{ url('counselor:counselor_enrolled_course') }}";
-    }
+      if (isAlreadyPaid) {
+        window.location.href = courseUrl;
+      } else if (result.isConfirmed) {
+        window.location.href = failUrl || "{{ url('counselor:CounselorCoursepayment') }}";
+      }
     });
   });
   {% endif %}

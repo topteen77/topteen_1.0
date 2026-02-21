@@ -834,7 +834,20 @@ class SkilllabCoursePaymentSuccess(TemplateView):
         signobj=sign.unsign_object(enc_id)
         id=signobj.get('enc_id')
         ctx={}
-        ctx['skilllab_payment']=get_object_or_404(SkilllabCoursePayment,id=id)
+        skilllab_payment = get_object_or_404(SkilllabCoursePayment, id=id)
+        ctx['skilllab_payment'] = skilllab_payment
+        # Payment record for order id, transaction id and invoice/receipt
+        payment = Payment.objects.filter(
+            user=request.user,
+            obj_id=skilllab_payment.id,
+            obj_type=choices.PaymentObjectType.SKILLLABCOURSE,
+            is_success=choices.YesNoChoices.YES,
+        ).order_by('-created').first()
+        ctx['payment'] = payment
+        try:
+            ctx['invoice_id'] = payment.invoice.id if payment else None
+        except Exception:
+            ctx['invoice_id'] = None
         ctx["html_head"] = self.html_head()
         return ctx
 

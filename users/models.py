@@ -254,18 +254,23 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
         name_val = (self.name or "").strip()
         if not name_val or name_val == "Student":
-            self.name = (self.email or self.mobile or "").strip()
+            # str() so mobile (int) from signup doesn't break .strip()
+            self.name = str(self.email or self.mobile or "").strip()
             if self.name:
                 self.save(update_fields=["name"])
         if not self.image:
-            self._grab_avatar()
+            try:
+                self._grab_avatar()
+            except Exception:
+                # Don't fail user save if avatar fetch fails (network/timeout)
+                pass
 
     def _grab_avatar(self):
         colors_lst=['00AA55','1BA39C','03A678','00AA00','26A65B','00A566','4183D7','3477DB','007FAA',\
             '3455DB','0000E0','0000B5','E26A6A','B381B3','E26A6A','BF6EE0','FF00FF','BF55EC','D252B2',\
             '9370DB','D25299','D25852','D2527F','E73C70','F62459','E000E0','AA8F00','AA8F00','D47500',\
             'FF4500','E63022','E76E3C','EF4836','FF0000','DC143C']
-        url="https://ui-avatars.com/api/?name={}&background={}&color=FFF&font-size=0.55&bold=True&size=256".format(self.name,random.choice(colors_lst))
+        url="https://ui-avatars.com/api/?name={}&background={}&color=FFF&font-size=0.55&bold=True&size=256".format(self.name or "User", random.choice(colors_lst))
         # image_content = ContentFile(requests.get(url).content)
         r = requests.get(url,timeout=5)
 
@@ -290,6 +295,41 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
     
     def get_institute_status(self):
         return self.user_type==choices.InstituteStatus.APPROVED
+
+    def get_student_display_id(self):
+        """Unique display ID for students (e.g. STU000123). Prefix from Configuration STUDENT_ID_PREFIX."""
+        if self.user_type != choices.UserType.STUDENT:
+            return None
+        from core.models import Configuration
+        prefix = (Configuration.get('STUDENT_ID_PREFIX', 'STU', editable=True) or 'STU').strip() or 'STU'
+        return "{}{}".format(prefix, str(self.id).zfill(6))
+
+    def get_display_student_id(self):
+        """For school students: school ID (e.g. SCH/TT001919). Otherwise: direct student ID from get_student_display_id()."""
+        # #region agent log
+        import json
+        import time as _time
+        _log_path = "/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug.log"
+        # #endregion
+        if self.user_type != choices.UserType.STUDENT:
+            out = None
+            is_school = False
+        else:
+            from institute.models import StudentManagement
+            sm = StudentManagement.objects.filter(student=self).first()
+            is_school = sm is not None
+            if is_school:
+                out = sm.get_school_student_id()
+            else:
+                out = self.get_student_display_id()
+        # #region agent log
+        try:
+            with open(_log_path, "a") as _f:
+                _f.write(json.dumps({"hypothesisId": "H1", "location": "users/models.py:get_display_student_id", "message": "display_student_id", "data": {"user_id": self.id, "is_school_student": is_school, "display_id": out}, "timestamp": round(_time.time() * 1000)}) + "\n")
+        except Exception:
+            pass
+        # #endregion
+        return out
 
 class UserSearchHistory(BaseModel):
     user=models.ForeignKey(User,blank=True,null=True,on_delete=models.SET_NULL)

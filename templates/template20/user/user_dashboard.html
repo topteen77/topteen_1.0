@@ -98,7 +98,9 @@
             </div>
             <div class="d-flex flex-column">
               <p class="fs-15 fw-semibold mb-1">{{ profile_user.name|default(profile_user.username) }}</p>
-              
+              {% if profile_user.user_type == 1 and profile_user.get_display_student_id() %}
+              <p class="fs-11 text-gray mb-1">Student ID: <strong>{{ profile_user.get_display_student_id() }}</strong></p>
+              {% endif %}
               <div class="d-flex flex-column gap-1">
                 <div class="d-flex align-items-center gap-1">
                   <i class='bx bx-time-five fs-12 text-gray'></i>
