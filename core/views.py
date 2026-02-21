@@ -63,10 +63,6 @@ class Home(TemplateView):
         ctx['blogs'] = Blog.get_published_objects().all()
         ctx['colleges'] = College.get_all_colleges()
         ctx['careers'] = Career.get_all_careers()
-        try:
-            print(f"[HOME] Published careers count: {ctx['careers'].count()}")
-        except Exception:
-            pass
         ctx['videos'] = Videos.objects.all().order_by('?')
         ctx['careers_video']=Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).exclude(Q(video_url=""))
         ctx['courses'] = Course.get_all_courses()
@@ -165,8 +161,6 @@ class Home(TemplateView):
         return ctx
         
     def get(self, request,*args, **kwargs):
-        print(f"[DEBUG] Rendering template: {self.template_name}")
-        print(f"[DEBUG] Template file exists: {os.path.exists(os.path.join(settings.BASE_DIR, 'templates', self.template_name))}")
         return render(request, self.template_name,self.get_context(request,args, kwargs))
 
 
@@ -234,10 +228,7 @@ def upload(request):
         form = ImageUploadModelForm(request.POST, request.FILES)
         if form.is_valid():
             obj=form.save()
-            print(obj)
-            # return HttpResponse(obj.upload.url)
             return HttpResponse(json.dumps({'success':True,'url':obj.upload.url}), content_type='application/json')
-        print(form.errors)
     return HttpResponse('')
 
 
@@ -1005,7 +996,6 @@ class FourPillarsAssessmentView(LoginRequiredMixin, TemplateView):
             f"profiles={profile_keys} source={source} scoring_bullets={scoring_bullets}"
         )
         logger.info(msg)
-        print(msg, flush=True)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -1173,15 +1163,13 @@ class SearchItems(TemplateView):
         try:
             careeritems=CareerDocumentFilter()
             ctx['car']=careeritems.get_career_list_context(request)
-        except Exception as e:
-            print(f"Elasticsearch not available for careers, using Django ORM fallback: {e}")
+        except Exception:
             ctx['car'] = {'careers': [], 'facets_filter': {'skill': [], 'profession': []}, 'shortlisted_career_ids': []}
         
         try:
             examitems=EntranceExamDocumentFilter()
             ctx['exm']=examitems.get_entrance_exam_list_context(request)
-        except Exception as e:
-            print(f"Elasticsearch not available for exams, using Django ORM fallback: {e}")
+        except Exception:
             ctx['exm'] = {'exams': [], 'facets_filter': {}}
         
         ctx['videoscount']=Videos.objects.all().count()

@@ -923,7 +923,7 @@ Interactive mind map for {{ career.name }}
       setTimeout(() => {
           applyXMindStyling();
           xmindCenterFocusedNode();
-      }, 200);
+      }, 250);
   }
 
   function xmindBackToParent() {
@@ -958,16 +958,21 @@ Interactive mind map for {{ career.name }}
       if (!xmindFocusedNode) return;
       const container = getMindmapContainer();
       const focusedNodeElement = document.querySelector(`#xmind_container jmnode[nodeid="${xmindFocusedNode.id}"]`);
-      if (container && focusedNodeElement) {
-          setTimeout(() => {
-              const containerRect = container.getBoundingClientRect();
-              const nodeRect = focusedNodeElement.getBoundingClientRect();
-              const scrollLeft = nodeRect.left - containerRect.left - (containerRect.width / 2) + (nodeRect.width / 2);
-              const scrollTop = nodeRect.top - containerRect.top - (containerRect.height / 2) + (nodeRect.height / 2);
-              container.scrollLeft = Math.max(0, scrollLeft);
-              container.scrollTop = Math.max(0, scrollTop);
-          }, 100);
+      if (!container || !focusedNodeElement) return;
+      // Wait for layout after display changes (e.g. after "Back to parent") then center
+      function doCenter() {
+          const containerRect = container.getBoundingClientRect();
+          const nodeRect = focusedNodeElement.getBoundingClientRect();
+          const deltaLeft = nodeRect.left - containerRect.left - (containerRect.width / 2) + (nodeRect.width / 2);
+          const deltaTop = nodeRect.top - containerRect.top - (containerRect.height / 2) + (nodeRect.height / 2);
+          container.scrollLeft = Math.max(0, container.scrollLeft + deltaLeft);
+          container.scrollTop = Math.max(0, container.scrollTop + deltaTop);
       }
+      requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+              doCenter();
+          });
+      });
   }
 
   function xmindSetupDragToPan() {
