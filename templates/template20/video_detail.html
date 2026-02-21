@@ -58,6 +58,11 @@
 color: #6b3df0 !important;
 
 }
+
+.video-description {
+  -webkit-line-clamp: inherit;
+
+}
   
 </style>
 
@@ -80,7 +85,7 @@ color: #6b3df0 !important;
         </h1>
         <div class="video-meta mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3 lh-sm">
           <div>
-            <span class="text-gray fs-14">
+            <span class="text-gray fs-14 d-md-block d-none">
               <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
             </span>
             {% if video.category.all() %}
