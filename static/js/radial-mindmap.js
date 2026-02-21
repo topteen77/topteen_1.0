@@ -72,21 +72,21 @@
   }
 
   /**
-   * Hover zoom: scale up circle on hover; restore size when cursor leaves.
-   * Bring group to front (not circle/text out of group) so mouseleave fires correctly.
+   * Hover zoom: scale up node group on hover for readability.
    */
-  function addHoverZoom(svg, group, circle, textEl, baseRadius, scale, strokeRestore) {
-    const scaleFactor = scale || 1.2;
-    const stroke = strokeRestore != null ? String(strokeRestore) : '3';
+  function addHoverZoom(svg, group, circle, textEl, baseRadius, scale) {
+    const scaleFactor = scale || 1.35;
     group.addEventListener('mouseenter', function () {
-      svg.appendChild(group);
-      circle.setAttribute('r', baseRadius * scaleFactor);
-      const sw = parseFloat(circle.getAttribute('stroke-width') || stroke);
-      circle.setAttribute('stroke-width', Math.max(sw + 1, 2));
+      bringToFront(svg, circle, textEl);
+      const r = parseFloat(circle.getAttribute('r'));
+      circle.setAttribute('r', r * scaleFactor);
+      const sw = circle.getAttribute('stroke-width') || '3';
+      circle.setAttribute('stroke-width', Math.max(4, parseFloat(sw) + 1));
     });
     group.addEventListener('mouseleave', function () {
-      circle.setAttribute('r', baseRadius);
-      circle.setAttribute('stroke-width', stroke);
+      const r = parseFloat(circle.getAttribute('r'));
+      circle.setAttribute('r', r / scaleFactor);
+      circle.setAttribute('stroke-width', '3');
     });
   }
 
@@ -241,8 +241,6 @@
           circle.setAttribute('fill', '#e8e8e8');
           circle.setAttribute('stroke', '#bbb');
           circle.setAttribute('stroke-width', '1.5');
-          circle.style.cursor = 'default';
-          circle.style.pointerEvents = 'none';
         }
         g.appendChild(circle);
 
@@ -270,7 +268,6 @@
           });
         }
         g.appendChild(textEl);
-        addHoverZoom(svg, g, circle, textEl, r, 1.2, hasChildren ? '2' : '1.5');
         svg.appendChild(g);
       });
     }
@@ -299,8 +296,6 @@
           childCircle.setAttribute('fill', 'hsl(' + (index * 360 / n) + ', 35%, 75%)');
           childCircle.setAttribute('stroke', '#ccc');
           childCircle.setAttribute('stroke-width', '2');
-          childCircle.style.cursor = 'default';
-          childCircle.style.pointerEvents = 'none';
         } else {
           childCircle.setAttribute('fill', 'hsl(' + (index * 360 / n) + ', 70%, 60%)');
           childCircle.setAttribute('stroke', 'white');
@@ -337,7 +332,7 @@
           });
         }
         g.appendChild(childText);
-        addHoverZoom(svg, g, childCircle, childText, childRadius, 1.2, isChildLeaf ? '2' : '3');
+        if (!isChildLeaf) addHoverZoom(svg, g, childCircle, childText, childRadius);
         svg.appendChild(g);
       });
     }
@@ -365,17 +360,17 @@
         e.stopPropagation();
         if (options.onNodeClick) options.onNodeClick(parentNode, { type: 'center', goToParent: true });
       });
+      centerCircle.addEventListener('mouseenter', function () {
+        svg.appendChild(centerCircle);
+        svg.appendChild(centerText);
+        centerCircle.setAttribute('r', finalCenterRadius + 10);
+        centerCircle.setAttribute('stroke-width', '6');
+      });
+      centerCircle.addEventListener('mouseleave', function () {
+        centerCircle.setAttribute('r', finalCenterRadius);
+        centerCircle.setAttribute('stroke-width', '5');
+      });
     }
-    centerCircle.addEventListener('mouseenter', function () {
-      svg.appendChild(centerCircle);
-      svg.appendChild(centerText);
-      centerCircle.setAttribute('r', finalCenterRadius * 1.15);
-      centerCircle.setAttribute('stroke-width', '6');
-    });
-    centerCircle.addEventListener('mouseleave', function () {
-      centerCircle.setAttribute('r', finalCenterRadius);
-      centerCircle.setAttribute('stroke-width', '5');
-    });
     svg.appendChild(centerCircle);
 
     const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -470,24 +465,12 @@
     const controlsEl = options.controlsId ? document.getElementById(options.controlsId) : null;
     if (!container || !svg) return;
 
-    function filterOverviewNodes(node) {
-      if (!node || !node.children) return node;
-      node.children = node.children.filter(function (c) {
-        var t = (c.topic || c.title || '').toString().toLowerCase().trim();
-        if (/^overview$/.test(t) || /^career\s+overview$/.test(t)) return false;
-        filterOverviewNodes(c);
-        return true;
-      });
-      return node;
-    }
-
     function onData(data) {
       if (!data || data.available === false) {
         if (loadingEl) loadingEl.style.display = 'none';
         return;
       }
       const rootNode = data.data;
-      filterOverviewNodes(rootNode);
       const nodeMap = {};
       buildNodeMap(rootNode, null, nodeMap);
       const initialCenter = options.initialCenter || rootNode;
