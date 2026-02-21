@@ -39,7 +39,6 @@ class Careers(TemplateView):
     def get_context(self, request, *args, **kwargs):
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
-        
         try:
             docmentservice=CareerDocumentFilter()
             ctx=docmentservice.get_career_list_context(request)
@@ -60,7 +59,6 @@ class Careers(TemplateView):
             if 'professions_with_counts' not in ctx:
                 ctx['professions_with_counts'] = []
         except Exception as e:
-            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
             ctx = self.get_fallback_context(request)
 
         # Parent -> Student context (parent bookmarking careers for a specific linked student)
@@ -119,7 +117,6 @@ class Careers(TemplateView):
         
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
-        
         from django.db.models import Prefetch
         # Optimize prefetch_related to avoid N+1 queries in template
         # Prefetch career_cluster with only active clusters to reduce data transfer
@@ -174,7 +171,6 @@ class Careers(TemplateView):
             careers_page = paginator.page(1)
         except EmptyPage:
             careers_page = paginator.page(paginator.num_pages)
-        
         # Only load clusters that have active careers AND are active themselves
         clusters = CareerCluster.objects.filter(
             career_clusters__publish_status=1,
@@ -222,7 +218,6 @@ class Careers(TemplateView):
                 profession__name=prof.name
             ).distinct().count()
             profession_facets.append((prof.name, count, prof.name in selected_professions))
-        
         facets_filter = {
             "profession": profession_facets,
         }
@@ -246,7 +241,6 @@ class Careers(TemplateView):
                 'cluster': cluster,
                 'count': count
             })
-        
         # Add counts to professions for display
         professions_with_counts = []
         for prof in professions:
@@ -258,7 +252,6 @@ class Careers(TemplateView):
                 'profession': prof,
                 'count': count
             })
-        
         # Pre-process careers to convert ManyRelatedManager to list for template compatibility
         # This prevents the "object of type 'ManyRelatedManager' has no len()" error
         for career in careers_page:
@@ -1471,7 +1464,6 @@ class CareerTagFilter(TemplateView):
             docmentservice=CareerDocumentFilter()
             ctx=docmentservice.get_career_list_context(request,tagslug)
         except Exception as e:
-            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
             ctx = self.get_fallback_context(request, tagslug)
         
         if request.GET.getlist('professions') or request.GET.getlist('skills') or request.GET.getlist('courses'):
