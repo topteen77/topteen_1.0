@@ -1,5 +1,4 @@
 from re import T
-import logging
 from requests import request
 from colleges.document_filters import CollegeDocumentFilter
 from colleges.views import is_ajax
@@ -47,11 +46,13 @@ class CareerDocumentFilter:
     def get_career_list_context(self,request,tagslug=None):
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
+        
         ctx={}
         search_results=SearchResults(self.get_elasticsearch_document_career_all(request,tagslug))
         paginator = Paginator(search_results,15)  # Show 25 contacts per page.
         page_number = request_data.get('page')
         page_obj = paginator.get_page(page_number)
+        
         # Enrich Elasticsearch results with Django model data for images and clusters
         from .models import Career, CareerCluster
         enriched_careers = []
@@ -235,7 +236,9 @@ class CareerDocumentFilter:
                         career_doc._career_cluster_list = []
             except Exception as e:
                 # If enrichment fails, continue with original document
-                logging.getLogger(__name__).debug("Error enriching career %s: %s", getattr(career_doc, 'id', 'unknown'), e, exc_info=True)
+                import traceback
+                print(f"Error enriching career {getattr(career_doc, 'id', 'unknown')}: {e}")
+                print(traceback.format_exc())
                 career_doc._django_instance = None
                 career_doc._image_url = None
                 career_doc._career_cluster_list = []
@@ -246,7 +249,9 @@ class CareerDocumentFilter:
         from django.core.paginator import Page
         enriched_page = Page(enriched_careers, page_obj.number, page_obj.paginator)
         ctx['careers']=enriched_page
+        
         ctx['facets_filter']=self.get_facets_filter(request,tagslug)
+        
         # Add clusters and professions to context for filters
         from .models import CareerCluster, Profession, Career
         clusters = CareerCluster.objects.filter(
@@ -270,6 +275,7 @@ class CareerDocumentFilter:
         
         ctx['clusters'] = [item['cluster'] for item in clusters_with_counts]
         ctx['clusters_with_counts'] = clusters_with_counts
+        
         ctx['professions'] = Profession.objects.filter(
             career__publish_status=1,
             object_status=1

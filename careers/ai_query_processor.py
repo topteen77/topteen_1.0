@@ -645,6 +645,15 @@ Only return valid JSON, no other text."""
         keywords = criteria.get('keywords', [])
         interests = criteria.get('interests', [])
         
+        if show_breakdown:
+            print("\n" + "="*80)
+            print("RELEVANCY SCORING BREAKDOWN")
+            print("="*80)
+            print(f"Query: {query_lower}")
+            print(f"Keywords: {keywords}")
+            print(f"Interests: {interests}")
+            print("-"*80)
+        
         for career in careers:
             score = 0
             score_breakdown = {
@@ -728,6 +737,25 @@ Only return valid JSON, no other text."""
         
         # Sort by score (descending)
         scored.sort(key=lambda x: x[0], reverse=True)
+        
+        # Print scoring details only if show_breakdown is True
+        if show_breakdown:
+            print(f"\nTotal careers scored: {len(scored)}")
+            print(f"Top 5 most relevant:\n")
+            for rank, (score, career, breakdown) in enumerate(scored[:5], 1):
+                print(f"{rank}. {career.name}")
+                print(f"   Total Score: {score}")
+                print(f"   Breakdown:")
+                print(f"     - Name Match: {breakdown['name_match']}")
+                print(f"     - Summary Match: {breakdown['summary_match']}")
+                print(f"     - Cluster Match: {breakdown['cluster_match']}")
+                print(f"     - Skill Match: {breakdown['skill_match']}")
+                print(f"     - Profession Match: {breakdown['profession_match']}")
+                print(f"     - Query Word Boost: {breakdown['query_word_boost']}")
+                print(f"     - Salary Boost: {breakdown['salary_boost']}")
+                print()
+            
+            print("="*80 + "\n")
         
         # Return careers only
         return [career for score, career, breakdown in scored]
