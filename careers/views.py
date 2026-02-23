@@ -116,11 +116,11 @@ class Careers(TemplateView):
         from django.core.paginator import Paginator
         from .models import Career, CareerCluster, CareerTags, Skill, ProspectiveEmploymentArea, ProspectiveRecruiter, Profession
         from courses.models import Course
-        
+        from django.db.models import Count, Prefetch
+
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
         
-        from django.db.models import Prefetch
         # Optimize prefetch_related to avoid N+1 queries in template
         # Prefetch career_cluster with only active clusters to reduce data transfer
         careers = Career.objects.filter(publish_status=1).select_related().prefetch_related(
@@ -175,58 +175,64 @@ class Careers(TemplateView):
         except EmptyPage:
             careers_page = paginator.page(paginator.num_pages)
         
-        # Only load clusters that have active careers AND are active themselves
-        clusters = CareerCluster.objects.filter(
+        # Clusters with counts in one query (avoid N+1)
+        clusters_list = list(CareerCluster.objects.filter(
             career_clusters__publish_status=1,
-            object_status=1  # Only active clusters
-        ).distinct().order_by('name')
-        
-        # Only load professions that have active careers AND are active themselves
-        professions = Profession.objects.filter(
-            career__publish_status=1,
-            object_status=1  # Only active professions
-        ).distinct().order_by('name')[:100]  # Limit to 100 for performance
-        
+            object_status=1
+        ).annotate(
+            career_count=Count('career_clusters', distinct=True)
+        ).filter(career_count__gt=0).distinct().order_by('name'))
+        clusters = clusters_list
+        clusters_with_counts = [{'cluster': c, 'count': c.career_count} for c in clusters_list]
+
+        # Profession counts by name in one query (Profession has FK to Career; count distinct careers per name)
+        profession_name_to_count = dict(
+            Profession.objects.filter(
+                career__publish_status=1,
+                object_status=1
+            ).values('name').annotate(c=Count('career', distinct=True)).filter(c__gt=0).order_by('name').values_list('name', 'c')
+        )
+        profession_names_ordered = list(profession_name_to_count.keys())[:100]
+        # One Profession instance per name for template (any row per name)
+        profession_by_name = {p.name: p for p in Profession.objects.filter(
+            name__in=profession_names_ordered,
+            object_status=1
+        )}
+        professions_list = [profession_by_name[n] for n in profession_names_ordered if n in profession_by_name]
+        professions = professions_list
+        professions_with_counts = [{'profession': p, 'count': profession_name_to_count.get(p.name, 0)} for p in professions_list]
+
+        # Facets: same counts, first 30; filter by cluster when selected
+        if selected_clusters:
+            facet_names = list(
+                Profession.objects.filter(
+                    career__publish_status=1,
+                    career__career_cluster__id__in=selected_clusters,
+                    object_status=1
+                ).values_list('name', flat=True).distinct().order_by('name')[:30]
+            )
+        else:
+            facet_names = profession_names_ordered[:30]
+        profession_facets = [
+            (name, profession_name_to_count.get(name, 0), name in selected_professions)
+            for name in facet_names
+        ]
+        facets_filter = {
+            "profession": profession_facets,
+        }
+
         # Only load skills that have active careers AND are active themselves
         skills = Skill.objects.filter(
             career__publish_status=1,
             object_status=1  # Only active skills
         ).distinct().order_by('priority', 'name')[:200]  # Limit to 200 for performance
-        
+
         # Other models - only load if needed, limit results
         tags = CareerTags.objects.all()[:50]  # Limit tags
         employment_areas = ProspectiveEmploymentArea.objects.all()[:50]
         recruiters = ProspectiveRecruiter.objects.all()[:50]
         courses = Course.objects.all()[:50]
-        
-        # Filter professions based on selected clusters (only if clusters selected)
-        filtered_professions = professions
-        if selected_clusters:
-            # Get professions from careers in selected clusters - optimized query
-            profession_ids = Career.objects.filter(
-                career_cluster__id__in=selected_clusters,
-                publish_status=1,
-                profession__isnull=False
-            ).values_list('profession__id', flat=True).distinct()
-            
-            filtered_professions = Profession.objects.filter(
-                id__in=profession_ids,
-                object_status=1  # Only active professions
-            ).distinct().order_by("name")[:100]
-        
-        # Create facets_filter with profession counts only (skills filter removed)
-        profession_facets = []
-        for prof in filtered_professions[:30]:
-            count = Career.objects.filter(
-                publish_status=1,
-                profession__name=prof.name
-            ).distinct().count()
-            profession_facets.append((prof.name, count, prof.name in selected_professions))
-        
-        facets_filter = {
-            "profession": profession_facets,
-        }
-        
+
         # Get shortlisted career IDs for authenticated users
         shortlisted_career_ids = []
         if request.user.is_authenticated:
@@ -234,30 +240,6 @@ class Careers(TemplateView):
             shortlisted_career_ids = list(CareerShortlist.objects.filter(
                 user=request.user
             ).values_list('career_id', flat=True))
-        
-        # Add counts to clusters for display
-        clusters_with_counts = []
-        for cluster in clusters:
-            count = Career.objects.filter(
-                publish_status=1,
-                career_cluster__id=cluster.id
-            ).distinct().count()
-            clusters_with_counts.append({
-                'cluster': cluster,
-                'count': count
-            })
-        
-        # Add counts to professions for display
-        professions_with_counts = []
-        for prof in professions:
-            count = Career.objects.filter(
-                publish_status=1,
-                profession__name=prof.name
-            ).distinct().count()
-            professions_with_counts.append({
-                'profession': prof,
-                'count': count
-            })
         
         # Pre-process careers to convert ManyRelatedManager to list for template compatibility
         # This prevents the "object of type 'ManyRelatedManager' has no len()" error

@@ -49,67 +49,70 @@ class CareerDocumentFilter:
         
         ctx={}
         search_results=SearchResults(self.get_elasticsearch_document_career_all(request,tagslug))
-        paginator = Paginator(search_results,15)  # Show 25 contacts per page.
+        paginator = Paginator(search_results, 15)
         page_number = request_data.get('page')
         page_obj = paginator.get_page(page_number)
         
         # Enrich Elasticsearch results with Django model data for images and clusters
         from .models import Career, CareerCluster
+        from django.db.models import Q as DjangoQ
         enriched_careers = []
-        # Convert page_obj to list to ensure we can modify items
         page_obj_list = list(page_obj)
+        
+        # Collect all doc ids and slugs for batch fetch (avoid N+1)
+        doc_ids = set()
+        doc_slugs = set()
+        doc_meta = []  # (career_doc, doc_id, doc_slug)
         for career_doc in page_obj_list:
+            doc_id = None
+            doc_slug = None
             try:
-                # First, ensure we can access id and slug from ES document
-                # Elasticsearch documents should have these fields directly
-                doc_id = None
-                doc_slug = None
-                
-                # Try to get id from various possible locations
-                try:
-                    if hasattr(career_doc, 'id'):
-                        doc_id = getattr(career_doc, 'id', None)
-                    if not doc_id and hasattr(career_doc, 'meta'):
-                        try:
-                            doc_id = getattr(career_doc.meta, 'id', None)
-                        except:
-                            pass
-                    if not doc_id and hasattr(career_doc, '_id'):
-                        doc_id = getattr(career_doc, '_id', None)
-                except:
-                    pass
-                
-                # Try to get slug from various possible locations
-                try:
-                    if hasattr(career_doc, 'slug'):
-                        doc_slug = getattr(career_doc, 'slug', None)
-                except:
-                    pass
-                
-                # Now try to get Django model instance using the id
-                # ALWAYS try to get Django model - it's the source of truth for slug/id
-                career_obj = None
-                if doc_id:
+                if hasattr(career_doc, 'id'):
+                    doc_id = getattr(career_doc, 'id', None)
+                if not doc_id and hasattr(career_doc, 'meta'):
                     try:
-                        # Try to convert to int if it's a string
-                        career_id = int(doc_id) if isinstance(doc_id, str) and doc_id.isdigit() else doc_id
-                        career_obj = Career.objects.filter(id=career_id).first()
+                        doc_id = getattr(career_doc.meta, 'id', None)
+                    except Exception:
+                        pass
+                if not doc_id and hasattr(career_doc, '_id'):
+                    doc_id = getattr(career_doc, '_id', None)
+                if hasattr(career_doc, 'slug'):
+                    doc_slug = getattr(career_doc, 'slug', None)
+            except Exception:
+                pass
+            doc_meta.append((career_doc, doc_id, doc_slug))
+            if doc_id is not None:
+                try:
+                    doc_ids.add(int(doc_id) if isinstance(doc_id, str) and doc_id.isdigit() else doc_id)
+                except (ValueError, TypeError):
+                    pass
+            if doc_slug:
+                doc_slugs.add(doc_slug)
+        
+        # Single batch query for all careers on this page with prefetched career_cluster
+        career_by_id = {}
+        career_by_slug = {}
+        if doc_ids or doc_slugs:
+            careers_qs = Career.objects.filter(
+                DjangoQ(id__in=doc_ids) | DjangoQ(slug__in=doc_slugs)
+            ).prefetch_related('career_cluster')
+            for c in careers_qs:
+                career_by_id[c.id] = c
+                career_by_slug[c.slug] = c
+        
+        for career_doc, doc_id, doc_slug in doc_meta:
+            try:
+                career_id_int = None
+                if doc_id is not None:
+                    try:
+                        career_id_int = int(doc_id) if isinstance(doc_id, str) and doc_id.isdigit() else doc_id
                     except (ValueError, TypeError):
                         pass
-                
-                # If we have slug but no model yet, try to get model by slug
+                career_obj = None
+                if career_id_int is not None:
+                    career_obj = career_by_id.get(career_id_int)
                 if not career_obj and doc_slug:
-                    try:
-                        career_obj = Career.objects.filter(slug=doc_slug, publish_status=1).first()
-                    except:
-                        pass
-                
-                # If we have slug but no model yet, try to get model by slug
-                if not career_obj and doc_slug:
-                    try:
-                        career_obj = Career.objects.filter(slug=doc_slug, publish_status=1).first()
-                    except:
-                        pass
+                    career_obj = career_by_slug.get(doc_slug)
                 
                 if career_obj:
                     # Use Django model instance - ensure slug and id are correct
@@ -130,10 +133,10 @@ class CareerDocumentFilter:
                         else:
                             career_doc._image_url = None
                     
-                    # Get cluster list from Django model
+                    # Cluster list already loaded via prefetch_related
                     try:
                         career_doc._career_cluster_list = list(career_obj.career_cluster.all())
-                    except:
+                    except Exception:
                         career_doc._career_cluster_list = []
                 else:
                     # No Django model found - use Elasticsearch document data
@@ -249,30 +252,18 @@ class CareerDocumentFilter:
         from django.core.paginator import Page
         enriched_page = Page(enriched_careers, page_obj.number, page_obj.paginator)
         ctx['careers']=enriched_page
-        
         ctx['facets_filter']=self.get_facets_filter(request,tagslug)
         
-        # Add clusters and professions to context for filters
+        # Add clusters and professions to context for filters (single query with annotate)
         from .models import CareerCluster, Profession, Career
-        clusters = CareerCluster.objects.filter(
+        from django.db.models import Count, Q as DjangoQ
+        clusters_qs = CareerCluster.objects.filter(
             career_clusters__publish_status=1,
             object_status=1
-        ).distinct().order_by('name')
-        
-        # Add clusters_with_counts - only include clusters that have careers
-        clusters_with_counts = []
-        for cluster in clusters:
-            count = Career.objects.filter(
-                publish_status=1,
-                career_cluster__id=cluster.id
-            ).distinct().count()
-            # Only include clusters with at least one career
-            if count > 0:
-                clusters_with_counts.append({
-                    'cluster': cluster,
-                    'count': count
-                })
-        
+        ).distinct().annotate(
+            career_count=Count('career_clusters', filter=DjangoQ(career_clusters__publish_status=1), distinct=True)
+        ).filter(career_count__gt=0).order_by('name')
+        clusters_with_counts = [{'cluster': c, 'count': c.career_count} for c in clusters_qs]
         ctx['clusters'] = [item['cluster'] for item in clusters_with_counts]
         ctx['clusters_with_counts'] = clusters_with_counts
         
@@ -296,13 +287,21 @@ class CareerDocumentFilter:
         
         return ctx
 
-    def get_facets_filter(self,request,tagslug=None):
-        facets_filter={}
-        d=self.get_filter_dict(request,tagslug)
-        bs=CareerFilterFacets(filters=d)
-        result=bs.execute()
-        facets_filter["skill"] =sorted(result.facets.skill,key=lambda obj:obj[0].capitalize())
-        facets_filter["profession"] =sorted(result.facets.profession,key=lambda obj:obj[0].capitalize())
+    def get_facets_filter(self, request, tagslug=None):
+        from django.core.cache import cache
+        d = self.get_filter_dict(request, tagslug)
+        cache_key = "careers_facets_filter_empty"
+        if not d and not tagslug:
+            facets_filter = cache.get(cache_key)
+            if facets_filter is not None:
+                return facets_filter
+        facets_filter = {}
+        bs = CareerFilterFacets(filters=d)
+        result = bs.execute()
+        facets_filter["skill"] = sorted(result.facets.skill, key=lambda obj: obj[0].capitalize())
+        facets_filter["profession"] = sorted(result.facets.profession, key=lambda obj: obj[0].capitalize())
+        if not d and not tagslug:
+            cache.set(cache_key, facets_filter, 300)
         return facets_filter
 
     def get_filter_dict(self,request,tagslug=None):
