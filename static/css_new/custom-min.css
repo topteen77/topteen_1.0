@@ -7539,12 +7539,15 @@ a:hover {
 
 
 .dropdown-content.tabs-auto-fit.country-menu {
-  width: 190px;
+  width:229px;
   /* left: 58.5%; */
   padding: 10px 9px;
 
 }
 
+.search-container.open.active .search-btn {
+	background: #eff3f6;
+}
 
 .dropdown-content.tabs-auto-fit.exam-menu {
   width: 176px;
@@ -8716,6 +8719,9 @@ a:hover {
 @media all and (max-width: 500px) {
   .testim .cont div p {
     line-height: 25px;
+  }
+  #google_translate_element {
+    text-align: center;
   }
 }
 
