@@ -268,6 +268,71 @@ class SkillLabCourseResume(BaseModel):
         return f"{self.user} - {self.skilllab_course.name} - section {self.last_section_index}"
 
 
+class SkillLabUserHighlight(BaseModel):
+    """User highlight on Skill Lab course content (section/section step)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllab_highlights')
+    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='user_highlights')
+    section_type = models.CharField(max_length=20)  # intro, worksheet, mcq
+    section_id = models.PositiveIntegerField()    # section id or chapter id (intro step) or activity id or mcq id
+    section_step = models.PositiveIntegerField(null=True, blank=True)  # for intro steps only
+    highlighted_text = models.TextField()
+    color = models.CharField(max_length=20, default='yellow')
+
+    class Meta:
+        verbose_name = 'Skill Lab User Highlight'
+        verbose_name_plural = 'Skill Lab User Highlights'
+        ordering = ['-created']
+        indexes = [
+            models.Index(fields=['user', 'skilllab_course', 'section_type', 'section_id']),
+        ]
+
+
+class SkillLabUserNote(BaseModel):
+    """User note on Skill Lab course content."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllab_notes')
+    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='user_notes')
+    section_type = models.CharField(max_length=20)
+    section_id = models.PositiveIntegerField()
+    section_step = models.PositiveIntegerField(null=True, blank=True)
+    name = models.CharField(max_length=255, blank=True, help_text="Note title or name")
+    note_text = models.TextField()
+    anchor_text = models.TextField(blank=True)  # optional selected text this note refers to
+
+    class Meta:
+        verbose_name = 'Skill Lab User Note'
+        verbose_name_plural = 'Skill Lab User Notes'
+        ordering = ['-created']
+        indexes = [
+            models.Index(fields=['user', 'skilllab_course', 'section_type', 'section_id']),
+        ]
+
+
+class SkillLabUserBookmark(BaseModel):
+    """User bookmark of a section in a Skill Lab course."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllab_bookmarks')
+    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='user_bookmarks')
+    section_type = models.CharField(max_length=20)
+    section_id = models.PositiveIntegerField()
+    section_step = models.PositiveIntegerField(null=True, blank=True)
+    section_title = models.CharField(max_length=255)
+    section_key = models.CharField(max_length=80, blank=True)  # e.g. intro_5_0, worksheet_10, mcq_3
+
+    class Meta:
+        verbose_name = 'Skill Lab User Bookmark'
+        verbose_name_plural = 'Skill Lab User Bookmarks'
+        unique_together = [('user', 'skilllab_course', 'section_key')]
+        ordering = ['-created']
+        indexes = [
+            models.Index(fields=['user', 'skilllab_course']),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.section_key:
+            step = self.section_step if self.section_step is not None else ''
+            self.section_key = '{}_{}_{}'.format(self.section_type, self.section_id, step)
+        super().save(*args, **kwargs)
+
+
 class SkilllabCoursePayment(BaseModel,BaseMoneyModel):
     skilllab_course = models.ForeignKey(SkillLabCourse,null=True,on_delete=models.SET_NULL,related_name="skilllabcourpayment")
     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="userskillabcourse")

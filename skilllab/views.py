@@ -3,7 +3,8 @@ from django.shortcuts import render
 from .models import (
     SkillLabCourse, SkillLabCourseActivity, SkillLabCourseChapter, SkillLabCourseProgress,
     SkillLabCourseProgressSummary, SkillLabCourseResume, SkillLabWorksheetProgress, SkillLabMCQAttempt,
-    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer, SkillLabChapterSection
+    SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer, SkillLabChapterSection,
+    SkillLabUserHighlight, SkillLabUserNote, SkillLabUserBookmark,
 )
 from django.views.generic import TemplateView,View
 from django.urls import reverse_lazy
@@ -440,6 +441,349 @@ class SkillLabMarkChapterCompleteView(APIView):
             defaults={'completed': True, 'completed_at': timezone.now()}
         )
         return Response({'success': True, 'completed': progress.completed})
+
+
+def _get_course_and_check_access(request, course_slug):
+    """Return (skilllab_course, None) or (None, error_response)."""
+    if not course_slug:
+        return None, Response({'success': False, 'error': 'course_slug required'}, status=status.HTTP_400_BAD_REQUEST)
+    skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
+    if not skilllab_course.is_user_vissible(request):
+        return None, Response({'success': False, 'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+    return skilllab_course, None
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabHighlightSaveView(APIView):
+    """POST: Save a highlight. course_slug, section_type, section_id, section_step (optional), highlighted_text, color (optional)."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        course_slug = data.get('course_slug') or request.POST.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = data.get('section_type') or request.POST.get('section_type')
+        section_id = data.get('section_id') or request.POST.get('section_id')
+        section_step = data.get('section_step')
+        highlighted_text = (data.get('highlighted_text') or request.POST.get('highlighted_text') or '').strip()
+        color = (data.get('color') or request.POST.get('color') or 'yellow').strip() or 'yellow'
+        if not section_type or not section_id or not highlighted_text:
+            return Response({'success': False, 'error': 'section_type, section_id, highlighted_text required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            section_id = int(section_id)
+            section_step = int(section_step) if section_step is not None and str(section_step).strip() != '' else None
+        except (TypeError, ValueError):
+            section_step = None
+        obj = SkillLabUserHighlight.objects.create(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            section_type=section_type,
+            section_id=section_id,
+            section_step=section_step,
+            highlighted_text=highlighted_text,
+            color=color,
+        )
+        return Response({'success': True, 'id': obj.id})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabHighlightListView(APIView):
+    """GET: List highlights for a section. ?course_slug=&section_type=&section_id=&section_step="""
+
+    def get(self, request):
+        course_slug = request.GET.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = request.GET.get('section_type')
+        section_id = request.GET.get('section_id')
+        section_step = request.GET.get('section_step')
+        if not section_type or not section_id:
+            return Response({'success': False, 'error': 'section_type, section_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            section_id = int(section_id)
+            section_step = int(section_step) if section_step not in (None, '') else None
+        except (TypeError, ValueError):
+            section_step = None
+        qs = SkillLabUserHighlight.objects.filter(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            section_type=section_type,
+            section_id=section_id,
+        )
+        if section_step is not None:
+            qs = qs.filter(section_step=section_step)
+        else:
+            qs = qs.filter(section_step__isnull=True)
+        items = [{'id': h.id, 'highlighted_text': h.highlighted_text, 'color': h.color} for h in qs.order_by('created')]
+        return Response({'success': True, 'highlights': items})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabHighlightDeleteView(APIView):
+    """POST: Delete a highlight. highlight_id (and course_slug for access check)."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        highlight_id = data.get('highlight_id') or request.POST.get('highlight_id')
+        if not highlight_id:
+            return Response({'success': False, 'error': 'highlight_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            highlight_id = int(highlight_id)
+        except (TypeError, ValueError):
+            return Response({'success': False, 'error': 'invalid highlight_id'}, status=status.HTTP_400_BAD_REQUEST)
+        obj = SkillLabUserHighlight.objects.filter(id=highlight_id, user=request.user).first()
+        if not obj:
+            return Response({'success': False, 'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        obj.delete()
+        return Response({'success': True})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabNoteSaveView(APIView):
+    """POST: Save a note. course_slug, section_type, section_id, section_step (optional), note_text, anchor_text (optional)."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        course_slug = data.get('course_slug') or request.POST.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = data.get('section_type') or request.POST.get('section_type')
+        section_id = data.get('section_id') or request.POST.get('section_id')
+        section_step = data.get('section_step')
+        name = (data.get('name') or request.POST.get('name') or '').strip()[:255]
+        note_text = (data.get('note_text') or request.POST.get('note_text') or '').strip()
+        anchor_text = (data.get('anchor_text') or request.POST.get('anchor_text') or '')[:2000]
+        if not section_type or not section_id:
+            return Response({'success': False, 'error': 'section_type, section_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not note_text:
+            return Response({'success': False, 'error': 'Note cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            section_id = int(section_id)
+            section_step = int(section_step) if section_step is not None and str(section_step).strip() != '' else None
+        except (TypeError, ValueError):
+            section_step = None
+        obj = SkillLabUserNote.objects.create(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            section_type=section_type,
+            section_id=section_id,
+            section_step=section_step,
+            name=name,
+            note_text=note_text,
+            anchor_text=anchor_text,
+        )
+        return Response({'success': True, 'id': obj.id})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabNoteListView(APIView):
+    """GET: List notes for a section."""
+
+    def get(self, request):
+        course_slug = request.GET.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = request.GET.get('section_type')
+        section_id = request.GET.get('section_id')
+        section_step = request.GET.get('section_step')
+        if not section_type or not section_id:
+            return Response({'success': False, 'error': 'section_type, section_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            section_id = int(section_id)
+            section_step = int(section_step) if section_step not in (None, '') else None
+        except (TypeError, ValueError):
+            section_step = None
+        qs = SkillLabUserNote.objects.filter(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            section_type=section_type,
+            section_id=section_id,
+        )
+        if section_step is not None:
+            qs = qs.filter(section_step=section_step)
+        else:
+            qs = qs.filter(section_step__isnull=True)
+        items = [{'id': n.id, 'name': n.name or '', 'note_text': n.note_text, 'anchor_text': n.anchor_text} for n in qs.order_by('created')]
+        return Response({'success': True, 'notes': items})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabNoteDeleteView(APIView):
+    """POST: Delete a note."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        note_id = data.get('note_id') or request.POST.get('note_id')
+        if not note_id:
+            return Response({'success': False, 'error': 'note_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            note_id = int(note_id)
+        except (TypeError, ValueError):
+            return Response({'success': False, 'error': 'invalid note_id'}, status=status.HTTP_400_BAD_REQUEST)
+        obj = SkillLabUserNote.objects.filter(id=note_id, user=request.user).first()
+        if not obj:
+            return Response({'success': False, 'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+        obj.delete()
+        return Response({'success': True})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabBookmarkSaveView(APIView):
+    """POST: Add or update bookmark for a section. One bookmark per section (section_key)."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        course_slug = data.get('course_slug') or request.POST.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = data.get('section_type') or request.POST.get('section_type')
+        section_id = data.get('section_id') or request.POST.get('section_id')
+        section_step = data.get('section_step')
+        section_title = (data.get('section_title') or request.POST.get('section_title') or 'Section')[:255]
+        if not section_type or not section_id:
+            return Response({'success': False, 'error': 'section_type, section_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            section_id = int(section_id)
+            section_step = int(section_step) if section_step is not None and str(section_step).strip() != '' else None
+        except (TypeError, ValueError):
+            section_step = None
+        section_key = '{}_{}_{}'.format(section_type, section_id, section_step if section_step is not None else '')
+        obj, created = SkillLabUserBookmark.objects.update_or_create(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            section_key=section_key,
+            defaults={
+                'section_type': section_type,
+                'section_id': section_id,
+                'section_step': section_step,
+                'section_title': section_title,
+            }
+        )
+        return Response({'success': True, 'id': obj.id, 'created': created})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabBookmarkListView(APIView):
+    """GET: List bookmarks for a course. ?course_slug= Optional section_type, section_id to check if current is bookmarked."""
+
+    def get(self, request):
+        course_slug = request.GET.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = request.GET.get('section_type')
+        section_id = request.GET.get('section_id')
+        section_step = request.GET.get('section_step')
+        if section_type is not None and section_id is not None:
+            try:
+                section_id = int(section_id)
+                section_step = int(section_step) if section_step not in (None, '') else None
+            except (TypeError, ValueError):
+                section_step = None
+            section_key = '{}_{}_{}'.format(section_type, section_id, section_step if section_step is not None else '')
+            is_bookmarked = SkillLabUserBookmark.objects.filter(
+                user=request.user,
+                skilllab_course=skilllab_course,
+                section_key=section_key,
+            ).exists()
+            return Response({'success': True, 'is_bookmarked': is_bookmarked})
+        bookmarks = SkillLabUserBookmark.objects.filter(
+            user=request.user,
+            skilllab_course=skilllab_course,
+        ).order_by('-created')
+        items = [{'id': b.id, 'section_type': b.section_type, 'section_id': b.section_id, 'section_step': b.section_step, 'section_title': b.section_title} for b in bookmarks]
+        return Response({'success': True, 'bookmarks': items})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabBookmarkDeleteView(APIView):
+    """POST: Remove bookmark. course_slug, section_type, section_id, section_step (optional)."""
+
+    def post(self, request):
+        import json
+        data = getattr(request, 'data', None) or {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                data = dict(request.POST)
+        course_slug = data.get('course_slug') or request.POST.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        section_type = data.get('section_type') or request.POST.get('section_type')
+        section_id = data.get('section_id') or request.POST.get('section_id')
+        section_step = data.get('section_step')
+        if not section_type or not section_id:
+            return Response({'success': False, 'error': 'section_type, section_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            section_id = int(section_id)
+            section_step = int(section_step) if section_step is not None and str(section_step).strip() != '' else None
+        except (TypeError, ValueError):
+            section_step = None
+        section_key = '{}_{}_{}'.format(section_type, section_id, section_step if section_step is not None else '')
+        deleted, _ = SkillLabUserBookmark.objects.filter(
+            user=request.user,
+            skilllab_course=skilllab_course,
+            section_key=section_key,
+        ).delete()
+        return Response({'success': True, 'deleted': deleted > 0})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class SkillLabSavedCountView(APIView):
+    """GET: Count of highlights, notes, bookmarks for a course (for top-right notification). ?course_slug="""
+
+    def get(self, request):
+        course_slug = request.GET.get('course_slug')
+        skilllab_course, err = _get_course_and_check_access(request, course_slug)
+        if err:
+            return err
+        h_count = SkillLabUserHighlight.objects.filter(user=request.user, skilllab_course=skilllab_course).count()
+        n_count = SkillLabUserNote.objects.filter(user=request.user, skilllab_course=skilllab_course).count()
+        b_count = SkillLabUserBookmark.objects.filter(user=request.user, skilllab_course=skilllab_course).count()
+        return Response({
+            'success': True,
+            'highlights': h_count,
+            'notes': n_count,
+            'bookmarks': b_count,
+            'total': h_count + n_count + b_count,
+        })
 
 
 def _split_content_by_headings(html):

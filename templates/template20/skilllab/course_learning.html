@@ -29,6 +29,18 @@
             <div class="course-progress-fill" id="progress-fill" style="width: {{ progress_percentage }}%"></div>
           </div>
         </div>
+        <div class="skilllab-saved-dropdown" id="skilllab-saved-dropdown">
+          <button type="button" class="skilllab-saved-toggle" id="skilllab-saved-toggle" title="Your saved bookmarks" aria-expanded="false" aria-haspopup="true">
+            <i class='bx bx-bookmark-heart'></i>
+            <span>Saved</span>
+            <span class="count" id="skilllab-saved-count">0</span>
+          </button>
+          <div class="skilllab-saved-panel" id="skilllab-saved-panel" role="menu">
+            <h6><i class='bx bx-bookmark'></i> Bookmarked sections</h6>
+            <ul id="skilllab-saved-bookmarks-list"></ul>
+            <div class="empty-msg" id="skilllab-saved-empty">No bookmarks yet. Use "Bookmark" on any section to save it here.</div>
+          </div>
+        </div>
         <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}" class="back-to-course-btn">
           <i class='bx bx-arrow-back'></i>
           <span>Back to Course</span>
@@ -60,6 +72,18 @@
 .course-progress-fill { height: 100%; background: linear-gradient(90deg, #5249DF 0%, #6438d0 100%); transition: width 0.3s ease; border-radius: 4px; }
 .back-to-course-btn { display: inline-flex; align-items: center; gap: 0.5rem; color: #5249DF; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
 .back-to-course-btn:hover { color: #6438d0; transform: translateX(-3px); }
+.skilllab-saved-dropdown { position: relative; }
+.skilllab-saved-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; background: #f8f9fa; border: 1px solid #e0e0e0; color: #333; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.skilllab-saved-toggle:hover { background: #f0eaff; border-color: #5249DF; color: #5249DF; }
+.skilllab-saved-toggle .count { background: #5249DF; color: #fff; font-size: 0.75rem; min-width: 20px; height: 20px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+.skilllab-saved-panel { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; min-width: 280px; max-width: 360px; max-height: 70vh; overflow-y: auto; background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); border: 1px solid #e0e0e0; z-index: 1100; }
+.skilllab-saved-panel.show { display: block; }
+.skilllab-saved-panel h6 { padding: 12px 14px; margin: 0; font-size: 0.95rem; color: #5249DF; border-bottom: 1px solid #eee; }
+.skilllab-saved-panel ul { list-style: none; padding: 0; margin: 0; }
+.skilllab-saved-panel li { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; }
+.skilllab-saved-panel li a { color: #333; text-decoration: none; font-size: 0.9rem; display: block; }
+.skilllab-saved-panel li a:hover { color: #5249DF; }
+.skilllab-saved-panel .empty-msg { padding: 12px 14px; color: #666; font-size: 0.9rem; }
 .mobile-sidebar-toggle { display: none; background: #5249DF; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 1.1rem; cursor: pointer; align-items: center; gap: 0.5rem; }
 .full-course-section { background: #f8f9fa; min-height: calc(100vh - 80px); padding-top: 1rem; margin-top: 80px; }
 .mobile-overlay { display: none; position: fixed; top: 80px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; }
@@ -125,9 +149,111 @@
 .quiz-question.quiz-question-unanswered { border-color: #dc3545 !important; border-width: 2px !important; background: #fff5f5 !important; box-shadow: 0 0 0 2px rgba(220,53,69,0.2); }
 .certificate-section { text-align: center; padding: 3rem; background: linear-gradient(135deg, #f0eaff 0%, #e8e0ff 100%); border-radius: 12px; margin-top: 2rem; }
 .certificate-section h3 { color: #5249DF; margin-bottom: 1rem; }
-@media (max-width: 991px) { .mobile-sidebar-toggle { display: flex; } .full-course-section { margin-top: var(--header-height, 120px); } .course-sidebar { position: fixed; top: var(--header-height, 120px); left: -100%; width: 280px; height: calc(100vh - var(--header-height, 120px)); z-index: 999; transition: left 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); } .course-sidebar.active { left: 0; } .mobile-overlay.active { display: block; } .course-title { font-size: 1.2rem; white-space: normal; } .course-header-right .course-progress-wrapper { flex: 1; min-width: 100%; max-width: 100%; } }
-@media (max-width: 576px) { .course-title { font-size: 1rem; } .content-section { padding: 1rem; } .content-title { font-size: 1.4rem; flex-direction: column; align-items: flex-start; } .section-navigation { flex-direction: column; gap: 0.75rem; } .nav-btn { width: 100%; justify-content: center; } }
+/* Saved notification - top right */
+.skilllab-saved-toast { position: fixed; top: 90px; right: 20px; z-index: 1100; background: #11b377; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; align-items: center; gap: 8px; animation: skilllab-toast-in 0.25s ease; }
+.skilllab-saved-toast.show { display: flex; }
+@keyframes skilllab-toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+/* Toolbar: highlighter, notes, bookmark */
+.skilllab-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.skilllab-toolbar .btn-tool { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: 1px solid #e0e0e0; background: #fff; color: #555; cursor: pointer; transition: all 0.2s ease; }
+.skilllab-toolbar .btn-tool:hover { background: #f8f9fa; border-color: #5249DF; color: #5249DF; }
+.skilllab-toolbar .btn-tool:disabled { opacity: 0.5; cursor: not-allowed; }
+.skilllab-toolbar .btn-tool.active { background: #f0eaff; border-color: #5249DF; color: #5249DF; }
+.skilllab-toolbar .btn-tool i { font-size: 1.2rem; }
+.skilllab-floating-shortcut { display: none; position: absolute; z-index: 100; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 6px; gap: 4px; align-items: center; }
+.skilllab-floating-shortcut.show { display: inline-flex; }
+.skilllab-floating-shortcut .btn-shortcut { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border: none; border-radius: 6px; background: #f8f9fa; color: #333; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+.skilllab-floating-shortcut .btn-shortcut:hover { background: #f0eaff; color: #5249DF; }
+.skilllab-saved-toast.toast-error { background: #dc3545; }
+.skilllab-highlight-wrap { position: relative; display: inline; padding-right: 14px; }
+.skilllab-user-highlight { border-radius: 2px; padding: 0 2px; }
+.skilllab-highlight-remove { position: absolute; top: -10px; right: -4px; width: 18px; height: 18px; padding: 0; border: none; border-radius: 50%; background: #dc3545; color: #fff; font-size: 14px; line-height: 1; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 2; }
+.skilllab-highlight-wrap:hover .skilllab-highlight-remove { display: inline-flex; }
+.skilllab-highlight-remove:hover { background: #c82333; }
+.skilllab-notes-list { margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #5249DF; }
+.skilllab-notes-list h5 { font-size: 1rem; color: #333; margin-bottom: 0.75rem; }
+.skilllab-note-item { padding: 0.5rem 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.skilllab-note-item:last-child { border-bottom: none; }
+.skilllab-note-item .note-delete { color: #dc3545; cursor: pointer; font-size: 1.1rem; }
+.skilllab-note-item .note-delete:hover { color: #c82333; }
+.skilllab-note-item .skilllab-note-content { cursor: pointer; flex: 1; }
+.skilllab-note-item .skilllab-note-content:hover { color: #5249DF; }
+.skilllab-note-item.highlight-on-page .skilllab-note-content { background: #f0eaff; border-radius: 4px; }
+.note-highlight-pulse { animation: note-pulse 2s ease; }
+@keyframes note-pulse { 0%,100% { background: transparent; } 15% { background: rgba(255,235,59,0.5); } 50% { background: rgba(255,235,59,0.3); } }
+.skilllab-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+.skilllab-modal-backdrop.show { display: flex; }
+.skilllab-modal { background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); max-width: 480px; width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+.skilllab-modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #eee; font-weight: 700; font-size: 1.1rem; color: #333; display: flex; align-items: center; justify-content: space-between; }
+.skilllab-modal-header .skilllab-modal-close { background: none; border: none; font-size: 1.5rem; color: #666; cursor: pointer; padding: 0 4px; line-height: 1; }
+.skilllab-modal-header .skilllab-modal-close:hover { color: #333; }
+.skilllab-modal-body { padding: 1.5rem; overflow-y: auto; }
+.skilllab-modal-body .form-label { font-weight: 600; color: #333; margin-bottom: 0.5rem; display: block; }
+.skilllab-modal-body textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical; }
+.skilllab-modal-body textarea:focus { outline: none; border-color: #5249DF; box-shadow: 0 0 0 2px rgba(82,73,223,0.2); }
+.skilllab-modal-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; }
+.skilllab-modal-input:focus { outline: none; border-color: #5249DF; box-shadow: 0 0 0 2px rgba(82,73,223,0.2); }
+.skilllab-modal-ref { font-size: 0.875rem; color: #666; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #5249DF; }
+.skilllab-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.75rem; }
+.skilllab-modal-footer .btn { padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem; }
+.skilllab-modal-footer .btn-cancel { background: #f0f0f0; color: #333; }
+.skilllab-modal-footer .btn-cancel:hover { background: #e0e0e0; }
+.skilllab-modal-footer .btn-save { background: #5249DF; color: #fff; }
+.skilllab-modal-footer .btn-save:hover { background: #4338ca; }
+.skilllab-definition-modal .skilllab-modal { max-width: 560px; }
+.skilllab-definition-modal .skilllab-definition-body { max-height: 60vh; overflow-y: auto; padding: 1rem; }
+.skilllab-definition-modal .skilllab-definition-body iframe { width: 100%; height: 400px; border: none; border-radius: 8px; }
+.skilllab-definition-modal .skilllab-definition-body ul { margin: 0 0 0.5rem 1.25rem; padding: 0; }
+.skilllab-definition-modal .skilllab-definition-link { margin-top: 0.75rem; }
+.skilllab-definition-modal .skilllab-definition-link a { color: #5249DF; font-weight: 600; }
+.skilllab-floating-shortcut::after { content: ''; position: absolute; bottom: -6px; left: 50%; margin-left: -6px; border: 6px solid transparent; border-top-color: #fff; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05)); }
+.skilllab-floating-shortcut { padding: 6px 8px; }
+.skilllab-definition-popover { display: none; position: fixed; z-index: 101; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); max-width: 360px; max-height: 50vh; overflow-y: auto; padding: 1rem 1.25rem; font-size: 0.95rem; }
+.skilllab-definition-popover.show { display: block; }
+.skilllab-definition-popover .skilllab-definition-popover-title { font-weight: 700; color: #5249DF; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+.skilllab-definition-popover ul { margin: 0 0 0.5rem 1.25rem; padding: 0; }
+.skilllab-definition-popover .skilllab-definition-popover-close { position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 1.25rem; color: #666; cursor: pointer; padding: 0 4px; line-height: 1; }
+.skilllab-definition-popover .skilllab-definition-popover-close:hover { color: #333; }
+.skilllab-definition-popover .skilllab-definition-popover-link { margin-top: 0.75rem; }
+.skilllab-definition-popover .skilllab-definition-popover-link a { color: #5249DF; font-weight: 600; font-size: 0.9rem; }
+@media (max-width: 991px) { .mobile-sidebar-toggle { display: flex; } .full-course-section { margin-top: var(--header-height, 120px); } .course-sidebar { position: fixed; top: var(--header-height, 120px); left: -100%; width: 280px; height: calc(100vh - var(--header-height, 120px)); z-index: 999; transition: left 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); } .course-sidebar.active { left: 0; } .mobile-overlay.active { display: block; } .course-title { font-size: 1.2rem; white-space: normal; } .course-header-right .course-progress-wrapper { flex: 1; min-width: 100%; max-width: 100%; } .skilllab-saved-toast { top: 100px; right: 10px; } }
+@media (max-width: 576px) { .course-title { font-size: 1rem; } .content-section { padding: 1rem; } .content-title { font-size: 1.4rem; flex-direction: column; align-items: flex-start; } .section-navigation { flex-direction: column; gap: 0.75rem; } .nav-btn { width: 100%; justify-content: center; } .skilllab-toolbar { margin-bottom: 0.75rem; } }
 </style>
+
+<!-- Saved notification (top right) -->
+<div id="skilllab-saved-toast" class="skilllab-saved-toast" role="status" aria-live="polite">
+  <i class='bx bx-check-circle' style="font-size: 1.25rem;"></i>
+  <span id="skilllab-saved-toast-text">Saved</span>
+</div>
+
+<!-- Add note modal: Name → Selection (Referring to) → Note → Save -->
+<div id="skilllab-note-modal-backdrop" class="skilllab-modal-backdrop" role="dialog" aria-labelledby="skilllab-note-modal-title" aria-modal="true">
+  <div class="skilllab-modal">
+    <div class="skilllab-modal-header">
+      <span id="skilllab-note-modal-title">Add note</span>
+      <button type="button" class="skilllab-modal-close" id="skilllab-note-modal-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="skilllab-modal-body">
+      <label class="form-label" for="skilllab-note-modal-name">Note</label>
+      <input type="text" id="skilllab-note-modal-name" class="skilllab-modal-input" placeholder="Note title" maxlength="255" />
+      <div class="skilllab-modal-ref" id="skilllab-note-modal-ref" style="display: none;"></div>
+    </div>
+    <div class="skilllab-modal-footer">
+      <button type="button" class="btn btn-cancel" id="skilllab-note-modal-cancel">Cancel</button>
+      <button type="button" class="btn btn-save" id="skilllab-note-modal-save">Save note</button>
+    </div>
+  </div>
+</div>
+
+<!-- Definition: inline popover on same page (below selection) -->
+<div id="skilllab-definition-popover" class="skilllab-definition-popover" role="dialog" aria-label="Definition">
+  <button type="button" class="skilllab-definition-popover-close" id="skilllab-definition-popover-close" aria-label="Close">&times;</button>
+  <div class="skilllab-definition-popover-title" id="skilllab-definition-popover-title"></div>
+  <div id="skilllab-definition-popover-content"></div>
+  <div class="skilllab-definition-popover-link" id="skilllab-definition-popover-link-wrap" style="display: none;">
+    <a href="#" id="skilllab-definition-popover-link" target="_blank" rel="noopener">View full definition in new tab</a>
+  </div>
+</div>
 
 <main class="py-test-page skill-page">
   <section class="full-course-section pt-3 pb-5">
@@ -214,8 +340,29 @@
                 <p class="content-subtitle" id="section-subtitle">Select a section from the sidebar</p>
               </div>
               <div class="content-body">
+                <div class="skilllab-toolbar" id="skilllab-toolbar">
+                  <button type="button" class="btn-tool" id="skilllab-btn-meaning" title="Show meaning of selected text" disabled>
+                    <i class='bx bx-book-open'></i> <span>Show meaning</span>
+                  </button>
+                  <button type="button" class="btn-tool" id="skilllab-btn-highlight" title="Highlight selected text" disabled>
+                    <i class='bx bx-highlight'></i> <span>Add highlight</span>
+                  </button>
+                  <button type="button" class="btn-tool" id="skilllab-btn-note" title="Add note">
+                    <i class='bx bx-note'></i> <span>Add note</span>
+                  </button>
+                  <button type="button" class="btn-tool" id="skilllab-btn-bookmark" title="Bookmark this section">
+                    <i class='bx bx-bookmark'></i> <span>Bookmark</span>
+                  </button>
+                </div>
+                <div id="skilllab-floating-shortcut-wrap" style="position: relative;">
+                <div class="skilllab-floating-shortcut" id="skilllab-floating-shortcut">
+                  <button type="button" class="btn-shortcut" id="skilllab-float-meaning" title="Show meaning (single word)"><i class='bx bx-book-open'></i> Meaning</button>
+                  <button type="button" class="btn-shortcut" id="skilllab-float-highlight" title="Add highlight"><i class='bx bx-highlight'></i> Highlight</button>
+                  <button type="button" class="btn-shortcut" id="skilllab-float-note" title="Add note"><i class='bx bx-note'></i> Note</button>
+                </div>
                 <div id="section-content-container" class="section-content-loading">
                   <p class="text-muted">Click a section in the sidebar to load content.</p>
+                </div>
                 </div>
                 <div class="section-navigation mt-4">
                   <button type="button" class="nav-btn prev-btn" id="btn-prev-section" disabled>
@@ -254,9 +401,20 @@
   var submitMcqUrl = "{{ url('skilllabcourse:submit_mcq') }}";
   var markChapterCompleteUrl = "{{ url('skilllabcourse:mark_chapter_complete') }}";
   var saveResumeUrl = "{{ url('skilllabcourse:save_resume') }}";
+  var highlightSaveUrl = "{{ url('skilllabcourse:highlight_save') }}";
+  var highlightListUrl = "{{ url('skilllabcourse:highlight_list') }}";
+  var highlightDeleteUrl = "{{ url('skilllabcourse:highlight_delete') }}";
+  var noteSaveUrl = "{{ url('skilllabcourse:note_save') }}";
+  var noteListUrl = "{{ url('skilllabcourse:note_list') }}";
+  var noteDeleteUrl = "{{ url('skilllabcourse:note_delete') }}";
+  var bookmarkSaveUrl = "{{ url('skilllabcourse:bookmark_save') }}";
+  var bookmarkListUrl = "{{ url('skilllabcourse:bookmark_list') }}";
+  var bookmarkDeleteUrl = "{{ url('skilllabcourse:bookmark_delete') }}";
+  var savedCountUrl = "{{ url('skilllabcourse:saved_count') }}";
   var initialSectionIdx = {% if initial_section_idx is not none %}{{ initial_section_idx }}{% else %}null{% endif %};
   var currentSectionIdx = 0;
   var RESUME_STORAGE_KEY = 'skilllab_resume_';
+  var currentSectionInfo = { type: '', id: '', step: null };
 
   function saveState() {
     saveStateWithIndex(currentSectionIdx);
@@ -332,12 +490,190 @@
     return false;
   }
 
+  function showSavedToast(message, isError) {
+    message = message || 'Saved';
+    var el = document.getElementById('skilllab-saved-toast');
+    var textEl = document.getElementById('skilllab-saved-toast-text');
+    if (el && textEl) {
+      textEl.textContent = message;
+      el.classList.toggle('toast-error', !!isError);
+      el.classList.add('show');
+      setTimeout(function() { el.classList.remove('show'); el.classList.remove('toast-error'); }, 2500);
+    }
+  }
+
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function isInsideOurHighlightMarkup(html, index) {
+    var before = html.substring(0, index);
+    var openCount = (before.match(/</g) || []).length;
+    var closeCount = (before.match(/>/g) || []).length;
+    if (openCount > closeCount) {
+      var lastLt = before.lastIndexOf('<');
+      var tagStr = before.substring(lastLt, before.length);
+      return tagStr.indexOf('skilllab-user-highlight') !== -1 || tagStr.indexOf('skilllab-highlight-wrap') !== -1;
+    }
+    var lastGt = before.lastIndexOf('>');
+    var lastLt = before.lastIndexOf('<');
+    if (lastGt > lastLt) {
+      var openTagEnd = before.indexOf('>', lastLt);
+      if (openTagEnd !== -1 && index > openTagEnd) {
+        var tagStr = before.substring(lastLt, openTagEnd + 1);
+        return tagStr.indexOf('skilllab-user-highlight') !== -1 || tagStr.indexOf('skilllab-highlight-wrap') !== -1;
+      }
+    }
+    return false;
+  }
+
+  function isInsideTag(html, index) {
+    return isInsideOurHighlightMarkup(html, index);
+  }
+
+  function findTextOutsideTags(html, text) {
+    var idx = 0;
+    while (idx < html.length) {
+      var i = html.indexOf(text, idx);
+      if (i === -1) return -1;
+      if (!isInsideTag(html, i)) return i;
+      idx = i + 1;
+    }
+    return -1;
+  }
+
+  function applyHighlightsForSection(container) {
+    if (!container || !currentSectionInfo.type || !currentSectionInfo.id) return Promise.resolve();
+    var params = 'course_slug=' + encodeURIComponent(courseSlug) + '&section_type=' + encodeURIComponent(currentSectionInfo.type) + '&section_id=' + encodeURIComponent(currentSectionInfo.id);
+    if (currentSectionInfo.step != null && currentSectionInfo.step !== '') params += '&section_step=' + encodeURIComponent(currentSectionInfo.step);
+    return fetch(highlightListUrl + '?' + params, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.success || !data.highlights || !data.highlights.length) {
+          if (data.success && data.highlights && data.highlights.length === 0) {
+            var wrap0;
+            while ((wrap0 = container.querySelector('.skilllab-highlight-wrap'))) {
+              var mark0 = wrap0.querySelector('mark.skilllab-user-highlight');
+              var text0 = mark0 ? mark0.textContent : wrap0.textContent;
+              var tn0 = document.createTextNode(text0);
+              if (wrap0.parentNode) wrap0.parentNode.replaceChild(tn0, wrap0);
+            }
+          }
+          return;
+        }
+        var wrapEl;
+        while ((wrapEl = container.querySelector('.skilllab-highlight-wrap'))) {
+          var m = wrapEl.querySelector('mark.skilllab-user-highlight');
+          var t = m ? m.textContent : wrapEl.textContent;
+          var tn = document.createTextNode(t);
+          if (wrapEl.parentNode) wrapEl.parentNode.replaceChild(tn, wrapEl);
+        }
+        var html = container.innerHTML;
+        for (var i = 0; i < data.highlights.length; i++) {
+          var h = data.highlights[i];
+          var idx = findTextOutsideTags(html, h.highlighted_text);
+          // #region agent log
+          try {
+            fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'course_learning.html:applyHighlightsForSection',message:'highlight apply',data:{highlightId:h.id,textLen:h.highlighted_text.length,idx:idx,found:idx!==-1},timestamp:Date.now(),hypothesisId:'H4'})}).catch(function(){});
+          } catch (e) {}
+          // #endregion
+          if (idx !== -1) {
+            var color = (h.color === 'yellow' || !h.color) ? 'rgba(255,255,0,0.4)' : (h.color.indexOf('rgba') === 0 || h.color.indexOf('#') === 0 ? h.color : 'rgba(255,255,0,0.4)');
+            var wrapped = '<span class="skilllab-highlight-wrap" data-highlight-id="' + h.id + '"><mark class="skilllab-user-highlight" style="background-color:' + color + '">' + escapeHtml(h.highlighted_text) + '</mark><button type="button" class="skilllab-highlight-remove" title="Remove highlight" aria-label="Remove highlight">&times;</button></span>';
+            html = html.substring(0, idx) + wrapped + html.substring(idx + h.highlighted_text.length);
+          }
+        }
+        container.innerHTML = html;
+      });
+  }
+
+  function renderNotesForSection(container) {
+    if (!container || !currentSectionInfo.type || !currentSectionInfo.id) return Promise.resolve();
+    var params = 'course_slug=' + encodeURIComponent(courseSlug) + '&section_type=' + encodeURIComponent(currentSectionInfo.type) + '&section_id=' + encodeURIComponent(currentSectionInfo.id);
+    if (currentSectionInfo.step != null && currentSectionInfo.step !== '') params += '&section_step=' + encodeURIComponent(currentSectionInfo.step);
+    return fetch(noteListUrl + '?' + params, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var listEl = container.querySelector('.skilllab-notes-list');
+        if (listEl) listEl.remove();
+        if (!data.success || !data.notes || !data.notes.length) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'skilllab-notes-list';
+        wrap.innerHTML = '<h5><i class="bx bx-note"></i> My notes</h5>';
+        for (var i = 0; i < data.notes.length; i++) {
+          var n = data.notes[i];
+          var item = document.createElement('div');
+          item.className = 'skilllab-note-item';
+          var anchorEsc = n.anchor_text ? escapeHtml(n.anchor_text) : '';
+          item.setAttribute('data-anchor-text', n.anchor_text || '');
+          var namePart = (n.name && n.name.trim()) ? '<strong class="skilllab-note-name">' + escapeHtml(n.name.trim()) + '</strong> ' : '';
+          var showText = n.note_text && (!(n.name && n.name.trim()) || n.note_text.trim() !== (n.name || '').trim());
+          var textPart = showText ? '<span class="skilllab-note-text">' + escapeHtml(n.note_text) + '</span> ' : '';
+          item.innerHTML = '<div class="skilllab-note-content">' + namePart + textPart + (n.anchor_text ? ' <small class="text-muted">— "' + escapeHtml(n.anchor_text.substring(0, 50)) + (n.anchor_text.length > 50 ? '…' : '') + '"</small>' : '') + '</div><span class="note-delete" data-note-id="' + n.id + '" title="Delete note"><i class="bx bx-trash"></i></span>';
+          wrap.appendChild(item);
+        }
+        container.appendChild(wrap);
+        wrap.querySelectorAll('.skilllab-note-content').forEach(function(el) {
+          var item = el.closest('.skilllab-note-item');
+          var anchorText = item ? item.getAttribute('data-anchor-text') : '';
+          if (!anchorText) return;
+          el.addEventListener('click', function(e) {
+            e.preventDefault();
+            var cont = document.getElementById('section-content-container');
+            if (!cont) return;
+            var found = findElementContainingText(cont, anchorText);
+            if (found) {
+              found.classList.add('note-highlight-pulse');
+              found.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(function() { found.classList.remove('note-highlight-pulse'); }, 2000);
+            }
+            wrap.querySelectorAll('.skilllab-note-item').forEach(function(i) { i.classList.remove('highlight-on-page'); });
+            item.classList.add('highlight-on-page');
+            setTimeout(function() { item.classList.remove('highlight-on-page'); }, 2000);
+          });
+        });
+      });
+  }
+
+  function findElementContainingText(container, text) {
+    if (!container || !text) return null;
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.textContent.indexOf(text) !== -1) return node.parentElement;
+    }
+    return null;
+  }
+
+  function updateBookmarkButtonState() {
+    var btn = document.getElementById('skilllab-btn-bookmark');
+    if (!btn || !currentSectionInfo.type || !currentSectionInfo.id) return;
+    var params = 'course_slug=' + encodeURIComponent(courseSlug) + '&section_type=' + encodeURIComponent(currentSectionInfo.type) + '&section_id=' + encodeURIComponent(currentSectionInfo.id);
+    if (currentSectionInfo.step != null && currentSectionInfo.step !== '') params += '&section_step=' + encodeURIComponent(currentSectionInfo.step);
+    fetch(bookmarkListUrl + '?' + params, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success && data.is_bookmarked) {
+          btn.classList.add('active');
+          btn.querySelector('i').className = 'bx bxs-bookmark';
+          btn.querySelector('span').textContent = 'Bookmarked';
+        } else {
+          btn.classList.remove('active');
+          btn.querySelector('i').className = 'bx bx-bookmark';
+          btn.querySelector('span').textContent = 'Bookmark';
+        }
+      });
+  }
+
   function loadSectionContent(sectionType, sectionId, title, step) {
     var container = document.getElementById('section-content-container');
     if (!container) return;
+    currentSectionInfo = { type: sectionType, id: String(sectionId), step: step !== undefined ? step : null };
     container.innerHTML = '<p class="text-muted">Loading...</p>';
     var subtitle = document.getElementById('section-subtitle');
-    if (subtitle) { subtitle.textContent = ''; subtitle.classList.add('d-none'); }  /* Keep only main title */
+    if (subtitle) { subtitle.textContent = ''; subtitle.classList.add('d-none'); }
     var titleEl = document.getElementById('section-title-text');
     if (titleEl) titleEl.textContent = title;
     var url = sectionContentUrl + '?section_type=' + encodeURIComponent(sectionType) + '&section_id=' + sectionId + '&course_slug=' + encodeURIComponent(courseSlug);
@@ -347,8 +683,12 @@
       .then(function(html) {
         container.innerHTML = html;
         container.classList.remove('section-content-loading');
-        initSectionHandlers(container);
-        updateNextButton();
+        var p = applyHighlightsForSection(container);
+        p.then(function() { return renderNotesForSection(container); }).then(function() {
+          updateBookmarkButtonState();
+          initSectionHandlers(container);
+          updateNextButton();
+        });
       })
       .catch(function() {
         container.innerHTML = '<p class="text-danger">Failed to load content.</p>';
@@ -573,6 +913,396 @@
     });
   }
 
+  function loadSavedBookmarksPanel() {
+    var listEl = document.getElementById('skilllab-saved-bookmarks-list');
+    var emptyEl = document.getElementById('skilllab-saved-empty');
+    var countEl = document.getElementById('skilllab-saved-count');
+    if (!listEl) return;
+    var params = 'course_slug=' + encodeURIComponent(courseSlug);
+    fetch(bookmarkListUrl + '?' + params, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.success || !data.bookmarks || !data.bookmarks.length) {
+          listEl.innerHTML = '';
+          if (emptyEl) emptyEl.style.display = 'block';
+          if (countEl) countEl.textContent = '0';
+          return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (countEl) countEl.textContent = data.bookmarks.length;
+        listEl.innerHTML = '';
+        data.bookmarks.forEach(function(b) {
+          var idx = sectionsFlat.findIndex(function(s) {
+            return s.type === b.section_type && String(s.id) === String(b.section_id) && (b.section_step == null ? (s.step == null || s.step === undefined) : s.step === b.section_step);
+          });
+          var li = document.createElement('li');
+          var a = document.createElement('a');
+          a.href = '#';
+          a.textContent = (b.section_title || 'Section').substring(0, 50) + (b.section_title && b.section_title.length > 50 ? '…' : '');
+          a.setAttribute('data-section-idx', idx >= 0 ? idx : '');
+          a.addEventListener('click', function(e) {
+            e.preventDefault();
+            var i = parseInt(a.getAttribute('data-section-idx'), 10);
+            if (i >= 0 && i < sectionsFlat.length) {
+              currentSectionIdx = i;
+              var s = sectionsFlat[i];
+              var step = s.type === 'intro' ? (s.step || 0) : undefined;
+              loadSectionContent(s.type, s.id, s.title, step);
+              saveState();
+              document.getElementById('skilllab-saved-panel').classList.remove('show');
+              var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + (s.step != null ? s.step : '') + '"]');
+              if (!sel && s.type !== 'intro') sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"]');
+              if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); }
+              expandAccordionForChapter(s.chapterId);
+              setTimeout(function() {
+                var contentEl = document.getElementById('section-content-container');
+                if (contentEl) contentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 400);
+            }
+          });
+          li.appendChild(a);
+          listEl.appendChild(li);
+        });
+      });
+  }
+
+  function initSkillLabToolbar() {
+    var container = document.getElementById('section-content-container');
+    var btnHighlight = document.getElementById('skilllab-btn-highlight');
+    var btnNote = document.getElementById('skilllab-btn-note');
+    var btnBookmark = document.getElementById('skilllab-btn-bookmark');
+    if (!container || !btnHighlight || !btnNote || !btnBookmark) return;
+
+    document.getElementById('skilllab-saved-toggle').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var panel = document.getElementById('skilllab-saved-panel');
+      panel.classList.toggle('show');
+      this.setAttribute('aria-expanded', panel.classList.contains('show'));
+      if (panel.classList.contains('show')) loadSavedBookmarksPanel();
+    });
+    document.addEventListener('click', function() {
+      document.getElementById('skilllab-saved-panel').classList.remove('show');
+      document.getElementById('skilllab-saved-toggle').setAttribute('aria-expanded', 'false');
+    });
+    document.getElementById('skilllab-saved-dropdown').addEventListener('click', function(e) { e.stopPropagation(); });
+
+    var noteModalBackdrop = document.getElementById('skilllab-note-modal-backdrop');
+    var noteModalRef = document.getElementById('skilllab-note-modal-ref');
+    var noteModalName = document.getElementById('skilllab-note-modal-name');
+    function openNoteModal(anchorText) {
+      anchorText = anchorText || '';
+      if (noteModalRef) {
+        noteModalRef.style.display = anchorText ? 'block' : 'none';
+        noteModalRef.textContent = anchorText ? ('Referring to: "' + (anchorText.length > 100 ? anchorText.substring(0, 100) + '…' : anchorText) + '"') : '';
+        noteModalRef.setAttribute('data-anchor', anchorText);
+      }
+      if (noteModalName) noteModalName.value = '';
+      if (noteModalName) noteModalName.focus();
+      if (noteModalBackdrop) noteModalBackdrop.classList.add('show');
+    }
+    function closeNoteModal() {
+      if (noteModalBackdrop) noteModalBackdrop.classList.remove('show');
+      if (noteModalRef) noteModalRef.style.display = 'none';
+    }
+    document.getElementById('skilllab-note-modal-close').addEventListener('click', closeNoteModal);
+    document.getElementById('skilllab-note-modal-cancel').addEventListener('click', closeNoteModal);
+    var definitionPopover = document.getElementById('skilllab-definition-popover');
+    document.getElementById('skilllab-definition-popover-close').addEventListener('click', function() {
+      if (definitionPopover) definitionPopover.classList.remove('show');
+    });
+    noteModalBackdrop.addEventListener('click', function(e) { if (e.target === noteModalBackdrop) closeNoteModal(); });
+    document.addEventListener('click', function(e) {
+      if (definitionPopover && definitionPopover.classList.contains('show') && !definitionPopover.contains(e.target) && (!floatShortcut || !floatShortcut.contains(e.target)))
+        definitionPopover.classList.remove('show');
+    });
+
+    container.addEventListener('click', function(e) {
+      var removeBtn = e.target.closest('.skilllab-highlight-remove');
+      if (removeBtn) {
+        e.preventDefault();
+        var wrap = removeBtn.closest('.skilllab-highlight-wrap');
+        var highlightId = wrap ? wrap.getAttribute('data-highlight-id') : null;
+        if (!highlightId) return;
+        // #region agent log
+        try { fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'course_learning.html:removeHighlight',message:'remove click',data:{highlightId:highlightId},timestamp:Date.now(),hypothesisId:'H1'})}).catch(function(){}); } catch (e) {}
+        // #endregion
+        fetch(highlightDeleteUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+          body: JSON.stringify({ highlight_id: parseInt(highlightId, 10) }),
+          credentials: 'same-origin'
+        }).then(function(r) { return r.json(); }).then(function(res) {
+          // #region agent log
+          try { fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'course_learning.html:removeHighlight',message:'delete response',data:{success:!!res.success},timestamp:Date.now(),hypothesisId:'H2'})}).catch(function(){}); } catch (e) {}
+          // #endregion
+          if (res.success) { showSavedToast('Highlight removed'); applyHighlightsForSection(container); }
+        });
+        return;
+      }
+      var noteDeleteBtn = e.target.closest('.note-delete');
+      if (noteDeleteBtn) {
+        e.preventDefault();
+        var noteId = noteDeleteBtn.getAttribute('data-note-id');
+        if (!noteId) return;
+        var csrf = getCookie('csrftoken') || '';
+        var body = 'note_id=' + encodeURIComponent(noteId);
+        if (csrf) body += '&csrfmiddlewaretoken=' + encodeURIComponent(csrf);
+        fetch(noteDeleteUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
+          body: body,
+          credentials: 'same-origin'
+        }).then(function(r) { return r.json(); }).then(function(res) {
+          if (res.success) { showSavedToast('Note removed'); renderNotesForSection(container); }
+        }).catch(function() { showSavedToast('Could not remove note'); });
+        return;
+      }
+    });
+
+    var btnMeaning = document.getElementById('skilllab-btn-meaning');
+    var floatShortcut = document.getElementById('skilllab-floating-shortcut');
+    var floatMeaning = document.getElementById('skilllab-float-meaning');
+    var floatHighlight = document.getElementById('skilllab-float-highlight');
+    var floatNote = document.getElementById('skilllab-float-note');
+
+    function getSelectionInContainer() {
+      var sel = window.getSelection();
+      var text = sel ? sel.toString().trim() : '';
+      if (!text) return { text: '', inContainer: false };
+      var range = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
+      var inContainer = range && container.contains(range.commonAncestorContainer);
+      return { text: text, inContainer: inContainer, range: range };
+    }
+
+    function expandRangeToWordBoundaries(range) {
+      if (!range || range.collapsed) return range;
+      var startNode = range.startContainer;
+      var endNode = range.endContainer;
+      if (startNode.nodeType !== Node.TEXT_NODE) return range;
+      var startText = startNode.textContent || '';
+      var endText = endNode.nodeType === Node.TEXT_NODE ? (endNode.textContent || '') : startText;
+      var wordChar = /[\w\u00C0-\u024F\u1E00-\u1EFF']/;
+      var i = range.startOffset - 1;
+      while (i >= 0 && wordChar.test(startText[i])) i--;
+      var newStart = i + 1;
+      range.setStart(startNode, newStart);
+      if (startNode === endNode) {
+        var j = range.endOffset;
+        while (j < startText.length && wordChar.test(startText[j])) j++;
+        range.setEnd(startNode, j);
+      } else if (endNode.nodeType === Node.TEXT_NODE) {
+        var k = range.endOffset;
+        while (k < endText.length && wordChar.test(endText[k])) k++;
+        range.setEnd(endNode, k);
+      }
+      return range;
+    }
+
+    function updateHighlightButton() {
+      var s = getSelectionInContainer();
+      var enabled = !!s.text && s.inContainer;
+      var singleWord = enabled && s.text.indexOf(' ') === -1 && /^\S+$/.test(s.text);
+      btnHighlight.disabled = !enabled;
+      if (btnMeaning) btnMeaning.disabled = !singleWord;
+      if (floatMeaning) floatMeaning.disabled = !singleWord;
+      if (floatNote) floatNote.disabled = !enabled;
+      if (floatShortcut) {
+        if (enabled && s.range) {
+          floatShortcut.classList.add('show');
+          var rect = s.range.getBoundingClientRect();
+          var positionFloating = function() {
+            floatShortcut.style.position = 'fixed';
+            var w = floatShortcut.offsetWidth || 180;
+            var left = rect.left + rect.width / 2 - w / 2;
+            if (left < 8) left = 8;
+            if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+            floatShortcut.style.left = left + 'px';
+            floatShortcut.style.top = (rect.top - (floatShortcut.offsetHeight || 40) - 8) + 'px';
+          };
+          positionFloating();
+          requestAnimationFrame(positionFloating);
+        } else {
+          floatShortcut.classList.remove('show');
+        }
+      }
+    }
+
+    container.addEventListener('mouseup', updateHighlightButton);
+    container.addEventListener('keyup', updateHighlightButton);
+    document.addEventListener('selectionchange', function() {
+      setTimeout(updateHighlightButton, 10);
+    });
+
+    function showDefinitionOnPage(title, contentHtml, defineUrl, positionRect) {
+      var popover = document.getElementById('skilllab-definition-popover');
+      var popTitle = document.getElementById('skilllab-definition-popover-title');
+      var popContent = document.getElementById('skilllab-definition-popover-content');
+      var popLinkWrap = document.getElementById('skilllab-definition-popover-link-wrap');
+      var popLink = document.getElementById('skilllab-definition-popover-link');
+      if (!popover) return;
+      if (popTitle) popTitle.textContent = title;
+      if (popContent) popContent.innerHTML = contentHtml;
+      if (popLink) { popLink.href = defineUrl; popLink.textContent = 'View full definition in new tab'; }
+      popLinkWrap.style.display = 'block';
+      popover.classList.add('show');
+      var rect = positionRect || (floatShortcut && floatShortcut.classList.contains('show') ? floatShortcut.getBoundingClientRect() : null);
+      if (rect) {
+        var w = 320;
+        var left = rect.left + rect.width / 2 - w / 2;
+        if (left < 8) left = 8;
+        if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
+        popover.style.left = left + 'px';
+        popover.style.top = (rect.bottom + 12) + 'px';
+      }
+    }
+
+    function doShowMeaning() {
+      var s = getSelectionInContainer();
+      if (!s.text) return;
+      var text = s.text.trim();
+      if (text.indexOf(' ') !== -1 || !/^\S+$/.test(text)) {
+        showSavedToast('Select a single word for meaning', true);
+        return;
+      }
+      var defineUrl = 'https://www.google.com/search?q=define+' + encodeURIComponent(text);
+      var title = 'Definition: "' + (text.length > 35 ? text.substring(0, 35) + '…' : text) + '"';
+      var popContent = document.getElementById('skilllab-definition-popover-content');
+      if (popContent) popContent.innerHTML = '<p class="text-muted">Loading definition…</p>';
+      var posRect = (floatShortcut && floatShortcut.classList.contains('show') ? floatShortcut.getBoundingClientRect() : (s.range ? s.range.getBoundingClientRect() : null));
+      showDefinitionOnPage(title, '<p class="text-muted">Loading definition…</p>', defineUrl, posRect);
+      if (text) {
+        fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(text), { credentials: 'omit' })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (data && data[0] && data[0].meanings && data[0].meanings.length) {
+              var html = '';
+              data[0].meanings.slice(0, 3).forEach(function(m) {
+                html += '<p class="mb-2"><strong>' + escapeHtml(m.partOfSpeech || '') + '</strong></p><ul class="mb-3">';
+                (m.definitions || []).slice(0, 3).forEach(function(d) { html += '<li>' + escapeHtml(d.definition || '') + '</li>'; });
+                html += '</ul>';
+              });
+              if (popContent) popContent.innerHTML = html || '<p class="text-muted">No definition found.</p>';
+            } else {
+              if (popContent) popContent.innerHTML = '<p class="text-muted">No definition found. <a href="' + defineUrl + '" target="_blank" rel="noopener">Search online</a>.</p>';
+            }
+          })
+          .catch(function() {
+            if (popContent) popContent.innerHTML = '<p class="text-muted">Could not load definition. <a href="' + defineUrl + '" target="_blank" rel="noopener">View definition in new tab</a>.</p>';
+          });
+      if (floatShortcut) floatShortcut.classList.remove('show');
+    }
+
+    function doAddHighlight() {
+      var s = getSelectionInContainer();
+      if (!s.text || !currentSectionInfo.type || !currentSectionInfo.id) return;
+      var textToHighlight = s.text;
+      if (s.range) {
+        var clone = s.range.cloneRange();
+        expandRangeToWordBoundaries(clone);
+        var expanded = clone.toString().trim();
+        if (expanded) textToHighlight = expanded;
+      }
+      fetch(highlightSaveUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+        body: JSON.stringify({
+          course_slug: courseSlug,
+          section_type: currentSectionInfo.type,
+          section_id: currentSectionInfo.id,
+          section_step: currentSectionInfo.step,
+          highlighted_text: textToHighlight,
+          color: 'yellow'
+        }),
+        credentials: 'same-origin'
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) { showSavedToast('Highlight saved'); applyHighlightsForSection(container); }
+        if (floatShortcut) floatShortcut.classList.remove('show');
+      });
+    }
+
+    if (btnMeaning) btnMeaning.addEventListener('click', doShowMeaning);
+    if (floatMeaning) floatMeaning.addEventListener('click', doShowMeaning);
+    if (floatHighlight) floatHighlight.addEventListener('click', doAddHighlight);
+    if (floatNote) floatNote.addEventListener('click', function() {
+      var sel = window.getSelection();
+      var anchorText = (sel && sel.toString) ? sel.toString().trim() : '';
+      openNoteModal(anchorText);
+      if (floatShortcut) floatShortcut.classList.remove('show');
+    });
+
+    btnHighlight.addEventListener('click', doAddHighlight);
+
+    btnNote.addEventListener('click', function() {
+      var sel = window.getSelection();
+      var anchorText = (sel && sel.toString) ? sel.toString().trim() : '';
+      openNoteModal(anchorText);
+    });
+    document.getElementById('skilllab-note-modal-save').addEventListener('click', function() {
+      var name = noteModalName ? noteModalName.value.trim() : '';
+      var anchorText = noteModalRef && noteModalRef.getAttribute('data-anchor') ? noteModalRef.getAttribute('data-anchor') : '';
+      if (!name) {
+        showSavedToast('Note cannot be empty', true);
+        return;
+      }
+      if (!currentSectionInfo.type || !currentSectionInfo.id) return;
+      closeNoteModal();
+      fetch(noteSaveUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+        body: JSON.stringify({
+          course_slug: courseSlug,
+          section_type: currentSectionInfo.type,
+          section_id: currentSectionInfo.id,
+          section_step: currentSectionInfo.step,
+          name: name,
+          note_text: name,
+          anchor_text: anchorText
+        }),
+        credentials: 'same-origin'
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) { showSavedToast('Note saved'); renderNotesForSection(container); }
+        else { showSavedToast(data.error || 'Note could not be saved', true); }
+      }).catch(function() { showSavedToast('Note could not be saved', true); });
+    });
+
+    btnBookmark.addEventListener('click', function() {
+      if (!currentSectionInfo.type || !currentSectionInfo.id) return;
+      var isActive = btnBookmark.classList.contains('active');
+      var titleEl = document.getElementById('section-title-text');
+      var sectionTitle = titleEl ? titleEl.textContent.trim() : 'Section';
+      if (isActive) {
+        fetch(bookmarkDeleteUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+          body: JSON.stringify({
+            course_slug: courseSlug,
+            section_type: currentSectionInfo.type,
+            section_id: currentSectionInfo.id,
+            section_step: currentSectionInfo.step
+          }),
+          credentials: 'same-origin'
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.success) { showSavedToast('Bookmark removed'); updateBookmarkButtonState(); loadSavedBookmarksPanel(); }
+        });
+      } else {
+        fetch(bookmarkSaveUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+          body: JSON.stringify({
+            course_slug: courseSlug,
+            section_type: currentSectionInfo.type,
+            section_id: currentSectionInfo.id,
+            section_step: currentSectionInfo.step,
+            section_title: sectionTitle
+          }),
+          credentials: 'same-origin'
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.success) { showSavedToast('Bookmark saved'); updateBookmarkButtonState(); loadSavedBookmarksPanel(); }
+        });
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     var header = document.querySelector('.course-page-header');
     if (header) {
@@ -581,6 +1311,8 @@
       var fullSection = document.querySelector('.full-course-section');
       if (fullSection) fullSection.style.marginTop = h + 'px';
     }
+
+    initSkillLabToolbar();
 
     document.querySelectorAll('.chapter-accordion-header').forEach(function(hdr) {
       hdr.addEventListener('click', function(e) {
