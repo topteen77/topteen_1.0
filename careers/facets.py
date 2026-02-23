@@ -8,12 +8,11 @@ class CareerFilterFacets(FacetedSearch):
     doc_types = ['Career', ]
     # fields that should be searched
     fields = ['name,slug']
+    # Limit facet sizes for performance (was 9999; 150 is enough for filter dropdowns)
     facets = {
-        # use bucket aggregations to define facets
-        'skill':TermsFacet(field="skills.name",size=9999),
-        # 'course':TermsFacet(field="courses.name",size=9999),
-        'profession':NestedFacet('profession',TermsFacet(field="profession.name",size=9999)),
-        'career_tags':TermsFacet(field="career_tags.slug",size=9999),
-        }
+        'skill': TermsFacet(field="skills.name", size=150),
+        'profession': NestedFacet('profession', TermsFacet(field="profession.name", size=150)),
+        'career_tags': TermsFacet(field="career_tags.slug", size=150),
+    }
 
 
