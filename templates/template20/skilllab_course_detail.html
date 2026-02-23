@@ -307,7 +307,8 @@
       link.addEventListener('click', function(e) {
         if (!userAuthenticated) {
           e.preventDefault();
-          if (typeof window.showLoginRequiredPopup === 'function') window.showLoginRequiredPopup();
+          var href = (link.getAttribute && link.getAttribute('href')) || link.href || '';
+          if (typeof window.showLoginRequiredPopup === 'function') window.showLoginRequiredPopup(href);
         }
       });
     });

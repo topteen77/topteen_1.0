@@ -249,7 +249,8 @@
     next: ""
   };
 
-  window.showLoginRequiredPopup = function() {
+  window.showLoginRequiredPopup = function(nextUrl) {
+    window.studentLoginNextUrl = (nextUrl && typeof nextUrl === 'string') ? nextUrl : '';
     var popup = document.getElementById('loginRequiredPopup');
     if (popup && !popup.classList.contains('show')) {
       if (typeof window.studentPopupReset === 'function') window.studentPopupReset();
@@ -308,7 +309,13 @@
   };
   function onLoginSuccess() {
     closeLoginRequiredPopup();
-    window.location.reload();
+    if (window.studentLoginNextUrl) {
+      var url = window.studentLoginNextUrl;
+      window.studentLoginNextUrl = '';
+      window.location.href = url;
+    } else {
+      window.location.reload();
+    }
   }
   function buildOtpInputs(containerId, sixDigits) {
     var c = document.getElementById(containerId);
