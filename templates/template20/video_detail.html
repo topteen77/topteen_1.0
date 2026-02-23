@@ -108,7 +108,7 @@ color: #6b3df0 !important;
           </div>
           {% else %}
           <div>
-            <a href="{{ url('student_login') }}" class="btn btn-outline-primary custom-outline-button" style="white-space: nowrap;">
+            <a href="#" class="btn btn-outline-primary custom-outline-button student-login-popup-trigger" style="white-space: nowrap;" role="button">
               <i class='bx bx-bookmark' style="font-size: 18px;"></i>
               <span class="ms-2">Bookmark</span>
             </a>
@@ -468,7 +468,11 @@ function shortlistVideo(videoId) {
     }
   });
   {% else %}
-  window.location.href = '{{ url("student_login") }}';
+  if (typeof window.showLoginRequiredPopup === 'function') {
+    window.showLoginRequiredPopup();
+  } else {
+    window.location.href = '{{ url("student_login") }}';
+  }
   {% endif %}
 }
 

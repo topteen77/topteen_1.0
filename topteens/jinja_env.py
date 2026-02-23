@@ -9,7 +9,7 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from datetime import datetime
 from django.utils import timezone
 from django.middleware.csrf import get_token
-from django.utils.html import format_html
+from django.utils.html import format_html, escapejs
 import re
 import json
 from app.templatetags.myfilters_extras import my_url
@@ -297,16 +297,17 @@ def blog_category_short(name):
 
 
 def environment(**options):
+    from django.utils.html import escapejs as _escapejs
     # Import custom loader that skips admin templates
     from topteens.jinja2_loader import get_jinja2_loader
-    
+
     # Always use our custom loader that skips admin templates
     # This ensures admin templates are never loaded by Jinja2
     options['loader'] = get_jinja2_loader()
-    
+
     env = Environment(**options)
-    
-    # Add filters
+    # Register escapejs first (required by course_learning.html and other Jinja templates)
+    env.filters['escapejs'] = _escapejs
     env.filters['tojson'] = tojson_filter
     env.filters['urlencode'] = urlencode_filter
     env.filters['blog_category_display'] = blog_category_display

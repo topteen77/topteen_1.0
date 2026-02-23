@@ -1549,8 +1549,11 @@ Explore our comprehensive collection of career paths organized by industry and i
           }
         });
         {% else %}
-        // Redirect to login if not authenticated
-        window.location.href = '{{ url("student_login") }}';
+        if (typeof window.showLoginRequiredPopup === 'function') {
+          window.showLoginRequiredPopup();
+        } else {
+          window.location.href = '{{ url("student_login") }}';
+        }
         {% endif %}
       });
     });

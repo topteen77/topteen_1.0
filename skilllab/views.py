@@ -94,7 +94,7 @@ class SkillLabCourseDetail(TemplateView):
         bread_crumb =self._breadcrumb(skillab)
         ctx['breadcrumb']= bread_crumb[1]
         ctx["html_head"] = self.html_head(skillab)
-        
+        ctx['user_authenticated'] = request.user.is_authenticated
         return ctx
     
     def _breadcrumb(self,skilllab):
@@ -296,6 +296,8 @@ class SkillLabCourseLearningView(TemplateView):
                     item['step'] = sec.get('step', 0)
                 sections_flat.append(item)
         sections_flat_json = json.dumps(sections_flat)
+        # Prevent </script> in section titles/content from closing the HTML script element
+        sections_flat_json = re.sub(r'</script>', r'<\\/script>', sections_flat_json, flags=re.IGNORECASE)
         worksheet_progress_ids = list(worksheet_progress)
         mcq_attempts_ids = list(mcq_attempts.keys())
         progress_summary = SkillLabCourseProgressSummary.objects.filter(

@@ -192,8 +192,10 @@
 .skilllab-modal-body textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical; }
 .skilllab-modal-body textarea:focus { outline: none; border-color: #5249DF; box-shadow: 0 0 0 2px rgba(82,73,223,0.2); }
 .skilllab-modal-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; }
+.skilllab-modal-selected-label { font-size: 0.8rem; font-weight: 600; color: #5249DF; margin-bottom: 0.35rem; }
+.skilllab-modal-ref { font-size: 0.875rem; color: #333; margin-bottom: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #5249DF; min-height: 2.5rem; }
+.skilllab-modal-ref.empty { color: #999; font-style: italic; }
 .skilllab-modal-input:focus { outline: none; border-color: #5249DF; box-shadow: 0 0 0 2px rgba(82,73,223,0.2); }
-.skilllab-modal-ref { font-size: 0.875rem; color: #666; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #5249DF; }
 .skilllab-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.75rem; }
 .skilllab-modal-footer .btn { padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem; }
 .skilllab-modal-footer .btn-cancel { background: #f0f0f0; color: #333; }
@@ -226,7 +228,7 @@
   <span id="skilllab-saved-toast-text">Saved</span>
 </div>
 
-<!-- Add note modal: Name → Selection (Referring to) → Note → Save -->
+<!-- Add note modal: Selected text (shown) → Note title → Save -->
 <div id="skilllab-note-modal-backdrop" class="skilllab-modal-backdrop" role="dialog" aria-labelledby="skilllab-note-modal-title" aria-modal="true">
   <div class="skilllab-modal">
     <div class="skilllab-modal-header">
@@ -234,9 +236,10 @@
       <button type="button" class="skilllab-modal-close" id="skilllab-note-modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="skilllab-modal-body">
+      <div class="skilllab-modal-selected-label">Selected text</div>
+      <div class="skilllab-modal-ref" id="skilllab-note-modal-ref"></div>
       <label class="form-label" for="skilllab-note-modal-name">Note</label>
-      <input type="text" id="skilllab-note-modal-name" class="skilllab-modal-input" placeholder="Note title" maxlength="255" />
-      <div class="skilllab-modal-ref" id="skilllab-note-modal-ref" style="display: none;"></div>
+      <input type="text" id="skilllab-note-modal-name" class="skilllab-modal-input" placeholder="Note title (optional)" maxlength="255" />
     </div>
     <div class="skilllab-modal-footer">
       <button type="button" class="btn btn-cancel" id="skilllab-note-modal-cancel">Cancel</button>
@@ -356,9 +359,8 @@
                 </div>
                 <div id="skilllab-floating-shortcut-wrap" style="position: relative;">
                 <div class="skilllab-floating-shortcut" id="skilllab-floating-shortcut">
-                  <button type="button" class="btn-shortcut" id="skilllab-float-meaning" title="Show meaning (single word)"><i class='bx bx-book-open'></i> Meaning</button>
+                  <button type="button" class="btn-shortcut" id="skilllab-float-meaning" title="Show meaning"><i class='bx bx-book-open'></i> Meaning</button>
                   <button type="button" class="btn-shortcut" id="skilllab-float-highlight" title="Add highlight"><i class='bx bx-highlight'></i> Highlight</button>
-                  <button type="button" class="btn-shortcut" id="skilllab-float-note" title="Add note"><i class='bx bx-note'></i> Note</button>
                 </div>
                 <div id="section-content-container" class="section-content-loading">
                   <p class="text-muted">Click a section in the sidebar to load content.</p>
@@ -391,27 +393,27 @@
 {% block additionaljs %}
 <script>
 (function() {
-  var courseSlug = "{{ skilllab_course.slug }}";
+  var courseSlug = "{{ skilllab_course.slug|escapejs }}";
   var sectionsFlat = {{ sections_flat_json|safe }};
   var worksheetProgressIds = {{ worksheet_progress_ids|tojson }};
   var mcqAttemptsIds = {{ mcq_attempts_ids|tojson }};
   var currentChapterId = {{ (current_chapter.id if current_chapter else 0)|tojson }};
-  var sectionContentUrl = "{{ url('skilllabcourse:section_content') }}";
-  var markWorksheetUrl = "{{ url('skilllabcourse:mark_worksheet_downloaded') }}";
-  var submitMcqUrl = "{{ url('skilllabcourse:submit_mcq') }}";
-  var markChapterCompleteUrl = "{{ url('skilllabcourse:mark_chapter_complete') }}";
-  var saveResumeUrl = "{{ url('skilllabcourse:save_resume') }}";
-  var highlightSaveUrl = "{{ url('skilllabcourse:highlight_save') }}";
-  var highlightListUrl = "{{ url('skilllabcourse:highlight_list') }}";
-  var highlightDeleteUrl = "{{ url('skilllabcourse:highlight_delete') }}";
-  var noteSaveUrl = "{{ url('skilllabcourse:note_save') }}";
-  var noteListUrl = "{{ url('skilllabcourse:note_list') }}";
-  var noteDeleteUrl = "{{ url('skilllabcourse:note_delete') }}";
-  var bookmarkSaveUrl = "{{ url('skilllabcourse:bookmark_save') }}";
-  var bookmarkListUrl = "{{ url('skilllabcourse:bookmark_list') }}";
-  var bookmarkDeleteUrl = "{{ url('skilllabcourse:bookmark_delete') }}";
-  var savedCountUrl = "{{ url('skilllabcourse:saved_count') }}";
-  var initialSectionIdx = {% if initial_section_idx is not none %}{{ initial_section_idx }}{% else %}null{% endif %};
+  var sectionContentUrl = "{{ url('skilllabcourse:section_content')|escapejs }}";
+  var markWorksheetUrl = "{{ url('skilllabcourse:mark_worksheet_downloaded')|escapejs }}";
+  var submitMcqUrl = "{{ url('skilllabcourse:submit_mcq')|escapejs }}";
+  var markChapterCompleteUrl = "{{ url('skilllabcourse:mark_chapter_complete')|escapejs }}";
+  var saveResumeUrl = "{{ url('skilllabcourse:save_resume')|escapejs }}";
+  var highlightSaveUrl = "{{ url('skilllabcourse:highlight_save')|escapejs }}";
+  var highlightListUrl = "{{ url('skilllabcourse:highlight_list')|escapejs }}";
+  var highlightDeleteUrl = "{{ url('skilllabcourse:highlight_delete')|escapejs }}";
+  var noteSaveUrl = "{{ url('skilllabcourse:note_save')|escapejs }}";
+  var noteListUrl = "{{ url('skilllabcourse:note_list')|escapejs }}";
+  var noteDeleteUrl = "{{ url('skilllabcourse:note_delete')|escapejs }}";
+  var bookmarkSaveUrl = "{{ url('skilllabcourse:bookmark_save')|escapejs }}";
+  var bookmarkListUrl = "{{ url('skilllabcourse:bookmark_list')|escapejs }}";
+  var bookmarkDeleteUrl = "{{ url('skilllabcourse:bookmark_delete')|escapejs }}";
+  var savedCountUrl = "{{ url('skilllabcourse:saved_count')|escapejs }}";
+  var initialSectionIdx = {{ initial_section_idx|tojson }};
   var currentSectionIdx = 0;
   var RESUME_STORAGE_KEY = 'skilllab_resume_';
   var currentSectionInfo = { type: '', id: '', step: null };
@@ -508,29 +510,15 @@
     return d.innerHTML;
   }
 
-  function isInsideOurHighlightMarkup(html, index) {
+  function isInsideTag(html, index) {
     var before = html.substring(0, index);
     var openCount = (before.match(/</g) || []).length;
     var closeCount = (before.match(/>/g) || []).length;
-    if (openCount > closeCount) {
-      var lastLt = before.lastIndexOf('<');
-      var tagStr = before.substring(lastLt, before.length);
-      return tagStr.indexOf('skilllab-user-highlight') !== -1 || tagStr.indexOf('skilllab-highlight-wrap') !== -1;
-    }
+    if (openCount > closeCount) return true;
     var lastGt = before.lastIndexOf('>');
     var lastLt = before.lastIndexOf('<');
-    if (lastGt > lastLt) {
-      var openTagEnd = before.indexOf('>', lastLt);
-      if (openTagEnd !== -1 && index > openTagEnd) {
-        var tagStr = before.substring(lastLt, openTagEnd + 1);
-        return tagStr.indexOf('skilllab-user-highlight') !== -1 || tagStr.indexOf('skilllab-highlight-wrap') !== -1;
-      }
-    }
+    if (lastLt > lastGt) return true;
     return false;
-  }
-
-  function isInsideTag(html, index) {
-    return isInsideOurHighlightMarkup(html, index);
   }
 
   function findTextOutsideTags(html, text) {
@@ -544,6 +532,21 @@
     return -1;
   }
 
+  function stripHighlightWraps(html) {
+    var div = document.createElement('div');
+    div.innerHTML = html;
+    var wraps = div.querySelectorAll('.skilllab-highlight-wrap');
+    for (var w = 0; w < wraps.length; w++) {
+      var wrap = wraps[w];
+      var mark = wrap.querySelector('mark.skilllab-user-highlight');
+      if (mark) {
+        var textNode = document.createTextNode(mark.textContent);
+        wrap.parentNode.replaceChild(textNode, wrap);
+      }
+    }
+    return div.innerHTML;
+  }
+
   function applyHighlightsForSection(container) {
     if (!container || !currentSectionInfo.type || !currentSectionInfo.id) return Promise.resolve();
     var params = 'course_slug=' + encodeURIComponent(courseSlug) + '&section_type=' + encodeURIComponent(currentSectionInfo.type) + '&section_id=' + encodeURIComponent(currentSectionInfo.id);
@@ -551,34 +554,14 @@
     return fetch(highlightListUrl + '?' + params, { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
+        var html = stripHighlightWraps(container.innerHTML);
         if (!data.success || !data.highlights || !data.highlights.length) {
-          if (data.success && data.highlights && data.highlights.length === 0) {
-            var wrap0;
-            while ((wrap0 = container.querySelector('.skilllab-highlight-wrap'))) {
-              var mark0 = wrap0.querySelector('mark.skilllab-user-highlight');
-              var text0 = mark0 ? mark0.textContent : wrap0.textContent;
-              var tn0 = document.createTextNode(text0);
-              if (wrap0.parentNode) wrap0.parentNode.replaceChild(tn0, wrap0);
-            }
-          }
+          container.innerHTML = html;
           return;
         }
-        var wrapEl;
-        while ((wrapEl = container.querySelector('.skilllab-highlight-wrap'))) {
-          var m = wrapEl.querySelector('mark.skilllab-user-highlight');
-          var t = m ? m.textContent : wrapEl.textContent;
-          var tn = document.createTextNode(t);
-          if (wrapEl.parentNode) wrapEl.parentNode.replaceChild(tn, wrapEl);
-        }
-        var html = container.innerHTML;
         for (var i = 0; i < data.highlights.length; i++) {
           var h = data.highlights[i];
           var idx = findTextOutsideTags(html, h.highlighted_text);
-          // #region agent log
-          try {
-            fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'course_learning.html:applyHighlightsForSection',message:'highlight apply',data:{highlightId:h.id,textLen:h.highlighted_text.length,idx:idx,found:idx!==-1},timestamp:Date.now(),hypothesisId:'H4'})}).catch(function(){});
-          } catch (e) {}
-          // #endregion
           if (idx !== -1) {
             var color = (h.color === 'yellow' || !h.color) ? 'rgba(255,255,0,0.4)' : (h.color.indexOf('rgba') === 0 || h.color.indexOf('#') === 0 ? h.color : 'rgba(255,255,0,0.4)');
             var wrapped = '<span class="skilllab-highlight-wrap" data-highlight-id="' + h.id + '"><mark class="skilllab-user-highlight" style="background-color:' + color + '">' + escapeHtml(h.highlighted_text) + '</mark><button type="button" class="skilllab-highlight-remove" title="Remove highlight" aria-label="Remove highlight">&times;</button></span>';
@@ -609,9 +592,7 @@
           var anchorEsc = n.anchor_text ? escapeHtml(n.anchor_text) : '';
           item.setAttribute('data-anchor-text', n.anchor_text || '');
           var namePart = (n.name && n.name.trim()) ? '<strong class="skilllab-note-name">' + escapeHtml(n.name.trim()) + '</strong> ' : '';
-          var showText = n.note_text && (!(n.name && n.name.trim()) || n.note_text.trim() !== (n.name || '').trim());
-          var textPart = showText ? '<span class="skilllab-note-text">' + escapeHtml(n.note_text) + '</span> ' : '';
-          item.innerHTML = '<div class="skilllab-note-content">' + namePart + textPart + (n.anchor_text ? ' <small class="text-muted">— "' + escapeHtml(n.anchor_text.substring(0, 50)) + (n.anchor_text.length > 50 ? '…' : '') + '"</small>' : '') + '</div><span class="note-delete" data-note-id="' + n.id + '" title="Delete note"><i class="bx bx-trash"></i></span>';
+          item.innerHTML = '<div class="skilllab-note-content">' + namePart + '<span class="skilllab-note-text">' + escapeHtml(n.note_text) + '</span>' + (n.anchor_text ? ' <small class="text-muted">— "' + escapeHtml(n.anchor_text.substring(0, 50)) + (n.anchor_text.length > 50 ? '…' : '') + '"</small>' : '') + '</div><span class="note-delete" data-note-id="' + n.id + '" title="Delete note"><i class="bx bx-trash"></i></span>';
           wrap.appendChild(item);
         }
         container.appendChild(wrap);
@@ -992,9 +973,14 @@
     function openNoteModal(anchorText) {
       anchorText = anchorText || '';
       if (noteModalRef) {
-        noteModalRef.style.display = anchorText ? 'block' : 'none';
-        noteModalRef.textContent = anchorText ? ('Referring to: "' + (anchorText.length > 100 ? anchorText.substring(0, 100) + '…' : anchorText) + '"') : '';
         noteModalRef.setAttribute('data-anchor', anchorText);
+        if (anchorText) {
+          noteModalRef.textContent = anchorText.length > 300 ? anchorText.substring(0, 300) + '…' : anchorText;
+          noteModalRef.classList.remove('empty');
+        } else {
+          noteModalRef.textContent = 'No text selected. Select text on the page, then click Add note.';
+          noteModalRef.classList.add('empty');
+        }
       }
       if (noteModalName) noteModalName.value = '';
       if (noteModalName) noteModalName.focus();
@@ -1002,7 +988,6 @@
     }
     function closeNoteModal() {
       if (noteModalBackdrop) noteModalBackdrop.classList.remove('show');
-      if (noteModalRef) noteModalRef.style.display = 'none';
     }
     document.getElementById('skilllab-note-modal-close').addEventListener('click', closeNoteModal);
     document.getElementById('skilllab-note-modal-cancel').addEventListener('click', closeNoteModal);
@@ -1023,18 +1008,12 @@
         var wrap = removeBtn.closest('.skilllab-highlight-wrap');
         var highlightId = wrap ? wrap.getAttribute('data-highlight-id') : null;
         if (!highlightId) return;
-        // #region agent log
-        try { fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'course_learning.html:removeHighlight',message:'remove click',data:{highlightId:highlightId},timestamp:Date.now(),hypothesisId:'H1'})}).catch(function(){}); } catch (e) {}
-        // #endregion
         fetch(highlightDeleteUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
           body: JSON.stringify({ highlight_id: parseInt(highlightId, 10) }),
           credentials: 'same-origin'
         }).then(function(r) { return r.json(); }).then(function(res) {
-          // #region agent log
-          try { fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'course_learning.html:removeHighlight',message:'delete response',data:{success:!!res.success},timestamp:Date.now(),hypothesisId:'H2'})}).catch(function(){}); } catch (e) {}
-          // #endregion
           if (res.success) { showSavedToast('Highlight removed'); applyHighlightsForSection(container); }
         });
         return;
@@ -1063,7 +1042,6 @@
     var floatShortcut = document.getElementById('skilllab-floating-shortcut');
     var floatMeaning = document.getElementById('skilllab-float-meaning');
     var floatHighlight = document.getElementById('skilllab-float-highlight');
-    var floatNote = document.getElementById('skilllab-float-note');
 
     function getSelectionInContainer() {
       var sel = window.getSelection();
@@ -1074,38 +1052,11 @@
       return { text: text, inContainer: inContainer, range: range };
     }
 
-    function expandRangeToWordBoundaries(range) {
-      if (!range || range.collapsed) return range;
-      var startNode = range.startContainer;
-      var endNode = range.endContainer;
-      if (startNode.nodeType !== Node.TEXT_NODE) return range;
-      var startText = startNode.textContent || '';
-      var endText = endNode.nodeType === Node.TEXT_NODE ? (endNode.textContent || '') : startText;
-      var wordChar = /[\w\u00C0-\u024F\u1E00-\u1EFF']/;
-      var i = range.startOffset - 1;
-      while (i >= 0 && wordChar.test(startText[i])) i--;
-      var newStart = i + 1;
-      range.setStart(startNode, newStart);
-      if (startNode === endNode) {
-        var j = range.endOffset;
-        while (j < startText.length && wordChar.test(startText[j])) j++;
-        range.setEnd(startNode, j);
-      } else if (endNode.nodeType === Node.TEXT_NODE) {
-        var k = range.endOffset;
-        while (k < endText.length && wordChar.test(endText[k])) k++;
-        range.setEnd(endNode, k);
-      }
-      return range;
-    }
-
     function updateHighlightButton() {
       var s = getSelectionInContainer();
       var enabled = !!s.text && s.inContainer;
-      var singleWord = enabled && s.text.indexOf(' ') === -1 && /^\S+$/.test(s.text);
       btnHighlight.disabled = !enabled;
-      if (btnMeaning) btnMeaning.disabled = !singleWord;
-      if (floatMeaning) floatMeaning.disabled = !singleWord;
-      if (floatNote) floatNote.disabled = !enabled;
+      if (btnMeaning) btnMeaning.disabled = !enabled;
       if (floatShortcut) {
         if (enabled && s.range) {
           floatShortcut.classList.add('show');
@@ -1160,18 +1111,15 @@
       var s = getSelectionInContainer();
       if (!s.text) return;
       var text = s.text.trim();
-      if (text.indexOf(' ') !== -1 || !/^\S+$/.test(text)) {
-        showSavedToast('Select a single word for meaning', true);
-        return;
-      }
       var defineUrl = 'https://www.google.com/search?q=define+' + encodeURIComponent(text);
       var title = 'Definition: "' + (text.length > 35 ? text.substring(0, 35) + '…' : text) + '"';
       var popContent = document.getElementById('skilllab-definition-popover-content');
       if (popContent) popContent.innerHTML = '<p class="text-muted">Loading definition…</p>';
       var posRect = (floatShortcut && floatShortcut.classList.contains('show') ? floatShortcut.getBoundingClientRect() : (s.range ? s.range.getBoundingClientRect() : null));
       showDefinitionOnPage(title, '<p class="text-muted">Loading definition…</p>', defineUrl, posRect);
-      if (text) {
-        fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(text), { credentials: 'omit' })
+      var word = text.split(/\s+/)[0];
+      if (word && text.indexOf(' ') === -1) {
+        fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word), { credentials: 'omit' })
           .then(function(r) { return r.ok ? r.json() : null; })
           .then(function(data) {
             if (data && data[0] && data[0].meanings && data[0].meanings.length) {
@@ -1189,19 +1137,15 @@
           .catch(function() {
             if (popContent) popContent.innerHTML = '<p class="text-muted">Could not load definition. <a href="' + defineUrl + '" target="_blank" rel="noopener">View definition in new tab</a>.</p>';
           });
+      } else {
+        if (popContent) popContent.innerHTML = '<p class="text-muted">For phrases, <a href="' + defineUrl + '" target="_blank" rel="noopener">view definition in new tab</a>.</p>';
+      }
       if (floatShortcut) floatShortcut.classList.remove('show');
     }
 
     function doAddHighlight() {
       var s = getSelectionInContainer();
       if (!s.text || !currentSectionInfo.type || !currentSectionInfo.id) return;
-      var textToHighlight = s.text;
-      if (s.range) {
-        var clone = s.range.cloneRange();
-        expandRangeToWordBoundaries(clone);
-        var expanded = clone.toString().trim();
-        if (expanded) textToHighlight = expanded;
-      }
       fetch(highlightSaveUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
@@ -1210,7 +1154,7 @@
           section_type: currentSectionInfo.type,
           section_id: currentSectionInfo.id,
           section_step: currentSectionInfo.step,
-          highlighted_text: textToHighlight,
+          highlighted_text: s.text,
           color: 'yellow'
         }),
         credentials: 'same-origin'
@@ -1223,12 +1167,6 @@
     if (btnMeaning) btnMeaning.addEventListener('click', doShowMeaning);
     if (floatMeaning) floatMeaning.addEventListener('click', doShowMeaning);
     if (floatHighlight) floatHighlight.addEventListener('click', doAddHighlight);
-    if (floatNote) floatNote.addEventListener('click', function() {
-      var sel = window.getSelection();
-      var anchorText = (sel && sel.toString) ? sel.toString().trim() : '';
-      openNoteModal(anchorText);
-      if (floatShortcut) floatShortcut.classList.remove('show');
-    });
 
     btnHighlight.addEventListener('click', doAddHighlight);
 
@@ -1240,10 +1178,7 @@
     document.getElementById('skilllab-note-modal-save').addEventListener('click', function() {
       var name = noteModalName ? noteModalName.value.trim() : '';
       var anchorText = noteModalRef && noteModalRef.getAttribute('data-anchor') ? noteModalRef.getAttribute('data-anchor') : '';
-      if (!name) {
-        showSavedToast('Note cannot be empty', true);
-        return;
-      }
+      var noteText = name || anchorText || '—';
       if (!currentSectionInfo.type || !currentSectionInfo.id) return;
       closeNoteModal();
       fetch(noteSaveUrl, {
@@ -1255,7 +1190,7 @@
           section_id: currentSectionInfo.id,
           section_step: currentSectionInfo.step,
           name: name,
-          note_text: name,
+          note_text: noteText,
           anchor_text: anchorText
         }),
         credentials: 'same-origin'
@@ -1413,11 +1348,11 @@
       }).then(function(r) { return r.json(); }).then(function(data) {
         if (isLastSection) {
           saveState();
-          window.location.href = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}";
+          window.location.href = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug])|escapejs }}";
         } else {
           saveStateWithIndex(nextSectionIdx);
           var nextChapterIndex = sectionsFlat[nextSectionIdx].chapterIndex;
-          window.location.href = "{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}?chapter=" + nextChapterIndex;
+          window.location.href = "{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug])|escapejs }}?chapter=" + nextChapterIndex;
         }
       }).catch(function() {
         doNextNav(nextSectionIdx, isLastSection);
@@ -1426,7 +1361,7 @@
     function doNextNav(nextSectionIdx, isLastSection) {
       if (isLastSection) {
         saveState();
-        window.location.href = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}";
+        window.location.href = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug])|escapejs }}";
       } else {
         currentSectionIdx = nextSectionIdx;
         saveState();
