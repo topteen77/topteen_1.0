@@ -239,8 +239,12 @@
           });
         } else {
           circle.setAttribute('fill', '#e8e8e8');
-          circle.setAttribute('stroke', '#bbb');
+          circle.setAttribute('stroke', '#999');
           circle.setAttribute('stroke-width', '1.5');
+          circle.setAttribute('stroke-dasharray', '5,4');
+          circle.setAttribute('opacity', '0.92');
+          circle.style.cursor = 'default';
+          circle.style.pointerEvents = 'none';
         }
         g.appendChild(circle);
 
@@ -293,9 +297,13 @@
         childCircle.setAttribute('cy', y);
         childCircle.setAttribute('r', childRadius);
         if (isChildLeaf) {
-          childCircle.setAttribute('fill', 'hsl(' + (index * 360 / n) + ', 35%, 75%)');
-          childCircle.setAttribute('stroke', '#ccc');
+          childCircle.setAttribute('fill', 'hsl(' + (index * 360 / n) + ', 25%, 82%)');
+          childCircle.setAttribute('stroke', '#aaa');
           childCircle.setAttribute('stroke-width', '2');
+          childCircle.setAttribute('stroke-dasharray', '5,4');
+          childCircle.setAttribute('opacity', '0.9');
+          childCircle.style.cursor = 'default';
+          childCircle.style.pointerEvents = 'none';
         } else {
           childCircle.setAttribute('fill', 'hsl(' + (index * 360 / n) + ', 70%, 60%)');
           childCircle.setAttribute('stroke', 'white');
@@ -361,8 +369,7 @@
         if (options.onNodeClick) options.onNodeClick(parentNode, { type: 'center', goToParent: true });
       });
       centerCircle.addEventListener('mouseenter', function () {
-        svg.appendChild(centerCircle);
-        svg.appendChild(centerText);
+        bringToFront(svg, centerCircle, centerText);
         centerCircle.setAttribute('r', finalCenterRadius + 10);
         centerCircle.setAttribute('stroke-width', '6');
       });
@@ -370,6 +377,8 @@
         centerCircle.setAttribute('r', finalCenterRadius);
         centerCircle.setAttribute('stroke-width', '5');
       });
+    } else {
+      centerCircle.style.cursor = 'default';
     }
     svg.appendChild(centerCircle);
 
@@ -491,6 +500,7 @@
       render(id, initialCenter, instances[id]);
     }
 
+    // Load full mindmap tree once; all navigation (setCenter) uses in-memory data for smooth interaction
     if (options.apiUrl) {
       fetch(options.apiUrl)
         .then(function (r) { return r.json(); })
