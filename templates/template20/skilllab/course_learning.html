@@ -915,28 +915,35 @@
         if (countEl) countEl.textContent = data.bookmarks.length;
         listEl.innerHTML = '';
         data.bookmarks.forEach(function(b) {
-          var idx = sectionsFlat.findIndex(function(s) {
-            return s.type === b.section_type && String(s.id) === String(b.section_id) && (b.section_step == null ? (s.step == null || s.step === undefined) : s.step === b.section_step);
-          });
           var li = document.createElement('li');
           var a = document.createElement('a');
-          a.href = '#';
+          a.href = '#section-' + (b.section_type + '-' + b.section_id + (b.section_step != null && b.section_step !== '' ? '-' + b.section_step : ''));
           a.textContent = (b.section_title || 'Section').substring(0, 50) + (b.section_title && b.section_title.length > 50 ? '…' : '');
-          a.setAttribute('data-section-idx', idx >= 0 ? idx : '');
+          a.setAttribute('data-section-type', b.section_type);
+          a.setAttribute('data-section-id', String(b.section_id));
+          a.setAttribute('data-section-step', (b.section_step != null && b.section_step !== '') ? String(b.section_step) : '');
           a.addEventListener('click', function(e) {
             e.preventDefault();
-            var i = parseInt(a.getAttribute('data-section-idx'), 10);
-            if (i >= 0 && i < sectionsFlat.length) {
-              currentSectionIdx = i;
-              var s = sectionsFlat[i];
-              var step = s.type === 'intro' ? (s.step || 0) : undefined;
-              loadSectionContent(s.type, s.id, s.title, step);
+            e.stopPropagation();
+            var type = this.getAttribute('data-section-type');
+            var id = this.getAttribute('data-section-id');
+            var step = this.getAttribute('data-section-step') || '0';
+            var idx = sectionsFlat.findIndex(function(s) { return sectionMatches(s, type, id, step); });
+            if (idx >= 0 && idx < sectionsFlat.length) {
+              currentSectionIdx = idx;
+              var s = sectionsFlat[idx];
+              var loadStep = s.type === 'intro' ? (s.step != null ? s.step : parseInt(step, 10) || 0) : undefined;
+              loadSectionContent(s.type, s.id, s.title, loadStep);
               saveState();
               document.getElementById('skilllab-saved-panel').classList.remove('show');
-              var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + (s.step != null ? s.step : '') + '"]');
+              document.getElementById('skilllab-saved-toggle').setAttribute('aria-expanded', 'false');
+              var stepAttr = (s.step != null && s.step !== undefined) ? String(s.step) : '';
+              var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + stepAttr + '"]');
               if (!sel && s.type !== 'intro') sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"]');
               if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); }
               expandAccordionForChapter(s.chapterId);
+              updateSectionFutureState();
+              updateNextButton();
               setTimeout(function() {
                 var contentEl = document.getElementById('section-content-container');
                 if (contentEl) contentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1055,14 +1062,21 @@
       return { text: text, inContainer: inContainer, range: range };
     }
 
+    function isSingleWord(text) {
+      var t = (text || '').trim();
+      return t.length > 0 && t.indexOf(' ') === -1;
+    }
+
     function updateHighlightButton() {
       var s = getSelectionInContainer();
       var enabled = !!s.text && s.inContainer;
+      var meaningEnabled = enabled && isSingleWord(s.text);
       btnHighlight.disabled = !enabled;
-      if (btnMeaning) btnMeaning.disabled = !enabled;
+      if (btnMeaning) btnMeaning.disabled = !meaningEnabled;
       if (floatShortcut) {
         if (enabled && s.range) {
           floatShortcut.classList.add('show');
+          if (floatMeaning) { floatMeaning.disabled = !meaningEnabled; floatMeaning.style.opacity = meaningEnabled ? '' : '0.5'; floatMeaning.style.pointerEvents = meaningEnabled ? '' : 'none'; }
           var rect = s.range.getBoundingClientRect();
           var positionFloating = function() {
             floatShortcut.style.position = 'fixed';
@@ -1077,6 +1091,7 @@
           requestAnimationFrame(positionFloating);
         } else {
           floatShortcut.classList.remove('show');
+          if (floatMeaning) { floatMeaning.disabled = false; floatMeaning.style.opacity = ''; floatMeaning.style.pointerEvents = ''; }
         }
       }
     }
@@ -1112,7 +1127,7 @@
 
     function doShowMeaning() {
       var s = getSelectionInContainer();
-      if (!s.text) return;
+      if (!s.text || !isSingleWord(s.text)) return;
       var text = s.text.trim();
       var defineUrl = 'https://www.google.com/search?q=define+' + encodeURIComponent(text);
       var title = 'Definition: "' + (text.length > 35 ? text.substring(0, 35) + '…' : text) + '"';
