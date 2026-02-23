@@ -361,6 +361,7 @@
                 <div class="skilllab-floating-shortcut" id="skilllab-floating-shortcut">
                   <button type="button" class="btn-shortcut" id="skilllab-float-meaning" title="Show meaning"><i class='bx bx-book-open'></i> Meaning</button>
                   <button type="button" class="btn-shortcut" id="skilllab-float-highlight" title="Add highlight"><i class='bx bx-highlight'></i> Highlight</button>
+                  <button type="button" class="btn-shortcut" id="skilllab-float-note" title="Add note"><i class='bx bx-note'></i> Note</button>
                 </div>
                 <div id="section-content-container" class="section-content-loading">
                   <p class="text-muted">Click a section in the sidebar to load content.</p>
@@ -589,9 +590,10 @@
           var n = data.notes[i];
           var item = document.createElement('div');
           item.className = 'skilllab-note-item';
-          var anchorEsc = n.anchor_text ? escapeHtml(n.anchor_text) : '';
           item.setAttribute('data-anchor-text', n.anchor_text || '');
-          var namePart = (n.name && n.name.trim()) ? '<strong class="skilllab-note-name">' + escapeHtml(n.name.trim()) + '</strong> ' : '';
+          var nameTrim = (n.name && n.name.trim()) ? n.name.trim() : '';
+          var noteTrim = (n.note_text && n.note_text.trim()) ? n.note_text.trim() : '';
+          var namePart = (nameTrim && nameTrim !== noteTrim) ? '<strong class="skilllab-note-name">' + escapeHtml(n.name) + '</strong> ' : '';
           item.innerHTML = '<div class="skilllab-note-content">' + namePart + '<span class="skilllab-note-text">' + escapeHtml(n.note_text) + '</span>' + (n.anchor_text ? ' <small class="text-muted">— "' + escapeHtml(n.anchor_text.substring(0, 50)) + (n.anchor_text.length > 50 ? '…' : '') + '"</small>' : '') + '</div><span class="note-delete" data-note-id="' + n.id + '" title="Delete note"><i class="bx bx-trash"></i></span>';
           wrap.appendChild(item);
         }
@@ -1042,6 +1044,7 @@
     var floatShortcut = document.getElementById('skilllab-floating-shortcut');
     var floatMeaning = document.getElementById('skilllab-float-meaning');
     var floatHighlight = document.getElementById('skilllab-float-highlight');
+    var floatNote = document.getElementById('skilllab-float-note');
 
     function getSelectionInContainer() {
       var sel = window.getSelection();
@@ -1167,6 +1170,12 @@
     if (btnMeaning) btnMeaning.addEventListener('click', doShowMeaning);
     if (floatMeaning) floatMeaning.addEventListener('click', doShowMeaning);
     if (floatHighlight) floatHighlight.addEventListener('click', doAddHighlight);
+    if (floatNote) floatNote.addEventListener('click', function() {
+      var sel = window.getSelection();
+      var anchorText = (sel && sel.toString) ? sel.toString().trim() : '';
+      openNoteModal(anchorText);
+      if (floatShortcut) floatShortcut.classList.remove('show');
+    });
 
     btnHighlight.addEventListener('click', doAddHighlight);
 
