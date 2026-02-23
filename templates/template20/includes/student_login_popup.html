@@ -570,6 +570,15 @@
     });
   });
 
+  // Document-level delegation so top nav / any popup trigger always opens popup (never navigates to /student/login/)
+  document.addEventListener('click', function(e) {
+    var t = e.target && (e.target.closest ? e.target.closest('#header-signin-btn, .student-login-popup-trigger') : null);
+    if (!t || !t.matches || (!t.matches('#header-signin-btn') && !t.matches('.student-login-popup-trigger'))) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window.showLoginRequiredPopup === 'function') window.showLoginRequiredPopup();
+  }, true);
+
   var popupEl = document.getElementById('loginRequiredPopup');
   if (popupEl) popupEl.addEventListener('click', function(e) {
     if (e.target.id === 'loginRequiredPopup') closeLoginRequiredPopup();

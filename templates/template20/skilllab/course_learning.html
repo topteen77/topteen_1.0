@@ -1062,6 +1062,26 @@
       return { text: text, inContainer: inContainer, range: range };
     }
 
+    function expandRangeToWordBoundaries(range) {
+      if (!range) return range;
+      var sc = range.startContainer;
+      var ec = range.endContainer;
+      var so = range.startOffset;
+      var eo = range.endOffset;
+      if (sc.nodeType === Node.TEXT_NODE) {
+        var st = sc.textContent || '';
+        while (so > 0 && /\S/.test(st[so - 1])) so--;
+        range.setStart(sc, so);
+      }
+      if (ec.nodeType === Node.TEXT_NODE) {
+        var et = ec.textContent || '';
+        var len = et.length;
+        while (eo < len && /\S/.test(et[eo])) eo++;
+        range.setEnd(ec, eo);
+      }
+      return range;
+    }
+
     function isSingleWord(text) {
       var t = (text || '').trim();
       return t.length > 0 && t.indexOf(' ') === -1;
@@ -1164,6 +1184,13 @@
     function doAddHighlight() {
       var s = getSelectionInContainer();
       if (!s.text || !currentSectionInfo.type || !currentSectionInfo.id) return;
+      var range = s.range;
+      var textToHighlight = s.text;
+      if (range) {
+        expandRangeToWordBoundaries(range);
+        textToHighlight = range.toString().trim();
+        if (!textToHighlight) textToHighlight = s.text;
+      }
       fetch(highlightSaveUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
@@ -1172,7 +1199,7 @@
           section_type: currentSectionInfo.type,
           section_id: currentSectionInfo.id,
           section_step: currentSectionInfo.step,
-          highlighted_text: s.text,
+          highlighted_text: textToHighlight,
           color: 'yellow'
         }),
         credentials: 'same-origin'
