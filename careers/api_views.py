@@ -1,7 +1,10 @@
 """
 API views for DOCX processing and autocomplete
 """
-from django.http import JsonResponse
+import queue
+import threading
+import time
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -140,6 +143,37 @@ def detect_section_query(query):
             break
     
     return detected_section
+
+
+def format_career_list_item(career):
+    """Light career payload for list/search results. Use career-detail API for full data."""
+    cluster_name = None
+    cluster_url = None
+    if hasattr(career, 'career_cluster') and career.career_cluster.exists():
+        cluster = career.career_cluster.first()
+        cluster_name = cluster.name
+        try:
+            cluster_url = reverse('careers:careerlibrary', args=[cluster.slug, cluster.id])
+        except Exception:
+            pass
+    has_mindmap = False
+    try:
+        if hasattr(career, 'has_xmind_file'):
+            has_mindmap = career.has_xmind_file()
+    except Exception:
+        pass
+    summary = (career.get_display_summary() or '')[:200] if hasattr(career, 'get_display_summary') else ''
+    return {
+        'id': career.id,
+        'name': career.name,
+        'slug': career.slug,
+        'summary': summary,
+        'url': reverse('careers:careerdetail', args=[career.slug, career.id]),
+        'cluster_name': cluster_name,
+        'cluster_url': cluster_url,
+        'has_mindmap': has_mindmap,
+        'detail_url': reverse('careers:career_detail_api') + '?id=' + str(career.id),
+    }
 
 
 def format_career_for_response(career, include_sections=False):
@@ -684,6 +718,8 @@ def ai_query_api(request):
     try:
         data = json.loads(request.body)
         query = data.get('query', '').strip()
+        # full=1 (default): full payload per career. full=0: light list; frontend fetches detail via GET api/career-detail/?id=
+        use_light_list = data.get('full', 1) == 0
         
         # Get pagination parameters
         page = int(data.get('page', 1))
@@ -801,23 +837,20 @@ def ai_query_api(request):
             ).first()
             
             if cluster:
-                # Get 5 careers from this cluster
+                # Get 5 careers from this cluster (prefetch only what list/detail needs)
                 careers = Career.objects.filter(
                     Q(career_cluster=cluster) | Q(career_cluster__parent=cluster),
                     publish_status=1
-                ).distinct()[:5]
-                
-                formatted_careers = []
-                for career in careers:
-                    formatted_career = format_career_for_response(career, include_sections=True)
-                    formatted_careers.append(formatted_career)
-                
+                ).prefetch_related('career_cluster').distinct()[:5]
+                format_fn = format_career_list_item if use_light_list else (lambda c: format_career_for_response(c, include_sections=True))
+                formatted_careers = [format_fn(c) for c in careers]
                 return JsonResponse({
                     'success': True,
                     'query': query,
                     'is_cluster_explore_query': True,
                     'cluster_name': cluster.name,
                     'careers': formatted_careers,
+                    'light': use_light_list,
                     'count': len(formatted_careers),
                     'summary': f"I found {len(formatted_careers)} careers in {cluster.name}."
                 })
@@ -910,40 +943,115 @@ def ai_query_api(request):
         
         # Initialize processor (handles AI/rule-based automatically)
         processor = QueryProcessor()
-        
-        # Handle "another/similar career" requests
+
+        # Handle "another/similar career" requests (no streaming)
         if is_another_request and context_career_id:
             careers = processor.get_similar_or_alternative_careers(
-                context_career_id, 
+                context_career_id,
                 exclude_ids=context_career_ids,
                 limit=per_page
             )
-            # Generate summary for context-based results
             summary = f"I found {len(careers)} related careers for you."
             result = {
                 'careers': careers,
                 'method': 'context_based',
                 'criteria': {},
-                'query': query,  # Include query for display
+                'query': query,
                 'summary': summary
             }
-            # Skip normal processing and go directly to formatting
-            # (careers are already filtered and limited)
         else:
-            # Process normal query
-            result = processor.process_query(query)
-            careers = result['careers']
-            
-            # If context career provided, prioritize similar careers
-            if context_career_id and careers:
-                # Try to include similar careers in results
-                similar_careers = processor.get_similar_careers(context_career_id, limit=3)
-                # Merge similar careers with query results, avoiding duplicates
-                existing_ids = {c.id for c in careers}
-                for similar in similar_careers:
-                    if similar.id not in existing_ids and len(careers) < per_page * 2:
-                        careers.append(similar)
-        
+            # Stream progress + result (actual messages from backend, no repeat)
+            progress_queue = queue.Queue()
+
+            def run_process():
+                try:
+                    res = processor.process_query(
+                        query,
+                        progress_callback=lambda msg: progress_queue.put(('progress', msg))
+                    )
+                    progress_queue.put(('result', res))
+                except Exception as e:
+                    progress_queue.put(('error', str(e)))
+
+            thread = threading.Thread(target=run_process)
+            thread.start()
+
+            def stream_ndjson():
+                t0 = time.perf_counter()
+                while True:
+                    try:
+                        item = progress_queue.get(timeout=60)
+                    except queue.Empty:
+                        break
+                    if item[0] == 'progress':
+                        elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
+                        yield json.dumps({'progress': item[1], 'elapsed_ms': elapsed_ms}) + '\n'
+                    elif item[0] == 'error':
+                        yield json.dumps({'success': False, 'error': item[1]}) + '\n'
+                        return
+                    else:
+                        result = item[1]
+                        break
+                # Apply context similar careers merge
+                careers = result['careers']
+                if context_career_id and careers:
+                    similar_careers = processor.get_similar_careers(context_career_id, limit=3)
+                    existing_ids = {c.id for c in careers}
+                    for similar in similar_careers:
+                        if similar.id not in existing_ids and len(careers) < per_page * 2:
+                            careers.append(similar)
+                # Filters
+                if selected_clusters or selected_professions:
+                    filter_q = Q(publish_status=1)
+                    if selected_clusters:
+                        cluster_ids = [int(c) for c in selected_clusters if str(c).isdigit()]
+                        if cluster_ids:
+                            filter_q &= Q(career_cluster__id__in=cluster_ids)
+                    if selected_professions:
+                        cleaned = [p.strip() for p in selected_professions if p and p.strip()]
+                        if cleaned:
+                            filter_q &= Q(profession__name__in=cleaned)
+                    filtered_ids = set(Career.objects.filter(filter_q).values_list('id', flat=True))
+                    careers = [c for c in careers if getattr(c, 'id', getattr(c, 'pk', c.get('id') if isinstance(c, dict) else None)) in filtered_ids]
+                # Pagination
+                if result.get('method') == 'context_based':
+                    paginated_careers = careers
+                    total_careers = len(careers)
+                    has_more = False
+                    next_page = None
+                else:
+                    total_careers = len(careers)
+                    start_index = (page - 1) * per_page
+                    end_index = start_index + per_page
+                    paginated_careers = careers[start_index:end_index]
+                    has_more = end_index < total_careers
+                    next_page = page + 1 if has_more else None
+                format_fn = format_career_list_item if use_light_list else (lambda c: format_career_for_response(c, include_sections=True))
+                formatted_careers = [format_fn(c) for c in paginated_careers]
+                summary = result.get('summary') or processor.generate_summary(paginated_careers, query)
+                suggested_questions = [] if result.get('method') == 'context_based' else processor.get_suggested_questions(query, paginated_careers)
+                yield json.dumps({
+                    'success': True,
+                    'query': query,
+                    'summary': summary,
+                    'careers': formatted_careers,
+                    'light': use_light_list,
+                    'count': len(formatted_careers),
+                    'total_count': total_careers,
+                    'has_more': has_more,
+                    'next_page': next_page,
+                    'current_page': page,
+                    'suggested_questions': suggested_questions,
+                    'method': result.get('method', 'rule_based')
+                }) + '\n'
+
+            response = StreamingHttpResponse(stream_ndjson(), content_type='application/x-ndjson')
+            response['Cache-Control'] = 'no-cache'
+            return response
+
+        # Non-streaming path (another_request with context_career_id): continue with filters/pagination/format
+        careers = result['careers']
+
         # Apply filters if provided - filter by career IDs using Django ORM
         if selected_clusters or selected_professions:
             # Career and CareerCluster are already imported at the top
@@ -1002,11 +1110,9 @@ def ai_query_api(request):
             has_more = end_index < total_careers
             next_page = page + 1 if has_more else None
         
-        # Format results using helper function
-        formatted_careers = []
-        for career in paginated_careers:
-            formatted_career = format_career_for_response(career, include_sections=True)
-            formatted_careers.append(formatted_career)
+        # Format results: light list or full payload
+        format_fn = format_career_list_item if use_light_list else (lambda c: format_career_for_response(c, include_sections=True))
+        formatted_careers = [format_fn(c) for c in paginated_careers]
         
         # Generate summary (template-based or AI) - use result summary if available
         if result.get('summary'):
@@ -1025,19 +1131,44 @@ def ai_query_api(request):
             'query': query,
             'summary': summary,
             'careers': formatted_careers,
+            'light': use_light_list,
             'count': len(formatted_careers),
             'total_count': total_careers,
             'has_more': has_more,
             'next_page': next_page,
             'current_page': page,
             'suggested_questions': suggested_questions,
-            'method': result.get('method', 'rule_based')  # Indicate processing method
+            'method': result.get('method', 'rule_based')
         })
         
     except Exception as e:
         import traceback
         logger.error(f"AI query API error: {e}\n{traceback.format_exc()}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_career_detail_api(request):
+    """Return full career payload for one career. Use after list/search for detail-on-demand."""
+    career_id = request.GET.get('id')
+    career_slug = request.GET.get('slug')
+    if not career_id and not career_slug:
+        return JsonResponse({'error': 'id or slug required'}, status=400)
+    qs = Career.objects.filter(publish_status=1)
+    if career_id:
+        try:
+            qs = qs.filter(id=int(career_id))
+        except (TypeError, ValueError):
+            return JsonResponse({'error': 'invalid id'}, status=400)
+    else:
+        qs = qs.filter(slug=career_slug)
+    career = qs.prefetch_related(
+        'skills', 'career_cluster', 'profession', 'prospective_employment_areas',
+        'courses', 'videos'
+    ).first()
+    if not career:
+        return JsonResponse({'error': 'Career not found'}, status=404)
+    return JsonResponse(format_career_for_response(career, include_sections=True))
 
 
 @require_http_methods(["GET"])

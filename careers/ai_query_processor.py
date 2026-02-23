@@ -3,6 +3,7 @@ AI Query Processor for Careers - Works without AI, optional AI enhancement
 Supports OpenAI and Google Gemini with embedding caching
 """
 from django.conf import settings
+from django.db import IntegrityError
 from django.db.models import Q
 from django.urls import reverse
 from django.core.cache import cache
@@ -85,55 +86,54 @@ class QueryProcessor:
             self.use_ai = False
             self.use_semantic_search = False
     
-    def process_query(self, query):
+    def _progress(self, progress_callback, message):
+        if progress_callback and callable(progress_callback):
+            try:
+                progress_callback(message)
+            except Exception:
+                pass
+
+    def process_query(self, query, progress_callback=None):
         """
         Process query - uses semantic search, AI, or rule-based parsing
         Returns: dict with 'criteria', 'careers', 'method'
-        
-        Priority order:
-        1. Semantic search (if ENABLE_SEMANTIC_SEARCH=True AND (API key available OR cached embeddings exist))
-        2. AI-enhanced search (if ENABLE_AI_FEATURES=True AND API key available)
-        3. Rule-based search (always available as fallback)
+        progress_callback(message): optional, called with actual progress messages (no repeat).
         """
         # Try semantic search ONLY if explicitly enabled in env
         if self.use_semantic_search:
-            # Check if we have cached embeddings OR API client
             has_cache = self.has_cached_embeddings()
             if self.ai_client or has_cache:
                 try:
                     logger.info("Using semantic search (ENABLE_SEMANTIC_SEARCH=True)")
-                    result = self._process_with_semantic_search(query)
-                    # Suppress relevancy breakdown when semantic search is used
+                    result = self._process_with_semantic_search(query, progress_callback)
                     return result
                 except Exception as e:
                     logger.error(f"Semantic search failed: {e}, falling back to AI/rule-based")
-                    # Fall through to AI or rule-based (will show breakdown)
             else:
                 logger.warning("Semantic search enabled but no API key or cached embeddings. Run 'python manage.py generate_career_embeddings'")
-                # Fall through to AI or rule-based (will show breakdown)
         
         # Try AI-enhanced processing if enabled
         if self.use_ai:
             if self.ai_client:
                 try:
                     logger.info("Using AI-enhanced search (ENABLE_AI_FEATURES=True)")
-                    return self._process_with_ai(query)
+                    return self._process_with_ai(query, progress_callback)
                 except Exception as e:
                     logger.error(f"AI processing failed: {e}, falling back to rule-based")
-                    return self._process_rule_based(query)
+                    return self._process_rule_based(query, progress_callback)
             else:
-                logger.warning("AI features enabled but AI client not available (check API keys)")
+                logger.warning("AI client not available (check API keys)")
         
-        # Fallback to rule-based search
         logger.info("Using rule-based search (no AI features enabled or API key missing)")
-        return self._process_rule_based(query)
+        return self._process_rule_based(query, progress_callback)
     
-    def _process_rule_based(self, query):
+    def _process_rule_based(self, query, progress_callback=None):
         """
         Rule-based query processing - works without any AI
         """
+        self._progress(progress_callback, "Searching careers...")
         query_lower = query.lower().strip()
-        
+
         # Extract intent and criteria
         criteria = {
             'keywords': [],
@@ -245,12 +245,13 @@ class QueryProcessor:
             'method': 'rule_based'
         }
     
-    def _process_with_ai(self, query):
+    def _process_with_ai(self, query, progress_callback=None):
         """
         AI-enhanced processing using OpenAI or Gemini
         Falls back to rule-based if AI fails
         """
         try:
+            self._progress(progress_callback, "Retrieving from AI...")
             # Use AI to extract search criteria from natural language query
             system_prompt = """You are a career search assistant. Extract search criteria from user queries about careers.
 Return a JSON object with these fields:
@@ -297,9 +298,10 @@ Only return valid JSON, no other text."""
                 if ai_response.startswith('json'):
                     ai_response = ai_response[4:]
                 ai_response = ai_response.strip()
-            
+
             criteria = json.loads(ai_response)
-            
+            self._progress(progress_callback, "Searching careers...")
+
             # Build query using AI-extracted criteria
             careers = Career.objects.filter(publish_status=1).prefetch_related(
                 'skills', 'career_cluster', 'profession', 'prospective_employment_areas', 'courses'
@@ -356,74 +358,81 @@ Only return valid JSON, no other text."""
             
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse AI response: {e}, falling back to rule-based")
-            return self._process_rule_based(query)
+            return self._process_rule_based(query, progress_callback)
         except Exception as e:
             logger.error(f"AI processing error: {e}, falling back to rule-based")
-            return self._process_rule_based(query)
+            return self._process_rule_based(query, progress_callback)
     
-    def _process_with_semantic_search(self, query):
+    def _process_with_semantic_search(self, query, progress_callback=None):
         """
-        Semantic search using OpenAI or Gemini embeddings with caching
-        Finds careers by meaning, not just keywords
-        Works with cached embeddings even without API keys
+        Semantic search using stored embeddings: one query for (career_id, embedding),
+        compute similarity, load only top-K careers for hybrid scoring and response.
         """
+        from .models import CareerEmbedding
         try:
-            # Try to get query embedding (from cache or generate)
+            self._progress(progress_callback, "Loading from memory...")
             try:
                 query_embedding = self._get_embedding(query, is_query=True)
             except ValueError as e:
-                # No API client and query not in cache
                 logger.warning(f"Cannot generate query embedding: {e}")
-                logger.info("Falling back to keyword-based search with cached career embeddings")
-                # Fallback: use keyword matching with cached career embeddings
-                return self._process_with_cached_embeddings_only(query)
-            
-            # Get all published careers
-            careers = Career.objects.filter(publish_status=1).prefetch_related(
-                'skills', 'career_cluster', 'profession', 'embedding_cache',
-                'prospective_employment_areas', 'courses'
+                return self._process_with_cached_embeddings_only(query, progress_callback)
+
+            self._progress(progress_callback, "Searching careers...")
+            # Single query: all (career_id, embedding) for this provider/model
+            provider = self.ai_provider or 'openai'
+            model_name = self.embedding_model or 'text-embedding-3-small'
+            rows = list(
+                CareerEmbedding.objects.filter(
+                    provider=provider,
+                    model_name=model_name
+                ).values_list('career_id', 'embedding')
             )
-            
-            scored_careers = []
+            if not rows:
+                logger.warning("No career embeddings in DB. Run 'python manage.py generate_career_embeddings'")
+                return self._process_rule_based(query, progress_callback)
+
             query_lower = query.lower()
-            
-            for career in careers:
+            query_vec = np.array(query_embedding)
+            # Score by similarity only first; keep top 20 for hybrid re-score
+            scored_ids = []
+            for career_id, emb in rows:
                 try:
-                    # Get cached or generate career embedding
-                    career_embedding = self._get_career_embedding(career)
-                    
-                    # Calculate similarity
-                    similarity = self._cosine_similarity(query_embedding, career_embedding)
-                    
-                    # Hybrid scoring
-                    criteria = self._extract_basic_criteria(query_lower)
-                    keyword_score = self._calculate_keyword_score(career, criteria, query_lower)
-                    combined_score = (similarity * 100 * 0.7) + (keyword_score * 0.3)
-                    
-                    scored_careers.append((combined_score, career, {
-                        'semantic_similarity': similarity,
-                        'semantic_score': similarity * 100,
-                        'keyword_score': keyword_score,
-                        'combined_score': combined_score
-                    }))
-                except ValueError as e:
-                    # Career embedding not in cache, skip this career
-                    logger.debug(f"Skipping {career.name}: {e}")
+                    sim = self._cosine_similarity(query_vec, np.array(emb))
+                    scored_ids.append((sim, career_id))
+                except Exception:
                     continue
-            
-            if not scored_careers:
-                logger.warning("No careers with cached embeddings found. Run 'python manage.py generate_career_embeddings'")
-                # Fallback to rule-based
-                return self._process_rule_based(query)
-            
+            scored_ids.sort(key=lambda x: x[0], reverse=True)
+            top_k = 20
+            top_ids_ordered = [cid for _, cid in scored_ids[:top_k]]
+            if not top_ids_ordered:
+                return self._process_rule_based(query, progress_callback)
+
+            # Load only top-K careers (not all) for keyword score and response
+            careers_by_id = {
+                c.id: c for c in Career.objects.filter(
+                    id__in=top_ids_ordered,
+                    publish_status=1
+                ).prefetch_related(
+                    'skills', 'career_cluster', 'profession',
+                    'prospective_employment_areas', 'courses'
+                )
+            }
+            criteria = self._extract_basic_criteria(query_lower)
+            scored_careers = []
+            for sim, career_id in scored_ids[:top_k]:
+                career = careers_by_id.get(career_id)
+                if not career:
+                    continue
+                keyword_score = self._calculate_keyword_score(career, criteria, query_lower)
+                combined = (sim * 100 * 0.7) + (keyword_score * 0.3)
+                scored_careers.append((combined, career))
             scored_careers.sort(key=lambda x: x[0], reverse=True)
-            
+
             return {
                 'criteria': {'method': 'semantic_search'},
-                'careers': [career for score, career, breakdown in scored_careers[:5]],
+                'careers': [career for _, career in scored_careers[:5]],
                 'method': 'semantic'
             }
-            
         except Exception as e:
             logger.error(f"Semantic search error: {e}")
             raise
@@ -518,14 +527,21 @@ Only return valid JSON, no other text."""
         logger.debug(f"Generating embedding for career: {career.name}")
         embedding = self._get_embedding(career_text, is_query=False)
         
-        # Cache in database
-        CareerEmbedding.objects.create(
-            career=career,
-            embedding=list(embedding),  # Convert numpy array to list for JSON
-            embedding_text_hash=text_hash,
-            provider=self.ai_provider or 'unknown',
-            model_name=self.embedding_model or 'unknown'
-        )
+        # Cache in database (update_or_create avoids duplicate key when row exists or race after delete)
+        try:
+            CareerEmbedding.objects.update_or_create(
+                career=career,
+                defaults={
+                    'embedding': list(embedding),  # Convert numpy array to list for JSON
+                    'embedding_text_hash': text_hash,
+                    'provider': self.ai_provider or 'unknown',
+                    'model_name': self.embedding_model or 'unknown',
+                }
+            )
+        except IntegrityError:
+            # Race: another request created the row; use existing embedding
+            embedding_cache = CareerEmbedding.objects.get(career=career)
+            return embedding_cache.embedding_array
         
         return embedding
     
@@ -554,11 +570,12 @@ Only return valid JSON, no other text."""
         from .models import CareerEmbedding
         return CareerEmbedding.objects.exists()
     
-    def _process_with_cached_embeddings_only(self, query):
+    def _process_with_cached_embeddings_only(self, query, progress_callback=None):
         """
         Fallback: Use keyword matching with cached career embeddings
         Works when query embedding can't be generated but career embeddings exist
         """
+        self._progress(progress_callback, "Searching careers...")
         query_lower = query.lower()
         criteria = self._extract_basic_criteria(query_lower)
         
