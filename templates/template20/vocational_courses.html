@@ -258,6 +258,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     font-weight: 600;
     color: #333;
     margin-bottom: 4px;
+    text-transform: capitalize;
   }
   .suggestion-category {
     font-size: 12px;
@@ -379,7 +380,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     box-shadow: 0 6px 20px rgba(79, 55, 201, 0.25);
     transform: translateY(-2px);
   }
-  .sub-tabs .nav-link.active::after {
+  /* .sub-tabs .nav-link.active::after {
     content: '';
     position: absolute;
     bottom: -2px;
@@ -389,7 +390,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     height: 3px;
     background: rgba(255, 255, 255, 0.5);
     border-radius: 2px;
-  }
+  } */
   .tabs-heading-c {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -493,6 +494,21 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     .sub-tabs::-webkit-scrollbar {
       height: 5px;
     }
+    .vocationcourse-hero h1 {
+	line-height: 36px;
+	padding-top: 13px !important;
+}
+
+#mobileSearchOverlay{
+  z-index: 9999;
+
+}
+
+
+.filter-section {
+    padding: 9px;
+ }
+
   }
 
   /* Extra small devices */
@@ -532,6 +548,74 @@ Explore vocational courses and career tracks across technology, healthcare, busi
       -ms-user-select: none;
       user-select: none;
     }
+  }
+  /* Mobile search button and overlay */
+  .search-mobile-btn {
+    display: none;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    color: #6c757d;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  @media (max-width: 767px) {
+    .search-career { display: none; }
+    .search-icon { display: none; }
+    .search-mobile-btn { display: inline-flex; }
+  }
+
+  #mobileSearchOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 30px 16px;
+  }
+  #mobileSearchOverlay .overlay-inner {
+    width: 100%;
+    max-width: 720px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  #mobileSearchOverlay .overlay-header {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  #mobileSearchOverlay .overlay-header input {
+    flex:1;
+    height:44px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border:1px solid #e9ecef;
+    font-size:16px;
+  }
+  #mobileSearchOverlay .overlay-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #6c757d;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  #searchSuggestionsMobile {
+    margin-top:10px;
+    max-height:50vh;
+    overflow:auto;
   }
 </style>
 {% endblock %}
@@ -574,17 +658,21 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
     <div class="filter-section">
       <div class="row">
-        <div class="col-md-6 mb-3 mb-md-0">
+        <div class="col-3 col-md-6 col-sm-3 mb-3 mb-md-0">
           <div class="position-relative">
             <i class='bx bx-search search-icon'></i>
             <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses..." autocomplete="off">
             <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" title="Clear search">
               <i class="bx bx-x"></i>
             </button>
+            <!-- Mobile-only search button (shows overlay) -->
+            <button type="button" class="search-mobile-btn d-md-none" id="openMobileSearch" aria-label="Open search">
+              <i class="bx bx-search"></i>
+            </button>
             <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
           </div>
         </div>
-        <div class="col-md-6 d-flex justify-content-md-end align-items-center">
+        <div class="col-9 col-md-6 col-sm-9 d-flex justify-content-md-end align-items-center">
           <!-- <small class="text-gray">Showing courses loaded from admin-managed database</small> -->
 
               <!-- Tabs Navigation -->
@@ -605,6 +693,19 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     </div>
 
 
+
+    <!-- Mobile Search Overlay -->
+    <div id="mobileSearchOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="overlay-inner">
+        <div class="overlay-header">
+          <input type="search" id="courseSearchMobile" placeholder="Search courses..." aria-label="Search courses" />
+          <button type="button" class="overlay-close" id="closeMobileSearch" aria-label="Close search">
+            <i class="bx bx-x"></i>
+          </button>
+        </div>
+        <div id="searchSuggestionsMobile" class="search-suggestions"></div>
+      </div>
+    </div>
 
     <!-- Tabs Content -->
     <div class="tab-content" id="vocationalTabsContent">
@@ -743,6 +844,112 @@ Explore vocational courses and career tracks across technology, healthcare, busi
       }
     });
   });
+  // Mobile search overlay logic
+  (function() {
+    const openBtn = document.getElementById('openMobileSearch');
+    const overlay = document.getElementById('mobileSearchOverlay');
+    const closeBtn = document.getElementById('closeMobileSearch');
+    const mobileInput = document.getElementById('courseSearchMobile');
+    const suggestionsMobile = document.getElementById('searchSuggestionsMobile');
+
+    if (!openBtn || !overlay || !closeBtn || !mobileInput || !suggestionsMobile) return;
+
+    function showOverlay() {
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden', 'false');
+      mobileInput.value = '';
+      suggestionsMobile.innerHTML = '';
+      setTimeout(() => mobileInput.focus(), 50);
+    }
+    function hideOverlay() {
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
+      mobileInput.value = '';
+      suggestionsMobile.innerHTML = '';
+    }
+
+    openBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showOverlay();
+    });
+    closeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      hideOverlay();
+    });
+
+    // Close when tapping outside inner box
+    overlay.addEventListener('click', function(e) {
+      if (!e.target.closest('.overlay-inner')) hideOverlay();
+    });
+
+    // Build mobile suggestions (uses allCourses collected earlier)
+    function buildMobileSuggestions(matches, query) {
+      suggestionsMobile.innerHTML = '';
+      if (!matches || matches.length === 0 || !query) {
+        suggestionsMobile.style.display = 'none';
+        return;
+      }
+      matches.forEach((course, index) => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.dataset.index = index;
+        item.dataset.link = course.link;
+        // Use exposed highlightMatch if available (script order may place mobile IIFE before definition)
+        const title = (window.highlightMatch ? window.highlightMatch(course.title, query) : course.title);
+        const tabLabel = course.tab === 'after-10' ? 'After 10th' : 'After 12th';
+        item.innerHTML = `<div class="suggestion-title">${title} <span class="suggestion-tab">${tabLabel}</span></div><div class="suggestion-category">${course.category}</div>`;
+        item.addEventListener('click', function() {
+          const tabButton = document.querySelector(`#${course.tab}-tab`);
+          if (tabButton) {
+            const tab = new bootstrap.Tab(tabButton);
+            tab.show();
+          }
+          if (course.subcategoryId) {
+            setTimeout(() => {
+              const mainTab = document.getElementById(course.tab);
+              if (!mainTab) return;
+              const section = mainTab.querySelector(`[data-subcategory-id="${course.subcategoryId}"]`);
+              if (section && section.closest(`#${course.tab}`)) {
+                mainTab.querySelectorAll(`.tab-data-show-${course.tab}`).forEach(sec => {
+                  sec.style.display = 'none';
+                  sec.classList.remove('active');
+                });
+                section.style.display = 'block';
+                section.classList.add('active');
+              }
+            }, 150);
+          }
+          setTimeout(() => { window.location.href = course.link; }, 400);
+        });
+        suggestionsMobile.appendChild(item);
+      });
+      suggestionsMobile.style.display = 'block';
+    }
+
+    let mobileTimeout;
+    mobileInput.addEventListener('input', function() {
+      clearTimeout(mobileTimeout);
+      const q = this.value.trim().toLowerCase();
+      mobileTimeout = setTimeout(() => {
+        if (!q) {
+          suggestionsMobile.innerHTML = '';
+          suggestionsMobile.style.display = 'none';
+          return;
+        }
+        // allCourses may be defined later in the script; reference window.allCourses as a safe fallback
+        const source = Array.isArray(window.allCourses) ? window.allCourses : (typeof allCourses !== 'undefined' ? allCourses : []);
+        const matches = source.filter(c => (c.title || '').toLowerCase().includes(q) || (c.category || '').toLowerCase().includes(q)).slice(0, 20);
+        buildMobileSuggestions(matches, q);
+      }, 150);
+    });
+
+    // Close overlay on Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.style.display === 'flex') {
+        hideOverlay();
+      }
+    });
+  })();
 
   // Dynamic Tabs Creation and Management
   document.addEventListener('DOMContentLoaded', function() {
@@ -1286,6 +1493,9 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     
     // Initialize
     collectAllCourses();
+    // Expose for mobile overlay code which runs outside this scope
+    window.allCourses = allCourses;
+    window.highlightMatch = highlightMatch;
     
     // Search input handler
     let searchTimeout;
