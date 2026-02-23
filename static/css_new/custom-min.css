@@ -7539,12 +7539,15 @@ a:hover {
 
 
 .dropdown-content.tabs-auto-fit.country-menu {
-  width: 190px;
+  width:229px;
   /* left: 58.5%; */
   padding: 10px 9px;
 
 }
 
+.search-container.open.active .search-btn {
+	background: #eff3f6;
+}
 
 .dropdown-content.tabs-auto-fit.exam-menu {
   width: 176px;
@@ -7762,9 +7765,6 @@ a:hover {
   width: 100%;
 }
 
-div#videoModal {
-  z-index: 9999 !important;
-}
 
 .modal-backdrop.fade.show {
   z-index: 8888 !important;
@@ -8719,6 +8719,9 @@ div#videoModal {
 @media all and (max-width: 500px) {
   .testim .cont div p {
     line-height: 25px;
+  }
+  #google_translate_element {
+    text-align: center;
   }
 }
 
@@ -11851,7 +11854,13 @@ width: 82px;
   }
 
   .stat-info p+p {
-    font-size: 15px;
+    font-size: 13px;
+  }
+
+  .highlighter {
+    line-height: 15px;
+    padding-bottom: 9px;
+    height: auto !important;
   }
 
   .quote-text::before {
@@ -14236,7 +14245,7 @@ position: absolute;
       display: flex;
       gap: 10px;
       overflow-x: auto;
-      padding: .5rem 0;
+      padding: 17px 16px;
       flex-wrap: nowrap;
       white-space: nowrap;
       flex-direction: row;
@@ -14903,3 +14912,29 @@ position: absolute;
   #staticDemo {
     z-index: 99999 !important;
   }
+
+  #videoModal {
+    z-index: 999999 !important;
+  }
+/* Back button outline and hover/focus styles */
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #3f37c9;
+  font-weight: 600;
+  padding: 0;
+  margin-right: 12px;
+  cursor: pointer;
+}
+.back-btn:hover,
+.back-btn:focus,
+.back-btn:active {
+  outline: 2px solid #cfcfcf;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+/* Prefer focus-visible for keyboard users */
+:focus-visible {
+  outline: 2px solid #cfcfcf;
+  outline-offset: 2px;
+}

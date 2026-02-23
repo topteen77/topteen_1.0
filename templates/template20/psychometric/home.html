@@ -131,6 +131,9 @@ p{margin-bottom: 0px;}
   flex-direction: column;
   gap: 8px;
   margin-top: 18px;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
 }
 
 .user-info-item {
@@ -219,7 +222,7 @@ p{margin-bottom: 0px;}
 
   .view-rr {
     width: 100%;
-    justify-content: flex-end;
+    justify-content: center;
   }
 
   .mgs-icon h3 {
@@ -232,10 +235,10 @@ p{margin-bottom: 0px;}
 }
 </style>
 
-<div class="container" style="padding-top: 100px; padding-bottom: 40px;">
+<div class="container my-md-8 mt-3" style="padding-top: 100px; padding-bottom: 40px;">
   <div class="row">
     <!-- Left Sidebar - Desktop Only -->
-    <div class="col-lg-4 d-none d-lg-block mb-4 mb-lg-0">
+    <div class="col-lg-4  mb-lg-0">
       <div class="user-sidebar">
         <!-- User Profile Header -->
         <div class="user-profile-header">
@@ -264,7 +267,7 @@ p{margin-bottom: 0px;}
         </div>
 
         <!-- Complete Profile Card -->
-        <div class="profile-complete-card">
+        <div class="profile-complete-card d-none d-lg-block">
           <div class="profile-complete-content">
             <div>
               <img src="{{static('topteenfrontend/assets/images/verified-account-2.png')}}" alt="Verified" style="width: 45px; height: 44px;" />
@@ -303,7 +306,7 @@ p{margin-bottom: 0px;}
         </div>
       {% endif %}
 
-      <h2 class="title-test-info mb-0">Psychometric Assessment</h2>
+      <h2 class="title-test-info mb-0 mt-md-0 mt-3">Psychometric Assessment</h2>
       
       <div class="view-reports mt-5">
         <div class="report-list">

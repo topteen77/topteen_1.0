@@ -104,30 +104,37 @@
 	color: #3f37c9;
 }
 
-/* Full bookmark button (text + icon) styles */
 .video-shortlist-btn {
-  min-width: 72px;
-  height: 36px;
-  padding: 0.35rem 0.6rem;
-  font-size: 0.9rem;
+  /* Icon-only circular bookmark button */
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 18px;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  border-radius: 6px;
-  color: #333;
+  justify-content: center;
+  border-radius: 50%;
+  color: #3f37c9;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: none;
 }
 .video-shortlist-btn .bx {
   font-size: 18px;
+  color: inherit;
+}
+.video-shortlist-btn .shortlist-text {
+  /* keep text for screen-readers but hide visually */
+  display: none !important;
 }
 .video-shortlist-btn.bookmarked {
-  color: #6b3df0;
-  background: rgba(107,61,240,0.06);
-  border-color: rgba(107,61,240,0.18);
+  /* Active bookmarked state: purple background and white icon */
+  background: #5b21b6;
+  color: #fff;
+  border-color: transparent;
 }
-.video-shortlist-btn.bookmarked .shortlist-text {
-  color: #6b3df0;
+.video-shortlist-btn.bookmarked .bx {
+  color: #fff;
 }
 
 /* Ensure mobile layout remains usable (button stacks naturally due to container width) */
@@ -166,7 +173,7 @@
         <p class="text-gray fs-16">Watch expert interviews, career guides, and educational content to learn about different professions and career paths.</p>
       </div>
 
-      <div class="col-lg-4 col-md-12">
+      <div class="col-lg-4 col-md-12 d-md-block d-none">
         <div class="right-banner d-md-flex justify-content-end">
           <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Career Videos Banner" />
         </div>
@@ -179,7 +186,7 @@
 <!-- Videos Section -->
 <section class="pb-10">
   <div class="container">
-    <div class="row">
+    <div class="row border-top pt-5">
       <!-- Main Content -->
       <div class="col-lg-9 col-md-12">
         <!-- Search Form (Mobile) with suggest dropdown -->
@@ -267,7 +274,7 @@
                               title="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}Remove bookmark{% else %}Add bookmark{% endif %}"
                               aria-pressed="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}true{% else %}false{% endif %}"
                               data-bookmarked="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}1{% else %}0{% endif %}">
-                        <i class="bx {% if bookmarked_video_ids and video.id in bookmarked_video_ids %}bxs{% else %}bx{% endif %}-bookmark me-1"></i>
+                        <i class="bx {% if bookmarked_video_ids and video.id in bookmarked_video_ids %}bxs{% else %}bx{% endif %}-bookmark "></i>
                         <span class="shortlist-text">{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}Bookmarked{% else %}Bookmark{% endif %}</span>
                       </button>
                     </div>
@@ -280,7 +287,7 @@
                       <a href="{{ url('careers:videodetail', args=[video.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="text-decoration-none">{{ video.name }}</a>
                     </h3>
                     <div class="video-meta mb-2">
-                      <span class="text-gray fs-14 lh-sm">
+                      <span class="text-gray fs-14 lh-sm d-md-block d-none">
                         <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
                       </span>
                       {% if video.category.all() %}
@@ -403,7 +410,7 @@
 </section>
 
 <!-- Video Modal -->
-<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+<div class="modal fade career-video-modal" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header position-relative" style="z-index: 10;">
@@ -806,7 +813,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // Shortlist/Bookmark Video Function — updates full button text, tooltip and active state
 function shortlistVideo(videoId) {
   if (!window.IS_AUTHENTICATED) {
-    window.location.href = window.LOGIN_URL;
+    if (typeof window.showLoginRequiredPopup === 'function') {
+      window.showLoginRequiredPopup();
+    } else if (window.LOGIN_URL) {
+      window.location.href = window.LOGIN_URL;
+    }
     return;
   }
 

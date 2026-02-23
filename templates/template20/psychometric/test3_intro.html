@@ -15,9 +15,7 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .test-intro-page {
-    padding-top: 80px;
-  }
+
   .instruction-box {
     background: #f7f7fa;
     border-radius: 10px;
@@ -29,9 +27,11 @@
     height: 48px;
     margin-right: 16px;
   }
-  .instruction-list {
-    padding-left: 20px;
-  }
+  .instruction-list li {
+	font-size: 15px;
+	font-weight: 400;
+	color: rgb(78, 73, 73);
+}
   .instruction-list li {
     margin-bottom: 12px;
     line-height: 1.6;
@@ -49,14 +49,41 @@
     margin-bottom: 20px;
     margin-top: 30px;
   }
+
+  .user-profile-card {
+	border: 1px solid #dedede;
+	border-radius: 10px;
+	padding: 30px;
+}
+
+.back-btn-bt{
+	border: 1px solid #dedede;
+  padding: 8px 13px;
+  color: #000 !important;
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+}
+
+.back-btn-bt:hover{
+  background-color: #50B9F9;
+  color: #fff !important;
+
+}
 </style>
 {% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% endblock %}
 
 {% block content %}
-<section class="test-intro-page pb-5">
+<section class="test-intro-page pt-md-8 pt-3 pb-5">
   <div class="container">
     <div class="row">
+
+      <div class="d-flex align-items-center mb-3">
+        <button type="button" class="back-btn-bt"  onclick="window.history.back();" aria-label="Go back"><i class='bx bx-left-arrow-alt' ></i>  Back</button>
+      </div>
+
+
       <!-- Left Sidebar (Desktop) -->
       <div class="col-lg-4 d-none d-lg-block">
         <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
@@ -124,7 +151,7 @@
             <img src="{{ static('images_new/icons/info-tree.svg') }}" alt="Test Icon" class="instruction-icon">
             <div>
               <h5 class="mb-2">Test Instructions!</h5>
-              <h4 class="section-title mb-0">Part 3 - Aptitude Assessment</h4>
+              <h4 class=" mb-0 text-purple">Part 3 - Aptitude Assessment</h4>
             </div>
           </div>
 
@@ -132,7 +159,7 @@
             Welcome to the Aptitude Assessment Test! This comprehensive test evaluates your abilities in various areas, including numerical, spatial, logical, mechanical, language and spellings, verbal, and critical reasoning. The results will help you understand your strengths and identify potential career paths that match your skills. Please read the following instructions carefully before you begin.
           </p>
 
-          <h4 class="section-title">General Instructions</h4>
+          <h4 class="">General Instructions</h4>
           <ol class="instruction-list mb-4">
             <li>Ensure you are in a quiet and comfortable environment where you can focus without interruptions.</li>
             <li>Each section has a time limit. Manage your time wisely and try to answer as many questions as possible within the given time.</li>
@@ -146,7 +173,7 @@
             <li>Be Honest. The accuracy of your results depends on your honest responses.</li>
           </ol>
 
-          <h4 class="section-title">Section-Specific Instructions</h4>
+          <h4 class="">Section-Specific Instructions</h4>
           <ol class="instruction-list mb-4">
             <li>
               <span class="fw-bold">Numerical Reasoning:</span>

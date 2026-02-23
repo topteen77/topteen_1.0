@@ -13,15 +13,17 @@
   <a href="{{ url('users:userdashboard') }}" class="career-swipe-back-btn" aria-label="Back">
     <i class='bx bx-arrow-back'></i> Back
   </a>
-  {% if show_swipe %}
+  <!-- {% if show_swipe %}
+  <div class="swipe-instr-info-btn" aria-haspopup="dialog" aria-expanded="false" title="More instructions"><i class='bx bx-info-circle'></i>
   <span class="career-swipe-top-instructions" aria-label="Swipe instructions"> Instructions: 
-    <span class="swipe-instr-item"><i class='bx bx-left-arrow-alt'></i> Pass</span>
+    <span class="swipe-instr-item"><i class='bx bx-left-arrow-alt'></i> Swipe Left to Pass</span>
     <span class="swipe-instr-sep">·</span>
-    <span class="swipe-instr-item"><i class='bx bx-right-arrow-alt'></i> Save</span>
+    <span class="swipe-instr-item"><i class='bx bx-right-arrow-alt'></i> Swipe Right to Save</span>
     <span class="swipe-instr-sep">·</span>
-    <span class="swipe-instr-item"><i class='bx bx-up-arrow-alt'></i> Swipe up</span>
+    <span class="swipe-instr-item"><i class='bx bx-up-arrow-alt'></i> Swipe up for Details</span>
   </span>
-  {% endif %}
+</div>
+  {% endif %} -->
 </div>
 {% endblock %}
 
@@ -33,9 +35,17 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
+
+.clustter-bg {
+	width: 381px;
+	background: #f0efff;
+	margin: 0px auto;
+	padding: 7px 14px;
+	border-radius: 20px;
+}
   .career-swipe-page {
     padding-top: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #fbfcff 0%, #fff 100%);
     min-height: 100vh;
   }
   .career-swipe-top-bar {
@@ -44,8 +54,8 @@
     left: 0;
     right: 0;
     height: 56px;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    /* background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); */
     display: flex;
     align-items: center;
     padding: 0 16px;
@@ -82,33 +92,40 @@
     .career-swipe-top-instructions .swipe-instr-item i {
       font-size: 12px;
     }
+
+    .career-swipe-main {
+    padding-top: 64px !important;
+  }
   }
   .career-swipe-back-btn {
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #3f37c9;
-    font-size: 16px;
-    font-weight: 600;
-    text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    transition: background 0.2s;
+  align-items: center;
+  gap: 8px;
+  color: #3f37c9;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  border: 1px solid #3f37c9;
+  background: #fff !important;
   }
   .career-swipe-back-btn:hover {
-    background: rgba(63, 55, 201, 0.1);
-    color: #2d26a0;
+    background: #3f37c9 !important;
+  color: #fff;
   }
   .career-swipe-back-btn i {
     font-size: 22px;
   }
   .swipe-container {
     width: 100%;
-    max-width: 400px;
-    margin: 40px auto;
-    position: relative;
-    height: 600px;
-    box-sizing: border-box;
+  max-width: 400px;
+  margin: 24px auto;
+    margin-bottom: 24px;
+  position: relative;
+  height: 600px;
+  box-sizing: border-box;
   }
   /* Swipe mode: flex layout so bottom buttons stay visible */
   .career-swipe-mode {
@@ -126,25 +143,33 @@
   }
   .career-swipe-mode .swipe-container {
     flex: 1 1 auto;
-    height: auto;
-    min-height: 320px;
-    max-height: 640px;
-    margin-bottom: 0;
+  height: auto;
+  min-height: 479px;
+  max-height: 601px;
+  margin-bottom: 126px;
   }
-  .career-swipe-mode .swipe-buttons.instruction-panel {
-    flex-shrink: 0;
-    padding-bottom: env(safe-area-inset-bottom, 16px);
-    padding-top: 32px;
-    margin-top: 50px;
-    background: linear-gradient(to top, rgba(102, 126, 234, 0.15) 0%, transparent 100%);
-  }
+  .swipe-buttons.instruction-panel {
+    display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 28px;
+  margin-top: 24px;
+  margin-bottom: 28px;
+  padding: 20px 24px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 999;
+  background: linear-gradient(262.1deg, #3F37C9 0.79%, #1F1B63 80.85%) !important;
+  left:0px;
+}
   @media (max-height: 700px) {
     .career-swipe-mode .swipe-container {
-      height: 380px;
-      min-height: 300px;
+      height:450px;
+      min-height: 450px;
     }
     .career-swipe-mode .swipe-buttons.instruction-panel {
-      padding-top: 28px;
+      padding-top: 17px;
       margin-top: 16px;
       margin-bottom: 0;
     }
@@ -162,6 +187,7 @@
     }
     .career-swipe-mode .career-card {
       padding: 16px;
+      border-radius: 31px;
     }
     .career-swipe-mode .career-image {
       height: 140px;
@@ -184,7 +210,7 @@
       font-size: 11px;
     }
     .career-swipe-mode .swipe-buttons.instruction-panel {
-      padding-top: 28px;
+      padding-top:5px;
       margin-top: 20px;
       padding-bottom: max(12px, env(safe-area-inset-bottom));
       padding-left: 16px;
@@ -193,23 +219,26 @@
       margin-bottom: 0;
     }
     .career-swipe-mode .swipe-btn {
-      width: 56px;
-      height: 56px;
+      width: 41px;
+      height: 41px;
       font-size: 22px;
     }
     .career-swipe-mode .swipe-btn-wrap .swipe-up-btn i {
-      font-size: 24px;
+      font-size: 20px;
     }
     .career-swipe-mode .swipe-btn-wrap .swipe-btn-label {
-      font-size: 12px;
+      font-size: 9px;
+      line-height: 21px;
     }
   }
   @media (max-width: 480px) {
     .career-swipe-mode .swipe-container {
       width: 100%;
-      max-width: 100%;
-      height: min(480px, 60vh);
-      min-height: 380px;
+    max-width: 100%;
+    height: min(440px, 60vh);
+    min-height: 349px;
+    max-height: 450px;
+    margin-bottom: 125px;
     }
     .career-swipe-mode .career-card {
       width: 100%;
@@ -218,11 +247,13 @@
       right: 0;
     }
     .career-swipe-mode .career-image {
-      height: 120px;
+      height: 160px;
     }
     .career-swipe-mode .career-description {
-      max-height: 72px;
+      max-height: 142px;
     }
+
+
   }
   @media (max-height: 700px) and (max-width: 768px) {
     .career-swipe-mode .career-image {
@@ -231,28 +262,33 @@
     .career-swipe-mode .career-description {
       max-height: 60px;
     }
+
+
   }
+
+
   .career-card {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    min-width: 0;
-    height: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    cursor: grab;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    user-select: none;
-    -webkit-user-select: none;
-    overflow: hidden;
-  }
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	background: white;
+	border-radius: 48px;
+	/* box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); */
+	padding: 13px;
+	display: flex;
+	flex-direction: column;
+	cursor: grab;
+	transition: transform 0.3s ease, opacity 0.3s ease;
+	user-select: none;
+	-webkit-user-select: none;
+	overflow: hidden;
+	border: 20px solid #000;
+}
   .career-card .career-name,
   .career-card .career-description {
     word-wrap: break-word;
@@ -267,13 +303,27 @@
   }
   .career-image {
     width: 100%;
-    height: 300px;
+    height: 160px;
     object-fit: cover;
     border-radius: 15px;
     margin-bottom: 20px;
   }
+
+  .career-card-img {
+	position: relative;
+}
+
+.career-card-img-overlay {
+	position: absolute;
+	background: #ffebd5;
+	font-size: 12px;
+	padding: 0 8px;
+	top: 4px;
+	right: 10px;
+	border-radius: 20px;
+}
   .career-name {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     color: #333;
     margin-bottom: 10px;
@@ -358,25 +408,29 @@
     border-radius: 20px;
     font-weight: 600;
     font-size: 14px;
+    z-index: 999;
   }
   .swipe-buttons.instruction-panel {
     display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 28px;
-    margin-top: 24px;
-    margin-bottom: 28px;
-    padding: 20px 24px;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 28px;
+  margin-top: 24px;
+  margin-bottom: 0;
+  padding: 14px 24px;
   }
   .swipe-btn {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   }
   .swipe-btn:hover {
     transform: scale(1.05);
@@ -410,7 +464,7 @@
     color: white;
   }
   .swipe-btn-wrap .swipe-up-btn i {
-    font-size: 28px;
+    font-size: 22px;
     line-height: 1;
   }
   .info-banner {
@@ -462,7 +516,7 @@
     margin: 40px auto;
     background: white;
     border-radius: 20px;
-    padding: 40px;
+    padding: 14px;
     position: relative;
     box-shadow: 0 10px 60px rgba(0, 0, 0, 0.3);
     display: flex;
@@ -627,6 +681,35 @@
     font-weight: bold;
     margin-right: 10px;
   }
+
+  .career-details-section ul li ul {
+	padding-left: 43px;
+}
+
+.career-details-description ul li ul li::before {
+	content: none;
+}
+
+.career-details-description ul li ul {
+	list-style: disc;
+}
+
+
+.career-details-section ul li {
+	padding: 10px 0;
+	border-bottom: 1px solid #e9ecef;
+	color: #555;
+}
+
+.career-details-description table tr td {
+	border: 1px solid #c8c1c1;
+	padding: 6px;
+}
+
+.career-details-description table tr:first-child {
+	background: #f4f4ff;
+	color: #3f37c9;
+}
   
   /* Profile Completion Popup Styles */
   .profile-completion-popup {
@@ -880,10 +963,11 @@
     gap: 1rem;
   }
   .cluster-card .cluster-name {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0;
+    font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  padding-right: 30px;
   }
   .cluster-streams-preview {
     display: flex;
@@ -893,7 +977,7 @@
   .streams-count-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background: #667eea;
+    background: #2d26a0;
     color: white;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -910,18 +994,20 @@
   }
   .stream-preview-item {
     padding: 0.25rem 0.5rem;
-    background: #f5f5f5;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: #666;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #666;
+  border: 1px solid #bab6ea;
+  line-height: 17px;
   }
   .stream-preview-more {
     padding: 0.25rem 0.5rem;
-    background: #e0e0e0;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: #999;
-    font-style: italic;
+  background: #e3e8ff;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #3b50ae;
+  font-style: italic;
   }
   .cluster-card-checked {
     position: absolute;
@@ -941,17 +1027,17 @@
   }
   .viewed-clusters-wrap {
     text-align: center;
-    margin-top: 16px;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 12px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(193, 189, 249, 0.2);
+  border-radius: 12px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
   }
   .viewed-clusters-wrap .label {
     font-size: 12px;
-    color: rgba(255,255,255,0.9);
+    color: rgba(14, 14, 14, 0.9);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
@@ -959,20 +1045,108 @@
   .viewed-clusters-wrap .names {
     font-size: 14px;
     font-weight: 600;
-    color: white;
+    color: rgb(29, 29, 29);
   }
   .current-cluster-bar {
     text-align: center;
-    color: rgba(255,255,255,0.95);
+    color: rgba(14, 14, 14, 0.9);
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 12px;
   }
-</style>
+ 
+  /* Swipe arrows + feedback */
+  .swipe-arrows {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 2000;
+  }
+  .swipe-arrow {
+    pointer-events: auto;
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: rgba(0,0,0,0.45);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    transition: transform 220ms ease, background 180ms ease, opacity 220ms;
+    opacity: 0.95;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .swipe-arrow.left { left: 10px; transform: translateX(-6px); }
+  .swipe-arrow.right { right: 10px; transform: translateX(6px); background: rgba(0,0,0,0.6); }
+  .swipe-arrow i { font-size: 24px; }
+  .swipe-arrow:active { transform: scale(0.94); }
+
+  /* Animated arrow pulse when triggered */
+  .swipe-arrow.pulse {
+    animation: arrowPulse 420ms ease;
+  }
+  @keyframes arrowPulse {
+    0% { transform: scale(1) translateX(0); opacity: 0.98; }
+    50% { transform: scale(1.18) translateX(0); opacity: 1; }
+    100% { transform: scale(1) translateX(0); opacity: 0.98; }
+  }
+
+  /* Center feedback text when user taps/uses arrows or swipes */
+  .swipe-feedback {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%) scale(0.98);
+    padding: 10px 18px;
+    background: rgba(0,0,0,0.72);
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    z-index: 2100;
+    opacity: 0;
+    transition: opacity 240ms ease, transform 240ms ease;
+    pointer-events: none;
+  }
+  .swipe-feedback.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .swipe-feedback.left { background: rgba(255,85,85,0.95); }
+  .swipe-feedback.right { background: rgba(46,213,115,0.95); }
+
+  @media (max-width: 480px) {
+    .swipe-arrow { width: 48px; height: 48px; }
+    .swipe-arrow.left { left: 8px; }
+    .swipe-arrow.right { right: 8px; }
+    .swipe-feedback { font-size: 14px; padding: 8px 14px; top: 52%; }
+    .career-discovery-banner {
+  padding: 9px 13px;
+    }
+
+    .career-discovery-banner .banner-sub {
+	font-size: 12px;
+}
+
+.clustter-bg {
+	width: auto;
+}
+.career-details-content {
+  padding: 9px;
+}
+  }
+
+ </style>
 {% endblock %}
 
 {% block content %}
-<div class="container career-swipe-main {% if show_swipe %}career-swipe-mode{% endif %}" style="padding-top: 72px;">
+<div class="container career-swipe-main {% if show_swipe %}career-swipe-mode{% endif %}" style="padding-top: 50px;">
 {% if not show_swipe %}
   {# Step 1: Select career cluster (like career-battle) #}
   <div class="cluster-picker-wrap">
@@ -996,7 +1170,7 @@
             </div>
           </div>
           {% if item.cluster.id in viewed_cluster_ids %}
-          <span class="cluster-card-checked" aria-label="Checked">✓</span>
+          <span class="cluster-card-checked" aria-label="Checked"><i class='bx bx-check' ></i></span>
           {% endif %}
         </div>
       </a>
@@ -1005,20 +1179,25 @@
     </div>
     {% if viewed_cluster_names %}
     <div class="viewed-clusters-wrap">
-      <div class="label">Clusters you've checked</div>
+      <div class=" text-purple fs-18 text-uppercase">Clusters you've checked</div>
       <div class="names">{{ viewed_cluster_names|join(', ') }}</div>
     </div>
     {% endif %}
   </div>
 {% else %}
   {# Step 2: Swipe careers from selected cluster(s) #}
+
+  <div class="career-discovery-banner-wrap">
   <div class="career-discovery-banner">
     <h2 class="banner-title">🎯 <span class="career-word">Career</span><span class="discovery-word"> Discovery</span></h2>
     <p class="banner-sub">Swipe through top careers based on your profile!</p>
   </div>
   {% if current_cluster_names %}
-  <div class="current-cluster-bar">Careers in: {{ current_cluster_names|join(', ') }}</div>
+  <div class="current-cluster-bar"><div class="clustter-bg"> <span class="text-purple fw-700 ">  <i class='bx bx-category-alt' ></i> Careers in: </span> {{ current_cluster_names|join(', ') }} </div></div>
   {% endif %}
+
+</div>
+
   <div class="swipe-container">
     {% if careers %}
       {% for career_data in careers %}
@@ -1036,13 +1215,16 @@
         {% if show_match_score and career_data.match_score %}
         <div class="match-score">Match: {{ career_data.match_score }}%</div>
         {% endif %}
-        <img src="{{ career_data.image_url }}" alt="{{ career.name }}" class="career-image">
-        <h3 class="career-name">{{ career.name }}</h3>
-        <div class="career-cluster">
-          {% if career_data.clusters and career_data.clusters|length > 0 %}
-            {{ career_data.clusters[0] }}
-          {% endif %}
+
+        <div class="career-card-img">
+       
+          
+          <img src="{{ career_data.image_url }}" alt="{{ career.name }}" class="career-image">
+        
         </div>
+       
+        <h3 class="career-name">{{ career.name }}</h3>
+   
         <div class="career-description-wrap">
           <p class="career-description">
             {% if career.display_summary %}
@@ -1069,17 +1251,17 @@
   <div class="swipe-buttons instruction-panel" aria-label="Swipe actions">
     <div class="swipe-btn-wrap">
       <button class="swipe-btn pass-btn" onclick="swipeLeft()" title="Pass">✕</button>
-      <span class="swipe-btn-label">Pass</span>
+      <span class="swipe-btn-label">Swipe Left to Pass</span>
     </div>
     <div class="swipe-btn-wrap">
-      <button class="swipe-btn like-btn" onclick="swipeRight()" title="Save"><i class='bx bx-check' style="font-size: 28px; line-height: 1;"></i></button>
-      <span class="swipe-btn-label">Save</span>
+      <button class="swipe-btn like-btn" onclick="swipeRight()" title="Save"><i class='bx bx-heart' ></i></button>
+      <span class="swipe-btn-label">Swipe Right to Save</span>
     </div>
     <div class="swipe-btn-wrap">
       <button type="button" class="swipe-btn swipe-up-btn" onclick="swipeUpCurrent()" title="Swipe up for details">
         <i class='bx bx-up-arrow'></i>
       </button>
-      <span class="swipe-btn-label">Swipe up</span>
+      <span class="swipe-btn-label"> Swipe up for Details</span>
     </div>
   </div>
 {% endif %}
@@ -1090,7 +1272,7 @@
   <div class="career-details-content" id="careerDetailsContent">
     <div class="details-header">
       <button class="details-back-btn" onclick="closeCareerDetails()">
-        ← Back
+        <i class='bx bx-chevron-left text-white' ></i> Back
       </button>
       <button class="details-close-btn" onclick="closeCareerDetails()" title="Close">
         ×
@@ -1104,7 +1286,7 @@
         ✕ Pass
       </button>
       <button class="details-action-btn details-like-btn" onclick="finalizeSwipe('like')">
-        <i class='bx bx-check'></i> Save
+       <i class='bx bx-heart' ></i> Save
       </button>
     </div>
   </div>
@@ -1119,8 +1301,8 @@
     </button>
     <div class="text-center py-3">
       <div class="mb-4">
-        <div class="mx-auto d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 80px; height: 80px;">
-          <i class='bx bx-user-check fs-48 text-purple'></i>
+        <div class="mx-auto d-flex align-items-center justify-content-center bg-purple text-white rounded-circle" style="width: 50px; height: 50px;">
+          <i class='bx bx-user-check fs-30'></i>
         </div>
       </div>
       <h3 class="fs-24 fw-700 text-dark mb-3">Complete Your Profile</h3>
@@ -1515,13 +1697,13 @@ function showCareerDetails(card) {
     
     <div class="career-details-section">
       <h4>Career Cluster</h4>
-      <p>${careerData.clusters && careerData.clusters.length > 0 ? careerData.clusters.join(', ') : 'Not specified'}</p>
+      ${careerData.clusters && careerData.clusters.length > 0 ? careerData.clusters.join(', ') : 'Not specified'}
     </div>
     
     <div class="career-details-section">
       <h4>Description</h4>
       <div class="career-details-description">
-        <p>${careerData.description || careerData.summary || 'No description available'}</p>
+       ${careerData.description || careerData.summary || 'No description available'}
       </div>
     </div>
     
@@ -1536,7 +1718,7 @@ function showCareerDetails(card) {
     
     ${careerData.url ? `
     <div class="career-details-section">
-      <a href="${careerData.url}" target="_blank" class="btn btn-primary">View Full Career Details</a>
+      <a href="${careerData.url}" target="_blank" class="btn custom-button purple-button ">View Full Career Details <i class='bx bx-chevron-right' ></i></a>
     </div>
     ` : ''}
   `;

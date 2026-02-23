@@ -6,7 +6,7 @@
       </a>
 
       <div class="d-md-none d-block d-flex justify-content-end align-items-center">
-        <div class="menu-item search-icon">
+        <div class=" main-search-icon">
           <a href="#" class="menu-link search-toggle">
             <i class='bx bx-search fs-20'></i>
           </a>
@@ -27,7 +27,7 @@
         
         <li class="menu-item dropdown">
           <span class="dropdown-toggle menu-link">
-            Discover <i class='bx bx-chevron-down fs-20 d-none'></i>
+            Discover <i class='bx bx-chevron-down fs-20 d-md-none d-block'></i>
           </span>
           <div class="dropdown-content tabs-auto-fit discovernav">
             <a href="{{ url('core:extracurricular_activities') }}">Extracurricular Activities</a>
@@ -83,7 +83,7 @@
           </div>
         </li>
         
-        <li class="menu-item search-icon d-md-flex d-none">
+        <li class="menu-item search-icon d-md-flex d-none ">
           <a href="#" class="menu-link search-toggle" aria-label="Open search" role="button">
             <i class='bx bx-search fs-20'></i>
           </a>
@@ -169,7 +169,7 @@
             <h6>Dashboard</h6>
             <p class="text-gray fs-14">Login and Sign Up to access your dashboard</p>
             <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
-              <a href="{{ url('student_login') }}" class="btn custom-button purple-button me-3">Sign In</a>
+              <a href="{{ url('student_login') }}" class="btn custom-button purple-button me-3" role="button">Sign In</a>
               <a href="{{ url('student_signup') }}" class="btn custom-button blue-button d-flex align-items-center">Sign Up</a>
             </div>
           </div>
