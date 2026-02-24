@@ -32,6 +32,19 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 <style>
 
+.career-mode-hero {
+  width: 100%;
+  background: #e5e4fd url('/static/images_new/general/aipt-bg1.jpg') !important;
+  padding: 25px 54px;
+  border-radius: 20px;
+}
+
+.career-mode-search-form {
+  background: #fff;
+  padding: 5px 7px;
+  border-radius: 7px;
+}
+
 .career-bookmark-btn {
   position: absolute;
   background: #ffffffbf;
@@ -62,6 +75,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 	border: 1px solid rgba(63, 55, 201, 1);
 	color: rgba(63, 55, 201, 1);
   position: relative;
+  background: #fff;
 }
 
 #ai-mode-btn.btn-outline-primary:hover {
@@ -192,16 +206,112 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 .car-search-info .select2-selection.select2-selection--multiple {
-  min-height: calc(2em + .75rem + 2px);
+  min-height: 53px;
   display: flex;
   align-items: center;
+  border:0px;
 }
  
+
+.select2-container--bootstrap-5.select2-container--focus .select2-selection, .select2-container--bootstrap-5.select2-container--open .select2-selection {
+  border-color: inherit;
+    border-top-color: inherit;
+  box-shadow: none !important;
+}
+
+
+.select2-dropdown.select2-dropdown--above {
+	border: 1px solid #c8c2c2 !important;
+	border-radius: 10px !important;
+	padding: 0 0;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+  padding: 12px 19px !important;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  border-bottom: 1px solid #eae2e2 !important;
+  margin: 0 13px !;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--selected, .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
+	color: #fff;
+	background-color: #3f37c9;
+}
+
     /** Animatte ai button **/
+
+
+    .select2-container--bootstrap-5 .select2-results__option[aria-selected="true"] .select2-checkbox-item i {
+  color: #3f37c9;
+}
+
+.select2-search__field {
+  width: 100% !important;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--selected, .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
+  color: #fff;
+  background-color: #3f37c9 !important;
+}
+
+.cluster-badge.gap-1 {
+	border: 1px solid #AAA4F9;
+	background: #fff;
+	border-radius: 20px;
+	padding: 0px 14px !important;
+	color: #626060;
+	font-weight: 400;
+}
+
+.btn-close-white {
+	filter: inherit;
+}
+
+.cluster-badge.gap-1:hover {
+  border: 1px solid #5046e5;
+}
+@media (max-width: 768px) {
+  .career-mode-hero {
+  padding: 20px;
+}
+
+.select2-container--bootstrap-5 {
+	display: block;
+	border: 1px solid #cec9c9;
+	border-radius: 4px;
+	margin-bottom: 6px;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+  padding: 10px 19px !important;
+  font-size: 12px !important;
+}
+
+#selectedClusterDisplay {
+	overflow-y: auto;
+	flex-wrap: nowrap !important;
+	white-space: normal;
+	flex-direction: row;
+	justify-content: start !important;
+	gap: 7px;
+	padding-bottom: 13px;
+}
+
+
+.cluster-badge.gap-1 {
+	white-space: normal;
+	width: auto;
+	min-width: max-content;
+}
+
+
+}
 </style>
 
 <!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner pt-md-15 pt-14 pb-5">
   <div class="container">
     <div class="row">
       <!--breadcrumb-->
@@ -210,56 +320,122 @@ Explore our comprehensive collection of career paths organized by industry and i
       </div>
       <!--breadcrumb-->
 
-      <div class="col-lg-8 col-md-12">
-        <span class="highlighter">
+
+      <div class="career-mode-hero">
+        <div class="row"> 
+      <div class="col-lg-9 col-md-12 text-center">
+        <!-- <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
-        </span>
-        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+        </span> -->
+        <h1 class="heading-title mb-0">
           Career Tracks
         </h1>
-        <p class="text-gray fs-16">Explore our comprehensive collection of career paths organized by industry and
+        <!-- <p class="text-gray fs-16">Explore our comprehensive collection of career paths organized by industry and
           interest. Discover educational requirements, job prospects, and growth opportunities for each career track
-          to make informed decisions about your future.</p>
-      </div>
+          to make informed decisions about your future.</p> -->
+    
+          <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 mb-2 flex-md-row flex-column">
+            <span class="text-muted fs-18 me-2">Career Mode:</span>
 
-      <div class="col-lg-4 col-md-12">
+            <div class="d-b-ms"> 
+            <a href="{{ url('careers:career') }}?mode=ai{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
+               class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
+               id="ai-mode-btn">
+               <span> <i class='bx bxs-magic-wand fs-20'></i> AI Mode</span>           
+            </a>
+            <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
+               class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
+               id="view-mode-btn">
+               <i class='bx bx-category fs-20'></i> View Mode
+            </a>
+          </div>
+          </div>
+
+               <!-- Filter Section -->
+        {% if not is_ai_mode %}
+        <div class="row mt-4">
+          <div class="col-md-12">
+            <form method="POST" action="{{ url('careers:career') }}" id="career-filter-form" class="filter-form">
+              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+              <input type="hidden" name="search" value="{{ search_param }}">
+              <input type="hidden" name="mode" value="{{ view_mode }}">
+              
+              <div class="row g-3 justify-content-center career-mode-search-form ">
+                <!-- Cluster Filter -->
+                {% if clusters or clusters_with_counts %}
+                <div class="col-md-12 col-lg-8 car-search-info mt-0 px-0 mb-md-0 mb-3">
+                 
+                  <select name="cluster" class="form-select filter-select2 w-100" multiple id="clusterFilter" data-placeholder="Type to search and select one or more clusters">
+                    {% if clusters_with_counts %}
+                      {% for item in clusters_with_counts %}
+                        {% if item.cluster and item.cluster.name %}
+                    <option value="{{ item.cluster.id|string }}" {% if selected_clusters and item.cluster.id|string in selected_clusters %}selected{% endif %}>
+                      {{ item.cluster.name|title|trim }} {% if item.count %}({{ item.count }}){% endif %}
+                    </option>
+                        {% endif %}
+                      {% endfor %}
+                    {% elif clusters %}
+                      {% for cluster in clusters %}
+                        {% if cluster and cluster.name %}
+                    <option value="{{ cluster.id|string }}" {% if selected_clusters and cluster.id|string in selected_clusters %}selected{% endif %}>
+                      {{ cluster.name|title|trim }}
+                    </option>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  </select>
+                  
+                 
+                </div>
+                {% endif %}
+
+
+                <div class="col-md-4 mx-auto mt-0 px-0">
+                  <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                    <button type="submit" class="btn custom-button blue-button flex-fill">Apply Filters</button>
+                    <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}" class="btn d-flex align-items-center justify-content-center btn-outline-secondary flex-fill">Reset</a>
+                  </div>
+                </div>
+              </div>
+
+         
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        <!-- End Filter Section -->
+
+          <!-- Selected Cluster Display -->
+          <div id="selectedClusterDisplay" class="mt-2 d-flex flex-wrap justify-content-center gap-2"></div>
+
+    
+    
+        </div>
+
+      <div class="col-lg-3 col-md-12 align-items-center justify-content-center d-md-flex d-none">
         <div class="right-banner d-md-flex  justify-content-end ">
           <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Career Tracks Banner" />
         </div>
       </div>
+
+    </div>
+
+
+    </div>
     </div>
   </div>
 </section>
 <!-- Hero Section -->
 
-<!-- Mode Toggle Section - active button: blue with white text (same as Explore Career detail button) -->
-<section class="pb-3">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12 text-center">
-        <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 bg-light rounded-pill">
-          <span class="text-muted small me-2">View Mode:</span>
-          <a href="{{ url('careers:career') }}?mode=ai" 
-             class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
-             id="ai-mode-btn">
-             <span> <i class='bx bx-bot'></i> AI Mode</span>           
-          </a>
-          <a href="{{ url('careers:career') }}?mode=view-mode" 
-             class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
-             id="view-mode-btn">
-            <i class='bx bx-list-ul'></i> View Mode
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- Career Search and Filter Section -->
 <section class="pb-10">
   <div class="container">
     <div class="row">
       <div class="col-md-12 custom-faq">
+
+       
 
         <!-- AI Mode Interface -->
         {% if is_ai_mode %}
@@ -362,6 +538,9 @@ Explore our comprehensive collection of career paths organized by industry and i
         <!-- Browse mode interface -->
         {% if not is_ai_mode %}
         <div id="view-mode-interface" class="view-mode-section">
+
+      
+
         <div class="row">
           <div class="col-md-8 mx-auto">
             <div class="d-flex flex-column justify-content-center align-items-center text-center">
@@ -370,59 +549,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           </div>
         </div>
 
-        <!-- Filter Section -->
-        <div class="row mt-4">
-          <div class="col-md-10 mx-auto">
-            <form method="POST" action="{{ url('careers:career') }}" id="career-filter-form" class="filter-form">
-              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-              <input type="hidden" name="search" value="{{ search_param }}">
-              <input type="hidden" name="mode" value="view-mode">
-              
-              <div class="row g-3 justify-content-center">
-                <!-- Cluster Filter -->
-                {% if clusters or clusters_with_counts %}
-                <div class="col-md-12 col-lg-10 car-search-info">
-                  <label class="form-label fw-semibold text-center d-block">Career Cluster</label>
-                  <select name="cluster" class="form-select filter-select2 w-100" multiple id="clusterFilter" data-placeholder="Search and select clusters...">
-                    {% if clusters_with_counts %}
-                      {% for item in clusters_with_counts %}
-                        {% if item.cluster and item.cluster.name %}
-                    <option value="{{ item.cluster.id|string }}" {% if selected_clusters and item.cluster.id|string in selected_clusters %}selected{% endif %}>
-                      {{ item.cluster.name|title|trim }} {% if item.count %}({{ item.count }}){% endif %}
-                    </option>
-                        {% endif %}
-                      {% endfor %}
-                    {% elif clusters %}
-                      {% for cluster in clusters %}
-                        {% if cluster and cluster.name %}
-                    <option value="{{ cluster.id|string }}" {% if selected_clusters and cluster.id|string in selected_clusters %}selected{% endif %}>
-                      {{ cluster.name|title|trim }}
-                    </option>
-                        {% endif %}
-                      {% endfor %}
-                    {% endif %}
-                  </select>
-                  <small class="text-muted d-block text-center mt-1">Type to search and select one or more clusters</small>
-                  <!-- Selected Cluster Display -->
-                  <div id="selectedClusterDisplay" class="mt-2 d-flex flex-wrap justify-content-center gap-2"></div>
-                </div>
-                {% endif %}
-              </div>
-
-              <!-- Filter Buttons -->
-              <div class="row mt-3">
-                <div class="col-md-4 mx-auto">
-                  <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                    <button type="submit" class="btn custom-button purple-button flex-fill">Apply Filters</button>
-                    <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}" class="btn d-flex align-items-center justify-content-center btn-outline-secondary flex-fill">Reset</a>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-        <!-- End Filter Section -->
-
+   
         <!-- Career Categories -->
         <div class="mt-4">
 
@@ -545,7 +672,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         <input type="hidden" name="page" value="{{ careers.previous_page_number() }}">
-                        <input type="hidden" name="mode" value="view-mode">
+                        <input type="hidden" name="mode" value="{{ view_mode }}">
                         {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                         {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
                         {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
@@ -570,7 +697,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                           <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                             <input type="hidden" name="page" value="{{ page_num }}">
-                            <input type="hidden" name="mode" value="view-mode">
+                            <input type="hidden" name="mode" value="{{ view_mode }}">
                             {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                             {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
                             {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
@@ -585,7 +712,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                       <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         <input type="hidden" name="page" value="{{ careers.next_page_number() }}">
-                        <input type="hidden" name="mode" value="view-mode">
+                        <input type="hidden" name="mode" value="{{ view_mode }}">
                         {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                         {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
                         {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
@@ -1146,9 +1273,7 @@ Explore our comprehensive collection of career paths organized by industry and i
   font-size: 1.1rem;
 }
 
-.mode-toggle-container {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+
 
 /* Content Icons Styles */
 .content-icons-row {
@@ -1647,9 +1772,9 @@ Explore our comprehensive collection of career paths organized by industry and i
           const clusterOption = $('#clusterFilter option[value="' + clusterValue + '"]');
           const clusterText = clusterOption.text() || clusterValue;
           
-          const badge = $('<span class="badge bg-primary text-white d-flex align-items-center gap-1" style="font-size: 0.875rem; padding: 0.35rem 0.65rem; position: relative;">' +
+          const badge = $('<span class="cluster-badge gap-1" style="font-size: 0.875rem; padding: 0.35rem 0.65rem; position: relative;">' +
             '<span>' + clusterText + '</span>' +
-            '<button type="button" class="btn-close btn-close-white remove-cluster-btn" style="font-size: 0.65rem; margin-left: 0.25rem; z-index: 10; position: relative; pointer-events: auto; cursor: pointer; padding: 0.25rem; opacity: 1;" aria-label="Remove" data-cluster-id="' + clusterValue + '"></button>' +
+            '<button type="button" class="btn-close btn-close-white remove-cluster-btn" style="font-size: 0.65rem; margin-left: 0.25rem; z-index: 10; position: relative; pointer-events: auto; cursor: pointer; padding: 0.25rem; opacity: 1;" aria-label="Remove" data-cluster-id="' + clusterValue + '"> </button>' +
             '</span>');
           
           // Attach multiple event handlers for better compatibility
@@ -1731,7 +1856,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           }
           var $result = $(
             '<span class="select2-checkbox-item d-flex align-items-center">' +
-            '<i class="bx bx-checkbox me-2"></i> ' +
+           
             '<span>' + data.text + '</span>' +
             '</span>'
           );
@@ -1776,6 +1901,45 @@ Explore our comprehensive collection of career paths organized by industry and i
       if (preSelectedClusters.length > 0) {
         $('#clusterFilter').val(preSelectedClusters).trigger('change');
       }
+
+      // Animated placeholder rotator for the Select2 search field
+      (function() {
+        const $select = $('#clusterFilter');
+        const container = $select.next('.select2-container');
+        const dataPlaceholder = $select.data('placeholder') || 'Search and select clusters...';
+        const phrases = [
+          dataPlaceholder,
+          'Type cluster name...',
+          'Search and select one or more clusters'
+        ];
+        let idx = 0;
+
+        function updatePlaceholder() {
+          const $search = container.find('.select2-search__field');
+          if ($search.length) {
+            $search.attr('placeholder', phrases[idx]);
+            idx = (idx + 1) % phrases.length;
+          }
+        }
+
+        // Start rotating placeholder every 2.5s
+        const placeholderInterval = setInterval(updatePlaceholder, 2500);
+
+        // Ensure placeholder updates when dropdown opens
+        $select.on('select2:open', function() {
+          updatePlaceholder();
+          // Force style on selection area to avoid dark BG when items selected
+          container.find('.select2-selection--multiple').css({ 'background': '#fff', 'color': '#111' });
+        });
+
+        // Keep selection area white on change (when items are selected/removed)
+        $select.on('change', function() {
+          container.find('.select2-selection--multiple').css({ 'background': '#fff', 'color': '#111' });
+        });
+
+        // Initial update (in case select2 search field is already available)
+        setTimeout(updatePlaceholder, 100);
+      })();
       
     } catch (error) {
       console.error('Error initializing Select2:', error); // Debug
@@ -1848,15 +2012,15 @@ Explore our comprehensive collection of career paths organized by industry and i
         }
       });
       
-      // Ensure mode is set to view-mode
+      // Ensure mode is set to current view (preserve AI/View)
       if (!$('input[name="mode"]').length) {
         $('<input>').attr({
           type: 'hidden',
           name: 'mode',
-          value: 'view-mode'
+          value: '{{ view_mode }}'
         }).appendTo('#career-filter-form');
       } else {
-        $('input[name="mode"]').val('view-mode');
+        $('input[name="mode"]').val('{{ view_mode }}');
       }
       
       console.log('Submitting form with POST'); // Debug log
@@ -1935,15 +2099,15 @@ Explore our comprehensive collection of career paths organized by industry and i
         }
       });
       
-      // Ensure mode is set to view-mode
+      // Ensure mode is set to current view (preserve AI/View)
       if (!$('input[name="mode"]').length) {
         $('<input>').attr({
           type: 'hidden',
           name: 'mode',
-          value: 'view-mode'
+          value: '{{ view_mode }}'
         }).appendTo($form);
       } else {
-        $('input[name="mode"]').val('view-mode');
+        $('input[name="mode"]').val('{{ view_mode }}');
       }
       
       console.log('Submitting form with POST'); // Debug
