@@ -58,72 +58,17 @@
                 <p>Tap any branch to jump straight to the matching tab—Overview, Education, Career Path, Industry Insights, Resources, or Conclusion—and explore the detailed guidance below.</p>
               </div>
               <div class="mindmap-box">
-                <svg class="mindmap-svg" viewBox="0 0 1000 520" role="img" aria-labelledby="mindmap-title mindmap-svg-title">
-                  <title id="mindmap-svg-title">Interactive map of {{ career.name }} learning paths</title>
-                  <defs>
-                    <linearGradient id="mindmapRootGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#7f5dff" />
-                      <stop offset="100%" stop-color="#ff8e53" />
-                    </linearGradient>
-                  </defs>
-                  <path class="mindmap-connector" d="M500 240 C 390 200 310 150 230 130" />
-                  <path class="mindmap-connector" d="M500 240 C 610 190 710 150 830 120" />
-                  <path class="mindmap-connector" d="M500 290 C 620 310 720 330 840 360" />
-                  <path class="mindmap-connector" d="M500 310 C 400 330 300 360 210 390" />
-                  <path class="mindmap-connector" d="M500 210 C 500 150 500 120 500 90" />
-                  <path class="mindmap-connector" d="M500 320 C 500 360 500 400 500 440" />
-                  <g aria-hidden="true">
-                    <circle class="mindmap-root-circle" cx="500" cy="260" r="95"></circle>
-                    <text class="mindmap-label" text-anchor="middle" x="500" y="250">
-                      <tspan x="500" dy="0">{{ career.name }}</tspan>
-                      {% if career.display_summary %}
-                      <tspan class="mindmap-subtext" x="500" dy="26">{{ career.display_summary|truncate(30) }}</tspan>
-                      {% endif %}
-                    </text>
-                  </g>
-                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Overview tab" data-tab-target="overview">
-                    <rect class="mindmap-leaf leaf-creative" x="110" y="70" width="220" height="130" rx="28" />
-                    <text class="mindmap-label" text-anchor="middle" x="220" y="120">
-                      <tspan x="220" dy="0">Overview</tspan>
-                      <tspan class="mindmap-subtext" x="220" dy="24">Role, mission, mindset</tspan>
-                      <tspan class="mindmap-subtext" x="220" dy="20">Career description</tspan>
-                    </text>
-                  </g>
-                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Education tab" data-tab-target="education">
-                    <rect class="mindmap-leaf leaf-engineering" x="700" y="60" width="220" height="130" rx="28" />
-                    <text class="mindmap-label" text-anchor="middle" x="810" y="115">
-                      <tspan x="810" dy="0">Education</tspan>
-                      <tspan class="mindmap-subtext" x="810" dy="24">Study routes & eligibility</tspan>
-                      <tspan class="mindmap-subtext" x="810" dy="20">Courses & specializations</tspan>
-                    </text>
-                  </g>
-                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Career Path tab" data-tab-target="career-path">
-                    <rect class="mindmap-leaf leaf-experience" x="730" y="280" width="210" height="150" rx="32" />
-                    <text class="mindmap-label" text-anchor="middle" x="835" y="335">
-                      <tspan x="835" dy="0">Career Path</tspan>
-                      <tspan class="mindmap-subtext" x="835" dy="24">Career progression</tspan>
-                      <tspan class="mindmap-subtext" x="835" dy="20">Employment areas</tspan>
-                      <tspan class="mindmap-subtext" x="835" dy="20">Recruiters</tspan>
-                    </text>
-                  </g>
-                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Industry Insights tab" data-tab-target="industry-insights">
-                    <rect class="mindmap-leaf leaf-tools" x="70" y="300" width="230" height="150" rx="32" />
-                    <text class="mindmap-label" text-anchor="middle" x="185" y="355">
-                      <tspan x="185" dy="0">Industry Insights</tspan>
-                      <tspan class="mindmap-subtext" x="185" dy="24">Industry trends</tspan>
-                      <tspan class="mindmap-subtext" x="185" dy="20">Future outlook</tspan>
-                      <tspan class="mindmap-subtext" x="185" dy="20">Pros & cons</tspan>
-                    </text>
-                  </g>
-                  <g class="mindmap-node" role="button" tabindex="0" aria-label="Open Resources tab" data-tab-target="resource">
-                    <rect class="mindmap-leaf leaf-future" x="410" y="20" width="180" height="110" rx="28" />
-                    <text class="mindmap-label" text-anchor="middle" x="500" y="70">
-                      <tspan x="500" dy="0">Resources</tspan>
-                      <tspan class="mindmap-subtext" x="500" dy="24">Career media</tspan>
-                      <tspan class="mindmap-subtext" x="500" dy="20">FAQs</tspan>
-                    </text>
-                  </g>
-                </svg>
+                <!-- D3-rendered mindmap container.
+                     Replaced static inline SVG with a container so the D3 script can render interactive nodes and children.
+                     If JS is disabled, an accessible fallback message is shown. -->
+                <div id="career-mindmap" class="mindmap-svg" role="img" aria-labelledby="mindmap-title mindmap-svg-title" aria-hidden="false" style="width:100%;height:100%;">
+                  <svg viewBox="0 0 1000 520" aria-hidden="true" focusable="false" style="width:100%;height:100%;display:block;">
+                    <title id="mindmap-svg-title">Interactive map of {{ career.name }} learning paths (fallback)</title>
+                    <g>
+                      <text x="50%" y="50%" text-anchor="middle" fill="#999">Loading interactive mindmap…</text>
+                    </g>
+                  </svg>
+                </div>
               </div>
               <p class="mindmap-caption" id="mindmap-caption">Each colorful branch maps to a tab below—click to reveal overview, study plans, role journeys, industry insights, practice resources, or concluding tips.</p>
                 </div>
@@ -782,10 +727,13 @@
 {% block additionaljs %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
   /* Additional styles */
   
-  .connector-line {
+  /* Apply connector draw animation to both canvas and inline SVG connectors */
+  .connector-line,
+  .mindmap-connector {
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation: drawLine 2s ease-out forwards;
@@ -795,8 +743,11 @@
     to { stroke-dashoffset: 0; }
   }
   
-  .node {
+  /* Support both D3-generated nodes and inline SVG mindmap nodes */
+  .node,
+  .mindmap-node {
     animation: nodeAppear 0.6s ease-out backwards;
+    pointer-events: all;
   }
   
   @keyframes nodeAppear {
@@ -810,9 +761,17 @@
     }
   }
   
-  .node:hover {
+  .node:hover,
+  .mindmap-node:hover {
     transform: translateY(-8px) scale(1.05) !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Ensure SVG groups transform from their center */
+  .mindmap-node {
+    transform-box: fill-box;
+    transform-origin: center;
+    cursor: pointer;
   }
   
   .node i {
@@ -820,7 +779,8 @@
     font-size: 1.1rem;
   }
   
-  .central-node:hover {
+  .central-node:hover,
+  .mindmap-root-circle.central-node:hover {
     transform: translate(-50%, -50%) scale(1.1) !important;
     box-shadow: 0 20px 60px rgba(102, 126, 234, 0.5) !important;
   }
@@ -1195,38 +1155,7 @@
     // Initial check
     setTimeout(updateScrollButtons, 200);
 
-    // Video modal handler
-    const videoModal = document.getElementById('videoModal');
-    const modalVideo = document.getElementById('modalVideo');
-    
-    if (videoModal) {
-      videoModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const videoUrl = button.getAttribute('data-video');
-        if (modalVideo && videoUrl) {
-          modalVideo.src = videoUrl;
-    }
-      });
-      
-      videoModal.addEventListener('hide.bs.modal', function() {
-        if (modalVideo) {
-          modalVideo.pause();
-          modalVideo.src = '';
-        }
-      });
-  }
-  
-    // Copy link functionality
-    const copyLinks = document.querySelectorAll('.copy-link');
-    copyLinks.forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const url = this.getAttribute('data-url');
-        navigator.clipboard.writeText(url).then(function() {
-          alert('Link copied to clipboard!');
-        });
-  });
-    });
+    // (Duplicate video modal and copy-link handlers removed — handled earlier in this script)
   });
 
 
@@ -1350,27 +1279,57 @@
       .text(d => d.data.name)
       .style("cursor", "pointer");
 
-    // Add click handlers for career nodes
-    nodes.filter(d => d.depth === 2 && d.data.url)
-      .on("click", function(event, d) {
-        if (d.data.url) {
-          window.location.href = d.data.url;
-        }
-      })
-      .style("cursor", "pointer");
+    // Click handler: toggle expand/collapse for internal nodes; navigate for leaf career nodes with URL
+    // Ignore clicks that were suppressed by the zoom/drag behavior (event.defaultPrevented)
+    nodes.on("click", function(event, d) {
+      if (event.defaultPrevented) return; // ignore click if it was part of a drag/zoom
+      // prevent accidental text-selection/navigation side-effects
+      event.preventDefault();
+      event.stopPropagation();
 
-    // Add hover effects
-    nodes.on("mouseover", function(event, d) {
+      if (d.children || d._children) {
+        // toggle children
+        if (d.children) {
+          d._children = d.children;
+          d.children = null;
+        } else {
+          d.children = d._children;
+          d._children = null;
+        }
+        updateMindmap();
+      } else if (d.depth === 2 && d.data.url) {
+        // leaf career node with URL - navigate
+        window.location.href = d.data.url;
+      }
+    })
+    .style("cursor", "pointer");
+
+    // Add hover effects (highlight only hovered node and its connected links)
+    // Use mouseenter/mouseleave to avoid event bubbling issues between overlapping SVG groups
+    nodes.on("mouseenter", function(event, d) {
+      // bring hovered node to front so its circle/text aren't visually overlapped by siblings
+      d3.select(this).raise();
       d3.select(this).select("circle")
         .style("stroke-width", "4px")
-        .style("opacity", "0.9");
-      
+        .style("opacity", "0.95");
+
       if (d.depth === 2 && d.data.url) {
         d3.select(this).select("text")
           .style("fill", "#667eea");
       }
+
+      // highlight only links connected to this node
+      mindmapG.selectAll(".link")
+        .style("opacity", 0.15)
+        .style("stroke-width", "2px");
+
+      mindmapG.selectAll(".link")
+        .filter(l => l.source === d || l.target === d)
+        .style("opacity", 0.95)
+        .style("stroke", "#667eea")
+        .style("stroke-width", "3px");
     })
-    .on("mouseout", function(event, d) {
+    .on("mouseleave", function(event, d) {
       d3.select(this).select("circle")
         .style("stroke-width", d => {
           if (d.data.is_current) return "4px";
@@ -1379,7 +1338,7 @@
           return "2px";
         })
         .style("opacity", "1");
-      
+
       d3.select(this).select("text")
         .style("fill", d => {
           if (d.depth === 0) return "white";
@@ -1387,6 +1346,12 @@
           if (d.data.is_current) return "#ff0000";
           return "#333";
         });
+
+      // reset link styles
+      mindmapG.selectAll(".link")
+        .style("opacity", 0.6)
+        .style("stroke", "#999")
+        .style("stroke-width", "2px");
     });
   }
 
@@ -1521,25 +1486,52 @@
       .attr("x", d => d.x < Math.PI ? 8 : -8)
       .style("text-anchor", d => d.x < Math.PI ? "start" : "end");
     
-    nodeUpdate.filter(d => d.depth === 2 && d.data.url)
-      .on("click", function(event, d) {
-        if (d.data.url) {
-          window.location.href = d.data.url;
+    // Attach click handler to update selection as well (same logic as above)
+    nodeUpdate.on("click", function(event, d) {
+      if (event.defaultPrevented) return; // ignore click if it was part of a drag/zoom
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (d.children || d._children) {
+        if (d.children) {
+          d._children = d.children;
+          d.children = null;
+        } else {
+          d.children = d._children;
+          d._children = null;
         }
-      })
-      .style("cursor", "pointer");
+        updateMindmap();
+      } else if (d.depth === 2 && d.data.url) {
+        window.location.href = d.data.url;
+      }
+    })
+    .style("cursor", "pointer");
     
-    nodeUpdate.on("mouseover", function(event, d) {
+    // Use mouseenter/mouseleave for updated nodes as well
+    nodeUpdate.on("mouseenter", function(event, d) {
+      // bring hovered node to front so its circle/text aren't visually overlapped by siblings
+      d3.select(this).raise();
       d3.select(this).select("circle")
         .style("stroke-width", "4px")
-        .style("opacity", "0.9");
-      
+        .style("opacity", "0.95");
+
       if (d.depth === 2 && d.data.url) {
         d3.select(this).select("text")
           .style("fill", "#667eea");
       }
+
+      // highlight only links connected to this node
+      mindmapG.selectAll(".link")
+        .style("opacity", 0.15)
+        .style("stroke-width", "2px");
+
+      mindmapG.selectAll(".link")
+        .filter(l => l.source === d || l.target === d)
+        .style("opacity", 0.95)
+        .style("stroke", "#667eea")
+        .style("stroke-width", "3px");
     })
-    .on("mouseout", function(event, d) {
+    .on("mouseleave", function(event, d) {
       d3.select(this).select("circle")
         .style("stroke-width", d => {
           if (d.data.is_current) return "4px";
@@ -1548,7 +1540,7 @@
           return "2px";
         })
         .style("opacity", "1");
-      
+
       d3.select(this).select("text")
         .style("fill", d => {
           if (d.depth === 0) return "white";
@@ -1556,6 +1548,12 @@
           if (d.data.is_current) return "#ff0000";
           return "#333";
         });
+
+      // reset link styles
+      mindmapG.selectAll(".link")
+        .style("opacity", 0.6)
+        .style("stroke", "#999")
+        .style("stroke-width", "2px");
     });
   }
 
@@ -1651,6 +1649,18 @@
       });
     });
   });
+
+  // Initialize D3 mindmap if available and DOM is ready
+  (function() {
+    if (typeof initializeMindmap === 'function') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeMindmap);
+      } else {
+        initializeMindmap();
+      }
+    }
+  })();
+
 </script>
 {% endblock %}
 

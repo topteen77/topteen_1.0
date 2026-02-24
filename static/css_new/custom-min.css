@@ -11238,7 +11238,7 @@ padding:0px;
   align-items: center;
   justify-content: center;
   color: #333;
-  border: 1px solid #ddd;
+  border: 1px solid #ddd !important;
   background-color: white;
   transition: all 0.3s ease;
 }
@@ -14937,4 +14937,9 @@ position: absolute;
 :focus-visible {
   outline: 2px solid #cfcfcf;
   outline-offset: 2px;
+}
+
+
+.radial-child-node.radial-node-no-link text {
+  text-shadow: inherit !important;
 }

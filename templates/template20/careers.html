@@ -34,7 +34,8 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .career-mode-hero {
   width: 100%;
-  background: #e5e4fd url('/static/images_new/general/aipt-bg1.jpg') !important;
+  /* background: #e5e4fd url('/static/images_new/general/aipt-bg1.jpg') !important; */
+  background: linear-gradient( to bottom, rgb(237, 246, 255), rgb(252, 246, 255), rgb(253, 248, 255), rgb(238, 246, 255), rgb(248, 242, 255), rgb(237, 246, 255) );
   padding: 25px 54px;
   border-radius: 20px;
 }
@@ -81,6 +82,15 @@ Explore our comprehensive collection of career paths organized by industry and i
 #ai-mode-btn.btn-outline-primary:hover {
 	background: rgba(63, 55, 201, 1);
 	color: #fff;
+}
+.message-content table tr td, tr th {
+	border: 1px solid #E2D7D7;
+	padding: 7px;
+}
+
+.message-content table tr:first-child {
+  background: #E9E8FF;
+  color: #3F37C9;
 }
 
  
@@ -308,6 +318,37 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 
 }
+
+
+@media (max-width: 576px) {
+  .chat-message {
+  margin: 0px !important;
+}
+
+.chat-message.user-message {
+	margin: 36px 0 !important;
+}
+
+.chat-message.user-message .message-text p {
+	font-size: 14px;
+	line-height: 18px;
+}
+
+.chat-message .message-text {
+  padding: 10px !important;
+  }
+
+  .chat-message.ai-message {
+  display: inherit;
+}
+
+.chat-message .message-avatar {
+	margin-bottom: 14px;
+}
+
+
+
+}
 </style>
 
 <!-- Hero Section -->
@@ -323,7 +364,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
       <div class="career-mode-hero">
         <div class="row"> 
-      <div class="col-lg-9 col-md-12 text-center">
+      <div class="col-lg-9 col-md-12 text-center d-flex align-items-center flex-column justify-content-center">
         <!-- <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
         </span> -->
@@ -337,7 +378,7 @@ Explore our comprehensive collection of career paths organized by industry and i
           <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 mb-2 flex-md-row flex-column">
             <span class="text-muted fs-18 me-2">Career Mode:</span>
 
-            <div class="d-b-ms"> 
+            <div class="d-b-ms d-flex flex-row gap-2"> 
             <a href="{{ url('careers:career') }}?mode=ai{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
                class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
                id="ai-mode-btn">
@@ -353,7 +394,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
                <!-- Filter Section -->
         {% if not is_ai_mode %}
-        <div class="row mt-4">
+        <div class="w-100 mt-4">
           <div class="col-md-12">
             <form method="POST" action="{{ url('careers:career') }}" id="career-filter-form" class="filter-form">
               <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
@@ -444,6 +485,13 @@ Explore our comprehensive collection of career paths organized by industry and i
             <div class="col-12">
               <!-- Chat Container (full width so mindmap can use full width) -->
               <div class="chat-container">
+                <div class="chat-header">
+                  <div class="chat-title"><i class='bx bxs-magic-wand fs-20'></i> AI Mode</div>
+                  <div class="chat-controls">
+                    <button type="button" id="ai-maximize" class="btn btn-sm btn-light" aria-label="Maximize chat"><i class="bx bx-fullscreen"></i></button>
+                    <button type="button" id="ai-minimize" class="btn btn-sm btn-light" aria-label="Minimize chat" style="display:none;"><i class="bx bx-minus"></i></button>
+                  </div>
+                </div>
                 <!-- Chat Messages Area -->
                 <div id="ai-chat-messages" class="chat-messages">
                   <!-- Welcome Message -->
@@ -466,9 +514,11 @@ Explore our comprehensive collection of career paths organized by industry and i
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Loading indicator above input: actual progress from server (no repeat) -->
+
+
+                       <!-- Loading indicator above input: actual progress from server (no repeat) -->
+
                 <div id="ai-loading" class="ai-loading-above-input" style="display: none;">
                   <div class="message-avatar">
                     <i class='bx bx-bot'></i>
@@ -479,6 +529,14 @@ Explore our comprehensive collection of career paths organized by industry and i
                     </div>
                   </div>
                 </div>
+
+                            
+              
+                </div>
+
+            
+
+     
 
                 <!-- Chat Input Area (Fixed above footer) - ChatGPT Style -->
                 <div class="chat-input-container-full">
@@ -779,11 +837,22 @@ Explore our comprehensive collection of career paths organized by industry and i
 .mode-toggle-container .btn-outline-primary {
   color: #5046e5;
   border-color: #5046e5;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .mode-toggle-container .btn-outline-primary:hover {
   background-color: rgba(80, 70, 229, 0.08);
   color: #5046e5;
   border-color: #5046e5;
+}
+
+#ai-mode-btn span {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 6px;
 }
 
 /* AI Chat Layout - fixed input above footer, scrollable messages */
@@ -800,6 +869,58 @@ Explore our comprehensive collection of career paths organized by industry and i
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
   border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+/* Chat header (title + controls) */
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+}
+.chat-title {
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #111827;
+}
+.chat-controls .btn {
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fullscreen behaviour for chat container */
+.chat-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1080;
+  border-radius: 0;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  z-index: 9999;
+}
+.chat-container.fullscreen .chat-messages {
+  max-height: calc(100vh - 120px);
+}
+/* prevent body scroll when chat fullscreen */
+body.ai-fullscreen-active {
   overflow: hidden;
 }
 
@@ -902,7 +1023,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 .chat-message {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 0.9rem;
+  margin: 32px;
 }
 
 .chat-message .message-avatar {
@@ -920,7 +1041,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .chat-message.user-message .message-avatar {
   background: rgba(82, 73, 223, 0.18);
-  color: #ffffff;
+  color: #5249df;
 }
 
 .chat-message .message-content {
@@ -965,8 +1086,6 @@ Explore our comprehensive collection of career paths organized by industry and i
   gap: 0.75rem;
   padding: 0 1.5rem 1rem 1.5rem;
   margin: 0;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff;
   flex-shrink: 0;
 }
 .ai-loading-above-input .message-avatar {
@@ -1031,7 +1150,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .ai-icon {
   font-size: 1.5rem;
-  color: #007bff;
+  color:#3f37c9;
   opacity: 0.7;
 }
 
@@ -1045,7 +1164,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 .ai-search-box .ai-input:focus {
-  border-color: #007bff;
+  border-color:#3f37c9;
   outline: none;
   box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 }
@@ -1060,7 +1179,7 @@ Explore our comprehensive collection of career paths organized by industry and i
   border-radius: 20px;
   padding: 6px 16px;
   transition: all 0.2s ease;
-  border: 1px solid #007bff;
+  border: 1px solid #5249df;
   background: white;
   max-width: 100%;
   white-space: normal;
@@ -1069,7 +1188,10 @@ Explore our comprehensive collection of career paths organized by industry and i
   line-height: 1.4;
   cursor: pointer;
   position: relative;
+  color: #5249df;
 }
+
+
 
 .question-chip:hover,
 .btn-outline-primary.question-chip:hover,
@@ -1077,10 +1199,16 @@ Explore our comprehensive collection of career paths organized by industry and i
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,123,255,0.25);
   background: #f8f9fa !important;
-  border-color: #0056b3 !important;
+  border-color: #5249df !important;
   z-index: 1;
-  color: #007bff !important;
+  color: #5249df !important;
 }
+
+.chat-message.user-message .message-text p {
+	margin-bottom: 0px;
+	color: #fff;
+}
+
 
 /* Enhanced hover for primary buttons */
 .btn-primary.question-chip:hover {
@@ -1125,7 +1253,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 .ai-career-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  border-color: #007bff;
+  border-color: #5249df;
 }
 
 .ai-career-card .card-body {
@@ -1155,8 +1283,8 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 .bg-primary-subtle {
-  background-color: #e7f3ff;
-  color: #0066cc;
+  background-color: #efeeff;
+  color: #3f37c9 !important;
 }
 
 .career-header {
@@ -1194,7 +1322,7 @@ Explore our comprehensive collection of career paths organized by industry and i
   padding: 0.5rem;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 3px solid #007bff;
+  border-left: 3px solid#3f37c9;
 }
 
 .career-info-label {
@@ -1210,7 +1338,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .career-info-label i {
   font-size: 1rem;
-  color: #007bff;
+  color:#3f37c9;
 }
 
 .career-info-value {
@@ -1224,7 +1352,7 @@ Explore our comprehensive collection of career paths organized by industry and i
   list-style: none;
   padding: 0;
   margin: 0;
-  margin-left: 1.5rem;
+  margin-left:0;
 }
 
 .career-skills-list li {
@@ -1238,7 +1366,7 @@ Explore our comprehensive collection of career paths organized by industry and i
   content: "•";
   position: absolute;
   left: 0;
-  color: #007bff;
+  color:#3f37c9;
   font-weight: bold;
   font-size: 1.2rem;
 }
@@ -1358,7 +1486,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 .career-accordion .accordion-button:not(.collapsed) {
-  color: #007bff;
+  color:#3f37c9;
   background: transparent;
   box-shadow: none;
 }
@@ -1384,6 +1512,11 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .career-detail-content li {
   margin-bottom: 0.5rem;
+  font-weight: 400;
+}
+
+.message-content ul li::marker {
+  color: #5249df !important;
 }
 
 /* Mindmap Embed Styles - full width (break out of column) */
@@ -2145,6 +2278,39 @@ document.addEventListener('DOMContentLoaded', function() {
   const loadingIndicator = document.getElementById('ai-loading');
   const loadingMessageEl = document.getElementById('ai-loading-message');
 
+  // Chat header controls (maximize / minimize)
+  const chatContainer = document.querySelector('.chat-container');
+  const aiMaxBtn = document.getElementById('ai-maximize');
+  const aiMinBtn = document.getElementById('ai-minimize');
+
+  function updateAiControls() {
+    if (!chatContainer || !aiMaxBtn || !aiMinBtn) return;
+    const isFull = chatContainer.classList.contains('fullscreen');
+    aiMaxBtn.style.display = isFull ? 'none' : 'inline-flex';
+    aiMinBtn.style.display = isFull ? 'inline-flex' : 'none';
+  }
+
+  if (aiMaxBtn && aiMinBtn && chatContainer) {
+    aiMaxBtn.addEventListener('click', function () {
+      chatContainer.classList.add('fullscreen');
+      document.body.classList.add('ai-fullscreen-active');
+      updateAiControls();
+    });
+    aiMinBtn.addEventListener('click', function () {
+      chatContainer.classList.remove('fullscreen');
+      document.body.classList.remove('ai-fullscreen-active');
+      updateAiControls();
+    });
+    // Allow ESC to exit fullscreen
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && chatContainer.classList.contains('fullscreen')) {
+        aiMinBtn.click();
+      }
+    });
+    // Initialize controls visibility
+    updateAiControls();
+  }
+
   function readNDJSONStream(response, onProgress) {
     var reader = response.body.getReader();
     var decoder = new TextDecoder();
@@ -2530,8 +2696,19 @@ document.addEventListener('DOMContentLoaded', function() {
     queryInput.disabled = true;
     searchBtn.disabled = true;
     
-    // Show loading indicator (no scroll here – scroll only when new response is added)
-    loadingIndicator.style.display = 'flex';
+    // Show loading indicator immediately after the user message (so it's visible inline)
+    if (loadingIndicator) {
+      // Move the existing loader element into the messages container right after the last user message
+      const lastUser = chatMessages.querySelector('.chat-message.user-message:last-of-type');
+      if (lastUser && lastUser.parentNode) {
+        lastUser.insertAdjacentElement('afterend', loadingIndicator);
+      } else {
+        chatMessages.appendChild(loadingIndicator);
+      }
+      loadingIndicator.style.display = 'flex';
+      // Scroll so the loader is visible
+      scrollToStartOfResponse(loadingIndicator);
+    }
     
     // Get filters from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -2661,7 +2838,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h5 class="card-title">${escapeHtml(track.name)}</h5>
                 <p class="card-text text-muted small">${track.career_count} ${track.career_count === 1 ? 'career' : 'careers'} available</p>
                 <div class="mt-auto">
-                  <button type="button" class="btn btn-sm btn-primary w-100 explore-track-btn" 
+                  <button type="button" class="btn custom-button purple-button w-100 explore-track-btn py-2" 
                           data-track-name="${escapeHtml(track.name)}"
                           data-track-query="Explore ${escapeHtml(track.name)}">
                     Explore <i class="bx bx-right-arrow-alt"></i>
@@ -2683,7 +2860,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <h5 class="card-title">${escapeHtml(track.name)}</h5>
                   <p class="card-text text-muted small">${track.career_count} ${track.career_count === 1 ? 'career' : 'careers'} available</p>
                   <div class="mt-auto">
-                    <button type="button" class="btn btn-sm btn-primary w-100 explore-track-btn" 
+                    <button type="button" class="btn custom-button purple-button w-100 explore-track-btn py-2" 
                             data-track-name="${escapeHtml(track.name)}"
                             data-track-query="Explore ${escapeHtml(track.name)}">
                       Explore <i class="bx bx-right-arrow-alt"></i>
@@ -2702,7 +2879,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (remainingTracks.length > 0) {
         content += `
           <div class="text-center mt-3">
-            <button type="button" class="btn btn-primary btn-lg" id="view-more-tracks-btn-${uniqueId}" 
+            <button type="button" class="btn custom-button  blue-button" id="view-more-tracks-btn-${uniqueId}" 
                     data-tracks-container="career-tracks-container" 
                     data-remaining-count="${remainingTracks.length}">
               <i class='bx bx-chevron-down'></i> View More (${remainingTracks.length} more)
@@ -3070,7 +3247,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.has_more && data.next_page) {
         content += `
           <div class="text-center mt-4">
-            <button class="btn btn-primary btn-lg" id="load-more-careers-btn" 
+            <button class="btn custom-button  blue-button" id="load-more-careers-btn" 
                     data-query="${escapeHtml(data.query)}" 
                     data-page="${data.next_page}">
               <i class='bx bx-refresh'></i> Load More Careers
@@ -3988,12 +4165,12 @@ document.addEventListener('DOMContentLoaded', function() {
         </button>
         <button type="button" class="btn btn-sm btn-primary question-chip me-2 mb-2" 
                 data-query="Show me careers similar to ${escapeHtml(career.name)}"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
           <i class='bx bx-network-chart'></i> Show me careers similar to ${escapeHtml(career.name)}
         </button>
         <button type="button" class="btn btn-sm btn-primary question-chip me-2 mb-2" 
                 data-query="Show me more career options"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
           <i class='bx bx-search-alt-2'></i> Show me more career options
         </button>
       `;
@@ -4024,12 +4201,12 @@ document.addEventListener('DOMContentLoaded', function() {
         </button>
         <button type="button" class="btn btn-sm btn-primary question-chip me-2 mb-2" 
                 data-query="Show me careers similar to ${escapeHtml(career.name)}"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
           <i class='bx bx-network-chart'></i> Show me careers similar to ${escapeHtml(career.name)}
         </button>
         <button type="button" class="btn btn-sm btn-primary question-chip me-2 mb-2" 
                 data-query="Show me more career options"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
           <i class='bx bx-search-alt-2'></i> Show me more career options
         </button>
       `;
@@ -4113,7 +4290,7 @@ document.addEventListener('DOMContentLoaded', function() {
     suggestionsHtml += `
       <button type="button" class="btn btn-sm btn-primary question-chip me-2 mb-2" 
               data-query="Show me more career options"
-              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
         <i class='bx bx-search-alt-2'></i> Show me more career options
       </button>
     `;
@@ -4215,12 +4392,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="question-chips">
               <button type="button" class="btn btn-sm btn-primary me-2 mb-2" 
                       onclick="window.performSearch('show me similar careers to ${escapeHtml(career.name)}')"
-                      style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                      style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
                 <i class='bx bx-network-chart'></i> Show me careers similar to ${escapeHtml(career.name)}
               </button>
               <button type="button" class="btn btn-sm btn-primary me-2 mb-2" 
                       data-query="Show me more career options"
-                      style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                      style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
                 <i class='bx bx-search-alt-2'></i> Show me more career options
               </button>
             </div>
@@ -4272,7 +4449,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </button>
       <button type="button" class="btn btn-sm btn-primary me-2 mb-2" 
               onclick="window.performSearch('show me another career')"
-              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color:#fff;">
         <i class='bx bx-refresh'></i> Show Another Career
       </button>
       <button type="button" class="btn btn-sm btn-outline-primary me-2 mb-2" 
@@ -4471,7 +4648,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             
             <div class="career-footer mt-auto pt-3">
-              <a href="${career.url}" class="btn btn-primary w-100 career-listing-link" data-career-id="${career.id}" data-career-name="${escapeHtml(career.name)}">
+              <a href="${career.url}" class="btn custom-button purple-button w-100 career-listing-link" data-career-id="${career.id}" data-career-name="${escapeHtml(career.name)}">
                 <i class='bx bx-info-circle'></i> Explore Career Details <i class="bx bx-right-arrow-alt"></i>
               </a>
             </div>
@@ -5062,7 +5239,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return `
           <div class="col-md-6 mb-2">
             <a href="${relCareer.url}" target="_blank" class="text-decoration-none">
-              <div class="card" style="border-radius: 8px; border: 1px solid #e9ecef; transition: all 0.2s; hover:border-color: #007bff;">
+              <div class="card" style="border-radius: 8px; border: 1px solid #e9ecef; transition: all 0.2s; hover:border-color:#3f37c9;">
                 <div class="card-body p-2">
                   <h6 class="card-title mb-1" style="font-size: 0.9rem; color: #333;">${escapeHtml(relCareer.name)}</h6>
                   ${relCareer.summary ? `<p class="card-text small text-muted mb-0" style="font-size: 0.8rem;">${escapeHtml(relCareer.summary)}</p>` : ''}
