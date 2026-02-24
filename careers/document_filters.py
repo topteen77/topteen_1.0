@@ -239,9 +239,10 @@ class CareerDocumentFilter:
                         career_doc._career_cluster_list = []
             except Exception as e:
                 # If enrichment fails, continue with original document
-                import traceback
-                print(f"Error enriching career {getattr(career_doc, 'id', 'unknown')}: {e}")
-                print(traceback.format_exc())
+                import logging
+                logging.getLogger(__name__).exception(
+                    "Error enriching career %s: %s", getattr(career_doc, 'id', 'unknown'), e
+                )
                 career_doc._django_instance = None
                 career_doc._image_url = None
                 career_doc._career_cluster_list = []

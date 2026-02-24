@@ -8,7 +8,10 @@ from elasticsearch_dsl import Q ,Nested
 from django.core.paginator import Paginator
 from django.urls import reverse_lazy
 from django.db.models import Q as DjangoQ
-from dataclasses import dataclass,field
+from dataclasses import dataclass, field
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ItemSearch:
@@ -110,16 +113,12 @@ class AllSearch:
             es_search=self.searchcollege.query(q) 
             colleges = es_search.execute()[0:]
         except Exception as e:
-            print(f"Elasticsearch error in college search: {e}")
-            # Fallback to Django ORM if Elasticsearch fails
+            logger.warning("Elasticsearch error in college search: %s", e)
             try:
                 from colleges.models import College
                 colleges = list(College.objects.filter(name__icontains=search_term)[:10])
-                print(f"Django ORM fallback found {len(colleges)} colleges")
             except Exception as e2:
-                print(f"Django ORM fallback error in college search: {e2}")
-                import traceback
-                traceback.print_exc()
+                logger.warning("Django ORM fallback error in college search: %s", e2)
                 colleges = None
         if colleges is None:
             colleges = []
@@ -133,8 +132,7 @@ class AllSearch:
             es_search=self.searchcareer.query(q) 
             career = es_search.execute()[0:]
         except Exception as e:
-            print(f"Elasticsearch error in career search: {e}")
-            # Fallback to Django ORM if Elasticsearch fails
+            logger.warning("Elasticsearch error in career search: %s", e)
             try:
                 from careers.models import Career
                 from core import choices
@@ -142,11 +140,8 @@ class AllSearch:
                     name__icontains=search_term,
                     publish_status=choices.PublishStatus.PUBLISHED
                 )[:10])
-                print(f"Django ORM fallback found {len(career)} careers")
             except Exception as e2:
-                print(f"Django ORM fallback error in career search: {e2}")
-                import traceback
-                traceback.print_exc()
+                logger.warning("Django ORM fallback error in career search: %s", e2)
                 career = None
         if career is None:
             career = []
@@ -182,7 +177,7 @@ class AllSearch:
             from careers.models import Profession
             professions = list(Profession.objects.filter(name__icontains=search)[:10])
         except Exception as e:
-            print(f"Error searching professions: {e}")
+            logger.warning("Error searching professions: %s", e)
             professions = []
         return professions
     
@@ -195,6 +190,6 @@ class AllSearch:
                 publish_status=choices.PublishStatus.PUBLISHED
             )[:10])
         except Exception as e:
-            print(f"Error searching blogs: {e}")
+            logger.warning("Error searching blogs: %s", e)
             blogs = []
         return blogs

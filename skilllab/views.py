@@ -29,6 +29,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from core.s3_utils import get_s3_upload_service
+import logging
+
+logger = logging.getLogger(__name__)
 # Create your views here.
 
 class SkillLabCourseList(TemplateView):
@@ -46,7 +49,7 @@ class SkillLabCourseList(TemplateView):
             ctx=skl.get_skilllab_list_context(request)
         except (KeyError, Exception) as e:
             # Fallback to Django ORM when Elasticsearch is not available
-            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
+            logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
             ctx = self.get_fallback_context(request)
         
         ctx["html_head"] = self.html_head()
@@ -1266,9 +1269,7 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
                     }
                 }
             except Exception as e:
-                import traceback
-                print(f"[Payment Error] Failed to get payment info: {str(e)}")
-                print(traceback.format_exc())
+                logger.exception("[Payment Error] Failed to get payment info: %s", e)
                 # Fallback: return error message
                 from django.http import HttpResponse
                 return HttpResponse(f"Error preparing payment: {str(e)}", status=500)
@@ -1294,10 +1295,7 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
             }
         except (ValueError, AttributeError, Exception) as e:
             # If ICICI Eazypay fails (e.g., missing/empty encryption key), fallback to Razorpay
-            import traceback
-            print(f"[Payment] ICICI Eazypay failed: {str(e)}")
-            print(traceback.format_exc())
-            
+            logger.warning("[Payment] ICICI Eazypay failed, falling back to Razorpay: %s", e, exc_info=True)
             # Update payment gateway to Razorpay
             payment.gateway = choices.GatewayChoices.RAZORPAY
             payment.save()
@@ -1317,9 +1315,7 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
                     }
                 }
             except Exception as e2:
-                import traceback
-                print(f"[Payment Error] Failed to get Razorpay payment info: {str(e2)}")
-                print(traceback.format_exc())
+                logger.exception("[Payment Error] Failed to get Razorpay payment info: %s", e2)
                 # Fallback: return error message
                 from django.http import HttpResponse
                 return HttpResponse(f"Error preparing Razorpay payment: {str(e2)}", status=500)
@@ -1366,9 +1362,7 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
                     }
                     return render(request, 'template20/skilllab/payment.html', ctx)
                 except Exception as e:
-                    import traceback
-                    print(f"[Template Render Error] {str(e)}")
-                    print(traceback.format_exc())
+                    logger.exception("[Template Render Error] %s", e)
                     from django.http import HttpResponse
                     return HttpResponse(f"Error rendering payment page: {str(e)}", status=500)
             elif result.get('type') == 'redirect':
@@ -1419,9 +1413,7 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
                     redirect_url = sp.get_payment_success_fail_url().get("fail_url")
                     return Response({'success': False, 'redirect_url': redirect_url}, status=status.HTTP_200_OK)
             except Exception as e:
-                import traceback
-                print(traceback.format_exc())
-                print(f"[Payment Update Error] {str(e)}")
+                logger.exception("[Payment Update Error] %s", e)
                 # Try to get fail URL
                 try:
                     sp = get_object_or_404(SkilllabCoursePayment, id=payment_id, user=request.user)

@@ -256,7 +256,11 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     
     class Meta(BaseModel.Meta):
         permissions = [('list_career', 'Can view list of Career')]
-        
+        indexes = [
+            models.Index(fields=['object_status', 'publish_status']),
+            models.Index(fields=['slug']),
+        ]
+
     def url(self):
         return reverse('careers:careerdetail',args=[self.slug,self.id])
 

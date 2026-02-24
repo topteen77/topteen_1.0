@@ -1,2 +1,0 @@
-docker build -t developertopteen/demotopteen:topteens_django_env . -f DockerfileEnv
-docker build -t developertopteen/demotopteen:topteens_django_prod . -f Dockerfile
