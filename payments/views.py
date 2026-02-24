@@ -8,8 +8,13 @@ from django.shortcuts import redirect,HttpResponseRedirect
 from skilllab.models import SkilllabCoursePayment
 from skilllab.task import send_skillabcourse_payment_success_mail
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
-class UpdateEazyPayPayment(APIView):    
+class UpdateEazyPayPayment(APIView):
+    """EasyPay return URL callback. Must allow unauthenticated access (EasyPay redirects here without credentials)."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
     def post(self, request,*args, **kwargs):   
         response_code=request.data.get("Response Code")
         unique_reference_no=request.data.get("Unique Ref Number")

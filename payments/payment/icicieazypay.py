@@ -19,7 +19,8 @@ class AESCipher:
     """
 
     def __init__(self):
-        self.key = settings.ICICI_EAZYPAY_ENCRYPTION_KEY
+        key = settings.ICICI_EAZYPAY_ENCRYPTION_KEY
+        self.key = key.encode('utf-8') if isinstance(key, str) else key
 
     def encrypt(self, raw):
         raw = pad(raw)
