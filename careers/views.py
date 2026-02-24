@@ -60,7 +60,7 @@ class Careers(TemplateView):
             if 'professions_with_counts' not in ctx:
                 ctx['professions_with_counts'] = []
         except Exception as e:
-            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
+            logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
             ctx = self.get_fallback_context(request)
 
         # Parent -> Student context (parent bookmarking careers for a specific linked student)
@@ -1453,7 +1453,7 @@ class CareerTagFilter(TemplateView):
             docmentservice=CareerDocumentFilter()
             ctx=docmentservice.get_career_list_context(request,tagslug)
         except Exception as e:
-            print(f"Elasticsearch not available, using Django ORM fallback: {e}")
+            logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
             ctx = self.get_fallback_context(request, tagslug)
         
         if request.GET.getlist('professions') or request.GET.getlist('skills') or request.GET.getlist('courses'):

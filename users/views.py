@@ -40,6 +40,9 @@ from entrance_exams.document_filters import EntranceExamDocumentFilter
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from io import BytesIO
+import logging
+
+logger = logging.getLogger(__name__)
 from django.http import HttpResponse
 from django.template.loader import get_template
 import pdfkit 
@@ -1243,7 +1246,7 @@ class LoginSignUp(APIView):
                     # Debug logging helper (only in DEBUG mode)
                     def debug_log(message):
                         if settings.DEBUG:
-                            print(f"[DEBUG] {message}")
+                            logger.debug("%s", message)
                     
                     # Check if user is an institute student
                     try:
@@ -1326,9 +1329,9 @@ class LoginSignUp(APIView):
                 otp = cs.get_otp(username, otp_type)
                 # Print OTP to terminal for debugging
                 if otp_type == choices.CommunicationTypeChooices.EMAIL:
-                    print(f"Email OTP for {username}: {otp}")
+                    logger.debug("Email OTP for %s: %s", username, otp)
                 else:
-                    print(f"SMS OTP for {username}: {otp}")
+                    logger.debug("SMS OTP for %s: %s", username, otp)
                 send_otp_mail(username, otp_type)
                 
                 data['user_name']=username
@@ -1845,7 +1848,7 @@ class LoginPassword(APIView):
             # Debug logging helper (only in DEBUG mode)
             def debug_log(message):
                 if settings.DEBUG:
-                    print(f"[DEBUG] {message}")
+                    logger.debug("%s", message)
             
             # Check if user exists and is a student
             user_exists = User.objects.filter(Q(mobile=username) | Q(email__iexact=str(username))).exists() if username else False
@@ -1962,7 +1965,7 @@ class SendMobileOtp(APIView):
         cs = ComService()
         otp_type = choices.CommunicationTypeChooices.SMS
         otp = cs.get_otp(int(mobile), otp_type)
-        print(f"Mobile Update - SMS OTP for {mobile}: {otp}")
+        logger.debug("Mobile Update - SMS OTP for %s: %s", mobile, otp)
         send_otp_mail(int(mobile), otp_type)
         response_data = {'success': True, 'message': 'OTP sent successfully'}
         # Include OTP in response for browser console debugging (only in DEBUG mode)
@@ -2079,7 +2082,7 @@ class SendParentOtp(APIView):
         cs = ComService()
         otp_type = choices.CommunicationTypeChooices.SMS
         otp = cs.get_otp(int(mobile), otp_type)
-        print(f"Parent Link - SMS OTP for {mobile}: {otp}")
+        logger.debug("Parent Link - SMS OTP for %s: %s", mobile, otp)
         send_otp_mail(int(mobile), otp_type)
         response_data = {'success': True, 'message': 'OTP sent successfully'}
         # Include OTP in response for browser console debugging (only in DEBUG mode)
@@ -2248,9 +2251,9 @@ class ForgotPassword(APIView):
                 otp = cs.get_otp(username, otp_type)
                 # Print OTP to terminal for debugging
                 if otp_type == choices.CommunicationTypeChooices.EMAIL:
-                    print(f"Forgot Password - Email OTP for {username}: {otp}")
+                    logger.debug("Forgot Password - Email OTP for %s: %s", username, otp)
                 else:
-                    print(f"Forgot Password - SMS OTP for {username}: {otp}")
+                    logger.debug("Forgot Password - SMS OTP for %s: %s", username, otp)
                 send_otp_mail(username,otp_type)
                 sign = Signer()
                 enc_user_name=sign.sign_object(({"enc_user_name":username}))
@@ -2308,7 +2311,7 @@ class ForgotPasswordVerifyOTP(APIView):
                     
                     # Debug logging (only in DEBUG mode)
                     if settings.DEBUG:
-                        print(f"[DEBUG] Forgot Password - Password updated successfully for user: {user.email or user.mobile}")
+                        logger.debug("Forgot Password - Password updated successfully for user: %s", user.email or user.mobile)
                     
                     return  Response(data, status=status.HTTP_200_OK)
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -2344,9 +2347,9 @@ class ResendOtp(APIView):
             otp = cs.get_otp(username, otp_type)
             # Print OTP to terminal for debugging
             if otp_type == choices.CommunicationTypeChooices.EMAIL:
-                print(f"Resend - Email OTP for {username}: {otp}")
+                logger.debug("Resend - Email OTP for %s: %s", username, otp)
             else:
-                print(f"Resend - SMS OTP for {username}: {otp}")
+                logger.debug("Resend - SMS OTP for %s: %s", username, otp)
             send_otp_mail(username,otp_type)
             data['message']="OTP sent successfully"
             data['success']=True

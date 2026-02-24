@@ -1,15 +1,16 @@
-# TopTeens - Rollback: same as production but use :previous images
-# Used by deploy.sh when health check fails after deploy
+# TopTeens - Rollback: same as production but use :previous images (local only, never pull)
+# Used by deploy.sh when health check fails after deploy. Run from docker/.
 
 services:
   web:
-    image: topteens-web:previous
+    image: ${DOCKER_IMAGE:-developertopteen/demotopteen}:previous
+    pull_policy: never
     working_dir: /app
     command: /start.sh
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    env_file: .env
+    env_file: ../.env
     environment:
       - PYTHONUNBUFFERED=1
     expose:
@@ -18,38 +19,45 @@ services:
       - redis
 
   nginx:
-    image: topteens-nginx:latest
+    image: ${DOCKER_IMAGE_NGINX:-developertopteen/demotopteen-nginx}:latest
+    pull_policy: never
     restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PRODUCTION_SERVER_NAMES=${PRODUCTION_SERVER_NAMES:-topteen.in www.topteen.in}
+      - STAGING_SERVER_NAMES=${STAGING_SERVER_NAMES:-demo.topteen.in 43.204.127.118 localhost}
     ports:
       - "${APP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
     volumes:
       - static_volume:/var/www/html/static:ro
       - media_volume:/var/www/html/media:ro
-      - ${SSL_CERT_PATH:-./ssl}:/etc/nginx/ssl:ro
+      - ${SSL_CERT_PATH:-../ssl}:/etc/nginx/ssl:ro
     depends_on:
       - web
 
   celery:
-    image: topteens-web:previous
+    image: ${DOCKER_IMAGE:-developertopteen/demotopteen}:previous
+    pull_policy: never
     command: celery -A topteens worker -l info
     working_dir: /app
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    env_file: .env
+    env_file: ../.env
     depends_on:
       - web
       - redis
 
   celery_beat:
-    image: topteens-web:previous
+    image: ${DOCKER_IMAGE:-developertopteen/demotopteen}:previous
+    pull_policy: never
     command: celery -A topteens beat -l info
     working_dir: /app
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    env_file: .env
+    env_file: ../.env
     depends_on:
       - web
       - redis

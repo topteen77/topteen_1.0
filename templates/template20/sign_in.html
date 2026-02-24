@@ -498,11 +498,6 @@
             url: usersresendotp,
             data: formData,
             success: function(data) {
-              // Log OTP to browser console for debugging
-              if (data && data.debug_otp) {
-                console.log('%c🔐 OTP for ' + email + ': ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
-                console.log('OTP:', data.debug_otp);
-              }
               document.getElementById('loginOtpEmailStep').style.display = 'none';
               document.getElementById('loginOtpInputStep').style.display = 'block';
               document.getElementById('loginOtpEmailDisplay').textContent = email;
@@ -530,11 +525,6 @@
             url: usersresendotp,
             data: formData,
             success: function(data) {
-              // Log OTP to browser console for debugging
-              if (data && data.debug_otp) {
-                console.log('%c🔐 OTP for ' + email + ': ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
-                console.log('OTP:', data.debug_otp);
-              }
               document.getElementById('loginOtpEmailStep').style.display = 'none';
               document.getElementById('loginOtpInputStep').style.display = 'block';
               document.getElementById('loginOtpEmailDisplay').textContent = email;
@@ -652,11 +642,6 @@
       url: usersloginotp,
       data: formData,
       success: function(data) {
-        // Log OTP to browser console for debugging (if available in response)
-        if (data && data.debug_otp) {
-          console.log('%c🔐 OTP: ' + data.debug_otp, 'color: #4CAF50; font-size: 16px; font-weight: bold;');
-          console.log('OTP:', data.debug_otp);
-        }
         if (data.otp_verify == true && data.success == true) {
           // OTP verified and user logged in - redirect to dashboard
           if (data.redirect_url) {
@@ -927,10 +912,7 @@
               if (loginPwdDiv) {
                 loginPwdDiv.classList.add("hideModal");
               }
-              // Redirect to dashboard immediately
               var redirectUrl = data.redirect_url || "{{ url('users:userdashboard') }}";
-              console.log("Login successful, redirecting to:", redirectUrl);
-              
               // Use window.location.replace for immediate redirect (no back button)
               if (redirectUrl) {
                 window.location.replace(redirectUrl);

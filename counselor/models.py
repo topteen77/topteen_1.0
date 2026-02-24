@@ -102,11 +102,15 @@ class VideoProgress(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
     )
-    video_id = models.CharField(max_length=255)
+    video_id = models.CharField(max_length=255, db_index=True)
     progress = models.IntegerField(default=0)
     completed = models.BooleanField(default=False)
     duration = models.PositiveIntegerField(blank=True, null=True)
-   
+
+    class Meta:
+        indexes = [models.Index(fields=['user', 'video_id'])]
+        verbose_name_plural = "Video progress"
+
     def __str__(self):
         return f"{self.video_id}: {self.progress}%"
 

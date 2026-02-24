@@ -328,3 +328,6 @@ skilllabcourses_html-old/
 */deploy-docker.yml
 scripts/extracurricular_json_output/*.json
 media/users_pdfs/*
+
+#hide old docker files
+old-docker/*

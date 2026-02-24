@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import re
 import os
 import requests
@@ -47,30 +48,39 @@ from django.views.decorators.http import require_http_methods, require_GET, requ
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 from pathlib import Path
 
+
+@method_decorator(cache_page(900), name='dispatch')  # 15 min cache for anonymous home
 class Home(TemplateView):
-    template_name ="template20/home_new.html"
-    
+    template_name = "template20/home_new.html"
+
     def html_head(self):
         name='Every Student, Career Ready'
         return build_html_head(title=name, description=name)
 
     def get_context(self, request, *args, **kwargs):
-        tags=CareerTags.objects.all().order_by('priority')[:5]
-        country=Country.objects.all().order_by('priority')
-        ctx={}
-        ctx['blogs'] = Blog.get_published_objects().all()
-        ctx['colleges'] = College.get_all_colleges()
-        ctx['careers'] = Career.get_all_careers()
-        try:
-            print(f"[HOME] Published careers count: {ctx['careers'].count()}")
-        except Exception:
-            pass
-        ctx['videos'] = Videos.objects.all().order_by('?')
-        ctx['careers_video']=Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).exclude(Q(video_url=""))
-        ctx['courses'] = Course.get_all_courses()
-        ctx['reviewers'] = Review.get_published_objects()
+        tags = CareerTags.objects.all().order_by('priority')[:5]
+        country = Country.objects.all().order_by('priority')
+        ctx = {}
+        ctx['blogs'] = Blog.get_published_objects().select_related('author', 'category').order_by('-modified')[:12]
+        ctx['colleges'] = College.get_all_colleges().select_related('country', 'state', 'city')[:24]
+        ctx['careers'] = Career.get_all_careers().only('id', 'name', 'slug', 'image', 'summary')[:24]
+        video_ids = list(Videos.objects.values_list('id', flat=True)[:80])
+        if video_ids:
+            ctx['videos'] = Videos.objects.filter(id__in=random.sample(video_ids, min(8, len(video_ids))))
+            del video_ids
+        else:
+            ctx['videos'] = Videos.objects.none()
+        ctx['careers_video'] = (
+            Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+            .exclude(Q(video_url="") | Q(video_url__isnull=True))
+            .only('id', 'name', 'slug', 'video_url')[:12]
+        )
+        ctx['courses'] = Course.get_all_courses()[:12]
+        ctx['reviewers'] = Review.get_published_objects()[:6]
         ctx['tags']=tags
         ctx['countries']=country
         ctx['body_css_class']='no-scrollbar overflow-x-hidden'
@@ -78,10 +88,7 @@ class Home(TemplateView):
         ctx['parent_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.parent, is_featured=choices.FAQFeaturedType.HOME)[:10]
         ctx['student_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.student,is_featured=choices.FAQFeaturedType.HOME)[:10]
         ctx["html_head"] = self.html_head()
-        ctx['skilllab_courses']=SkillLabCourse.all_objects()
-        
-        # Get specific courses for home page "Boost Your Skills" section (fully dynamic)
-        # For After 10th: try category=1 first, then fallback to BOTH (category=3)
+        ctx['skilllab_courses'] = SkillLabCourse.all_objects()[:12]
         ctx['after_10_course'] = SkillLabCourse.objects.filter(
             category=choices.SkillLabCourseTypeChoice.after_10_class
         ).first()
@@ -89,8 +96,6 @@ class Home(TemplateView):
             ctx['after_10_course'] = SkillLabCourse.objects.filter(
                 category=choices.SkillLabCourseTypeChoice.BOTH
             ).first()
-        
-        # For After 12th: try category=2 first, then fallback to BOTH (category=3)
         ctx['after_12_course'] = SkillLabCourse.objects.filter(
             category=choices.SkillLabCourseTypeChoice.after_12_class
         ).first()
@@ -98,13 +103,15 @@ class Home(TemplateView):
             ctx['after_12_course'] = SkillLabCourse.objects.filter(
                 category=choices.SkillLabCourseTypeChoice.BOTH
             ).first()
-        
-        # For After College: use category=4
         ctx['after_college_course'] = SkillLabCourse.objects.filter(
             category=choices.SkillLabCourseTypeChoice.after_college
         ).first()
-        
-        ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
+        exam_ids = list(EntranceExam.objects.values_list('id', flat=True)[:30])
+        if exam_ids:
+            ctx['exams'] = EntranceExam.objects.filter(id__in=random.sample(exam_ids, min(3, len(exam_ids))))
+            del exam_ids
+        else:
+            ctx['exams'] = EntranceExam.objects.none()
         # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=view-mode&cluster=ID
         clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
@@ -164,10 +171,8 @@ class Home(TemplateView):
         ctx['default_career_library_url'] = default_career_library_url
         return ctx
         
-    def get(self, request,*args, **kwargs):
-        print(f"[DEBUG] Rendering template: {self.template_name}")
-        print(f"[DEBUG] Template file exists: {os.path.exists(os.path.join(settings.BASE_DIR, 'templates', self.template_name))}")
-        return render(request, self.template_name,self.get_context(request,args, kwargs))
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, args, kwargs))
 
 
 def privacy_policy(request):
@@ -233,11 +238,9 @@ def upload(request):
     if request.method == "POST":
         form = ImageUploadModelForm(request.POST, request.FILES)
         if form.is_valid():
-            obj=form.save()
-            print(obj)
-            # return HttpResponse(obj.upload.url)
-            return HttpResponse(json.dumps({'success':True,'url':obj.upload.url}), content_type='application/json')
-        print(form.errors)
+            obj = form.save()
+            return HttpResponse(json.dumps({'success': True, 'url': obj.upload.url}), content_type='application/json')
+        logger.debug("Upload form errors: %s", form.errors)
     return HttpResponse('')
 
 
@@ -1004,8 +1007,7 @@ class FourPillarsAssessmentView(LoginRequiredMixin, TemplateView):
             f"[Four Pillars] slug={slug!r} title={title!r} questions={len(questions)} "
             f"profiles={profile_keys} source={source} scoring_bullets={scoring_bullets}"
         )
-        logger.info(msg)
-        print(msg, flush=True)
+        logger.info("%s", msg)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -1174,14 +1176,14 @@ class SearchItems(TemplateView):
             careeritems=CareerDocumentFilter()
             ctx['car']=careeritems.get_career_list_context(request)
         except Exception as e:
-            print(f"Elasticsearch not available for careers, using Django ORM fallback: {e}")
+            logger.warning("Elasticsearch not available for careers, using Django ORM fallback: %s", e)
             ctx['car'] = {'careers': [], 'facets_filter': {'skill': [], 'profession': []}, 'shortlisted_career_ids': []}
         
         try:
             examitems=EntranceExamDocumentFilter()
             ctx['exm']=examitems.get_entrance_exam_list_context(request)
         except Exception as e:
-            print(f"Elasticsearch not available for exams, using Django ORM fallback: {e}")
+            logger.warning("Elasticsearch not available for exams, using Django ORM fallback: %s", e)
             ctx['exm'] = {'exams': [], 'facets_filter': {}}
         
         ctx['videoscount']=Videos.objects.all().count()

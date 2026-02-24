@@ -21,10 +21,10 @@ class ExamTags(BaseModel,SlugModel,SeoModel):
 class EntranceExam(BaseModel,SlugModel,SeoModel):
     name=models.CharField(max_length=160)
     about=RichTextField(null=True)
-    exam_pattern = RichTextField(null=True) 
+    exam_pattern = RichTextField(null=True)
     eligibility = RichTextField(null=True)
     more_info = RichTextField(null=True)
-    category=models.PositiveSmallIntegerField(choices=choices.EntranceExamTypechoice.CHOICE,default=choices.EntranceExamTypechoice.after_12_class)
+    category=models.PositiveSmallIntegerField(choices=choices.EntranceExamTypechoice.CHOICE,default=choices.EntranceExamTypechoice.after_12_class, db_index=True)
     stream=models.ManyToManyField(Stream)
     logo=models.ImageField(upload_to=exam_image_directory,null=True,max_length=250,blank=True)
     examtags=models.ManyToManyField(ExamTags,related_name="exams")

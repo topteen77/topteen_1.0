@@ -17,12 +17,14 @@ def skill_lab_image_directory(instance, filename):
 class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
     name=models.CharField(max_length=160)
     image=models.ImageField(upload_to=skill_lab_image_directory,null=True,max_length=250)
-    category=models.PositiveSmallIntegerField(choices=choices.SkillLabCourseTypeChoice.CHOICE,default=choices.SkillLabCourseTypeChoice.after_12_class)
+    category=models.PositiveSmallIntegerField(choices=choices.SkillLabCourseTypeChoice.CHOICE,default=choices.SkillLabCourseTypeChoice.after_12_class, db_index=True)
     description = RichTextField(null=True, blank=True)  # Kept for SEO/fallback; use course_intro_html for tab
     course_intro_html = RichTextField(null=True, blank=True, help_text="HTML for Course Introduction tab")
     course_index_html = RichTextField(null=True, blank=True, help_text="HTML for Course Index tab")
     video_url=models.URLField(max_length=250,blank=True)
-    
+
+    class Meta:
+        indexes = [models.Index(fields=['category', '-modified'])]
 
     @classmethod
     def all_objects(cls):

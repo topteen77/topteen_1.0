@@ -8,7 +8,7 @@ SSL_CONF="$CONF_D/topteen-ssl.conf"
 SSL_CONF_DISABLED="$CONF_D/topteen-ssl.conf.disabled"
 
 if [ -f "$SSL_CERT" ] && [ -f "$SSL_KEY" ]; then
-  echo "[nginx] SSL certificates found - enabling HTTPS for topteen.in"
+  echo "[nginx] SSL certificates found - enabling HTTPS"
   cp "$SSL_CONF_DISABLED" "$SSL_CONF" 2>/dev/null || true
 else
   echo "[nginx] No SSL certificates - HTTP only (demotopteen / dev)"
