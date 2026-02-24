@@ -231,11 +231,11 @@
             {% endif %}
           </div>
           {% if skilllab.is_user_vissible(request) %}
-          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn">Start</a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Start</a>
           {% elif skilllab.amount and skilllab.amount > 0 %}
-          <a href="{{ url('skilllabcourse:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="payment-btn">Enroll Now</a>
+          <a href="{{ url('skilllabcourse:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Enroll Now</a>
           {% else %}
-          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn">Start</a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Start</a>
           {% endif %}
           {% if skilllab.amount and skilllab.amount > 0 %}
           <div class="money-back"><i class='bx bx-shield'></i><span>30-Day Money-Back Guarantee</span></div>
@@ -299,6 +299,22 @@
 {% endblock %}
 
 {% block additionaljs %}
+<script>
+(function() {
+  var userAuthenticated = {{ 'true' if user_authenticated else 'false' }};
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a.payment-btn[data-require-login="true"]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        if (!userAuthenticated) {
+          e.preventDefault();
+          var href = (link.getAttribute && link.getAttribute('href')) || link.href || '';
+          if (typeof window.showLoginRequiredPopup === 'function') window.showLoginRequiredPopup(href);
+        }
+      });
+    });
+  });
+})();
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const tabButtons = document.querySelectorAll('.tab-button');

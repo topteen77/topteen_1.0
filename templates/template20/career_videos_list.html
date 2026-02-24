@@ -813,7 +813,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // Shortlist/Bookmark Video Function — updates full button text, tooltip and active state
 function shortlistVideo(videoId) {
   if (!window.IS_AUTHENTICATED) {
-    window.location.href = window.LOGIN_URL;
+    if (typeof window.showLoginRequiredPopup === 'function') {
+      window.showLoginRequiredPopup();
+    } else if (window.LOGIN_URL) {
+      window.location.href = window.LOGIN_URL;
+    }
     return;
   }
 

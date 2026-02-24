@@ -1228,7 +1228,11 @@ class LoginSignUp(APIView):
                 if is_signup:
                     data['message'] = "Account with this email/mobile already exists. Please login instead."
                     return Response(data, status=status.HTTP_400_BAD_REQUEST)
-                
+                # Reject inactive or blocked users before showing password/OTP
+                if not user.get_user_status():
+                    data['message'] = "Account is inactive or blocked. Please contact support."
+                    data['success'] = False
+                    return Response(data, status=status.HTTP_200_OK)
                 # For login requests: ALL STUDENTS see password popup FIRST, OTP as fallback
                 # Priority: Password popup first, then OTP if password fails or not set
                 try:
@@ -1365,8 +1369,13 @@ class SignUpVerifyOTP(APIView):
             if is_otp_verified:
                 # Check if user already exists (returning user trying to login)
                 user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
+                if user and not user.get_user_status():
+                    data["message"] = "Account is inactive or blocked. Please contact support."
+                    data["otp_verify"] = False
+                    data["success"] = False
+                    return Response(data, status=status.HTTP_200_OK)
                 if user:
-                    # User exists - log them in directly
+                    # User exists and is active - log them in directly
                     from django.contrib.auth import login
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
