@@ -14393,6 +14393,7 @@ position: absolute;
           border-color: #1d8fd9;
           color: #1d8fd9;
           box-shadow: 0 2px 8px rgba(37, 164, 242, 0.25);
+          transform: translateY(-5px);          
         }
         @keyframes heroFloat {
           0%, 100% { transform: translateY(0); }
@@ -14488,7 +14489,7 @@ position: absolute;
           position: absolute;
           left: 0;
           top: 2px;
-          width: 18px;
+          width: 19px;
           height: 17px;
           background-image: url('../images/small-blue-tick.png');
           background-size: contain;
