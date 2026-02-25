@@ -111,6 +111,31 @@ cd react-game/react-game && npm run build && cd ../..
 python manage.py collectstatic --noinput
 # Deploy; ensure your server serves /static/ from STATIC_ROOT and /career-battle/ is handled by Django.
 
+--- Production deployment (deploy.sh) ---
+# All deployment via deploy.sh (run from project root). Docker Compose files live in docker/ and are run from that folder by deploy.sh.
+# App image and tags configurable in .env:
+#   DOCKER_IMAGE=developertopteen/demotopteen
+#   DOCKER_IMAGE_NGINX=developertopteen/demotopteen-nginx
+#   DOCKER_TAG_ENV=topteens_django_env
+#   DOCKER_TAG_PROD=topteens_django_prod
+# Deploy tags image as :topteens_django_prod; up-code tags as :topteens_django_env. Rollback uses :previous (pull_policy: never).
+# Domain (production) and IP (staging) configurable in .env – used by nginx server_name and deploy messages:
+#   PRODUCTION_DOMAIN=topteen.in
+#   PRODUCTION_SERVER_NAMES=topteen.in www.topteen.in
+#   STAGING_IP=43.204.127.118
+#   STAGING_SERVER_NAMES=demo.topteen.in 43.204.127.118 localhost
+# Let's Encrypt SSL (domain from .env: PRODUCTION_SERVER_NAMES, PRODUCTION_DOMAIN):
+#   1. Set PRODUCTION_SERVER_NAMES=yourdomain.com www.yourdomain.com and ensure domain points to this server, port 80 open.
+#   2. Start stack so nginx serves /.well-known/acme-challenge/: ./deploy.sh deploy (or up-code).
+#   3. Obtain cert: CERTBOT_EMAIL=you@example.com ./scripts/letsencrypt-obtain.sh
+#   4. Reload nginx or restart: ./deploy.sh stop && ./deploy.sh deploy
+#   Optional in .env: CERTBOT_EMAIL, CERTBOT_WEBROOT (default ./certbot-webroot), CERTBOT_CONF_PATH (default ./certbot-conf), SSL_CERT_PATH (default ./ssl).
+# ENV stack (infra):   ./deploy.sh up-env | down-env | rebuild-env | down-env-remove-images
+# CODE stack (app):   ./deploy.sh up-code | down-code | rebuild-code | down-code-remove-images
+# Push: DOCKER_PUSH_TAG=topteens_django_prod ./deploy.sh deploy   or   DOCKER_PUSH_TAG=topteens_django_env ./deploy.sh up-code
+# Logs folder: set LOG_PATH in .env (default ./logs). Contains: django_app.log, django_error.log, gunicorn_access.log, gunicorn_error.log, nginx access/error when using code stack.
+# Worker tuning: GUNICORN_WORKERS, GUNICORN_THREADS, CELERY_CONCURRENCY, DB_CONN_MAX_AGE in .env (see docker/.env.example).
+
 
 python3 scripts/convert_docx_to_html.py
 python manage.py upload_careers_from_txt --input-dir career_html_output

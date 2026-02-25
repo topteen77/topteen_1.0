@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # TopTeens deployment: build, up, health check, rollback on failure.
-# Production: topteen.in (HTTPS). Dev: demo.topteen.in or http://43.204.127.118:8005/ (HTTP).
+# Production/staging: domain and IP from .env (PRODUCTION_DOMAIN, STAGING_IP, PRODUCTION_SERVER_NAMES, STAGING_SERVER_NAMES).
 # Run from project root: ./deploy.sh [deploy|rebuild|rollback|stop]
 
 set -e
@@ -15,7 +15,32 @@ PRODUCTION_PATH="${PRODUCTION_PATH:-/home/ubuntu/git-project/topteens}"
 LOG_PATH="${LOG_PATH:-/home/ubuntu/git-project/logs}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOCKER_DIR="$ROOT/docker"
 cd "$ROOT"
+
+# Run compose from docker/ so all compose files live there; use root .env for variable substitution
+run_compose() { (cd "$DOCKER_DIR" && $COMPOSE_CMD --env-file "$ROOT/.env" "$@"); }
+
+# Docker image and tags (configurable from .env: DOCKER_IMAGE, DOCKER_IMAGE_NGINX, DOCKER_TAG_ENV, DOCKER_TAG_PROD)
+# Domain (production) and IP (staging) from .env: PRODUCTION_DOMAIN, STAGING_IP, PRODUCTION_SERVER_NAMES, STAGING_SERVER_NAMES
+read_env_var() { [ -f .env ] && grep -E "^$1=" .env 2>/dev/null | cut -d= -f2- | tr -d ' "' | head -1; }
+DEPLOY_IMAGE="${DOCKER_IMAGE:-$(read_env_var DOCKER_IMAGE)}"
+DEPLOY_IMAGE="${DEPLOY_IMAGE:-developertopteen/demotopteen}"
+DEPLOY_IMAGE_NGINX="${DOCKER_IMAGE_NGINX:-$(read_env_var DOCKER_IMAGE_NGINX)}"
+DEPLOY_IMAGE_NGINX="${DEPLOY_IMAGE_NGINX:-developertopteen/demotopteen-nginx}"
+DOCKER_TAG_ENV="${DOCKER_TAG_ENV:-$(read_env_var DOCKER_TAG_ENV)}"
+DOCKER_TAG_ENV="${DOCKER_TAG_ENV:-topteens_django_env}"
+DOCKER_TAG_PROD="${DOCKER_TAG_PROD:-$(read_env_var DOCKER_TAG_PROD)}"
+DOCKER_TAG_PROD="${DOCKER_TAG_PROD:-topteens_django_prod}"
+
+PRODUCTION_DOMAIN="${PRODUCTION_DOMAIN:-$(read_env_var PRODUCTION_DOMAIN)}"
+PRODUCTION_DOMAIN="${PRODUCTION_DOMAIN:-topteen.in}"
+STAGING_IP="${STAGING_IP:-$(read_env_var STAGING_IP)}"
+STAGING_IP="${STAGING_IP:-43.204.127.118}"
+PRODUCTION_SERVER_NAMES="${PRODUCTION_SERVER_NAMES:-$(read_env_var PRODUCTION_SERVER_NAMES)}"
+PRODUCTION_SERVER_NAMES="${PRODUCTION_SERVER_NAMES:-topteen.in www.topteen.in}"
+STAGING_SERVER_NAMES="${STAGING_SERVER_NAMES:-$(read_env_var STAGING_SERVER_NAMES)}"
+STAGING_SERVER_NAMES="${STAGING_SERVER_NAMES:-demo.topteen.in 43.204.127.118 localhost}"
 
 # DB_MODE: local = MySQL container; external = join 0innerdb network; host = MySQL on host:3306; remote = DB_HOST from .env
 DB_MODE="${DB_MODE:-remote}"
@@ -24,6 +49,8 @@ DB_MODE="${DB_MODE:-remote}"
 
 COMPOSE_FILES="-f docker-compose.yml"
 ROLLBACK_FILES="-f docker-compose.rollback.yml"
+COMPOSE_ENV="-f docker-compose.env.yml"
+COMPOSE_CODE="-f docker-compose.code.yml"
 if [ "$DB_MODE" = "local" ]; then
   COMPOSE_FILES="-f docker-compose.yml -f docker-compose.db-local.yml"
   ROLLBACK_FILES="-f docker-compose.rollback.yml -f docker-compose.rollback.db-local.yml"
@@ -50,11 +77,45 @@ fi
 log() { echo "[deploy] $*"; }
 err() { echo "[deploy] ERROR: $*" >&2; }
 
+# Check if a port is already in use (so multiple sites can use different APP_PORT via .env)
+check_port_busy() {
+  local port="$1"
+  [ -z "$port" ] && return 1
+  if command -v ss >/dev/null 2>&1; then
+    ss -tlnp 2>/dev/null | grep -qE ":$port\s"
+    return $?
+  fi
+  if command -v netstat >/dev/null 2>&1; then
+    netstat -tln 2>/dev/null | grep -qE "[:.]$port\s"
+    return $?
+  fi
+  return 1
+}
+
+warn_if_ports_busy() {
+  local app_port="${APP_PORT:-80}"
+  local https_port="${HTTPS_PORT:-443}"
+  local busy=0
+  if check_port_busy "$app_port"; then
+    err "Port $app_port (APP_PORT) is already in use. Set APP_PORT to a different port in .env (e.g. 8005) for this site."
+    busy=1
+  fi
+  if check_port_busy "$https_port"; then
+    err "Port $https_port (HTTPS_PORT) is already in use. Set HTTPS_PORT to a different port in .env (e.g. 8443)."
+    busy=1
+  fi
+  if [ "$busy" -eq 1 ]; then
+    err "Deploy aborted. Free the port(s) or change APP_PORT/HTTPS_PORT in .env and run again."
+    exit 1
+  fi
+  log "Ports $app_port (HTTP) and $https_port (HTTPS) are free."
+}
+
 print_urls() {
   log "App (HTTP):     $DEPLOY_HEALTH_URL"
   if [ -f "${SSL_CERT_PATH:-./ssl}/cert.pem" ]; then
     HTTPS_PORT="${HTTPS_PORT:-443}"
-    log "App (HTTPS):    https://topteen.in (production) or https://$(hostname -I 2>/dev/null | awk '{print $1}'):${HTTPS_PORT}"
+    log "App (HTTPS):    https://${PRODUCTION_DOMAIN} (production) or https://${STAGING_IP}:${HTTPS_PORT} (staging)"
     log "Note: Self-signed cert will show browser warning unless using Let's Encrypt."
   fi
 }
@@ -65,8 +126,8 @@ preflight() {
     err "Docker is not installed or not in PATH."
     exit 1
   fi
-  if [ ! -f "docker-compose.yml" ]; then
-    err "docker-compose.yml not found in $ROOT"
+  if [ ! -f "$DOCKER_DIR/docker-compose.yml" ]; then
+    err "docker-compose.yml not found in $DOCKER_DIR"
     exit 1
   fi
   if [ ! -f ".env" ]; then
@@ -95,6 +156,9 @@ preflight() {
     log "Running from production path: $PRODUCTION_PATH"
   fi
   mkdir -p "$LOG_PATH" 2>/dev/null || { LOG_PATH="./logs"; mkdir -p "$LOG_PATH" || true; }
+  # Normalize LOG_PATH to absolute so volume mounts work when compose runs from docker/
+  [ -n "$LOG_PATH" ] && [ "${LOG_PATH#/}" = "$LOG_PATH" ] && LOG_PATH="$ROOT/$LOG_PATH"
+  export LOG_PATH
   [ -f .env ] && DB_MODE=$(grep -E '^DB_MODE=' .env 2>/dev/null | cut -d= -f2- | tr -d ' "') || true
   [ -z "$DB_MODE" ] && DB_MODE=remote
   COMPOSE_FILES="-f docker-compose.yml"
@@ -103,12 +167,18 @@ preflight() {
   [ "$DB_MODE" = "external" ] && COMPOSE_FILES="-f docker-compose.yml -f docker-compose.db-external.yml" && ROLLBACK_FILES="-f docker-compose.rollback.yml -f docker-compose.rollback.db-external.yml"
   [ "$DB_MODE" = "host" ] && COMPOSE_FILES="-f docker-compose.yml -f docker-compose.db-host.yml" && ROLLBACK_FILES="-f docker-compose.rollback.yml -f docker-compose.rollback.db-host.yml"
   log "DB_MODE=$DB_MODE (local=MySQL container, external=0innerdb network, host=MySQL on host:3306, remote=DB_HOST)"
+  [ -z "${APP_PORT}" ] && APP_PORT=$(grep -E '^APP_PORT=' .env 2>/dev/null | cut -d= -f2- | tr -d ' "')
+  [ -z "${HTTPS_PORT}" ] && HTTPS_PORT=$(grep -E '^HTTPS_PORT=' .env 2>/dev/null | cut -d= -f2- | tr -d ' "')
+  APP_PORT="${APP_PORT:-80}"
+  HTTPS_PORT="${HTTPS_PORT:-443}"
   log "Preflight OK."
 }
 
+# DEPLOY_IMAGE / DEPLOY_IMAGE_NGINX / DOCKER_TAG_* set above from .env
+
 tag_previous() {
   log "Tagging current images as :previous (for rollback)..."
-  for img in topteens-web topteens-nginx; do
+  for img in "$DEPLOY_IMAGE" "$DEPLOY_IMAGE_NGINX"; do
     if docker image inspect "$img:latest" >/dev/null 2>&1; then
       docker tag "$img:latest" "$img:previous" 2>/dev/null || true
       log "  $img:latest -> :previous"
@@ -120,20 +190,24 @@ tag_previous() {
 
 tag_previous_web() {
   log "Tagging current web image as :previous (for rollback)..."
-  if docker image inspect "topteens-web:latest" >/dev/null 2>&1; then
-    docker tag "topteens-web:latest" "topteens-web:previous" 2>/dev/null || true
-    log "  topteens-web:latest -> :previous"
+  if docker image inspect "$DEPLOY_IMAGE:latest" >/dev/null 2>&1; then
+    docker tag "$DEPLOY_IMAGE:latest" "$DEPLOY_IMAGE:previous" 2>/dev/null || true
+    log "  $DEPLOY_IMAGE:latest -> :previous"
   else
-    log "  topteens-web:latest not present (first deploy); skip :previous"
+    log "  $DEPLOY_IMAGE:latest not present (first deploy); skip :previous"
   fi
 }
 
 do_build() {
   local build_flags="${1:-}"
   log "Building images (DB_MODE=$DB_MODE)${build_flags:+ $build_flags}..."
-  if ! $COMPOSE_CMD $COMPOSE_FILES build $build_flags; then
+  if ! run_compose $COMPOSE_FILES build $build_flags; then
     err "Build failed. Fix errors and re-run. No containers started."
     exit 1
+  fi
+  if docker image inspect "$DEPLOY_IMAGE:latest" >/dev/null 2>&1; then
+    docker tag "$DEPLOY_IMAGE:latest" "$DEPLOY_IMAGE:$DOCKER_TAG_PROD" 2>/dev/null || true
+    log "Tagged $DEPLOY_IMAGE:$DOCKER_TAG_PROD"
   fi
   log "Build OK."
   print_urls
@@ -142,7 +216,7 @@ do_build() {
 do_build_web() {
   local build_flags="${1:-}"
   log "Building web image only (DB_MODE=$DB_MODE)${build_flags:+ $build_flags}..."
-  if ! $COMPOSE_CMD $COMPOSE_FILES build $build_flags web; then
+  if ! run_compose $COMPOSE_FILES build $build_flags web; then
     err "Web build failed. Fix errors and re-run."
     exit 1
   fi
@@ -150,15 +224,16 @@ do_build_web() {
 }
 
 do_up() {
+  warn_if_ports_busy
   log "Starting containers (DB_MODE=$DB_MODE)..."
-  $COMPOSE_CMD $COMPOSE_FILES down 2>/dev/null || true
+  run_compose $COMPOSE_FILES down 2>/dev/null || true
   for name in topteens_web_1 topteens_nginx_1 topteens-web-1 topteens-nginx-1; do
     docker rm -f "$name" 2>/dev/null || true
   done
   docker ps -a --filter "name=topteens" --format "{{.ID}}" 2>/dev/null | xargs -r docker rm -f 2>/dev/null || true
-  if ! $COMPOSE_CMD $COMPOSE_FILES up -d; then
+  if ! run_compose $COMPOSE_FILES up -d; then
     err "Start failed. Stopping partial start..."
-    $COMPOSE_CMD $COMPOSE_FILES down 2>/dev/null || true
+    run_compose $COMPOSE_FILES down 2>/dev/null || true
     err "Fix the error above and re-run."
     exit 1
   fi
@@ -167,7 +242,7 @@ do_up() {
 
 do_up_web() {
   log "Updating web container only (mysql, redis, celery, nginx stay running)..."
-  if ! $COMPOSE_CMD $COMPOSE_FILES up -d web; then
+  if ! run_compose $COMPOSE_FILES up -d web; then
     err "Web container update failed."
     exit 1
   fi
@@ -176,7 +251,7 @@ do_up_web() {
 
 do_migrate() {
   log "Running database migrations..."
-  if $COMPOSE_CMD $COMPOSE_FILES exec -T web python manage.py migrate --noinput 2>/dev/null; then
+  if run_compose $COMPOSE_FILES exec -T web python manage.py migrate --noinput 2>/dev/null; then
     log "Migrations OK."
   else
     log "Migrations failed or skipped (DB may be initializing). Continuing..."
@@ -185,7 +260,7 @@ do_migrate() {
 
 do_collectstatic() {
   log "Collecting static files..."
-  if $COMPOSE_CMD $COMPOSE_FILES exec -T web python manage.py collectstatic --noinput --clear 2>/dev/null; then
+  if run_compose $COMPOSE_FILES exec -T web python manage.py collectstatic --noinput --clear 2>/dev/null; then
     log "collectstatic OK."
   else
     log "collectstatic failed. Check web container logs. Continuing..."
@@ -208,29 +283,29 @@ health_check() {
 
 do_rollback() {
   log "Attempting rollback to :previous images (DB_MODE=$DB_MODE)..."
-  $COMPOSE_CMD $ROLLBACK_FILES down 2>/dev/null || true
+  run_compose $ROLLBACK_FILES down 2>/dev/null || true
   for name in topteens_web_1 topteens_nginx_1 topteens-web-1 topteens-nginx-1; do
     docker rm -f "$name" 2>/dev/null || true
   done
   docker ps -a --filter "name=topteens" --format "{{.ID}}" 2>/dev/null | xargs -r docker rm -f 2>/dev/null || true
-  if $COMPOSE_CMD $ROLLBACK_FILES up -d; then
+  if run_compose $ROLLBACK_FILES up -d; then
     sleep 3
     if health_check "$DEPLOY_HEALTH_URL" 3 3; then
       log "Rollback OK: previous version running."
       return 0
     fi
     err "Rollback up but health check failed. Stopping rollback stack."
-    $COMPOSE_CMD $ROLLBACK_FILES down 2>/dev/null || true
+    run_compose $ROLLBACK_FILES down 2>/dev/null || true
   else
     err "Rollback up failed (:previous images may be missing)."
-    $COMPOSE_CMD $ROLLBACK_FILES down 2>/dev/null || true
+    run_compose $ROLLBACK_FILES down 2>/dev/null || true
   fi
   return 1
 }
 
 do_rollback_web() {
   log "Attempting web-only rollback to :previous image..."
-  if $COMPOSE_CMD $ROLLBACK_FILES up -d web; then
+  if run_compose $ROLLBACK_FILES up -d web; then
     sleep 3
     if health_check "$DEPLOY_HEALTH_URL" 3 3; then
       log "Web rollback OK: previous version running."
@@ -260,7 +335,7 @@ deploy_web() {
     return 0
   fi
   err "Health check failed. Attempting web-only rollback..."
-  $COMPOSE_CMD logs --tail=120 web 2>&1 | sed 's/^/[deploy]   /' >&2 || true
+  run_compose logs --tail=120 web 2>&1 | sed 's/^/[deploy]   /' >&2 || true
   if do_rollback_web; then
     err "New version failed; rolled back to previous web. Fix errors and redeploy."
     exit 1
@@ -283,11 +358,12 @@ deploy() {
   if health_check "$DEPLOY_HEALTH_URL" "$HEALTH_RETRIES" "$HEALTH_INTERVAL"; then
     log "Deployment finished successfully."
     print_urls
+    deploy_push
     return 0
   fi
   err "Health check failed. Stopping new deployment and attempting rollback..."
-  $COMPOSE_CMD logs --tail=120 web 2>&1 | sed 's/^/[deploy]   /' >&2 || true
-  $COMPOSE_CMD $COMPOSE_FILES down 2>/dev/null || true
+  run_compose logs --tail=120 web 2>&1 | sed 's/^/[deploy]   /' >&2 || true
+  run_compose $COMPOSE_FILES down 2>/dev/null || true
   if do_rollback; then
     err "New version failed; rolled back to previous. Fix errors and redeploy."
     exit 1
@@ -299,7 +375,7 @@ deploy() {
 rollback() {
   preflight
   log "Manual rollback: stopping current deployment..."
-  $COMPOSE_CMD $COMPOSE_FILES down 2>/dev/null || true
+  run_compose $COMPOSE_FILES down 2>/dev/null || true
   for name in topteens_web_1 topteens_nginx_1 topteens-web-1 topteens-nginx-1; do
     docker rm -f "$name" 2>/dev/null || true
   done
@@ -315,8 +391,123 @@ rollback() {
 stop() {
   preflight
   log "Stopping all containers..."
-  $COMPOSE_CMD $COMPOSE_FILES down 2>/dev/null || true
+  run_compose $COMPOSE_FILES down 2>/dev/null || true
   log "Containers stopped."
+}
+
+# --- ENV stack (mariadb, nginx, redis, elasticsearch, certbot) ---
+up_env() {
+  preflight
+  warn_if_ports_busy
+  log "Starting ENV stack (mariadb, nginx, redis, elasticsearch, certbot)..."
+  mkdir -p "${LOG_PATH:-./logs}" "${MARIADB_DATA_PATH:-./data/mariadb}" "${ELASTICSEARCH_DATA_PATH:-./data/elasticsearch}" 2>/dev/null || true
+  run_compose $COMPOSE_ENV up -d
+  log "ENV stack started."
+}
+
+down_env() {
+  [ -f .env ] && preflight || true
+  log "Stopping ENV stack..."
+  run_compose $COMPOSE_ENV down 2>/dev/null || true
+  log "ENV stack stopped."
+}
+
+rebuild_env() {
+  preflight
+  warn_if_ports_busy
+  log "Rebuilding and starting ENV stack..."
+  run_compose $COMPOSE_ENV build --no-cache 2>/dev/null || true
+  run_compose $COMPOSE_ENV up -d --force-recreate
+  log "ENV stack rebuilt and started."
+}
+
+down_env_remove_images() {
+  [ -f .env ] && preflight || true
+  log "Stopping ENV stack and removing images..."
+  run_compose $COMPOSE_ENV down --rmi local 2>/dev/null || true
+  log "ENV stack stopped and images removed."
+}
+
+# --- CODE stack (developertopteen/demotopteen image) ---
+code_build() {
+  local flags="${1:-}"
+  log "Building CODE stack image $DEPLOY_IMAGE:latest $flags..."
+  if ! run_compose $COMPOSE_CODE build $flags web; then
+    err "CODE build failed."
+    exit 1
+  fi
+  if docker image inspect "$DEPLOY_IMAGE:latest" >/dev/null 2>&1; then
+    docker tag "$DEPLOY_IMAGE:latest" "$DEPLOY_IMAGE:$DOCKER_TAG_ENV" 2>/dev/null || true
+    log "Tagged $DEPLOY_IMAGE:$DOCKER_TAG_ENV"
+  fi
+  log "CODE build OK (image: $DEPLOY_IMAGE:latest)."
+}
+
+code_push() {
+  local push_img="${DOCKER_PUSH_IMAGE:-}"
+  [ -z "$push_img" ] && [ -n "${DOCKER_PUSH_TAG:-}" ] && push_img="$DEPLOY_IMAGE:${DOCKER_PUSH_TAG}"
+  if [ -n "$push_img" ]; then
+    log "Pushing to docker.io ($push_img)..."
+    docker tag "$DEPLOY_IMAGE:latest" "$push_img" 2>/dev/null || true
+    if docker push "$push_img"; then
+      log "Push to docker.io OK."
+    else
+      err "Push failed. Check: docker login"
+    fi
+  fi
+}
+
+# Push production image (after deploy/rebuild). Only runs when DOCKER_PUSH_TAG or DOCKER_PUSH_IMAGE is set.
+deploy_push() {
+  local push_img="${DOCKER_PUSH_IMAGE:-}"
+  [ -z "$push_img" ] && [ -n "${DOCKER_PUSH_TAG:-}" ] && push_img="$DEPLOY_IMAGE:${DOCKER_PUSH_TAG}"
+  [ -z "$push_img" ] && return 0
+  if docker image inspect "$DEPLOY_IMAGE:latest" >/dev/null 2>&1; then
+    log "Pushing to docker.io ($push_img)..."
+    docker tag "$DEPLOY_IMAGE:latest" "$push_img" 2>/dev/null || true
+    if docker push "$push_img"; then
+      log "Push to docker.io OK."
+    else
+      err "Push failed. Check: docker login"
+    fi
+  fi
+}
+
+up_code() {
+  preflight
+  warn_if_ports_busy
+  code_build
+  code_push
+  log "Starting CODE stack (web, nginx, celery, celery_beat, redis)..."
+  mkdir -p "${LOG_PATH:-./logs}" 2>/dev/null || true
+  run_compose $COMPOSE_CODE up -d
+  log "CODE stack started. Logs: ${LOG_PATH:-./logs}"
+  print_urls
+}
+
+down_code() {
+  [ -f .env ] && preflight || true
+  log "Stopping CODE stack..."
+  run_compose $COMPOSE_CODE down 2>/dev/null || true
+  log "CODE stack stopped."
+}
+
+rebuild_code() {
+  preflight
+  warn_if_ports_busy
+  code_build "--no-cache"
+  code_push
+  log "Starting CODE stack (recreate)..."
+  run_compose $COMPOSE_CODE up -d --force-recreate
+  log "CODE stack rebuilt and started."
+  print_urls
+}
+
+down_code_remove_images() {
+  [ -f .env ] && preflight || true
+  log "Stopping CODE stack and removing $DEPLOY_IMAGE images..."
+  run_compose $COMPOSE_CODE down --rmi local 2>/dev/null || true
+  log "CODE stack stopped and images removed."
 }
 
 case "${1:-deploy}" in
@@ -326,17 +517,36 @@ case "${1:-deploy}" in
   web-rebuild) deploy_web "--no-cache" ;;
   rollback) rollback ;;
   stop) stop ;;
+  up-env) up_env ;;
+  down-env) down_env ;;
+  rebuild-env) rebuild_env ;;
+  down-env-remove-images) down_env_remove_images ;;
+  up-code) up_code ;;
+  down-code) down_code ;;
+  rebuild-code) rebuild_code ;;
+  down-code-remove-images) down_code_remove_images ;;
   *)
-    echo "Usage: $0 {deploy|rebuild|web|web-rebuild|rollback|stop}"
+    echo "Usage: $0 <command>"
     echo ""
-    echo "  web          - [CI/GitHub Actions] Build & update web only; mysql, redis, celery, nginx stay running"
-    echo "  web-rebuild  - Same as web but build with --no-cache"
+    echo "  ENV stack (infra):"
+    echo "    up-env                 - Start env (mariadb, nginx, redis, elasticsearch, certbot)"
+    echo "    down-env               - Stop env stack"
+    echo "    rebuild-env            - Rebuild and start env stack"
+    echo "    down-env-remove-images - Stop env and remove images"
     echo ""
-    echo "  deploy       - [Manual] Full deploy: build all, recreate all containers (mysql, redis, celery, nginx, web)"
-    echo "  rebuild      - Same as deploy but build with --no-cache"
+    echo "  CODE stack (image/tags from .env: DOCKER_IMAGE, DOCKER_TAG_ENV, DOCKER_TAG_PROD):"
+    echo "    up-code                 - Build image (tagged :DOCKER_TAG_ENV), push if DOCKER_PUSH_* set, start stack"
+    echo "    down-code               - Stop code stack"
+    echo "    rebuild-code            - No-cache build, push if set, start code stack"
+    echo "    down-code-remove-images - Stop code and remove local images"
+    echo "    Push: set DOCKER_PUSH_TAG=topteens_django_prod or topteens_django_env (or DOCKER_PUSH_IMAGE=...)"
     echo ""
-    echo "  rollback     - Rollback to :previous images"
-    echo "  stop         - docker compose down"
+    echo "  Legacy (unified compose):"
+    echo "    deploy       - Full deploy (docker-compose.yml)"
+    echo "    rebuild      - Full deploy with --no-cache"
+    echo "    web          - Build & update web only"
+    echo "    rollback     - Rollback to :previous"
+    echo "    stop         - docker compose down"
     exit 1
     ;;
 esac

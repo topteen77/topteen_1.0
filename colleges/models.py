@@ -52,7 +52,14 @@ class College(BaseModel,SeoModel,SlugModel,PublishableModel):
     college_type=models.PositiveSmallIntegerField(choices=choices.CollegeType.CHOICES,default=choices.CollegeType.PRIVATE)
     university_type=models.PositiveSmallIntegerField(choices=choices.UniversityType.CHOICES,default=choices.UniversityType.COLLEGE)
     shortlist = models.ManyToManyField(User,blank=True,related_name='college_shortlist')
-    
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['object_status', 'publish_status']),
+            models.Index(fields=['country', 'object_status']),
+            models.Index(fields=['slug']),
+        ]
+
     @classmethod
     def get_all_colleges(cls):
         return College.objects.all()

@@ -63,6 +63,11 @@ class Blog(BaseModel,SlugModel,SeoModel,PublishableModel):
             return self.image.url
         return '/static/images/blog-default.png'  # Default blog image
     
+    class Meta:
+        indexes = [
+            models.Index(fields=['publish_status', 'modified']),
+        ]
+
     @classmethod
     def get_published_objects(cls):
         return Blog.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)

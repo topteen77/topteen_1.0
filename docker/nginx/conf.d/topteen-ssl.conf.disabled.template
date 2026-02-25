@@ -1,8 +1,8 @@
-# Production HTTPS: topteen.in, www.topteen.in
-# Enabled by nginx entrypoint when SSL certs exist (renamed to .conf)
+# HTTPS server block (server_name from .env: PRODUCTION_SERVER_NAMES)
+# Enabled by nginx entrypoint when cert.pem/key.pem exist in SSL_CERT_PATH
 server {
     listen 443 ssl http2;
-    server_name topteen.in www.topteen.in;
+    server_name ${PRODUCTION_SERVER_NAMES};
 
     ssl_certificate /etc/nginx/ssl/cert.pem;
     ssl_certificate_key /etc/nginx/ssl/key.pem;

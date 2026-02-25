@@ -134,15 +134,11 @@ def format_duration(string):
             return string.strip('s')
         else:
             return string
-def checkinstance(obj,cls):
-    
+def checkinstance(obj, cls):
     try:
-        print(obj.__dict__)
-    except:
-        pass
-    return True
-    print(obj.field.__dict__)
-    return isinstance(obj,cls)
+        return isinstance(obj, cls)
+    except Exception:
+        return False
 
 def seo_year(request):
     abv= globals(request)
