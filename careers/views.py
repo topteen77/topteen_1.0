@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from careers.document_filters import CareerDocumentFilter
 from .models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTags, Profession,CareerCluster,Videos,VideoCategory,CareerShortlist,CareerRating
+from .utils import extract_intro_html_from_description
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from colleges.models import College
 from core.models import Country
@@ -308,6 +309,7 @@ class CareerDetail(TemplateView):
         ctx={}
         career=get_object_or_404(Career,id=career_id,slug=slug)
         ctx['career']=career
+        ctx['description_intro_html'] = extract_intro_html_from_description(career.description or '')
         bread_crumb =self._breadcrumb(career)
         ctx['breadcrumb']= bread_crumb[1]
         country=Country.objects.all()
@@ -1881,9 +1883,16 @@ class CareerMindmapView(TemplateView):
         career = get_object_or_404(Career, id=career_id, slug=slug)
         ctx['career'] = career
         
-        # Get variation from query parameter (default to 1)
-        variation = request.GET.get('variation', '1')
+        # Get variation from query parameter; default from Core website settings (DEFAULT_MINDMAP_TYPE)
+        from core.models import Configuration
+        from core.choices import MINDMAP_TYPE_CHOICES
+        default_type = (Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6').strip() or '6'
+        variation_param = request.GET.get('variation')
+        variation = str(variation_param).strip() if variation_param else default_type
+        variation = variation or default_type
         ctx['variation'] = variation
+        ctx['default_mindmap_type'] = default_type
+        ctx['mindmap_type_choices'] = MINDMAP_TYPE_CHOICES
         ctx['variations'] = {
             '1': 'Compact',
             '2': 'Minimal',

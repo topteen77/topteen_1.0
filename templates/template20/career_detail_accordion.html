@@ -41,6 +41,10 @@
     cursor: pointer;
   }
 
+  .career-intro-content .career-intro-paras p { margin-bottom: 1rem; }
+  .career-intro-content .career-intro-paras p:last-child { margin-bottom: 0; }
+  .career-intro-content .career-intro-paras h2 { display: none; }
+
   .cat-main-content ol {
     padding-left: 20px;
   }
@@ -766,10 +770,9 @@
         <div class="track-header">
           <h1 class="cat-title">{{ career.name }}</h1>
           
-          {% if career.display_summary %}
-          <div class="blog-summary-box">
-            <h3 class="blog-summary-title">Summary</h3>
-            <p class="blog-summary-text add-read-more show-less-content">{{ career.display_summary }}</p>
+          {% if description_intro_html %}
+          <div class="blog-summary-box career-intro-content">
+            <div class="blogDetail careerDetail career-intro-paras">{{ description_intro_html|safe }}</div>
           </div>
           {% endif %}
 
@@ -832,9 +835,9 @@
           {% endif %}
 
           <!-- ============================================ -->
-          <!-- NEW SVG-based Mindmap (Active) - Hide if XMind file exists -->
+          <!-- NEW SVG-based Mindmap (Active) - Hide if XMind file exists or mindmap disabled -->
           <!-- ============================================ -->
-          {% if not has_xmind_file %}
+          {% if enable_career_mindmap and not has_xmind_file %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-svg-mindmap-section">
             <div class="mindmap-card" role="region" aria-labelledby="mindmap-title" aria-describedby="mindmap-caption">
               <div class="mindmap-head">
@@ -917,7 +920,7 @@
           <!-- ============================================ -->
           <!-- Radial Mindmap (Variation 6) - Dynamic from XMind files -->
           <!-- ============================================ -->
-          {% if has_xmind_file %}
+          {% if enable_career_mindmap and has_xmind_file %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-xmind-mindmap-section">
             <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
               <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">

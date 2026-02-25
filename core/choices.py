@@ -403,3 +403,24 @@ class InstituteType(object):
         (COACHINGINSTITUTE,"Coaching Institute"),
         (OTHER,"Other")
     )
+
+
+# Mindmap layout types for dedicated mindmap page (variation 1–15)
+# Used in Core website settings and career mindmap dropdown.
+MINDMAP_TYPE_CHOICES = (
+    ('1', 'Compact'),
+    ('2', 'Minimal'),
+    ('3', 'Fullscreen'),
+    ('4', 'Sidebar'),
+    ('5', 'Bottom Controls'),
+    ('6', 'Radial'),
+    ('7', 'Cards'),
+    ('8', 'Flow'),
+    ('9', 'Network'),
+    ('10', 'Timeline'),
+    ('11', 'Vertical Radial'),
+    ('12', 'Vertical Cards'),
+    ('13', 'Vertical Flow'),
+    ('14', 'Vertical Network'),
+    ('15', 'Vertical Timeline'),
+)

@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:core_configuration_changelist' %}">Configuration</a>
+&rsaquo; Core website settings
+</div>
+{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 20px; color: #666;">Manage core website features. Changes take effect immediately.</p>
+
+<form method="post" id="website-settings-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <h2>Features</h2>
+    {% for field in form %}
+    <div class="form-row">
+      <div>
+        {{ field }}
+        <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
+        {% if field.help_text %}
+        <p class="help" style="margin: 5px 0 0 24px; color: #666; font-size: 12px;">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save settings" class="default">
+    <a href="{% url 'admin:core_configuration_changelist' %}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

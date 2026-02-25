@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
+from core.choices import MINDMAP_TYPE_CHOICES
 from django.utils.html import format_html, strip_tags
 from django.urls import path, reverse
 from django.shortcuts import render, redirect
@@ -76,6 +77,21 @@ class PsychometricSettingsForm(forms.Form):
     )
 
 
+class WebsiteSettingsForm(forms.Form):
+    """Form for core website settings (Admin-managed)."""
+    ENABLE_CAREER_MINDMAP = forms.BooleanField(
+        required=False,
+        label='Enable career mindmap',
+        help_text='Show career mindmaps on career detail pages, careers chat, and dedicated mindmap page. When disabled, mindmap sections and icons are hidden site-wide.',
+    )
+    DEFAULT_MINDMAP_TYPE = forms.ChoiceField(
+        choices=MINDMAP_TYPE_CHOICES,
+        required=True,
+        label='Default mindmap type',
+        help_text='Default layout when opening the dedicated mindmap page (e.g. Radial, Tree-style, Cards, Flow). Users can change it via the dropdown on the page.',
+    )
+
+
 class ConfigurationAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','key')
     fields = ['created','modified','key','value']
@@ -103,6 +119,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
         custom = [
             path('psychometric-settings/', self.admin_site.admin_view(self.psychometric_settings_view), name='core_configuration_psychometric_settings'),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
+            path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
         ]
         return custom + urls
 
@@ -172,6 +189,49 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/psychometric_settings.html', context)
+
+    def website_settings_view(self, request):
+        """Custom admin view for Core website settings (e.g. mindmap)."""
+        from core.models import Configuration
+
+        def _config_bool(key):
+            try:
+                val = Configuration.get(key, default='true', editable=True)
+                return str(val).lower() in ('true', '1', 'yes', 'on')
+            except Exception:
+                return True
+
+        if request.method == 'POST':
+            form = WebsiteSettingsForm(request.POST)
+            if form.is_valid():
+                # ENABLE_CAREER_MINDMAP
+                key = 'ENABLE_CAREER_MINDMAP'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
+                # DEFAULT_MINDMAP_TYPE
+                key = 'DEFAULT_MINDMAP_TYPE'
+                val = (form.cleaned_data.get(key) or '6').strip() or '6'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = str(val)
+                config.save()
+                messages.success(request, 'Core website settings saved successfully.')
+                return redirect('admin:core_configuration_website_settings')
+        else:
+            default_type = Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+            form = WebsiteSettingsForm(initial={
+                'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),
+                'DEFAULT_MINDMAP_TYPE': default_type,
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Core website settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/website_settings.html', context)
 
 
 class CityAdmin(admin.ModelAdmin):
