@@ -13,16 +13,20 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
+
+.logged-in.test-sections-page .tt-header .navbar {
+	background: #fff !important;
+}
 .modal-backdrop.fade.show {
     z-index: 1;
 }
   .tests-page {
-    padding-top: 80px;
+    padding-top:0px;
   }
   .hero-gradient {
     background: linear-gradient(135deg, #3F37C9 0%, #534a9a 100%);
-    padding: 60px 0;
-    color: white;
+  padding: 126px 0 62px 0;
+  color: white;
   }
   /* Container width fixes for desktop and mobile */
   .tests-page main {
@@ -574,12 +578,12 @@
 {% block content %}
 <section class="tests-page">
   <!-- Hero Section -->
-  <section class="hero-gradient py-8 mb-3">
+  <section class="hero-gradient mb-3">
     <div class="container mx-auto">
       <div class="row">
         <div class="col-md-12 text-center text-white heading">
-          <h2>Available Tests</h2>
-          <p class="text-white">Browse our collection of assessments and find the ones that interest you. Discover your potential with scientifically validated tests.</p>
+          <h2>Career Direction Test </h2>
+          <p class="text-white">Our comprehensive psychometric assessment helps you identify your strengths, interests, and abilities to find the career that's right for you. </p>
         </div>
       </div>
     </div>
@@ -656,15 +660,15 @@
         <div class="d-icon-py d-flex justify-content-between align-items-center mt-3">
           <div class="t-info-icon d-flex align-items-center">
             <div class="icon-div">
-              <i class="fa fa-question-circle-o me-1" aria-hidden="true"></i>
+              <i class='bx bx-question-mark text-purple me-2'></i>
             </div>
             <span class="questions-count"></span>
           </div>
           <div class="t-info-icon d-flex align-items-center">
             <div class="icon-div">
-              <i class="fa fa-clock-o me-1" aria-hidden="true"></i>
+              <i class='bx bx-time-five text-purple me-2' ></i>
             </div>
-            <span class="time-limit"></span>
+            <span class="time-limit "></span>
           </div>
         </div>
         <div class="pty-footer-b mt-2 border-top pt-3">
@@ -684,7 +688,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="header-img">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/student-flying-on-rocket-3d-icon-png-download-4644800.png" alt="Question" />
+            <img class="img-fluid" src="https://cdn3d.iconscout.com/3d/premium/thumb/student-flying-on-rocket-3d-icon-png-download-4644800.png" alt="Question" />
           </div>
           <h5 class="modal-title" id="personalityModalLabel">Before we continue…</h5>
         </div>
@@ -731,7 +735,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="header-img">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/student-raises-his-hand-3d-icon-png-download-4652812.png" alt="Question" />
+            <img class="img-fluid" src="https://cdn3d.iconscout.com/3d/premium/thumb/student-raises-his-hand-3d-icon-png-download-4652812.png" alt="Question" />
           </div>
           <h5 class="modal-title" id="motivationModalLabel">A quick check!</h5>
         </div>
@@ -769,7 +773,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="header-img">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/cute-student-having-doubt-3d-icon-png-download-4779536.png" alt="Question" />
+            <img class="img-fluid" src="https://cdn3d.iconscout.com/3d/premium/thumb/cute-student-having-doubt-3d-icon-png-download-4779536.png" alt="Question" />
           </div>
           <h5 class="modal-title" id="studyPreferenceModalLabel">Your study preference</h5>
         </div>
@@ -823,7 +827,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <div class="header-img">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/student-is-having-an-idea-3d-icon-png-download-4823210.png" alt="Question" />
+            <img class="img-fluid" src="https://cdn3d.iconscout.com/3d/premium/thumb/student-is-having-an-idea-3d-icon-png-download-4823210.png" alt="Question" />
           </div>
           <h5 class="modal-title" id="learningStyleModalLabel">Last quick question!</h5>
         </div>

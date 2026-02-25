@@ -50,7 +50,7 @@
           {% if blog.category %}
           <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category-badge">{{ blog.category.name|blog_category_display }}</a>
           {% endif %}
-          <h1 class="blog-title">{{ blog.title }}</h1>
+          <h1 class="blog-title fs-28 lh-sm">{{ blog.title }}</h1>
           
           <div class="blog-meta-info">
             <div class="blog-meta-item d-none">
@@ -66,7 +66,7 @@
           </div>
           
           {% if blog.author %}
-          <div class="blog-author-info">
+          <div class="blog-author-info d-none">
             <div class="blog-author-avatar">
               {% if blog.author.image and blog.author.image.name %}
               <img src="{{ blog.author.image.url }}" alt="{{ blog.author.name if blog.author.name else blog.author.username }}">
@@ -213,13 +213,13 @@
     <div class="row">
       <div class="col-12">
         <h2 class="section-heading">You May Also Like</h2>
-        <p class="mb-4">Explore more articles related to {{ blog.category.name|blog_category_display if blog.category else 'this topic' }}</p>
+        <!-- <p class="mb-4">Explore more articles related to {{ blog.category.name|blog_category_display if blog.category else 'this topic' }}</p> -->
       </div>
     </div>
     <div class="row">
       {% for related_blog in related_blogs %}
-      <div class="col-md-4 mb-4">
-        <div class="blog-card h-100">
+      <div class="col-md-3 mb-4">
+        <div class="blog-card h-100 bg-white">
           <div class="blog-image">
             {% if related_blog.category %}
             <a href="{{ url('blog:category', args=[related_blog.category.slug]) }}" class="blog-category category-parent">
@@ -246,11 +246,11 @@
                 <span>{{ date_format(related_blog.created) }}</span>
               </div>
             </div>
-            <h3 class="blog-title mt-0">
+            <h3 class="blog-title mt-0 fs-18 lh-sm">
               <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}">{{ related_blog.title }}</a>
             </h3>
             {% if related_blog.summary %}
-            <p class="blog-excerpt">{{ related_blog.summary|truncate(120) }}</p>
+            <p class="blog-excerpt lh-sm">{{ related_blog.summary|truncate(120) }}</p>
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
           </div>
