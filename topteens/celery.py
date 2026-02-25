@@ -14,6 +14,16 @@ app = Celery('Topteens',broker=settings.CELERY_BROKER_URL)
 #   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+# Optimal worker config: reduce lag and avoid one task blocking others
+app.conf.worker_prefetch_multiplier = 2
+app.conf.worker_concurrency = 4
+app.conf.task_acks_late = False
+app.conf.task_reject_on_worker_lost = True
+app.conf.broker_connection_retry_on_startup = True
+app.conf.result_expires = 3600
+app.conf.timezone = 'UTC'
+app.conf.enable_utc = True
+
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 

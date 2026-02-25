@@ -50,11 +50,14 @@ class TestCompletion(models.Model):
 class Results(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    test_paper = models.CharField(max_length=100)
+    test_paper = models.CharField(max_length=100, db_index=True)
     scores = models.JSONField(default=dict)
     results = models.JSONField(default=dict)
     selected_answers = models.JSONField(default=dict)
-    modified = models.DateTimeField(auto_now=True)
+    modified = models.DateTimeField(auto_now=True, db_index=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['user', '-modified'])]
 
     def __str__(self):
         return f"Scores for {self.test_paper} -| {self.user} -| {self.modified.astimezone().strftime('%Y-%m-%d - %H:%M %Z')}"

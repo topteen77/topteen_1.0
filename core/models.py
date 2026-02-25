@@ -197,7 +197,7 @@ class SeoModel(models.Model):
 class Country(BaseCSC):
     short_name=models.CharField(max_length=5)
     phone_code=models.CharField(max_length=5)
-    priority = models.PositiveSmallIntegerField(default=1,help_text="1 is higher than 2")
+    priority = models.PositiveSmallIntegerField(default=1, help_text="1 is higher than 2", db_index=True)
     flag = models.ImageField(upload_to=core_image_directory,null=True,max_length=250)
     class Meta:
         verbose_name_plural = "Countries"
@@ -261,6 +261,9 @@ class Review(BaseModel, PublishableModel):
         verbose_name = "Student testimonial"
         verbose_name_plural = "Student testimonials"
         ordering = ["priority", "created"]
+        indexes = [
+            models.Index(fields=['publish_status', 'priority']),
+        ]
 
     def get_image_url(self):
         """Get image URL: S3 URL if set, else local image, else default placeholder."""
@@ -294,6 +297,11 @@ class CommonFAQ(BaseModel):
     priority = models.PositiveSmallIntegerField(default=1,help_text="1 is higher than 2")
     user_type = models.PositiveSmallIntegerField(choices=choices.FAQType.CHOICES, default=0)
     is_featured = models.PositiveSmallIntegerField(choices=choices.FAQFeaturedType.CHOICES, default=choices.FAQFeaturedType.NONE)
+
+    class Meta(BaseModel.Meta):
+        indexes = [
+            models.Index(fields=['user_type', 'is_featured', 'priority']),
+        ]
 
     @classmethod
     def get_commonfaq_by_priority(cls):

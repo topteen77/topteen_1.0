@@ -14,6 +14,7 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
         ordering = ['order', 'name']
+        indexes = [models.Index(fields=['order', 'name'])]
 
     def __str__(self):
         return self.name
@@ -47,6 +48,7 @@ class KnowledgeBaseEntry(models.Model):
     class Meta:
         verbose_name_plural = "Knowledge Base Entries"
         ordering = ['-last_updated']
+        indexes = [models.Index(fields=['category', '-last_updated'])]
 
     def __str__(self):
         return f"{self.title} ({self.category.name})"
@@ -64,8 +66,8 @@ class Query(models.Model):
     question_text = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     country_context = models.CharField(max_length=100, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     processed_at = models.DateTimeField(null=True, blank=True)
     response_time_ms = models.IntegerField(null=True, blank=True)  # Response time in milliseconds
     source = models.CharField(max_length=20, default='ai', choices=[('ai', 'AI Generated'), ('database', 'From Database')])
@@ -73,6 +75,7 @@ class Query(models.Model):
     class Meta:
         verbose_name_plural = "Queries"
         ordering = ['-created_at']
+        indexes = [models.Index(fields=['status', '-created_at'])]
 
     def __str__(self):
         return self.question_text[:50]

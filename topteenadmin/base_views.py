@@ -121,7 +121,6 @@ class BaseCreateView(SuccessMessageMixin,CreateView):
         url = super().get_success_url( *args, **kwargs)
         if self.request.method == "POST" and self.request.POST.get('_popup') == "1":
             url ="{}?_popupsubmit=1&id={}&name={}&foreign_key={}".format(url,self.object.id,str(self.object),self.request.POST.get('foreign_key'))
-        print("url",url)
         return url
         
 @method_decorator(login_required,name='dispatch')      
