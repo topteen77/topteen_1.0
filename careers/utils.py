@@ -1,6 +1,32 @@
 import re
 from django.utils.html import strip_tags
 
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
+
+
+def extract_intro_html_from_description(html):
+    """
+    Extract a single introduction paragraph from description: the first <p> only.
+    Keeps paragraph formatting; no h2. Returns HTML string, or empty string if no <p>.
+    """
+    if not html or not html.strip():
+        return ""
+    if BeautifulSoup is None:
+        # Fallback: take content before first h2 and strip to first <p> with regex
+        match = re.search(r'<\s*p\b[^>]*>.*?<\s*/\s*p\s*>', html, re.IGNORECASE | re.DOTALL)
+        return match.group(0) if match else ""
+    try:
+        soup = BeautifulSoup(html, 'html.parser')
+        for p in soup.find_all('p'):
+            if p.get_text(strip=True):
+                return str(p)
+    except Exception:
+        pass
+    return ""
+
 
 def extract_summary_from_description(html, max_chars=8000):
     """
