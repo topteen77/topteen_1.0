@@ -41,6 +41,10 @@
     cursor: pointer;
   }
 
+  .career-intro-content .career-intro-paras p { margin-bottom: 1rem; }
+  .career-intro-content .career-intro-paras p:last-child { margin-bottom: 0; }
+  .career-intro-content .career-intro-paras h2 { display: none; }
+
   .cat-main-content ol {
     padding-left: 20px;
   }
@@ -766,10 +770,9 @@
         <div class="track-header">
           <h1 class="cat-title">{{ career.name }}</h1>
           
-          {% if career.display_summary %}
-          <div class="blog-summary-box">
-            <h3 class="blog-summary-title">Summary</h3>
-            <p class="blog-summary-text add-read-more show-less-content">{{ career.display_summary }}</p>
+          {% if description_intro_html %}
+          <div class="blog-summary-box career-intro-content">
+            <div class="blogDetail careerDetail career-intro-paras">{{ description_intro_html|safe }}</div>
           </div>
           {% endif %}
 

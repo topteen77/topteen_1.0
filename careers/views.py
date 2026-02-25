@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from careers.document_filters import CareerDocumentFilter
 from .models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTags, Profession,CareerCluster,Videos,VideoCategory,CareerShortlist,CareerRating
+from .utils import extract_intro_html_from_description
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from colleges.models import College
 from core.models import Country
@@ -308,6 +309,7 @@ class CareerDetail(TemplateView):
         ctx={}
         career=get_object_or_404(Career,id=career_id,slug=slug)
         ctx['career']=career
+        ctx['description_intro_html'] = extract_intro_html_from_description(career.description or '')
         bread_crumb =self._breadcrumb(career)
         ctx['breadcrumb']= bread_crumb[1]
         country=Country.objects.all()
