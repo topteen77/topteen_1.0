@@ -94,9 +94,10 @@ class Configuration(BaseModel):
 
 
     @classmethod
-    def get(cls,key,default=0,editable=True):
-        c,created=Configuration.objects.get_or_create(key=key,defaults={'value':default,'editable':editable})
-        return c.value
+    def get(cls, key, default=0, editable=True):
+        defaults = {'value': str(default), 'editable': editable}
+        c, created = Configuration.objects.get_or_create(key=key, defaults=defaults)
+        return str(c.value) if c.value is not None else str(default)
 
 
 class MasterClass(BaseModel):

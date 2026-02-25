@@ -407,6 +407,22 @@
     }
     svg.appendChild(centerText);
 
+    // Transparent overlay so center click works in Chrome (Chrome often doesn't deliver click to circle when text is on top even with pointer-events: none)
+    if (!isRoot && parentNode) {
+      const centerOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      centerOverlay.setAttribute('cx', centerX);
+      centerOverlay.setAttribute('cy', centerY);
+      centerOverlay.setAttribute('r', finalCenterRadius);
+      centerOverlay.setAttribute('fill', 'transparent');
+      centerOverlay.setAttribute('style', 'cursor: pointer; pointer-events: auto;');
+      centerOverlay.setAttribute('aria-label', 'Go to parent');
+      centerOverlay.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (options.onNodeClick) options.onNodeClick(parentNode, { type: 'center', goToParent: true });
+      });
+      svg.appendChild(centerOverlay);
+    }
+
     // Parent arrow
     if (!isRoot && parentNode) {
       const arrowG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
