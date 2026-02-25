@@ -34,10 +34,13 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 .career-mode-hero {
   width: 100%;
-  /* background: #e5e4fd url('/static/images_new/general/aipt-bg1.jpg') !important; */
-  background: linear-gradient( to bottom, rgb(237, 246, 255), rgb(252, 246, 255), rgb(253, 248, 255), rgb(238, 246, 255), rgb(248, 242, 255), rgb(237, 246, 255) );
+  background: #e5e4fd url('/static/images_new/general/aipt-bg1.png') !important;
+  /* background: linear-gradient( to bottom, rgb(237, 246, 255), rgb(252, 246, 255), rgb(253, 248, 255), rgb(238, 246, 255), rgb(248, 242, 255), rgb(237, 246, 255) ); */
   padding: 25px 54px;
   border-radius: 20px;
+  background-size: cover !important;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .career-mode-search-form {
@@ -65,7 +68,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 #ai-mode-btn.btn-primary{
   position: relative;
-  background: linear-gradient(120deg, #3f37c9, #764ba2, #1f1b63, #d371ff);
+  background: linear-gradient(120deg, #151DB8, #6837C9, #1F28CC, #8856EB);
     background-size: auto;
   background-size: 300% 300%;
   animation: aiFooterGradient 8s ease infinite;
@@ -80,9 +83,18 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 #ai-mode-btn.btn-outline-primary:hover {
-	background: rgba(63, 55, 201, 1);
+	background: rgba(63, 55, 201,  1);
 	color: #fff;
 }
+
+#ai-mode-btn.btn.btn-sm.rounded-pill.btn-primary.career-view-mode-btn-active svg {
+	fill: #fff;
+}
+
+#ai-mode-btn.btn.btn-sm.rounded-pill.btn-outline-primary svg {
+	fill: rgba(63, 55, 201, 1);
+}
+
 .message-content table tr td, tr th {
 	border: 1px solid #E2D7D7;
 	padding: 7px;
@@ -111,12 +123,19 @@ Explore our comprehensive collection of career paths organized by industry and i
 
  #ai-mode-btn, #view-mode-btn {
 	padding: 13px 23px;
+  align-items: center;
+  display: flex;
+  gap: 9px;
+  font-weight: 600;
 }
 
 
 #view-mode-btn.btn-outline-primary {
-	border: 1px solid rgba(63, 55, 201, 1);
-	color: rgba(63, 55, 201, 1);
+  border: 1px solid rgba(63, 55, 201, 1);
+  color: rgba(63, 55, 201, 1);
+  font-weight: 600;
+  display: flex;
+  gap: 7px;
 }
 
 #view-mode-btn.btn-outline-primary:hover {
@@ -364,25 +383,26 @@ Explore our comprehensive collection of career paths organized by industry and i
 
       <div class="career-mode-hero">
         <div class="row"> 
-      <div class="col-lg-9 col-md-12 text-center d-flex align-items-center flex-column justify-content-center">
+      <div class="col-lg-12 col-md-12 text-center d-flex align-items-center flex-column justify-content-center">
         <!-- <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
         </span> -->
         <h1 class="heading-title mb-0">
-          Career Tracks
+          Career <span class="text-purple">Career</span> Tracks 
         </h1>
-        <!-- <p class="text-gray fs-16">Explore our comprehensive collection of career paths organized by industry and
-          interest. Discover educational requirements, job prospects, and growth opportunities for each career track
-          to make informed decisions about your future.</p> -->
+        <p class="text-gray fs-18 fs-sm-16">Explore different career clusters and discover opportunities that match your interests, skills, and future goals.</p>
     
           <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 mb-2 flex-md-row flex-column">
-            <span class="text-muted fs-18 me-2">Career Mode:</span>
+            <!-- <span class="text-muted fs-18 me-2">Career Mode:</span> -->
 
             <div class="d-b-ms d-flex flex-row gap-2"> 
             <a href="{{ url('careers:career') }}?mode=ai{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
                class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
                id="ai-mode-btn">
-               <span> <i class='bx bxs-magic-wand fs-20'></i> AI Mode</span>           
+               <span>  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  viewBox="0 0 20 20">
+                <path d="M13.696 2.677a.834.834 0 0 1 1.179 0l2.356 2.357a.833.833 0 0 1 0 1.179L6.035 17.408H2.5v-3.535L13.696 2.677Zm-9.53 11.886v1.178h1.18l7.76-7.76-1.178-1.18-7.761 7.762ZM3.775 1.099a.422.422 0 0 1 .785 0l.21.51a3.639 3.639 0 0 0 1.877 1.938l.598.266a.442.442 0 0 1 0 .803l-.633.281a3.636 3.636 0 0 0-1.85 1.876l-.205.471a.422.422 0 0 1-.778 0l-.206-.47a3.636 3.636 0 0 0-1.85-1.877l-.632-.281a.442.442 0 0 1 0-.803l.598-.266A3.639 3.639 0 0 0 3.564 1.61l.21-.51Zm9.332 4.524 1.18 1.179 1.178-1.179-1.178-1.178-1.18 1.178Z"/>
+              </svg>
+              AI Mode</span>           
             </a>
             <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
                class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
@@ -433,7 +453,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 
                 <div class="col-md-4 mx-auto mt-0 px-0">
                   <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                    <button type="submit" class="btn custom-button blue-button flex-fill">Apply Filters</button>
+                    <button type="submit" class="btn custom-button blue-button flex-fill">Search</button>
                     <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}" class="btn d-flex align-items-center justify-content-center btn-outline-secondary flex-fill">Reset</a>
                   </div>
                 </div>
@@ -453,7 +473,7 @@ Explore our comprehensive collection of career paths organized by industry and i
     
         </div>
 
-      <div class="col-lg-3 col-md-12 align-items-center justify-content-center d-md-flex d-none">
+      <div class="col-lg-3 col-md-12 align-items-center justify-content-center d-none">
         <div class="right-banner d-md-flex  justify-content-end ">
           <img class="img-fluid" src="{{ static('images_new/careers/career-track.svg') }}" alt="Career Tracks Banner" />
         </div>
@@ -486,7 +506,7 @@ Explore our comprehensive collection of career paths organized by industry and i
               <!-- Chat Container (full width so mindmap can use full width) -->
               <div class="chat-container">
                 <div class="chat-header">
-                  <div class="chat-title"><i class='bx bxs-magic-wand fs-20'></i> AI Mode</div>
+                  <div class="chat-title"> <img class="img-fluid" src="{{ static('images_new/general/ai-bot-icon.png') }}" alt="Career Tracks Banner" /> AI Mode</div>
                   <div class="chat-controls">
                     <button type="button" id="ai-maximize" class="btn btn-sm btn-light" aria-label="Maximize chat"><i class="bx bx-fullscreen"></i></button>
                     <button type="button" id="ai-minimize" class="btn btn-sm btn-light" aria-label="Minimize chat" style="display:none;"><i class="bx bx-minus"></i></button>
@@ -864,7 +884,7 @@ Explore our comprehensive collection of career paths organized by industry and i
   position: relative;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 260px); /* keep inside viewport above footer/header */
+  max-height: calc(100vh - 143px); /* keep inside viewport above footer/header */
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
@@ -877,9 +897,9 @@ Explore our comprehensive collection of career paths organized by industry and i
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0.9rem;
+  padding: 18px 25px;
   border-bottom: 1px solid #eef2f7;
-  background: #ffffff;
+  background: rgba(233, 232, 255, 1);
 }
 .chat-title {
   font-weight: 600;
