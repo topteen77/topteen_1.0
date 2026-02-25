@@ -17,15 +17,27 @@ Interactive mind map for {{ career.name }}
     {% include 'template20/includes/breadcrumb.html' %}
   </div>
 
-  <!-- Variation Selector -->
+  {% if enable_career_mindmap %}
+  <!-- Variation Selector: dropdown + optional buttons -->
   <div class="container mt-3 mb-3">
     <div class="card" style="background: #f8f9fa; border: 1px solid #dee2e6;">
       <div class="card-body p-3">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div>
             <h5 class="mb-0" style="font-size: 1.1rem;">{{ career.name }} - Mind Map</h5>
-            <small class="text-muted">Select layout variation:</small>
+            <small class="text-muted">Select mindmap type:</small>
           </div>
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <label for="mindmap-type-select" class="form-label mb-0 small text-muted">Type:</label>
+            <select id="mindmap-type-select" class="form-select form-select-sm" style="max-width: 220px;" aria-label="Mindmap type">
+              {% for value, label in mindmap_type_choices %}
+              <option value="{{ value }}" {% if variation == value or (variation ~ '') == (value ~ '') %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="mt-2 pt-2 border-top border-secondary">
+          <small class="text-muted d-block mb-1">Or pick a layout:</small>
           <div class="btn-group" role="group" style="flex-wrap: wrap;">
             <a href="?variation=1" class="btn btn-sm {% if variation == '1' or variation == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">Compact</a>
             <a href="?variation=2" class="btn btn-sm {% if variation == '2' or variation == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">Minimal</a>
@@ -46,6 +58,24 @@ Interactive mind map for {{ career.name }}
             <a href="?variation=15" class="btn btn-sm {% if variation == '15' or variation == 15 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none;">⬇️ Vertical Timeline</a>
           </div>
         </div>
+        <script>
+        (function(){
+          function initMindmapTypeDropdown() {
+            var el = document.getElementById('mindmap-type-select');
+            if (!el) return;
+            el.addEventListener('change', function() {
+              var val = this.value;
+              var url = window.location.pathname + '?variation=' + encodeURIComponent(val);
+              window.location.href = url;
+            });
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMindmapTypeDropdown);
+          } else {
+            initMindmapTypeDropdown();
+          }
+        })();
+        </script>
       </div>
     </div>
   </div>
@@ -2433,6 +2463,14 @@ Interactive mind map for {{ career.name }}
       <h5>Mind Map Not Available</h5>
       <p>No mind map file found for this career.</p>
       <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="btn btn-primary">Back to Career Details</a>
+    </div>
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="container mt-3 mb-4">
+    <div class="alert alert-info">
+      <p class="mb-0">Career mindmap is currently disabled. Enable it in <strong>Admin → Configuration → Core website settings</strong>.</p>
+      <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}" class="btn btn-primary mt-3">Back to {{ career.name }}</a>
     </div>
   </div>
   {% endif %}

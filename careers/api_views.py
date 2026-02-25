@@ -158,8 +158,11 @@ def format_career_list_item(career):
             pass
     has_mindmap = False
     try:
-        if hasattr(career, 'has_xmind_file'):
-            has_mindmap = career.has_xmind_file()
+        if hasattr(career, 'has_xmind_file') and career.has_xmind_file():
+            from core.models import Configuration
+            enabled = Configuration.get('ENABLE_CAREER_MINDMAP', 'true', editable=True)
+            if str(enabled).lower() in ('true', '1', 'yes', 'on'):
+                has_mindmap = True
     except Exception:
         pass
     summary = (career.get_display_summary() or '')[:200] if hasattr(career, 'get_display_summary') else ''
@@ -299,12 +302,15 @@ def format_career_for_response(career, include_sections=False):
         # Pros/cons might be in a specific section or embedded in description
         # For now, leave as None as it's not a standard section
     
-    # Check if mindmap exists
+    # Check if mindmap exists and is enabled site-wide
     has_mindmap = False
     try:
-        if hasattr(career, 'has_xmind_file'):
-            has_mindmap = career.has_xmind_file()
-    except:
+        if hasattr(career, 'has_xmind_file') and career.has_xmind_file():
+            from core.models import Configuration
+            enabled = Configuration.get('ENABLE_CAREER_MINDMAP', 'true', editable=True)
+            if str(enabled).lower() in ('true', '1', 'yes', 'on'):
+                has_mindmap = True
+    except Exception:
         pass
     
     # Get rating

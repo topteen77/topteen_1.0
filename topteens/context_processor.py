@@ -9,6 +9,7 @@ from users.models import UserSearchHistory
 from entrance_exams.models import EntranceExam
 from users.models import User
 from core import choices
+from core.choices import MINDMAP_TYPE_CHOICES
 from django.db.models import Q
 from functools import reduce
 from operator import or_
@@ -123,6 +124,9 @@ def globals(request):
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),
+        "enable_career_mindmap": _config_bool('ENABLE_CAREER_MINDMAP', True),
+        "default_mindmap_type": str(Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6').strip() or '6',
+        "mindmap_type_choices": MINDMAP_TYPE_CHOICES,
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),

@@ -832,9 +832,9 @@
           {% endif %}
 
           <!-- ============================================ -->
-          <!-- NEW SVG-based Mindmap (Active) - Hide if XMind file exists -->
+          <!-- NEW SVG-based Mindmap (Active) - Hide if XMind file exists or mindmap disabled -->
           <!-- ============================================ -->
-          {% if not has_xmind_file %}
+          {% if enable_career_mindmap and not has_xmind_file %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-svg-mindmap-section">
             <div class="mindmap-card" role="region" aria-labelledby="mindmap-title" aria-describedby="mindmap-caption">
               <div class="mindmap-head">
@@ -917,7 +917,7 @@
           <!-- ============================================ -->
           <!-- Radial Mindmap (Variation 6) - Dynamic from XMind files -->
           <!-- ============================================ -->
-          {% if has_xmind_file %}
+          {% if enable_career_mindmap and has_xmind_file %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-xmind-mindmap-section">
             <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
               <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">

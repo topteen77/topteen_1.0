@@ -1,0 +1,239 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ career.name }} - Mind Map | Top Teen
+{% endblock %}
+
+{% block description_content %}
+{{ career.display_summary if career.display_summary else career.name }} - Interactive mind map
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <!-- Breadcrumb -->
+    <div class="row">
+      <div class="col-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1 class="h3 mb-2">{{ career.name }} – Mind Map</h1>
+        <p class="text-muted mb-0">
+          <a href="{{ career_detail_url }}" class="text-decoration-none">
+            <i class='bx bx-left-arrow-alt'></i> Back to career detail
+          </a>
+        </p>
+      </div>
+    </div>
+
+    {% if enable_career_mindmap and has_mindmap %}
+    <!-- Radial mindmap container -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+          <div class="card-header py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h5 class="mb-0">✨ Radial Mind Map1</h5>
+            <small class="opacity-90">Click nodes to drill down; use zoom and reset to navigate.</small>
+          </div>
+          <div class="card-body p-0 position-relative">
+            <div id="standalone-mindmap-container" class="radial-mindmap-container" style="height: 75vh; min-height: 500px; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 0; position: relative; display: flex; justify-content: center; align-items: center;">
+              <div id="standalone-mindmap-loading" class="d-flex justify-content-center align-items-center h-100 w-100 position-absolute top-0 start-0">
+                <div class="text-center">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <p class="mt-2 mb-0">Loading mind map...</p>
+                </div>
+              </div>
+              <svg id="standalone-mindmap-svg" style="width: 100%; height: 100%; display: none; margin: auto;"></svg>
+              <div id="standalone-mindmap-controls" class="position-absolute top-0 end-0 p-2" style="z-index: 1000; display: none;">
+                <div class="btn-group-vertical shadow-sm rounded">
+                  <button type="button" class="btn btn-sm btn-light" id="standalone-mindmap-zoom-in" title="Zoom In">🔍+</button>
+                  <button type="button" class="btn btn-sm btn-light" id="standalone-mindmap-zoom-out" title="Zoom Out">🔍−</button>
+                  <button type="button" class="btn btn-sm btn-light" id="standalone-mindmap-reset" title="Reset view">🎯</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Debug panel for manual click testing -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card border border-warning bg-light">
+              <div class="card-header py-2 d-flex align-items-center justify-content-between cursor-pointer" id="mindmap-debug-toggle" style="cursor: pointer;">
+                <span class="text-muted small"><strong>🔧 Click debug</strong> (manual testing)</span>
+                <span class="badge bg-secondary" id="mindmap-debug-count">0</span>
+              </div>
+              <div class="card-body py-2 small" id="mindmap-debug-panel">
+                <div id="mindmap-debug-content" class="font-monospace text-break">
+                  <span class="text-muted">No click yet. Click a node in the mind map above.</span>
+                </div>
+                <div class="mt-3 pt-2 border-top border-secondary">
+                  <strong class="text-danger">Browser errors</strong>
+                  <button type="button" class="btn btn-sm btn-outline-secondary ms-2 py-0" id="mindmap-debug-clear-errors">Clear</button>
+                  <div id="mindmap-debug-errors" class="font-monospace text-break mt-1 small text-danger" style="max-height: 120px; overflow-y: auto;"></div>
+                  <p class="mb-0 mt-1 text-muted" style="font-size: 0.75rem;">JS errors and unhandled promise rejections appear here and in console (F12).</p>
+                </div>
+                <p class="mb-0 mt-2 text-muted" style="font-size: 0.75rem;">Also check browser console (F12) for detailed logs.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% elif not enable_career_mindmap %}
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-info shadow-sm">
+          <h5 class="alert-heading">Career mindmap is disabled</h5>
+          <p class="mb-0">Mindmap is currently turned off. Enable it in <strong>Admin → Configuration → Core website settings</strong>.</p>
+          <hr>
+          <a href="{{ career_detail_url }}" class="btn btn-primary btn-sm">Back to career detail</a>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <!-- No mindmap data -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-info shadow-sm">
+          <h5 class="alert-heading">No mind map for this career</h5>
+          <p class="mb-0">This career does not have mind map data (no XMind file or structured headings in description).</p>
+          <hr>
+          <a href="{{ career_detail_url }}" class="btn btn-primary btn-sm">View career detail</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{% if enable_career_mindmap and has_mindmap %}
+<script src="{{ static('js/radial-mindmap.js') }}"></script>
+<script>
+(function() {
+  const INSTANCE_ID = 'standalone-mindmap';
+  const apiUrl = '{{ mindmap_api_url }}';
+
+  var debugClickCount = 0;
+  function updateDebugPanel(node, ctx) {
+    debugClickCount += 1;
+    var topic = (node && (node.topic || node.title || node.id)) ? String(node.topic || node.title || node.id) : '(no topic)';
+    var id = (node && node.id) ? String(node.id) : '(no id)';
+    var info = {
+      time: new Date().toLocaleTimeString(),
+      topic: topic,
+      id: id,
+      type: ctx.type || '(unknown)',
+      hasChildren: !!ctx.hasChildren,
+      goToParent: !!ctx.goToParent
+    };
+    // Console (for manual debugging)
+    console.log('[Mindmap click #' + debugClickCount + ']', info);
+    console.log('[Mindmap click] full node:', node);
+    console.log('[Mindmap click] full ctx:', ctx);
+    // On-page debug panel
+    var countEl = document.getElementById('mindmap-debug-count');
+    var contentEl = document.getElementById('mindmap-debug-content');
+    if (countEl) countEl.textContent = String(debugClickCount);
+    if (contentEl) {
+      contentEl.innerHTML =
+        '<div><strong>Last click #' + debugClickCount + '</strong> ' + info.time + '</div>' +
+        '<div>topic: <code>' + escapeHtml(topic) + '</code></div>' +
+        '<div>id: <code>' + escapeHtml(id) + '</code></div>' +
+        '<div>type: <code>' + escapeHtml(info.type) + '</code></div>' +
+        '<div>hasChildren: <code>' + info.hasChildren + '</code></div>' +
+        '<div>goToParent: <code>' + info.goToParent + '</code></div>';
+    }
+  }
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  var debugErrors = [];
+  var maxDebugErrors = 10;
+  function addDebugError(label, err) {
+    var msg = (err && (err.message || err.reason || String(err))) || String(err);
+    var entry = new Date().toLocaleTimeString() + ' ' + label + ': ' + msg;
+    debugErrors.push(entry);
+    if (debugErrors.length > maxDebugErrors) debugErrors.shift();
+    var el = document.getElementById('mindmap-debug-errors');
+    if (el) el.textContent = debugErrors.join('\n');
+    console.error('[Mindmap debug] ' + label, err);
+  }
+  window.onerror = function(msg, url, line, col, err) {
+    addDebugError('JS error', msg + (url ? ' at ' + url + ':' + line + ':' + col : ''));
+    return false;
+  };
+  window.addEventListener('unhandledrejection', function(e) {
+    addDebugError('Unhandled rejection', e.reason);
+  });
+
+  function initMindmap() {
+    if (typeof window.RadialMindmap === 'undefined') {
+      setTimeout(initMindmap, 50);
+      return;
+    }
+    window.RadialMindmap.init({
+      instanceId: INSTANCE_ID,
+      containerId: 'standalone-mindmap-container',
+      svgId: 'standalone-mindmap-svg',
+      loadingId: 'standalone-mindmap-loading',
+      controlsId: 'standalone-mindmap-controls',
+      apiUrl: apiUrl,
+      onNodeClick: function(node, ctx) {
+        updateDebugPanel(node, ctx);
+        if (ctx.goToParent || ctx.type === 'center') {
+          window.RadialMindmap.setCenter(INSTANCE_ID, node);
+          return;
+        }
+        if (ctx.hasChildren) {
+          window.RadialMindmap.setCenter(INSTANCE_ID, node);
+        }
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initMindmap();
+
+    document.getElementById('standalone-mindmap-zoom-in').addEventListener('click', function() {
+      if (window.RadialMindmap) window.RadialMindmap.zoomIn(INSTANCE_ID);
+    });
+    document.getElementById('standalone-mindmap-zoom-out').addEventListener('click', function() {
+      if (window.RadialMindmap) window.RadialMindmap.zoomOut(INSTANCE_ID);
+    });
+    document.getElementById('standalone-mindmap-reset').addEventListener('click', function() {
+      if (window.RadialMindmap) window.RadialMindmap.reset(INSTANCE_ID);
+    });
+
+    // Toggle debug panel visibility
+    var debugToggle = document.getElementById('mindmap-debug-toggle');
+    var debugPanel = document.getElementById('mindmap-debug-panel');
+    if (debugToggle && debugPanel) {
+      debugToggle.addEventListener('click', function() {
+        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+    // Clear browser errors
+    var clearBtn = document.getElementById('mindmap-debug-clear-errors');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        debugErrors = [];
+        var el = document.getElementById('mindmap-debug-errors');
+        if (el) el.textContent = '';
+      });
+    }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
