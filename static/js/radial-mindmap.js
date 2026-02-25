@@ -73,11 +73,11 @@
 
   /**
    * Hover zoom: scale up node group on hover for readability.
+   * Skip bringToFront so center overlay stays on top and parent click works in Chrome.
    */
   function addHoverZoom(svg, group, circle, textEl, baseRadius, scale) {
     const scaleFactor = scale || 1.35;
     group.addEventListener('mouseenter', function () {
-      bringToFront(svg, circle, textEl);
       const r = parseFloat(circle.getAttribute('r'));
       circle.setAttribute('r', r * scaleFactor);
       const sw = circle.getAttribute('stroke-width') || '3';
@@ -407,9 +407,10 @@
     }
     svg.appendChild(centerText);
 
-    // Transparent overlay so center click works in Chrome (Chrome often doesn't deliver click to circle when text is on top even with pointer-events: none)
+    // Parent arrow
+    var centerOverlay = null;
     if (!isRoot && parentNode) {
-      const centerOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      centerOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       centerOverlay.setAttribute('cx', centerX);
       centerOverlay.setAttribute('cy', centerY);
       centerOverlay.setAttribute('r', finalCenterRadius);
@@ -423,7 +424,6 @@
       svg.appendChild(centerOverlay);
     }
 
-    // Parent arrow
     if (!isRoot && parentNode) {
       const arrowG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       arrowG.setAttribute('class', 'radial-parent-link');
@@ -448,6 +448,11 @@
         if (options.onNodeClick) options.onNodeClick(parentNode, { type: 'center', goToParent: true });
       });
       svg.appendChild(arrowG);
+    }
+
+    // Keep center overlay on top so hover on child nodes (bringToFront) doesn't put them above it and block parent click in Chrome
+    if (centerOverlay && svg.contains(centerOverlay)) {
+      svg.appendChild(centerOverlay);
     }
 
     applyZoom(instanceId);
