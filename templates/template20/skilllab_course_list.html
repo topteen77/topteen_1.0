@@ -81,6 +81,20 @@ Boost your skills with expert-led short courses for college prep, career growth,
   color: #fff;
   text-decoration: underline;
 }
+
+.blue-tick.cu-stic {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  font-size: 12px;
+}
+
+.f-card {
+  background: #eafaff;
+  border: 1px solid #c1f0ff;
+  padding: 14px;
+  border-radius: 16px;
+}
+
 @media (max-width: 991px) {
   .skill-page .skill-area-box {
     grid-template-columns: repeat(2, 1fr);
@@ -93,6 +107,9 @@ Boost your skills with expert-led short courses for college prep, career growth,
   .skill-course .text-explore a {
     font-size: 16px;
   }
+  .blue-tick.cu-stic {
+  grid-template-columns: 1fr;
+}
 }
 </style>
 
@@ -104,10 +121,25 @@ Boost your skills with expert-led short courses for college prep, career growth,
         {% include 'template20/includes/breadcrumb.html' %}
       </div>
       <div class="col-lg-12 col-md-12">
-        <h1 class="heading-title">
-          Boost Your Skills with <span class="text-yellow">Short Courses!</span>
+        <h1 class="heading-title lh-sm">
+          Future-Ready Skills for  <span class="text-yellow">Today's Students</span>
         </h1>
-        <p class="text-gray fs-16">Boost your skills with expert-led short courses for college prep, career growth, and personal development. Start learning today to stay ahead!</p>
+        <p class="text-gray fs-16">Accelerate your potential with our comprehensive collection of specialized short courses designed for the modern world. From AI preparedness to cultural competency, our expert-designed programs equip students with essential 21st-century skills for academic success, career advancement, and personal excellence. Transform your capabilities and stay ahead of tomorrow's challenges today.</p>
+     
+
+        <div class="f-card">   
+     
+     <h3 class="fs-24 fs-sm-20 mb-4">Who Should Enrol: </h3>
+     <ul class="blue-tick cu-stic">
+<li>Students after 10th or 12th grade seeking skill enhancement </li>
+<li>Young learners (Classes 7-8) preparing for future challenges </li>
+<li>Anyone looking to develop 21st-century competencies</li>
+<li>Students preparing for college and career transitions</li>
+
+
+     </ul>
+    </div>
+     
       </div>
     </div>
   </div>
