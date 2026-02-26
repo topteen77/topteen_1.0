@@ -8,7 +8,8 @@ from .models import (
 )
 from django.views.generic import TemplateView,View
 from django.urls import reverse_lazy
-from core.utils import build_breadcrumb,build_html_head,get_preferred_payment_gateway,is_gateway_available
+from core.utils import build_html_head, get_preferred_payment_gateway, is_gateway_available
+from core.breadcrumbs import get_breadcrumb
 from .document_filters import SkillLabCourseDocumentFilter
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -53,10 +54,7 @@ class SkillLabCourseList(TemplateView):
             ctx = self.get_fallback_context(request)
         
         ctx["html_head"] = self.html_head()
-        ctx['breadcrumb'] = [
-            {'text': 'Home', 'url': reverse('core:home')},
-            {'text': 'Skill Lab Course', 'url': ''},
-        ]
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Skill Lab Course', 'url': ''}])
         return ctx
     
     def get_fallback_context(self, request):
@@ -94,17 +92,17 @@ class SkillLabCourseDetail(TemplateView):
         ctx['skilllab']=skillab
         ctx['first_chapter']=skillab.skilllabcoursechapter.order_by('created').first()
         ctx['activecourses']=SkillLabCourse.objects.filter(category=skillab.category).exclude(id=skillab.id)
-        bread_crumb =self._breadcrumb(skillab)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(skillab)
         ctx["html_head"] = self.html_head(skillab)
         ctx['user_authenticated'] = request.user.is_authenticated
         return ctx
     
-    def _breadcrumb(self,skilllab):
+    def _breadcrumb(self, skilllab):
         from django.urls import reverse
-        url=reverse('skilllabcourse:skilllabcourselist')
-        lst=[{'title':'Skill Lab Courses','text':'Skill Lab Courses','url':url},{'title':skilllab.name,'text':skilllab.name,'url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Skill Lab Courses', 'url': reverse('skilllabcourse:skilllabcourselist')},
+            {'text': skilllab.name, 'url': ''},
+        ])
     
     def get(self, request,skilllab_slug, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request,skilllab_slug,*args, **kwargs))
@@ -132,13 +130,12 @@ class SkillLabCourseChapterDetail(TemplateView):
         ctx["html_head"] = self.html_head(skillab_course_chapter)
         return ctx
     
-    def _breadcrumb(self,skilllab_course_chapter):
-        lst=[
-            {'title':"SkilllabCourse",'text':"SkilllabCourse","url":reverse_lazy('skilllabcourse:skilllabcourselist')},
-            {'title':'{}'.format(skilllab_course_chapter.skilllab.name),'text':'{}'.format("skilllabcourse"),'url':reverse_lazy('skilllabcourse:skilllabcoursedetail',args=[skilllab_course_chapter.skilllab.slug])},
-            {'title':skilllab_course_chapter.chapter_name,"text":skilllab_course_chapter.chapter_name,"url":""},
-            ]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, skilllab_course_chapter):
+        return get_breadcrumb([
+            {'text': 'SkilllabCourse', 'url': reverse_lazy('skilllabcourse:skilllabcourselist')},
+            {'text': skilllab_course_chapter.skilllab.name, 'url': reverse_lazy('skilllabcourse:skilllabcoursedetail', args=[skilllab_course_chapter.skilllab.slug])},
+            {'text': skilllab_course_chapter.chapter_name, 'url': ''},
+        ])
     
     def get(self, request,chapter_slug, *args, **kwargs):
         ctx=self.get_context(request,chapter_slug,*args, **kwargs)
@@ -1142,14 +1139,13 @@ class SkillLabCourseCertificateView(TemplateView):
 class SkillLabCourseActivityDetail(TemplateView):
     template_name="topteenfrontend/skilllabactivityworksheet.html"
 
-    def _breadcrumb(self,skilllab_activity):
-        lst=[
-            {'title':"SkilllabCourse",'text':"SkilllabCourse","url":reverse_lazy('skilllabcourse:skilllabcourselist')},
-            {'title':'{}'.format(skilllab_activity.skilllab_chapter.skilllab.name),'text':'{}'.format(skilllab_activity.skilllab_chapter.skilllab.name),'url':reverse_lazy('skilllabcourse:skilllabcoursedetail',args=[skilllab_activity.skilllab_chapter.skilllab.slug])},
-            {'title':'{}'.format(skilllab_activity.skilllab_chapter.chapter_name),'text':'{}'.format(skilllab_activity.skilllab_chapter.chapter_name),'url':reverse_lazy('skilllabcourse:skilllabcoursechapterdetail',args=[skilllab_activity.skilllab_chapter.slug])},
-            {'title':skilllab_activity.name,"text":skilllab_activity.name,"url":""},
-            ]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, skilllab_activity):
+        return get_breadcrumb([
+            {'text': 'SkilllabCourse', 'url': reverse_lazy('skilllabcourse:skilllabcourselist')},
+            {'text': skilllab_activity.skilllab_chapter.skilllab.name, 'url': reverse_lazy('skilllabcourse:skilllabcoursedetail', args=[skilllab_activity.skilllab_chapter.skilllab.slug])},
+            {'text': skilllab_activity.skilllab_chapter.chapter_name, 'url': reverse_lazy('skilllabcourse:skilllabcoursechapterdetail', args=[skilllab_activity.skilllab_chapter.slug])},
+            {'text': skilllab_activity.name, 'url': ''},
+        ])
 
     def html_head(self,skillactive):
         t= skillactive.name 

@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView,View
 from django.urls import reverse_lazy
-from core.utils import build_breadcrumb,build_html_head,get_preferred_payment_gateway,is_gateway_available
+from core.utils import build_html_head, get_preferred_payment_gateway, is_gateway_available
+from core.breadcrumbs import get_breadcrumb
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from core import choices
@@ -51,7 +52,7 @@ class PsychometricTest(TemplateView):
         ctx['pyschometric_test_amount']=settings.STREAM_SORTER_TEST_AMOUNT
         ctx['psychometric_cross_test_amount']=2999
         ctx['user'] = request.user  # Add user to context for template
-        ctx['breadcrumb'] = {'text': 'Stream Sorter Psychometric Test', 'url': reverse('psychometrictests:psychometrictest')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Stream Sorter Psychometric Test', 'url': reverse('psychometrictests:psychometrictest')}])
         ctx['payment_update_url'] = reverse('psychometrictests:psychomerticttestpaymentupdate')
         
         # Check if user is authenticated before accessing user attributes
@@ -111,7 +112,7 @@ class PsychometricTest12(TemplateView):
         ctx['pyschometric_test_amount']=settings.CAREER_DIRECTION_TEST_AMOUNT
         ctx['psychometric_cross_test_amount']=2999
         ctx['user'] = request.user  # Add user to context for template
-        ctx['breadcrumb'] = {'text': 'Career Direction Psychometric Test', 'url': reverse('psychometrictests:PsychometricTest12')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Career Direction Psychometric Test', 'url': reverse('psychometrictests:PsychometricTest12')}])
         ctx['payment_update_url'] = reverse('psychometrictests:psychomerticttestpaymentupdate')
         
         # Check if user is authenticated before accessing user attributes

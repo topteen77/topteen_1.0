@@ -1,5 +1,6 @@
 import time
 from django.shortcuts import redirect, render
+from core.breadcrumbs import get_breadcrumb
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from .forms import UploadFileForm
@@ -486,7 +487,11 @@ def class10_combined_report(request, user_id=None):
             return render(request, 'template20/app/class10_combined_report.html', {
                 'error': 'No completed test found. Please complete all tests first.',
                 'no_results': True,
-                'user': target_user
+                'user': target_user,
+                'breadcrumb': get_breadcrumb([
+                    {'text': 'Dashboard', 'url': reverse('app:dashboard')},
+                    {'text': 'Combined Report', 'url': ''},
+                ]),
             })
         
         # Get test completion status

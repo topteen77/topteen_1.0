@@ -6,8 +6,7 @@ from statistics import mode
 from core import choices, utils
 from core.models import (BaseModel, BaseMoneyModel, City, Configuration,
                          Country, SeoModel, SlugModel, State,PublishableModel)
-from core.utils import (build_breadcrumb, get_current_user,
-                        ratio)
+from core.utils import (get_current_user, ratio)
 from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
 from django.contrib.contenttypes.models import ContentType

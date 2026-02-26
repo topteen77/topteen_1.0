@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from elasticsearch_dsl import Q ,Nested
 from django.core.paginator import Paginator
 from .models import SkillLabCourse
-from core.utils import build_breadcrumb
+from core.breadcrumbs import get_breadcrumb
 from django.urls import reverse_lazy
 
 
@@ -36,10 +36,9 @@ class SkillLabCourseDocumentFilter:
         
         return ctx
     
-    def _breadcrumb(self,skilllab):
-        url=reverse_lazy('skilllabcourse:skilllabcourselist')
-        lst=[{'text':'{}'.format("skilllabcourse"),'url':url}]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, skilllab):
+        url = reverse_lazy('skilllabcourse:skilllabcourselist')
+        return get_breadcrumb([{'text': 'skilllabcourse', 'url': url}])
     
 
     def _skilllab_filter(self,search,request):

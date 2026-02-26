@@ -1,13 +1,28 @@
-
+{# Centralized breadcrumb: breadcrumb is a list of {text, url, title?}. First item = Home, last = current. #}
 {% if breadcrumb %}
 <div class=" text-[12px] mt-[6px]  mb-[10px]  flex items-center space-x-2 scrollbar-hide overflow-x-auto whitespace-nowrap sm:mt-2 lg:-mt-[-150px] xl:mt-0">
-    <a href="/"><img class='h-3 opacity-50' src="{{static('topteenfrontend/assets/images/home.svg')}}"></a>
+  {% if breadcrumb is iterable and breadcrumb is not string and breadcrumb is not mapping %}
+    {% for item in breadcrumb %}
+      {% set item_text = item['text'] if item is mapping and 'text' in item else (item['title'] if item is mapping and 'title' in item else '') %}
+      {% set item_url = item['url'] if item is mapping and 'url' in item else '' %}
+      {% if not loop.first %}<span>&rarr;</span>{% endif %}
+      {% if loop.first and item_text == 'Home' and item_url %}
+        <a href="{{ item_url }}"><img class="h-3 opacity-50" src="{{ static('topteenfrontend/assets/images/home.svg') }}"></a>
+      {% elif not loop.last and item_url %}
+        <a class="h-5 opacity-50" href="{{ item_url }}">{{ item_text }}</a>
+      {% else %}
+        <p class="text-green-600 font-[galanoGrotesqueBold]">{{ item_text }}</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {# Backward compat: single object with breadcrumb.url, breadcrumb.text, breadcrumb.title #}
+    <a href="/"><img class="h-3 opacity-50" src="{{ static('topteenfrontend/assets/images/home.svg') }}"></a>
     <span>&rarr;</span>
-    <a class='h-5 opacity-50' href="{{breadcrumb.url}}">{{breadcrumb.text}}</a>
-    {%if breadcrumb.title%}
-    <span>&rarr;</span>
-    
-    <p class='text-green-600  font-[galanoGrotesqueBold]'>{{breadcrumb.title}}</p>
-    {%endif%}
+    <a class="h-5 opacity-50" href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a>
+    {% if breadcrumb.title %}
+      <span>&rarr;</span>
+      <p class="text-green-600 font-[galanoGrotesqueBold]">{{ breadcrumb.title }}</p>
+    {% endif %}
+  {% endif %}
 </div>
-{%endif%}
+{% endif %}
