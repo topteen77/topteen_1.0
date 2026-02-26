@@ -392,25 +392,25 @@ Explore our comprehensive collection of career paths organized by industry and i
         </h1>
         <p class="text-gray fs-18 fs-sm-16">Explore different career clusters and discover opportunities that match your interests, skills, and future goals.</p>
     
+          {# AI mode / View mode toggle: hidden for now; default is view mode #}
+          <!--
           <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 mb-2 flex-md-row flex-column">
-            <!-- <span class="text-muted fs-18 me-2">Career Mode:</span> -->
-
-            <div class="d-b-ms d-flex flex-row gap-2"> 
-            <a href="{{ url('careers:career') }}?mode=ai{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
-               class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
+            <div class="d-b-ms d-flex flex-row gap-2">
+            <a href="{{ url('careers:career') }}?mode=ai{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}"
+               class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}"
                id="ai-mode-btn">
-               <span>  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  viewBox="0 0 20 20">
+               <span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  viewBox="0 0 20 20">
                 <path d="M13.696 2.677a.834.834 0 0 1 1.179 0l2.356 2.357a.833.833 0 0 1 0 1.179L6.035 17.408H2.5v-3.535L13.696 2.677Zm-9.53 11.886v1.178h1.18l7.76-7.76-1.178-1.18-7.761 7.762ZM3.775 1.099a.422.422 0 0 1 .785 0l.21.51a3.639 3.639 0 0 0 1.877 1.938l.598.266a.442.442 0 0 1 0 .803l-.633.281a3.636 3.636 0 0 0-1.85 1.876l-.205.471a.422.422 0 0 1-.778 0l-.206-.47a3.636 3.636 0 0 0-1.85-1.877l-.632-.281a.442.442 0 0 1 0-.803l.598-.266A3.639 3.639 0 0 0 3.564 1.61l.21-.51Zm9.332 4.524 1.18 1.179 1.178-1.179-1.178-1.178-1.18 1.178Z"/>
-              </svg>
-              AI Mode</span>           
+              </svg> AI Mode</span>
             </a>
-            <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}" 
-               class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}" 
+            <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}"
+               class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}"
                id="view-mode-btn">
                <i class='bx bx-category fs-20'></i> View Mode
             </a>
           </div>
           </div>
+          -->
 
                <!-- Filter Section -->
         {% if not is_ai_mode %}
@@ -622,7 +622,7 @@ Explore our comprehensive collection of career paths organized by industry and i
         <div class="row">
           <div class="col-md-8 mx-auto">
             <div class="d-flex flex-column justify-content-center align-items-center text-center">
-              <h5 class="mt-3">Get started by selecting your preferred career category</h5>
+              <h5 class="mt-3">Get started by selecting your preferred career cluster</h5>
             </div>
           </div>
         </div>

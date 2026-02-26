@@ -97,8 +97,8 @@ class Careers(TemplateView):
         ctx['html_head'] = self.html_head()
         ctx['breadcrumb'] = {'text': 'Career Tracks', 'url': reverse('careers:career')}
         
-        # Add mode context for template toggle (default to AI mode)
-        ctx['view_mode'] = request_data.get('mode', 'ai')
+        # Add mode context for template toggle (default to view mode; AI/View toggle hidden for now)
+        ctx['view_mode'] = request_data.get('mode', 'view-mode')
         ctx['is_ai_mode'] = ctx['view_mode'] != 'view-mode'
         
         # Add request parameters as context variables for Jinja2 compatibility
