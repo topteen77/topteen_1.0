@@ -10,6 +10,81 @@
   margin-bottom: 12px;
 }
 
+.why-topteen-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.why-topteen-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px 20px;
+  border: 1px solid rgba(63, 55, 201, 0.08);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
+  height: 100%;
+}
+
+.why-topteen-card h5 {
+  margin-bottom: 10px;
+}
+
+.why-topteen-card ul {
+  padding-left: 0px;
+  margin-bottom: 0;
+}
+
+.why-topteen-card ul li::before {width:18px;}
+
+.why-topteen-card ul li {
+  font-size: 14px;
+  line-height: 22px;
+  margin-bottom: 6px;
+}
+
+.why-topteen-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.why-topteen-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.why-topteen-icon.track {
+  background: #F3E8FF;
+}
+
+.why-topteen-icon.assessment {
+  background: #DBEAFE;
+}
+
+.why-topteen-icon.resources {
+  background: #ECFDF3;
+}
+
+.why-topteen-icon.holistic {
+  background: #FEF3C7;
+}
+
+@media (max-width: 1199.98px) {
+  .why-topteen-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .why-topteen-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
 <main class="py-test-page">
 
@@ -30,7 +105,7 @@
               About TopTeen!
               <p>Empowering Future Careers!  </p>
             </h1>
-            <p class="text-gray fs-16">Welcome to TopTeen, India's thriving career guidance community of <strong> 10,000+ students </strong> from diverse schools and grades, all working towards discovering their ideal streams, colleges, and career paths. Powered by Canam Consultants'<strong> 28+ years of expertise</strong>, we've successfully counselled over 5 million students and maintain a comprehensive database of <strong> 10,000+ listed occupations</strong>.</p>
+            <p class="text-gray fs-16">Welcome to TopTeen, India's thriving career guidance community of <strong> 5M+ students </strong> from diverse schools and grades, all working towards discovering their ideal streams, colleges, and career paths. Powered by Canam Consultants'<strong> 29+ years of expertise</strong>, we've successfully counselled over 5 million students and maintain a comprehensive database of <strong> 10,000+ listed occupations</strong>.</p>
 
             <div class="hero-button d-none flex-row mt-md-8 mt-5">
               <button type="button" class="btn custom-button purple-button me-3 student-login-popup-trigger">Plan Your Career</button>
@@ -75,7 +150,7 @@
                 <h5 class="text-purple fs-20 fw-500 mb-0">Harnessing Canam's Legacy</h5>
               </div>
               <div class="emp-descp mt-3">
-                <p class="text-gray fs-16">With <strong>28+ years of proven excellence</strong>, Canam Consultants stands as India's most trusted name in higher education and study abroad consultancy. This rich legacy now powers TopTeen, bringing world-class career guidance to every student across India and opening doors to global opportunities.</p>
+                <p class="text-gray fs-16">With <strong>29+ years of proven excellence</strong>, Canam Consultants stands as India's most trusted name in higher education and study abroad consultancy. This rich legacy now powers TopTeen, bringing world-class career guidance to every student across India and opening doors to global opportunities.</p>
               </div>
             </div>
             <div class="grid-p-box">
@@ -248,54 +323,115 @@
 
                 <div class="col-md-12 about-test-carousels mt-3 py-5">
                   <div class="owl-carousel owl-theme who-student">
+                    <!-- Stream Selector Test (Class 10) -->
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>AI-Powered Career Matching </h5>
-                        <p>Our platform analyzes students' strengths, interests, and aptitudes to recommend best-fit
-                          career options using data-driven insights and predictive analytics.</p>
-                      </div>
-                    </div>
-                    <div class="item">
-                      <div class="phy-item-box">
-                        <h5>Comprehensive Psychometric Testing </h5>
-                        <p>A scientifically validated RIASEC personality assessment that helps students identify their
-                          ideal career path based on their personality type, skills, and aspirations.</p>
-                      </div>
-                    </div>
-
-                    <div class="item">
-                      <div class="phy-item-box">
-                        <h5>Skill Development & Upskilling </h5>
-                        <p>Personalized digital learning modules designed to enhance students' competencies and equip
-                          them with job-relevant skills for a competitive workforce.</p>
-                      </div>
-
-                    </div>
-                    <div class="item">
-                      <div class="phy-item-box">
-                        <h5>Virtual Internships & Gap Year Solutions </h5>
-                        <p>Hands-on internship opportunities and real-world exposure to help students gain industry
-                          experience before making long-term career decisions.</p>
-                      </div>
-                    </div>
-                    <div class="item">
-                      <div class="phy-item-box">
-                        <h5>College & University Admissions Support </h5>
-                        <p>End-to-end admission assistance for top colleges and universities, including:</p>
+                        <h5>Stream Selector Test (Class 10)</h5>
+                      
                         <ul>
-                          <li>Course & University Selection based on academic abilities and career goals.</li>
-                          <li>Application & Documentation Assistance for seamless admission processing.</li>
-                          <li>Scholarship & Financial Aid Guidance to support education funding.</li>
+                          <li>Scientific assessment designed specifically for Class 10 students</li>
+                          <li>Analyzes interests, aptitude, and personality to recommend the most suitable stream</li>
+                          <li>Provides detailed insights into strengths and career inclinations for informed stream selection</li>
                         </ul>
                       </div>
                     </div>
+                    
+                    <!-- Career Direction Test (Class 12) -->
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Gamified Career Exploration </h5>
-                        <p>An interactive and engaging approach to career planning through quizzes, challenges, and
-                          goal-setting tools, making the career search process exciting and effective.</p>
+                        <h5>Career Direction Test (Class 12)</h5>
+                       
+                        <ul>
+                          <li>Advanced assessment for Class 12 students ready for higher education and career planning</li>
+                          <li>Matches personality, skills, and interests with specific career paths and college courses</li>
+                          <li>Offers detailed career recommendations with industry insights and growth prospects</li>
+                        </ul>
                       </div>
                     </div>
+                    
+                    <!-- Know Your Learning Style -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Know Your Learning Style</h5>
+                       
+                        <ul>
+                          <li>Identifies your unique learning style based on Howard Gardner's Multiple Intelligence Theory</li>
+                          <li>Discovers whether you're a visual, auditory, kinaesthetic, or combination learner</li>
+                          <li>Helps optimize study methods and career choices based on your natural intelligence patterns</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <!-- EQ (Emotional Intelligence) Test -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>EQ (Emotional Intelligence) Test</h5>
+                        
+                        <ul>
+                          <li>Measures emotional intelligence quotient and interpersonal skills</li>
+                          <li>Assesses self-awareness, self-regulation, motivation, empathy, and social skills</li>
+                          <li>Provides insights for personal development and career suitability</li>
+                          <li>Helps identify careers that align with your emotional strengths and communication style</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <!-- Career and Video Library -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Career and Video Library</h5>
+                        
+                        <ul>
+                          <li>Comprehensive database of 10,000+ listed occupations with detailed career profiles</li>
+                          <li>Industry trends, salary insights, and growth prospects for each career</li>
+                          <li>Educational pathways and skill requirements for different professions</li>
+                          <li>Regular updates with emerging careers and market demands</li>
+                          <li>Career exploration videos covering diverse fields and specializations</li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <!-- Entrance Exam Guidance & Preparation -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Entrance Exam Guidance & Preparation</h5>
+                        <p>Expert guidance on entrance exams, Olympiads, and government exams after 10th, 12th, and graduation with updated eligibility, resources, and career insights for a successful future.</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Vocational Courses & Skill Development -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Vocational Courses & Skill Development</h5>
+                        <p>Hands-on vocational programs in technical trades, creative fields, healthcare support, business & commerce, and hospitality that prepare you for in-demand careers with practical skills employers value.</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Extracurricular Activities Enhancement -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Extracurricular Activities Enhancement</h5>
+                        <p>Enhance college applications and develop essential life skills through sports, arts, community service, leadership development, STEM activities, and cultural programs that shape character and boost career prospects.</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Skill Enhancement Learning Courses -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Skill Enhancement Learning Courses</h5>
+                        <p>Expert-led short courses for college prep, career growth, and personal development including digital literacy, communication skills, critical thinking, time management, financial literacy, and cyber security.</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Global Education Opportunities -->
+                    <div class="item">
+                      <div class="phy-item-box">
+                        <h5>Global Education Opportunities</h5>
+                        <p>Study abroad programs in top destinations: USA, Canada, UK, Australia, and New Zealand with complete support for applications, scholarships, and visa processes.</p>
+                      </div>
+                    </div>
+                    
+         
                   </div>
                 </div>
                 <div class="col-md-12 d-flex justify-content-center">
@@ -314,7 +450,7 @@
               <div class="tab-pane fade" id="pills-parents-gu" role="tabpanel" aria-labelledby="pills-parents-gu-tab">
                 <div class="row">
                   <div class="col-md-8">
-                    <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Engaging in Their Child’s Career Journey
+                    <h3 class="title-two mt-3 fs-38 fw-700 my-4 mb-3 fs-sm-28">Active Involvement & Support
                     </h3>
                     <p class="text-gray">Engaging in Their Child’s Career Journey" equips parents with tools to support
                       their child’s career path.</p>
@@ -333,29 +469,43 @@
 
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Parental Involvement & Insights </h5>
-                        <p>Career decisions in India are often family-driven. Our platform empowers parents with:</p>
-                        <ul>
-                          <li>Personalized dashboards to track their child's progress.</li>
-                          <li>Career exploration resources to understand industry trends.</li>
-                          <li>Guidance on skill-building to ensure their child is future-ready.</li>
-                        </ul>
+                       <p><span class="text-purple fs-18 fw-800">Personalized dashboards</span> to track your child's assessment results from all tests (Stream Selector, Career Direction, Multiple Intelligence, EQ)</p>
+                      </div>
+                    </div>
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                       <p><span class="text-purple fs-18 fw-800"> Career exploration resources </span> including access to Career Library and Video Library content</p>
                       </div>
                     </div>
 
 
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Financial Planning & Scholarship Assistance </h5>
-                        <p>We help parents navigate the cost of higher education through:</p>
-                        <ul>
-                          <li>Scholarship opportunities & eligibility matching.</li>
-                          <li>Loan assistance for education financing.</li>
-                          <li>Budget planning for higher studies.</li>
-                        </ul>
+                       <p><span class="text-purple fs-18 fw-800">Assessment insights  </span> to understand your child's learning style, emotional intelligence, and career aptitude</p>
                       </div>
                     </div>
 
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                       <p><span class="text-purple fs-18 fw-800">Financial planning guidance   </span> for education costs, scholarships, and study abroad options.</p>
+                      </div>
+                    </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                       <p><span class="text-purple fs-18 fw-800">Family counselling sessions   </span> sessions to align career decisions with family goals and expectations.</p>
+                      </div>
+                    </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                       <p><span class="text-purple fs-18 fw-800">Progress monitoring tools  </span> to stay updated on your child's skill development and academic planning.</p>
+                      </div>
+                    </div>
 
 
 
@@ -363,6 +513,12 @@
                 </div>
 
 
+     <div class="col-md-12 d-flex justify-content-center">
+                  <div class="btn-wrap">
+                    <button class="prev-btn"><i class='bx bx-chevron-left' style='color:#808080'></i></button>
+                    <button class="next-btn"><i class='bx bx-chevron-right' style='color:#808080'></i></button>
+                  </div>
+                </div>
 
               </div>
               <!-- Parent Data  -->
@@ -387,63 +543,54 @@
 
 
                 <div class="col-md-12 about-test-carousels mt-3 py-5">
-                  <div class="owl-carousel owl-theme who-student">
+                  <div class="owl-carousel owl-theme who-parent">
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Certified Career Counsellor Training Programs </h5>
-                        <p>A structured, certified training program to upskill teachers, educators, and aspiring career
-                          counsellors with scientific career guidance methodologies.</p>
+                       <p><span class="text-purple fs-18 fw-800">Comprehensive assessment suite </span> including Stream Selector Test, Career Direction Test, Multiple Intelligence Test, and EQ Assessment for student evaluation</p>
                       </div>
                     </div>
+
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>School & Counsellor Dashboards </h5>
-                        <p>Interactive tools that allow schools to:</p>
-                        <ul>
-                          <li>Manage and track students' career assessments & reports.</li>
-                          <li>Generate personalized career guidance plans for each student.</li>
-                          <li>Provide structured mentorship & skill-building programs.</li>
-                        </ul>
+                       <p><span class="text-purple fs-18 fw-800"> Interactive management dashboards </span> for tracking all student assessments and generating personalized guidance plans</p>
                       </div>
                     </div>
 
 
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Psychometric Testing & Career Discovery </h5>
-                        <p>Our platform provides scientifically-backed career assessments to help students:</p>
-
-                        <ul>
-                          <li>Understand their strengths & career inclinations.</li>
-                          <li>Match their personality to careers using AI-driven algorithms.</li>
-                          <li>Shortlist their ideal career pathways based on real-time industry insights.</li>
-                        </ul>
-
+                       <p><span class="text-purple fs-18 fw-800">Complete resource access   </span> to Career Library and Video Library for enhanced counselling sessions</p>
                       </div>
                     </div>
 
 
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Career Library & Research Hub </h5>
-                        <p>A rich database of career insights, industry trends, blogs, expert interviews, and
-                          career-related videos to help counsellors and educators stay ahead of evolving job markets.
-                        </p>
+                       <p><span class="text-purple fs-18 fw-800">Certified career counsellor training programs   </span> with modern, scientific methodologies</p>
                       </div>
-
                     </div>
+
 
                     <div class="item">
                       <div class="phy-item-box">
-                        <h5>Workshops & Training for Schools </h5>
-                        <p>We offer customized career counselling workshops for schools and colleges to:</p>
-                        <ul>
-                          <li>Train teachers & career counsellors on modern career guidance techniques.</li>
-                          <li>Educate students on career planning, goal setting, and job market trends.</li>
-                          <li>Facilitate interactive sessions with industry experts to provide career exposure.</li>
-                        </ul>
+                       <p><span class="text-purple fs-18 fw-800">Customized workshops    </span> for schools with industry expert interactions and career exposure programs.</p>
                       </div>
                     </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                       <p><span class="text-purple fs-18 fw-800">Assessment tools integration   </span> for seamless student evaluation and progress tracking.</p>
+                      </div>
+                    </div>
+
+
+                    <div class="item">
+                      <div class="phy-item-box">
+                       <p><span class="text-purple fs-18 fw-800">Learning style optimization   </span> guidance to help teachers adapt teaching methods based on students' Multiple Intelligence profiles</p>
+                      </div>
+                    </div>
+
 
                   </div>
                 </div>
@@ -470,9 +617,24 @@
     <!-- Why TopTeen-->
     <section class="why-tteen py-8">
       <div class="container">
+
+
+        <div class="row">
+          <div class="col-md-9 mx-auto d-flex align-items-center flex-column text-center">
+            <span class="highlighter text-gray fw-400 ">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="iocn"> Design Your Future
+              <div></div>
+            </span>
+            <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28 text-center">Why TopTeen?</h3>
+
+            <!--        <p class="text-gray">AI-powered career guidance with personalized assessments, expert counseling, and skill-building programs. Gain real-world experience through internships and industry exposure.</p>-->
+          </div>
+        </div>
+
+
         <div class="row">
 
-          <div class="col-md-4 order-md-2 order-1">
+          <div class="col-md-4 order-md-2 order-1 d-none">
 
             <div class="cta-image">
               <img class="img-fluid" src="{{ static('images_new/general/whytopteen.svg') }}" alt="gateway">
@@ -482,24 +644,60 @@
           </div>
 
           <div
-            class="col-md-8 d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5 order-md-1 order-2">
+            class="col-md-12 d-flex flex-column justify-content-center align-items-start mt-md-0 mt-5 order-md-1 order-2">
 
 
 
-            <span class="highlighter text-gray fw-400 ">
-              <img class="position-relative top--10" src="{{ static('images_new/icons/d-future-icon.svg') }}" alt="iocn"> Design Your Future
-              <div></div>
-            </span>
-
-            <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Why TopTeen?</h3>
-            <div class="top-list-style">
-              <ul>
-                <li>India needs 1.5M career counselors, but only 5% of students get proper guidance.</li>
-                <li>We bridge the employability gap with future-ready career solutions.</li>
-                <li>AI-powered, multilingual, and accessible across urban & rural India.</li>
-                <li>Personalized, bias-free guidance through AI insights & expert mentorship.</li>
-              </ul>
-
+            <div class="why-topteen-grid mt-2">
+              <div class="why-topteen-card">
+                <div class="why-topteen-icon track">
+                  <img src="{{ static('images_new/icons/award-icon.svg') }}" alt="Proven Track Record" />
+                </div>
+                <h5 class="fs-18 fw-600 text-purple">Proven Track Record</h5>
+                <ul class="blue-tick">
+                  <li>10,000+ active student community</li>
+                  <li>5 million+ students successfully counselled</li>
+                  <li>28+ years of educational excellence</li>
+                  <li>2,000+ career options mapped and analyzed</li>
+                </ul>
+              </div>
+              <div class="why-topteen-card">
+                <div class="why-topteen-icon assessment">
+                  <img src="{{ static('images_new/icons/readiness-icon.svg') }}" alt="Comprehensive Assessment System" />
+                </div>
+                <h5 class="fs-18 fw-600 text-purple">Comprehensive Assessment System</h5>
+                <ul class="blue-tick">
+                  <li>Age-appropriate tests: Stream Selector Test (Class 10) and Career Direction Test (Class 12)</li>
+                  <li>Scientific assessments: Multiple Intelligence Test and EQ Assessment</li>
+                  <li>Personalized learning style identification and optimization</li>
+                  <li>Complete personality and aptitude profiling</li>
+                </ul>
+              </div>
+              <div class="why-topteen-card">
+                <div class="why-topteen-icon resources">
+                  <img src="{{ static('images_new/icons/explore-video.svg') }}" alt="Extensive Resource Libraries" />
+                </div>
+                <h5 class="fs-18 fw-600 text-purple">Extensive Resource Libraries</h5>
+                <ul class="blue-tick">
+                  <li>Comprehensive Career Library with 2,000+ occupation profiles</li>
+                  <li>Rich Video Library with expert interviews and educational content</li>
+                  <li>Regular updates with industry trends and emerging careers</li>
+                  <li>Interactive learning experiences and expert guidance</li>
+                </ul>
+              </div>
+              <div class="why-topteen-card">
+                <div class="why-topteen-icon holistic">
+                  <img src="{{ static('images_new/icons/activity-icon.svg') }}" alt="Holistic Development Approach" />
+                </div>
+                <h5 class="fs-18 fw-600 text-purple">Holistic Development Approach</h5>
+                <ul class="blue-tick">
+                  <li>Academic excellence combined with emotional intelligence development</li>
+                  <li>Learning style optimization for better academic performance</li>
+                  <li>Character building through extracurricular activities</li>
+                  <li>Future-ready competencies and digital literacy</li>
+                  <li>Global exposure and international opportunities</li>
+                </ul>
+              </div>
             </div>
 
           </div>
@@ -519,7 +717,7 @@
 
     <!-- FAQ Section -->
 
-    <section class="blog-section pb-10 pt-8">
+    <section class="blog-section pb-10 pt-8 d-none">
       <div class="container">
         <div class="row">
 
