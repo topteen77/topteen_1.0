@@ -12200,8 +12200,8 @@ border-radius: 20px;
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #f0e9ff, #f7f4ff);
-  color: #6b3df0;
+  background: rgb(63, 55, 201);
+  color: #fff;
   font-size: 20px;
   margin-right: 12px;
   flex: 0 0 44px;
@@ -12215,7 +12215,8 @@ border-radius: 20px;
 
 .vocational-cr-accordion .custom-accordion .accordion-button.active {
   background: linear-gradient(90deg, rgba(107, 61, 240, 0.06), rgba(99, 102, 241, 0.03));
-  border-left: 4px solid #6b3df0;
+  /* border-left: 4px solid #6b3df0; */
+  color:rgb(63, 55, 201) !important;
 }
 
 .vocational-cr-accordion .custom-accordion .accordion-body {

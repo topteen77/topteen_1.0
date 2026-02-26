@@ -819,7 +819,7 @@ if (document.readyState === 'loading') {
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'en',
-    includedLanguages: 'ar,as,awa,bn,bho,zh-CN,cs,dog,nl,en,fr,fr-CA,de,gu,hi,it,ja,kn,ks,kok,ko,mai,ms,ml,mr,mwr,mni,np,or,pa,pt,pt-BR,ru,sat,sd,es,sw,ta,te,tr,ur,vi,si,ne,tl,th,kk,uz',
+    includedLanguages: 'ar,as,awa,bn,bho,zh-CN,cs,dog,nl,en,fr,fr-CA,de,el,gu,hi,it,ja,kn,ks,kok,ko,mai,ms,ml,mr,mwr,mni,np,or,pa,pt,pt-BR,ru,sat,sd,es,sw,ta,te,tr,ur,vi,si,ne,tl,th,kk,uz',
     layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
     autoDisplay: false
   }, 'google_translate_element');

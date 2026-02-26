@@ -69,7 +69,7 @@
 <!-- Hero Section -->
 
 <!-- Blog Search and Filter Section -->
-<section class="py-5 bg-light">
+<section id="blogFilterSection" tabindex="-1" class="py-5 bg-light blog-search-filter-section mb-5">
   <div class="container">
     <div class="row">
       <div class="col-md-8 mx-auto">
@@ -106,8 +106,8 @@
     <div class="row">
       {% for blog in popular_blogs[:6] %}
       <div class="col-md-4 col-sm-6 mb-4">
-        <div class="blog-card">
-          <div class="blog-image">
+        <div class="blog-card border">
+          <div class="blog-image ">
             {% if blog.category %}
             <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category category-parent">
               {{ blog.category.name|blog_category_display }}
@@ -126,7 +126,7 @@
               <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ blog.title }}</a>
             </h3>
             {% if blog.summary %}
-            <p class="blog-excerpt">{{ blog.summary|truncate(120) }}</p>
+            <p class="blog-excerpt lh-sm">{{ blog.summary|truncate(120) }}</p>
             {% endif %}
                     {% if request.user.is_authenticated %}
                     <button type="button"
@@ -157,9 +157,9 @@
             {% if heading %}{{ heading }}{% else %}All Articles{% endif %}
           </h2>
           {% if category %}
-          <p class="section-description">Explore blogs {{ category.name|blog_category_short }} category</p>
+          <!-- <p class="section-description">Explore blogs {{ category.name|blog_category_short }} category</p> -->
           {% elif blogtag %}
-          <p class="section-description">Explore blogs tagged with {{ blogtag.name }}</p>
+          <!-- <p class="section-description">Explore blogs tagged with {{ blogtag.name }}</p> -->
           {% endif %}
         </div>
 
@@ -169,7 +169,7 @@
             <div class="row">
               {% for blog in page_obj.object_list %}
               <div class="col-md-4 mb-4">
-                <div class="blog-card">
+                <div class="blog-card border">
                   <div class="blog-image">
                     {% if blog.category %}
                     <a href="{{ url('blog:category', args=[blog.category.slug]) }}" class="blog-category category-parent">
@@ -194,11 +194,11 @@
                         <span>{{ date_format(blog.created) }}</span>
                       </div>
                     </div>
-                    <h3 class="blog-title mt-0 fs-18">
+                    <h3 class="blog-title mt-0 fs-18 lh-sm">
                       <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ blog.title }}</a>
                     </h3>
                     {% if blog.summary %}
-                    <p class="blog-excerpt">{{ blog.summary|truncate(200) }}</p>
+                    <p class="blog-excerpt lh-sm">{{ blog.summary|truncate(200) }}</p>
                     {% endif %}
                     <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
                   </div>
@@ -272,8 +272,8 @@
       <div class="col-lg-3 col-md-12">
         <div class="blog-sidebar">
           <!-- Search Form -->
-          <div class="sidebar-widget mb-4">
-            <h4 class="widget-title mb-3">Search</h4>
+          <div class="sidebar-widget mb-4 d-none">
+            <h4 class="sidebar-title mb-3">Search</h4>
             <form action="{{ url('blog:blogs') }}" method="GET">
               <div class="input-group">
                 <input type="text" name="search" class="form-control" placeholder="Search blogs..." value="{{ search_blogs if search_blogs else '' }}">
@@ -287,10 +287,10 @@
           <!-- Latest Blogs -->
           {% if latest_blogs %}
           <div class="sidebar-widget">
-            <h4 class="widget-title mb-3">Latest Blogs</h4>
+            <h4 class="sidebar-title mb-3">Latest Blogs</h4>
             <div class="latest-blogs-list">
               {% for blog in latest_blogs %}
-              <div class="latest-blog-item mb-3">
+              <div class="latest-blog-item mb-3 border-bottom">
                 <div class="row g-2">
                   <div class="col-4">
                     <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
@@ -317,7 +317,7 @@
           <!-- Categories -->
           {% if categories %}
           <div class="sidebar-widget">
-            <h4 class="widget-title mb-3">Categories</h4>
+            <h4 class="sidebar-title mb-3">Categories</h4>
             <ul class="category-list">
               <li class="category-item">
                 <a href="{{ url('blog:blogs') }}" class="text-decoration-none {% if not category and not blogtag %}active{% endif %}">All Blogs</a>
@@ -344,7 +344,7 @@
         <img class="img-fluid" src="{{ static('images_new/general/getupdates.png') }}" alt="Logo" />
       </div>
       <div class="col-lg-7 col-md-12 ">
-        <h3 class="text-white mb-3">Interested in getting latest updates?</h3>
+        <h3 class="text-white mb-3 fw-700">Interested in getting latest updates?</h3>
         <p class="text-white mb-5">Stay informed with real-time notifications about universities, courses, scholarships, application deadlines, and entrance exams. Get all important alerts delivered straight to you so you never miss an opportunity in your study abroad journey.</p>
         <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#subscribeModal">
           <i class='bx bx-envelope me-2'></i> SUBSCRIBE NOW
@@ -560,6 +560,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+{% if category or blogtag or search_blogs %}
+// If the page is showing filtered/search results, scroll and focus the filter section
+document.addEventListener('DOMContentLoaded', function() {
+  var filterSection = document.getElementById('blogFilterSection');
+  if (!filterSection) return;
+  try {
+    filterSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    filterSection.focus({ preventScroll: true });
+  } catch (e) {
+    filterSection.scrollIntoView();
+    filterSection.focus();
+  }
+});
+{% endif %}
 </script>
 {% endblock %}
 

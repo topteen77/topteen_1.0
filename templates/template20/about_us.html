@@ -3,6 +3,14 @@
 {% block description_content %}About Us page for TopTeen career guidance platform.{% endblock %}
 {% block content %}
 {% include 'template20/includes/messages.html' %}
+<style>
+
+.cta-purple ul li {
+  line-height: 20px;
+  margin-bottom: 12px;
+}
+
+</style>
 <main class="py-test-page">
 
     <section class="hero-section-inner pt-md-18 pt-14 pb-5">
@@ -18,13 +26,11 @@
             <span class="highlighter">
               <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="iocn" /> Shaping Future Careers
             </span>
-            <h1 class="heading-title mt-md-9 mb-md-8 mt-8 mb-3">
+            <h1 class="heading-title mt-md-9  mt-8 mb-md-3 mb-0">
               About TopTeen!
-              <p> Empowering Future Careers! </p>
+              <p>Empowering Future Careers!  </p>
             </h1>
-            <p class="text-gray fs-16">Welcome to TopTeen, an Ed-Tech platform by Canam Consultants Ltd, dedicated to
-              transforming careers in India. We provide valuable opportunities for students, professionals, and career
-              counselors, shaping the future of career guidance.</p>
+            <p class="text-gray fs-16">Welcome to TopTeen, India's thriving career guidance community of <strong> 10,000+ students </strong> from diverse schools and grades, all working towards discovering their ideal streams, colleges, and career paths. Powered by Canam Consultants'<strong> 28+ years of expertise</strong>, we've successfully counselled over 5 million students and maintain a comprehensive database of <strong> 10,000+ listed occupations</strong>.</p>
 
             <div class="hero-button d-none flex-row mt-md-8 mt-5">
               <button type="button" class="btn custom-button purple-button me-3 student-login-popup-trigger">Plan Your Career</button>
@@ -60,9 +66,7 @@
                 <h5 class="text-purple fs-20 fw-500 mb-0">Empowering Choices, Enabling Futures</h5>
               </div>
               <div class="emp-descp mt-3">
-                <p class="text-gray fs-16">Choosing a career is a crucial milestone. At TopTeen, we combine AI and human
-                  interaction to reduce biases in career selection, helping students, parents, educators, and counselors
-                  make informed decisions for successful outcomes.</p>
+                <p class="text-gray fs-16">Career selection is life's most crucial decision. At TopTeen, we combine advanced AI technology with expert human guidance to eliminate biases in career selection. Our comprehensive assessment suite including <strong> Stream Selector Test </strong>, <strong> Career Direction Test</strong>, and <strong> Multiple Intelligence assessments</strong> help students, parents, and educators make informed, data-driven decisions that lead to successful career outcomes.</p>
               </div>
             </div>
             <div class="grid-p-box">
@@ -71,9 +75,7 @@
                 <h5 class="text-purple fs-20 fw-500 mb-0">Harnessing Canam's Legacy</h5>
               </div>
               <div class="emp-descp mt-3">
-                <p class="text-gray fs-16">With 25+ years of experience, Canam Consultants is a trusted name in higher
-                  education and study abroad consultancy. Our expertise now powers TopTeen, setting new standards in the
-                  Ed-tech industry.</p>
+                <p class="text-gray fs-16">With <strong>28+ years of proven excellence</strong>, Canam Consultants stands as India's most trusted name in higher education and study abroad consultancy. This rich legacy now powers TopTeen, bringing world-class career guidance to every student across India and opening doors to global opportunities.</p>
               </div>
             </div>
             <div class="grid-p-box">
@@ -82,9 +84,7 @@
                 <h5 class="text-purple fs-20 fw-500 mb-0">A Symphony of Comprehensive Services</h5>
               </div>
               <div class="emp-descp mt-3">
-                <p class="text-gray fs-16 mb-0">We offer a complete range of services, from academic counseling to visa
-                  assistance, scholarships, and accommodations. Our goal is to empower over a million students in India
-                  to confidently navigate their educational journey.</p>
+                <p class="text-gray fs-16 mb-0">We deliver a complete ecosystem spanning career discovery to global education, from personalized assessments to international university placements. Our goal is to empower students to confidently navigate their educational journey, whether in India or abroad.</p>
               </div>
             </div>
           </div>
@@ -121,14 +121,13 @@
               <img class="position-relative top--10" src="{{ static('images_new/general/find-direction.svg') }}" alt="iocn" /> Our Vision
             </span>
             <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Visionary Goals for a Brighter Tomorrow</h3>
-            <p class="text-gray">We aim to build India’s most efficient and reliable career guidance platform that helps
-              students:</p>
+            <p class="text-gray">We are building India's most efficient and reliable career guidance platform that empowers students to:</p>
             <div class="top-list-style">
               <ul>
-                <li>Make data-driven career decisions.</li>
-                <li>Bridge the gap between academic aspirations and real-world opportunities.</li>
-                <li>Receive structured mentorship and AI-powered career insights.</li>
-                <li>Gain future-ready skills for a competitive job market.</li>
+                <li><strong>Make data-driven career decisions</strong> based on scientific assessments and real-time industry insights </li>
+                <li><strong>Bridge the gap between academic aspirations and real-world opportunities</strong> through practical exposure and global connections</li>
+                <li><strong>Receive structured mentorship and AI-powered career insights</strong> that adapt to their unique strengths and interests</li>
+                <li><strong>Gain future-ready skills for success</strong> in an increasingly competitive and evolving job market</li>
               </ul>
 
             </div>
@@ -145,7 +144,7 @@
 
     <section class="gateway">
       <div class="container">
-        <div class="cta-purple px-5 py-md-10 py-5  ">
+        <div class="cta-purple px-5 py-md-7 py-5  ">
           <div class="row">
 
             <div
@@ -157,14 +156,14 @@
               <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700  text-white">The Platform: AI-Powered Career Guidance
               </h3>
 
-              <p class="text-white fs-18">Our technology-driven career platform helps students:</p>
-              <ul class="text-white fw-400 ps-3">
-                <li>Assess their strengths & interests through advanced psychometric tests.</li>
-                <li>Receive personalized career recommendations based on AI-driven predictive analytics.</li>
-                <li>Access expert counselling & mentorship via one-on-one virtual sessions.</li>
-                <li>Plan their career journey with data-driven insights & research-backed tools.</li>
-                <li>Prepare for higher education & jobs through skill-building programs, internships, and admissions
-                  support.</li>
+              <p class="text-white fs-18">Our revolutionary technology-driven career platform transforms how students discover their ideal careers by helping them:</p>
+              <ul class="text-white fw-400 ps-3 mb-0">
+                <li><strong>Assess their strengths & interests</strong> through our comprehensive test suite: Stream Selector Test for Class 10, Career Direction Test for Class 12, Multiple Intelligence Test, and EQ Assessment</li>
+                <li><strong>Receive personalized career recommendations</strong> from our database of <strong>2,000+ listed occupations</strong> using AI-driven predictive analytics</li>
+                <li><strong>Access expert counselling & mentorship</strong> via personalized one-on-one virtual sessions with industry professionals</li>
+                <li><strong>Explore comprehensive resources</strong> through our extensive Career Library and Video Library with expert insights</li>
+                <li><strong>Plan their career journey</strong> with comprehensive roadmaps from Class 9-12 and beyond, covering both Indian and international pathways</li>
+                <li><strong>Prepare for higher education & jobs</strong> through targeted skill-building programs, entrance exam guidance, vocational training, and global university admissions support</li>
 
               </ul>
 

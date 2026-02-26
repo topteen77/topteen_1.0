@@ -13,6 +13,22 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
+
+.logged-in.test-sections-page .tt-header .navbar {
+	background: #fff !important;
+}
+
+.section-title {
+	min-height: 25px !important;
+    margin-bottom: 10px !important;
+}
+
+
+.hero-gradient {
+	background: linear-gradient(135deg, #3F37C9 0%, #534a9a 100%);
+	padding-top: 114px !important;
+}
+
     .test-sections-page {
         padding-top: 0;
         background-color: #f5f5f5;
@@ -298,9 +314,9 @@
         </div>
     </div>
 </section>
-<main class="lg:container mx-auto px-[15px] lg:px-0 w-full  pb-[60px] lg:pb-0">
+<main class="container">
 
-    <section id="introduction-test-4" class="introduction">
+    <section id="introduction-test-4" class="introduction mt-10">
 
         <div class="row">
             <div class="col-md-4 d-flex align-items-center bg-light">
@@ -312,7 +328,7 @@
                 <h3>Introduction</h3>
                 <div class="instruction-content">
                     <h4 class="fw-bold fs-21 mb-4"> Aptitude Test </h4>
-                    <h6 class="fw-bold fs-21 mb-4"> Welcome to the Aptitude Assessment! </h6>
+                    <h6 class="fw-bold fs-18 mb-4"> Welcome to the Aptitude Assessment! </h6>
                     <h5 class="fs-18 mb-3" style="color:#4f48d2; font-weight: 600;">Purpose</h5>
 
                     <p>This timed assessment measures seven core ability areas: Abstract, Numerical, Logical, Verbal,
@@ -415,7 +431,7 @@
 
 
 
-                    <h4 class="fw-bold fs-20 my-4"> Good luck! Approach each question with confidence and clarity—you've
+                    <h4 class="fw-bold fs-20 my-4"> <span class="text-purple">Good luck!</span> Approach each question with confidence and clarity—you've
                         got this. </h4>
 
 
@@ -464,11 +480,11 @@
                 <p class="section-description"></p>
                 <div class="section-meta border-top d-flex justify-content-between align-items-center">
 
-                    <span class="time-limit fs-14"><i class="fas fa-clock"></i> <span class="minutes"></span>
+                    <span class="time-limit fs-14"><i class='bx bx-time-five text-purple me-2' ></i> <span class="minutes"></span>
                         minutes</span>
 
                     <button
-                        class="start-section-btn btn btn-primary btn-sm mt-2 custom-start btn purple-button next-button ">Start
+                        class="start-section-btn btn mt-2 custom-start btn purple-button next-button ">Start
                         Section</button>
 
 
