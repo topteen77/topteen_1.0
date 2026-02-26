@@ -394,12 +394,12 @@ Explore our comprehensive collection of career paths organized by industry and i
 
         <!-- Cluster search under Career Finder (AJAX filter for cluster cards only) -->
         {% if not is_ai_mode and not selected_clusters %}
-        <div class="w-100 mt-4">
+        <div class="w-100 mt-4" autocomplete="off">
           <h5 class="mt-3 mb-2">Get started by selecting your preferred career cluster</h5>
           <div class="row justify-content-center">
             <div class="col-md-12 col-lg-8">
               <div class="input-group">
-                <input type="text" id="cluster-cards-search" class="form-control" placeholder="Search and select one or more clusters" autocomplete="off" aria-label="Filter career clusters">
+                <input type="text" id="cluster-cards-search" class="form-control" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" data-lpignore="true" data-form-type="other">
                 <span class="input-group-text bg-transparent border-start-0"><i class='bx bx-search'></i></span>
               </div>
               <p class="small text-muted mt-1 mb-0">Type to filter cluster cards below.</p>
@@ -413,13 +413,13 @@ Explore our comprehensive collection of career paths organized by industry and i
           <h5 class="mt-3 mb-2">Filter by careers</h5>
           <div class="row justify-content-center">
             <div class="col-md-12 col-lg-8">
-              <form method="get" action="{{ cluster_page_url }}" id="career-filter-inner-form" class="career-inner-filter-form">
+              <form method="get" action="{{ cluster_page_url }}" id="career-filter-inner-form" class="career-inner-filter-form" autocomplete="off">
                 <div class="row g-3 align-items-end">
                   <div class="col-12">
                     <select name="career" id="careerFilterInner" class="form-select w-100" multiple
                             data-placeholder="Type career name..."
                             data-ajax-url="{{ url('careers:autocomplete_careers_from_clusters') }}"
-                            data-cluster-id="{{ current_cluster_id or '' }}">
+                            data-cluster-id="{{ current_cluster_id or '' }}" autocomplete="off">
                       {% for item in selected_careers_display %}
                         <option value="{{ item.id|string }}" selected>{{ item.text }}</option>
                       {% endfor %}
@@ -1920,6 +1920,10 @@ body.ai-fullscreen-active {
   const row = document.getElementById('cluster-cards-row');
   const countEl = document.getElementById('cluster-count-display');
   if (!input || !row) return;
+  // Don't use system/browser prefilled values (e.g. email) in this search field
+  if (input.value && (input.value.indexOf('@') !== -1 || input.value.indexOf('.com') !== -1)) {
+    input.value = '';
+  }
   const apiUrl = '{{ url("careers:cluster_cards_search") }}';
   let debounceTimer;
   function updateCount(n) {
