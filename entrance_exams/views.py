@@ -1,5 +1,6 @@
 from unicodedata import name
-from core.utils import build_breadcrumb,build_html_head
+from core.utils import build_html_head
+from core.breadcrumbs import get_breadcrumb
 import random
 from django.urls import reverse_lazy
 from django.shortcuts import render
@@ -33,19 +34,19 @@ class TestPrepDetail(TemplateView):
         related_exam=EntranceExam.objects.filter(stream__in=strem).exclude(name=exam.name)
         ctx['related_exam']=related_exam
         ctx['exam']=exam
-        bread_crumb =self._breadcrumb(exam)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(exam)
         num_entities = EntranceExam.objects.all().exclude(name=exam.name).order_by('?')[:5]
         ctx['random_exam']=num_entities
         ctx["html_head"] = self.html_head(exam)
         
         return ctx
     
-    def _breadcrumb(self,exam):
+    def _breadcrumb(self, exam):
         from django.urls import reverse
-        url=reverse('entrance_exams:testpreptenth')
-        lst=[{'title':'Test Prep','text':'Test Prep','url':url},{'title':exam.name,'text':exam.name,'url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Test Prep', 'url': reverse('entrance_exams:testpreptenth')},
+            {'text': exam.name, 'url': ''},
+        ])
     
     def get(self, request,exam_slug, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request,exam_slug,*args, **kwargs))
@@ -78,11 +79,6 @@ class TestPrepFilter(TemplateView):
             page_number = request.GET.get('page')
             page_obj = paginator.get_page(page_number)
             
-            from core.utils import build_breadcrumb
-            breadcrumb_url = reverse_lazy('entrance_exams:testprepfilter')
-            breadcrumb_list = [{'text': 'Exam', 'url': breadcrumb_url}]
-            breadcrumb_result = build_breadcrumb(breadcrumb_list)
-            
             ctx = {
                 'exams': page_obj,
                 'streams': list(Stream.objects.filter(entranceexam__isnull=False).distinct().values_list('name', flat=True)),
@@ -93,16 +89,14 @@ class TestPrepFilter(TemplateView):
                     'examtags_slug': [],
                     'stream_slug': []
                 },
-                'breadcrumb': breadcrumb_result[1] if isinstance(breadcrumb_result, tuple) else breadcrumb_result
+                'breadcrumb': get_breadcrumb([{'text': 'Exam', 'url': reverse_lazy('entrance_exams:testprepfilter')}])
             }
         
         ctx["html_head"] = self.html_head()
         ctx['searchname']=name
         return ctx
-    def _breadcrumb(self,exam):
-        url=reverse_lazy('entrance_exams:testprepfilter')
-        lst=[{'title':'{}'.format(exam.name),'text':'{}'.format("Exam"),'url':url}]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, exam):
+        return get_breadcrumb([{'text': 'Exam', 'url': reverse_lazy('entrance_exams:testprepfilter')}])
     
     def get(self, request,stream=None,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,stream,args,kwargs))
@@ -173,7 +167,7 @@ class TestPreptenth(TemplateView):
         ctx["html_head"] = self.html_head()
         ctx['entrance_exam_category'] = {'after10':"After 10th",'after12':"After 12th",'aftercollge':"After College"}
         from django.urls import reverse
-        ctx['breadcrumb'] = {'text': 'Test Prep', 'url': reverse('entrance_exams:testpreptenth')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Test Prep', 'url': reverse('entrance_exams:testpreptenth')}])
         return ctx
 
     def get(self, request,*args, **kwargs):

@@ -13,7 +13,8 @@ from core import choices
 from colleges.views import is_ajax
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from core.utils import build_breadcrumb,build_html_head
+from core.utils import build_html_head
+from core.breadcrumbs import get_breadcrumb
 from entrance_exams.models import EntranceExam
 from .document_filters import CareerDocumentFilter
 from django.urls import reverse
@@ -40,29 +41,36 @@ class Careers(TemplateView):
     def get_context(self, request, *args, **kwargs):
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
-        
-        try:
-            docmentservice=CareerDocumentFilter()
-            ctx=docmentservice.get_career_list_context(request)
-            # Ensure all required variables are set (Elasticsearch context may be missing some)
-            if 'selected_professions' not in ctx:
-                ctx['selected_professions'] = request_data.getlist("professions")
-            if 'selected_clusters' not in ctx:
-                ctx['selected_clusters'] = request_data.getlist("cluster")
-            if 'clusters' not in ctx:
-                from .models import CareerCluster
-                ctx['clusters'] = CareerCluster.objects.filter(object_status=1, parent__isnull=True)
-            if 'professions' not in ctx:
-                from .models import Profession
-                ctx['professions'] = Profession.objects.filter(object_status=1)
-            # Ensure counts are set (may be missing from Elasticsearch context)
-            if 'clusters_with_counts' not in ctx:
-                ctx['clusters_with_counts'] = []
-            if 'professions_with_counts' not in ctx:
-                ctx['professions_with_counts'] = []
-        except Exception as e:
-            logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
-            ctx = self.get_fallback_context(request)
+        # SEO-friendly URL: /careers/cluster/<slug>-<id>/ passes cluster_id (and cluster_slug) in URL kwargs
+        url_kwargs = args[1] if len(args) > 1 else {}
+        url_cluster_id = url_kwargs.get('cluster_id')
+
+        # When cluster is specified in URL, use fallback context so careers are filtered by that cluster
+        if url_cluster_id is not None:
+            ctx = self.get_fallback_context(request, url_cluster_id=url_cluster_id)
+        else:
+            try:
+                docmentservice=CareerDocumentFilter()
+                ctx=docmentservice.get_career_list_context(request)
+                # Ensure all required variables are set (Elasticsearch context may be missing some)
+                if 'selected_professions' not in ctx:
+                    ctx['selected_professions'] = request_data.getlist("professions")
+                if 'selected_clusters' not in ctx:
+                    ctx['selected_clusters'] = request_data.getlist("cluster")
+                if 'clusters' not in ctx:
+                    from .models import CareerCluster
+                    ctx['clusters'] = CareerCluster.objects.filter(object_status=1, parent__isnull=True)
+                if 'professions' not in ctx:
+                    from .models import Profession
+                    ctx['professions'] = Profession.objects.filter(object_status=1)
+                # Ensure counts are set (may be missing from Elasticsearch context)
+                if 'clusters_with_counts' not in ctx:
+                    ctx['clusters_with_counts'] = []
+                if 'professions_with_counts' not in ctx:
+                    ctx['professions_with_counts'] = []
+            except Exception as e:
+                logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
+                ctx = self.get_fallback_context(request)
 
         # Parent -> Student context (parent bookmarking careers for a specific linked student)
         ctx['is_parent_student_context'] = False
@@ -95,10 +103,10 @@ class Careers(TemplateView):
             data=pro+skill+course
             ctx['data']=data
         ctx['html_head'] = self.html_head()
-        ctx['breadcrumb'] = {'text': 'Career Tracks', 'url': reverse('careers:career')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Career Tracks', 'url': reverse('careers:career')}])
         
-        # Add mode context for template toggle (default to AI mode)
-        ctx['view_mode'] = request_data.get('mode', 'ai')
+        # Add mode context for template toggle (default to view mode; AI/View toggle hidden for now)
+        ctx['view_mode'] = request_data.get('mode', 'view-mode')
         ctx['is_ai_mode'] = ctx['view_mode'] != 'view-mode'
         
         # Add request parameters as context variables for Jinja2 compatibility
@@ -111,9 +119,19 @@ class Careers(TemplateView):
         return render(request, self.template_name, self.get_context(request,args, kwargs))
     
     def post(self, request, *args, **kwargs):
+        # SEO redirect: single cluster from form -> /careers/cluster/<slug>-<id>/
+        clusters_post = request.POST.getlist("cluster")
+        if len(clusters_post) == 1:
+            try:
+                cid = int(clusters_post[0])
+                cluster = CareerCluster.objects.filter(id=cid).first()
+                if cluster:
+                    return redirect(reverse("careers:career_cluster", args=[cluster.slug, cluster.id]))
+            except (ValueError, TypeError):
+                pass
         return render(request, self.template_name, self.get_context(request, args, kwargs))
     
-    def get_fallback_context(self, request):
+    def get_fallback_context(self, request, url_cluster_id=None):
         from django.core.paginator import Paginator
         from .models import Career, CareerCluster, CareerTags, Skill, ProspectiveEmploymentArea, ProspectiveRecruiter, Profession
         from courses.models import Course
@@ -121,6 +139,8 @@ class Careers(TemplateView):
 
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
+        # SEO-friendly URL can pass single cluster via url_cluster_id
+        selected_clusters = request_data.getlist("cluster") or ([str(url_cluster_id)] if url_cluster_id is not None else [])
         
         # Optimize prefetch_related to avoid N+1 queries in template
         # Prefetch career_cluster with only active clusters to reduce data transfer
@@ -132,7 +152,16 @@ class Careers(TemplateView):
         # Handle selected filters
         selected_professions = request_data.getlist("professions")
         selected_skills = request_data.getlist("skills")
-        selected_clusters = request_data.getlist("cluster")
+        selected_career_ids = request_data.getlist("career")
+        
+        # Apply career filter (inner page: filter by selected career IDs)
+        if selected_career_ids:
+            try:
+                career_ids = [int(x) for x in selected_career_ids if str(x).strip().isdigit()]
+                if career_ids:
+                    careers = careers.filter(id__in=career_ids).distinct()
+            except (ValueError, TypeError):
+                pass
         
         # Apply cluster filtering (multi-select) - OR logic within clusters
         if selected_clusters:
@@ -166,8 +195,8 @@ class Careers(TemplateView):
 
         # Ensure deterministic ordering before pagination (distinct() may clear order_by)
         careers = careers.order_by('name', 'id')
-        # Pagination
-        paginator = Paginator(careers, 20)
+        # Pagination: 15 results per page
+        paginator = Paginator(careers, 15)
         page = request_data.get('page')
         try:
             careers_page = paginator.page(page)
@@ -253,6 +282,46 @@ class Careers(TemplateView):
                 except:
                     career._career_cluster_list = []
         
+        # Current cluster for inner page (when viewing a single cluster)
+        current_cluster_id = None
+        current_cluster_slug = None
+        cluster_page_url = None
+        if url_cluster_id is not None:
+            try:
+                current_cluster = CareerCluster.objects.filter(id=url_cluster_id).first()
+                if current_cluster:
+                    current_cluster_id = current_cluster.id
+                    current_cluster_slug = current_cluster.slug or ''
+                    cluster_page_url = reverse('careers:career_cluster', args=[current_cluster_slug, current_cluster_id])
+            except (ValueError, TypeError):
+                pass
+        elif len(selected_clusters) == 1:
+            try:
+                cid = int(selected_clusters[0])
+                current_cluster = CareerCluster.objects.filter(id=cid).first()
+                if current_cluster:
+                    current_cluster_id = current_cluster.id
+                    current_cluster_slug = current_cluster.slug or ''
+                    cluster_page_url = reverse('careers:career_cluster', args=[current_cluster_slug, current_cluster_id])
+            except (ValueError, TypeError):
+                pass
+
+        # Pre-fill display text for selected careers (for inner-page filter multiselect)
+        selected_careers_display = []
+        if selected_career_ids:
+            try:
+                cids = [int(x) for x in selected_career_ids if str(x).strip().isdigit()]
+                if cids:
+                    from django.db.models import Prefetch
+                    prefetch = Prefetch('career_cluster', queryset=CareerCluster.objects.filter(object_status=1))
+                    for c in Career.objects.filter(id__in=cids).prefetch_related(prefetch).order_by('name'):
+                        cluster_names = [cl.name for cl in c.career_cluster.all() if cl and cl.name]
+                        cluster_part = ' | '.join(cluster_names) if cluster_names else ''
+                        text = f"{c.name}  [{cluster_part}]" if cluster_part else c.name
+                        selected_careers_display.append({'id': c.id, 'text': text})
+            except (ValueError, TypeError):
+                pass
+
         ctx_out = {
             'careers': careers_page,
             'clusters': clusters,
@@ -269,6 +338,11 @@ class Careers(TemplateView):
             'selected_professions': selected_professions,
             'selected_skills': selected_skills,
             'selected_clusters': selected_clusters,
+            'selected_career_ids': selected_career_ids if selected_career_ids else [],
+            'current_cluster_id': current_cluster_id,
+            'current_cluster_slug': current_cluster_slug,
+            'cluster_page_url': cluster_page_url,
+            'selected_careers_display': selected_careers_display,
             'shortlisted_career_ids': shortlisted_career_ids,
         }
 
@@ -310,8 +384,7 @@ class CareerDetail(TemplateView):
         career=get_object_or_404(Career,id=career_id,slug=slug)
         ctx['career']=career
         ctx['description_intro_html'] = extract_intro_html_from_description(career.description or '')
-        bread_crumb =self._breadcrumb(career)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(career)
         country=Country.objects.all()
         ctx['colleges'] = College.get_all_colleges()
         ctx['countries']=country
@@ -1265,10 +1338,10 @@ class CareerDetail(TemplateView):
         return json.dumps(mindmap_data)
 
     @classmethod
-    def _breadcrumb(self,career):
-        url=reverse_lazy('careers:career')
-        lst=[{'title':'{}'.format(career),'text':'{}'.format("Career"),'url':url}]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, career):
+        url = reverse_lazy('careers:career')
+        lst = [{'text': 'Career', 'url': url}, {'text': str(career), 'url': ''}]
+        return get_breadcrumb(lst)
         
     def get(self, request,career_id,slug, *args, **kwargs):
         data={}  
@@ -1615,12 +1688,12 @@ class CareerLibrary(TemplateView):
     def __breadcrumb(self, name, is_category=False):
         if is_category:
             l = [
-                {'title': 'Career Tracks', 'text': 'Career Tracks', 'url': reverse_lazy('careers:defaultcareerlibrary')},
-                {'title': name, 'text': name, 'url': ''},
+                {'text': 'Career Tracks', 'url': reverse_lazy('careers:defaultcareerlibrary')},
+                {'text': name, 'url': ''},
             ]
         else:
-            l = [{'title': 'Career Tracks', 'text': 'Career Tracks', 'url': ''}]
-        return build_breadcrumb(l)
+            l = [{'text': 'Career Tracks', 'url': ''}]
+        return get_breadcrumb(l)
 
     def __html_head(self,name):
         return build_html_head(title=name, description=name)
@@ -1644,13 +1717,12 @@ class CareerVideosView(TemplateView):
         return build_html_head(title=name, description=name)
 
     def _breadcrumb(self):
-        lst=[{'title':'','text':'Career Videos','url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([{'text': 'Career Videos', 'url': ''}])
 
     def get_context(self,request,*args, **kwargs):
         ctx={}
         search_videos = request.GET.get('search')
-        ctx['breadcrumb']=self._breadcrumb()[1]
+        ctx['breadcrumb'] = self._breadcrumb()
         if search_videos:
             ctx['search_videos']=search_videos
             ctx['heading']=f"Results for '{search_videos}'"
@@ -1725,8 +1797,10 @@ class CategoryCareerVideosView(TemplateView):
         return build_html_head(title=name, description=name)
 
     def _breadcrumb(self, category_name):
-        lst=[{'title':'Career Videos','text':'Career Videos','url':reverse_lazy('careers:careervideos')},{'title':category_name,'text':category_name,'url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Career Videos', 'url': reverse_lazy('careers:careervideos')},
+            {'text': category_name, 'url': ''},
+        ])
 
     def get_context(self,request,category_slug,*args, **kwargs):
         ctx={}
@@ -1738,7 +1812,7 @@ class CategoryCareerVideosView(TemplateView):
         page_numbers = request.GET.get('page')
         ctx['page_obj'] = paginator.get_page(page_numbers)
         ctx['html_head']=self.html_head('Explore Career Videos - {} - Page {}'.format(category.name,ctx['page_obj'].number))
-        ctx['breadcrumb']=self._breadcrumb(category.name)[1]
+        ctx['breadcrumb'] = self._breadcrumb(category.name)
         ctx['heading'] = f"Videos in {category.name}"
         ctx['search_videos'] = ""
         
@@ -1798,8 +1872,7 @@ class VideoDetail(TemplateView):
         video=get_object_or_404(Videos,slug=video_slug)
         ctx['video']=video 
         ctx['categories']=VideoCategory.objects.all()
-        bread_crumb =self._breadcrumb(video)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(video)
         ctx['html_head']=self.html_head(video.name)
         
         # Parent->Student context for suggesting videos
@@ -1854,10 +1927,11 @@ class VideoDetail(TemplateView):
         ctx['related_video_thumbnails'] = related_video_thumbnails
         return ctx
 
-    def _breadcrumb(self,video):
-        url=reverse_lazy('careers:careervideos')
-        lst=[{'title':'Career Videos','text':'Career Videos','url':url},{'title':video.name,'text':video.name,'url':''}]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, video):
+        return get_breadcrumb([
+            {'text': 'Career Videos', 'url': reverse_lazy('careers:careervideos')},
+            {'text': video.name, 'url': ''},
+        ])
     
         
     def get(self, request,video_slug, *args, **kwargs):     
@@ -1912,8 +1986,7 @@ class CareerMindmapView(TemplateView):
         }
         
         # Breadcrumb
-        bread_crumb = self._breadcrumb(career)
-        ctx['breadcrumb'] = bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(career)
         ctx['html_head'] = self.html_head(career)
         
         # Check if XMind file exists
@@ -1929,12 +2002,11 @@ class CareerMindmapView(TemplateView):
         return ctx
     
     def _breadcrumb(self, career):
-        lst = [
-            {'title': 'Careers', 'text': 'Careers', 'url': reverse_lazy('careers:career')},
-            {'title': career.name, 'text': career.name, 'url': reverse('careers:careerdetail', args=[career.slug, career.id])},
-            {'title': 'Mind Map', 'text': 'Mind Map', 'url': ''}
-        ]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Careers', 'url': reverse_lazy('careers:career')},
+            {'text': career.name, 'url': reverse('careers:careerdetail', args=[career.slug, career.id])},
+            {'text': 'Mind Map', 'url': ''},
+        ])
     
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))

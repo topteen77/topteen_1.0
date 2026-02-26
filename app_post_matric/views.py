@@ -25,7 +25,9 @@ from .serializers import (
 import re
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib.auth import authenticate, login as auth_login, logout, get_user_model
+from core.breadcrumbs import get_breadcrumb
 # from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.template.loader import get_template
@@ -394,7 +396,8 @@ def Tests(request):
     context = {
         'test_status': json.dumps(test_status),
         'popup_status': json.dumps(popup_status),
-        'test_type_map': json.dumps(test_type_map)
+        'test_type_map': json.dumps(test_type_map),
+        'breadcrumb': get_breadcrumb([{'text': 'Tests', 'url': ''}]),
     }
     
     print(f"[SUCCESS] Returning context with test_status: {test_status}")
@@ -1062,7 +1065,12 @@ def _debug_log(location, message, data, hypothesis_id="H1"):
 @login_required
 def Results_list(request):
     """Display list of all test results"""
-    return render(request, "results_list.html")
+    return render(request, "template20/app_post_matric/results_list.html", {
+        'breadcrumb': get_breadcrumb([
+            {'text': 'Tests', 'url': reverse('post_matric:tests')},
+            {'text': 'Results', 'url': ''},
+        ]),
+    })
 
 @login_required
 def Results(request):
@@ -1507,10 +1515,15 @@ def CombinedReport(request, user_id=None):
         ).order_by('-end_time')
         
         if not completed_sessions:
-            return render(request, "combined_report.html", {
+            return render(request, "template20/app_post_matric/combined_report.html", {
                 'error': 'No completed test found',
                 'no_results': True,
-                'user': target_user  # Pass the target user to the template
+                'user': target_user,
+                'breadcrumb': get_breadcrumb([
+                    {'text': 'Tests', 'url': reverse('post_matric:tests')},
+                    {'text': 'Results', 'url': reverse('post_matric:results_list')},
+                    {'text': 'Combined Report', 'url': ''},
+                ]),
             })
 
         user = target_user
@@ -2211,17 +2224,27 @@ def CombinedReport(request, user_id=None):
                 import traceback
                 print(traceback.format_exc())
         
-        return render(request, "combined_report.html", context)
+        context['breadcrumb'] = get_breadcrumb([
+            {'text': 'Tests', 'url': reverse('post_matric:tests')},
+            {'text': 'Results', 'url': reverse('post_matric:results_list')},
+            {'text': 'Combined Report', 'url': ''},
+        ])
+        return render(request, "template20/app_post_matric/combined_report.html", context)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in CombinedReport: {str(e)}")
         print(trace)
-        return render(request, "combined_report.html", {
+        return render(request, "template20/app_post_matric/combined_report.html", {
             'error': f'An error occurred: {str(e)}',
-            'traceback': trace,  # Include the traceback in the context for debugging
-            'no_results': True
+            'traceback': trace,
+            'no_results': True,
+            'breadcrumb': get_breadcrumb([
+                {'text': 'Tests', 'url': reverse('post_matric:tests')},
+                {'text': 'Results', 'url': reverse('post_matric:results_list')},
+                {'text': 'Combined Report', 'url': ''},
+            ]),
         })
 
 
@@ -2608,8 +2631,13 @@ def Take_test(request, id):
     return render(request, "template20/app_post_matric/take_test.html", {"test_id": id})
 
 def Test_details(request, id):
-    
-    return render(request, "test_details.html", {"test_id": id})
+    return render(request, "template20/app_post_matric/test_details.html", {
+        "test_id": id,
+        "breadcrumb": get_breadcrumb([
+            {"text": "Tests", "url": reverse("post_matric:tests")},
+            {"text": "Test Details", "url": ""},
+        ]),
+    })
 
 @login_required
 def Test_results(request, id):
@@ -2677,7 +2705,11 @@ def Test_results(request, id):
         if not latest_session:
             return render(request, "template20/app_post_matric/test_results.html", {
                 'error': 'No completed test found',
-                'no_results': True
+                'no_results': True,
+                'breadcrumb': get_breadcrumb([
+                    {'text': 'Tests', 'url': reverse('post_matric:tests')},
+                    {'text': 'Results', 'url': ''},
+                ]),
             })
         
         
@@ -3017,15 +3049,22 @@ def Test_results(request, id):
         import json as _json
         context['test_results_json'] = _json.dumps(test_results_data)
         
-        # Use the new template for results display
+        context['breadcrumb'] = get_breadcrumb([
+            {'text': 'Tests', 'url': reverse('post_matric:tests')},
+            {'text': 'Results', 'url': ''},
+        ])
         return render(request, "template20/app_post_matric/test_results.html", context)    
-        
+    
     except Exception as e:
         import json as _json
         return render(request, "template20/app_post_matric/test_results.html", {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
-            'test_results_json': _json.dumps([])
+            'test_results_json': _json.dumps([]),
+            'breadcrumb': get_breadcrumb([
+                {'text': 'Tests', 'url': reverse('post_matric:tests')},
+                {'text': 'Results', 'url': ''},
+            ]),
         })
 
 
@@ -3205,10 +3244,12 @@ def download_test_results_pdf(request, id):
 
 
 def test_sections(request, test_id):
-    
-    # Implementation for viewing test sections
     return render(request, 'template20/app_post_matric/test_sections.html', {
         'test': test_id,
+        'breadcrumb': get_breadcrumb([
+            {'text': 'Tests', 'url': reverse('post_matric:tests')},
+            {'text': 'Aptitude Assessment', 'url': ''},
+        ]),
     })
 
 @login_required
@@ -3247,12 +3288,15 @@ def section_details(request,testId, section_id, session_id):
     # return render(request, 'section_details.html', context)
 
 @login_required
-def section_results(request,testId,result_id):
-    # Add this new view for handling results
-    
-    return render(request, 'section_results.html', {
+def section_results(request, testId, result_id):
+    return render(request, 'template20/app_post_matric/section_results.html', {
         'testId': testId,
         'result_id': result_id,
+        'breadcrumb': get_breadcrumb([
+            {'text': 'Tests', 'url': reverse('post_matric:tests')},
+            {'text': 'Results', 'url': reverse('post_matric:results_list')},
+            {'text': 'Section Results', 'url': ''},
+        ]),
     })
 
 def start_section(request, section_id):

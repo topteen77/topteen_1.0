@@ -10,7 +10,8 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
-from .utils import build_breadcrumb,build_html_head
+from .utils import build_html_head
+from .breadcrumbs import get_breadcrumb
 from django.db import connection
 from django.db.models import Q
 from django.db.utils import ProgrammingError
@@ -181,7 +182,7 @@ def privacy_policy(request):
     ctx={}
     ctx["html_head"]=build_html_head(title=name, description=name)
     from django.urls import reverse
-    ctx['breadcrumb'] = {'text': 'Privacy Policy', 'url': reverse('core:privacypolicy')}
+    ctx['breadcrumb'] = get_breadcrumb([{'text': 'Privacy Policy', 'url': reverse('core:privacypolicy')}])
     return render(request,template_name,ctx)
 
 def terms_and_condition(request):
@@ -190,7 +191,7 @@ def terms_and_condition(request):
     ctx={}
     ctx["html_head"]=build_html_head(title=name, description=name)
     from django.urls import reverse
-    ctx['breadcrumb'] = {'text': 'Terms and Condition', 'url': reverse('core:terms&condition')}
+    ctx['breadcrumb'] = get_breadcrumb([{'text': 'Terms and Condition', 'url': reverse('core:terms&condition')}])
     return render(request,template_name,ctx)
 
 def validation(request,mobile,email):
@@ -216,7 +217,7 @@ def contact_us(request):
     from django.urls import reverse
     from django.middleware.csrf import get_token
     ctx={}
-    ctx['breadcrumb'] = {'text': 'Contact Us', 'url': reverse('core:contactus')}
+    ctx['breadcrumb'] = get_breadcrumb([{'text': 'Contact Us', 'url': reverse('core:contactus')}])
     ctx['csrf_token'] = get_token(request)
     if request.method=="POST":
         first_name=request.POST.get("first_name")
@@ -255,7 +256,7 @@ class AboutUsView(TemplateView):
         ctx={}
         ctx["html_head"] = self.html_head()
         from django.urls import reverse
-        ctx['breadcrumb'] = {'text': 'About Us', 'url': reverse('core:aboutus')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'About Us', 'url': reverse('core:aboutus')}])
         return ctx
 
     def get(self, request,*args, **kwargs):
@@ -271,7 +272,7 @@ class AllFaqView(TemplateView):
     def get_context(self,request, *args, **kwargs):
         ctx={}
         from django.urls import reverse
-        ctx['breadcrumb'] = {'text': 'FAQs', 'url': reverse('core:allfaq')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'FAQs', 'url': reverse('core:allfaq')}])
         search_faq = request.GET.get('search')
         if search_faq:
             ctx['search_faq']=search_faq
@@ -299,7 +300,7 @@ class ExtracurricularActivitiesView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {'text': 'Extracurricular Activities', 'url': reverse('core:extracurricular_activities')}
+        ctx["breadcrumb"] = get_breadcrumb([{'text': 'Extracurricular Activities', 'url': reverse('core:extracurricular_activities')}])
         # Dynamic categories + activities (admin-managed)
         try:
             from django.db.models import Prefetch
@@ -408,7 +409,7 @@ class VocationalCoursesView(TemplateView):
 
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {'text': 'Vocational Courses', 'url': reverse('core:vocational_courses')}
+        ctx["breadcrumb"] = get_breadcrumb([{'text': 'Vocational Courses', 'url': reverse('core:vocational_courses')}])
         ctx["levels_data"] = levels_data
         ctx["subcategories_display"] = subcategories_display
         ctx["default_tab"] = default_tab
@@ -477,17 +478,17 @@ class VocationalCourseDetailView(TemplateView):
         if level:
             level_label = breadcrumb_level_label(level.name)
             course_label = breadcrumb_text_caps(course.name)
-            ctx["breadcrumb"] = [
+            ctx["breadcrumb"] = get_breadcrumb([
                 {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
                 {"text": level_label, "url": f"/vocational-courses/{level.slug}/"},
                 {"text": course_label, "url": reverse("core:vocational_course_detail", args=[course.pk])},
-            ]
+            ])
         else:
             course_label = breadcrumb_text_caps(course.name)
-            ctx["breadcrumb"] = [
+            ctx["breadcrumb"] = get_breadcrumb([
                 {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
                 {"text": course_label, "url": reverse("core:vocational_course_detail", args=[course.pk])},
-            ]
+            ])
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -511,10 +512,10 @@ class ExtracurricularActivityDetailView(TemplateView):
         ctx["activity"] = activity
         ctx["blogs"] = blogs
         ctx["html_head"] = build_html_head(title=activity.name, description=activity.name)
-        ctx["breadcrumb"] = [
+        ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Extracurricular Activities", "url": reverse("core:extracurricular_activities")},
             {"text": activity.name, "url": reverse("core:extracurricular_activity_detail", kwargs={"pk": activity.pk})},
-        ]
+        ])
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -531,10 +532,7 @@ class CareerPlanningView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = [
-            {"text": "Home", "url": reverse("core:home")},
-            {"text": "Career Planning", "url": None},
-        ]
+        ctx["breadcrumb"] = get_breadcrumb([{"text": "Career Planning", "url": ""}])
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -550,11 +548,10 @@ class CareerPlanning4YearView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = [
-            {"text": "Home", "url": reverse("core:home")},
+        ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Career Planning", "url": reverse("core:career_planning")},
-            {"text": "4 Year Course Plan", "url": None},
-        ]
+            {"text": "4 Year Course Plan", "url": ""},
+        ])
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -574,11 +571,10 @@ class _CareerPlanningClassYearView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = [
-            {"text": "Home", "url": reverse("core:home")},
+        ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Career Planning", "url": reverse("core:career_planning")},
-            {"text": self.page_title, "url": None},
-        ]
+            {"text": self.page_title, "url": ""},
+        ])
         ctx["class_label"] = self.class_label
         ctx["year_number"] = self.year_number
         return ctx
@@ -629,7 +625,7 @@ class EmotionalIntelligencesView(TemplateView):
         from django.templatetags.static import static
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")}
+        ctx["breadcrumb"] = get_breadcrumb([{"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")}])
         ctx["login_to_take_url"] = reverse("users:login") + "?next=" + quote(reverse("core:emotional_intelligences_assessment"))
         base = getattr(settings, "S3_EQ_IMAGES_BASE_URL", None)
         if base:
@@ -656,11 +652,10 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = [
-            {"text": "Home", "url": reverse("core:home")},
+        ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")},
             {"text": "Assessment", "url": reverse("core:emotional_intelligences_assessment")},
-        ]
+        ])
         ctx["save_eq_url"] = reverse("core:save_eq_assessment")
         ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
         if getattr(request, "user", None) and request.user.is_authenticated:
@@ -699,7 +694,7 @@ class MultipleIntelligencesView(TemplateView):
         from django.templatetags.static import static
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")}
+        ctx["breadcrumb"] = get_breadcrumb([{"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")}])
         # Login required before starting test: send unauthenticated users to login with next=assessment URL
         ctx["login_to_take_url"] = reverse("users:login") + "?next=" + quote(reverse("core:multiple_intelligences_assessment"))
         # S3 base URL for MI images (upload MI images to this folder in S3). Fallback: static/images_new/mi/
@@ -728,11 +723,10 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = [
-            {"text": "Home", "url": reverse("core:home")},
+        ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")},
             {"text": "Assessment", "url": reverse("core:multiple_intelligences_assessment")},
-        ]
+        ])
         ctx["save_mi_url"] = reverse("core:save_mi_assessment")
         ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
         if getattr(request, "user", None) and request.user.is_authenticated:
@@ -768,7 +762,7 @@ class FourPillarsOfLearningView(TemplateView):
         folder = getattr(settings, 'S3_FOUR_PILLARS_FOLDER', 'four_pillars')
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = build_breadcrumb([{"text": "Four Pillars of Learning", "url": ""}])
+        ctx["breadcrumb"] = get_breadcrumb([{"text": "Four Pillars of Learning", "url": ""}])
         # Four Pillars images from S3 bucket (folder in bucket / storage)
         ctx["four_pillar_hero_banner_url"] = default_storage.url(f"{folder}/four-pillar-hero-banner.png")
         ctx["four_pillar_visual_url"] = default_storage.url(f"{folder}/fou-pillar-image.png")
@@ -845,7 +839,7 @@ class FourPillarsPillarDetailView(TemplateView):
         ctx["pillar_description"] = config["description"]
         ctx["assessment_slug"] = config["assessment_slug"]
         ctx["html_head"] = build_html_head(title=config["title"], description=config["description"])
-        ctx["breadcrumb"] = build_breadcrumb([
+        ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Four Pillars of Learning", "url": reverse("core:four_pillars")},
             {"text": f"Pillar {pillar_number}", "url": ""},
         ])
@@ -1063,7 +1057,7 @@ class EbookListView(TemplateView):
         from django.core.files.storage import default_storage
         ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["breadcrumb"] = {"text": "E-Books", "url": reverse("core:ebook_list")}
+        ctx["breadcrumb"] = get_breadcrumb([{"text": "E-Books", "url": reverse("core:ebook_list")}])
         # Ebook hero banner: use storage so URL is correct on production (S3 proxy/direct) and demo (local media)
         ctx["ebook_hero_banner_url"] = default_storage.url("ebooks/ebook-hero-img.png")
         # Get published ebooks from database
@@ -1157,7 +1151,7 @@ class EbookDetailView(TemplateView):
             ebook = Ebook.objects.get(slug=slug, publish_status=choices.PublishStatus.PUBLISHED)
             ctx["pdf_path"] = ebook.get_pdf_url()
             ctx["ebook_title"] = ebook.title
-            ctx["breadcrumb"] = {"text": ebook.title, "url": reverse("core:ebook_list")}
+            ctx["breadcrumb"] = get_breadcrumb([{"text": "E-Books", "url": reverse("core:ebook_list")}, {"text": ebook.title, "url": ""}])
         except Ebook.DoesNotExist:
             raise Http404("Ebook not found")
         
@@ -1232,10 +1226,7 @@ class AjaxSearchResult(TemplateView):
         ctx['user'] = request.user
         
         # Build breadcrumb
-        breadcrumb_items = [
-            {'title': 'Search', 'text': 'Search Results', 'url': ''}
-        ]
-        ctx['breadcrumb'] = build_breadcrumb(breadcrumb_items)
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Search Results', 'url': ''}])
 
         return ctx
 

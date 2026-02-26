@@ -1,48 +1,30 @@
+{# Centralized breadcrumb: breadcrumb is a list of {text, url, title?}. First item = Home, last = current. #}
 {% if breadcrumb %}
 <div class="col-md-12">
-  <div class="breadcrumb">
-    <ol class="ps-0">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb ps-0">
       {% if breadcrumb is iterable and breadcrumb is not string and breadcrumb is not mapping %}
-        {# If breadcrumb is a list/array (not a dict) #}
         {% for item in breadcrumb %}
-          {% if item is mapping %}
-            {# item is a dict - use bracket notation for Jinja2 #}
-            {% set item_text = item['text'] if 'text' in item else (item['title'] if 'title' in item else '') %}
-            {% set item_url = item['url'] if 'url' in item else '#' %}
+          {% set item_text = item['text'] if item is mapping and 'text' in item else (item['title'] if item is mapping and 'title' in item else '') %}
+          {% set item_url = item['url'] if item is mapping and 'url' in item else '' %}
+          {% if not loop.last and item_url %}
+            <li class="breadcrumb-item"><a href="{{ item_url }}">{{ item_text }}</a></li>
           {% else %}
-            {# item is an object - access as dict using bracket notation #}
-            {% set item_text = item['text'] if 'text' in item else (item['title'] if 'title' in item else '') %}
-            {% set item_url = item['url'] if 'url' in item else '#' %}
-          {% endif %}
-          {% if not loop.last %}
-            <li>
-              <a href="{{ item_url }}">{{ item_text }}</a>
-            </li>
-          {% else %}
-            <li>{{ item_text }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ item_text }}</li>
           {% endif %}
         {% endfor %}
-      {% else %}
-        {# If breadcrumb is a single object/dict #}
-        {% if breadcrumb is mapping %}
-          {# breadcrumb is a dict - use bracket notation for Jinja2 #}
-          {% set breadcrumb_text = breadcrumb['text'] if 'text' in breadcrumb else (breadcrumb['title'] if 'title' in breadcrumb else '') %}
-          {% set breadcrumb_url = breadcrumb['url'] if 'url' in breadcrumb else '' %}
+      {% elif breadcrumb is mapping %}
+        {# Backward compat: single dict = Home + this link #}
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        {% set bc_text = breadcrumb['text'] if 'text' in breadcrumb else (breadcrumb['title'] if 'title' in breadcrumb else '') %}
+        {% set bc_url = breadcrumb['url'] if 'url' in breadcrumb else '' %}
+        {% if bc_url %}
+          <li class="breadcrumb-item"><a href="{{ bc_url }}">{{ bc_text }}</a></li>
         {% else %}
-          {# breadcrumb might be a string or other type #}
-          {% set breadcrumb_text = breadcrumb|string if breadcrumb else '' %}
-          {% set breadcrumb_url = '' %}
-        {% endif %}
-        {% if breadcrumb_url %}
-          <li>
-            <a href="{{ breadcrumb_url }}">{{ breadcrumb_text }}</a>
-          </li>
-        {% else %}
-          <li>{{ breadcrumb_text }}</li>
+          <li class="breadcrumb-item active" aria-current="page">{{ bc_text }}</li>
         {% endif %}
       {% endif %}
     </ol>
-  </div>
+  </nav>
 </div>
 {% endif %}
-

@@ -21,6 +21,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponse
 
 
 from django.urls import reverse_lazy, reverse
+from core.breadcrumbs import get_breadcrumb
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
@@ -963,7 +964,11 @@ def CounselorCoursepayment(request):
         'part_count': part_count,
         'question_count': question_count,
         'course': course_with_related_data,
-        'user_authenticated': request.user.is_authenticated
+        'user_authenticated': request.user.is_authenticated,
+        'breadcrumb': get_breadcrumb([
+            {'text': 'Counsellor Dashboard', 'url': '#'},
+            {'text': 'Career Counselling Course', 'url': ''},
+        ]),
     }
     return render(request, 'template20/counselor/course_payment.html', context)
 def display_pdfs(request):

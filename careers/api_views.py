@@ -4,7 +4,8 @@ API views for DOCX processing and autocomplete
 import queue
 import threading
 import time
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -643,6 +644,29 @@ def autocomplete_clusters(request):
 
 
 @require_http_methods(["GET"])
+def cluster_cards_search_api(request):
+    """Return JSON with count + HTML fragment of cluster cards (q). Used by careers page AJAX search."""
+    from django.db.models import Count
+    q = (request.GET.get('q') or '').strip()
+    clusters_qs = CareerCluster.objects.filter(
+        career_clusters__publish_status=1,
+        object_status=1
+    ).annotate(
+        career_count=Count('career_clusters', distinct=True)
+    ).filter(career_count__gt=0).distinct().order_by('name')
+    if q:
+        clusters_qs = clusters_qs.filter(name__icontains=q)
+    clusters_list = list(clusters_qs)
+    clusters_with_counts = [{'cluster': c, 'count': c.career_count} for c in clusters_list]
+    html = render_to_string(
+        'template20/includes/career_cluster_cards_fragment.html',
+        {'clusters_with_counts': clusters_with_counts, 'request': request},
+        request=request,
+    )
+    return JsonResponse({'count': len(clusters_list), 'html': html})
+
+
+@require_http_methods(["GET"])
 def autocomplete_careers(request):
     """API endpoint for career autocomplete - can be filtered by a cluster (track)."""
     query = request.GET.get('q', '').strip()
@@ -681,6 +705,57 @@ def autocomplete_careers(request):
             'id': c.id,
             'text': nm,
             'value': nm,
+        })
+
+    return JsonResponse({'results': results})
+
+
+@require_http_methods(["GET"])
+def autocomplete_careers_from_clusters(request):
+    """
+    API for inner (cluster) page filter: career search with suggestions as [careername] [cluster name].
+    Select2-compatible: returns { results: [ { id, text } ] }.
+    Optional cluster_id: limit to careers in that cluster (and its children).
+    """
+    query = (request.GET.get('q') or '').strip()
+    limit = min(int(request.GET.get('limit', 30)), 50)
+    cluster_id_param = (request.GET.get('cluster_id') or '').strip()
+
+    careers = Career.objects.filter(publish_status=1).prefetch_related(
+        'career_cluster'
+    ).exclude(name__isnull=True).exclude(name='')
+
+    if cluster_id_param:
+        try:
+            cid = int(cluster_id_param)
+            careers = careers.filter(
+                Q(career_cluster__id=cid) | Q(career_cluster__parent_id=cid)
+            ).distinct()
+        except ValueError:
+            pass
+
+    if query:
+        careers = careers.filter(
+            Q(name__icontains=query) | Q(career_cluster__name__icontains=query)
+        ).distinct()
+
+    careers = careers.order_by('name', 'id')[:limit]
+
+    seen_ids = set()
+    results = []
+    for c in careers:
+        if c.id in seen_ids:
+            continue
+        seen_ids.add(c.id)
+        career_name = (c.name or '').strip() or 'Career'
+        cluster_names = []
+        if hasattr(c, 'career_cluster') and c.career_cluster.exists():
+            cluster_names = [cl.name for cl in c.career_cluster.all() if cl and cl.name]
+        cluster_part = ' | '.join(cluster_names) if cluster_names else ''
+        text = f"{career_name}  [{cluster_part}]" if cluster_part else career_name
+        results.append({
+            'id': str(c.id),  # string so Select2 multiselect matches form values
+            'text': text,
         })
 
     return JsonResponse({'results': results})

@@ -17,13 +17,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12 mb-3">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb bg-transparent p-0 mb-0">
-            <li class="breadcrumb-item"><a href="/" class="text-muted">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ url('colleges:college') }}" class="text-muted">Colleges</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ college.name }}</li>
-          </ol>
-        </nav>
+        {% include 'template20/includes/breadcrumb.html' %}
       </div>
 
       <div class="col-lg-8">

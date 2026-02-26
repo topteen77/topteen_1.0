@@ -13,7 +13,8 @@ from entrance_exams.models import EntranceExam
 from django.shortcuts import HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from core.utils import build_breadcrumb,build_html_head,date_format
+from core.utils import build_html_head, date_format
+from core.breadcrumbs import get_breadcrumb
 from html import unescape
 from core import choices
 # Create your views here.
@@ -33,7 +34,6 @@ class CollegeDetails(TemplateView):
         ctx={}
         college=get_object_or_404(College,slug=slug)
         ctx['college']=college
-        bread_crumb =self._breadcrumb(ctx["college"])
         country=Country.objects.all()
         ctx['countries']=country
         courses=Course.objects.filter(college=college)
@@ -49,7 +49,7 @@ class CollegeDetails(TemplateView):
             if stream not in streams and stream is not None:
                 streams.append(stream)
         ctx['streams']=streams
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(ctx["college"])
         ctx['html_head'] = self.__html_head(ctx["college"])
         ctx['unescape']=unescape
         ctx['date_format']=date_format
@@ -122,11 +122,12 @@ class CollegeDetails(TemplateView):
                 ctx['is_bookmarked'] = False
         return ctx
 
-    def _breadcrumb(self,college):
+    def _breadcrumb(self, college):
         from django.urls import reverse
-        url=reverse('colleges:college')
-        lst=[{'title':'Colleges','text':'Colleges','url':url},{'title':college.name,'text':college.name,'url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Colleges', 'url': reverse('colleges:college')},
+            {'text': college.name, 'url': ''},
+        ])
 
     def get(self, request,slug, *args, **kwargs):
         if is_ajax(request=request):
@@ -179,7 +180,7 @@ class CollegeList(TemplateView):
         queries="&".join(query_list_all)
         ctx['query_list']=state_list+city
         ctx['get_updated_url']=queries
-        ctx['breadcrumb'] = {'text': 'Colleges', 'url': reverse('colleges:college')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Colleges', 'url': reverse('colleges:college')}])
         # Parent->Student context for suggesting colleges
         ctx['is_parent_student_context'] = False
         ctx['parent_student_id'] = None

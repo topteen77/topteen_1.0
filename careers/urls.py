@@ -4,8 +4,9 @@ from . import api_views
 
 app_name="careers"
 urlpatterns = [
-    path("",views.Careers.as_view(),name="career"),
-    path("career/<slug>-<int:career_id>-detail/",views.CareerDetail.as_view(),name="careerdetail"),
+    path("", views.Careers.as_view(), name="career"),
+    path("cluster/<slug:cluster_slug>-<int:cluster_id>/", views.Careers.as_view(), name="career_cluster"),
+    path("career/<slug>-<int:career_id>-detail/", views.CareerDetail.as_view(), name="careerdetail"),
     path("mindmap/<slug:slug>-<int:career_id>/",views.CareerMindmapView.as_view(),name="career_mindmap"),
     path("api/career/<slug>-<int:career_id>-mindmap/json/",views.career_mindmap_json_api,name="career_mindmap_json"),
     path("profession/<slug:career_slug>/",views.Professions.as_view(),name="profession"),
@@ -26,7 +27,9 @@ urlpatterns = [
     path("api/autocomplete/professions/", api_views.autocomplete_professions, name="autocomplete_professions"),
     path("api/autocomplete/skills/", api_views.autocomplete_skills, name="autocomplete_skills"),
     path("api/autocomplete/clusters/", api_views.autocomplete_clusters, name="autocomplete_clusters"),
+    path("api/cluster-cards-search/", api_views.cluster_cards_search_api, name="cluster_cards_search"),
     path("api/autocomplete/careers/", api_views.autocomplete_careers, name="autocomplete_careers"),
+    path("api/autocomplete/careers-from-clusters/", api_views.autocomplete_careers_from_clusters, name="autocomplete_careers_from_clusters"),
     path("api/autocomplete/videos/", api_views.autocomplete_videos, name="autocomplete_videos"),
     path("api/ai-query/", api_views.ai_query_api, name="ai_query_api"),
     path("api/career-detail/", api_views.get_career_detail_api, name="career_detail_api"),
