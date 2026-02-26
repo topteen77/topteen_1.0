@@ -331,3 +331,26 @@ media/users_pdfs/*
 
 #hide old docker files
 old-docker/*
+
+#career import scripts and commands from topteen12 to topteen2-old
+career_import_backups/*
+careers/management/commands/backup_career_cluster.py
+careers/management/commands/import_career_tables_topteen12_to_old.py
+careers/management/commands/import_career_tables_topteen12_to_old_errorfix.py
+careers/management/commands/import_careers_from_source_db.py
+careers/management/commands/import_cluster_images_from_sql.py
+careers/management/commands/sync_career_images_to_s3.py
+careers/management/commands/truncate_career_tables.py
+scripts/career_cluster_backup.sh
+scripts/career_import_dryrun_cluster.sh
+scripts/career_import_dryrun_full.sh
+scripts/career_import_dryrun_single.sh
+scripts/career_import_full.sh
+scripts/career_import_testit.sh
+scripts/check_career_images_s3.sh
+scripts/import_career_tables_topteen12_to_old.sh
+scripts/import_career_tables_topteen12_to_old_errorfix.sh
+scripts/import_cluster_images_from_sql.sh
+scripts/sync_career_images_to_s3.sh
+scripts/truncate_career_tables_topteen12_old.sh
+logs/*
