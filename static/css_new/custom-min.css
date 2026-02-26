@@ -9114,6 +9114,20 @@ a:hover {
   overflow: hidden;
 }
 
+.who-parent .phy-item-box {
+    height: 151px !important;
+}
+
+
+.career-planning-hub-gateway .new-cp-hub-box {
+	height: 464px !important;
+}
+
+.career-planning-hub-gateway .phy-item-box .learner-icon {
+  min-width: 50px !important ;
+}
+
+
 .phy-item-box::after {
   background: url('../images/opacity-hat.svg');
   position: absolute;
@@ -13242,6 +13256,19 @@ position: absolute;
 
     .blue-tick{position: relative;
     padding-left: 0px;}
+
+    .blue-tick.cu-stic li {
+      line-height: 20px;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+
+    .blue-tick.cu-stic li::before {
+      top: 2px;
+      width: 18px;
+        }
+
 
     .blue-tick li {
       list-style: none;
