@@ -16,7 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.warn('Search elements not found in the DOM');
     return;
   }
-  
+
+  // Ensure search box is always empty on load (no pre-filled text)
+  searchInput.value = '';
+
   let searchTimeout = null;
   
   // Toggle search container
