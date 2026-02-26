@@ -2,7 +2,7 @@ from cgitb import text
 from venv import create
 from django.shortcuts import render
 from django.urls import reverse
-from core.utils import build_breadcrumb
+from core.breadcrumbs import get_breadcrumb
 from django.shortcuts import get_object_or_404
 from core.utils import  build_html_head
 from .models import BlogCategory,Blog,BlogTag,SubscriptionEmail
@@ -95,7 +95,7 @@ class Blogs(TemplateView):
         popular_blogs=Blog.get_published_objects().all().order_by('-views_count')[:6]
         ctx['latest_blogs']=Blog.get_published_objects().order_by('-created')[:3]
         ctx['categories']=BlogCategory.objects.all()
-        ctx['breadcrumb']='Blog'
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Blog', 'url': ''}])
         # For search dropdown: title, slug, url for all published blogs
         ctx['blog_search_list'] = [
             {'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])}
@@ -180,8 +180,7 @@ class BlogDetail(TemplateView):
     
     def _breadcrumb(self, blog):
         url = str(reverse('blog:blogs'))
-        lst = [{'title': 'Blogs', 'text': 'Blogs', 'url': url}, {'title': blog.title, 'text': blog.title, 'url': ''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([{'text': 'Blogs', 'url': url}, {'text': blog.title, 'url': ''}])
     
     def get_context(self, request, *args, **kwargs):  
         ctx={}
@@ -273,11 +272,10 @@ class ToggleBlogBookmark(APIView):
         BlogShortlist.objects.create(user=request.user, blog=blog)
         return JsonResponse({"success": True, "bookmarked": True, "message": "Blog Bookmarked"})
     
-    def _breadcrumb(self,blog):
+    def _breadcrumb(self, blog):
         from django.urls import reverse
-        url=str(reverse('blog:blogs'))
-        lst=[{'title':'Blogs','text':'Blogs','url':url},{'title':blog.title,'text':blog.title,'url':''}]
-        return build_breadcrumb(lst)
+        url = str(reverse('blog:blogs'))
+        return get_breadcrumb([{'text': 'Blogs', 'url': url}, {'text': blog.title, 'url': ''}])
 
     def get(self, request, *args, **kwargs):     
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
@@ -298,7 +296,7 @@ def category_filter(request,category_slug, *args, **kwargs):
     cat_display = _blog_category_display(category.name)
     cat_short = _blog_category_short(category.name)
     blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
-    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {cat_display}",description=f"Explore blogs {cat_short} category."),'breadcrumb': {'text': cat_display, 'url': reverse('blog:category', args=[category.slug])},'heading': cat_display,'blog_search_list': blog_search_list}
+    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {cat_display}",description=f"Explore blogs {cat_short} category."),'breadcrumb': get_breadcrumb([{'text': cat_display, 'url': reverse('blog:category', args=[category.slug])}]),'heading': cat_display,'blog_search_list': blog_search_list}
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}
@@ -322,7 +320,7 @@ def blogtag_filter(request,tagslug, *args, **kwargs):
     remaining_count = remaining_count if remaining_count > 0 else None
     from django.urls import reverse
     blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
-    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': {'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])},'heading': f"Blogs tagged with {blogtag.name}",'blog_search_list': blog_search_list}
+    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': get_breadcrumb([{'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])}]),'heading': f"Blogs tagged with {blogtag.name}",'blog_search_list': blog_search_list}
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}

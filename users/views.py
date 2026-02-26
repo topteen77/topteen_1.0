@@ -17,7 +17,8 @@ from django.core.signing import Signer
 from core import choices
 from django.template.loader import render_to_string
 from django.db.models import Q
-from core.utils import build_breadcrumb,build_html_head
+from core.breadcrumbs import get_breadcrumb
+from core.utils import build_html_head
 from rest_framework import permissions,authentication
 from django.db.models import Q
 from django.core.signing import Signer
@@ -374,7 +375,7 @@ class LoginView(TemplateView):
 
     def __breadcrumb(self):
         l=[]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def __html_head(self):
         name='Login Signup'
@@ -768,9 +769,9 @@ class ParentStudentBookmarkCareersView(TemplateView):
             clstrs = CareerCluster.objects.none()
         ctx = {
             "html_head": build_html_head(title="Career Interests", description="Career interests"),
-            "breadcrumb": build_breadcrumb([
-                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
-                {"title": "Career Interests", "text": "Career Interests", "url": ""},
+            "breadcrumb": get_breadcrumb([
+                {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"text": "Career Interests", "url": ""},
             ]),
             "career_interests": career_interests_list,
             "career_ids": ids,
@@ -790,9 +791,9 @@ class ParentStudentBookmarkVideosView(TemplateView):
         videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
         ctx = {
             "html_head": build_html_head(title="My Videos", description="Bookmarked videos"),
-            "breadcrumb": build_breadcrumb([
-                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
-                {"title": "My Videos", "text": "My Videos", "url": ""},
+            "breadcrumb": get_breadcrumb([
+                {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"text": "My Videos", "url": ""},
             ]),
             "videos": videos,
             "is_parent_view": True,
@@ -817,9 +818,9 @@ class ParentStudentBookmarkCollegesView(TemplateView):
                 seen.add(cs.college_id)
         ctx = {
             "html_head": build_html_head(title="My Colleges", description="Bookmarked colleges"),
-            "breadcrumb": build_breadcrumb([
-                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
-                {"title": "My Colleges", "text": "My Colleges", "url": ""},
+            "breadcrumb": get_breadcrumb([
+                {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"text": "My Colleges", "url": ""},
             ]),
             "colleges": colleges,
             "is_parent_view": True,
@@ -846,9 +847,9 @@ class ParentStudentBookmarkBlogsView(TemplateView):
         blogs = [b for b in blogs if b and b.id in published_ids]
         ctx = {
             "html_head": build_html_head(title="My Blogs", description="Bookmarked blogs"),
-            "breadcrumb": build_breadcrumb([
-                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
-                {"title": "My Blogs", "text": "My Blogs", "url": ""},
+            "breadcrumb": get_breadcrumb([
+                {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"text": "My Blogs", "url": ""},
             ]),
             "blogs": blogs,
             "is_parent_view": True,
@@ -2862,7 +2863,7 @@ class Scrapbook(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'scrapbook','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Scrapbook'
@@ -2883,7 +2884,7 @@ class MyNotePad(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'My Notepad','text':'My Notepad','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Notepad'
@@ -2930,7 +2931,7 @@ class UserHobbies(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'My Hobbies','text':'My Hobbies','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Hobbies'
@@ -2960,7 +2961,7 @@ class UserColleges(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'My Colleges','text':'My Colleges','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Colleges'
@@ -2993,7 +2994,7 @@ class CareerInterests(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Career Interests','text':'Career Interests','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='Career Interests'
@@ -3033,7 +3034,7 @@ class SaveMedia(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Saved Media','text':'Save Media','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='Save Media'
@@ -3055,7 +3056,7 @@ class ResumeBuilder(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Resume builder','text':'Resume builder','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='Resume builder'
@@ -3084,7 +3085,7 @@ class ResumeBuilderWelcome(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Resume builder welcome ','text':'Resume builder welcome','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='Resume builder'
@@ -3105,7 +3106,7 @@ class UserFolders(TemplateView):
     
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'My Folder','text':'My Folder','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Folder'
@@ -3127,7 +3128,7 @@ class UserFolderDetail(TemplateView):
 
     def __breadcrumb(self,folder):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Folders','text':'Folders','url':reverse_lazy('users:userfolders')},{'title':folder.title,'text':folder.title,'url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self,folder):
         name=folder.title
@@ -3170,7 +3171,7 @@ class UserCalenderView(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Calender','text':'calender','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name="Event Calender"
@@ -3227,7 +3228,7 @@ class UserHistoryView(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Payment History','text':'Payment History','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='Payment History'
@@ -3254,7 +3255,7 @@ class Bookmark(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'My Bookmarks','text':'My Bookmarks','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Bookmarks'
@@ -3275,7 +3276,7 @@ class BookmarkVideo(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},{'title':'My Videos','text':'My Videos','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Videos'
@@ -3299,7 +3300,7 @@ class BookmarkExam(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},{'title':'My Exams','text':'My Exams','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Exams'
@@ -3324,7 +3325,7 @@ class BookmarkCollege(TemplateView):
 
     def __breadcrumb(self):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},{'title':'My Colleges','text':'My Colleges','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Colleges'
@@ -3361,7 +3362,7 @@ class BookmarkBlog(TemplateView):
         l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},
            {'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},
            {'title':'My Blogs','text':'My Blogs','url':''}]
-        return build_breadcrumb(l)
+        return get_breadcrumb(l)
 
     def html_head(self):
         name='My Blogs'

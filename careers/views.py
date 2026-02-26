@@ -13,7 +13,8 @@ from core import choices
 from colleges.views import is_ajax
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from core.utils import build_breadcrumb,build_html_head
+from core.utils import build_html_head
+from core.breadcrumbs import get_breadcrumb
 from entrance_exams.models import EntranceExam
 from .document_filters import CareerDocumentFilter
 from django.urls import reverse
@@ -102,7 +103,7 @@ class Careers(TemplateView):
             data=pro+skill+course
             ctx['data']=data
         ctx['html_head'] = self.html_head()
-        ctx['breadcrumb'] = {'text': 'Career Tracks', 'url': reverse('careers:career')}
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Career Tracks', 'url': reverse('careers:career')}])
         
         # Add mode context for template toggle (default to view mode; AI/View toggle hidden for now)
         ctx['view_mode'] = request_data.get('mode', 'view-mode')
@@ -383,8 +384,7 @@ class CareerDetail(TemplateView):
         career=get_object_or_404(Career,id=career_id,slug=slug)
         ctx['career']=career
         ctx['description_intro_html'] = extract_intro_html_from_description(career.description or '')
-        bread_crumb =self._breadcrumb(career)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(career)
         country=Country.objects.all()
         ctx['colleges'] = College.get_all_colleges()
         ctx['countries']=country
@@ -1338,10 +1338,10 @@ class CareerDetail(TemplateView):
         return json.dumps(mindmap_data)
 
     @classmethod
-    def _breadcrumb(self,career):
-        url=reverse_lazy('careers:career')
-        lst=[{'title':'{}'.format(career),'text':'{}'.format("Career"),'url':url}]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, career):
+        url = reverse_lazy('careers:career')
+        lst = [{'text': 'Career', 'url': url}, {'text': str(career), 'url': ''}]
+        return get_breadcrumb(lst)
         
     def get(self, request,career_id,slug, *args, **kwargs):
         data={}  
@@ -1688,12 +1688,12 @@ class CareerLibrary(TemplateView):
     def __breadcrumb(self, name, is_category=False):
         if is_category:
             l = [
-                {'title': 'Career Tracks', 'text': 'Career Tracks', 'url': reverse_lazy('careers:defaultcareerlibrary')},
-                {'title': name, 'text': name, 'url': ''},
+                {'text': 'Career Tracks', 'url': reverse_lazy('careers:defaultcareerlibrary')},
+                {'text': name, 'url': ''},
             ]
         else:
-            l = [{'title': 'Career Tracks', 'text': 'Career Tracks', 'url': ''}]
-        return build_breadcrumb(l)
+            l = [{'text': 'Career Tracks', 'url': ''}]
+        return get_breadcrumb(l)
 
     def __html_head(self,name):
         return build_html_head(title=name, description=name)
@@ -1717,13 +1717,12 @@ class CareerVideosView(TemplateView):
         return build_html_head(title=name, description=name)
 
     def _breadcrumb(self):
-        lst=[{'title':'','text':'Career Videos','url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([{'text': 'Career Videos', 'url': ''}])
 
     def get_context(self,request,*args, **kwargs):
         ctx={}
         search_videos = request.GET.get('search')
-        ctx['breadcrumb']=self._breadcrumb()[1]
+        ctx['breadcrumb'] = self._breadcrumb()
         if search_videos:
             ctx['search_videos']=search_videos
             ctx['heading']=f"Results for '{search_videos}'"
@@ -1798,8 +1797,10 @@ class CategoryCareerVideosView(TemplateView):
         return build_html_head(title=name, description=name)
 
     def _breadcrumb(self, category_name):
-        lst=[{'title':'Career Videos','text':'Career Videos','url':reverse_lazy('careers:careervideos')},{'title':category_name,'text':category_name,'url':''}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Career Videos', 'url': reverse_lazy('careers:careervideos')},
+            {'text': category_name, 'url': ''},
+        ])
 
     def get_context(self,request,category_slug,*args, **kwargs):
         ctx={}
@@ -1811,7 +1812,7 @@ class CategoryCareerVideosView(TemplateView):
         page_numbers = request.GET.get('page')
         ctx['page_obj'] = paginator.get_page(page_numbers)
         ctx['html_head']=self.html_head('Explore Career Videos - {} - Page {}'.format(category.name,ctx['page_obj'].number))
-        ctx['breadcrumb']=self._breadcrumb(category.name)[1]
+        ctx['breadcrumb'] = self._breadcrumb(category.name)
         ctx['heading'] = f"Videos in {category.name}"
         ctx['search_videos'] = ""
         
@@ -1871,8 +1872,7 @@ class VideoDetail(TemplateView):
         video=get_object_or_404(Videos,slug=video_slug)
         ctx['video']=video 
         ctx['categories']=VideoCategory.objects.all()
-        bread_crumb =self._breadcrumb(video)
-        ctx['breadcrumb']= bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(video)
         ctx['html_head']=self.html_head(video.name)
         
         # Parent->Student context for suggesting videos
@@ -1927,10 +1927,11 @@ class VideoDetail(TemplateView):
         ctx['related_video_thumbnails'] = related_video_thumbnails
         return ctx
 
-    def _breadcrumb(self,video):
-        url=reverse_lazy('careers:careervideos')
-        lst=[{'title':'Career Videos','text':'Career Videos','url':url},{'title':video.name,'text':video.name,'url':''}]
-        return build_breadcrumb(lst)
+    def _breadcrumb(self, video):
+        return get_breadcrumb([
+            {'text': 'Career Videos', 'url': reverse_lazy('careers:careervideos')},
+            {'text': video.name, 'url': ''},
+        ])
     
         
     def get(self, request,video_slug, *args, **kwargs):     
@@ -1985,8 +1986,7 @@ class CareerMindmapView(TemplateView):
         }
         
         # Breadcrumb
-        bread_crumb = self._breadcrumb(career)
-        ctx['breadcrumb'] = bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb(career)
         ctx['html_head'] = self.html_head(career)
         
         # Check if XMind file exists
@@ -2002,12 +2002,11 @@ class CareerMindmapView(TemplateView):
         return ctx
     
     def _breadcrumb(self, career):
-        lst = [
-            {'title': 'Careers', 'text': 'Careers', 'url': reverse_lazy('careers:career')},
-            {'title': career.name, 'text': career.name, 'url': reverse('careers:careerdetail', args=[career.slug, career.id])},
-            {'title': 'Mind Map', 'text': 'Mind Map', 'url': ''}
-        ]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([
+            {'text': 'Careers', 'url': reverse_lazy('careers:career')},
+            {'text': career.name, 'url': reverse('careers:careerdetail', args=[career.slug, career.id])},
+            {'text': 'Mind Map', 'url': ''},
+        ])
     
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))

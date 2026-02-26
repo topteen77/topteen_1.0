@@ -9,7 +9,7 @@ from elasticsearch_dsl import Q ,Nested
 from django.core.paginator import Paginator
 from .facets import EntranceExamFilterFacets
 from .models import EntranceExam
-from core.utils import build_breadcrumb
+from core.breadcrumbs import get_breadcrumb
 from django.urls import reverse_lazy
 from careers.document_filters import SearchResults
 from dataclasses import dataclass,field
@@ -96,14 +96,11 @@ class EntranceExamDocumentFilter:
         exam_count = en_exam.count()
         ctx['exam_count']=exam_count        
         ctx['related_exam']=en_exam.order_by('?')[:5]
-        bread_crumb =self._breadcrumb()
-        ctx['breadcrumb']=bread_crumb[1]
+        ctx['breadcrumb'] = self._breadcrumb()
         return ctx
     
     def _breadcrumb(self):
-        url=reverse_lazy('entrance_exams:testprepfilter')
-        lst=[{'text':'{}'.format("Exam"),'url':url}]
-        return build_breadcrumb(lst)
+        return get_breadcrumb([{'text': 'Exam', 'url': reverse_lazy('entrance_exams:testprepfilter')}])
    
 
     def _entrance_exam_filter(self,search,request):
