@@ -34,7 +34,7 @@
               {% endif %}
             </h1>
             {% if course.content_json and course.content_json.overview %}
-              <div class="overview-container">
+              <div class="overview-container" id="overview">
                 <div class="overview-full text-gray fs-16 mb-2" id="overview-full" style="display: none;">
                   {{ course.content_json.overview|safe }}
                 </div>
@@ -72,7 +72,31 @@
   <section class="vocational-cr-accordion py-md-8 py-7 bg-light" id="vocational-accordion-section">
     <div class="container">
       <div class="row">
-        <div class="col-12 col-md-9 mx-auto  custom-faq">
+        <aside class="col-lg-3 d-none d-lg-block">
+          <div class="sticky-sidebar p-3 quick-links-sidebar">
+            <h6 class="fs-20 fw-700 mb-3">Quick links</h6>
+            <ul class="quick-links list-unstyled mb-0" id="vocational-quick-links">
+              {# Populated by JS from accordion content #}
+            </ul>
+          </div>
+        </aside>
+
+        <div class="col-12 d-lg-none mb-3">
+          <div class="mobile-quick-jump">
+            <div class="select-wrap w-100">
+              <select id="vocational-quick-jump" class="form-select form-select-sm">
+                <option value="">Jump to section...</option>
+                {# Options populated by JS #}
+              </select>
+              <i class="bx bx-chevron-down select-caret"></i>
+            </div>
+            <button type="button" id="vocational-jump-go" class="btn btn-sm btn-primary">
+              Go <i class="bx bx-arrow-right-circle"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="col-lg-9 custom-faq">
           <div class="accordion custom-accordion" id="vocAccordion">
             {% if course.content_json %}
               {# Content will be rendered via JavaScript accordion; blank sections are not shown #}
@@ -94,7 +118,139 @@
 {% endblock %}
 
 {% block additionalcss %}
+<style>
+/* ===== Vocational course detail: Quick links sidebar & mobile jump ===== */
+.vocational-cr-accordion .sticky-sidebar.quick-links-sidebar {
+  position: sticky;
+  top: 110px;
+  width: 100%;
+  background: #f7f7ff;
+  border-radius: 8px;
+  border: 1px solid #e3e3ff;
+  padding: 1rem !important;
+  box-shadow: 0 4px 12px rgba(63, 55, 201, 0.06);
+}
+.vocational-cr-accordion .quick-links-sidebar h6 {
+  color: #1f1a4e;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links li {
+  border-bottom: 1px solid rgba(79, 69, 219, 0.12);
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links li:last-child {
+  border-bottom: none;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links a {
+  color: #3F37C9;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  text-decoration: none;
+  line-height: 1.35;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+  font-size: 0.95rem;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links a i {
+  margin-right: 10px !important;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  color: inherit;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links a:hover {
+  background: rgba(63, 55, 201, 0.1);
+  text-decoration: none;
+  color: #3F37C9;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links a.active {
+  background: #3F37C9;
+  color: #fff !important;
+  text-decoration: none;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links a.active i {
+  color: #fff !important;
+}
+.vocational-cr-accordion .quick-links-sidebar .quick-links a.active:hover {
+  background: #3530a8;
+  color: #fff !important;
+}
 
+/* Mobile quick-jump */
+.vocational-cr-accordion .mobile-quick-jump {
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.vocational-cr-accordion .mobile-quick-jump .select-wrap {
+  position: relative;
+  flex: 1 1 auto;
+}
+.vocational-cr-accordion .mobile-quick-jump .select-wrap .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e6e6ff;
+  box-shadow: 0 6px 18px rgba(63,55,201,0.06);
+  height: 48px;
+  width: 100%;
+}
+.vocational-cr-accordion .mobile-quick-jump .select-caret {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6d5ffb;
+  font-size: 1.05rem;
+  opacity: 0.95;
+}
+.vocational-cr-accordion .mobile-quick-jump .btn {
+  border-radius: 10px;
+  padding: .45rem .8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 64px;
+  box-shadow: 0 8px 22px rgba(109,95,251,0.12);
+  background: #50B9F9 !important;
+  border: 1px solid #50B9F9 !important;
+  color: #fff !important;
+  text-align: center;
+  justify-content: center;
+  height: 46px;
+}
+/* Scroll targets: leave space for fixed header when quick-link scrolls */
+.extracurricular-activities-inner #overview,
+.vocational-cr-accordion [id^="collapse"] {
+  scroll-margin-top: 120px;
+}
+@media (max-width: 991px) {
+  .vocational-cr-accordion .sticky-sidebar {
+    position: relative;
+    top: 0;
+    margin-bottom: .75rem;
+  }
+  .extracurricular-activities-inner #overview,
+  .vocational-cr-accordion [id^="collapse"] {
+    scroll-margin-top: 100px;
+  }
+}
+</style>
 {% endblock %}
 
 {% block additionaljs %}
@@ -235,6 +391,7 @@
             container.innerHTML = '<p class="text-muted">No content available.</p>';
             {% endif %}
         }
+        buildQuickLinksFromAccordion();
     } catch(e) {
         console.warn('Error parsing content_json:', e);
         // Fallback to HTML content
@@ -243,6 +400,7 @@
         {% else %}
         container.innerHTML = '<p class="text-muted">No content available.</p>';
         {% endif %}
+        buildQuickLinksFromAccordion();
     }
     {% else %}
     // No JSON, use HTML content directly
@@ -251,6 +409,7 @@
     {% else %}
     container.innerHTML = '<p class="text-muted">No content available.</p>';
     {% endif %}
+    buildQuickLinksFromAccordion();
     {% endif %}
     
     function generateAccordionFromJSON(sections, container) {
@@ -381,21 +540,16 @@
         if (sectionWrapper && container.children.length === 0) {
             sectionWrapper.style.display = 'none';
         }
-        
+
         // Initialize Bootstrap collapse functionality
-        // Use the parent accordion element that exists in the template
         const parentAccordion = container.closest('#vocAccordion') || container.parentElement;
-        
         if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-            // Bootstrap 5
             const collapseElements = parentAccordion.querySelectorAll('.collapse');
             collapseElements.forEach(function(collapseEl) {
                 new bootstrap.Collapse(collapseEl, {
                     toggle: false
                 });
             });
-            
-            // Add event listeners for active state and chevron rotation
             parentAccordion.querySelectorAll('.accordion-collapse').forEach(function(col) {
                 col.addEventListener('show.bs.collapse', function(e) {
                     const btn = parentAccordion.querySelector('[data-bs-target="#' + e.target.id + '"]');
@@ -431,9 +585,152 @@
                 });
             });
         } else if (typeof $ !== 'undefined' && $.fn.collapse) {
-            // Bootstrap 4/jQuery
             $(parentAccordion).find('.collapse').collapse();
         }
+    }
+
+    function setActiveQuickLink(sectionId) {
+        const quickLinksUl = document.getElementById('vocational-quick-links');
+        if (!quickLinksUl) return;
+        quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
+            if (a.getAttribute('data-section-id') === sectionId) {
+                a.classList.add('active');
+            } else {
+                a.classList.remove('active');
+            }
+        });
+    }
+
+    function buildQuickLinksFromAccordion() {
+        const quickLinksUl = document.getElementById('vocational-quick-links');
+        const quickJumpSelect = document.getElementById('vocational-quick-jump');
+        const jumpGoBtn = document.getElementById('vocational-jump-go');
+        if (!quickLinksUl) return;
+
+        quickLinksUl.innerHTML = '';
+        if (quickJumpSelect) {
+            quickJumpSelect.innerHTML = '<option value="">Jump to section...</option>';
+        }
+
+        var hasOverview = document.getElementById('overview');
+        if (hasOverview) {
+            quickLinksUl.appendChild(createQuickLinkItem('overview', 'Overview', 'bx-info-circle'));
+            if (quickJumpSelect) {
+                var opt = document.createElement('option');
+                opt.value = 'overview';
+                opt.textContent = 'Overview';
+                quickJumpSelect.appendChild(opt);
+            }
+        }
+
+        var accordionContainer = document.getElementById('vocational-course-accordion-container');
+        if (accordionContainer) {
+            accordionContainer.querySelectorAll('.accordion-item').forEach(function(item) {
+                var collapse = item.querySelector('.accordion-collapse');
+                var btn = item.querySelector('.accordion-button');
+                if (!collapse || !collapse.id || !btn) return;
+                var titleEl = btn.querySelector('.accordion-title');
+                var title = titleEl ? titleEl.textContent.trim() : collapse.id;
+                var iconEl = btn.querySelector('.icon i');
+                var iconClass = iconEl ? (iconEl.className.baseVal || iconEl.className).replace(/\s*chevron.*/i, '').trim() : 'bx bx-layer';
+                if (iconClass.indexOf('bx ') !== 0) iconClass = 'bx ' + iconClass;
+                quickLinksUl.appendChild(createQuickLinkItem(collapse.id, title, iconClass));
+                if (quickJumpSelect) {
+                    var opt = document.createElement('option');
+                    opt.value = collapse.id;
+                    opt.textContent = title;
+                    quickJumpSelect.appendChild(opt);
+                }
+            });
+        }
+
+        var initialActive = null;
+        if (accordionContainer) {
+            var expanded = accordionContainer.querySelector('.accordion-collapse.show');
+            if (expanded && expanded.id) initialActive = expanded.id;
+        }
+        if (!initialActive && hasOverview) initialActive = 'overview';
+        if (initialActive) setActiveQuickLink(initialActive);
+
+        if (accordionContainer) {
+            accordionContainer.querySelectorAll('.accordion-collapse').forEach(function(col) {
+                col.addEventListener('show.bs.collapse', function(e) {
+                    setActiveQuickLink(e.target.id);
+                });
+            });
+        }
+
+        if (jumpGoBtn && quickJumpSelect) {
+            jumpGoBtn.onclick = function() {
+                var value = quickJumpSelect.value;
+                if (!value) return;
+                var el = document.getElementById(value);
+                if (!el) return;
+                if (value === 'overview') {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setActiveQuickLink(value);
+                    return;
+                }
+                if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+                    var collapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, { toggle: false });
+                    var scrollAfterExpand = function() {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        el.removeEventListener('shown.bs.collapse', scrollAfterExpand);
+                    };
+                    el.addEventListener('shown.bs.collapse', scrollAfterExpand);
+                    collapse.show();
+                    setActiveQuickLink(value);
+                } else {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setActiveQuickLink(value);
+                }
+            };
+        }
+
+        var sidebarWrap = quickLinksUl.closest('.quick-links-sidebar');
+        if (sidebarWrap && quickLinksUl.children.length === 0) {
+            sidebarWrap.closest('aside').style.display = 'none';
+        }
+        var mobileJump = document.querySelector('.mobile-quick-jump');
+        if (mobileJump && quickJumpSelect && quickJumpSelect.options.length <= 1) {
+            mobileJump.style.display = 'none';
+        }
+    }
+
+    function createQuickLinkItem(targetId, label, iconClass) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.className = 'quick-link';
+        a.href = '#' + targetId;
+        a.setAttribute('data-section-id', targetId);
+        var ic = (iconClass || 'bx-layer').trim();
+        if (ic.indexOf('bx') !== 0) ic = 'bx ' + ic;
+        a.innerHTML = '<i class="' + ic + ' me-1"></i>' + (label || targetId);
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            var el = document.getElementById(targetId);
+            if (!el) return;
+            if (targetId === 'overview') {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setActiveQuickLink(targetId);
+                return;
+            }
+            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+                var collapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, { toggle: false });
+                var scrollAfterExpand = function() {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    el.removeEventListener('shown.bs.collapse', scrollAfterExpand);
+                };
+                el.addEventListener('shown.bs.collapse', scrollAfterExpand);
+                collapse.show();
+                setActiveQuickLink(targetId);
+            } else {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setActiveQuickLink(targetId);
+            }
+        });
+        li.appendChild(a);
+        return li;
     }
     
     function getSectionNumber(index) {
