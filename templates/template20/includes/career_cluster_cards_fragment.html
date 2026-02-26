@@ -1,0 +1,32 @@
+{% for item in clusters_with_counts %}
+  {% if item.cluster and item.cluster.name %}
+  {% set is_active = (item.count|default(0) > 0) %}
+  <div class="col-md-4 col-sm-6 mb-4 cluster-card-item">
+    <a href="{{ url('careers:career_cluster', args=[item.cluster.slug, item.cluster.id]) }}" class="text-decoration-none">
+      <div class="career-category-card{% if not is_active %} opacity-75{% endif %}">
+        <img src="{{ item.cluster.get_image_url() }}" alt="{{ item.cluster.name|title }}" class="career-category-image"
+             onerror="this.src='{{ static('images/career-cluster-default.png') }}'">
+        <div class="career-category-overlay{% if not is_active %} opacity-75{% endif %}">
+          <h3 class="career-category-title">{{ item.cluster.name|title }}</h3>
+          <p class="career-category-description">
+            {% if is_active %}
+              Explore {{ item.count }} career{{ 's' if item.count != 1 else '' }} in {{ item.cluster.name|title }}.
+            {% else %}
+              No active careers available.
+            {% endif %}
+          </p>
+          {% if is_active %}
+            <span class="btn btn-sm btn-light career-category-button">Explore Careers</span>
+          {% else %}
+            <span class="btn btn-sm btn-light career-category-button disabled" style="pointer-events:none; opacity:0.8;">Inactive</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+{% else %}
+  <div class="col-12 text-center py-5">
+    <p class="text-muted">No career clusters match your search.</p>
+  </div>
+{% endfor %}

@@ -391,86 +391,54 @@ Explore our comprehensive collection of career paths organized by industry and i
            <span class="text-purple">Career</span> Finder 
         </h1>
         <p class="text-gray fs-18 fs-sm-16">Explore different career clusters and discover opportunities that match your interests, skills, and future goals.</p>
-    
-          {# AI mode / View mode toggle: hidden for now; default is view mode #}
-          <!--
-          <div class="mode-toggle-container d-inline-flex align-items-center gap-2 p-2 mb-2 flex-md-row flex-column">
-            <div class="d-b-ms d-flex flex-row gap-2">
-            <a href="{{ url('careers:career') }}?mode=ai{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}"
-               class="btn btn-sm rounded-pill {% if is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}"
-               id="ai-mode-btn">
-               <span><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  viewBox="0 0 20 20">
-                <path d="M13.696 2.677a.834.834 0 0 1 1.179 0l2.356 2.357a.833.833 0 0 1 0 1.179L6.035 17.408H2.5v-3.535L13.696 2.677Zm-9.53 11.886v1.178h1.18l7.76-7.76-1.178-1.18-7.761 7.762ZM3.775 1.099a.422.422 0 0 1 .785 0l.21.51a3.639 3.639 0 0 0 1.877 1.938l.598.266a.442.442 0 0 1 0 .803l-.633.281a3.636 3.636 0 0 0-1.85 1.876l-.205.471a.422.422 0 0 1-.778 0l-.206-.47a3.636 3.636 0 0 0-1.85-1.877l-.632-.281a.442.442 0 0 1 0-.803l.598-.266A3.639 3.639 0 0 0 3.564 1.61l.21-.51Zm9.332 4.524 1.18 1.179 1.178-1.179-1.178-1.178-1.18 1.178Z"/>
-              </svg> AI Mode</span>
-            </a>
-            <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}{% if selected_clusters %}{% for c in selected_clusters %}&cluster={{ c }}{% endfor %}{% endif %}{% if is_parent_student_context and parent_student_id %}&student_id={{ parent_student_id }}{% endif %}"
-               class="btn btn-sm rounded-pill {% if not is_ai_mode %}btn-primary career-view-mode-btn-active{% else %}btn-outline-primary{% endif %}"
-               id="view-mode-btn">
-               <i class='bx bx-category fs-20'></i> View Mode
-            </a>
-          </div>
-          </div>
-          -->
 
-               <!-- Filter Section -->
-        {% if not is_ai_mode %}
-        <div class="w-100 mt-4">
-          <div class="col-md-12">
-            <form method="POST" action="{{ url('careers:career') }}" id="career-filter-form" class="filter-form">
-              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-              <input type="hidden" name="search" value="{{ search_param }}">
-              <input type="hidden" name="mode" value="{{ view_mode }}">
-              
-              <div class="row g-3 justify-content-center career-mode-search-form ">
-                <!-- Cluster Filter -->
-                {% if clusters or clusters_with_counts %}
-                <div class="col-md-12 col-lg-8 car-search-info mt-0 px-0 mb-md-0 mb-3">
-                 
-                  <select name="cluster" class="form-select filter-select2 w-100" multiple id="clusterFilter" data-placeholder="Type to search and select one or more clusters">
-                    {% if clusters_with_counts %}
-                      {% for item in clusters_with_counts %}
-                        {% if item.cluster and item.cluster.name %}
-                    <option value="{{ item.cluster.id|string }}" {% if selected_clusters and item.cluster.id|string in selected_clusters %}selected{% endif %}>
-                      {{ item.cluster.name|title|trim }} {% if item.count %}({{ item.count }}){% endif %}
-                    </option>
-                        {% endif %}
-                      {% endfor %}
-                    {% elif clusters %}
-                      {% for cluster in clusters %}
-                        {% if cluster and cluster.name %}
-                    <option value="{{ cluster.id|string }}" {% if selected_clusters and cluster.id|string in selected_clusters %}selected{% endif %}>
-                      {{ cluster.name|title|trim }}
-                    </option>
-                        {% endif %}
-                      {% endfor %}
-                    {% endif %}
-                  </select>
-                  
-                 
-                </div>
-                {% endif %}
-
-
-                <div class="col-md-4 mx-auto mt-0 px-0">
-                  <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                    <button type="submit" class="btn custom-button blue-button flex-fill">Search</button>
-                    <a href="{{ url('careers:career') }}?mode=view-mode{% if search_param %}&search={{ search_param }}{% endif %}" class="btn d-flex align-items-center justify-content-center btn-outline-secondary flex-fill">Reset</a>
-                  </div>
-                </div>
+        <!-- Cluster search under Career Finder (AJAX filter for cluster cards only) -->
+        {% if not is_ai_mode and not selected_clusters %}
+        <div class="w-100 mt-4" autocomplete="off">
+          <h5 class="mt-3 mb-2">Get started by selecting your preferred career cluster</h5>
+          <div class="row justify-content-center">
+            <div class="col-md-12 col-lg-8">
+              <div class="input-group">
+                <input type="text" id="cluster-cards-search" class="form-control" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" data-lpignore="true" data-form-type="other">
+                <span class="input-group-text bg-transparent border-start-0"><i class='bx bx-search'></i></span>
               </div>
-
-         
-            </form>
+              <p class="small text-muted mt-1 mb-0">Type to filter cluster cards below.</p>
+            </div>
           </div>
         </div>
         {% endif %}
-        <!-- End Filter Section -->
+        <!-- Career search under Career Finder (inner page: filter by careers, multiselect) -->
+        {% if not is_ai_mode and cluster_page_url %}
+        <div class="w-100 mt-4">
+          <h5 class="mt-3 mb-2">Filter by careers</h5>
+          <div class="row justify-content-center">
+            <div class="col-md-12 col-lg-8">
+              <form method="get" action="{{ cluster_page_url }}" id="career-filter-inner-form" class="career-inner-filter-form" autocomplete="off">
+                <div class="row g-3 align-items-end">
+                  <div class="col-12">
+                    <select name="career" id="careerFilterInner" class="form-select w-100" multiple
+                            data-placeholder="Type career name..."
+                            data-ajax-url="{{ url('careers:autocomplete_careers_from_clusters') }}"
+                            data-cluster-id="{{ current_cluster_id or '' }}" autocomplete="off">
+                      {% for item in selected_careers_display %}
+                        <option value="{{ item.id|string }}" selected>{{ item.text }}</option>
+                      {% endfor %}
+                    </select>
+                    <p class="small text-muted mt-1 mb-0">Suggestions show career name and cluster. Select one or more, then click Search or Reset.</p>
+                  </div>
+                  <div class="col-12">
+                    <div class="d-flex gap-2 flex-wrap">
+                      <button type="submit" class="btn custom-button blue-button">Search</button>
+                      <a href="{{ cluster_page_url }}" class="btn btn-outline-secondary">Reset</a>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endif %}
 
-          <!-- Selected Cluster Display -->
-          <div id="selectedClusterDisplay" class="mt-2 d-flex flex-wrap justify-content-center gap-2"></div>
-
-    
-    
         </div>
 
       <div class="col-lg-3 col-md-12 align-items-center justify-content-center d-none">
@@ -617,8 +585,86 @@ Explore our comprehensive collection of career paths organized by industry and i
         {% if not is_ai_mode %}
         <div id="view-mode-interface" class="view-mode-section">
 
-      
-
+        {% if not selected_clusters %}
+        <!-- On load: show career clusters with images. Cluster search is under Career Finder above. -->
+        <div class="row mt-4">
+          <div class="col-md-12">
+            {% if clusters_with_counts %}
+            {% set cluster_count = clusters_with_counts|length %}
+            <div class="row mb-3">
+              <div class="col-12">
+                <p class="text-muted mb-0" id="cluster-count-display">
+                  <strong>{{ cluster_count }}</strong> cluster{{ 's' if cluster_count != 1 else '' }} found
+                </p>
+              </div>
+            </div>
+            <div class="row" id="cluster-cards-row">
+              {% for item in clusters_with_counts %}
+                {% if item.cluster and item.cluster.name %}
+              {% set is_active = (item.count|default(0) > 0) %}
+              <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{{ url('careers:career_cluster', args=[item.cluster.slug, item.cluster.id]) }}" class="text-decoration-none">
+                  <div class="career-category-card{% if not is_active %} opacity-75{% endif %}">
+                    <img src="{{ item.cluster.get_image_url() }}" alt="{{ item.cluster.name|title }}" class="career-category-image"
+                         onerror="this.src='{{ static('images/career-cluster-default.png') }}'">
+                    <div class="career-category-overlay{% if not is_active %} opacity-75{% endif %}">
+                      <h3 class="career-category-title">{{ item.cluster.name|title }}</h3>
+                      <p class="career-category-description">
+                        {% if is_active %}
+                          Explore {{ item.count }} career{{ 's' if item.count != 1 else '' }} in {{ item.cluster.name|title }}.
+                        {% else %}
+                          No active careers available.
+                        {% endif %}
+                      </p>
+                      {% if is_active %}
+                        <span class="btn btn-sm btn-light career-category-button">Explore Careers</span>
+                      {% else %}
+                        <span class="btn btn-sm btn-light career-category-button disabled" style="pointer-events:none; opacity:0.8;">Inactive</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% elif clusters %}
+            {% set cluster_count = clusters|length %}
+            <div class="row mb-3">
+              <div class="col-12">
+                <p class="text-muted mb-0" id="cluster-count-display">
+                  <strong>{{ cluster_count }}</strong> cluster{{ 's' if cluster_count != 1 else '' }} found
+                </p>
+              </div>
+            </div>
+            <div class="row" id="cluster-cards-row">
+              {% for cluster in clusters %}
+                {% if cluster and cluster.name %}
+              <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{{ url('careers:career_cluster', args=[cluster.slug, cluster.id]) }}" class="text-decoration-none">
+                  <div class="career-category-card">
+                    <img src="{{ cluster.get_image_url() }}" alt="{{ cluster.name|title }}" class="career-category-image"
+                         onerror="this.src='{{ static('images/career-cluster-default.png') }}'">
+                    <div class="career-category-overlay">
+                      <h3 class="career-category-title">{{ cluster.name|title }}</h3>
+                      <p class="career-category-description">Explore careers in {{ cluster.name|title }}.</p>
+                      <span class="btn btn-sm btn-light career-category-button">Explore Careers</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+              <p class="text-muted">No career clusters available.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <!-- Cluster selected: show careers for selected cluster(s). Career search is in Career Finder section above. -->
         <div class="row">
           <div class="col-md-8 mx-auto">
             <div class="d-flex flex-column justify-content-center align-items-center text-center">
@@ -626,12 +672,17 @@ Explore our comprehensive collection of career paths organized by industry and i
             </div>
           </div>
         </div>
-
-   
-        <!-- Career Categories -->
+        <!-- Career list for selected cluster(s) -->
         <div class="mt-4">
-
             {% if careers %}
+            {% set career_count = total_careers if total_careers is defined and total_careers is not none else (careers.paginator.count if careers.paginator is defined else careers|length) %}
+            <div class="row mb-3">
+              <div class="col-12">
+                <p class="text-muted mb-0">
+                  <strong>{{ career_count }}</strong> career{{ 's' if career_count != 1 else '' }} found
+                </p>
+              </div>
+            </div>
             <div class="row mt-4">
               {% for career in careers %}
               <div class="col-md-4 col-sm-6 mb-4 career-track-card">
@@ -740,24 +791,34 @@ Explore our comprehensive collection of career paths organized by industry and i
             </div>
 
             <!-- Pagination -->
-            {% if careers and careers.paginator.num_pages > 1 %}
+            {% if careers and careers.paginator %}
             <div class="row mt-4">
               <div class="col-12">
-                <nav aria-label="Career pagination">
+                <p class="text-muted mb-2">
+                  Showing {{ careers.start_index() }} to {{ careers.end_index() }} of {{ careers.paginator.count }} careers
+                </p>
+                <nav aria-label="Career pagination" class="{% if careers.paginator.num_pages <= 1 %}d-none{% endif %}">
                   <ul class="pagination career-pagination justify-content-center">
                     {% if careers.has_previous() %}
                     <li class="page-item">
+                      {% if cluster_page_url %}
+                      <a class="page-link" href="{{ cluster_page_url }}?{% if selected_career_ids %}{% for c in selected_career_ids %}career={{ c }}&{% endfor %}{% endif %}page={{ careers.previous_page_number() }}" aria-label="Previous">
+                        <i class='bx bx-chevron-left'></i>
+                      </a>
+                      {% else %}
                       <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         <input type="hidden" name="page" value="{{ careers.previous_page_number() }}">
                         <input type="hidden" name="mode" value="{{ view_mode }}">
                         {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                         {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
+                        {% if selected_career_ids %}{% for c in selected_career_ids %}<input type="hidden" name="career" value="{{ c }}">{% endfor %}{% endif %}
                         {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
                         <button type="submit" class="page-link" aria-label="Previous" style="border: none; background: none; padding: 0.375rem 0.75rem;">
                           <i class='bx bx-chevron-left'></i>
                         </button>
                       </form>
+                      {% endif %}
                     </li>
                     {% else %}
                     <li class="page-item disabled">
@@ -772,32 +833,44 @@ Explore our comprehensive collection of career paths organized by industry and i
                         <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
                       {% elif page_num > (careers.number - 3) and page_num < (careers.number + 3) %}
                         <li class="page-item">
+                          {% if cluster_page_url %}
+                          <a class="page-link" href="{{ cluster_page_url }}?{% if selected_career_ids %}{% for c in selected_career_ids %}career={{ c }}&{% endfor %}{% endif %}page={{ page_num }}">{{ page_num }}</a>
+                          {% else %}
                           <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                             <input type="hidden" name="page" value="{{ page_num }}">
                             <input type="hidden" name="mode" value="{{ view_mode }}">
                             {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                             {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
+                            {% if selected_career_ids %}{% for c in selected_career_ids %}<input type="hidden" name="career" value="{{ c }}">{% endfor %}{% endif %}
                             {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
                             <button type="submit" class="page-link" style="border: none; background: none; padding: 0.375rem 0.75rem;">{{ page_num }}</button>
                           </form>
+                          {% endif %}
                         </li>
                       {% endif %}
                     {% endfor %}
 
                     {% if careers.has_next() %}
                     <li class="page-item">
+                      {% if cluster_page_url %}
+                      <a class="page-link" href="{{ cluster_page_url }}?{% if selected_career_ids %}{% for c in selected_career_ids %}career={{ c }}&{% endfor %}{% endif %}page={{ careers.next_page_number() }}" aria-label="Next">
+                        <i class='bx bx-chevron-right'></i>
+                      </a>
+                      {% else %}
                       <form method="POST" action="{{ url('careers:career') }}" class="d-inline" style="margin: 0;">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         <input type="hidden" name="page" value="{{ careers.next_page_number() }}">
                         <input type="hidden" name="mode" value="{{ view_mode }}">
                         {% if search_param %}<input type="hidden" name="search" value="{{ search_param }}">{% endif %}
                         {% if selected_clusters %}{% for c in selected_clusters %}<input type="hidden" name="cluster" value="{{ c }}">{% endfor %}{% endif %}
+                        {% if selected_career_ids %}{% for c in selected_career_ids %}<input type="hidden" name="career" value="{{ c }}">{% endfor %}{% endif %}
                         {% if is_parent_student_context and parent_student_id %}<input type="hidden" name="student_id" value="{{ parent_student_id }}">{% endif %}
                         <button type="submit" class="page-link" aria-label="Next" style="border: none; background: none; padding: 0.375rem 0.75rem;">
                           <i class='bx bx-chevron-right'></i>
                         </button>
                       </form>
+                      {% endif %}
                     </li>
                     {% else %}
                     <li class="page-item disabled">
@@ -820,14 +893,16 @@ Explore our comprehensive collection of career paths organized by industry and i
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   </svg>
                   <h3 class="text-xl font-semibold text-gray-900 mb-3">No careers found</h3>
-                  <p class="text-gray-500 mb-8 text-lg">Try adjusting your search criteria to find more careers.</p>
-                  <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">View All Careers</a>
+                  <p class="text-gray-500 mb-8 text-lg">Try adjusting your search criteria or choose another cluster.</p>
+                  <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">Back to career clusters</a>
                 </div>
               </div>
             </div>
             {% endif %}
           </div>
         </div>
+        {% endif %}
+        <!-- end cluster selected: career list -->
         {% endif %}
         <!-- End Traditional View Interface -->
       </div>
@@ -1839,6 +1914,48 @@ body.ai-fullscreen-active {
 </script>
 
 <script>
+// Cluster cards page: search filters cluster cards via AJAX; count and results update together
+(function() {
+  const input = document.getElementById('cluster-cards-search');
+  const row = document.getElementById('cluster-cards-row');
+  const countEl = document.getElementById('cluster-count-display');
+  if (!input || !row) return;
+  // Don't use system/browser prefilled values (e.g. email) in this search field
+  if (input.value && (input.value.indexOf('@') !== -1 || input.value.indexOf('.com') !== -1)) {
+    input.value = '';
+  }
+  const apiUrl = '{{ url("careers:cluster_cards_search") }}';
+  let debounceTimer;
+  function updateCount(n) {
+    if (countEl) {
+      var s = (n !== 1) ? 's' : '';
+      countEl.innerHTML = '<strong>' + n + '</strong> cluster' + s + ' found';
+    }
+  }
+  input.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const q = (this.value || '').trim();
+    debounceTimer = setTimeout(function() {
+      const url = apiUrl + (q ? '?q=' + encodeURIComponent(q) : '');
+      row.style.opacity = '0.6';
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var count = (data && typeof data.count !== 'undefined') ? data.count : 0;
+          var html = (data && data.html) ? data.html : '';
+          updateCount(count);
+          row.innerHTML = html;
+          row.style.opacity = '';
+        })
+        .catch(function() {
+          row.style.opacity = '';
+        });
+    }, 300);
+  });
+})();
+</script>
+
+<script>
 // Initialize Select2 with autocomplete for all filters
 // Wait for jQuery to be available
 (function() {
@@ -2204,6 +2321,59 @@ body.ai-fullscreen-active {
   }
 })();
 
+// Inner page career filter: Select2 multiselect with AJAX [careername] [cluster name], update results on selection
+(function() {
+  'use strict';
+  function initCareerFilterInner() {
+    if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+      setTimeout(initCareerFilterInner, 100);
+      return;
+    }
+    const $ = jQuery;
+    const $el = $('#careerFilterInner');
+    if ($el.length === 0) return;
+    const ajaxUrl = $el.data('ajax-url');
+    const clusterId = ($el.data('cluster-id') || '').toString().trim();
+    if (!ajaxUrl) return;
+    if ($el.hasClass('select2-hidden-accessible')) {
+      $el.select2('destroy');
+    }
+    $el.select2({
+      theme: 'bootstrap-5',
+      placeholder: $el.data('placeholder') || 'Type career name...',
+      allowClear: true,
+      multiple: true,
+      width: '100%',
+      closeOnSelect: false,
+      ajax: {
+        url: ajaxUrl,
+        dataType: 'json',
+        delay: 250,
+        cache: false,
+        data: function(params) {
+          return { q: params.term || '', limit: 30, cluster_id: clusterId };
+        },
+        processResults: function(data) {
+          var list = (data.results || []).map(function(r) {
+            return { id: String(r.id), text: r.text || String(r.id) };
+          });
+          return { results: list };
+        }
+      },
+      minimumInputLength: 0
+    });
+    // Keep dropdown open after each selection until user clicks Search or Reset
+    $el.on('select2:select', function() {
+      setTimeout(function() { $el.select2('open'); }, 10);
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCareerFilterInner);
+  } else {
+    initCareerFilterInner();
+  }
+})();
+
 // Also attach form handler outside the initSelect2 function as a fallback
 (function() {
   'use strict';
@@ -2217,8 +2387,7 @@ body.ai-fullscreen-active {
     const $form = $('#career-filter-form');
     
     if ($form.length === 0) {
-      setTimeout(attachFormHandler, 100);
-      return;
+      return; // Form removed on careers page (cluster search is AJAX-only under Career Finder)
     }
     
     // Remove any existing handlers with namespace
