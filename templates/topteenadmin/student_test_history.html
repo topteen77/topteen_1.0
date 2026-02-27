@@ -33,6 +33,16 @@
 					<div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
 						<!--begin::Add subscription-->
 						{% if student %}
+						{% if request.user.is_staff or request.user.is_superuser %}
+						<button type="button" class="btn btn-light-warning me-3" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 17C11.45 17 11 16.55 11 16V12C11 11.45 11.45 11 12 11C12.55 11 13 11.45 13 12V16C13 16.55 12.55 17 12 17ZM13 9H11V7H13V9Z" fill="currentColor"/>
+								</svg>
+							</span>
+							Reset password
+						</button>
+						{% endif %}
 						<a href="{{ url_('topteenadminmanaged:exportclass12results', student.id) }}" class="btn btn-primary me-3">
 							<!--begin::Svg Icon | path: icons/duotune/arrows/arr075.svg-->
 							<span class="svg-icon svg-icon-2">
@@ -281,5 +291,56 @@
 	<!--end::Container-->
 </div>
 <!--end::Post-->
+
+{% if student and (request.user.is_staff or request.user.is_superuser) %}
+<!-- Reset password modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Reset password</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form id="resetPasswordForm" method="POST" action="{{ url_('topteenadminmanaged:admin_reset_user_password', student.id) }}">
+				{{ csrf_input_tag()|safe }}
+				<input type="hidden" name="next" value="{{ url_('topteenadminmanaged:studenttesthistory', student.id) }}">
+				<div class="modal-body">
+					<p class="text-gray-600 mb-4">Set a new password for <strong>{{ student.name|default(student.email) }}</strong>. No current password required.</p>
+					<div class="mb-4">
+						<label class="form-label required fw-bold">New password</label>
+						<input type="password" name="new_password1" id="resetPwNew1" class="form-control form-control-solid" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+					</div>
+					<div class="mb-2">
+						<label class="form-label required fw-bold">Confirm password</label>
+						<input type="password" name="new_password2" id="resetPwNew2" class="form-control form-control-solid" required minlength="8" autocomplete="new-password" placeholder="Re-enter password">
+						<div class="form-text text-danger d-none" id="resetPwMismatch">Passwords do not match.</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary">Save</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<script>
+(function() {
+	var formEl = document.getElementById('resetPasswordForm');
+	var mismatchEl = document.getElementById('resetPwMismatch');
+	if (!formEl || !mismatchEl) return;
+	formEl.addEventListener('submit', function(e) {
+		var p1 = document.getElementById('resetPwNew1').value;
+		var p2 = document.getElementById('resetPwNew2').value;
+		mismatchEl.classList.add('d-none');
+		if (p1 !== p2) {
+			e.preventDefault();
+			mismatchEl.classList.remove('d-none');
+			return false;
+		}
+	});
+})();
+</script>
+{% endif %}
 {% endblock %}
 

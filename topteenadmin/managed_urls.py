@@ -394,6 +394,8 @@ urlpatterns = [
     
     #Assessment Students Management
     path('assessment/students/list',views.StudentListView.as_view(),name="studentlist"),
+    path('assessment/users/list',views.UserListView.as_view(),name="userlist"),
+    path('assessment/student/<int:user_id>/reset-password/',views.AdminResetUserPasswordView.as_view(),name="admin_reset_user_password"),
     path('assessment/student/<int:user_id>/test-history/',views.StudentTestHistoryView.as_view(),name="studenttesthistory"),
     # Student List API endpoints
     path('api/assessment/students/stats/',views.StudentListStatsAPIView.as_view(),name="studentlist_stats_api"),

@@ -151,15 +151,15 @@
           {% include 'template20/includes/messages.html' %}
 
           <!-- Profile Update Form -->
-          <form method="POST" action="{{ url('topteenadmin:UpdateProfile') }}" enctype="multipart/form-data" id="profileUpdateForm">
-            {{ csrf_input()|safe }}
+          <form method="POST" action="{{ url_('topteenadmin:UpdateProfile') }}" enctype="multipart/form-data" id="profileUpdateForm">
+            {{ csrf_input_tag()|safe }}
             
             <div class="row mb-4">
               <div class="col-12">
                 <label class="form-label">Profile Picture</label>
                 <div class="avatar-upload">
-                  {% if user.image %}
-                  <img src="/media/{{ user.image }}" alt="Profile" class="avatar-preview" id="avatarPreview">
+                  {% if profile_user.image %}
+                  <img src="/media/{{ profile_user.image }}" alt="Profile" class="avatar-preview" id="avatarPreview">
                   {% else %}
                   <div class="avatar-preview bg-light d-flex align-items-center justify-content-center" id="avatarPreview" style="background-color: #f0f0f0;">
                     <i class='bx bx-user fs-48 text-gray'></i>
@@ -181,7 +181,7 @@
                        class="form-control" 
                        id="name" 
                        name="name" 
-                       value="{{ user.name|default(user.get_full_name())|default('') }}"
+                       value="{{ profile_user.name|default('') }}"
                        required>
               </div>
             </div>
@@ -197,8 +197,8 @@
           <!-- Password Change Form -->
           <div class="password-section">
             <h4 class="mb-4">Change Password</h4>
-            <form method="POST" action="{{ url('topteenadmin:UpdateProfile') }}" id="passwordChangeForm">
-              {{ csrf_input()|safe }}
+            <form method="POST" action="{{ url_('topteenadmin:UpdateProfile') }}" id="passwordChangeForm">
+              {{ csrf_input_tag()|safe }}
               
               <div class="row mb-3">
                 <div class="col-md-4">
