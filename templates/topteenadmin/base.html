@@ -19,18 +19,6 @@
 		<link href="{{static("topteenadmin/assets/plugins/global/plugins.bundle.css")}}" rel="stylesheet" type="text/css" />
 		<link href="{{static("topteenadmin/assets/css/style.bundle.css")}}" rel="stylesheet" type="text/css" />
 		<!--end::Global Stylesheets Bundle-->
-		<!-- Force main content area visible (override theme hiding) -->
-		<style>
-			#kt_content,
-			#kt_content_container,
-			#kt_post,
-			.post.d-flex.flex-column-fluid {
-				visibility: visible !important;
-				display: flex !important;
-				opacity: 1 !important;
-			}
-			#kt_content { flex-direction: column; }
-		</style>
         {% block additional_header %}
         {% endblock %}
 	</head>
@@ -68,10 +56,115 @@
 					<!--begin::Aside menu-->
 					<div class="aside-menu flex-column-fluid">
 						<!--begin::Aside Menu-->
-						<div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0" style="overflow-y: auto; max-height: calc(100vh - 120px);">
+						<div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0">
 														<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+																<span class="menu-link">
+																	<span class="menu-icon">
+																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																		<span class="svg-icon svg-icon-2">
+																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																				<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																			</svg>
+																		</span>
+																		<!--end::Svg Icon-->
+																	</span>
+																	<span class="menu-title">Core</span>
+																	<span class="menu-arrow"></span>
+																</span>
+																<div class="menu-sub menu-sub-accordion menu-active-bg">
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="country" %} active {% endif %}" href="{{url("topteenadminmanaged:countrylist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Country</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="state" %} active {% endif %}" href="{{url("topteenadminmanaged:statelist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">State</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="city" %} active {% endif %}" href="{{url("topteenadminmanaged:citylist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">City</span>
+																		</a>
+																	</div>										
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="review" %} active {% endif %}" href="{{url("topteenadminmanaged:reviewlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Review</span>
+																		</a>
+																	</div>										
+																	<div class="menu-item">
+																		<a class="menu-link{% if active_tab =="commonfaq" %} active {% endif %}" href="{{url("topteenadminmanaged:commonfaqlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">CommonFAQ</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="hobbies" %} active {% endif %}" href="{{url("topteenadminmanaged:hobbieslist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Hobbies</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="subject" %} active {% endif %}" href="{{url("topteenadminmanaged:subjectlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Subject</span>
+																		</a>
+																	</div>		
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="userfigureout" %} active {% endif %}" href="{{url("topteenadminmanaged:userfigureoutlist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">UserFigureOut</span>
+																		</a>
+																	</div>		
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="stories" %} active {% endif %}" href="{{url("topteenadminmanaged:storieslist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Stories</span>
+																		</a>
+																	</div>		
+																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="apilog" %} active {% endif %}" href="{{url("topteenadminmanaged:apiloglist")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Api Log</span>
+																		</a>
+																	</div>						
+																</div>
+															</div>
+															
+														</div>
+														<!--end::Menu-->
+														<!--begin::Menu-->
+														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -119,9 +212,85 @@
 															
 														</div>
 														<!--end::Menu-->
-										<!--begin::Menu-->
+																												<!--begin::Menu-->
+																												<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+																													<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+																														<span class="menu-link">
+																															<span class="menu-icon">
+																																<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																																<span class="svg-icon svg-icon-2">
+																																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																																		<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																	</svg>
+																																</span>
+																																<!--end::Svg Icon-->
+																															</span>
+																															<span class="menu-title">CRM</span>
+																															<span class="menu-arrow"></span>
+																														</span>
+																														<div class="menu-sub menu-sub-accordion menu-active-bg">
+																															<div class="menu-item">
+																																<a class="menu-link{% if active_tab =="lead" %} active {% endif %}" href="{{url("topteenadminmanaged:leadlist")}}">
+																																	<span class="menu-bullet">
+																																		<span class="bullet bullet-dot"></span>
+																																	</span>
+																																	<span class="menu-title">Lead</span>
+																																</a>
+																															</div>
+																																									
+																														</div>
+																													</div>
+																													
+																												</div>
+																												<!--end::Menu-->
+																													<!--begin::Menu-->
+																													<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+																														<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+																															<span class="menu-link">
+																																<span class="menu-icon">
+																																	<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																																	<span class="svg-icon svg-icon-2">
+																																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																																			<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																			<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																			<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																			<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																		</svg>
+																																	</span>
+																																	<!--end::Svg Icon-->
+																																</span>
+																																<span class="menu-title">Psychometric Test</span>
+																																<span class="menu-arrow"></span>
+																															</span>
+																															<div class="menu-sub menu-sub-accordion menu-active-bg">
+																																<div class="menu-item">
+																																	<a class="menu-link{% if active_tab =="psychometric" %} active {% endif %}" href="{{url("topteenadminmanaged:psychometricfaqlist")}}">
+																																		<span class="menu-bullet">
+																																			<span class="bullet bullet-dot"></span>
+																																		</span>
+																																		<span class="menu-title">Psychometric Faq</span>
+																																	</a>
+																																</div>
+																																<div class="menu-item">
+																																	<a class="menu-link{% if active_tab =="students" %} active {% endif %}" href="{{url("topteenadminmanaged:studentlist")}}">
+																																		<span class="menu-bullet">
+																																			<span class="bullet bullet-dot"></span>
+																																		</span>
+																																		<span class="menu-title">Students</span>
+																																	</a>
+																																</div>
+																																										
+																															</div>
+																														</div>
+																														
+																													</div>
+																													<!--end::Menu-->
+							<!--begin::Menu-->
 							<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-								<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+								<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
 									<span class="menu-link">
 										<span class="menu-icon">
 											<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -221,38 +390,6 @@
 											</a>
 										</div>
 										<div class="menu-item">
-											<a class="menu-link{% if active_tab =="vocationalcoursecategory" %} active {% endif %}" href="{{url("topteenadminmanaged:vocationalcoursecategorylist")}}">
-												<span class="menu-bullet">
-													<span class="bullet bullet-dot"></span>
-												</span>
-												<span class="menu-title">Vocational Course Category</span>
-											</a>
-										</div>
-										<div class="menu-item">
-											<a class="menu-link{% if active_tab =="vocationalcourse" %} active {% endif %}" href="{{url("topteenadminmanaged:vocationalcourselist")}}">
-												<span class="menu-bullet">
-													<span class="bullet bullet-dot"></span>
-												</span>
-												<span class="menu-title">Vocational Course</span>
-											</a>
-										</div>
-										<div class="menu-item">
-											<a class="menu-link{% if active_tab =="extracurricularactivitycategory" %} active {% endif %}" href="{{url("topteenadminmanaged:extracurricularactivitycategorylist")}}">
-												<span class="menu-bullet">
-													<span class="bullet bullet-dot"></span>
-												</span>
-												<span class="menu-title">Extracurricular Category</span>
-											</a>
-										</div>
-										<div class="menu-item">
-											<a class="menu-link{% if active_tab =="extracurricularactivity" %} active {% endif %}" href="{{url("topteenadminmanaged:extracurricularactivitylist")}}">
-												<span class="menu-bullet">
-													<span class="bullet bullet-dot"></span>
-												</span>
-												<span class="menu-title">Extracurricular Activity</span>
-											</a>
-										</div>
-										<div class="menu-item">
 											<a class="menu-link{% if active_tab =="category" %} active {% endif %}" href="{{url("topteenadminmanaged:videocategorylist")}}">
 												<span class="menu-bullet">
 													<span class="bullet bullet-dot"></span>
@@ -282,9 +419,10 @@
 								
 							</div>
 							<!--end::Menu-->
-										<!--begin::Menu-->
+
+														<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -390,114 +528,9 @@
 															
 														</div>
 														<!--end::Menu-->
-										<!--begin::Menu-->
+														<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-																<span class="menu-link">
-																	<span class="menu-icon">
-																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																		<span class="svg-icon svg-icon-2">
-																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																				<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																				<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																				<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																				<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																			</svg>
-																		</span>
-																		<!--end::Svg Icon-->
-																	</span>
-																	<span class="menu-title">Core</span>
-																	<span class="menu-arrow"></span>
-																</span>
-																<div class="menu-sub menu-sub-accordion menu-active-bg">
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="country" %} active {% endif %}" href="{{url("topteenadminmanaged:countrylist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Country</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="state" %} active {% endif %}" href="{{url("topteenadminmanaged:statelist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">State</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="city" %} active {% endif %}" href="{{url("topteenadminmanaged:citylist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">City</span>
-																		</a>
-																	</div>										
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="review" %} active {% endif %}" href="{{url("topteenadminmanaged:reviewlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Review</span>
-																		</a>
-																	</div>										
-																	<div class="menu-item">
-																		<a class="menu-link{% if active_tab =="commonfaq" %} active {% endif %}" href="{{url("topteenadminmanaged:commonfaqlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">CommonFAQ</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="hobbies" %} active {% endif %}" href="{{url("topteenadminmanaged:hobbieslist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Hobbies</span>
-																		</a>
-																	</div>
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="subject" %} active {% endif %}" href="{{url("topteenadminmanaged:subjectlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Subject</span>
-																		</a>
-																	</div>		
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="userfigureout" %} active {% endif %}" href="{{url("topteenadminmanaged:userfigureoutlist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">UserFigureOut</span>
-																		</a>
-																	</div>		
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="stories" %} active {% endif %}" href="{{url("topteenadminmanaged:storieslist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Stories</span>
-																		</a>
-																	</div>		
-																	<div class="menu-item">
-																		<a class="menu-link {% if active_tab =="apilog" %} active {% endif %}" href="{{url("topteenadminmanaged:apiloglist")}}">
-																			<span class="menu-bullet">
-																				<span class="bullet bullet-dot"></span>
-																			</span>
-																			<span class="menu-title">Api Log</span>
-																		</a>
-																	</div>						
-																</div>
-															</div>
-															
-														</div>
-														<!--end::Menu-->
-										<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -581,43 +614,10 @@
 															
 														</div>
 														<!--end::Menu-->
-										<!--begin::Menu-->
-																												<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-																													<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-																														<span class="menu-link">
-																															<span class="menu-icon">
-																																<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																																<span class="svg-icon svg-icon-2">
-																																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																																		<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																	</svg>
-																																</span>
-																																<!--end::Svg Icon-->
-																															</span>
-																															<span class="menu-title">CRM</span>
-																															<span class="menu-arrow"></span>
-																														</span>
-																														<div class="menu-sub menu-sub-accordion menu-active-bg">
-																															<div class="menu-item">
-																																<a class="menu-link{% if active_tab =="lead" %} active {% endif %}" href="{{url("topteenadminmanaged:leadlist")}}">
-																																	<span class="menu-bullet">
-																																		<span class="bullet bullet-dot"></span>
-																																	</span>
-																																	<span class="menu-title">Lead</span>
-																																</a>
-																															</div>
-																																									
-																														</div>
-																													</div>
-																													
-																												</div>
-																												<!--end::Menu-->
-										<!--begin::Menu-->
+
+														<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -656,51 +656,9 @@
 															
 														</div>
 														<!--end::Menu-->
-										<!--begin::Menu-->
-																													<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-																														<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-																															<span class="menu-link">
-																																<span class="menu-icon">
-																																	<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																																	<span class="svg-icon svg-icon-2">
-																																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																																			<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																		</svg>
-																																	</span>
-																																	<!--end::Svg Icon-->
-																																</span>
-																																<span class="menu-title">Psychometric Test</span>
-																																<span class="menu-arrow"></span>
-																															</span>
-																															<div class="menu-sub menu-sub-accordion menu-active-bg">
-																																<div class="menu-item">
-																																	<a class="menu-link{% if active_tab =="psychometric" %} active {% endif %}" href="{{url("topteenadminmanaged:psychometricfaqlist")}}">
-																																		<span class="menu-bullet">
-																																			<span class="bullet bullet-dot"></span>
-																																		</span>
-																																		<span class="menu-title">Psychometric Faq</span>
-																																	</a>
-																																</div>
-																																<div class="menu-item">
-																																	<a class="menu-link{% if active_tab =="students" %} active {% endif %}" href="{{url("topteenadminmanaged:studentlist")}}">
-																																		<span class="menu-bullet">
-																																			<span class="bullet bullet-dot"></span>
-																																		</span>
-																																		<span class="menu-title">Students</span>
-																																	</a>
-																																</div>
-																																										
-																															</div>
-																														</div>
-																														
-																													</div>
-																													<!--end::Menu-->
-										<!--begin::Menu-->
+														<!--begin::Menu-->
 														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -747,7 +705,13 @@
 															</div>
 															
 														</div>
-														<!--end::Menu--><!--end::Aside Menu-->
+														<!--end::Menu-->
+														
+
+
+
+						</div>
+						<!--end::Aside Menu-->
 					</div>
 
 
@@ -882,17 +846,12 @@
 					<!--end::Header-->
     
 					<!--begin::Content-->
-					<div class="content d-flex flex-column flex-column-fluid position-relative" id="kt_content">
-						<div id="kt_content_inner">
+					<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
 						{% include 'topteenadmin/includes/breadcrumb.html' %}
 <!--dshfjshjhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhajslkfjlk-->
 						{% block main%}
 						{% endblock %}
 <!--dslkjflkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk-->
-						</div>
-						<div id="kt_content_ajax_loading" class="position-absolute top-0 start-0 end-0 bottom-0 d-none align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 10;">
-							<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-						</div>
 					</div>
 					<!--end::Content-->
 					<!--begin::Footer-->
@@ -942,31 +901,8 @@
 		
 		<!--begin::Javascript-->
 		<script>var hostUrl = "assets/";</script>
-		<!-- Suppress theme JS errors from breaking the page when elements are missing (noUiSlider, classList, etc.) -->
-		<script>
-		window._topteenadmin_onerror = window.onerror;
-		window.onerror = function(msg, url, line, col, err) {
-			if (typeof msg === 'string' && (msg.indexOf('classList') !== -1 || msg.indexOf('noUiSlider') !== -1 || msg.indexOf('null') !== -1)) {
-				console.warn('Theme init warning (suppressed):', msg);
-				return true;
-			}
-			return _topteenadmin_onerror ? _topteenadmin_onerror.apply(this, arguments) : false;
-		};
-		</script>
 		<!--begin::Global Javascript Bundle(used by all pages)-->
 		<script src="{{static("topteenadmin/assets/plugins/global/plugins.bundle.js")}}"></script>
-		<script>
-		// Guard: prevent noUiSlider and similar from throwing when target element is null
-		(function() {
-			if (typeof window.noUiSlider !== 'undefined' && window.noUiSlider.create) {
-				var _create = window.noUiSlider.create;
-				window.noUiSlider.create = function(el, opts) {
-					if (!el) { return null; }
-					try { return _create.call(window.noUiSlider, el, opts); } catch (e) { return null; }
-				};
-			}
-		})();
-		</script>
 		<script src="{{static("topteenadmin/assets/js/scripts.bundle.js")}}"></script>
 		<!--end::Global Javascript Bundle-->
 		<!--begin::Page Vendors Javascript(used by this page)-->
@@ -1068,229 +1004,6 @@
 					window.close();
 				{% endif %}
 			</script>
-			<script>
-			// Keep sidebar scrolled so the active menu item (current page) is in view; run after theme may have reset scroll
-			(function() {
-				function expandActiveGroup() {
-					var aside = document.getElementById('kt_aside');
-					if (!aside) return null;
-					var activeLink = aside.querySelector('.menu-link.active');
-					var allAccordions = aside.querySelectorAll('.menu-item.menu-accordion');
-					allAccordions.forEach(function(acc) {
-						acc.classList.remove('show');
-						var sub = acc.querySelector('.menu-sub');
-						if (sub) sub.classList.remove('show');
-					});
-					if (activeLink) {
-						var parentSub = activeLink.closest('.menu-sub');
-						if (parentSub) {
-							var parentAccordion = parentSub.closest('.menu-item.menu-accordion');
-							if (parentAccordion) {
-								parentAccordion.classList.add('show');
-								parentSub.classList.add('show');
-							}
-						}
-					}
-					return activeLink;
-				}
-				function scrollSidebarToActiveLink() {
-					var aside = document.getElementById('kt_aside');
-					var wrapper = document.getElementById('kt_aside_menu_wrapper');
-					if (!aside || !wrapper) return;
-					var activeLink = aside.querySelector('.menu-link.active');
-					if (!activeLink) return;
-					requestAnimationFrame(function() {
-						var linkRect = activeLink.getBoundingClientRect();
-						var wrapperRect = wrapper.getBoundingClientRect();
-						var scrollTarget = wrapper.scrollTop + (linkRect.top - wrapperRect.top) - 80;
-						var maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
-						wrapper.scrollTop = Math.max(0, Math.min(scrollTarget, maxScroll));
-					});
-				}
-				function run() {
-					var activeLink = expandActiveGroup();
-					if (activeLink) {
-						scrollSidebarToActiveLink();
-						// Run again at intervals so we win over theme JS that may reset sidebar to top
-						setTimeout(scrollSidebarToActiveLink, 200);
-						setTimeout(scrollSidebarToActiveLink, 500);
-						setTimeout(scrollSidebarToActiveLink, 900);
-						setTimeout(scrollSidebarToActiveLink, 1500);
-					}
-				}
-				if (document.readyState === 'loading') {
-					document.addEventListener('DOMContentLoaded', run);
-				} else {
-					run();
-				}
-				window.addEventListener('load', function() {
-					setTimeout(scrollSidebarToActiveLink, 100);
-					setTimeout(scrollSidebarToActiveLink, 600);
-				});
-		})();
-		</script>
-		<!-- AJAX navigation: load topteenadmin pages without full reload -->
-		<script>
-		(function() {
-			var contentEl = document.getElementById('kt_content_inner');
-			var loadingEl = document.getElementById('kt_content_ajax_loading');
-			var basePath = '/topteenadmin';
-
-			function isSameOrigin(href) {
-				try {
-					var a = document.createElement('a');
-					a.href = href;
-					return a.origin === window.location.origin;
-				} catch (e) { return false; }
-			}
-
-			function shouldLoadViaAjax(href) {
-				if (!href || !isSameOrigin(href)) return false;
-				try {
-					var a = document.createElement('a');
-					a.href = href;
-					var path = (a.pathname || '').replace(/\/+$/, '') || '/';
-					if (path.indexOf(basePath) !== 0) return false;
-					if (path === basePath + '/logout' || path === basePath + '/login' || path.indexOf(basePath + '/login') === 0) return false;
-					if (path.indexOf(basePath + '/changepassword') === 0 || path.indexOf(basePath + '/forgotpassword') === 0) return false;
-					if (path === basePath + '/profile' || path.indexOf(basePath + '/profile') === 0) return false;
-					if (path.indexOf(basePath + '/media-library') === 0) return false;
-					return true;
-				} catch (e) { return false; }
-			}
-
-			function showLoading() {
-				if (loadingEl) { loadingEl.classList.remove('d-none'); loadingEl.classList.add('d-flex'); }
-			}
-			function hideLoading() {
-				if (loadingEl) { loadingEl.classList.add('d-none'); loadingEl.classList.remove('d-flex'); }
-			}
-
-			function loadPage(url, pushState) {
-				if (!contentEl) return Promise.reject(new Error('No content element'));
-				showLoading();
-				return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, credentials: 'same-origin' })
-					.then(function(r) {
-						if (!r.ok) throw new Error('Load failed: ' + r.status);
-						return r.text();
-					})
-					.then(function(html) {
-						var parser = new DOMParser();
-						var doc = parser.parseFromString(html, 'text/html');
-						var remoteContent = doc.getElementById('kt_content_inner');
-						var remoteContentFallback = doc.getElementById('kt_content');
-						var inner = remoteContent || (remoteContentFallback || null);
-						if (inner) {
-							// Use importNode + replaceChildren so content is adopted into live document (avoids innerHTML re-parse issues)
-							while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild);
-							var children = inner.childNodes;
-							for (var i = 0; i < children.length; i++) {
-								contentEl.appendChild(document.importNode(children[i], true));
-							}
-							// Force main content area visible (theme may hide dynamically inserted nodes)
-							var post = contentEl.querySelector('#kt_post');
-							var container = contentEl.querySelector('#kt_content_container');
-							if (post) { post.style.visibility = 'visible'; post.style.display = ''; post.style.opacity = ''; }
-							if (container) { container.style.visibility = 'visible'; container.style.display = ''; container.style.opacity = ''; }
-						}
-						var titleEl = doc.querySelector('title');
-						if (titleEl && titleEl.textContent) document.title = titleEl.textContent;
-						if (pushState !== false) window.history.pushState({ url: url }, '', url);
-						hideLoading();
-						updateSidebarActive(url);
-					})
-					.catch(function(err) {
-						hideLoading();
-						console.error(err);
-						window.location.href = url;
-					});
-			}
-
-			function updateSidebarActive(currentUrl) {
-				try {
-					var path = (currentUrl || window.location.href).split('?')[0].replace(/\/+$/, '') || '/';
-					var aside = document.getElementById('kt_aside');
-					if (!aside) return;
-					aside.querySelectorAll('.menu-link.active').forEach(function(el) { el.classList.remove('active'); });
-					var best = null;
-					aside.querySelectorAll('.menu-link[href]').forEach(function(link) {
-						var linkPath = (link.getAttribute('href') || '').split('?')[0].replace(/\/+$/, '') || '/';
-						if (linkPath === path) { best = link; return; }
-						if (path.indexOf(linkPath) === 0 && linkPath.length > 1 && (!best || linkPath.length > (best.getAttribute('href') || '').split('?')[0].length)) best = link;
-					});
-					if (best) best.classList.add('active');
-				} catch (e) {}
-			}
-
-			function handleClick(ev) {
-				var a = ev.target.closest('a');
-				if (!a || !a.href) return;
-				if (a.target === '_blank' || a.getAttribute('download')) return;
-				if (!shouldLoadViaAjax(a.href)) return;
-				ev.preventDefault();
-				loadPage(a.href, true);
-			}
-
-			document.addEventListener('click', function(ev) {
-				if (ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
-				handleClick(ev);
-			}, true);
-
-			window.addEventListener('popstate', function(ev) {
-				if (ev.state && ev.state.url && contentEl) loadPage(ev.state.url, false);
-				else if (window.location.pathname.indexOf(basePath) === 0) loadPage(window.location.href, false);
-			});
-
-			if (window.history && window.history.state === null) {
-				window.history.replaceState({ url: window.location.href }, '', window.location.href);
-			}
-			window.topteenAdminLoadUrl = function(url, pushState) { return loadPage(url, pushState !== false); };
-			// Global so pagination per-page dropdown works after AJAX load (injected scripts don't run)
-			window.buildPaginateUrl = window.buildPaginateUrl || function(overrides) {
-				var params = new URLSearchParams(window.location.search);
-				for (var k in overrides) { if (overrides[k] != null) params.set(k, overrides[k]); }
-				return window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-			};
-		})();
-		</script>
-		<!-- Ensure main content stays visible if theme JS errors (e.g. career list page) -->
-		<script>
-		(function() {
-			function ensureContentVisible() {
-				var content = document.getElementById('kt_content');
-				var container = document.getElementById('kt_content_container');
-				var post = document.getElementById('kt_post');
-				if (content) {
-					content.style.setProperty('visibility', 'visible', 'important');
-					content.style.setProperty('display', 'flex', 'important');
-					content.style.setProperty('opacity', '1', 'important');
-				}
-				if (container) {
-					container.style.setProperty('visibility', 'visible', 'important');
-					container.style.setProperty('display', 'block', 'important');
-					container.style.setProperty('opacity', '1', 'important');
-				}
-				if (post) {
-					post.style.setProperty('visibility', 'visible', 'important');
-					post.style.setProperty('display', 'flex', 'important');
-					post.style.setProperty('opacity', '1', 'important');
-				}
-			}
-			function run() {
-				ensureContentVisible();
-				setTimeout(ensureContentVisible, 50);
-				setTimeout(ensureContentVisible, 200);
-				setTimeout(ensureContentVisible, 500);
-				setTimeout(ensureContentVisible, 1000);
-			}
-			if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', run);
-			} else {
-				run();
-			}
-			window.addEventListener('load', run);
-		})();
-		</script>
         {% block endscript %}
         {% endblock %}
 
