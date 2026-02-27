@@ -18,6 +18,18 @@
 				<div class="card-toolbar">
 					<!--begin::Toolbar-->
 					<div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
+						{% if request.user.is_staff or request.user.is_superuser %}
+						<!--begin::User list & Reset password (admin only)-->
+						<a href="{{ url('topteenadminmanaged:userlist') }}" class="btn btn-light-warning me-3">
+							<span class="svg-icon svg-icon-2">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+									<path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
+								</svg>
+							</span>
+							User list / Reset password
+						</a>
+						<!--end::User list-->
+						{% endif %}
 						<!--begin::Export buttons-->
 						<a href="{{ url('topteenadminmanaged:exportallclass12results') }}" class="btn btn-primary me-3">
 							<span class="svg-icon svg-icon-2">

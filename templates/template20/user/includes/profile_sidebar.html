@@ -62,7 +62,7 @@
         </div>
       </div>
     </div>
-    <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">
+    <a href="{{ url_('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">
       <i class='bx bx-cog me-2'></i> SETTINGS
     </a>
   </div>
@@ -72,7 +72,7 @@
   <div class="mt-4">
     {% if request.user.user_type == 5 %}
       {# Marketing Group Admin #}
-      <a href="{{ url('institute:marketinggroupdashboard') }}" class="d-block text-decoration-none mb-3">
+      <a href="{{ url_('institute:marketinggroupdashboard') }}" class="d-block text-decoration-none mb-3">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
             <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -83,7 +83,7 @@
       </a>
     {% elif request.user.user_type == 3 %}
       {# Institute Group Admin #}
-      <a href="{{ url('institute:institutegroupdashboard') }}" class="d-block text-decoration-none mb-3">
+      <a href="{{ url_('institute:institutegroupdashboard') }}" class="d-block text-decoration-none mb-3">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
             <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -96,7 +96,7 @@
       {# Institute #}
       {% set institute_obj = request.user.institute_created.last() %}
       {% if institute_obj and institute_obj.slug %}
-        <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="d-block text-decoration-none mb-3">
+        <a href="{{ url_('institute:institutedashboard', args=[institute_obj.slug]) }}" class="d-block text-decoration-none mb-3">
           <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
             <div>
               <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -106,7 +106,7 @@
           </div>
         </a>
       {% else %}
-        <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+        <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
           <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
             <div>
               <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -121,7 +121,7 @@
       {% set counselor_list = request.user.counselor.all() %}
       {% if counselor_list|length > 0 %}
         {% set counselor_obj = counselor_list[0] %}
-        <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" class="d-block text-decoration-none mb-3">
+        <a href="{{ url_('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" class="d-block text-decoration-none mb-3">
           <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
             <div>
               <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -131,7 +131,7 @@
           </div>
         </a>
       {% else %}
-        <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+        <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
           <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
             <div>
               <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -149,7 +149,7 @@
         {% if sm.class_and_section %}
           {% set class_name = sm.class_and_section.class_and_section %}
           {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
-            <a href="{{ url('post_matric:tests') }}" class="d-block text-decoration-none mb-3">
+            <a href="{{ url_('post_matric:tests') }}" class="d-block text-decoration-none mb-3">
               <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
                 <div>
                   <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -159,7 +159,7 @@
               </div>
             </a>
           {% else %}
-            <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+            <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
               <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
                 <div>
                   <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -170,7 +170,7 @@
             </a>
           {% endif %}
         {% else %}
-          <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+          <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
             <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
               <div>
                 <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -181,7 +181,7 @@
           </a>
         {% endif %}
       {% else %}
-        <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+        <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
           <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
             <div>
               <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -193,7 +193,7 @@
       {% endif %}
     {% else %}
       {# Default - Student or other #}
-      <a href="{{ url('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
+      <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
             <p class="fs-14 fw-semibold mb-1">Dashboard</p>
@@ -203,7 +203,7 @@
         </div>
       </a>
     {% endif %}
-    <a href="{{ url('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
+    <a href="{{ url_('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
           <p class="fs-14 fw-semibold mb-1">View Profile</p>
@@ -212,7 +212,7 @@
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
     </a>
-    <a href="{{ url('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
+    <a href="{{ url_('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
           <p class="fs-14 fw-semibold mb-1">Edit Profile</p>
@@ -221,7 +221,7 @@
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
     </a>
-    <a href="{{ url('users:userhistory') }}" class="d-block text-decoration-none mb-3">
+    <a href="{{ url_('users:userhistory') }}" class="d-block text-decoration-none mb-3">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
           <p class="fs-14 fw-semibold mb-1">Manage payment history</p>
@@ -230,7 +230,7 @@
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
     </a>
-    <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
+    <a href="{{ url_('users:logout') }}" class="d-block text-decoration-none">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
           <p class="fs-14 fw-semibold mb-1 text-danger">Sign Out</p>
