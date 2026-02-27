@@ -51,8 +51,11 @@ def _should_show_ai_counsellor_bot(request):
     """
     Show floating AI Career Counsellor bot for logged-in students/parents on dashboard-like pages.
     Excluded: career-counselling (full page), institute, counselor, admin.
+    Respects admin configuration counselling_engine: when disabled, bot is hidden on student dashboard.
     """
     if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return False
+    if not _config_bool('counselling_engine', True):
         return False
     path = (request.path or '/').rstrip('/') or '/'
     excluded = (

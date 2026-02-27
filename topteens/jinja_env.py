@@ -337,6 +337,7 @@ def environment(**options):
         'seo_year':seo_year,
         'my_url': my_url,
         'csrf_input': csrf_input,
+        'csrf_input_tag': csrf_input,  # alias to avoid context shadowing (e.g. __proxy__)
         'csrf_token': csrf_token_value,
         'get_url': get_url,
         'paginate_url': paginate_url,

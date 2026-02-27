@@ -1,0 +1,124 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<div id="kt_content_container" class="container-xxl">
+		<div class="card">
+			<div class="card-header border-0 pt-6">
+				<div class="card-title">
+					<h2 class="fw-bolder">User list</h2>
+				</div>
+				{% include 'topteenadmin/includes/messages.html' %}
+				<div class="card-toolbar">
+					<a href="{{ url('topteenadminmanaged:studentlist') }}" class="btn btn-light">
+						<span class="svg-icon svg-icon-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path d="M9.60002 11L7.60002 13L9.60002 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M7.60002 13L15.6 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</span>
+						Back to Students
+					</a>
+				</div>
+			</div>
+			<div class="card-body pt-0">
+				<div class="table-responsive">
+					<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+						<thead>
+							<tr class="fw-bolder text-muted">
+								<th class="min-w-150px">Name</th>
+								<th class="min-w-140px">Email</th>
+								<th class="min-w-120px">School</th>
+								<th class="min-w-100px">Joined</th>
+								<th class="text-end min-w-100px">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for u in user_list %}
+							<tr>
+								<td>
+									<span class="text-gray-800 fw-bold">{{ u.name|default('—') }}</span>
+								</td>
+								<td><span class="text-gray-600">{{ u.email }}</span></td>
+								<td><span class="text-gray-600">{{ u.user_profile.schoolname|default('—') if u.user_profile else '—' }}</span></td>
+								<td><span class="text-gray-600">{{ u.created.strftime('%b %d, %Y') if u.created else '—' }}</span></td>
+								<td class="text-end">
+									<a href="{{ url_('topteenadminmanaged:studenttesthistory', u.id) }}" class="btn btn-sm btn-light-primary me-2">Test history</a>
+									<button type="button" class="btn btn-sm btn-light-warning btn-reset-pw" data-reset-url="{{ url_('topteenadminmanaged:admin_reset_user_password', u.id) }}" data-user-name="{{ (u.name or u.email)|e }}">Reset password</button>
+								</td>
+							</tr>
+							{% else %}
+							<tr>
+								<td colspan="5" class="text-center text-muted py-8">No users found.</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Reset password modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Reset password</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form id="resetPasswordForm" method="POST" action="">
+				{{ csrf_input_tag()|safe }}
+				<div class="modal-body">
+					<p class="text-gray-600 mb-4" id="resetPwUserLabel">Set a new password for this user. No current password required.</p>
+					<div class="mb-4">
+						<label class="form-label required fw-bold">New password</label>
+						<input type="password" name="new_password1" id="resetPwNew1" class="form-control form-control-solid" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+					</div>
+					<div class="mb-2">
+						<label class="form-label required fw-bold">Confirm password</label>
+						<input type="password" name="new_password2" id="resetPwNew2" class="form-control form-control-solid" required minlength="8" autocomplete="new-password" placeholder="Re-enter password">
+						<div class="form-text text-danger d-none" id="resetPwMismatch">Passwords do not match.</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary" id="resetPwSubmit">Save</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+(function() {
+	var modalEl = document.getElementById('resetPasswordModal');
+	var formEl = document.getElementById('resetPasswordForm');
+	var labelEl = document.getElementById('resetPwUserLabel');
+	var mismatchEl = document.getElementById('resetPwMismatch');
+	if (!modalEl || !formEl) return;
+	document.querySelectorAll('.btn-reset-pw').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			var resetUrl = this.getAttribute('data-reset-url');
+			var userName = this.getAttribute('data-user-name');
+			formEl.action = resetUrl;
+			labelEl.textContent = 'Set a new password for ' + (userName || 'this user') + '. No current password required.';
+			formEl.reset();
+			mismatchEl.classList.add('d-none');
+			var modal = new bootstrap.Modal(modalEl);
+			modal.show();
+		});
+	});
+	formEl.addEventListener('submit', function(e) {
+		var p1 = document.getElementById('resetPwNew1').value;
+		var p2 = document.getElementById('resetPwNew2').value;
+		mismatchEl.classList.add('d-none');
+		if (p1 !== p2) {
+			e.preventDefault();
+			mismatchEl.classList.remove('d-none');
+			return false;
+		}
+	});
+})();
+</script>
+{% endblock %}

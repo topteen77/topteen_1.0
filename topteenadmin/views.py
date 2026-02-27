@@ -681,34 +681,42 @@ class ChangePasswordView(TemplateView):
         return render(request, self.template_name, ctx)
 
 
-def profileupdate(request , *args, **kwargs):
-    ctx={}
-    template_name='template20/admin/profile_update.html'
-    ids = request.user.id
-    user = User.objects.get(pk=ids)
-             
-    if request.method == "POST":  
-        if "name" in request.POST or 'image' in request.FILES or "oldpassword" in request.POST:
+def profileupdate(request, *args, **kwargs):
+    ctx = {}
+    template_name = 'topteenadmin/profile_update.html'
+    user = User.objects.get(pk=request.user.id)
+    ctx['profile_user'] = user  # avoid clash with auth context processor's 'user' (request.user)
+    ctx['meta_title'] = 'Profile'
+    ctx['breadcrumb'] = build_admin_breadcrumb([{'title': 'Profile', 'text': 'Profile', 'url': reverse('topteenadmin:UpdateProfile')}])
+
+    if request.method == "POST":
+        if "name" in request.POST or request.FILES.get('image') or request.POST.get('image_remove') or "oldpassword" in request.POST:
             name = request.POST.get('name')
             image = request.FILES.get('image')
-            if name !="":
+            if name:
                 user.name = name
-            if image !="":
-                user.image=image 
-            
-            oldpassword=request.POST.get('oldpassword')
-            if user.check_password(oldpassword,):
-                password=request.POST.get('newpassword')
-                password2=request.POST.get('confirmpassword')
+            if request.POST.get('image_remove'):
+                if user.image:
+                    user.image.delete(save=False)
+                user.image = None
+            elif image:
+                user.image = image
+            oldpassword = request.POST.get('oldpassword')
+            if oldpassword and user.check_password(oldpassword):
+                password = request.POST.get('newpassword')
+                password2 = request.POST.get('confirmpassword')
                 if password == password2:
                     user.set_password(password)
+                    messages.success(request, 'Password updated successfully.')
                 else:
-                    ctx['msg']="New Password and confirm Password is Not Same"
-            else:
-                ctx['message']="Your old password does not match with existing password"
-        ctx['user']=user
-    user.save()
-    return render(request,template_name,ctx)
+                    ctx['msg'] = "New Password and confirm Password is Not Same"
+            elif oldpassword:
+                ctx['message'] = "Your old password does not match with existing password"
+        user.save()
+        if not ctx.get('msg') and not ctx.get('message'):
+            messages.success(request, 'Profile updated successfully.')
+
+    return render(request, template_name, ctx)
 
 
 def custom_logout(request):
@@ -2655,6 +2663,101 @@ class StudentTestHistoryView(TemplateView):
             ]),
         })
         
+        return context
+
+
+def _staff_required(view_func):
+    """Require login and staff/superuser for admin-only actions."""
+    def wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(settings.LOGIN_URL)
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'You do not have permission to perform this action.')
+            return redirect('topteenadmin:topteendashboard')
+        return view_func(request, *args, **kwargs)
+    return wrapped
+
+
+@method_decorator(login_required, name='dispatch')
+class AdminResetUserPasswordView(TemplateView):
+    """Allow staff/superuser to set a new password for any user (no current password required)."""
+    template_name = 'topteenadmin/admin_reset_password.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'You do not have permission to reset user passwords.')
+            return redirect('topteenadmin:topteendashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_id = kwargs.get('user_id')
+        try:
+            target_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            context['error'] = 'User not found'
+            return context
+        context['target_user'] = target_user
+        context['active_tab'] = 'students'
+        context['breadcrumb'] = build_admin_breadcrumb([
+            {'title': 'Students', 'text': 'Students', 'url': reverse('topteenadminmanaged:studentlist')},
+            {'title': 'User list', 'text': 'User list', 'url': reverse('topteenadminmanaged:userlist')},
+            {'title': 'Reset password', 'text': 'Reset password', 'url': '#'},
+        ])
+        return context
+
+    def post(self, request, *args, **kwargs):
+        user_id = kwargs.get('user_id')
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Permission denied.')
+            return redirect('topteenadmin:topteendashboard')
+        try:
+            target_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+            return redirect(reverse('topteenadminmanaged:userlist'))
+        password1 = request.POST.get('new_password1', '').strip()
+        password2 = request.POST.get('new_password2', '').strip()
+        if not password1:
+            messages.error(request, 'Please enter a new password.')
+            return redirect(reverse('topteenadminmanaged:admin_reset_user_password', kwargs={'user_id': user_id}))
+        if password1 != password2:
+            messages.error(request, 'The two password fields did not match.')
+            return redirect(reverse('topteenadminmanaged:admin_reset_user_password', kwargs={'user_id': user_id}))
+        if len(password1) < 8:
+            messages.error(request, 'Password must be at least 8 characters.')
+            return redirect(reverse('topteenadminmanaged:admin_reset_user_password', kwargs={'user_id': user_id}))
+        target_user.set_password(password1)
+        target_user.save()
+        messages.success(request, f'Password for {getattr(target_user, "name", None) or target_user.email} has been reset successfully.')
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+        return redirect(reverse('topteenadminmanaged:userlist'))
+
+
+@method_decorator(login_required, name='dispatch')
+class UserListView(TemplateView):
+    """List all users with actions: Test history, Reset password. Staff/superuser only."""
+    template_name = 'topteenadmin/user_list.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'You do not have permission to view the user list.')
+            return redirect('topteenadmin:topteendashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        users = User.objects.select_related('user_profile').order_by('-created')
+        context['user_list'] = users
+        context['active_tab'] = 'students'
+        context['title'] = 'User list'
+        context['meta_title'] = 'User list'
+        context['breadcrumb'] = build_admin_breadcrumb([
+            {'title': 'Students', 'text': 'Students', 'url': reverse('topteenadminmanaged:studentlist')},
+            {'title': 'User list', 'text': 'User list', 'url': '#'},
+        ])
         return context
 
 

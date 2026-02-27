@@ -1,0 +1,138 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<!--begin::Post-->
+<div class="post d-flex flex-column-fluid" id="kt_post">
+    <div id="kt_content_container" class="container-xxl">
+        {% include 'topteenadmin/includes/messages.html' %}
+
+        <!--begin::Profile card-->
+        <div class="card mb-5 mb-xl-10">
+            <div class="card-header border-0 cursor-pointer">
+                <div class="card-title m-0">
+                    <h3 class="fw-bolder m-0">Profile Details</h3>
+                </div>
+            </div>
+            <div class="card-body border-top p-9">
+                <form method="POST" action="{{ url_('topteenadmin:UpdateProfile') }}" enctype="multipart/form-data" id="profileUpdateForm" data-user-initial="{% if profile_user.name %}{{ profile_user.name[0]|upper }}{% else %}U{% endif %}">
+                    {{ csrf_input_tag()|safe }}
+                    <div class="row mb-6">
+                        <label class="col-lg-4 col-form-label fw-bold fs-6">Avatar</label>
+                        <div class="col-lg-8">
+                            <input type="hidden" name="image_remove" id="image_remove" value="">
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <div class="symbol symbol-100px">
+                                    {% if profile_user.image %}
+                                    <img src="/media/{{ profile_user.image }}" alt="Profile" id="avatarPreview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
+                                    {% else %}
+                                    <span id="avatarPreview" class="symbol-label bg-primary text-inverse-primary fw-bolder d-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px; font-size: 2.5rem;">{% if profile_user.name %}{{ profile_user.name[0]|upper }}{% else %}U{% endif %}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="d-flex gap-2">
+                                        <label for="image" class="btn btn-sm btn-light-primary mb-0">Change Photo</label>
+                                        <input type="file" name="image" id="image" accept=".png,.jpg,.jpeg" class="d-none" onchange="previewAvatar(this); document.getElementById('image_remove').value = '';">
+                                        {% if profile_user.image %}
+                                        <button type="button" class="btn btn-sm btn-light-danger" id="btnRemoveImage" onclick="removeProfileImage()">Remove Photo</button>
+                                        {% endif %}
+                                    </div>
+                                    <div class="form-text mb-0">Allowed file types: png, jpg, jpeg. Save changes to apply.</div>
+                                    {% if profile_user.image %}
+                                    <div class="mt-3 w-100">
+                                        <label class="form-label fs-7 text-muted mb-1">Image link</label>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="text" class="form-control form-control-sm form-control-solid" id="imageLink" value="{{ request.scheme }}://{{ request.get_host() }}/media/{{ profile_user.image }}" readonly>
+                                            <a href="/media/{{ profile_user.image }}" target="_blank" rel="noopener" class="btn btn-sm btn-light-primary flex-shrink-0">Open</a>
+                                            <button type="button" class="btn btn-sm btn-light flex-shrink-0" onclick="navigator.clipboard.writeText(document.getElementById('imageLink').value); this.textContent='Copied!'; setTimeout(function(){ this.textContent='Copy'; }.bind(this), 1500);">Copy</button>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-6">
+                        <label class="col-lg-4 col-form-label required fw-bold fs-6">Full Name</label>
+                        <div class="col-lg-8">
+                            <input type="text" name="name" class="form-control form-control-lg form-control-solid" value="{{ profile_user.name|default('') }}" required />
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end py-6 px-9">
+                        <button type="reset" class="btn btn-light btn-active-light-primary me-2">Discard</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--end::Profile card-->
+
+        <!--begin::Change password card-->
+        <div class="card mb-5 mb-xl-10">
+            <div class="card-header border-0">
+                <div class="card-title m-0">
+                    <h3 class="fw-bolder m-0">Change Password</h3>
+                </div>
+            </div>
+            <div class="card-body border-top p-9">
+                <form method="POST" action="{{ url_('topteenadmin:UpdateProfile') }}" id="passwordChangeForm">
+                    {{ csrf_input_tag()|safe }}
+                    <div class="row mb-6">
+                        <label class="col-lg-4 col-form-label fw-bold fs-6">Current Password</label>
+                        <div class="col-lg-8">
+                            <input type="password" name="oldpassword" class="form-control form-control-lg form-control-solid" placeholder="Enter current password" minlength="8" />
+                        </div>
+                    </div>
+                    <div class="row mb-6">
+                        <label class="col-lg-4 col-form-label fw-bold fs-6">New Password</label>
+                        <div class="col-lg-8">
+                            <input type="password" name="newpassword" class="form-control form-control-lg form-control-solid" placeholder="Enter new password" minlength="8" />
+                        </div>
+                    </div>
+                    <div class="row mb-6">
+                        <label class="col-lg-4 col-form-label fw-bold fs-6">Confirm Password</label>
+                        <div class="col-lg-8">
+                            <input type="password" name="confirmpassword" class="form-control form-control-lg form-control-solid" placeholder="Confirm new password" minlength="8" />
+                        </div>
+                    </div>
+                    <div class="form-text mb-5">Password must be at least 8 characters.</div>
+                    <div class="card-footer d-flex justify-content-end py-6 px-9 border-top">
+                        <button type="reset" class="btn btn-light btn-active-light-primary me-2">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--end::Change password card-->
+    </div>
+</div>
+<!--end::Post-->
+
+<script>
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var preview = document.getElementById('avatarPreview');
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                preview.outerHTML = '<img src="' + e.target.result + '" alt="Profile" id="avatarPreview" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">';
+            }
+            var btnRemove = document.getElementById('btnRemoveImage');
+            if (btnRemove) btnRemove.style.display = 'none';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+function removeProfileImage() {
+    if (!confirm('Remove your profile photo?')) return;
+    document.getElementById('image_remove').value = '1';
+    document.getElementById('image').value = '';
+    var preview = document.getElementById('avatarPreview');
+    var form = document.getElementById('profileUpdateForm');
+    var initial = (form && form.getAttribute('data-user-initial')) || 'U';
+    preview.outerHTML = '<span id="avatarPreview" class="symbol-label bg-primary text-inverse-primary fw-bolder d-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px; font-size: 2.5rem;">' + initial + '</span>';
+    var btnRemove = document.getElementById('btnRemoveImage');
+    if (btnRemove) btnRemove.style.display = 'none';
+}
+</script>
+{% endblock %}

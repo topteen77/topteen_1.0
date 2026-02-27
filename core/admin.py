@@ -92,6 +92,15 @@ class WebsiteSettingsForm(forms.Form):
     )
 
 
+class StudentDashboardSettingsForm(forms.Form):
+    """Form for student dashboard settings (Admin-managed)."""
+    counselling_engine = forms.BooleanField(
+        required=False,
+        label='Enable counselling engine (AI Career Counsellor chatbot)',
+        help_text='Show the floating AI Career Counsellor chatbot on student and parent dashboards. When disabled, the chatbot is hidden for all students and parents.',
+    )
+
+
 class ConfigurationAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','key')
     fields = ['created','modified','key','value']
@@ -120,6 +129,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             path('psychometric-settings/', self.admin_site.admin_view(self.psychometric_settings_view), name='core_configuration_psychometric_settings'),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
+            path('student-dashboard-settings/', self.admin_site.admin_view(self.student_dashboard_settings_view), name='core_configuration_student_dashboard_settings'),
         ]
         return custom + urls
 
@@ -232,6 +242,40 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/website_settings.html', context)
+
+    def student_dashboard_settings_view(self, request):
+        """Custom admin view for Student dashboard settings (e.g. counselling_engine chatbot)."""
+        from core.models import Configuration
+
+        def _config_bool(key):
+            try:
+                val = Configuration.get(key, default='true', editable=True)
+                return str(val).lower() in ('true', '1', 'yes', 'on')
+            except Exception:
+                return True
+
+        if request.method == 'POST':
+            form = StudentDashboardSettingsForm(request.POST)
+            if form.is_valid():
+                key = 'counselling_engine'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
+                messages.success(request, 'Student dashboard settings saved successfully.')
+                return redirect('admin:core_configuration_student_dashboard_settings')
+        else:
+            form = StudentDashboardSettingsForm(initial={
+                'counselling_engine': _config_bool('counselling_engine'),
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Student dashboard settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/student_dashboard_settings.html', context)
 
 
 class CityAdmin(admin.ModelAdmin):
