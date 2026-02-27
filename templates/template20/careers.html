@@ -43,10 +43,122 @@ Explore our comprehensive collection of career paths organized by industry and i
   background-repeat: no-repeat;
 }
 
+.img-fluid.\33 d-search-icon {
+	width: 52px;
+}
+
 .career-mode-search-form {
   background: #fff;
   padding: 5px 7px;
   border-radius: 7px;
+}
+
+/* Cluster cards search: rounded input, purple background, search icon */
+.cluster-cards-search-wrap {
+  background: #fff;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 9999px;
+  padding: 6px 6px 6px 18px;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
+}
+.cluster-cards-search-wrap .form-control {
+  border: none;
+  background: #fff;
+  border-radius: 9999px;
+  font-size: 1rem;
+  padding: 10px 8px 10px 18px;
+  box-shadow: none;
+}
+.cluster-cards-search-wrap .form-control::placeholder {
+  color: #6b6b9e;
+}
+.cluster-cards-search-wrap .form-control:focus {
+  border: none;
+  box-shadow: none;
+  background: #fff;
+  outline: none;
+}
+.cluster-cards-search-wrap .input-group-text {
+  border: none;
+  background: #3F37C9;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+.cluster-cards-search-wrap .input-group-text:hover {
+  background: #322fb0;
+  box-shadow: 0 4px 10px rgba(63, 55, 201, 0.35);
+  transform: translateY(-1px);
+}
+.cluster-cards-search-wrap .input-group-text i {
+  font-size: 1.25rem;
+}
+
+/* Career inner filter: single bar (input + Search + Reset) like reference */
+.career-inner-search-bar {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0;
+  background: #fff;
+  border: 1px solid rgba(63, 55, 201, 0.2);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(63, 55, 201, 0.08);
+  overflow: hidden;
+  min-height: 48px;
+}
+.career-inner-search-input-wrap {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 6px 6px 6px 18px;
+  display: flex;
+  align-items: center;
+  background: #fff;
+}
+.career-inner-search-input-wrap .select2-container {
+  width: 100% !important;
+}
+.career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection {
+  border: none !important;
+  background: transparent !important;
+  min-height: 36px;
+  box-shadow: none !important;
+}
+.career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+  padding: 0;
+}
+.career-inner-search-bar .career-inner-search-btn {
+  background: #3F37C9;
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  margin: 6px 4px 6px 0;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.career-inner-search-bar .career-inner-search-btn:hover {
+  background: #322fb0;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(63, 55, 201, 0.35);
+}
+.career-inner-search-bar .career-inner-reset-btn {
+  background: transparent;
+  color: #0dcaf0;
+  border: 1px solid #0dcaf0;
+  border-radius: 9999px;
+  padding: 10px 18px;
+  font-weight: 500;
+  margin: 6px 10px 6px 0;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.career-inner-search-bar .career-inner-reset-btn:hover {
+  background: rgba(13, 202, 240, 0.1);
+  color: #0aa2c0;
+  border-color: #0dcaf0;
 }
 
 .career-bookmark-btn {
@@ -387,20 +499,20 @@ Explore our comprehensive collection of career paths organized by industry and i
         <!-- <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Exploration
         </span> -->
-        <h1 class="heading-title mb-0">
-           <span class="text-purple">Career</span> Finder 
+        <h1 class="heading-title mb-0 d-flex align-items-center gap-2">
+          <img class="img-fluid 3d-search-icon" src="{{ static('images_new/general/3dsearch-icon.webp') }}" alt="Career Tracks Banner" />  <span class="text-purple ">  Career</span> Finder 
         </h1>
         <p class="text-gray fs-18 fs-sm-16">Explore different career clusters and discover opportunities that match your interests, skills, and future goals.</p>
 
         <!-- Cluster search under Career Finder (AJAX filter for cluster cards only) -->
         {% if not is_ai_mode and not selected_clusters %}
-        <div class="w-100 mt-4" autocomplete="off">
+        <div class="w-100" autocomplete="off">
           <h5 class="mt-3 mb-2">Get started by selecting your preferred career cluster</h5>
           <div class="row justify-content-center">
             <div class="col-md-12 col-lg-8">
-              <div class="input-group">
-                <input type="text" id="cluster-cards-search" class="form-control" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" data-lpignore="true" data-form-type="other">
-                <span class="input-group-text bg-transparent border-start-0"><i class='bx bx-search'></i></span>
+              <div class="input-group cluster-cards-search-wrap">
+                <input type="text" id="cluster-cards-search" class="form-control border-0" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" data-lpignore="true" data-form-type="other">
+                <span class="input-group-text border-0 rounded-pill"><i class="bx bx-search" aria-hidden="true"></i></span>
               </div>
               <p class="small text-muted mt-1 mb-0">Type to filter cluster cards below.</p>
             </div>
@@ -410,27 +522,27 @@ Explore our comprehensive collection of career paths organized by industry and i
         <!-- Career search under Career Finder (inner page: filter by careers, multiselect) -->
         {% if not is_ai_mode and cluster_page_url %}
         <div class="w-100 mt-4">
-          <h5 class="mt-3 mb-2">Filter by careers</h5>
+        
           <div class="row justify-content-center">
             <div class="col-md-12 col-lg-8">
               <form method="get" action="{{ cluster_page_url }}" id="career-filter-inner-form" class="career-inner-filter-form" autocomplete="off">
                 <div class="row g-3 align-items-end">
                   <div class="col-12">
-                    <select name="career" id="careerFilterInner" class="form-select w-100" multiple
-                            data-placeholder="Type career name..."
-                            data-ajax-url="{{ url('careers:autocomplete_careers_from_clusters') }}"
-                            data-cluster-id="{{ current_cluster_id or '' }}" autocomplete="off">
-                      {% for item in selected_careers_display %}
-                        <option value="{{ item.id|string }}" selected>{{ item.text }}</option>
-                      {% endfor %}
-                    </select>
-                    <p class="small text-muted mt-1 mb-0">Suggestions show career name and cluster. Select one or more, then click Search or Reset.</p>
-                  </div>
-                  <div class="col-12">
-                    <div class="d-flex gap-2 flex-wrap">
-                      <button type="submit" class="btn custom-button blue-button">Search</button>
-                      <a href="{{ cluster_page_url }}" class="btn btn-outline-secondary">Reset</a>
+                    <div class="career-inner-search-bar">
+                      <div class="career-inner-search-input-wrap">
+                        <select name="career" id="careerFilterInner" class="form-select border-0 w-100" multiple
+                                data-placeholder="Type career name..."
+                                data-ajax-url="{{ url('careers:autocomplete_careers_from_clusters') }}"
+                                data-cluster-id="{{ current_cluster_id or '' }}" autocomplete="off">
+                          {% for item in selected_careers_display %}
+                            <option value="{{ item.id|string }}" selected>{{ item.text }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <button type="submit" class="btn career-inner-search-btn">Search</button>
+                      <a href="{{ cluster_page_url }}" class="btn career-inner-reset-btn">Reset</a>
                     </div>
+                    <p class="small text-muted mt-1 mb-0">Suggestions show career name and cluster. Select one or more, then click Search or Reset.</p>
                   </div>
                 </div>
               </form>
@@ -593,9 +705,11 @@ Explore our comprehensive collection of career paths organized by industry and i
             {% set cluster_count = clusters_with_counts|length %}
             <div class="row mb-3">
               <div class="col-12">
-                <p class="text-muted mb-0" id="cluster-count-display">
-                  <strong>{{ cluster_count }}</strong> cluster{{ 's' if cluster_count != 1 else '' }} found
+                <div class="purple-bg-tag">
+                <p class="fs-18 mb-0 text-capitalize align-items-center d-flex gap-2" id="cluster-count-display">
+                  <i class='bx bx-category text-purple' style="font-size: 18px;"></i> <strong>{{ cluster_count }}</strong> cluster{{ 's' if cluster_count != 1 else '' }} found
                 </p>
+              </div>
               </div>
             </div>
             <div class="row" id="cluster-cards-row">
@@ -617,7 +731,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                         {% endif %}
                       </p>
                       {% if is_active %}
-                        <span class="btn btn-sm btn-light career-category-button">Explore Careers</span>
+                        <span class="btn btn-sm  custom-button  blue-button career-category-button py-2">Explore Cluster</span>
                       {% else %}
                         <span class="btn btn-sm btn-light career-category-button disabled" style="pointer-events:none; opacity:0.8;">Inactive</span>
                       {% endif %}
@@ -665,21 +779,15 @@ Explore our comprehensive collection of career paths organized by industry and i
         </div>
         {% else %}
         <!-- Cluster selected: show careers for selected cluster(s). Career search is in Career Finder section above. -->
-        <div class="row">
-          <div class="col-md-8 mx-auto">
-            <div class="d-flex flex-column justify-content-center align-items-center text-center">
-              <h5 class="mt-3">Get started by selecting your preferred career cluster</h5>
-            </div>
-          </div>
-        </div>
+        
         <!-- Career list for selected cluster(s) -->
         <div class="mt-4">
             {% if careers %}
             {% set career_count = total_careers if total_careers is defined and total_careers is not none else (careers.paginator.count if careers.paginator is defined else careers|length) %}
             <div class="row mb-3">
               <div class="col-12">
-                <p class="text-muted mb-0">
-                  <strong>{{ career_count }}</strong> career{{ 's' if career_count != 1 else '' }} found
+                <p class="text-muted mb-0 text-capitalize align-items-center d-flex gap-2">
+                   <i class='bx bx-briefcase text-purple' style="font-size: 18px;"></i> <strong>{{ career_count }}</strong> career{{ 's' if career_count != 1 else '' }} found
                 </p>
               </div>
             </div>
