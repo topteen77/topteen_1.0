@@ -500,7 +500,9 @@ CELERY_BROKER_URL = f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{confi
 
 QUEUE_DEFAULT = 'default'
 
-TOPTEEN_FROM_EMAIL="support@topteen.careers"
+# Email: from address used by app (env or default)
+_TOPTEEN_FROM_EMAIL = config('TOPTEEN_FROM_EMAIL', default='support@topteen.careers')
+TOPTEEN_FROM_EMAIL = _TOPTEEN_FROM_EMAIL
 MOBILE_SMS_SERVICE = ''
 
 # SmartPing SMS API Configuration
@@ -513,20 +515,25 @@ SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID = config('SMARTPING_SMS_DLT_PRINCIPAL_ENTI
 SMARTPING_SMS_UNICODE = config('SMARTPING_SMS_UNICODE', default='false')
 SMARTPING_SMS_MESSAGE_TEMPLATE = config('SMARTPING_SMS_MESSAGE_TEMPLATE', default='{otp} is your verification code for TestprepGPT AI')
 
-# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# Email Configuration - AWS SES
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = "email-smtp.ap-south-1.amazonaws.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'AKIA5BM2GC4GTQE5YPGC'
-EMAIL_HOST_PASSWORD = 'BA0VkvyxPi51aPsKCwagRHnrfEQJUeuewLXIpAO2GDs4'
-DEFAULT_FROM_EMAIL = 'Topteen <support@topteen.careers>'
+# Email Configuration - AWS SES (all from .env; no secrets in code)
+# Set EMAIL_BACKEND in .env to override (e.g. console for local); if unset, SMTP is used when credentials are set
+EMAIL_HOST = config('EMAIL_HOST', default='email-smtp.ap-south-1.amazonaws.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+_DEFAULT_FROM_EMAIL_RAW = config('DEFAULT_FROM_EMAIL', default='')
+DEFAULT_FROM_EMAIL = _DEFAULT_FROM_EMAIL_RAW if _DEFAULT_FROM_EMAIL_RAW else f'Topteen <{_TOPTEEN_FROM_EMAIL}>'
 
+_env_email_backend = config('EMAIL_BACKEND', default='')
+if _env_email_backend:
+    EMAIL_BACKEND = _env_email_backend
+elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / "mail/password_reset_email.html"
-#DEFAULT_FROM_EMAIL = "support@topteen.careers"
 
 
 SOCIAL_AUTH_FACEBOOK_KEY = '1491504031336499'  # App ID
@@ -688,7 +695,7 @@ CENTRAL_TEST_API_PASSWORD="assessment"
 CAREER_INTEREST_ASSESSMENTT_TEST_ID=531
 CAREER_INTEREST_ASSESSMENTT_TEST_LANGUAGE_ID=1
 
-SERVER_EMAIL="support@topteen.careers"
+SERVER_EMAIL = config('SERVER_EMAIL', default=_TOPTEEN_FROM_EMAIL)
 ADMINS=[('Shanti', 'it@canamgroup.com'),
         ('Dev', 'admin@canamgroup.com')]
 EXCEPTION_EMAIL_TO = [
