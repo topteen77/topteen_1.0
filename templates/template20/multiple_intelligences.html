@@ -20,14 +20,14 @@
         <div class="col-md-12">
           {% include 'template20/includes/breadcrumb.html' %}
         </div>
-        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
-          <span class="highlighter">
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2 d-flex flex-column justify-content-center mt-md-0 mt-5">
+          <span class="highlighter w-sm-100 w-50">
             <img src="{{ mi_images_base }}lens-icon.svg" alt="icon" /> One Powerful Learning System
           </span>
-          <h1 class="heading-title mb-3 mt-5 mt-md-10">Discover Your</h1>
-          <p class="text-gray fs-25 fs-sm-18 fw-700"><span class="text-yellow"> Multiple </span> Intelligence!</p>
+          <h1 class="heading-title mb-md-3 mb-0 mt-3 mt-md-6">Discover Your</h1>
+          <p class="text-gray fs-25 fs-sm-18 fw-700 mb-3 "><span class="text-yellow"> Multiple </span> Intelligence!</p>
           <p class="text-gray fs-16">Your learning success comes from understanding the distinct intelligences that shape how your mind thinks, processes information, & excels in its own way.</p>
-          <div class="hero-button d-flex flex-row mt-md-8 mt-5">
+          <div class="hero-button d-flex flex-row  mt-3">
             {% if request.user.is_authenticated %}
             <a href="{{ url('core:multiple_intelligences_assessment') }}" class="btn custom-button blue-button me-3">Take the Multiple Intelligences Assessment</a>
             {% else %}
