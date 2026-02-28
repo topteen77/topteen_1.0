@@ -128,6 +128,47 @@ def get_table_count(cursor, table):
         return (None, str(e))
 
 
+def get_students_in_source_not_in_target(source_cursor, target_cursor):
+    """
+    Return list of students that exist in source but have no matching email in target.
+    Each item is a dict: {'id': user_id, 'email': email, 'name': name}.
+    """
+    source_cursor.execute(
+        "SELECT id, email, name FROM users_user WHERE user_type = %s ORDER BY id",
+        [USER_TYPE_STUDENT]
+    )
+    source_students = [{'id': row[0], 'email': row[1] or '', 'name': row[2] or ''} for row in source_cursor.fetchall()]
+    missing = []
+    for s in source_students:
+        email = (s['email'] or '').strip()
+        if not email:
+            missing.append(s)
+            continue
+        exists, _ = student_exists_in_target(target_cursor, email=email)
+        if not exists:
+            missing.append(s)
+    return missing
+
+
+def get_table_counts_source_target(source_cursor, target_cursor, tables=None):
+    """
+    Return list of (table_name, source_count, target_count, diff) for each table.
+    diff = source_count - target_count. Tables that don't exist in one DB get None for that count.
+    """
+    tables = tables or STUDENT_RELATED_TABLES
+    result = []
+    for table in tables:
+        src = get_table_count(source_cursor, table)
+        tgt = get_table_count(target_cursor, table)
+        if isinstance(src, tuple):
+            src = None  # error
+        if isinstance(tgt, tuple):
+            tgt = None
+        diff = (src - tgt) if src is not None and tgt is not None else None
+        result.append((table, src, tgt, diff))
+    return result
+
+
 def check_duplicate_students(cursor):
     """
     Detect duplicate student entries. Read-only.

@@ -35,6 +35,10 @@ from .models import (
     CareerBattleFight,
     CareerBattleEligibilityProfile,
     CounsellingSession,
+    DashboardLevelBand,
+    DashboardPointRule,
+    DashboardTrophyDefinition,
+    DashboardStreakConfig,
 )
 # Register your models here.
 
@@ -130,6 +134,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
             path('student-dashboard-settings/', self.admin_site.admin_view(self.student_dashboard_settings_view), name='core_configuration_student_dashboard_settings'),
+            path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
         ]
         return custom + urls
 
@@ -277,6 +282,19 @@ class ConfigurationAdmin(admin.ModelAdmin):
         }
         return render(request, 'admin/core/configuration/student_dashboard_settings.html', context)
 
+    def dashboard_statistics_view(self, request):
+        """Landing page for Dashboard Statistics (gamification) section with links to Level Bands, Point Rules, Trophies, Streak Config."""
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Dashboard Statistics (Student dashboard)',
+            'opts': self.model._meta,
+            'level_bands_url': reverse('admin:core_dashboardlevelband_changelist'),
+            'point_rules_url': reverse('admin:core_dashboardpointrule_changelist'),
+            'trophy_defs_url': reverse('admin:core_dashboardtrophydefinition_changelist'),
+            'streak_config_url': reverse('admin:core_dashboardstreakconfig_changelist'),
+        }
+        return render(request, 'admin/core/configuration/dashboard_statistics.html', context)
+
 
 class CityAdmin(admin.ModelAdmin):
     readonly_fields = ('created','modified','id')
@@ -339,7 +357,45 @@ class LeadAdmin(admin.ModelAdmin):
     search_fields=['name']
     list_filter = ['created','modified']
 
+class DashboardLevelBandAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'min_points', 'order', 'modified')
+    list_editable = ('name', 'min_points', 'order')
+    ordering = ('order', 'min_points')
+    search_fields = ('name',)
+
+
+class DashboardPointRuleAdmin(admin.ModelAdmin):
+    list_display = ('id', 'rule_key', 'points', 'active', 'modified')
+    list_editable = ('points', 'active')
+    list_filter = ('active',)
+    ordering = ('rule_key',)
+    search_fields = ('rule_key',)
+
+
+class DashboardTrophyDefinitionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'rule_key', 'label', 'active', 'modified')
+    list_editable = ('label', 'active')
+    list_filter = ('active',)
+    ordering = ('rule_key',)
+    search_fields = ('rule_key', 'label')
+
+
+class DashboardStreakConfigAdmin(admin.ModelAdmin):
+    list_display = ('id', 'activity_source', 'event_types', 'modified')
+    list_editable = ('activity_source', 'event_types')
+    ordering = ('id',)
+
+    def has_add_permission(self, request):
+        return not DashboardStreakConfig.objects.exists()
+    def has_delete_permission(self, request, obj=None):
+        return True
+
+
 admin.site.register(Configuration,ConfigurationAdmin)
+admin.site.register(DashboardLevelBand, DashboardLevelBandAdmin)
+admin.site.register(DashboardPointRule, DashboardPointRuleAdmin)
+admin.site.register(DashboardTrophyDefinition, DashboardTrophyDefinitionAdmin)
+admin.site.register(DashboardStreakConfig, DashboardStreakConfigAdmin)
 admin.site.register(City,CityAdmin)
 admin.site.register(State,StateAdmin)
 admin.site.register(Country,CountryAdmin)

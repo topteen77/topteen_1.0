@@ -2674,6 +2674,24 @@ class UserDashboard(TemplateView):
         ctx["html_head"] = self.html_head()
         ctx["notes"]=UserNote.objects.filter(user=profile_user)[:3]
 
+        # Dashboard statistics (trophies, points, streak, level) - for student dashboard
+        try:
+            from core.dashboard_stats import get_student_dashboard_stats
+            stats = get_student_dashboard_stats(profile_user)
+            ctx['trophies_unlocked'] = stats['trophies_unlocked']
+            ctx['total_points'] = stats['total_points']
+            ctx['streak_days'] = stats['streak_days']
+            ctx['current_level'] = stats['current_level']
+            ctx['next_level_min_points'] = stats.get('next_level_min_points')
+            ctx['level_progress_percent'] = stats.get('level_progress_percent', 0)
+        except Exception:
+            ctx['trophies_unlocked'] = 0
+            ctx['total_points'] = 0
+            ctx['streak_days'] = 0
+            ctx['current_level'] = 'Rookie'
+            ctx['next_level_min_points'] = None
+            ctx['level_progress_percent'] = 0
+
         # Parent suggestions (show parent bookmarks/shortlists as suggestions to STUDENTS)
         ctx["show_parent_suggestions"] = False
         ctx["suggested_by_parents"] = []  # list of parent users

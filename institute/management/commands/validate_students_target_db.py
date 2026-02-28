@@ -26,6 +26,8 @@ from institute.student_validation_utils import (
     check_duplicate_students,
     get_student_data_prepared_for_insert,
     format_student_data_prepared_for_insert,
+    get_students_in_source_not_in_target,
+    get_table_counts_source_target,
     STUDENT_RELATED_TABLES,
 )
 
@@ -92,9 +94,41 @@ class Command(BaseCommand):
             if dry_run:
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f'[DRY-RUN] Would validate {len(student_ids)} student(s).'
+                        f'[DRY-RUN] Would validate {len(student_ids)} student(s) in target.'
                     )
                 )
+                # Users in source that are NOT present in target (by email)
+                ensure_connection(SOURCE_ALIAS, role='source')
+                conn_src = connections[SOURCE_ALIAS]
+                with conn_src.cursor() as src_cur:
+                    missing = get_students_in_source_not_in_target(src_cur, cursor)
+                self.stdout.write('')
+                self.stdout.write(self.style.WARNING('--- Students in SOURCE not present in TARGET (by email) ---'))
+                if missing:
+                    self.stdout.write(self.style.WARNING(f'Count: {len(missing)}'))
+                    for s in missing[:50]:
+                        self.stdout.write(
+                            f"  id={s['id']}  email={s['email'] or '(empty)'!r}  name={s['name'] or '-'!r}"
+                        )
+                    if len(missing) > 50:
+                        self.stdout.write(self.style.WARNING(f'  ... and {len(missing) - 50} more'))
+                else:
+                    self.stdout.write('  (none – all source students have a matching email in target)')
+                # Record count difference: source vs target
+                self.stdout.write('')
+                self.stdout.write(self.style.WARNING('--- Record count: SOURCE vs TARGET (difference) ---'))
+                with conn_src.cursor() as src_cur:
+                    rows = get_table_counts_source_target(src_cur, cursor)
+                self.stdout.write(
+                    f"  {'Table':<45} {'Source':>10} {'Target':>10} {'Diff':>10}"
+                )
+                self.stdout.write('  ' + '-' * 78)
+                for table, src_count, tgt_count, diff in rows:
+                    src_s = str(src_count) if src_count is not None else '-'
+                    tgt_s = str(tgt_count) if tgt_count is not None else '-'
+                    diff_s = str(diff) if diff is not None else '-'
+                    self.stdout.write(f"  {table:<45} {src_s:>10} {tgt_s:>10} {diff_s:>10}")
+                self.stdout.write('')
                 self.stdout.write('Tables considered: ' + ', '.join(STUDENT_RELATED_TABLES[:10]) + '...')
                 self.stdout.write(self.style.WARNING('No duplicate student entries should be created on import.'))
                 self.stdout.write(self.style.SUCCESS('\nNo changes made to target DB.'))
