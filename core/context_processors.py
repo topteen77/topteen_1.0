@@ -3,20 +3,31 @@ from typing import List, Dict, Any, Iterable
 from .models import MasterClass
 
 
+def _fallback_master_classes(min_value: int = 6, max_value: int = 12) -> List[Dict[str, Any]]:
+    """Return a default list of class options when DB is empty or unavailable."""
+    return [{"value": v, "label": f"Class {v}"} for v in range(max_value, min_value - 1, -1)]
+
+
 def _fetch_master_classes(min_value: int = 6, max_value: int = 12) -> Iterable:
     """
     Internal helper that returns an iterable of master class rows.
     Returns queryset when possible, otherwise a fallback list of dicts.
+    Uses fallback when DB returns no rows so the class dropdown always has options.
     """
     try:
         qs = MasterClass.get_active_master_classes(min_value=min_value, max_value=max_value)
         # When called from templates we prefer a list of dicts for predictable iteration
         if hasattr(qs, "values"):
-            return list(qs.values("value", "label"))
-        return list(qs)
+            result = list(qs.values("value", "label"))
+        else:
+            result = list(qs)
+        # Ensure dropdown always has options; use fallback when table is empty or all inactive
+        if not result:
+            return _fallback_master_classes(min_value=min_value, max_value=max_value)
+        return result
     except Exception:
         # Fallback when DB/migrations not ready
-        return [{"value": v, "label": f"Class {v}"} for v in range(max_value, min_value - 1, -1)]
+        return _fallback_master_classes(min_value=min_value, max_value=max_value)
 
 
 def master_classes_processor(request):
