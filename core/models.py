@@ -883,3 +883,83 @@ class CareerBattleEligibilityProfile(models.Model):
 
     def __str__(self):
         return f"Eligibility for {self.user_id}"
+
+
+# --- Dashboard Statistics (Gamification) - Admin-configurable for student dashboard ---
+
+class DashboardLevelBand(models.Model):
+    """Level name and point threshold for student dashboard (e.g. Rookie 0, Explorer 500)."""
+    name = models.CharField(max_length=64, help_text="Display name, e.g. Rookie, Explorer")
+    min_points = models.PositiveIntegerField(default=0, help_text="Minimum total points for this level")
+    order = models.PositiveSmallIntegerField(default=0, help_text="Sort order; higher = higher level")
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'min_points']
+        verbose_name = 'Dashboard Level Band'
+        verbose_name_plural = 'Dashboard Level Bands'
+
+    def __str__(self):
+        return f"{self.name} (from {self.min_points} pts)"
+
+
+class DashboardPointRule(models.Model):
+    """Points awarded when a rule_key condition is met (e.g. profile_complete=100)."""
+    rule_key = models.CharField(max_length=80, db_index=True, help_text="e.g. profile_complete, test1_complete, psychometric_test_completed")
+    points = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['rule_key']
+        verbose_name = 'Dashboard Point Rule'
+        verbose_name_plural = 'Dashboard Point Rules'
+
+    def __str__(self):
+        return f"{self.rule_key}: {self.points} pts"
+
+
+class DashboardTrophyDefinition(models.Model):
+    """Defines what counts as one trophy (achievement) for the dashboard count."""
+    rule_key = models.CharField(max_length=80, db_index=True, help_text="Same keys as point rules; condition must be true to count")
+    label = models.CharField(max_length=120, blank=True, help_text="Admin display label")
+    active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['rule_key']
+        verbose_name = 'Dashboard Trophy Definition'
+        verbose_name_plural = 'Dashboard Trophy Definitions'
+
+    def __str__(self):
+        return self.label or self.rule_key
+
+
+class DashboardStreakConfig(models.Model):
+    """Optional: how streak is computed (single row)."""
+    activity_source = models.CharField(
+        max_length=32,
+        choices=[
+            ('UserActivity', 'UserActivity (page views)'),
+            ('UserEvent', 'UserEvent (events)'),
+        ],
+        default='UserActivity',
+        help_text="Which model to use for 'activity' in streak calculation",
+    )
+    event_types = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Comma-separated event_type values if source=UserEvent (e.g. page_view,psychometric_test_completed). Empty = all events.",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Dashboard Streak Config'
+        verbose_name_plural = 'Dashboard Streak Config'
+
+    def __str__(self):
+        return f"Streak: {self.activity_source}"
