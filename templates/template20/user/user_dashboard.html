@@ -144,7 +144,7 @@
               <p class="fs-15 fw-semibold text-dark mb-1">Complete your profile</p>
               <p class="fs-13 text-gray mb-2">A complete profile helps us cater the best content to you</p>
               <div class="progress-bar-custom" style="width: 100%;">
-                <div class="progress-fill" style="width: 60%;"></div>
+                <div class="progress-fill" style="width: {{ (profile_user or request.user).get_profile_completion_percentage() }}%;"></div>
               </div>
             </div>
           </div>
