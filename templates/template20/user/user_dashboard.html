@@ -12,6 +12,18 @@
   .user-dashboard {
     padding-top: 80px;
   }
+  /* Mobile: minimal top space under fixed header */
+  @media (max-width: 991px) {
+    .user-dashboard {
+      padding-top: 48px;
+    }
+    .user-dashboard .container { padding-left: 12px; padding-right: 12px; }
+  }
+  @media (max-width: 480px) {
+    .user-dashboard {
+      padding-top: 44px;
+    }
+  }
   .stat-card {
     background: #f7f7fa;
     border-radius: 10px;
@@ -153,16 +165,13 @@
               </div>
             </div>
           </div>
-          <button type="button" data-direction="translate-y-full" class="btn btn-sm bg-purple text-white rounded-circle drawerTrigger" style="width: 25px; height: 25px;">
-            <i class='bx bx-cog fs-12'></i>
-          </button>
         </div>
         <!-- End of User -->
 
         <!-- Complete Profile -->
         <div id="comppro" class="profile-complete-card mb-4 position-relative">
-          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="document.getElementById('comppro').style.display='none'"></button>
-          <div class="d-flex align-items-center">
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="document.getElementById('comppro').style.display='none'" aria-label="Dismiss"></button>
+          <div class="d-flex align-items-center mb-3">
             <div class="me-3">
               <i class='bx bx-check-circle fs-64 text-primary'></i>
             </div>
@@ -174,6 +183,9 @@
               </div>
             </div>
           </div>
+          <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100">
+            <i class='bx bx-cog me-2'></i> SETTINGS
+          </a>
         </div>
         <!-- End of Complete Profile -->
       </div>
@@ -603,6 +615,34 @@
   </div>
 </section>
 <!-- End of Main Content -->
+
+<!-- Mobile Settings Drawer (gear opens this on small screens) -->
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-lg-none" data-direction="translate-y-full" aria-hidden="true">
+  <div class="drawerContent bg-white w-100 rounded-t-lg position-absolute bottom-0 start-0 end-0" style="max-height: 70vh; overflow-y: auto;">
+    <div class="p-4 pb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 fw-semibold">Settings</h5>
+        <button type="button" class="btn btn-sm btn-link text-secondary drawerClose p-0" aria-label="Close">
+          <i class='bx bx-x fs-28'></i>
+        </button>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        <a href="{{ url('users:userdashboard') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
+          <i class='bx bx-home fs-22 text-primary'></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url('users:profiledetails') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
+          <i class='bx bx-cog fs-22 text-primary'></i>
+          <span>Profile &amp; Settings</span>
+        </a>
+        <a href="{{ url('users:logout') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-danger hover-bg-light">
+          <i class='bx bx-log-out fs-22'></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block additionaljs %}
@@ -656,21 +696,33 @@
 <!-- SweetAlert2 - Load after jQuery -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  // Drawer modal functionality
-  const drawerTrigger = document.querySelector('.drawerTrigger');
-  const drawerModal = document.querySelector('.drawerModal');
-  
-  if (drawerTrigger && drawerModal) {
-    drawerTrigger.addEventListener('click', function() {
-      drawerModal.classList.remove('translate-y-full');
-    });
-    
-    drawerModal.addEventListener('click', function(e) {
-      if (e.target === drawerModal) {
+  // Mobile settings drawer: open/close
+  (function() {
+    var drawerTrigger = document.querySelector('.drawerTrigger');
+    var drawerModal = document.querySelector('.drawerModal');
+    var drawerClose = document.querySelector('.drawerModal .drawerClose');
+    function closeDrawer() {
+      if (drawerModal) {
         drawerModal.classList.add('translate-y-full');
+        drawerModal.setAttribute('aria-hidden', 'true');
       }
-    });
-  }
+    }
+    function openDrawer() {
+      if (drawerModal) {
+        drawerModal.classList.remove('translate-y-full');
+        drawerModal.setAttribute('aria-hidden', 'false');
+      }
+    }
+    if (drawerTrigger && drawerModal) {
+      drawerTrigger.addEventListener('click', function() { openDrawer(); });
+      drawerModal.addEventListener('click', function(e) {
+        if (e.target === drawerModal) closeDrawer();
+      });
+    }
+    if (drawerClose && drawerModal) {
+      drawerClose.addEventListener('click', function() { closeDrawer(); });
+    }
+  })();
 
   // Refer friends popup
   const referTriggers = document.querySelectorAll('.referPopupTrigger');
