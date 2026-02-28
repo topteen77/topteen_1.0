@@ -1,4 +1,88 @@
-=================================================== 
+===================================================
+--- Student Import (topteen12 → topteen12-old) ---
+# Validate and import student data from production (topteen12) to target (topteen12-old).
+# Rule: No duplicate student entries. Origin DB is never modified (read-only).
+# Run all commands from project root (where manage.py is).
+
+---------- COMPLETE COMMANDS STEP BY STEP ----------
+
+Step 1. Ensure .env has source and target DB settings (already set):
+   DB_SOURCE_NAME=topteen12
+   DB_SOURCE_HOST=13.234.119.81
+   DB_SOURCE_USER=root12
+   DB_SOURCE_PASSWORD=root12
+   DB_SOURCE_PORT=3306
+   DB_TARGET_NAME=topteen12-old
+   DB_TARGET_HOST=13.234.119.81
+   DB_TARGET_USER=root12
+   DB_TARGET_PASSWORD=root12
+   DB_TARGET_PORT=3306
+
+Step 2. Dry-run on origin (connect and count only; no full validation):
+   python manage.py validate_students_origin_db --dry-run
+
+Step 3. Validate a single student on origin (replace 12345 with real user id):
+   python manage.py validate_students_origin_db --student-id 12345
+
+Step 4. Validate all students on origin (read-only; reports duplicates and issues):
+   python manage.py validate_students_origin_db
+
+Step 5. If duplicates were reported in Step 4, fix them in origin DB before import. Then run import (when import command is implemented).
+
+Step 6. After import, dry-run on target:
+   python manage.py validate_students_target_db --dry-run
+
+Step 7. Validate a single student on target (replace 12345 with user id):
+   python manage.py validate_students_target_db --student-id 12345
+
+Step 8. Validate all students on target (verify imported data):
+   python manage.py validate_students_target_db
+
+Step 9. Compare record counts source vs target and re-import any missing rows if gap found.
+
+Step 10. Login after import: imported users keep the source DB's hashed password. To log in with a known password (e.g. 12345), set it in the default DB:
+   python manage.py set_student_password --email shivagujral03@gmail.com --password 12345 --student-only
+
+---------- END STEP BY STEP ----------
+
+## Environment (use these in .env; validation commands read them automatically)
+# Source (topteen12): DB_SOURCE_NAME=topteen12, DB_SOURCE_HOST, DB_SOURCE_USER, DB_SOURCE_PASSWORD, DB_SOURCE_PORT
+# Target (topteen12-old): DB_TARGET_NAME=topteen12-old, DB_TARGET_HOST, DB_TARGET_USER, DB_TARGET_PASSWORD, DB_TARGET_PORT
+# Example (same host): DB_SOURCE_NAME=topteen12, DB_SOURCE_HOST=13.234.119.81, DB_SOURCE_USER=root12, DB_SOURCE_PASSWORD=root12, DB_SOURCE_PORT=3306
+#                       DB_TARGET_NAME=topteen12-old, DB_TARGET_HOST=13.234.119.81, DB_TARGET_USER=root12, DB_TARGET_PASSWORD=root12, DB_TARGET_PORT=3306
+# If DB_TARGET_* not set, target falls back to default DATABASES.
+
+## Validation commands (reference)
+# Origin DB (topteen12) - read-only
+python manage.py validate_students_origin_db --dry-run
+python manage.py validate_students_origin_db --dry-run --student-id 12345
+python manage.py validate_students_origin_db --student-id 12345
+python manage.py validate_students_origin_db
+
+# Target DB (topteen12-old) - read-only, run after import to verify
+python manage.py validate_students_target_db --dry-run
+python manage.py validate_students_target_db --student-id 12345
+python manage.py validate_students_target_db
+
+## Implementation steps (workflow)
+Step 1. Configure .env with DB_SOURCE_* (topteen12) and DB_TARGET_* (topteen12-old).
+Step 2. Validate origin (read-only): run validate_students_origin_db; use --dry-run first, then --student-id or all.
+Step 3. Resolve any duplicate students in origin (duplicate email or duplicate StudentManagement) before export.
+Step 4. Run import: copy student data from topteen12 to topteen12-old in FK order, using target DB column list (INFORMATION_SCHEMA) and existence checks so no duplicate student or StudentManagement is created (pending command).
+Step 5. Validate target: run validate_students_target_db to verify imported data.
+Step 6. Compare record counts per table (source vs target); if gap, re-import missing rows for affected user_ids/studentmanagement_ids.
+
+## Completed
+# - institute/student_validation_utils.py: get_db_config, ensure_connection, get_student_user_ids, check_duplicate_students, student_exists_in_target, student_management_exists, validate_one_student, STUDENT_RELATED_TABLES.
+# - institute/management/commands/validate_students_origin_db.py: --dry-run, --student-id, all students, duplicate report.
+# - institute/management/commands/validate_students_target_db.py: same options, for target DB.
+# - Duplicate checks: duplicate emails in users_user, duplicate (student_id, institute_id) in institute_studentmanagement; import must use exists-check or INSERT IGNORE.
+
+## Pending
+# - Import command: copy students + related data from topteen12 to topteen12-old in FK order, using topteen12-old table structure (INFORMATION_SCHEMA columns), and student_exists_in_target / student_management_exists so no duplicate entry is ever created.
+# - Optional: record-count comparison report (source vs target per table) in a command or as part of validate_students_target_db.
+
+===================================================
 # Check for compatibility issues
 python manage.py check_production_db_compatibility
 

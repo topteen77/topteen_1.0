@@ -331,6 +331,42 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         # #endregion
         return out
 
+    def get_profile_completion_percentage(self):
+        """
+        Return 0–100 based on how much of the user profile is filled.
+        Used for the "Complete your profile" progress bar in the sidebar.
+        """
+        score = 0
+        # User fields (40% total)
+        if (self.name or '').strip() and (self.name or '').strip() != 'Student':
+            score += 10
+        if (self.email or '').strip():
+            score += 10
+        if (self.mobile or '').strip():
+            score += 10
+        if self.image:
+            score += 10
+        # UserProfile fields (60% total)
+        try:
+            profile = getattr(self, 'user_profile', None)
+            if profile is None:
+                return min(score, 100)
+            if (getattr(profile, 'schoolname', None) or '').strip():
+                score += 15
+            if (getattr(profile, 'grade', None) or '').strip():
+                score += 15
+            if getattr(profile, 'birthdate', None):
+                score += 10
+            if profile.hobbies.exists():
+                score += 10
+            if profile.subject.exists():
+                score += 5
+            if profile.figure_out.exists():
+                score += 5
+        except Exception:
+            pass
+        return min(score, 100)
+
 class UserSearchHistory(BaseModel):
     user=models.ForeignKey(User,blank=True,null=True,on_delete=models.SET_NULL)
     search=models.CharField(max_length=255,null=True,blank=True)
