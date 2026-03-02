@@ -118,7 +118,32 @@
 .view-course-btn { display: inline-flex; align-items: center; gap: 0.5rem; color: #5249DF; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; padding: 0.5rem 1rem; border-radius: 6px; background: #f0eaff; }
 .view-course-btn:hover { background: #5249DF; color: #fff; }
 @media (max-width: 991px) { .payment-card { position: static; margin-top: 2rem; } .related-courses-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 576px) { .tab-buttons { flex-direction: column; } .tab-button { width: 100%; } .related-courses-grid { grid-template-columns: 1fr; } }
+@media (max-width: 576px) {   .tab-buttons {
+    flex-direction: row;
+    position: sticky;
+    top: 62px;
+    background: #fff;
+    z-index: 999999;
+    padding: 8px 12px;
+  }
+
+  .meta-item {
+  white-space: nowrap;
+}
+
+.course-meta {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  overflow-y: scroll;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.tab-button {
+    width: 100%;
+    font-size: 14px;
+    padding: 15px 5px;
+  } .related-courses-grid { grid-template-columns: 1fr; } }
 </style>
 
 <section class="hero-section-inner pt-md-18 pt-14 pb-5">

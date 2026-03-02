@@ -27,6 +27,10 @@
   --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 
 
 body {
@@ -37,14 +41,12 @@ body {
 
 body:before {
   content: "";
-  position: absolute;
+  position: fixed;   /* 🔥 CHANGE THIS */
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  -webkit-transition: .3s all ease;
-  -o-transition: .3s all ease;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
   transition: .3s all ease;
   opacity: 0;
   visibility: hidden;
@@ -53,14 +55,15 @@ body:before {
 
 
 body {
+  font-family: "Space Grotesk", serif;
+  position: relative;
   overflow-x: hidden;
   font-size: 16px;
   line-height: 26px;
   font-weight: 500;
   letter-spacing: .1px;
-  font-family: "Space Grotesk", serif;
   color: #000;
-  -webkit-font-smoothing: antialiased
+  -webkit-font-smoothing: antialiased;
 }
 
 body.overflow {
@@ -8724,6 +8727,7 @@ a:hover {
 @media all and (max-width: 500px) {
   .testim .cont div p {
     line-height: 25px;
+    
   }
 
   #google_translate_element {
@@ -14847,7 +14851,30 @@ a.list-group-item .bx {
     right: 0;
     bottom: 2%;
   }
+
+  .pillar-list {
+    min-height: auto;
+  }
+
+
+  .four-pill-tabs .nav-pills {
+    display: grid !important;
+    grid-template-columns: repeat(4,1fr);
+    overflow-y: scroll;
+    justify-content: start !important;
+    padding-bottom: 15px !important;
+    position: sticky;
+    top: 74px;
+    z-index: 99999;
+    background: #fff;
+    padding-top: 11px;
+  }
+
+  .four-pill-tabs .nav-pills li {
+    white-space: nowrap;
+  }
 }
+
 
 .educational-foundation-section {
   background: #ffffff;
@@ -15617,6 +15644,13 @@ a.list-group-item .bx {
   .mi-unique-section-content {
     padding: 11px;
   }
+
+  .menu-link {
+    font-size: 16px;
+  }
+
+
+
 }
 
 
