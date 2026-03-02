@@ -12,6 +12,18 @@
   .user-dashboard {
     padding-top: 80px;
   }
+  /* Mobile: minimal top space under fixed header */
+  @media (max-width: 991px) {
+    .user-dashboard {
+      padding-top: 48px;
+    }
+    .user-dashboard .container { padding-left: 12px; padding-right: 12px; }
+  }
+  @media (max-width: 480px) {
+    .user-dashboard {
+      padding-top: 44px;
+    }
+  }
   .stat-card {
     background: #f7f7fa;
     border-radius: 10px;
@@ -50,6 +62,32 @@
   .referFriendsPopup .modal-dialog {
     z-index: 1056 !important;
   }
+  /* Dashboard stats - Duolingo-style */
+  .dashboard-stat-col { opacity: 0; transform: translateY(12px); animation: dashboardStatIn 0.4s ease-out forwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-stat-col { animation: none; opacity: 1; transform: none; }
+  }
+  @keyframes dashboardStatIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .streak-flame { display: inline-block; }
+  .stat-card-streak-active .streak-flame { animation: streakGlow 1.5s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .stat-card-streak-active .streak-flame { animation: none; }
+  }
+  @keyframes streakGlow {
+    0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 4px rgba(255, 140, 0, 0.5)); }
+    50% { opacity: 0.9; transform: scale(1.05); filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.7)); }
+  }
+  .stat-level-label { animation: levelBadgeIn 0.5s ease-out; }
+  @keyframes levelBadgeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
+  .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
 </style>
 {% endblock %}
 
@@ -127,16 +165,13 @@
               </div>
             </div>
           </div>
-          <button type="button" data-direction="translate-y-full" class="btn btn-sm bg-purple text-white rounded-circle drawerTrigger" style="width: 25px; height: 25px;">
-            <i class='bx bx-cog fs-12'></i>
-          </button>
         </div>
         <!-- End of User -->
 
         <!-- Complete Profile -->
         <div id="comppro" class="profile-complete-card mb-4 position-relative">
-          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="document.getElementById('comppro').style.display='none'"></button>
-          <div class="d-flex align-items-center">
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="document.getElementById('comppro').style.display='none'" aria-label="Dismiss"></button>
+          <div class="d-flex align-items-center mb-3">
             <div class="me-3">
               <i class='bx bx-check-circle fs-64 text-primary'></i>
             </div>
@@ -144,10 +179,13 @@
               <p class="fs-15 fw-semibold text-dark mb-1">Complete your profile</p>
               <p class="fs-13 text-gray mb-2">A complete profile helps us cater the best content to you</p>
               <div class="progress-bar-custom" style="width: 100%;">
-                <div class="progress-fill" style="width: 60%;"></div>
+                <div class="progress-fill" style="width: {{ (profile_user or request.user).get_profile_completion_percentage() }}%;"></div>
               </div>
             </div>
           </div>
+          <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100">
+            <i class='bx bx-cog me-2'></i> SETTINGS
+          </a>
         </div>
         <!-- End of Complete Profile -->
       </div>
@@ -161,53 +199,56 @@
 
       <!-- Right Part -->
       <div class="col-lg-8">
-        <!-- Statistics -->
-        <div class="mb-4">
-          <h2 class="fs-24 fw-semibold mb-3">
-            Statistics <span class="fs-16 fw-normal text-gray">(Coming soon...)</span>
-          </h2>
-          <div class="row g-3">
-            <div class="col-6 col-md-3">
-              <div class="stat-card">
+        <!-- Statistics (dynamic: trophies, points, streak, level) -->
+        <div class="mb-4" id="dashboard-stats-section">
+          <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
+          <div class="row g-3 dashboard-stat-cards">
+            <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">
+              <div class="stat-card stat-card-trophies">
                 <div>
                   <i class='bx bx-trophy fs-30 text-warning'></i>
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0">12</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-trophies" data-value="{{ trophies_unlocked|default(0) }}">0</p>
                   <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
                 </div>
               </div>
             </div>
-            <div class="col-6 col-md-3">
-              <div class="stat-card">
+            <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.2s;">
+              <div class="stat-card stat-card-points">
                 <div>
                   <i class='bx bx-star fs-30 text-primary'></i>
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0">1200</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-points" data-value="{{ total_points|default(0) }}">0</p>
                   <p class="text-gray fs-10 mb-0">Total Points</p>
                 </div>
               </div>
             </div>
-            <div class="col-6 col-md-3">
-              <div class="stat-card">
-                <div>
-                  <i class='bx bx-fire fs-30 text-warning'></i>
+            <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.3s;">
+              <div class="stat-card stat-card-streak {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}">
+                <div class="streak-icon-wrap">
+                  <i class='bx bx-fire fs-30 text-warning streak-flame'></i>
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0">5 days</p>
-                  <p class="text-gray fs-10 mb-0">Streak</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-streak" data-value="{{ streak_days|default(0) }}">0</p>
+                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">{% if (streak_days|default(0)) == 1 %}1 day{% else %}{{ streak_days|default(0) }} days{% endif %}</p>
                 </div>
               </div>
             </div>
-            <div class="col-6 col-md-3">
-              <div class="stat-card">
+            <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.4s;">
+              <div class="stat-card stat-card-level">
                 <div>
                   <i class='bx bx-medal fs-30 text-success'></i>
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0">Rookie</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{ current_level|default('Rookie') }}</p>
                   <p class="text-gray fs-10 mb-0">Current Level</p>
+                  {% if next_level_min_points is not none and level_progress_percent is not none %}
+                  <div class="level-progress-wrap mt-1" style="max-width: 80px;">
+                    <div class="level-progress-bar" style="width: {{ level_progress_percent }}%;"></div>
+                  </div>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -574,28 +615,114 @@
   </div>
 </section>
 <!-- End of Main Content -->
+
+<!-- Mobile Settings Drawer (gear opens this on small screens) -->
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-lg-none" data-direction="translate-y-full" aria-hidden="true">
+  <div class="drawerContent bg-white w-100 rounded-t-lg position-absolute bottom-0 start-0 end-0" style="max-height: 70vh; overflow-y: auto;">
+    <div class="p-4 pb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 fw-semibold">Settings</h5>
+        <button type="button" class="btn btn-sm btn-link text-secondary drawerClose p-0" aria-label="Close">
+          <i class='bx bx-x fs-28'></i>
+        </button>
+      </div>
+      <div class="d-flex flex-column gap-2">
+        <a href="{{ url('users:userdashboard') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
+          <i class='bx bx-home fs-22 text-primary'></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url('users:profiledetails') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
+          <i class='bx bx-cog fs-22 text-primary'></i>
+          <span>Profile &amp; Settings</span>
+        </a>
+        <a href="{{ url('users:logout') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-danger hover-bg-light">
+          <i class='bx bx-log-out fs-22'></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
+<script>
+  (function() {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function countUp(el, end, duration) {
+      if (!el || reduceMotion) { if (el) el.textContent = end; return; }
+      var start = 0;
+      var startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var easeOut = 1 - Math.pow(1 - progress, 2);
+        var current = Math.round(start + (end - start) * easeOut);
+        el.textContent = current;
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = end;
+      }
+      requestAnimationFrame(step);
+    }
+    function initDashboardStats() {
+      var trophiesEl = document.getElementById('stat-trophies');
+      var pointsEl = document.getElementById('stat-points');
+      var streakEl = document.getElementById('stat-streak');
+      var streakLabel = document.getElementById('stat-streak-label');
+      var duration = 800;
+      if (trophiesEl) {
+        var v = parseInt(trophiesEl.getAttribute('data-value'), 10) || 0;
+        countUp(trophiesEl, v, duration);
+      }
+      if (pointsEl) {
+        var v = parseInt(pointsEl.getAttribute('data-value'), 10) || 0;
+        countUp(pointsEl, v, duration);
+      }
+      if (streakEl) {
+        var v = parseInt(streakEl.getAttribute('data-value'), 10) || 0;
+        countUp(streakEl, v, duration);
+        if (streakLabel && v === 1) streakLabel.textContent = '1 day';
+        else if (streakLabel) streakLabel.textContent = v + ' days';
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDashboardStats);
+    } else {
+      initDashboardStats();
+    }
+  })();
+</script>
 <!-- SweetAlert2 - Load after jQuery -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  // Drawer modal functionality
-  const drawerTrigger = document.querySelector('.drawerTrigger');
-  const drawerModal = document.querySelector('.drawerModal');
-  
-  if (drawerTrigger && drawerModal) {
-    drawerTrigger.addEventListener('click', function() {
-      drawerModal.classList.remove('translate-y-full');
-    });
-    
-    drawerModal.addEventListener('click', function(e) {
-      if (e.target === drawerModal) {
+  // Mobile settings drawer: open/close
+  (function() {
+    var drawerTrigger = document.querySelector('.drawerTrigger');
+    var drawerModal = document.querySelector('.drawerModal');
+    var drawerClose = document.querySelector('.drawerModal .drawerClose');
+    function closeDrawer() {
+      if (drawerModal) {
         drawerModal.classList.add('translate-y-full');
+        drawerModal.setAttribute('aria-hidden', 'true');
       }
-    });
-  }
+    }
+    function openDrawer() {
+      if (drawerModal) {
+        drawerModal.classList.remove('translate-y-full');
+        drawerModal.setAttribute('aria-hidden', 'false');
+      }
+    }
+    if (drawerTrigger && drawerModal) {
+      drawerTrigger.addEventListener('click', function() { openDrawer(); });
+      drawerModal.addEventListener('click', function(e) {
+        if (e.target === drawerModal) closeDrawer();
+      });
+    }
+    if (drawerClose && drawerModal) {
+      drawerClose.addEventListener('click', function() { closeDrawer(); });
+    }
+  })();
 
   // Refer friends popup
   const referTriggers = document.querySelectorAll('.referPopupTrigger');

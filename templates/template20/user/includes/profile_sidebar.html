@@ -3,9 +3,10 @@
   <div class="text-center border-bottom pb-4 mb-4">
     <div class="mb-3 position-relative d-inline-block">
       {% if request.user.image %}
-      <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" />
+      <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" onerror="this.style.display='none'; var f=this.nextElementSibling; if(f){ f.style.display='flex'; }" />
+      <div class="profile-image profile-image-initials mx-auto" style="display:none;" aria-label="User avatar">{{ (request.user.name or request.user.email or "?")[0]|upper }}</div>
       {% else %}
-      <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image mx-auto" alt="User" />
+      <div class="profile-image profile-image-initials mx-auto" aria-label="User avatar">{{ (request.user.name or request.user.email or "?")[0]|upper }}</div>
       {% endif %}
       {# Certified Badge #}
       {% if request.user.user_type == 4 %}
@@ -58,7 +59,7 @@
         <p class="fs-12 fw-semibold text-dark mb-1">Complete your profile</p>
         <p class="fs-10 text-gray mb-2">A complete profile helps us cater the best content to you</p>
         <div class="progress-bar-custom" style="width: 100%;">
-          <div class="progress-fill" style="width: {% if request.user.is_completed %}100{% else %}60{% endif %}%;"></div>
+          <div class="progress-fill" style="width: {{ request.user.get_profile_completion_percentage() }}%;"></div>
         </div>
       </div>
     </div>

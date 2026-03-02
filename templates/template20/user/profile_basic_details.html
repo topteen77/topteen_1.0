@@ -26,6 +26,23 @@
     overflow-x: hidden;
     padding-top: 80px;
   }
+  /* Mobile: minimal top space under fixed header */
+  @media (max-width: 991px) {
+    .profile-onboarding {
+      padding-top: 48px;
+    }
+    .profile-onboarding .page {
+      padding: 16px 16px 40px;
+    }
+  }
+  @media (max-width: 480px) {
+    .profile-onboarding {
+      padding-top: 44px;
+    }
+    .profile-onboarding .page {
+      padding: 12px 12px 32px;
+    }
+  }
   .newPages {
     position: relative;
   }

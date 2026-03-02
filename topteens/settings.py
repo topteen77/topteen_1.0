@@ -636,7 +636,7 @@ SOCIAL_AUTH_RAISE_EXCEPTIONS = False
 LOGIN_URL = '/user/login'
 LOGOUT_URL = '/'
 # LOGIN_REDIRECT_URL =  "/user/user-feeds"
-LOGIN_REDIRECT_URL =  "/test/home"
+LOGIN_REDIRECT_URL =  "/user/dashboard/"
 LOGOUT_REDIRECT_URL = "/user/login"
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = USE_HTTPS
 
