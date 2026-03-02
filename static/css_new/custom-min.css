@@ -9194,6 +9194,20 @@ a:hover {
     height: 267px;
   }
 
+  .career-planning-hub-gateway .new-cp-hub-box {
+    height: auto !important;
+  }
+
+
+  .blog-filter-btn {
+    white-space: nowrap;
+  }
+  .mb-grid-gutter {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    overflow-y: scroll;
+  }
+  
 
 }
 
