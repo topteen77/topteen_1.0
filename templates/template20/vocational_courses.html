@@ -754,6 +754,11 @@ Explore vocational courses and career tracks across technology, healthcare, busi
               {% endif %}
             </div>
             {% endfor %}
+            {% if not subcategories_display.get('after-10', []) %}
+            <div class="no-results" style="display: block;">
+              <p class="text-gray mb-0">No courses available for this level.</p>
+            </div>
+            {% endif %}
           </div>
         {% else %}
           <div class="no-results" style="display: block;">
@@ -808,6 +813,11 @@ Explore vocational courses and career tracks across technology, healthcare, busi
               {% endif %}
             </div>
             {% endfor %}
+            {% if not subcategories_display.get('after-12', []) %}
+            <div class="no-results" style="display: block;">
+              <p class="text-gray mb-0">No courses available for this level.</p>
+            </div>
+            {% endif %}
           </div>
         {% else %}
           <div class="no-results" style="display: block;">
@@ -953,6 +963,27 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
   // Dynamic Tabs Creation and Management
   document.addEventListener('DOMContentLoaded', function() {
+    // Ensure at least one main tab pane is visible (fixes tab content not showing)
+    const tabContent = document.getElementById('vocationalTabsContent');
+    const activePane = tabContent && tabContent.querySelector('.tab-pane.active');
+    if (tabContent && !activePane) {
+      const firstPane = document.getElementById('after-10');
+      const firstBtn = document.getElementById('after-10-tab');
+      if (firstPane) {
+        firstPane.classList.add('show', 'active');
+      }
+      if (firstBtn) {
+        firstBtn.classList.add('active');
+        firstBtn.setAttribute('aria-selected', 'true');
+      }
+      document.querySelectorAll('#vocationalTabs .nav-link').forEach(function(btn) {
+        if (btn !== firstBtn) {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-selected', 'false');
+        }
+      });
+    }
+
     // Hide all sections from both tab types
     function hideAllTabSections() {
       // Hide all sections from both after-10 and after-12
@@ -980,7 +1011,15 @@ Explore vocational courses and career tracks across technology, healthcare, busi
       if (!mainTab) return;
       
       const dataSections = mainTab.querySelectorAll(`.tab-data-show-${tabType}`);
-      if (dataSections.length === 0) return;
+      if (dataSections.length === 0) {
+        // No subcategories: show message so tab content is not blank
+        const msg = document.createElement('div');
+        msg.className = 'no-results';
+        msg.style.display = 'block';
+        msg.innerHTML = '<p class="text-gray mb-0">No courses available for this level.</p>';
+        container.appendChild(msg);
+        return;
+      }
 
       // Create tabs navigation
       const tabsNav = document.createElement('ul');
