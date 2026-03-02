@@ -421,7 +421,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 .select2-container--bootstrap-5 {
 	display: block;
 	border: 1px solid #cec9c9;
-	border-radius: 4px;
+	border-radius: 30px;
 	margin-bottom: 6px;
 }
 
@@ -493,7 +493,11 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 
-
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options:not(.select2-results__options--nested) {
+  max-height: 8rem !important;
+  overflow-y: auto;
+  z-index: 999999999;
+}
 
 }
 </style>
@@ -905,7 +909,7 @@ Explore our comprehensive collection of career paths organized by industry and i
                     {% endif %}
                     #}
                     {% if career.display_summary %}
-                    <p class="blog-excerpt">{{ career.display_summary|truncate(120) }}</p>
+                    <p class="blog-excerpt lh-sm">{{ career.display_summary|truncate(120) }}</p>
                     {% endif %}
                     <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="read-more">Explore Career <i class="bx bx-right-arrow-alt"></i></a>
                   </div>

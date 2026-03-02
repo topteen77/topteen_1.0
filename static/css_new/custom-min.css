@@ -13015,6 +13015,11 @@ a:hover {
   .career-feature-title {
     font-size: 18px;
   }
+
+  .ds-box {
+    min-height: auto;
+  }
+
 }
 
 /* How It Works Section Styles */
@@ -13145,7 +13150,7 @@ a:hover {
 
 @media (max-width: 768px) {
   .how-it-works-section {
-    padding: 60px 0;
+    padding: 18px 0;
   }
 
   .how-it-works-section .section-title {
@@ -13543,7 +13548,7 @@ a:hover {
 
   .aptitude-carousel-item {
     padding: 20px 15px;
-    min-height: 320px;
+    min-height: auto !important;
     margin: 0 8px;
     border-radius: 16px;
   }
@@ -13614,7 +13619,7 @@ a:hover {
 
   .aptitude-carousel-item {
     padding: 25px 18px;
-    min-height: 360px;
+    min-height:auto;
     margin: 0 12px;
   }
 
