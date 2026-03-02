@@ -420,7 +420,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     .sub-tabs-container {
       padding: 20px 20px;
       margin-top: 25px;
-      margin-bottom: 35px;
+      margin-bottom: 0px;
       border-radius: 14px;
     }
     .sub-tabs {
@@ -438,7 +438,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     .sub-tabs-container {
       padding: 18px 12px;
       margin-top: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 0px;
       border-radius: 12px;
     }
     .sub-tabs {
@@ -479,7 +479,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     .sub-tabs-container {
       padding: 15px 10px;
       margin-top: 15px;
-      margin-bottom: 25px;
+      margin-bottom: 0px;
       border-radius: 10px;
     }
     .sub-tabs {
@@ -565,7 +565,8 @@ Explore vocational courses and career tracks across technology, healthcare, busi
   }
   @media (max-width: 767px) {
      .search-mobile-btn { display: inline-flex; }
-  }
+     #after-10-sub-tabs-container .nav-tabs.sub-tabs{width: 100% !important;}
+     #after-12-sub-tabs-container .nav-tabs.sub-tabs{width: 100% !important;}
 
   #mobileSearchOverlay {
     display: none;
@@ -690,17 +691,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
 
     <!-- Mobile Search Overlay -->
-    <div id="mobileSearchOverlay" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="overlay-inner">
-        <div class="overlay-header">
-          <input type="search" id="courseSearchMobile" placeholder="Search courses..." aria-label="Search courses" />
-          <button type="button" class="overlay-close" id="closeMobileSearch" aria-label="Close search">
-            <i class="bx bx-x"></i>
-          </button>
-        </div>
-        <div id="searchSuggestionsMobile" class="search-suggestions"></div>
-      </div>
-    </div>
+
 
     <!-- Tabs Content -->
     <div class="tab-content" id="vocationalTabsContent">
@@ -1604,6 +1595,5 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     });
   });
 </script>
+
 {% endblock %}
-
-
