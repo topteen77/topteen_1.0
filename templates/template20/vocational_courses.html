@@ -213,7 +213,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
   @media (max-width: 767px) {
     .nav-tabs {
       width: 100%;
-      justify-content: flex-start;
+      justify-content: center;
       overflow-x: auto;
       padding: 6px 8px;
       gap: 6px;
@@ -564,9 +564,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     cursor: pointer;
   }
   @media (max-width: 767px) {
-    .search-career { display: none; }
-    .search-icon { display: none; }
-    .search-mobile-btn { display: inline-flex; }
+     .search-mobile-btn { display: inline-flex; }
   }
 
   #mobileSearchOverlay {
@@ -658,21 +656,18 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
     <div class="filter-section">
       <div class="row">
-        <div class="col-3 col-md-6 col-sm-3 mb-3 mb-md-0">
+        <div class="col-12 col-md-6 col-sm-12 mb-3 mb-md-0">
           <div class="position-relative">
             <i class='bx bx-search search-icon'></i>
             <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses..." autocomplete="off">
             <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" title="Clear search">
               <i class="bx bx-x"></i>
             </button>
-            <!-- Mobile-only search button (shows overlay) -->
-            <button type="button" class="search-mobile-btn d-md-none" id="openMobileSearch" aria-label="Open search">
-              <i class="bx bx-search"></i>
-            </button>
+     
             <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
           </div>
         </div>
-        <div class="col-9 col-md-6 col-sm-9 d-flex justify-content-md-end align-items-center">
+        <div class="col-12 col-md-6 col-sm-12 d-flex justify-content-md-end align-items-center">
           <!-- <small class="text-gray">Showing courses loaded from admin-managed database</small> -->
 
               <!-- Tabs Navigation -->
@@ -714,7 +709,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         {% set level = levels_data.get('after-10') %}
         {% if level %}
           <div class="category-section course-category">
-            <h2 class="category-header">{{ level.name|title }}<sup>th</sup></h2>
+            <h2 class="category-header d-md-block d-none">{{ level.name|title }}<sup>th</sup></h2>
 
             <!-- Dynamic Sub-tabs Container for After 10 -->
             <div class="sub-tabs-container" id="after-10-sub-tabs-container"></div>
@@ -773,7 +768,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         {% set level = levels_data.get('after-12') %}
         {% if level %}
           <div class="category-section course-category">
-            <h2 class="category-header">{{ level.name|title }}<sup>th</sup></h2>
+            <h2 class="category-header d-md-block d-none">{{ level.name|title }}<sup>th</sup></h2>
 
             <!-- Dynamic Sub-tabs Container for After 12 -->
             <div class="sub-tabs-container" id="after-12-sub-tabs-container"></div>
