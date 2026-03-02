@@ -109,7 +109,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
   <!-- find direction-->
 
-  <section class="find-direction py-10">
+  <section class="find-direction py-md-10 pt-8">
 
     <div class="container">
       <div class="row">
@@ -249,7 +249,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
   <!-- Extra Curricular Activities Section -->
 
   <!-- Career Tracks -->
-  <section class="career-tracks py-md-10 pt-0 pb-10 mt-md-10 mt-0">
+  <section class="career-tracks py-md-10 py-8 pb-10 mt-md-10 mt-0 ">
     <div class="container">
 
       <div class="row">
@@ -263,6 +263,8 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         </div>
       </div>
     </div>
+
+    <div class="sroclling">
     <div class="scroller" data-direction="left" data-speed="slow">
       <ul class="tag-list scroller__inner">
         {% for card in career_track_cards %}
@@ -295,6 +297,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         {% endfor %}
       </ul>
     </div>
+  </div>
 
     <div class="text-center pt-5">
       <a class="text-purple text-decoration-underline fs-17" href="{{ url('careers:career') }}?mode=view-mode">Explore All <i
