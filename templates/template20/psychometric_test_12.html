@@ -102,8 +102,8 @@ Test. Make informed decisions and choose the right career path.
           {% include 'template20/includes/breadcrumb.html' %}
         </div>
         <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2 d-flex flex-column justify-content-center">
-          <h1 class="heading-title  mb-3  mt-4">
-            <span class="text-purple">Career Direction Test </span> 
+          <h1 class="heading-title  mb-3  mt-md-0 mt-4">
+            <span class="text-purple fs-sm-35">Career Direction Test </span> 
             <br/>
             <span class="fs-26">  Class 11th - 12th Career Assessment </span>
            
@@ -588,7 +588,7 @@ Test. Make informed decisions and choose the right career path.
 
 
        <!-- Career Reports Section-->
-     <section class="career-reports-section py-10">
+     <section class="career-reports-section py-md-10 py-5">
       <div class="container">
         <div class="row">
           <div class="col-md-8 mx-auto d-flex align-items-center flex-column text-center mb-md-6 "> 
@@ -784,7 +784,7 @@ Test. Make informed decisions and choose the right career path.
           <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" class="cta-button">Buy Now</button>
+            <button type="submit" class="cta-button">Book Now</button>
           </form>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>

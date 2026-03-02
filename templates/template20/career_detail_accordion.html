@@ -424,9 +424,7 @@
       padding: 1.5rem;
     }
 
-    .mindmap-box {
-      height: 520px;
-    }
+
   }
 
   @media (max-width: 768px) {
@@ -750,6 +748,20 @@
       margin-right: 12px;
       font-size: 1.3rem;
     }
+
+    .mindmap-box {
+    height: 420px;                 /* adjust as you like */
+    overflow-x: auto;
+    overflow-y: auto;              /* or hidden if you only want horizontal */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #radial-mindmap-container {
+    overflow: auto;                /* enable scroll inside the card */
+    -webkit-overflow-scrolling: touch;
+  }
+
+
   }
 </style>
 {% endblock %}
