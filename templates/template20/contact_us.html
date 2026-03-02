@@ -2,6 +2,43 @@
 {% block title_content %}Contact Us{% endblock %}
 {% block description_content %}Contact TopTeen for career guidance, support, and inquiries. We're here to help you on your career journey.{% endblock %}
 {% block content %}
+<style>
+  .contact-us-page .contact-info-box {
+    background: rgba(63, 55, 201, 0.06);
+    border: 1px solid rgba(63, 55, 201, 0.15);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .contact-us-page .contact-info-box:hover {
+    background: rgba(63, 55, 201, 0.1);
+    border-color: rgba(63, 55, 201, 0.25);
+    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.12);
+  }
+  .contact-us-page .contact-icon-wrap {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+    background: #3F37C9;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+  }
+  .contact-us-page .contact-info-box .r-ct-text h5 {
+    color: #111;
+    font-weight: 600;
+  }
+  .contact-us-page .contact-info-box .r-ct-text a {
+    color: #3F37C9;
+  }
+  .contact-us-page .contact-info-box .r-ct-text a:hover {
+    color: #5249DF;
+  }
+</style>
 {% include 'template20/includes/messages.html' %}
 <main class="contact-us-page pt-15">
 
@@ -25,27 +62,27 @@
 
 
             <div class="contact-mb-test">
-              <div class="contact-mb-test-icon d-flex align-items-center mb-4">
-                <div class="img-bot">
-                  <i class='bx bxs-time' style='color:#ffffff'></i>
+              <div class="contact-info-box contact-mb-test-icon d-flex align-items-center gap-3">
+                <div class="contact-icon-wrap">
+                  <i class='bx bxs-time'></i>
                 </div>
                 <div class="r-ct-text">
                   <h5 class="mb-0">Timings</h5>
                   <p class="text-gray mb-0">Mon-Sat, 10am-6pm</p>
                 </div>
               </div>
-              <div class="contact-mb-test-icon d-flex align-items-center mb-4">
-                <div class="img-bot">
-                  <i class='bx bxs-envelope' style='color:#ffffff'></i>
+              <div class="contact-info-box contact-mb-test-icon d-flex align-items-center gap-3">
+                <div class="contact-icon-wrap">
+                  <i class='bx bxs-envelope'></i>
                 </div>
                 <div class="r-ct-text">
                   <h5 class="mb-0">Email</h5>
                   <p class="text-gray mb-0"> <a href="mailto:info@topteen.in">info@topteen.in</a> </p>
                 </div>
               </div>
-              <div class="contact-mb-test-icon d-flex align-items-center mb-4">
-                <div class="img-bot">
-                  <i class='bx bxs-phone-call' style='color:#ffffff'></i>
+              <div class="contact-info-box contact-mb-test-icon d-flex align-items-center gap-3">
+                <div class="contact-icon-wrap">
+                  <i class='bx bxs-phone-call'></i>
                 </div>
                 <div class="r-ct-text">
                   <h5 class="mb-0">Phone Number</h5>
