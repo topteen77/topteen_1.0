@@ -489,8 +489,16 @@ else:
     }
 
 
-# Cache: use Redis only when enabled, else in-memory (no extra service required)
-if ENABLE_REDIS:
+# Cache: in development (DEBUG=True) use DummyCache so code/template changes reflect immediately.
+# In production use Redis if enabled, else in-memory.
+DISABLE_CACHE_FOR_DEV = config('DISABLE_CACHE_FOR_DEV', default=True, cast=bool)
+if DEBUG and DISABLE_CACHE_FOR_DEV:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        }
+    }
+elif ENABLE_REDIS:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
@@ -509,10 +517,13 @@ else:
     }
 
 # Celery broker: use Redis only when both Celery and Redis are enabled, else in-memory (no broker required)
+# Use explicit host so Kombu does not emit "No hostname was supplied. Reverting to default 'localhost'"
 if ENABLE_CELERY and ENABLE_REDIS:
-    CELERY_BROKER_URL = f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/0"
+    _redis_host = config('REDIS_HOST', default='127.0.0.1') or '127.0.0.1'
+    _redis_port = config('REDIS_PORT', default='6379') or '6379'
+    CELERY_BROKER_URL = f"redis://{_redis_host}:{_redis_port}/0"
 else:
-    CELERY_BROKER_URL = 'memory://'
+    CELERY_BROKER_URL = 'memory://localhost'
 
 QUEUE_DEFAULT = 'default'
 
