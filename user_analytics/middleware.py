@@ -6,6 +6,7 @@ Falls back to synchronous execution if Celery is unavailable.
 """
 import uuid
 import re
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
 from user_analytics.tasks import (
@@ -17,6 +18,9 @@ from user_analytics.tasks import (
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Short timeout for Celery worker check to avoid blocking the request (prevents 502 when broker is slow)
+CELERY_INSPECT_TIMEOUT_SECONDS = 2
 
 
 class AnalyticsMiddleware(MiddlewareMixin):
@@ -62,31 +66,38 @@ class AnalyticsMiddleware(MiddlewareMixin):
         
         return None
     
+    def _check_celery_workers_active(self):
+        """Check if Celery workers are active. Runs in thread to avoid blocking."""
+        try:
+            from celery import current_app
+            inspect = current_app.control.inspect()
+            active_workers = inspect.active()
+            return bool(active_workers)
+        except Exception:
+            return False
+
     def process_response(self, request, response):
-        """Process response and trigger async tracking with fallback to sync"""
+        """Process response and trigger async tracking with fallback to sync.
+        All tracking is wrapped in try/except so failures never cause 502 or break the response.
+        Celery worker check runs with a short timeout to avoid blocking when broker is slow.
+        """
         # Only track successful GET requests
-        if hasattr(request, 'analytics_data') and request.method == 'GET' and response.status_code == 200:
-            # Get page title from response if available
+        if not (hasattr(request, 'analytics_data') and request.method == 'GET' and response.status_code == 200):
+            return response
+
+        try:
             page_title = getattr(response, 'page_title', '')
-            
-                                                                # Check if Celery worker is actually running
-            # If not, use synchronous execution to ensure tracking works
-            use_sync = False
-            
-            # Try to check if Celery worker is running by checking broker connection
+
+            # Check if Celery worker is running with a short timeout to avoid blocking (prevents 502)
+            use_sync = True
             try:
-                from celery import current_app
-                inspect = current_app.control.inspect()
-                active_workers = inspect.active()
-                if not active_workers:
-                    # No active workers, use sync
-                    use_sync = True
-                    logger.debug("No Celery workers active, using synchronous tracking")
-            except Exception:
-                # Can't check workers, assume they're not running and use sync
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(self._check_celery_workers_active)
+                    use_sync = not future.result(timeout=CELERY_INSPECT_TIMEOUT_SECONDS)
+            except (FuturesTimeoutError, Exception):
                 use_sync = True
-                logger.debug("Could not check Celery workers, using synchronous tracking")
-            
+                logger.debug("Celery check timed out or failed, using synchronous tracking")
+
             if use_sync:
                 # Use synchronous tracking (worker not running)
                 track_page_view_sync(
@@ -213,7 +224,9 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
                     )
-        
+        except Exception as e:
+            # Never let analytics break the response (prevents 502 when tracking fails or blocks)
+            logger.warning("Analytics tracking failed, response unchanged: %s", e, exc_info=True)
         return response
     
     @staticmethod
@@ -261,4 +274,3 @@ class AnalyticsMiddleware(MiddlewareMixin):
             return ga4_header
         
         return None
-
