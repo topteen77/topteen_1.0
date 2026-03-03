@@ -76,6 +76,10 @@ INSTALLED_APPS = [
     'invoices',
 ]
 
+# Optional services: set False in .env when not running (avoids errors, uses fallbacks)
+ENABLE_REDIS = config('ENABLE_REDIS', default=True, cast=bool)
+ENABLE_CELERY = config('ENABLE_CELERY', default=True, cast=bool)
+
 # Add django_elasticsearch_dsl conditionally based on environment
 ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)
 if ENABLE_ELASTICSEARCH:
@@ -485,18 +489,30 @@ else:
     }
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/1",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+# Cache: use Redis only when enabled, else in-memory (no extra service required)
+if ENABLE_REDIS:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/1",
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
         }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'topteen-default',
+        }
+    }
 
-# CELERY_BROKER_URL = 'redis://redis/0'
-CELERY_BROKER_URL = f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/0"
+# Celery broker: use Redis only when both Celery and Redis are enabled, else in-memory (no broker required)
+if ENABLE_CELERY and ENABLE_REDIS:
+    CELERY_BROKER_URL = f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/0"
+else:
+    CELERY_BROKER_URL = 'memory://'
 
 QUEUE_DEFAULT = 'default'
 
