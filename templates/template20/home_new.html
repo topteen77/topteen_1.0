@@ -591,7 +591,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
   <!-- Video modal -->
 
   <!-- Smooth Scrolling-->
-  <section class="smooth-scrolling py-md-10 py-8 mb-md-10 mb-8">
+  <section class="smooth-scrolling py-10 mb-10">
     <div class="container">
       <div class="row">
 
@@ -1219,24 +1219,24 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
 {% block additionaljs %}
 <script>
-  // Video modal handler
+  // Video modal handler: stop video on close, restore URL when opening again
   document.addEventListener('DOMContentLoaded', function() {
-    // Pause YouTube video first, then clear when hero "Watch Video" modal (#staticDemo) is closed
-    const staticDemoModal = document.getElementById('staticDemo');
-    const staticDemoVideo = document.getElementById('staticDemoVideo');
+    var staticDemoVideoUrl = 'https://www.youtube.com/embed/pFWtj3YHFPw?si=8Z_cfwL34uKkB6s8&enablejsapi=1';
+    var staticDemoModal = document.getElementById('staticDemo');
+    var staticDemoVideo = document.getElementById('staticDemoVideo');
     if (staticDemoModal && staticDemoVideo) {
-      var staticDemoVideoUrl = staticDemoVideo.src;
-      function pauseYouTubeVideo(iframe) {
+      function pauseAndClearVideo(iframe) {
         try {
           if (iframe && iframe.contentWindow)
             iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
         } catch (e) { /* ignore */ }
+        iframe.src = 'about:blank';
       }
       staticDemoModal.addEventListener('show.bs.modal', function() {
         staticDemoVideo.src = staticDemoVideoUrl;
       });
       staticDemoModal.addEventListener('hide.bs.modal', function() {
-        pauseYouTubeVideo(staticDemoVideo);
+        pauseAndClearVideo(staticDemoVideo);
       });
       staticDemoModal.addEventListener('hidden.bs.modal', function() {
         staticDemoVideo.src = 'about:blank';
