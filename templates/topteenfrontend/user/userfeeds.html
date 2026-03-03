@@ -1413,8 +1413,8 @@ scrollableDiv.forEach((elem) => {
       const videoPopup = document.getElementById("videoPopup");
       const popupVideo = document.getElementById("popupVideo");
 
-      // Clear the iframe src to stop the video
-      popupVideo.src = "";
+      // Clear the iframe src to stop the video (about:blank reliably stops YouTube)
+      if (popupVideo) popupVideo.src = "about:blank";
 
       // Hide the popup
       videoPopup.style.display = "none";
@@ -1445,8 +1445,8 @@ scrollableDiv.forEach((elem) => {
       const videoPopup = document.getElementById("mobilevideoPopup");
       const popupVideo = document.getElementById("mobilepopupVideo");
 
-      // Clear the iframe src to stop the video
-      popupVideo.src = "";
+      // Clear the iframe src to stop the video (about:blank reliably stops YouTube)
+      if (popupVideo) popupVideo.src = "about:blank";
 
       // Hide the popup
       videoPopup.style.display = "none";
