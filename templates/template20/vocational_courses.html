@@ -616,7 +616,10 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     max-height:50vh;
     overflow:auto;
   }
+}
 </style>
+
+
 {% endblock %}
 
 {% block content %}
@@ -660,7 +663,16 @@ Explore vocational courses and career tracks across technology, healthcare, busi
         <div class="col-12 col-md-6 col-sm-12 mb-3 mb-md-0">
           <div class="position-relative">
             <i class='bx bx-search search-icon'></i>
-            <input type="text" class="form-control search-career" id="courseSearch" placeholder="Search courses..." autocomplete="off">
+            <form autocomplete="off">
+              <input
+                type="text"
+                class="form-control search-career"
+                id="courseSearch"
+                name="no-autofill-search"
+                autocomplete="new-password"
+                placeholder="Search courses..."
+              >
+            </form>
             <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" title="Clear search">
               <i class="bx bx-x"></i>
             </button>

@@ -9125,7 +9125,12 @@ a:hover {
 
 
 .career-planning-hub-gateway .new-cp-hub-box {
-  height: 464px !important;
+  min-height: 397px !important;
+}
+
+.career-planning-hub-gateway .new-cp-hub-box .top-list-style ul li {
+  font-size: 14px;
+  line-height: 21px;
 }
 
 .career-planning-hub-gateway .phy-item-box .learner-icon {
@@ -11823,7 +11828,7 @@ a:hover {
 
     .video-modal button.btn-close {
       top: -17px;
-       right: -2px;
+       right: -2px; 
      }
 
      .video-modal iframe#videoFrame {
