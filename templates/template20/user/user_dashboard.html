@@ -121,9 +121,24 @@
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
+
+    <!-- Mobile profile drawer trigger -->
+    <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
+      <button
+        class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
+        style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#mobileProfileDrawer"
+        aria-controls="mobileProfileDrawer"
+        aria-label="Open profile">
+        <i class='bx bxs-user-detail fs-22'></i>
+      </button>
+    </div>
+
     <div class="row g-4 pt-4">
       <!-- Left Part Mobile -->
-      <div class="col-12 d-lg-none">
+      <div class="col-12 d-none">
         <!-- User -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex gap-3">
@@ -617,7 +632,7 @@
 <!-- End of Main Content -->
 
 <!-- Mobile Settings Drawer (gear opens this on small screens) -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-lg-none" data-direction="translate-y-full" aria-hidden="true">
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-none" data-direction="translate-y-full" aria-hidden="true">
   <div class="drawerContent bg-white w-100 rounded-t-lg position-absolute bottom-0 start-0 end-0" style="max-height: 70vh; overflow-y: auto;">
     <div class="p-4 pb-5">
       <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1088,6 +1103,17 @@
     }
   });
 </script>
+
+<!-- Mobile profile drawer (reuses desktop sidebar content) -->
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    {% include 'template20/user/includes/profile_sidebar.html' %}
+  </div>
+</div>
 
 {% if request.session.get('force_mobile_popup') %}
 <script>
