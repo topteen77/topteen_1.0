@@ -118,5 +118,19 @@ def run_startup_checks():
         mod.ELASTICSEARCH_AVAILABLE = False
         lines.append("  Elasticsearch:  disabled (ENABLE_ELASTICSEARCH=False)")
 
+    # --- COMMON_BASE_PATH (static/media) ---
+    try:
+        common_base = getattr(settings, 'COMMON_BASE_PATH', None)
+        if common_base:
+            static_root = getattr(settings, 'STATIC_ROOT', '')
+            media_root = getattr(settings, 'MEDIA_ROOT', '')
+            lines.append("  COMMON_BASE_PATH:  " + str(common_base))
+            lines.append("    STATIC_ROOT:     " + ("found" if os.path.isdir(static_root) else "not found") + " (" + str(static_root) + ")")
+            lines.append("    MEDIA_ROOT:      " + ("found" if os.path.isdir(media_root) else "not found") + " (" + str(media_root) + ")")
+        else:
+            lines.append("  COMMON_BASE_PATH:  not set (using BASE_DIR)")
+    except Exception as e:
+        lines.append("  COMMON_BASE_PATH:  error checking (" + str(e) + ")")
+
     if print_services:
         print("\n".join(lines))

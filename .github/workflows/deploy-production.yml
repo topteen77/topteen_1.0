@@ -31,7 +31,7 @@ jobs:
       - name: Deploy to production
         run: |
           VENV_PATH="${{ secrets.VENV_PATH_PRODUCTION || '/home/ubuntu/git-project/envtopteen1.0/bin/activate' }}"
-          SERVICE_NAME="${{ secrets.SERVICE_NAME_PRODUCTION || 'topteen-website' }}"
+          SERVICE_NAME="${{ secrets.SERVICE_NAME_PRODUCTION || 'topteen-in-prod-website' }}"
           ssh -i ~/.ssh/id_ed25519_github_devtopteen -o StrictHostKeyChecking=no \
             ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << EOF
           set -e
