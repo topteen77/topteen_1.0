@@ -1,6 +1,7 @@
 media
 # MySQL data directory - large, restricted permissions, not needed for build
 dbdata_topteens
+data
 # Python
 __pycache__
 *.py[cod]

@@ -528,14 +528,17 @@ Explore our comprehensive collection of career paths organized by industry and i
         {% if not is_ai_mode and not selected_clusters %}
         <div class="w-100" autocomplete="off">
           <h5 class="mt-3 mb-2">Take the first step - select a career that sparks your curiosity</h5>
+          <form autocomplete="off">
           <div class="row justify-content-center">
             <div class="col-md-12 col-lg-8">
               <div class="input-group cluster-cards-search-wrap">
+           
                 <input type="text" id="cluster-cards-search" class="form-control border-0" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" data-lpignore="true" data-form-type="other">
                 <span class="input-group-text border-0 rounded-pill"><i class="bx bx-search" aria-hidden="true"></i></span>
               </div>
               <!-- <p class="small text-muted mt-1 mb-0">Type to filter cluster cards below.</p> -->
             </div>
+          </form>
           </div>
         </div>
         {% endif %}
