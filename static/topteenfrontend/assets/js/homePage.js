@@ -308,12 +308,14 @@ const openPopUpEV = (dynamicYTurl) => {
 
 const closePopUp = () => {
   popUpDiv.style.display = "none";
-  yTembed?.setAttribute("src", " ");
+  // Clear iframe src to stop video playback when popup is closed
+  yTembed?.setAttribute("src", "about:blank");
 };
 
 const closePopUpEV = () => {
   popUpDivEV.style.display = "none";
-  yTembedEV.setAttribute("src", " ");
+  // Clear iframe src to stop video playback when popup is closed
+  yTembedEV.setAttribute("src", "about:blank");
 };
 
 const careerpopuparray = document.querySelectorAll(".careerpopup");

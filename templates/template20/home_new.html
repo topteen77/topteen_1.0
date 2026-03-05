@@ -591,7 +591,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
   <!-- Video modal -->
 
   <!-- Smooth Scrolling-->
-  <section class="smooth-scrolling py-md-10 py-8 mb-md-10 mb-8">
+  <section class="smooth-scrolling py-10 mb-10">
     <div class="container">
       <div class="row">
 
@@ -1197,7 +1197,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
       </button>
       <div class="modal-body p-0">
         <div class="ratio ratio-16x9">
-          <iframe src="https://www.youtube.com/embed/pFWtj3YHFPw?si=8Z_cfwL34uKkB6s8" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          <iframe id="staticDemoVideo" src="https://www.youtube.com/embed/pFWtj3YHFPw?si=8Z_cfwL34uKkB6s8&enablejsapi=1" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
         </div>
       </div>
     </div>
@@ -1219,8 +1219,30 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
 {% block additionaljs %}
 <script>
-  // Video modal handler
+  // Video modal handler: stop video on close, restore URL when opening again
   document.addEventListener('DOMContentLoaded', function() {
+    var staticDemoVideoUrl = 'https://www.youtube.com/embed/pFWtj3YHFPw?si=8Z_cfwL34uKkB6s8&enablejsapi=1';
+    var staticDemoModal = document.getElementById('staticDemo');
+    var staticDemoVideo = document.getElementById('staticDemoVideo');
+    if (staticDemoModal && staticDemoVideo) {
+      function pauseAndClearVideo(iframe) {
+        try {
+          if (iframe && iframe.contentWindow)
+            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        } catch (e) { /* ignore */ }
+        iframe.src = 'about:blank';
+      }
+      staticDemoModal.addEventListener('show.bs.modal', function() {
+        staticDemoVideo.src = staticDemoVideoUrl;
+      });
+      staticDemoModal.addEventListener('hide.bs.modal', function() {
+        pauseAndClearVideo(staticDemoVideo);
+      });
+      staticDemoModal.addEventListener('hidden.bs.modal', function() {
+        staticDemoVideo.src = 'about:blank';
+      });
+    }
+
     const videoLinks = document.querySelectorAll('.video-link');
     const videoFrame = document.getElementById('videoFrame');
     
@@ -1235,11 +1257,11 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         });
       });
       
-      // Clear video when modal is closed
+      // Stop video when career video modal is closed
       const videoModal = document.getElementById('videoModal');
       if (videoModal) {
         videoModal.addEventListener('hidden.bs.modal', function() {
-          videoFrame.src = '';
+          videoFrame.src = 'about:blank';
         });
       }
     }

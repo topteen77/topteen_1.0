@@ -885,7 +885,8 @@
   }
   const closePopUpEV = () => {
     popUpDivEV.style.display = "none";
-     yTembedEV.setAttribute("src", " " );
+    // Clear iframe src to stop YouTube video when popup is closed
+    if (yTembedEV) yTembedEV.setAttribute("src", "about:blank");
   }
   const trendingpopuparray=document.querySelectorAll(".trendingPopUp");
   [...trendingpopuparray]?.forEach((elem)=>{

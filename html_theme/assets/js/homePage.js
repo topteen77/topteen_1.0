@@ -297,7 +297,8 @@ const openPopUp = () => {
 
 const closePopUp = () => {
   popUp.style.display = "none";
-  yTembed?.setAttribute("src", " ") 
+  // Clear iframe src to stop video playback when popup is closed
+  yTembed?.setAttribute("src", "about:blank");
 }
 
 // btn.addEventListener("click", () => {

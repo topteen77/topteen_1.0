@@ -76,6 +76,10 @@ INSTALLED_APPS = [
     'invoices',
 ]
 
+# Optional services: set False in .env when not running (avoids errors, uses fallbacks)
+ENABLE_REDIS = config('ENABLE_REDIS', default=True, cast=bool)
+ENABLE_CELERY = config('ENABLE_CELERY', default=True, cast=bool)
+
 # Add django_elasticsearch_dsl conditionally based on environment
 ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)
 if ENABLE_ELASTICSEARCH:
@@ -485,18 +489,41 @@ else:
     }
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/1",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+# Cache: in development (DEBUG=True) use DummyCache so code/template changes reflect immediately.
+# In production use Redis if enabled, else in-memory.
+DISABLE_CACHE_FOR_DEV = config('DISABLE_CACHE_FOR_DEV', default=True, cast=bool)
+if DEBUG and DISABLE_CACHE_FOR_DEV:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         }
     }
-}
+elif ENABLE_REDIS:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/1",
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'topteen-default',
+        }
+    }
 
-# CELERY_BROKER_URL = 'redis://redis/0'
-CELERY_BROKER_URL = f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default='6379')}/0"
+# Celery broker: use Redis only when both Celery and Redis are enabled, else in-memory (no broker required)
+# Use explicit host so Kombu does not emit "No hostname was supplied. Reverting to default 'localhost'"
+if ENABLE_CELERY and ENABLE_REDIS:
+    _redis_host = config('REDIS_HOST', default='127.0.0.1') or '127.0.0.1'
+    _redis_port = config('REDIS_PORT', default='6379') or '6379'
+    CELERY_BROKER_URL = f"redis://{_redis_host}:{_redis_port}/0"
+else:
+    CELERY_BROKER_URL = 'memory://localhost'
 
 QUEUE_DEFAULT = 'default'
 
