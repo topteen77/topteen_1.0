@@ -1,0 +1,54 @@
+# Deploy production: push to production -> /home/ubuntu/git-project/topteen_1.0
+# Optional secrets: VENV_PATH_PRODUCTION, SERVICE_NAME_PRODUCTION (defaults used if unset)
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_ed25519_github_devtopteen
+          chmod 600 ~/.ssh/id_ed25519_github_devtopteen
+          ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Validate SSH key
+        run: |
+          if [ ! -s ~/.ssh/id_ed25519_github_devtopteen ]; then
+            echo "SSH key is missing or empty!"
+            exit 1
+          fi
+
+      - name: Deploy to production
+        run: |
+          VENV_PATH="${{ secrets.VENV_PATH_PRODUCTION || '/home/ubuntu/git-project/env1.0/bin/activate' }}"
+          SERVICE_NAME="${{ secrets.SERVICE_NAME_PRODUCTION || 'topteen-website' }}"
+          ssh -i ~/.ssh/id_ed25519_github_devtopteen -o StrictHostKeyChecking=no \
+            ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << EOF
+          set -e
+          cd /home/ubuntu/git-project/topteen_1.0/
+          git fetch origin
+          git reset --hard origin/production
+          echo "Deployed commit: \$(git rev-parse HEAD) \$(git log -1 --oneline)"
+          source $VENV_PATH
+          python3 manage.py collectstatic --noinput --clear
+          deactivate
+          sudo systemctl stop ${SERVICE_NAME}.socket 2>/dev/null || true
+          sudo systemctl disable ${SERVICE_NAME}.socket 2>/dev/null || true
+          sudo systemctl stop ${SERVICE_NAME}.service 2>/dev/null || true
+          sudo systemctl disable ${SERVICE_NAME}.service 2>/dev/null || true
+          sudo systemctl enable ${SERVICE_NAME}.socket
+          sudo systemctl start ${SERVICE_NAME}.socket
+          sudo systemctl enable ${SERVICE_NAME}.service
+          sudo systemctl start ${SERVICE_NAME}.service
+          echo "Production deploy finished."
+          EOF
