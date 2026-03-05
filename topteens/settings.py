@@ -310,16 +310,21 @@ USE_TZ = True  # Keep this enabled to handle time zones correctly
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
+# Common base path for STATIC_ROOT and MEDIA_ROOT so they are not duplicated per run/env.
+# Set COMMON_BASE_PATH in .env to a shared path, or leave unset to use project root (BASE_DIR).
+COMMON_BASE_PATH = config('COMMON_BASE_PATH', default=str(BASE_DIR))
+if not os.path.isabs(COMMON_BASE_PATH):
+    COMMON_BASE_PATH = os.path.normpath(os.path.join(BASE_DIR, COMMON_BASE_PATH))
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(COMMON_BASE_PATH, 'staticfiles')
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(COMMON_BASE_PATH, 'media')
 
 
 # REST Framework settings
