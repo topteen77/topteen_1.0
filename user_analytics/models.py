@@ -323,7 +323,6 @@ class UserJourney(BaseModel):
         max_length=20, blank=True, null=True, db_index=True,
         help_text="Category: search, social, referral, direct, internal"
     )
-<<<<<<< HEAD
     enquiry_source = models.ForeignKey(
         EnquirySource,
         on_delete=models.SET_NULL,
@@ -333,8 +332,6 @@ class UserJourney(BaseModel):
         db_index=True,
         help_text="Set when user arrived via ?ref= token (non-readable link)."
     )
-=======
->>>>>>> master
     converted = models.BooleanField(default=False, db_index=True, help_text="Did this session convert?")
     conversion_event = models.ForeignKey(
         UserEvent,
