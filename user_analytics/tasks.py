@@ -8,7 +8,12 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent, GA4Session
-from user_analytics.utils import parse_user_agent_info, get_referrer_source
+from user_analytics.utils import (
+    parse_user_agent_info,
+    get_referrer_source,
+    get_geolocation_from_ip,
+    get_traffic_source_category,
+)
 import logging
 
 User = get_user_model()
@@ -48,6 +53,10 @@ def track_page_view_sync(
         
         # Determine source if UTM not provided
         source = utm_source or get_referrer_source(referrer)
+        traffic_category = get_traffic_source_category(utm_source or source, referrer)
+        
+        # Resolve country/city from IP (short timeout to avoid blocking)
+        geo = get_geolocation_from_ip(ip_address, timeout=2) if ip_address else {}
         
         # Create or update user activity
         with transaction.atomic():
@@ -67,6 +76,9 @@ def track_page_view_sync(
                 device_type=ua_info['device_type'],
                 browser=ua_info['browser'],
                 os=ua_info['os'],
+                country=geo.get('country'),
+                city=geo.get('city'),
+                traffic_source_category=traffic_category,
             )
             
             # Update or create lead if user is not authenticated
@@ -104,6 +116,7 @@ def update_user_journey_sync(
     device_type=None,
     country=None,
     utm_source=None,
+    traffic_source_category=None,
 ):
     """
     Synchronous version of update_user_journey_async.
@@ -137,6 +150,8 @@ def update_user_journey_sync(
                 defaults['country'] = country
             if utm_source:
                 defaults['utm_source'] = utm_source
+            if traffic_source_category:
+                defaults['traffic_source_category'] = traffic_source_category
             
             journey, created = UserJourney.objects.get_or_create(
                 session_id=session_id,
@@ -153,13 +168,15 @@ def update_user_journey_sync(
                 if ga4_client_id and not journey.ga4_client_id:
                     journey.ga4_client_id = ga4_client_id
                 
-                # Update device/country if not set
+                # Update device/country/source category if not set
                 if device_type and not journey.device_type:
                     journey.device_type = device_type
                 if country and not journey.country:
                     journey.country = country
                 if utm_source and not journey.utm_source:
                     journey.utm_source = utm_source
+                if traffic_source_category and not journey.traffic_source_category:
+                    journey.traffic_source_category = traffic_source_category
                 
                 # Add to journey path if not already there
                 if page_path not in journey.journey_path:
@@ -221,6 +238,10 @@ def track_page_view_async(
         
         # Determine source if UTM not provided
         source = utm_source or get_referrer_source(referrer)
+        traffic_category = get_traffic_source_category(utm_source or source, referrer)
+        
+        # Resolve country/city from IP
+        geo = get_geolocation_from_ip(ip_address, timeout=2) if ip_address else {}
         
         # Create or update user activity
         with transaction.atomic():
@@ -240,6 +261,9 @@ def track_page_view_async(
                 device_type=ua_info['device_type'],
                 browser=ua_info['browser'],
                 os=ua_info['os'],
+                country=geo.get('country'),
+                city=geo.get('city'),
+                traffic_source_category=traffic_category,
             )
             
             # Update or create lead if user is not authenticated
@@ -282,6 +306,7 @@ def update_user_journey_async(
     device_type=None,
     country=None,
     utm_source=None,
+    traffic_source_category=None,
 ):
     """
     Async task to update user journey.
@@ -294,6 +319,7 @@ def update_user_journey_async(
         device_type: Device type (mobile, desktop, tablet)
         country: User country
         utm_source: UTM source (inquiry source)
+        traffic_source_category: search, social, referral, direct, internal
     """
     try:
         user = None
@@ -323,6 +349,8 @@ def update_user_journey_async(
                 defaults['country'] = country
             if utm_source:
                 defaults['utm_source'] = utm_source
+            if traffic_source_category:
+                defaults['traffic_source_category'] = traffic_source_category
             
             journey, created = UserJourney.objects.get_or_create(
                 session_id=session_id,
@@ -339,13 +367,15 @@ def update_user_journey_async(
                 if ga4_client_id and not journey.ga4_client_id:
                     journey.ga4_client_id = ga4_client_id
                 
-                # Update device/country if not set
+                # Update device/country/source category if not set
                 if device_type and not journey.device_type:
                     journey.device_type = device_type
                 if country and not journey.country:
                     journey.country = country
                 if utm_source and not journey.utm_source:
                     journey.utm_source = utm_source
+                if traffic_source_category and not journey.traffic_source_category:
+                    journey.traffic_source_category = traffic_source_category
                 
                 # Add to journey path if not already there
                 if page_path not in journey.journey_path:
