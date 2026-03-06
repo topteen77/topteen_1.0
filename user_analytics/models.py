@@ -50,7 +50,7 @@ class EnquirySource(BaseModel):
         max_length=500,
         blank=True,
         null=True,
-        help_text="Base URL for the link (e.g. https://www.topteen.in). Leave blank to use site URL when generating."
+        help_text="Full page URL for the link (e.g. https://www.topteen.in or https://www.topteen.in/skilllab/course/xyz/). Leave blank to use site root from settings."
     )
     is_active = models.BooleanField(default=True, db_index=True)
 
@@ -323,7 +323,6 @@ class UserJourney(BaseModel):
         max_length=20, blank=True, null=True, db_index=True,
         help_text="Category: search, social, referral, direct, internal"
     )
-<<<<<<< HEAD
     enquiry_source = models.ForeignKey(
         EnquirySource,
         on_delete=models.SET_NULL,
@@ -333,8 +332,6 @@ class UserJourney(BaseModel):
         db_index=True,
         help_text="Set when user arrived via ?ref= token (non-readable link)."
     )
-=======
->>>>>>> master
     converted = models.BooleanField(default=False, db_index=True, help_text="Did this session convert?")
     conversion_event = models.ForeignKey(
         UserEvent,

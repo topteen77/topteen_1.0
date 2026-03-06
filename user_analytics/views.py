@@ -2649,7 +2649,6 @@ def cleanup_analytics_data_view(request):
     return redirect('user_analytics:admin_user_analytics')
 
 
-<<<<<<< HEAD
 # ---------- Enquiry Sources (non-readable UTM links: ?ref=TOKEN) ----------
 def _enquiry_source_stats(source):
     """Return dict of visit count and conversion counts for an EnquirySource."""
@@ -2722,7 +2721,7 @@ def enquiry_sources_list_view(request):
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def _enquiry_source_form_data(request):
-    """Extract name, agency_name, user_name, event from POST. Returns (name, agency_name, user_name, event)."""
+    """Extract name, agency_name, user_name, event, base_url from POST. Returns (name, agency_name, user_name, event, base_url)."""
     def strip(s):
         return (s or '').strip() or None
     return (
@@ -2730,14 +2729,16 @@ def _enquiry_source_form_data(request):
         strip(request.POST.get('agency_name')),
         strip(request.POST.get('user_name')),
         strip(request.POST.get('event')),
+        strip(request.POST.get('base_url')),
     )
 
 
 def enquiry_source_create_view(request):
-    """Create a new enquiry source (name + optional agency, user, event). Token is auto-generated."""
+    """Create a new enquiry source (name + optional agency, user, event, base_url). Token is auto-generated."""
     from django.contrib import messages
+    from django.conf import settings
     if request.method == 'POST':
-        name, agency_name, user_name, event = _enquiry_source_form_data(request)
+        name, agency_name, user_name, event, base_url = _enquiry_source_form_data(request)
         if not name:
             messages.error(request, 'Name is required.')
             return redirect('user_analytics:enquiry_source_create')
@@ -2747,15 +2748,18 @@ def enquiry_source_create_view(request):
                 agency_name=agency_name,
                 user_name=user_name,
                 event=event,
+                base_url=base_url,
             )
             messages.success(request, 'Enquiry source created. Use the link with ?ref= token only (non-readable).')
             return redirect('user_analytics:enquiry_sources_list')
         except Exception as e:
             messages.error(request, str(e))
             return redirect('user_analytics:enquiry_sources_list')
+    enquiry_base_url = getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', '') or request.build_absolute_uri('/').rstrip('/')
     context = {
         'source': None,
         'page_title': 'Add Enquiry Source',
+        'enquiry_base_url': enquiry_base_url,
         'csrf_input_html': format_html(
             '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
             get_token(request),
@@ -2767,15 +2771,16 @@ def enquiry_source_create_view(request):
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def enquiry_source_edit_view(request, pk):
-    """Edit enquiry source name, agency, user, event. Token is not changed."""
+    """Edit enquiry source name, agency, user, event, base_url. Token is not changed."""
     from django.contrib import messages
     from django.http import HttpResponseNotFound
+    from django.conf import settings
     try:
         source = EnquirySource.objects.get(pk=pk, object_status=choices.ObjectStatus.ACTIVE)
     except EnquirySource.DoesNotExist:
         return HttpResponseNotFound('Enquiry source not found.')
     if request.method == 'POST':
-        name, agency_name, user_name, event = _enquiry_source_form_data(request)
+        name, agency_name, user_name, event, base_url = _enquiry_source_form_data(request)
         if not name:
             messages.error(request, 'Name is required.')
             return redirect('user_analytics:enquiry_source_edit', pk=pk)
@@ -2784,14 +2789,17 @@ def enquiry_source_edit_view(request, pk):
             source.agency_name = agency_name
             source.user_name = user_name
             source.event = event
+            source.base_url = base_url
             source.save()
             messages.success(request, 'Enquiry source updated.')
             return redirect('user_analytics:enquiry_sources_list')
         except Exception as e:
             messages.error(request, str(e))
+    enquiry_base_url = getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', '') or request.build_absolute_uri('/').rstrip('/')
     context = {
         'source': source,
         'page_title': 'Edit Enquiry Source',
+        'enquiry_base_url': enquiry_base_url,
         'csrf_input_html': format_html(
             '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
             get_token(request),
@@ -2851,8 +2859,6 @@ def enquiry_source_qr_view(request, pk):
         return HttpResponseNotFound('QR generation failed.')
 
 
-=======
->>>>>>> master
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def visitors_detail(request):

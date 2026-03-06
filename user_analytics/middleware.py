@@ -165,10 +165,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     country=country,
                     utm_source=request.analytics_data.get('utm_source'),
                     traffic_source_category=traffic_category,
-<<<<<<< HEAD
                     enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
-=======
->>>>>>> master
                 )
             else:
                 # Try async tracking first, fall back to sync if it fails
@@ -227,10 +224,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
                         traffic_source_category=traffic_category,
-<<<<<<< HEAD
                         enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
-=======
->>>>>>> master
                     )
                 except Exception as e:
                     # Celery is unavailable, fall back to synchronous execution
@@ -290,10 +284,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
                         traffic_source_category=traffic_category,
-<<<<<<< HEAD
                         enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
-=======
->>>>>>> master
                     )
         except Exception as e:
             # Never let analytics break the response (prevents 502 when tracking fails or blocks)

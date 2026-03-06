@@ -36,15 +36,12 @@ urlpatterns = [
     # Admin User Analytics (in-dashboard, with filters)
     path('admin-analytics/', views.admin_user_analytics_view, name='admin_user_analytics'),
     path('admin-analytics/cleanup/', views.cleanup_analytics_data_view, name='cleanup_analytics_data'),
-<<<<<<< HEAD
     # Enquiry Sources (non-readable links: ?ref=TOKEN)
     path('admin-analytics/enquiry-sources/', views.enquiry_sources_list_view, name='enquiry_sources_list'),
     path('admin-analytics/enquiry-sources/add/', views.enquiry_source_create_view, name='enquiry_source_create'),
     path('admin-analytics/enquiry-sources/<int:pk>/edit/', views.enquiry_source_edit_view, name='enquiry_source_edit'),
     path('admin-analytics/enquiry-sources/<int:pk>/delete/', views.enquiry_source_delete_view, name='enquiry_source_delete'),
     path('admin-analytics/enquiry-sources/<int:pk>/qr.png', views.enquiry_source_qr_view, name='enquiry_source_qr'),
-=======
->>>>>>> master
     
     # API Endpoints
     path('api/dashboard-data/', views.api_dashboard_data, name='api_dashboard_data'),
