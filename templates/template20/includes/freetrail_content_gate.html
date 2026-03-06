@@ -1,0 +1,26 @@
+{# Freetrail: after freetrail_seconds the content is hidden and login popup shown; on popup close without login, redirect to back_url. #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var wrap = document.getElementById('freetrail-content-wrap');
+  if (!wrap) return;
+  var sec = {{ freetrail_seconds|default(5) }};
+  var backUrl = "{{ back_url|escapejs }}";
+  var origClose = window.closeLoginRequiredPopup;
+  if (typeof origClose === 'function') {
+    window.closeLoginRequiredPopup = function() {
+      origClose();
+      if (window.freetrailExpired && (typeof window.IS_AUTHENTICATED === 'undefined' || !window.IS_AUTHENTICATED)) {
+        window.location.href = document.referrer || backUrl || '/';
+      }
+    };
+  }
+  setTimeout(function() {
+    wrap.style.display = 'none';
+    window.freetrailExpired = true;
+    window.studentLoginNextUrl = window.location.href;
+    if (typeof window.showLoginRequiredPopup === 'function') {
+      window.showLoginRequiredPopup(window.location.href);
+    }
+  }, (sec <= 0 ? 0 : sec) * 1000);
+});
+</script>

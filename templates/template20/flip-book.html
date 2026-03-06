@@ -297,6 +297,9 @@
 {% endblock %}
 
 {% block content %}
+{% if show_freetrail_popup %}
+<div id="freetrail-content-wrap">
+{% endif %}
 <main class="external-page pt-15">
   <section class="flip-book-section py-10">
     <div class="container">
@@ -354,6 +357,10 @@
     </div>
   </section>
 </main>
+{% if show_freetrail_popup %}
+</div>
+{% include 'template20/includes/freetrail_content_gate.html' %}
+{% endif %}
 {% endblock %}
 
 {% block additionaljs %}
