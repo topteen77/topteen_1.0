@@ -15,8 +15,15 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
+
+body.logged-in.test-view-page {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
   .test-view-page {
-    padding-top: 80px;
+    padding-top:14px;
   }
   .question {
     display: none;
@@ -194,12 +201,21 @@
     align-items: center;
     flex-direction: column;
   }
+
+  @media (max-width: 767.98px) {
+    div#cb-fab-wrap {
+    display: none;
+}
+  }
 </style>
 {% with mode='css', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% endblock %}
 
+
+
+
 {% block content %}
-<section class="test-view-page pb-5">
+<section class="test-view-page pb-5 w-100">
   <div class="container">
     <div class="row">
       <!-- Left Sidebar (Desktop) -->
@@ -256,7 +272,7 @@
         <!-- Answer Quality Widget - single instance, responsive (sidebar on desktop via order, top on mobile) -->
         {% with mode='mobile', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border py-3 rounded-2">
           <div class="d-flex align-items-center">
             {% if request.user.image %}
             <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
@@ -270,9 +286,7 @@
               <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
-            <i class='bx bx-cog'></i>
-          </button>
+     
         </div>
 
         <!-- Mobile Test Stats -->
@@ -396,20 +410,10 @@
 </div>
 
 <!-- Mobile Drawer -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
-  <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
-    <div class="p-4 d-flex flex-column gap-3">
-      <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
-        <div>
-          <h6 class="mb-0">Sign Out</h6>
-          <p class="text-danger fs-12 mb-0">Log out from your account</p>
-        </div>
-        <i class='bx bx-chevron-right'></i>
-      </a>
-    </div>
-  </div>
-</div>
+
 {% endblock %}
+
+
 
 {% block additionaljs %}
 {{ super() }}

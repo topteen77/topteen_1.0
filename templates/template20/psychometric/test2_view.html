@@ -476,7 +476,13 @@ ol, ul {
       <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
         <div class="flex gap-[17px]">
           <div>
-            <img src="{{request.user.image.url}}" class="w-[71px] h-[71px] rounded-full object-cover" alt="" />
+            {% if request.user.image %}
+            <img src="{{ request.user.image.url }}" class="w-[71px] h-[71px] rounded-full object-cover" alt="User" />
+            {% else %}
+            <div class="w-[71px] h-[71px] rounded-full bg-[#3f37c9] text-white flex items-center justify-center text-[24px] font-semibold">
+              {{ (request.user.name or request.user.email or "?")[0]|upper }}
+            </div>
+            {% endif %}
           </div>
           <div class="flex flex-col gap-y-[5px]">
             <div class="pt-[12px]">
@@ -564,7 +570,13 @@ ol, ul {
             <div class="flex justify-center items-center w-full">
               <div class="flex gap-[8px]">
                 <div class="relative">
-                  <img src="{{request.user.image.url}}" class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" />
+                  {% if request.user.image %}
+                  <img src="{{ request.user.image.url }}" class="w-[104px] h-[104px] rounded-full object-cover" alt="User" />
+                  {% else %}
+                  <div class="w-[104px] h-[104px] rounded-full bg-[#3f37c9] text-white flex items-center justify-center text-[32px] font-semibold">
+                    {{ (request.user.name or request.user.email or "?")[0]|upper }}
+                  </div>
+                  {% endif %}
                   <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}"
                     class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
 
