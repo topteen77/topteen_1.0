@@ -36,6 +36,13 @@
                        value="{{ source.event if source else '' }}"
                        placeholder="e.g. Career Fair 2025, Instagram Campaign">
             </div>
+            <div class="mb-3">
+                <label for="id_base_url" class="form-label">Page URL (optional)</label>
+                <input type="url" name="base_url" id="id_base_url" class="form-control"
+                       value="{{ source.base_url if source else '' }}"
+                       placeholder="{{ enquiry_base_url or 'https://www.topteen.in' }}">
+                <div class="form-text">Full URL where users will land. Leave blank for site root. Use a specific page for SkillLab course, campaign page, etc. (e.g. {{ enquiry_base_url or 'https://www.topteen.in' }}/skilllab/course/xyz/). The <code>?ref=</code> token is added automatically.</div>
+            </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save</button>
                 <a href="{{ url('user_analytics:enquiry_sources_list') }}" class="btn btn-outline-secondary">Cancel</a>

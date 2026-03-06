@@ -50,7 +50,7 @@ class EnquirySource(BaseModel):
         max_length=500,
         blank=True,
         null=True,
-        help_text="Base URL for the link (e.g. https://www.topteen.in). Leave blank to use site URL when generating."
+        help_text="Full page URL for the link (e.g. https://www.topteen.in or https://www.topteen.in/skilllab/course/xyz/). Leave blank to use site root from settings."
     )
     is_active = models.BooleanField(default=True, db_index=True)
 
