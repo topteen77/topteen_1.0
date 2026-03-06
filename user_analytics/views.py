@@ -2,13 +2,16 @@
 Analytics Dashboard Views for Business Owner, Accounts, and Web Owner.
 Provides comprehensive analytics reports and visualizations.
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, Count, Avg, Q, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
+from django.utils.html import format_html
+from django.middleware.csrf import get_token
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -2479,6 +2482,175 @@ def prospects_detail(request):
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
+def admin_user_analytics_view(request):
+    """
+    Admin User Analytics - User activities with filters, shown in the analytics dashboard.
+    Filters: period, referrer source (Google, Facebook, iapply.io), device, country, search.
+    """
+    from user_analytics.utils import referrer_source_q
+    from django.db.models import Count
+
+    time_period = request.GET.get('period', '30days')
+    source_filter = (request.GET.get('source') or '').strip()
+    device_filter = (request.GET.get('device') or '').strip()
+    country_filter = (request.GET.get('country') or '').strip()
+    traffic_category_filter = (request.GET.get('traffic_category') or '').strip()
+    search_query = (request.GET.get('search') or '').strip()
+    page_number = request.GET.get('page', 1)
+
+    if country_filter:
+        country_filter = unquote(country_filter)
+    if source_filter:
+        source_filter = unquote(source_filter)
+    if device_filter:
+        device_filter = unquote(device_filter)
+
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+
+    qs = UserActivity.objects.all().select_related('user')
+    if start_date is not None:
+        qs = qs.filter(created__gte=start_date, created__lte=end_date)
+
+    if source_filter:
+        if source_filter.lower() in ('(direct)', 'direct', '(not set)'):
+            qs = qs.filter(
+                Q(utm_source__iexact='(direct)') |
+                Q(utm_source__iexact='direct') |
+                Q(utm_source__iexact='(not set)') |
+                Q(utm_source__isnull=True) |
+                Q(utm_source='')
+            )
+        elif source_filter.lower() in ('google', 'facebook', 'iapply', 'iapply.io'):
+            qs = qs.filter(referrer_source_q(source_filter))
+        else:
+            qs = qs.filter(Q(utm_source__iexact=source_filter) | Q(referrer__icontains=source_filter))
+
+    if device_filter:
+        qs = qs.filter(device_type__iexact=device_filter)
+    if country_filter:
+        qs = qs.filter(country__icontains=country_filter)
+    if traffic_category_filter:
+        qs = qs.filter(traffic_source_category__iexact=traffic_category_filter)
+
+    if search_query:
+        qs = qs.filter(
+            Q(session_id__icontains=search_query) |
+            Q(page_path__icontains=search_query) |
+            Q(referrer__icontains=search_query) |
+            Q(utm_source__icontains=search_query) |
+            Q(user__email__icontains=search_query)
+        )
+
+    qs = qs.order_by('-created')
+
+    # Summary stats (from same filtered queryset)
+    total_activities = qs.count()
+    unique_sessions = qs.values('session_id').distinct().count()
+
+    # Counts by source (for summary cards)
+    base_qs = UserActivity.objects.all()
+    if start_date is not None:
+        base_qs = base_qs.filter(created__gte=start_date, created__lte=end_date)
+    count_google = base_qs.filter(referrer_source_q('google')).count()
+    count_facebook = base_qs.filter(referrer_source_q('facebook')).count()
+    count_iapply = base_qs.filter(referrer_source_q('iapply')).count()
+    count_direct = base_qs.filter(
+        Q(utm_source__isnull=True) | Q(utm_source='') |
+        Q(utm_source__iexact='direct') | Q(utm_source__iexact='(direct)')
+    ).count()
+
+    # Counts by device
+    by_device = base_qs.values('device_type').annotate(c=Count('id')).order_by('-c')
+    device_counts = {r['device_type'] or 'unknown': r['c'] for r in by_device}
+
+    paginator = Paginator(qs, 25)
+    try:
+        activities_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        activities_page = paginator.page(1)
+    except EmptyPage:
+        activities_page = paginator.page(paginator.num_pages)
+
+    # One-time cleanup output from POST redirect
+    cleanup_output = request.session.pop('cleanup_output', None)
+
+    context = {
+        'activities': activities_page,
+        'time_period': time_period,
+        'source_filter': source_filter,
+        'device_filter': device_filter,
+        'country_filter': country_filter,
+        'traffic_category_filter': traffic_category_filter,
+        'search_query': search_query,
+        'total_activities': total_activities,
+        'unique_sessions': unique_sessions,
+        'count_google': count_google,
+        'count_facebook': count_facebook,
+        'count_iapply': count_iapply,
+        'count_direct': count_direct,
+        'device_counts': device_counts,
+        'start_date': start_date,
+        'end_date': end_date,
+        'page_title': 'Admin User Analytics',
+        'cleanup_output': cleanup_output,
+        'cleanup_url': reverse('user_analytics:cleanup_analytics_data'),
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/admin_user_analytics.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def cleanup_analytics_data_view(request):
+    """
+    POST-only: run analytics data cleanup (same logic as management command).
+    Expects: days (int), dry_run (optional), confirm (required when not dry_run).
+    """
+    from django.core.management import call_command
+    from io import StringIO
+    from django.contrib import messages
+    from django.shortcuts import redirect
+
+    if request.method != 'POST':
+        return redirect('user_analytics:admin_user_analytics')
+
+    days = request.POST.get('days')
+    try:
+        days = int(days) if days else 365
+    except ValueError:
+        days = 365
+    dry_run = request.POST.get('dry_run') == 'on'
+    confirm = request.POST.get('confirm') == 'on'
+
+    if not dry_run and not confirm:
+        messages.warning(request, 'Check "I understand this will permanently delete data" to run cleanup.')
+        return redirect('user_analytics:admin_user_analytics')
+
+    out = StringIO()
+    try:
+        call_command(
+            'cleanup_analytics_data',
+            days=days,
+            dry_run=dry_run,
+            stdout=out,
+        )
+        output = out.getvalue()
+        if dry_run:
+            messages.info(request, 'Dry run completed. No data was deleted.')
+        else:
+            messages.success(request, 'Cleanup completed. See details below.')
+        request.session['cleanup_output'] = output
+    except Exception as e:
+        logger.exception('Cleanup failed')
+        messages.error(request, 'Cleanup failed: %s' % str(e))
+    return redirect('user_analytics:admin_user_analytics')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
 def visitors_detail(request):
     """Detail page for visitors/sessions with filters"""
     from user_analytics.tasks import sync_ga4_sessions_task
@@ -2670,9 +2842,14 @@ def visitors_detail(request):
             )
             logger.info("Filtering for direct traffic (handling variations)")
         else:
-            # Exact match for other sources
-            session_query = session_query.filter(utm_source__iexact=source_filter)
-            logger.info(f"Filtering for source: {source_filter}")
+            # Use referrer_source_q for Google, Facebook, iapply.io (matches utm_source + referrer)
+            from user_analytics.utils import referrer_source_q
+            if source_filter.lower() in ('google', 'facebook', 'iapply', 'iapply.io'):
+                session_query = session_query.filter(referrer_source_q(source_filter))
+                logger.info(f"Filtering for referrer source: {source_filter}")
+            else:
+                session_query = session_query.filter(utm_source__iexact=source_filter)
+                logger.info(f"Filtering for source: {source_filter}")
     
     # If device filter wasn't applied to UserJourney (no journey filters case), apply to UserActivity
     if device_filter and not has_journey_filters:
@@ -2995,6 +3172,10 @@ def visitors_filter_options_api(request):
     
     try:
         if filter_type == 'source':
+            # Preferred referrer sources (always show in dropdown for quick filter)
+            preferred_sources = ['google', 'facebook', 'iapply']
+            options.update(preferred_sources)
+            
             # Get sources from UserActivity, UserJourney, and GA4Session
             sources_ua = UserActivity.objects.all()
             sources_uj = UserJourney.objects.all()
@@ -3113,12 +3294,20 @@ def visitors_filter_options_api(request):
         # Convert to sorted list and limit
         options_list = sorted([str(opt) for opt in options if opt])[:100]  # Limit to 100 options
         
-        return JsonResponse({
+        # For source filter, include display labels for Google, Facebook, iapply.io
+        response_data = {
             'success': True,
             'options': options_list,
             'count': len(options_list),
             'filter_type': filter_type,
-        })
+        }
+        if filter_type == 'source':
+            response_data['source_labels'] = {
+                'google': 'Google',
+                'facebook': 'Facebook',
+                'iapply': 'iapply.io',
+            }
+        return JsonResponse(response_data)
         
     except Exception as e:
         logger.error(f"Error fetching filter options: {e}", exc_info=True)

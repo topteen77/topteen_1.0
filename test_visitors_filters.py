@@ -58,6 +58,14 @@ def test_visitors_filters():
             'name': '30 Days + New Users',
             'params': {'period': '30days', 'user_type': 'new'}
         },
+        {
+            'name': '30 Days + Source Google',
+            'params': {'period': '30days', 'source': 'google'}
+        },
+        {
+            'name': '7 Days + Source Facebook',
+            'params': {'period': '7days', 'source': 'facebook'}
+        },
     ]
     
     for test_case in test_cases:
@@ -84,6 +92,7 @@ def test_visitors_filters():
                     print(f"  - Total count: {context.get('total_count', 0)}")
                     print(f"  - User type filter: {context.get('user_type_filter', 'N/A')}")
                     print(f"  - Country filter: {context.get('country_filter', 'N/A')}")
+                    print(f"  - Source filter: {context.get('source_filter', 'N/A')}")
                     print(f"  - Has GA4 data: {context.get('has_database_data', False)}")
                     print(f"  - GA4 needs sync: {context.get('ga4_needs_sync', False)}")
             elif response.status_code == 302:

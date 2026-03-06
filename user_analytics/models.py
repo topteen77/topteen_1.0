@@ -35,6 +35,10 @@ class UserActivity(BaseModel):
     os = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True, db_index=True)
     city = models.CharField(max_length=100, blank=True, null=True)
+    traffic_source_category = models.CharField(
+        max_length=20, blank=True, null=True, db_index=True,
+        help_text="Category: search, social, referral, direct, internal"
+    )
     time_on_page = models.IntegerField(default=0, help_text="Time spent on page in seconds")
     is_bounce = models.BooleanField(default=False, help_text="Single page visit")
     created = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -48,6 +52,7 @@ class UserActivity(BaseModel):
             models.Index(fields=['session_id', '-created']),
             models.Index(fields=['utm_source', 'utm_medium']),
             models.Index(fields=['device_type', '-created']),
+            models.Index(fields=['traffic_source_category', '-created']),
         ]
     
     @property
@@ -230,6 +235,10 @@ class UserJourney(BaseModel):
     utm_campaign = models.CharField(max_length=255, blank=True, null=True)
     device_type = models.CharField(max_length=50, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
+    traffic_source_category = models.CharField(
+        max_length=20, blank=True, null=True, db_index=True,
+        help_text="Category: search, social, referral, direct, internal"
+    )
     converted = models.BooleanField(default=False, db_index=True, help_text="Did this session convert?")
     conversion_event = models.ForeignKey(
         UserEvent,
