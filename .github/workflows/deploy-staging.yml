@@ -40,6 +40,7 @@ jobs:
             git reset --hard origin/master
             echo "Deployed commit: $(git rev-parse HEAD) $(git log -1 --oneline)"
             source /home/ubuntu/topteens_new/env1.0/bin/activate
+            pip install -r requirements.txt
             python3 manage.py collectstatic --noinput --clear
             deactivate
             sudo systemctl stop topteen-new-website.socket
