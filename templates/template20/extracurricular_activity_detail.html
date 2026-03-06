@@ -13,6 +13,9 @@
 {% endblock %}
 
 {% block content %}
+{% if show_freetrail_popup %}
+<div id="freetrail-content-wrap">
+{% endif %}
 <main class="py-test-page extracurricular-activities-inner">
   <!-- Hero Section -->
   <section class="hero-section-inner pt-md-18 pt-14 pb-5">
@@ -193,4 +196,8 @@
   <!-- Blog Section -->
 
 </main>
+{% if show_freetrail_popup %}
+</div>
+{% include 'template20/includes/freetrail_content_gate.html' %}
+{% endif %}
 {% endblock %}

@@ -103,6 +103,9 @@ OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')  # Default to cost-
 USE_DATABASE_CACHE = config('USE_DATABASE_CACHE', default='True', cast=bool)  # Enable database caching for forum
 SEMANTIC_SIMILARITY_THRESHOLD = config('SEMANTIC_SIMILARITY_THRESHOLD', default=0.85, cast=float)  # 0.0 to 1.0
 
+# Freetrail: seconds a guest can view ebook/vocational/extracurricular detail before login popup (0 = no freetrail)
+FREETRAIL_TIME_SECONDS = config('FREETRAIL_TIME_SECONDS', default=5, cast=int)
+
 # Embedding Cache Configuration
 ENABLE_EMBEDDING_CACHE = config('ENABLE_EMBEDDING_CACHE', default=True, cast=bool)
 EMBEDDING_CACHE_TTL = config('EMBEDDING_CACHE_TTL', default=86400, cast=int)  # 24 hours

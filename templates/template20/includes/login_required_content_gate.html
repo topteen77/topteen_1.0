@@ -1,0 +1,12 @@
+{# Shown when login_required_for_content is True: message and script to open student login popup. Include once at top of content; wrap main content in login-required-content-hidden. #}
+<div class="login-required-content-gate py-5 text-center">
+  <p class="text-gray fs-16 mb-0">Please sign in to view this section.</p>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof window.showLoginRequiredPopup === 'function') {
+    window.studentLoginNextUrl = window.location.href;
+    window.showLoginRequiredPopup(window.location.href);
+  }
+});
+</script>
