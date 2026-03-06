@@ -16,6 +16,10 @@
 {{ super() }}
 <style>
 
+i.bx.bx-user.fs-48.text-gray {
+    font-size: 48px;
+}
+
   .instruction-box {
     background: #f7f7fa;
     border-radius: 10px;
@@ -87,6 +91,12 @@
   color: #fff !important;
 
 }
+
+@media (max-width: 767.98px) {
+    div#cb-fab-wrap {
+    display: none;
+}
+  }
 </style>
 {% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
 {% endblock %}
@@ -141,7 +151,7 @@
       <!-- Main Content Area -->
       <div class="col-lg-8">
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3">
           <div class="d-flex align-items-center">
             {% if request.user.image %}
             <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
@@ -155,7 +165,7 @@
               <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger d-none">
             <i class='bx bx-cog'></i>
           </button>
         </div>
@@ -253,7 +263,7 @@
 </section>
 
 <!-- Mobile Drawer -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-none" data-direction="translate-y-full">
   <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
     <div class="p-4 d-flex flex-column gap-3">
       <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
