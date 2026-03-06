@@ -53,10 +53,20 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from pathlib import Path
 
-
-@method_decorator(cache_page(900), name='dispatch')  # 15 min cache for anonymous home
 class Home(TemplateView):
     template_name = "template20/home_new.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Cache the homepage for 15 minutes for anonymous users only.
+        Authenticated users should always see a fresh version so
+        login/logout state in the header is correct.
+        """
+        if request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        # Apply per-view cache only for anonymous users
+        cached_dispatch = cache_page(900)(super().dispatch)
+        return cached_dispatch(request, *args, **kwargs)
 
     def html_head(self):
         name='Every Student, Career Ready'
