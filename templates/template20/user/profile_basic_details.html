@@ -11,6 +11,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
 <style>
+
+.logged-in.profile-onboarding {
+    background: linear-gradient(257.74deg, #FFFBF5 15.2%, #FAFAFF 83.99%);
+}
+
+
   /* When the birthday input (or any icon-input) is focused, hide the decorative left icon
      so the browser's native date UI is visible without visual duplication. */
   .icon-input:focus-within img {
@@ -20,11 +26,30 @@
   input[name="userbirthdaydate"] {
     padding-left: 40px !important;
   }
+
+  .ct-joinbutton button {
+    border: 1px solid #919191 !important;
+    margin-bottom: 15px;
+}
+.ct-joinbutton button i {
+    font-size: 78px;
+    color: #919191;
+}
+
+label.hobbiesTab img {
+    background: #Ffff;
+    width: 50px;
+    height: 50px;
+    width: 100%;
+    padding: 6px 6px;
+    overflow: visible;
+    border-radius: 25px;
+}
 </style>
 <style>
   .profile-onboarding {
     overflow-x: hidden;
-    padding-top: 80px;
+    padding-top: 42px;
   }
   /* Mobile: minimal top space under fixed header */
   @media (max-width: 991px) {
@@ -48,7 +73,7 @@
   }
   .page {
     min-height: 100vh;
-    padding: 100px 20px 50px;
+    padding: 59px 20px 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -56,7 +81,7 @@
   .streamTab, .hobbiesTab {
     cursor: pointer;
     transition: all 0.3s;
-    border: 2px solid transparent;
+    border: 1px solid #cbcbcb;
   }
   .streamTab:hover, .hobbiesTab:hover {
     background: #e9ecef !important;
@@ -79,14 +104,22 @@
   }
   .streamTab.activeOnbTab::after,
   .hobbiesTab.activeOnbTab::after {
-    content: '✓';
+    content: "\ea41";
+    font-family: "boxicons";
     position: absolute;
-    right: 15px;
-    top: 50%;
+    right: 8px;
+    top: 23%;
     transform: translateY(-50%);
     color: white;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: bold;
+    border: 1px solid #f6f6f6;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
   }
   .icon-input {
     position: relative;
@@ -147,16 +180,40 @@
     top: 36px;
     z-index: 10;
     cursor: pointer;
-  }
+      background: #f3f3f3;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50px;
+    border: 1px solid #acacac;
+}
+
+.backArrow:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
   @media (min-width: 992px) {
     .backArrow {
       left: 100px;
     }
   }
+
+
+  @media (max-width: 480px) {
+
+    .backArrow {
+    top: 0px;
+}
+
+  }
 </style>
 {% endblock %}
 
 {% block content %}
+
+<div class="container"> 
 <section class="profile-onboarding pb-5">
   <form class="position-relative w-100 min-vh-100" method="POST" enctype="multipart/form-data" id="profileForm" onsubmit="return validateFormSubmission();">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
@@ -178,7 +235,7 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px; border: none;">
           <div class="modal-header" style="border-bottom: 1px solid #e9ecef;">
-            <h5 class="modal-title fs-18 fw-700" id="editUsernameModalLabel" style="color: #3f37c9;">Set Your Name</h5>
+            <h5 class="modal-title fs-18 fw-700 d-flex align-items-center gap-2" id="editUsernameModalLabel" style="color: #3f37c9;"><i class='bx bxs-user-circle fs-24'></i> Set Your Name</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" style="padding: 24px;">
@@ -193,8 +250,8 @@
             </div>
           </div>
           <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 24px;">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
-            <button type="button" class="btn custom-button purple-button fw-600" id="saveUsernameBtn" style="border-radius: 8px; height: 40px;">
+            <button type="button" class="btn btn-secondary py-2" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+            <button type="button" class="btn custom-button purple-button fw-600 py-2" id="saveUsernameBtn" style="border-radius: 8px; ">
               Save
             </button>
           </div>
@@ -206,7 +263,7 @@
     <!-- Step 1: Choose Motive -->
     <div class="motive page">
       <div class="w-100" data-index="1">
-        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3" style="color: #333;">What are you here for?</h2>
+        <h2 class="fs-24 fw-semibold text-center mt-md-5 mt-7 mb-3" style="color: #333;">What are you here for?</h2>
         <p class="text-center text-gray fs-16 mb-4 mx-auto" style="max-width: 344px; color: #666;">
           This will help the app prepare a guided path for you to take
         </p>
@@ -239,7 +296,7 @@
     <!-- Step 2: Basic Details -->
     <div class="basicDetails page">
       <div class="w-100" data-index="2">
-        <h2 class="fs-24 fw-semibold text-center mt-5 mb-3" style="color: #333;">Tell us more about yourself</h2>
+        <h2 class="fs-24 fw-semibold text-center mt-md-5 mt-7" style="color: #333;">Tell us more about yourself</h2>
         <p class="text-center text-gray fs-16 mb-4 mx-auto" style="max-width: 344px; color: #666;">
           Let's get the essentials out of the way
         </p>
@@ -435,16 +492,19 @@
           Join a community of 10k+ students and discover your true passion.
         </p>
 
-        <div class="d-flex justify-content-center align-items-center mt-5">
-          <button type="button" class="imgBtn btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 230px; height: 230px; overflow: hidden;">
+        <div class="d-flex justify-content-center align-items-center flex-column mt-5 ct-joinbutton">
+          <button type="button" class="imgBtn btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 150px; height:150px; overflow: hidden;">
             {% if profile_user.image %}
             <img src="{{ profile_user.image.url }}" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />
             {% else %}
-            <i class='bx bx-user fs-48 text-gray'></i>
+            <i class='bx bx-cloud-upload' ></i>
             {% endif %}
           </button>
           <input type="file" name="image" accept="image/*" class="d-none imgIp" />
+          <p>Upload your image</p>
         </div>
+
+      
 
         <div class="mt-5 w-100 d-flex justify-content-center">
           <button type="button" data-form-name="photoupload" class="btn custom-button purple-button slideOnButton" style="width: 344px; height: 48px;">
@@ -516,6 +576,8 @@
     </div>
   </form>
 </section>
+</div>
+
 {% endblock %}
 
 {% block additionaljs %}
