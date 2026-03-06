@@ -121,7 +121,9 @@ def globals(request):
     popular_tags = Career.objects.values("career_tags").annotate(count=Count('career_tags')).order_by("-count").values_list('career_tags')
     # for p in popular_tags:
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
+    # Freetrail: seconds guest can view gated content before login popup (used by ebook/vocational/extracurricular detail and any freetrail-gated page)
     kwargs = {
+        "freetrail_seconds": getattr(settings, 'FREETRAIL_TIME_SECONDS', 5),
         "show_chatbot": _should_show_chatbot(request),
         "show_ai_counsellor_bot": _should_show_ai_counsellor_bot(request),
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),

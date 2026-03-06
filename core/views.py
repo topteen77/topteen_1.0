@@ -53,6 +53,35 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from pathlib import Path
 
+
+class FreetrailContentMixin:
+    """
+    Mixin for views that show content with freetrail: guest sees content for
+    FREETRAIL_TIME_SECONDS (from .env), then login popup; on popup close without
+    login, redirect to back_url. Use for all logged-in content (ebook/vocational/
+    extracurricular detail and any other gated content).
+    Set freetrail_back_url to a URL name (e.g. 'core:ebook_list') or override
+    get_freetrail_back_url(request). In template: wrap main content in
+    <div id="freetrail-content-wrap"> and include freetrail_content_gate.html when
+    show_freetrail_popup is true.
+    """
+    freetrail_back_url = None  # e.g. 'core:ebook_list' or reverse result
+
+    def get_freetrail_back_url(self, request):
+        if self.freetrail_back_url:
+            url = self.freetrail_back_url
+            if isinstance(url, str) and (url.startswith('http') or url.startswith('/')):
+                return request.build_absolute_uri(url) if url.startswith('/') else url
+            return request.build_absolute_uri(reverse(url))
+        return request.META.get('HTTP_REFERER') or '/'
+
+    def inject_freetrail_context(self, request, ctx):
+        ctx['show_freetrail_popup'] = not request.user.is_authenticated
+        ctx['freetrail_seconds'] = getattr(settings, 'FREETRAIL_TIME_SECONDS', 5)
+        ctx['back_url'] = self.get_freetrail_back_url(request)
+        return ctx
+
+
 class Home(TemplateView):
     template_name = "template20/home_new.html"
 
@@ -441,8 +470,9 @@ class VocationalCoursesLevelView(TemplateView):
         return redirect(f"{reverse('core:vocational_courses')}?tab={level_slug}")
 
 
-class VocationalCourseDetailView(TemplateView):
+class VocationalCourseDetailView(FreetrailContentMixin, TemplateView):
     template_name = "template20/vocational_course_detail.html"
+    freetrail_back_url = "core:vocational_courses"
 
     def get_context(self, request, *args, **kwargs):
         from django.shortcuts import get_object_or_404
@@ -499,14 +529,15 @@ class VocationalCourseDetailView(TemplateView):
                 {"text": "Vocational Courses", "url": reverse("core:vocational_courses")},
                 {"text": course_label, "url": reverse("core:vocational_course_detail", args=[course.pk])},
             ])
-        return ctx
+        return self.inject_freetrail_context(request, ctx)
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-class ExtracurricularActivityDetailView(TemplateView):
+class ExtracurricularActivityDetailView(FreetrailContentMixin, TemplateView):
     template_name = "template20/extracurricular_activity_detail.html"
+    freetrail_back_url = "core:extracurricular_activities"
 
     def get_context(self, request, *args, **kwargs):
         from django.shortcuts import get_object_or_404
@@ -526,7 +557,7 @@ class ExtracurricularActivityDetailView(TemplateView):
             {"text": "Extracurricular Activities", "url": reverse("core:extracurricular_activities")},
             {"text": activity.name, "url": reverse("core:extracurricular_activity_detail", kwargs={"pk": activity.pk})},
         ])
-        return ctx
+        return self.inject_freetrail_context(request, ctx)
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
@@ -1091,8 +1122,9 @@ class EbookListView(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-class EbookDetailView(TemplateView):
+class EbookDetailView(FreetrailContentMixin, TemplateView):
     template_name = "template20/flip-book.html"
+    freetrail_back_url = "core:ebook_list"
 
     def html_head(self):
         name = "E-Book Reader | Top Teen"
@@ -1165,7 +1197,7 @@ class EbookDetailView(TemplateView):
         except Ebook.DoesNotExist:
             raise Http404("Ebook not found")
         
-        return ctx
+        return self.inject_freetrail_context(request, ctx)
 
 
 class SearchItems(TemplateView):
