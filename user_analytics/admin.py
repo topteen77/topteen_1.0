@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Q
-from .models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache
+from .models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache, EnquirySource
 
 
 class ReferrerSourceFilter(admin.SimpleListFilter):
@@ -187,3 +187,12 @@ class AnalyticsCacheAdmin(admin.ModelAdmin):
     class Meta:
         verbose_name = "Analytics Cache"
         verbose_name_plural = "Analytics Caches"
+
+
+@admin.register(EnquirySource)
+class EnquirySourceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'agency_name', 'user_name', 'event', 'token', 'is_active', 'created']
+    list_filter = ['is_active', 'agency_name', 'created']
+    search_fields = ['name', 'token', 'agency_name', 'user_name', 'event']
+    readonly_fields = ['token', 'created', 'modified']
+    list_editable = ['is_active']

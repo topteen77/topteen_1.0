@@ -5,6 +5,81 @@ from core.models import BaseModel
 from users.models import User
 from core import choices
 import json
+import secrets
+
+
+class EnquirySource(BaseModel):
+    """
+    Tracks enquiry/source links used in social media or other channels.
+    The public URL uses only a non-readable token (?ref=TOKEN) so users cannot
+    identify the source; admins identify by name in the dashboard.
+    """
+    name = models.CharField(
+        max_length=255,
+        help_text="Admin-only label (e.g. Facebook March 2025). Not shown in the URL."
+    )
+    agency_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Agency or partner name for easy tracking (e.g. ABC Agency)."
+    )
+    user_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Contact or user name for this source (e.g. John from Marketing)."
+    )
+    event = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Event or campaign (e.g. Career Fair 2025, Instagram Campaign)."
+    )
+    token = models.CharField(
+        max_length=32,
+        unique=True,
+        db_index=True,
+        editable=False,
+        help_text="Random token used in URL as ?ref=TOKEN. Not human-readable."
+    )
+    base_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Base URL for the link (e.g. https://www.topteen.in). Leave blank to use site URL when generating."
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Enquiry Source (UTM Link)"
+        verbose_name_plural = "Enquiry Sources (UTM Links)"
+        ordering = ['-created']
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            # URL-safe random token, 12 chars – not readable, no utm params in URL
+            self.token = secrets.token_urlsafe(9)[:16]
+        super().save(*args, **kwargs)
+
+    def get_full_url(self, fallback_base_url=None):
+        """Build the non-readable link: base is always from settings (www.topteen.in or demo.topteen.in)."""
+        from django.conf import settings
+        base = (
+            self.base_url
+            or getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', None)
+            or fallback_base_url
+            or ''
+        ).rstrip('/')
+        if not base:
+            return ""
+        return f"{base}/?ref={self.token}"
+
+    def __str__(self):
+        return self.name
 
 
 class UserActivity(BaseModel):
@@ -42,7 +117,16 @@ class UserActivity(BaseModel):
     time_on_page = models.IntegerField(default=0, help_text="Time spent on page in seconds")
     is_bounce = models.BooleanField(default=False, help_text="Single page visit")
     created = models.DateTimeField(auto_now_add=True, db_index=True)
-    
+    enquiry_source = models.ForeignKey(
+        EnquirySource,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activities',
+        db_index=True,
+        help_text="Set when user arrived via ?ref= token (non-readable link)."
+    )
+
     class Meta:
         verbose_name = "User Activity"
         verbose_name_plural = "User Activities"
@@ -238,6 +322,15 @@ class UserJourney(BaseModel):
     traffic_source_category = models.CharField(
         max_length=20, blank=True, null=True, db_index=True,
         help_text="Category: search, social, referral, direct, internal"
+    )
+    enquiry_source = models.ForeignKey(
+        EnquirySource,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='journeys',
+        db_index=True,
+        help_text="Set when user arrived via ?ref= token (non-readable link)."
     )
     converted = models.BooleanField(default=False, db_index=True, help_text="Did this session convert?")
     conversion_event = models.ForeignKey(

@@ -48,6 +48,18 @@ class AnalyticsMiddleware(MiddlewareMixin):
             # Store in session for linking
             request.session['ga4_client_id'] = ga4_client_id
         
+        # Non-readable enquiry link: ?ref=TOKEN (no utm_* in URL – admin identifies source by name in dashboard)
+        ref_token = request.GET.get('ref', '').strip()
+        enquiry_source_id = None
+        if ref_token:
+            try:
+                from user_analytics.models import EnquirySource
+                es = EnquirySource.objects.filter(token=ref_token, is_active=True).first()
+                if es:
+                    enquiry_source_id = es.id
+            except Exception:
+                pass
+
         # Store analytics data in request for async processing
         request.analytics_data = {
             'session_id': request.session.get('analytics_session_id'),
@@ -62,6 +74,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
             'utm_campaign': request.GET.get('utm_campaign', ''),
             'utm_term': request.GET.get('utm_term', ''),
             'utm_content': request.GET.get('utm_content', ''),
+            'enquiry_source_id': enquiry_source_id,
         }
         
         return None
@@ -114,6 +127,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     utm_campaign=request.analytics_data['utm_campaign'],
                     utm_term=request.analytics_data['utm_term'],
                     utm_content=request.analytics_data['utm_content'],
+                    enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                 )
                 
                 # Get device and country from user agent
@@ -151,6 +165,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     country=country,
                     utm_source=request.analytics_data.get('utm_source'),
                     traffic_source_category=traffic_category,
+                    enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                 )
             else:
                 # Try async tracking first, fall back to sync if it fails
@@ -170,6 +185,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         utm_campaign=request.analytics_data['utm_campaign'],
                         utm_term=request.analytics_data['utm_term'],
                         utm_content=request.analytics_data['utm_content'],
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
                     
                     # Get device and country from user agent / latest activity
@@ -208,6 +224,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
                         traffic_source_category=traffic_category,
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
                 except Exception as e:
                     # Celery is unavailable, fall back to synchronous execution
@@ -228,6 +245,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         utm_campaign=request.analytics_data['utm_campaign'],
                         utm_term=request.analytics_data['utm_term'],
                         utm_content=request.analytics_data['utm_content'],
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
                     
                     # Get device and country from user agent / latest activity
@@ -266,6 +284,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
                         traffic_source_category=traffic_category,
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
         except Exception as e:
             # Never let analytics break the response (prevents 502 when tracking fails or blocks)
