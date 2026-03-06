@@ -2649,6 +2649,7 @@ def cleanup_analytics_data_view(request):
     return redirect('user_analytics:admin_user_analytics')
 
 
+<<<<<<< HEAD
 # ---------- Enquiry Sources (non-readable UTM links: ?ref=TOKEN) ----------
 def _enquiry_source_stats(source):
     """Return dict of visit count and conversion counts for an EnquirySource."""
@@ -2850,6 +2851,8 @@ def enquiry_source_qr_view(request, pk):
         return HttpResponseNotFound('QR generation failed.')
 
 
+=======
+>>>>>>> master
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def visitors_detail(request):
