@@ -2,13 +2,16 @@
 Analytics Dashboard Views for Business Owner, Accounts, and Web Owner.
 Provides comprehensive analytics reports and visualizations.
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, Count, Avg, Q, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
+from django.utils.html import format_html
+from django.middleware.csrf import get_token
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -2590,6 +2593,11 @@ def admin_user_analytics_view(request):
         'end_date': end_date,
         'page_title': 'Admin User Analytics',
         'cleanup_output': cleanup_output,
+        'cleanup_url': reverse('user_analytics:cleanup_analytics_data'),
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
     }
     return render(request, 'user_analytics/admin_user_analytics.html', context)
 

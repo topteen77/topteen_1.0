@@ -254,8 +254,8 @@
     <div class="admin-card mt-4">
         <h5 class="card-title"><i class="fas fa-database"></i> Clean up old data</h5>
         <p class="text-muted small mb-3">Permanently delete analytics records older than the selected period (UserActivity, UserJourney, UserEvent, Lead, AnalyticsCache, GA4Session). Use for local DB maintenance.</p>
-        <form method="post" action="{{ url('user_analytics:cleanup_analytics_data') }}" onsubmit="return confirm('Run cleanup? This cannot be undone (unless you use Dry run).');">
-            {{ csrf_input() }}
+        <form method="post" action="{{ cleanup_url }}" onsubmit="return confirm('Run cleanup? This cannot be undone (unless you use Dry run).');">
+            {{ csrf_input_html|safe }}
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">Delete data older than</label>
