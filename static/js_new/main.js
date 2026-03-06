@@ -518,10 +518,47 @@ function generateThumbnails() {
   });
 }
 
-// Run on page load
+// Run on page load - lazily generate video thumbnails when videos enter the viewport
 window.addEventListener("load", () => {
-  console.log("Page loaded, generating thumbnails...");
-  generateThumbnails();
+  const videos = document.querySelectorAll(".videoPlayer");
+  const canvases = document.querySelectorAll(".thumbnailCanvas");
+
+  if (videos.length === 0 || canvases.length === 0) {
+    return;
+  }
+
+  // Fallback for older browsers: generate all thumbnails at once (previous behavior)
+  if (!("IntersectionObserver" in window)) {
+    console.log("IntersectionObserver not supported, generating all thumbnails on load...");
+    generateThumbnails();
+    return;
+  }
+
+  if (videos.length !== canvases.length) {
+    console.error("Mismatch between videos and canvases");
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const video = entry.target;
+        const index = Array.prototype.indexOf.call(videos, video);
+        if (index === -1) return;
+        const canvas = canvases[index];
+        // Only load and capture thumbnail once the video is actually near/in view
+        captureThumbnail(video, canvas);
+        obs.unobserve(video);
+      });
+    },
+    {
+      root: null,
+      threshold: 0.25,
+    }
+  );
+
+  videos.forEach((video) => observer.observe(video));
 });
 
 // OWL CAROUSEL //
