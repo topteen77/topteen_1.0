@@ -15,6 +15,13 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
+  body.logged-in.test-view-page {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
 
   .question {
     display: none;
@@ -235,9 +242,7 @@
     align-items: center;
   }
   @media (max-width: 767.98px) {
-    .test-view-page {
-      padding-top: 60px;
-    }
+ 
     .question-box {
       padding: 20px;
     }
@@ -317,11 +322,17 @@
       display: block;
     }
   }
+
+  @media (max-width: 767.98px) {
+    div#cb-fab-wrap {
+    display: none;
+}
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="test-view-page pb-5 pb-5 mt-md-8 mt-3">
+<section class="test-view-page pb-5 pb-5 mt-md-8 mt-3 w-100">
   <div class="container">
     <div class="row">
       <!-- Left Sidebar (Desktop) -->
@@ -394,7 +405,7 @@
       <!-- Main Content Area -->
       <div class="col-lg-8">
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3">
           <div class="d-flex align-items-center">
             {% if request.user.image %}
             <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
@@ -408,7 +419,7 @@
               <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger d-none">
             <i class='bx bx-cog'></i>
           </button>
         </div>
@@ -444,7 +455,7 @@
                   <i class='bx bx-show fs-32 text-purple'></i>
                 </div>
                 <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
-                <p class="stat-label">Question<br>Displayed</p>
+                <p class="stat-label">Question Displayed</p>
               </div>
             </div>
           </div>
@@ -589,7 +600,7 @@
 </div>
 
 <!-- Mobile Drawer -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-none" data-direction="translate-y-full">
   <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
     <div class="p-4 d-flex flex-column gap-3">
       <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">
