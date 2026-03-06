@@ -4,14 +4,37 @@ Django Admin integration for user_analytics models.
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache
+from django.db.models import Q
+from .models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache, EnquirySource
+
+
+class ReferrerSourceFilter(admin.SimpleListFilter):
+    """One-click filter: Google, Facebook, iapply.io (by utm_source or referrer)."""
+    title = 'Referrer source'
+    parameter_name = 'referrer_source'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('google', 'Google'),
+            ('facebook', 'Facebook'),
+            ('iapply', 'iapply.io'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'google':
+            return queryset.filter(Q(utm_source__iexact='google') | Q(referrer__icontains='google'))
+        if self.value() == 'facebook':
+            return queryset.filter(Q(utm_source__iexact='facebook') | Q(referrer__icontains='facebook'))
+        if self.value() == 'iapply':
+            return queryset.filter(Q(utm_source__iexact='iapply') | Q(referrer__icontains='iapply.io'))
+        return queryset
 
 
 @admin.register(UserActivity)
 class UserActivityAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user_link', 'page_path', 'device_type', 'utm_source', 'created']
-    list_filter = ['device_type', 'utm_source', 'utm_medium', 'created', 'country']
-    search_fields = ['page_path', 'page_title', 'user__email', 'session_id']
+    list_display = ['id', 'user_link', 'page_path', 'device_type', 'utm_source', 'traffic_source_category', 'country', 'city', 'created']
+    list_filter = [ReferrerSourceFilter, 'device_type', 'utm_source', 'utm_medium', 'traffic_source_category', 'created', 'country']
+    search_fields = ['page_path', 'page_title', 'user__email', 'session_id', 'referrer', 'utm_source']
     readonly_fields = ['created', 'modified']
     date_hierarchy = 'created'
     
@@ -93,11 +116,33 @@ class UserEventAdmin(admin.ModelAdmin):
         verbose_name_plural = "User Events"
 
 
+class JourneyReferrerSourceFilter(admin.SimpleListFilter):
+    """One-click filter: Google, Facebook, iapply.io (by utm_source or referrer)."""
+    title = 'Referrer source'
+    parameter_name = 'referrer_source'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('google', 'Google'),
+            ('facebook', 'Facebook'),
+            ('iapply', 'iapply.io'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'google':
+            return queryset.filter(Q(utm_source__iexact='google') | Q(referrer__icontains='google'))
+        if self.value() == 'facebook':
+            return queryset.filter(Q(utm_source__iexact='facebook') | Q(referrer__icontains='facebook'))
+        if self.value() == 'iapply':
+            return queryset.filter(Q(utm_source__iexact='iapply') | Q(referrer__icontains='iapply.io'))
+        return queryset
+
+
 @admin.register(UserJourney)
 class UserJourneyAdmin(admin.ModelAdmin):
-    list_display = ['session_id', 'user_link', 'start_time', 'total_pages', 'total_time', 'converted']
-    list_filter = ['converted', 'device_type', 'start_time']
-    search_fields = ['session_id', 'user__email', 'entry_page']
+    list_display = ['session_id', 'user_link', 'start_time', 'total_pages', 'total_time', 'device_type', 'utm_source', 'traffic_source_category', 'country', 'converted']
+    list_filter = [JourneyReferrerSourceFilter, 'converted', 'device_type', 'utm_source', 'traffic_source_category', 'start_time']
+    search_fields = ['session_id', 'user__email', 'entry_page', 'referrer', 'utm_source']
     readonly_fields = ['start_time', 'end_time', 'total_pages', 'total_time']
     date_hierarchy = 'start_time'
     
@@ -116,7 +161,7 @@ class UserJourneyAdmin(admin.ModelAdmin):
             'fields': ('entry_page', 'exit_page', 'total_pages', 'total_time', 'journey_path')
         }),
         ('Source Attribution', {
-            'fields': ('referrer', 'utm_source', 'utm_medium', 'utm_campaign')
+            'fields': ('referrer', 'utm_source', 'utm_medium', 'utm_campaign', 'traffic_source_category')
         }),
         ('Conversion', {
             'fields': ('converted', 'conversion_event')
@@ -142,3 +187,12 @@ class AnalyticsCacheAdmin(admin.ModelAdmin):
     class Meta:
         verbose_name = "Analytics Cache"
         verbose_name_plural = "Analytics Caches"
+
+
+@admin.register(EnquirySource)
+class EnquirySourceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'agency_name', 'user_name', 'event', 'token', 'is_active', 'created']
+    list_filter = ['is_active', 'agency_name', 'created']
+    search_fields = ['name', 'token', 'agency_name', 'user_name', 'event']
+    readonly_fields = ['token', 'created', 'modified']
+    list_editable = ['is_active']

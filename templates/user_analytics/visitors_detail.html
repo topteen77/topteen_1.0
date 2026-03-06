@@ -36,8 +36,8 @@
                 </p>
                 {% endif %}
             </div>
-            <a href="{{ url('user_analytics:web_owner_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <a href="{{ url('user_analytics:business_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Business Dashboard
             </a>
         </div>
     </div>
@@ -64,6 +64,31 @@
                 </a>
             </li>
         </ul>
+    </div>
+
+    <!-- Quick filter: Google, Facebook, iapply.io -->
+    <div class="admin-card mb-3">
+        <label class="form-label small text-muted mb-2">Quick filter by referrer</label>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}&source=google{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}" 
+               class="btn btn-sm {% if source_filter == 'google' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="fab fa-google me-1"></i> Google
+            </a>
+            <a href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}&source=facebook{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}" 
+               class="btn btn-sm {% if source_filter == 'facebook' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="fab fa-facebook me-1"></i> Facebook
+            </a>
+            <a href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}&source=iapply{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}" 
+               class="btn btn-sm {% if source_filter == 'iapply' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="fas fa-external-link-alt me-1"></i> iapply.io
+            </a>
+            {% if source_filter %}
+            <a href="?period={{ time_period }}{% if user_type_filter and user_type_filter != 'all' %}&user_type={{ user_type_filter }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}" 
+               class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times me-1"></i> Clear source
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Filters -->

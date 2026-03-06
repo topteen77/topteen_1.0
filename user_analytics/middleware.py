@@ -48,6 +48,18 @@ class AnalyticsMiddleware(MiddlewareMixin):
             # Store in session for linking
             request.session['ga4_client_id'] = ga4_client_id
         
+        # Non-readable enquiry link: ?ref=TOKEN (no utm_* in URL – admin identifies source by name in dashboard)
+        ref_token = request.GET.get('ref', '').strip()
+        enquiry_source_id = None
+        if ref_token:
+            try:
+                from user_analytics.models import EnquirySource
+                es = EnquirySource.objects.filter(token=ref_token, is_active=True).first()
+                if es:
+                    enquiry_source_id = es.id
+            except Exception:
+                pass
+
         # Store analytics data in request for async processing
         request.analytics_data = {
             'session_id': request.session.get('analytics_session_id'),
@@ -62,6 +74,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
             'utm_campaign': request.GET.get('utm_campaign', ''),
             'utm_term': request.GET.get('utm_term', ''),
             'utm_content': request.GET.get('utm_content', ''),
+            'enquiry_source_id': enquiry_source_id,
         }
         
         return None
@@ -114,6 +127,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     utm_campaign=request.analytics_data['utm_campaign'],
                     utm_term=request.analytics_data['utm_term'],
                     utm_content=request.analytics_data['utm_content'],
+                    enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                 )
                 
                 # Get device and country from user agent
@@ -124,7 +138,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     ua_info = parse_user_agent_info(request.analytics_data['user_agent'])
                     device_type = ua_info.get('device_type')
                 
-                # Get country from UserActivity if available (from previous page views)
+                # Get country from UserActivity (just saved by track_page_view_sync or previous page views)
                 try:
                     from user_analytics.models import UserActivity
                     recent_activity = UserActivity.objects.filter(
@@ -132,8 +146,14 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     ).order_by('-created').first()
                     if recent_activity and recent_activity.country:
                         country = recent_activity.country
+                    if recent_activity and recent_activity.traffic_source_category:
+                        traffic_category = recent_activity.traffic_source_category
+                    else:
+                        from user_analytics.utils import get_referrer_source, get_traffic_source_category
+                        src = request.analytics_data.get('utm_source') or get_referrer_source(request.analytics_data.get('referrer') or '')
+                        traffic_category = get_traffic_source_category(request.analytics_data.get('utm_source') or src, request.analytics_data.get('referrer') or '')
                 except Exception:
-                    pass
+                    traffic_category = None
                 
                 update_user_journey_sync(
                     session_id=request.analytics_data['session_id'],
@@ -144,6 +164,8 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     device_type=device_type,
                     country=country,
                     utm_source=request.analytics_data.get('utm_source'),
+                    traffic_source_category=traffic_category,
+                    enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                 )
             else:
                 # Try async tracking first, fall back to sync if it fails
@@ -163,15 +185,33 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         utm_campaign=request.analytics_data['utm_campaign'],
                         utm_term=request.analytics_data['utm_term'],
                         utm_content=request.analytics_data['utm_content'],
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
                     
-                    # Get device and country from user agent
+                    # Get device and country from user agent / latest activity
                     device_type = None
                     country = None
+                    traffic_category = None
                     if request.analytics_data.get('user_agent'):
                         from user_analytics.utils import parse_user_agent_info
                         ua_info = parse_user_agent_info(request.analytics_data['user_agent'])
                         device_type = ua_info.get('device_type')
+                    try:
+                        from user_analytics.models import UserActivity
+                        from user_analytics.utils import get_referrer_source, get_traffic_source_category
+                        recent_activity = UserActivity.objects.filter(
+                            session_id=request.analytics_data['session_id']
+                        ).order_by('-created').first()
+                        if recent_activity:
+                            if recent_activity.country:
+                                country = recent_activity.country
+                            if recent_activity.traffic_source_category:
+                                traffic_category = recent_activity.traffic_source_category
+                        if traffic_category is None:
+                            src = request.analytics_data.get('utm_source') or get_referrer_source(request.analytics_data.get('referrer') or '')
+                            traffic_category = get_traffic_source_category(request.analytics_data.get('utm_source') or src, request.analytics_data.get('referrer') or '')
+                    except Exception:
+                        pass
                     
                     # Update user journey asynchronously
                     update_user_journey_async.delay(
@@ -183,6 +223,8 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         device_type=device_type,
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
+                        traffic_source_category=traffic_category,
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
                 except Exception as e:
                     # Celery is unavailable, fall back to synchronous execution
@@ -203,15 +245,33 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         utm_campaign=request.analytics_data['utm_campaign'],
                         utm_term=request.analytics_data['utm_term'],
                         utm_content=request.analytics_data['utm_content'],
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
                     
-                    # Get device and country from user agent
+                    # Get device and country from user agent / latest activity
                     device_type = None
                     country = None
+                    traffic_category = None
                     if request.analytics_data.get('user_agent'):
                         from user_analytics.utils import parse_user_agent_info
                         ua_info = parse_user_agent_info(request.analytics_data['user_agent'])
                         device_type = ua_info.get('device_type')
+                    try:
+                        from user_analytics.models import UserActivity
+                        from user_analytics.utils import get_referrer_source, get_traffic_source_category
+                        recent_activity = UserActivity.objects.filter(
+                            session_id=request.analytics_data['session_id']
+                        ).order_by('-created').first()
+                        if recent_activity:
+                            if recent_activity.country:
+                                country = recent_activity.country
+                            if recent_activity.traffic_source_category:
+                                traffic_category = recent_activity.traffic_source_category
+                        if traffic_category is None:
+                            src = request.analytics_data.get('utm_source') or get_referrer_source(request.analytics_data.get('referrer') or '')
+                            traffic_category = get_traffic_source_category(request.analytics_data.get('utm_source') or src, request.analytics_data.get('referrer') or '')
+                    except Exception:
+                        pass
                     
                     # Update user journey synchronously
                     update_user_journey_sync(
@@ -223,6 +283,8 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         device_type=device_type,
                         country=country,
                         utm_source=request.analytics_data.get('utm_source'),
+                        traffic_source_category=traffic_category,
+                        enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
                     )
         except Exception as e:
             # Never let analytics break the response (prevents 502 when tracking fails or blocks)

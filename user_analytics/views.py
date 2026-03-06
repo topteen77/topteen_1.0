@@ -2,13 +2,16 @@
 Analytics Dashboard Views for Business Owner, Accounts, and Web Owner.
 Provides comprehensive analytics reports and visualizations.
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, Count, Avg, Q, F
 from django.db.models.functions import TruncDate
 from django.utils import timezone
+from django.utils.html import format_html
+from django.middleware.csrf import get_token
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -18,7 +21,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from user_analytics.models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache
+from user_analytics.models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache, EnquirySource
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
 from users.models import User
@@ -2479,6 +2482,385 @@ def prospects_detail(request):
 
 @login_required
 @user_passes_test(is_staff_or_superuser)
+def admin_user_analytics_view(request):
+    """
+    Admin User Analytics - User activities with filters, shown in the analytics dashboard.
+    Filters: period, referrer source (Google, Facebook, iapply.io), device, country, search.
+    """
+    from user_analytics.utils import referrer_source_q
+    from django.db.models import Count
+
+    time_period = request.GET.get('period', '30days')
+    source_filter = (request.GET.get('source') or '').strip()
+    device_filter = (request.GET.get('device') or '').strip()
+    country_filter = (request.GET.get('country') or '').strip()
+    traffic_category_filter = (request.GET.get('traffic_category') or '').strip()
+    search_query = (request.GET.get('search') or '').strip()
+    page_number = request.GET.get('page', 1)
+
+    if country_filter:
+        country_filter = unquote(country_filter)
+    if source_filter:
+        source_filter = unquote(source_filter)
+    if device_filter:
+        device_filter = unquote(device_filter)
+
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+
+    qs = UserActivity.objects.all().select_related('user')
+    if start_date is not None:
+        qs = qs.filter(created__gte=start_date, created__lte=end_date)
+
+    if source_filter:
+        if source_filter.lower() in ('(direct)', 'direct', '(not set)'):
+            qs = qs.filter(
+                Q(utm_source__iexact='(direct)') |
+                Q(utm_source__iexact='direct') |
+                Q(utm_source__iexact='(not set)') |
+                Q(utm_source__isnull=True) |
+                Q(utm_source='')
+            )
+        elif source_filter.lower() in ('google', 'facebook', 'iapply', 'iapply.io'):
+            qs = qs.filter(referrer_source_q(source_filter))
+        else:
+            qs = qs.filter(Q(utm_source__iexact=source_filter) | Q(referrer__icontains=source_filter))
+
+    if device_filter:
+        qs = qs.filter(device_type__iexact=device_filter)
+    if country_filter:
+        qs = qs.filter(country__icontains=country_filter)
+    if traffic_category_filter:
+        qs = qs.filter(traffic_source_category__iexact=traffic_category_filter)
+
+    if search_query:
+        qs = qs.filter(
+            Q(session_id__icontains=search_query) |
+            Q(page_path__icontains=search_query) |
+            Q(referrer__icontains=search_query) |
+            Q(utm_source__icontains=search_query) |
+            Q(user__email__icontains=search_query)
+        )
+
+    qs = qs.order_by('-created')
+
+    # Summary stats (from same filtered queryset)
+    total_activities = qs.count()
+    unique_sessions = qs.values('session_id').distinct().count()
+
+    # Counts by source (for summary cards)
+    base_qs = UserActivity.objects.all()
+    if start_date is not None:
+        base_qs = base_qs.filter(created__gte=start_date, created__lte=end_date)
+    count_google = base_qs.filter(referrer_source_q('google')).count()
+    count_facebook = base_qs.filter(referrer_source_q('facebook')).count()
+    count_iapply = base_qs.filter(referrer_source_q('iapply')).count()
+    count_direct = base_qs.filter(
+        Q(utm_source__isnull=True) | Q(utm_source='') |
+        Q(utm_source__iexact='direct') | Q(utm_source__iexact='(direct)')
+    ).count()
+
+    # Counts by device
+    by_device = base_qs.values('device_type').annotate(c=Count('id')).order_by('-c')
+    device_counts = {r['device_type'] or 'unknown': r['c'] for r in by_device}
+
+    paginator = Paginator(qs, 25)
+    try:
+        activities_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        activities_page = paginator.page(1)
+    except EmptyPage:
+        activities_page = paginator.page(paginator.num_pages)
+
+    # One-time cleanup output from POST redirect
+    cleanup_output = request.session.pop('cleanup_output', None)
+
+    context = {
+        'activities': activities_page,
+        'time_period': time_period,
+        'source_filter': source_filter,
+        'device_filter': device_filter,
+        'country_filter': country_filter,
+        'traffic_category_filter': traffic_category_filter,
+        'search_query': search_query,
+        'total_activities': total_activities,
+        'unique_sessions': unique_sessions,
+        'count_google': count_google,
+        'count_facebook': count_facebook,
+        'count_iapply': count_iapply,
+        'count_direct': count_direct,
+        'device_counts': device_counts,
+        'start_date': start_date,
+        'end_date': end_date,
+        'page_title': 'Admin User Analytics',
+        'cleanup_output': cleanup_output,
+        'cleanup_url': reverse('user_analytics:cleanup_analytics_data'),
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/admin_user_analytics.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def cleanup_analytics_data_view(request):
+    """
+    POST-only: run analytics data cleanup (same logic as management command).
+    Expects: days (int), dry_run (optional), confirm (required when not dry_run).
+    """
+    from django.core.management import call_command
+    from io import StringIO
+    from django.contrib import messages
+    from django.shortcuts import redirect
+
+    if request.method != 'POST':
+        return redirect('user_analytics:admin_user_analytics')
+
+    days = request.POST.get('days')
+    try:
+        days = int(days) if days else 365
+    except ValueError:
+        days = 365
+    dry_run = request.POST.get('dry_run') == 'on'
+    confirm = request.POST.get('confirm') == 'on'
+
+    if not dry_run and not confirm:
+        messages.warning(request, 'Check "I understand this will permanently delete data" to run cleanup.')
+        return redirect('user_analytics:admin_user_analytics')
+
+    out = StringIO()
+    try:
+        call_command(
+            'cleanup_analytics_data',
+            days=days,
+            dry_run=dry_run,
+            stdout=out,
+        )
+        output = out.getvalue()
+        if dry_run:
+            messages.info(request, 'Dry run completed. No data was deleted.')
+        else:
+            messages.success(request, 'Cleanup completed. See details below.')
+        request.session['cleanup_output'] = output
+    except Exception as e:
+        logger.exception('Cleanup failed')
+        messages.error(request, 'Cleanup failed: %s' % str(e))
+    return redirect('user_analytics:admin_user_analytics')
+
+
+# ---------- Enquiry Sources (non-readable UTM links: ?ref=TOKEN) ----------
+def _enquiry_source_stats(source):
+    """Return dict of visit count and conversion counts for an EnquirySource."""
+    from django.db.models import Count
+    sessions = UserJourney.objects.filter(enquiry_source=source)
+    visit_count = sessions.count()
+    session_ids = list(sessions.values_list('session_id', flat=True))
+    if not session_ids:
+        return {
+            'visit_count': 0,
+            'registrations': 0,
+            'payment_success': 0,
+            'course_enrolled': 0,
+            'converted_sessions': 0,
+        }
+    reg = UserEvent.objects.filter(session_id__in=session_ids, event_type='registration').count()
+    pay = UserEvent.objects.filter(session_id__in=session_ids, event_type='payment_success').count()
+    course = UserEvent.objects.filter(
+        session_id__in=session_ids,
+        event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
+    ).count()
+    converted = sessions.filter(converted=True).count()
+    return {
+        'visit_count': visit_count,
+        'registrations': reg,
+        'payment_success': pay,
+        'course_enrolled': course,
+        'converted_sessions': converted,
+    }
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def enquiry_sources_list_view(request):
+    """List enquiry sources with copy URL, QR, download QR, and stats. Optional filter by agency/event."""
+    from django.conf import settings
+    base_url = getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', '')
+    sources = EnquirySource.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('-created')
+    agency_filter = (request.GET.get('agency') or '').strip()
+    event_filter = (request.GET.get('event') or '').strip()
+    if agency_filter:
+        sources = sources.filter(agency_name__icontains=agency_filter)
+    if event_filter:
+        sources = sources.filter(event__icontains=event_filter)
+    source_stats = []
+    for s in sources:
+        full_url = s.get_full_url()
+        stats = _enquiry_source_stats(s)
+        source_stats.append({'source': s, 'full_url': full_url, 'stats': stats})
+    # Distinct values for filter dropdowns
+    all_sources = EnquirySource.objects.filter(object_status=choices.ObjectStatus.ACTIVE)
+    agencies = sorted({x for x in all_sources.values_list('agency_name', flat=True).distinct() if x})
+    events = sorted({x for x in all_sources.values_list('event', flat=True).distinct() if x})
+    context = {
+        'source_stats': source_stats,
+        'enquiry_base_url': base_url,
+        'agency_filter': agency_filter,
+        'event_filter': event_filter,
+        'agencies': agencies,
+        'events': events,
+        'page_title': 'Enquiry Sources (UTM Links)',
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/enquiry_sources_list.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def _enquiry_source_form_data(request):
+    """Extract name, agency_name, user_name, event, base_url from POST. Returns (name, agency_name, user_name, event, base_url)."""
+    def strip(s):
+        return (s or '').strip() or None
+    return (
+        strip(request.POST.get('name')),
+        strip(request.POST.get('agency_name')),
+        strip(request.POST.get('user_name')),
+        strip(request.POST.get('event')),
+        strip(request.POST.get('base_url')),
+    )
+
+
+def enquiry_source_create_view(request):
+    """Create a new enquiry source (name + optional agency, user, event, base_url). Token is auto-generated."""
+    from django.contrib import messages
+    from django.conf import settings
+    if request.method == 'POST':
+        name, agency_name, user_name, event, base_url = _enquiry_source_form_data(request)
+        if not name:
+            messages.error(request, 'Name is required.')
+            return redirect('user_analytics:enquiry_source_create')
+        try:
+            EnquirySource.objects.create(
+                name=name,
+                agency_name=agency_name,
+                user_name=user_name,
+                event=event,
+                base_url=base_url,
+            )
+            messages.success(request, 'Enquiry source created. Use the link with ?ref= token only (non-readable).')
+            return redirect('user_analytics:enquiry_sources_list')
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('user_analytics:enquiry_sources_list')
+    enquiry_base_url = getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', '') or request.build_absolute_uri('/').rstrip('/')
+    context = {
+        'source': None,
+        'page_title': 'Add Enquiry Source',
+        'enquiry_base_url': enquiry_base_url,
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/enquiry_source_form.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def enquiry_source_edit_view(request, pk):
+    """Edit enquiry source name, agency, user, event, base_url. Token is not changed."""
+    from django.contrib import messages
+    from django.http import HttpResponseNotFound
+    from django.conf import settings
+    try:
+        source = EnquirySource.objects.get(pk=pk, object_status=choices.ObjectStatus.ACTIVE)
+    except EnquirySource.DoesNotExist:
+        return HttpResponseNotFound('Enquiry source not found.')
+    if request.method == 'POST':
+        name, agency_name, user_name, event, base_url = _enquiry_source_form_data(request)
+        if not name:
+            messages.error(request, 'Name is required.')
+            return redirect('user_analytics:enquiry_source_edit', pk=pk)
+        try:
+            source.name = name
+            source.agency_name = agency_name
+            source.user_name = user_name
+            source.event = event
+            source.base_url = base_url
+            source.save()
+            messages.success(request, 'Enquiry source updated.')
+            return redirect('user_analytics:enquiry_sources_list')
+        except Exception as e:
+            messages.error(request, str(e))
+    enquiry_base_url = getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', '') or request.build_absolute_uri('/').rstrip('/')
+    context = {
+        'source': source,
+        'page_title': 'Edit Enquiry Source',
+        'enquiry_base_url': enquiry_base_url,
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/enquiry_source_form.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def enquiry_source_delete_view(request, pk):
+    """Soft-delete an enquiry source."""
+    from django.contrib import messages
+    from django.http import HttpResponseNotFound
+    if request.method != 'POST':
+        return redirect('user_analytics:enquiry_sources_list')
+    try:
+        source = EnquirySource.objects.get(pk=pk)
+    except EnquirySource.DoesNotExist:
+        return HttpResponseNotFound('Enquiry source not found.')
+    source.delete(hard_delete=False)
+    messages.success(request, 'Enquiry source deactivated.')
+    return redirect('user_analytics:enquiry_sources_list')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def enquiry_source_qr_view(request, pk):
+    """Serve QR code PNG for the enquiry source link (for display and download)."""
+    from django.http import HttpResponse, HttpResponseNotFound
+    try:
+        source = EnquirySource.objects.get(pk=pk, object_status=choices.ObjectStatus.ACTIVE)
+    except EnquirySource.DoesNotExist:
+        return HttpResponseNotFound('Not found.')
+    fallback_base = request.build_absolute_uri('/').rstrip('/')
+    full_url = source.get_full_url(fallback_base)
+    if not full_url:
+        return HttpResponseNotFound('No base URL configured.')
+    try:
+        import qrcode
+        import io
+        qr = qrcode.QRCode(version=1, box_size=6, border=2)
+        qr.add_data(full_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color='black', back_color='white')
+        buf = io.BytesIO()
+        img.save(buf, format='PNG')
+        buf.seek(0)
+        response = HttpResponse(buf.getvalue(), content_type='image/png')
+        if request.GET.get('download'):
+            response['Content-Disposition'] = 'attachment; filename="qr-%s.png"' % source.token
+        else:
+            response['Content-Disposition'] = 'inline; filename="qr-%s.png"' % source.token
+        return response
+    except Exception as e:
+        logger.exception('QR generation failed')
+        return HttpResponseNotFound('QR generation failed.')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
 def visitors_detail(request):
     """Detail page for visitors/sessions with filters"""
     from user_analytics.tasks import sync_ga4_sessions_task
@@ -2670,9 +3052,14 @@ def visitors_detail(request):
             )
             logger.info("Filtering for direct traffic (handling variations)")
         else:
-            # Exact match for other sources
-            session_query = session_query.filter(utm_source__iexact=source_filter)
-            logger.info(f"Filtering for source: {source_filter}")
+            # Use referrer_source_q for Google, Facebook, iapply.io (matches utm_source + referrer)
+            from user_analytics.utils import referrer_source_q
+            if source_filter.lower() in ('google', 'facebook', 'iapply', 'iapply.io'):
+                session_query = session_query.filter(referrer_source_q(source_filter))
+                logger.info(f"Filtering for referrer source: {source_filter}")
+            else:
+                session_query = session_query.filter(utm_source__iexact=source_filter)
+                logger.info(f"Filtering for source: {source_filter}")
     
     # If device filter wasn't applied to UserJourney (no journey filters case), apply to UserActivity
     if device_filter and not has_journey_filters:
@@ -2995,6 +3382,10 @@ def visitors_filter_options_api(request):
     
     try:
         if filter_type == 'source':
+            # Preferred referrer sources (always show in dropdown for quick filter)
+            preferred_sources = ['google', 'facebook', 'iapply']
+            options.update(preferred_sources)
+            
             # Get sources from UserActivity, UserJourney, and GA4Session
             sources_ua = UserActivity.objects.all()
             sources_uj = UserJourney.objects.all()
@@ -3113,12 +3504,20 @@ def visitors_filter_options_api(request):
         # Convert to sorted list and limit
         options_list = sorted([str(opt) for opt in options if opt])[:100]  # Limit to 100 options
         
-        return JsonResponse({
+        # For source filter, include display labels for Google, Facebook, iapply.io
+        response_data = {
             'success': True,
             'options': options_list,
             'count': len(options_list),
             'filter_type': filter_type,
-        })
+        }
+        if filter_type == 'source':
+            response_data['source_labels'] = {
+                'google': 'Google',
+                'facebook': 'Facebook',
+                'iapply': 'iapply.io',
+            }
+        return JsonResponse(response_data)
         
     except Exception as e:
         logger.error(f"Error fetching filter options: {e}", exc_info=True)

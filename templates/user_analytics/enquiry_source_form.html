@@ -1,0 +1,53 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}{{ page_title }} | Top Teen{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="admin-card" style="max-width: 560px;">
+        <h2 class="h5 mb-3">{{ page_title }}</h2>
+        <p class="text-muted small mb-3">The link will use a non-readable token (<code>?ref=...</code>). Only you see the source name here; users cannot identify it from the URL. Add agency/user/event for easy tracking.</p>
+        <form method="post" action="">
+            {{ csrf_input_html|safe }}
+            <div class="mb-3">
+                <label for="id_name" class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" id="id_name" class="form-control" required
+                       value="{{ source.name if source else '' }}"
+                       placeholder="e.g. Facebook March 2025">
+                <div class="form-text">Admin-only label to identify this source.</div>
+            </div>
+            <div class="mb-3">
+                <label for="id_agency_name" class="form-label">Agency / Partner name</label>
+                <input type="text" name="agency_name" id="id_agency_name" class="form-control"
+                       value="{{ source.agency_name if source else '' }}"
+                       placeholder="e.g. ABC Agency">
+            </div>
+            <div class="mb-3">
+                <label for="id_user_name" class="form-label">Contact / User name</label>
+                <input type="text" name="user_name" id="id_user_name" class="form-control"
+                       value="{{ source.user_name if source else '' }}"
+                       placeholder="e.g. John from Marketing">
+            </div>
+            <div class="mb-3">
+                <label for="id_event" class="form-label">Event / Campaign</label>
+                <input type="text" name="event" id="id_event" class="form-control"
+                       value="{{ source.event if source else '' }}"
+                       placeholder="e.g. Career Fair 2025, Instagram Campaign">
+            </div>
+            <div class="mb-3">
+                <label for="id_base_url" class="form-label">Page URL (optional)</label>
+                <input type="url" name="base_url" id="id_base_url" class="form-control"
+                       value="{{ source.base_url if source else '' }}"
+                       placeholder="{{ enquiry_base_url or 'https://www.topteen.in' }}">
+                <div class="form-text">Full URL where users will land. Leave blank for site root. Use a specific page for SkillLab course, campaign page, etc. (e.g. {{ enquiry_base_url or 'https://www.topteen.in' }}/skilllab/course/xyz/). The <code>?ref=</code> token is added automatically.</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{{ url('user_analytics:enquiry_sources_list') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

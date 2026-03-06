@@ -58,10 +58,13 @@ function initVisitorsFilters(config) {
                     },
                     processResults: function(data) {
                         if (data && data.success && data.options) {
+                            const sourceLabels = (filterType === 'source' && data.source_labels) ? data.source_labels : {};
                             const results = data.options.map(function(option) {
+                                const val = String(option);
+                                const text = sourceLabels[val] || val;
                                 return {
-                                    id: String(option),
-                                    text: String(option)
+                                    id: val,
+                                    text: text
                                 };
                             });
                             
@@ -146,10 +149,13 @@ function initVisitorsFilters(config) {
                         },
                         processResults: function(data) {
                             if (data.success && data.options) {
+                                const sourceLabels = (filterType === 'source' && data.source_labels) ? data.source_labels : {};
                                 const results = data.options.map(function(option) {
+                                    const val = String(option);
+                                    const text = sourceLabels[val] || val;
                                     return {
-                                        id: option,
-                                        text: option
+                                        id: val,
+                                        text: text
                                     };
                                 });
                                 

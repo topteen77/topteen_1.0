@@ -744,6 +744,9 @@ CREDIT_LIMIT=5000
 
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 
+# Enquiry source UTM links: base URL is always www.topteen.in or demo.topteen.in (set in .env per environment).
+ENQUIRY_SOURCE_BASE_URL = config('ENQUIRY_SOURCE_BASE_URL', default='https://www.topteen.in').rstrip('/')
+
 # Demo accounts: use DB only (User.is_demo_account, Institute.is_demo_institute). No .env demo credentials.
 
 # Chatbot visibility: home-only | students-parents | institutes | counselors

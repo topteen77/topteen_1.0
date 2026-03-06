@@ -1,0 +1,153 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Enquiry Sources | Top Teen{% endblock %}
+
+{% block page_title %}Enquiry Sources (UTM Links){% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h4 mb-1"><i class="fas fa-link text-primary"></i> Enquiry Sources</h1>
+            <p class="text-muted small mb-0">Links use a non-readable token (<code>?ref=...</code>). Share the link; users cannot tell which source it is. You identify sources by name here.</p>
+        </div>
+        <a href="{{ url('user_analytics:enquiry_source_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Enquiry Source
+        </a>
+    </div>
+
+    {% if agencies or events %}
+    <div class="admin-card mb-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">Agency</label>
+                <select name="agency" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">All</option>
+                    {% for a in agencies %}
+                    <option value="{{ a }}" {% if agency_filter == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">Event</label>
+                <select name="event" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">All</option>
+                    {% for e in events %}
+                    <option value="{{ e }}" {% if event_filter == e %}selected{% endif %}>{{ e }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+                {% if agency_filter or event_filter %}
+                <a href="{{ url('user_analytics:enquiry_sources_list') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Agency</th>
+                        <th>User</th>
+                        <th>Event</th>
+                        <th>Link (copy)</th>
+                        <th>QR code</th>
+                        <th class="text-end">Visits</th>
+                        <th class="text-end">Registrations</th>
+                        <th class="text-end">Payments</th>
+                        <th class="text-end">Enrolled</th>
+                        <th class="text-end">Converted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in source_stats %}
+                    <tr>
+                        <td><strong>{{ item.source.name }}</strong></td>
+                        <td>{{ item.source.agency_name or '—' }}</td>
+                        <td>{{ item.source.user_name or '—' }}</td>
+                        <td>{{ item.source.event or '—' }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <code class="small text-break" style="max-width: 280px;" id="url-{{ item.source.id }}">{{ item.full_url }}</code>
+                                <button type="button" class="btn btn-sm btn-outline-secondary copy-url-btn" data-url="{{ item.full_url }}" data-id="{{ item.source.id }}" title="Copy URL">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.full_url %}
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ url('user_analytics:enquiry_source_qr', kwargs={'pk': item.source.id}) }}" alt="QR" width="64" height="64" class="img-thumbnail">
+                                <a href="{{ url('user_analytics:enquiry_source_qr', kwargs={'pk': item.source.id}) }}?download=1" class="btn btn-sm btn-outline-secondary" download>
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">Set base URL</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ item.stats.visit_count }}</td>
+                        <td class="text-end">{{ item.stats.registrations }}</td>
+                        <td class="text-end">{{ item.stats.payment_success }}</td>
+                        <td class="text-end">{{ item.stats.course_enrolled }}</td>
+                        <td class="text-end">{{ item.stats.converted_sessions }}</td>
+                        <td>
+                            <a href="{{ url('user_analytics:enquiry_source_edit', kwargs={'pk': item.source.id}) }}" class="btn btn-sm btn-outline-primary" title="Edit">Edit</a>
+                            <form method="post" action="{{ url('user_analytics:enquiry_source_delete', kwargs={'pk': item.source.id}) }}" class="d-inline" onsubmit="return confirm('Deactivate this enquiry source?');">
+                                {{ csrf_input_html|safe }}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="12" class="text-center text-muted py-4">
+                            No enquiry sources yet. <a href="{{ url('user_analytics:enquiry_source_create') }}">Add one</a> to get a non-readable link and QR code.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var url = this.getAttribute('data-url');
+        if (!url) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function() {
+                var icon = btn.querySelector('i');
+                var text = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-outline-secondary');
+                setTimeout(function() {
+                    btn.innerHTML = text;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-secondary');
+                }, 1500);
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+            setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 1500);
+        }
+    });
+});
+</script>
+{% endblock %}

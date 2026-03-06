@@ -8,7 +8,12 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent, GA4Session
-from user_analytics.utils import parse_user_agent_info, get_referrer_source
+from user_analytics.utils import (
+    parse_user_agent_info,
+    get_referrer_source,
+    get_geolocation_from_ip,
+    get_traffic_source_category,
+)
 import logging
 
 User = get_user_model()
@@ -30,6 +35,7 @@ def track_page_view_sync(
     utm_campaign='',
     utm_term='',
     utm_content='',
+    enquiry_source_id=None,
 ):
     """
     Synchronous version of track_page_view_async.
@@ -46,31 +52,43 @@ def track_page_view_sync(
         # Parse user agent
         ua_info = parse_user_agent_info(user_agent)
         
-        # Determine source if UTM not provided
+        # Determine source if UTM not provided (ref= token is non-readable; we store enquiry_source_id only)
         source = utm_source or get_referrer_source(referrer)
+        if enquiry_source_id:
+            source = 'enquiry'  # Don't expose token in lead source
+        traffic_category = get_traffic_source_category(utm_source or source, referrer)
+        
+        # Resolve country/city from IP (short timeout to avoid blocking)
+        geo = get_geolocation_from_ip(ip_address, timeout=2) if ip_address else {}
         
         # Create or update user activity
         with transaction.atomic():
-            activity = UserActivity.objects.create(
-                user=user,
-                session_id=session_id,
-                page_path=page_path,
-                page_title=page_title,
-                referrer=referrer,
-                utm_source=utm_source or source,
-                utm_medium=utm_medium,
-                utm_campaign=utm_campaign,
-                utm_term=utm_term,
-                utm_content=utm_content,
-                ip_address=ip_address,
-                user_agent=user_agent,
-                device_type=ua_info['device_type'],
-                browser=ua_info['browser'],
-                os=ua_info['os'],
-            )
+            activity_kw = {
+                'user': user,
+                'session_id': session_id,
+                'page_path': page_path,
+                'page_title': page_title,
+                'referrer': referrer,
+                'utm_source': utm_source or source,
+                'utm_medium': utm_medium,
+                'utm_campaign': utm_campaign,
+                'utm_term': utm_term,
+                'utm_content': utm_content,
+                'ip_address': ip_address,
+                'user_agent': user_agent,
+                'device_type': ua_info['device_type'],
+                'browser': ua_info['browser'],
+                'os': ua_info['os'],
+                'country': geo.get('country'),
+                'city': geo.get('city'),
+                'traffic_source_category': traffic_category,
+            }
+            if enquiry_source_id:
+                activity_kw['enquiry_source_id'] = enquiry_source_id
+            activity = UserActivity.objects.create(**activity_kw)
             
             # Update or create lead if user is not authenticated
-            if not user and (utm_source or referrer):
+            if not user and (utm_source or referrer or enquiry_source_id):
                 lead, created = Lead.objects.get_or_create(
                     email=f"session_{session_id}@temp.topteen.in",
                     defaults={
@@ -104,6 +122,8 @@ def update_user_journey_sync(
     device_type=None,
     country=None,
     utm_source=None,
+    traffic_source_category=None,
+    enquiry_source_id=None,
 ):
     """
     Synchronous version of update_user_journey_async.
@@ -137,6 +157,10 @@ def update_user_journey_sync(
                 defaults['country'] = country
             if utm_source:
                 defaults['utm_source'] = utm_source
+            if traffic_source_category:
+                defaults['traffic_source_category'] = traffic_source_category
+            if enquiry_source_id:
+                defaults['enquiry_source_id'] = enquiry_source_id
             
             journey, created = UserJourney.objects.get_or_create(
                 session_id=session_id,
@@ -153,13 +177,17 @@ def update_user_journey_sync(
                 if ga4_client_id and not journey.ga4_client_id:
                     journey.ga4_client_id = ga4_client_id
                 
-                # Update device/country if not set
+                # Update device/country/source category if not set
                 if device_type and not journey.device_type:
                     journey.device_type = device_type
                 if country and not journey.country:
                     journey.country = country
                 if utm_source and not journey.utm_source:
                     journey.utm_source = utm_source
+                if traffic_source_category and not journey.traffic_source_category:
+                    journey.traffic_source_category = traffic_source_category
+                if enquiry_source_id and not journey.enquiry_source_id:
+                    journey.enquiry_source_id = enquiry_source_id
                 
                 # Add to journey path if not already there
                 if page_path not in journey.journey_path:
@@ -190,6 +218,7 @@ def track_page_view_async(
     utm_campaign='',
     utm_term='',
     utm_content='',
+    enquiry_source_id=None,
 ):
     """
     Async task to track page view.
@@ -207,6 +236,7 @@ def track_page_view_async(
         utm_campaign: UTM campaign parameter
         utm_term: UTM term parameter
         utm_content: UTM content parameter
+        enquiry_source_id: Set when user arrived via ?ref= token (non-readable link)
     """
     try:
         user = None
@@ -219,33 +249,43 @@ def track_page_view_async(
         # Parse user agent
         ua_info = parse_user_agent_info(user_agent)
         
-        # Determine source if UTM not provided
+        # Determine source if UTM not provided (ref= token: store enquiry_source_id only, non-readable)
         source = utm_source or get_referrer_source(referrer)
+        if enquiry_source_id:
+            source = 'enquiry'
+        traffic_category = get_traffic_source_category(utm_source or source, referrer)
+        
+        # Resolve country/city from IP
+        geo = get_geolocation_from_ip(ip_address, timeout=2) if ip_address else {}
         
         # Create or update user activity
         with transaction.atomic():
-            activity = UserActivity.objects.create(
-                user=user,
-                session_id=session_id,
-                page_path=page_path,
-                page_title=page_title,
-                referrer=referrer,
-                utm_source=utm_source or source,
-                utm_medium=utm_medium,
-                utm_campaign=utm_campaign,
-                utm_term=utm_term,
-                utm_content=utm_content,
-                ip_address=ip_address,
-                user_agent=user_agent,
-                device_type=ua_info['device_type'],
-                browser=ua_info['browser'],
-                os=ua_info['os'],
-            )
+            activity_kw = {
+                'user': user,
+                'session_id': session_id,
+                'page_path': page_path,
+                'page_title': page_title,
+                'referrer': referrer,
+                'utm_source': utm_source or source,
+                'utm_medium': utm_medium,
+                'utm_campaign': utm_campaign,
+                'utm_term': utm_term,
+                'utm_content': utm_content,
+                'ip_address': ip_address,
+                'user_agent': user_agent,
+                'device_type': ua_info['device_type'],
+                'browser': ua_info['browser'],
+                'os': ua_info['os'],
+                'country': geo.get('country'),
+                'city': geo.get('city'),
+                'traffic_source_category': traffic_category,
+            }
+            if enquiry_source_id:
+                activity_kw['enquiry_source_id'] = enquiry_source_id
+            activity = UserActivity.objects.create(**activity_kw)
             
             # Update or create lead if user is not authenticated
-            if not user and (utm_source or referrer):
-                email = None  # We don't have email for anonymous users
-                # Try to get email from session or create lead with session ID
+            if not user and (utm_source or referrer or enquiry_source_id):
                 lead, created = Lead.objects.get_or_create(
                     email=f"session_{session_id}@temp.topteen.in",
                     defaults={
@@ -282,6 +322,8 @@ def update_user_journey_async(
     device_type=None,
     country=None,
     utm_source=None,
+    traffic_source_category=None,
+    enquiry_source_id=None,
 ):
     """
     Async task to update user journey.
@@ -294,6 +336,8 @@ def update_user_journey_async(
         device_type: Device type (mobile, desktop, tablet)
         country: User country
         utm_source: UTM source (inquiry source)
+        traffic_source_category: search, social, referral, direct, internal
+        enquiry_source_id: Set when user arrived via ?ref= token (non-readable link)
     """
     try:
         user = None
@@ -323,6 +367,10 @@ def update_user_journey_async(
                 defaults['country'] = country
             if utm_source:
                 defaults['utm_source'] = utm_source
+            if traffic_source_category:
+                defaults['traffic_source_category'] = traffic_source_category
+            if enquiry_source_id:
+                defaults['enquiry_source_id'] = enquiry_source_id
             
             journey, created = UserJourney.objects.get_or_create(
                 session_id=session_id,
@@ -339,13 +387,17 @@ def update_user_journey_async(
                 if ga4_client_id and not journey.ga4_client_id:
                     journey.ga4_client_id = ga4_client_id
                 
-                # Update device/country if not set
+                # Update device/country/source category if not set
                 if device_type and not journey.device_type:
                     journey.device_type = device_type
                 if country and not journey.country:
                     journey.country = country
                 if utm_source and not journey.utm_source:
                     journey.utm_source = utm_source
+                if traffic_source_category and not journey.traffic_source_category:
+                    journey.traffic_source_category = traffic_source_category
+                if enquiry_source_id and not journey.enquiry_source_id:
+                    journey.enquiry_source_id = enquiry_source_id
                 
                 # Add to journey path if not already there
                 if page_path not in journey.journey_path:

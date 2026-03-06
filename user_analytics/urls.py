@@ -1,5 +1,11 @@
 """
 URL routing for user_analytics app.
+
+Where /user-analytics/business/visitors/ (visitors_detail) is linked:
+- Business Dashboard: Conversion Funnel card "Total Visitors" count links to visitors with period.
+- Web Owner Dashboard: "Visitors" metric card; source/device/country/entry/exit table cells link with filters.
+- Admin Dashboard: "Visitors" metric card with period.
+- Visitors detail page itself: "Clear Filters" / "Clear source" buttons (same page, params cleared).
 """
 from django.urls import path
 from . import views
@@ -26,6 +32,16 @@ urlpatterns = [
     path('user-journey/', views.user_journey_view, name='user_journey'),
     path('user-journey/<int:user_id>/', views.user_journey_view, name='user_journey_detail'),
     path('user-journey/detail/<str:session_id>/', views.user_journey_detail_view, name='user_journey_session_detail'),
+    
+    # Admin User Analytics (in-dashboard, with filters)
+    path('admin-analytics/', views.admin_user_analytics_view, name='admin_user_analytics'),
+    path('admin-analytics/cleanup/', views.cleanup_analytics_data_view, name='cleanup_analytics_data'),
+    # Enquiry Sources (non-readable links: ?ref=TOKEN)
+    path('admin-analytics/enquiry-sources/', views.enquiry_sources_list_view, name='enquiry_sources_list'),
+    path('admin-analytics/enquiry-sources/add/', views.enquiry_source_create_view, name='enquiry_source_create'),
+    path('admin-analytics/enquiry-sources/<int:pk>/edit/', views.enquiry_source_edit_view, name='enquiry_source_edit'),
+    path('admin-analytics/enquiry-sources/<int:pk>/delete/', views.enquiry_source_delete_view, name='enquiry_source_delete'),
+    path('admin-analytics/enquiry-sources/<int:pk>/qr.png', views.enquiry_source_qr_view, name='enquiry_source_qr'),
     
     # API Endpoints
     path('api/dashboard-data/', views.api_dashboard_data, name='api_dashboard_data'),
