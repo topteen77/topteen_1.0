@@ -5,7 +5,10 @@
   <meta charset="utf-8">
   <meta charset="UTF-8" />
   {% block robots %}
-  {% if not (allow_search_engine_index | default(false)) %}
+  {% if allow_search_engine_index | default(false) %}
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  {% else %}
   <meta name="robots" content="noindex, nofollow" />
   <meta name="googlebot" content="noindex, nofollow">
   {% endif %}
