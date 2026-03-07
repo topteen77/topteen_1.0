@@ -31,6 +31,9 @@
     <meta name="twitter:description" content="{{ _sd }}">
     <meta name="twitter:image" content="{{ _si }}">
 
+    {# SEO: Dynamic JSON-LD schema (Organization, WebSite, BreadcrumbList, WebPage/Article) #}
+    {% include 'template20/includes/seo_schema.html' %}
+
     <!-- FOR STATIC FILES -->
     {%block staticadditionalheader%} {%endblock%}
 

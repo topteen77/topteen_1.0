@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
-from .utils import build_html_head
+from .utils import build_html_head, clean_html
 from .breadcrumbs import get_breadcrumb
 from django.db import connection
 from django.db.models import Q
@@ -331,6 +331,18 @@ class AllFaqView(TemplateView):
             ctx['search_faq']=""
             ctx['parent_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.parent)
             ctx['student_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.student)
+            # SEO: FAQPage schema (all FAQs when not searching)
+            all_faqs = list(ctx['parent_faq']) + list(ctx['student_faq'])
+            seen = set()
+            unique_faqs = []
+            for faq in all_faqs:
+                if faq.question and faq.question not in seen:
+                    seen.add(faq.question)
+                    unique_faqs.append({
+                        'question': faq.question,
+                        'answer': clean_html(faq.answer or '')[:500] or faq.question,
+                    })
+            ctx['seo_faq_items'] = unique_faqs[:50]  # cap for schema size
         ctx["html_head"] = self.html_head()
         return ctx
 

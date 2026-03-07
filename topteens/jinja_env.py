@@ -15,6 +15,7 @@ import json
 from app.templatetags.myfilters_extras import my_url
 # from shop.models import Category
 from django.utils.timezone import template_localtime
+from core.seo_schema import get_breadcrumb_schema, get_webpage_schema, get_faq_schema
 
 def img_tag(*args,**kwargs):
     src = kwargs['src']
@@ -241,6 +242,11 @@ def tojson_filter(value):
     """Convert Python object to JSON string"""
     return mark_safe(json.dumps(value))
 
+
+def tojson_pretty(value, indent=2):
+    """Convert Python object to well-formatted JSON (for JSON-LD schema in HTML)."""
+    return mark_safe(json.dumps(value, indent=indent, ensure_ascii=False))
+
 def urlencode_filter(value):
     """URL encode a string"""
     from urllib.parse import quote
@@ -305,6 +311,7 @@ def environment(**options):
     # Register escapejs first (required by course_learning.html and other Jinja templates)
     env.filters['escapejs'] = _escapejs
     env.filters['tojson'] = tojson_filter
+    env.filters['tojson_pretty'] = tojson_pretty
     env.filters['urlencode'] = urlencode_filter
     env.filters['blog_category_display'] = blog_category_display
     env.filters['blog_category_short'] = blog_category_short
@@ -341,5 +348,9 @@ def environment(**options):
         'csrf_token': csrf_token_value,
         'get_url': get_url,
         'paginate_url': paginate_url,
+        # SEO JSON-LD schema builders (for use in templates)
+        'get_breadcrumb_schema': get_breadcrumb_schema,
+        'get_webpage_schema': get_webpage_schema,
+        'get_faq_schema': get_faq_schema,
     })
     return env

@@ -1,5 +1,6 @@
 from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
+from core.seo_schema import get_organization_schema, get_website_schema
 from blog.models import Blog, BlogCategory
 from django.db.models import Count
 from core.utils import build_html_head
@@ -28,6 +29,19 @@ def _footer_career_clusters():
         return [{'id': c.id, 'name': c.name or '', 'slug': c.slug or ''} for c in clusters_qs]
     except Exception:
         return []
+
+
+def _seo_organization_schema():
+    """SEO Organization JSON-LD schema (site-wide)."""
+    base = getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/")
+    return get_organization_schema(base, site_name="Top Teen")
+
+
+def _seo_website_schema():
+    """SEO WebSite JSON-LD schema with optional search URL."""
+    base = getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/")
+    search_url = getattr(settings, "SEO_WEBSITE_SEARCH_URL", None)  # e.g. "/search/?q={search_term_string}"
+    return get_website_schema(base, site_name="Top Teen", search_url=search_url)
 
 
 def _config_bool(key, settings_default=True):
@@ -162,6 +176,9 @@ def globals(request):
         "footer_career_clusters": _footer_career_clusters(),
         # SEO: absolute site base URL for canonical/og:image when request is not available
         "site_base_url": getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/"),
+        # SEO: JSON-LD schema for Organization and WebSite (included on every page)
+        "seo_organization": _seo_organization_schema(),
+        "seo_website": _seo_website_schema(),
         # "popular_tag_count":popular_tag_count
     }
     return kwargs

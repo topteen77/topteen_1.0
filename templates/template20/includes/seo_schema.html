@@ -1,0 +1,49 @@
+{# Dynamic SEO JSON-LD schema for all pages: Organization, WebSite, BreadcrumbList, WebPage/Article, optional FAQPage #}
+{% set _page_url = request.build_absolute_uri(request.path) if request else (site_base_url or 'https://www.topteen.in') %}
+{% set _base_url = site_base_url|default('https://www.topteen.in') %}
+
+{# 1. Organization schema (site-wide) #}
+{% if seo_organization %}
+<script type="application/ld+json">
+{{ seo_organization|tojson_pretty }}
+</script>
+{% endif %}
+
+{# 2. WebSite schema (site-wide, optional SearchAction) #}
+{% if seo_website %}
+<script type="application/ld+json">
+{{ seo_website|tojson_pretty }}
+</script>
+{% endif %}
+
+{# 3. BreadcrumbList schema (when breadcrumb is provided by the view) #}
+{% if breadcrumb %}
+{% set _breadcrumb_schema = get_breadcrumb_schema(breadcrumb, _base_url, _page_url) %}
+{% if _breadcrumb_schema %}
+<script type="application/ld+json">
+{{ _breadcrumb_schema|tojson_pretty }}
+</script>
+{% endif %}
+{% endif %}
+
+{# 4. WebPage or Article schema (when html_head is provided) #}
+{% if html_head or _page_url %}
+{% set _schema_type = seo_schema_type|default('WebPage') %}
+{% set _schema_extra = seo_schema_extra|default({}) %}
+{% set _page_schema = get_webpage_schema(html_head, _page_url, 'Top Teen', _schema_type, _schema_extra) %}
+{% if _page_schema %}
+<script type="application/ld+json">
+{{ _page_schema|tojson_pretty }}
+</script>
+{% endif %}
+{% endif %}
+
+{# 5. FAQPage schema (when seo_faq_items is provided by the view) #}
+{% if seo_faq_items %}
+{% set _faq_schema = get_faq_schema(seo_faq_items, _base_url) %}
+{% if _faq_schema %}
+<script type="application/ld+json">
+{{ _faq_schema|tojson_pretty }}
+</script>
+{% endif %}
+{% endif %}
