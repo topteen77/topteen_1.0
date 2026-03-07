@@ -476,6 +476,14 @@ class ScannedURLListView(LoginRequiredMixin, TemplateView):
         from django.contrib import messages
         action = request.POST.get("action")
         if action == "scan":
+            host = (request.get_host() or "").split(":")[0].lower()
+            if host in ("localhost", "127.0.0.1", "0.0.0.0", "") or host.startswith("192.168.") or host.startswith("10."):
+                messages.error(
+                    request,
+                    "URL scan is not available on local or private networks (e.g. localhost). "
+                    "Please run the scan from your production or staging website so that all pages are reachable."
+                )
+                return redirect(reverse("seo_dashboard:scanned_url_list"))
             from .scanner import run_site_scan
             try:
                 added, total, seen, errs = run_site_scan()

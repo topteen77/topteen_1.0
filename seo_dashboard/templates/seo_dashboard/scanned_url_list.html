@@ -22,6 +22,7 @@
         <div class="card-body">
             <h5 class="card-title">Scan website for URLs</h5>
             <p class="text-muted mb-2">Collect all open (accessible) URLs by crawling the site. Next scan adds only new or missed URLs; no duplicates are stored.</p>
+            <p class="alert alert-info py-2 px-3 small mb-2">Scan runs only on <strong>production or staging</strong> (not on localhost). On local, you will see an error message if you try to scan.</p>
             <form method="post" action="{% url 'seo_dashboard:scanned_url_list' %}" class="d-inline" id="scanForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="scan">
@@ -59,12 +60,16 @@
                                 <td>
                                     <input type="checkbox" name="ids" value="{{ u.pk }}" class="form-check-input row-check">
                                 </td>
-                                <td><code>{{ u.url_path }}</code></td>
+                                <td><code>{% if u.url_path %}{{ u.url_path }}{% else %}(root){% endif %}</code></td>
                                 <td>{{ u.last_seen_at|date:"Y-m-d H:i" }}</td>
                                 {% if can_edit_seo %}
                                 <td>
+                                    {% if u.url_path %}
                                     <a href="{% url 'seo_dashboard:edit_seo' url_key=u.url_path %}" class="btn btn-outline-secondary btn-sm">Edit SEO</a>
-                                    <button type="button" class="btn btn-outline-danger btn-sm ms-1 btn-remove-one" data-id="{{ u.pk }}" data-path="{{ u.url_path }}">Remove</button>
+                                    {% else %}
+                                    <span class="text-muted small">(root — use Add SEO for URL with path &quot;/&quot;)</span>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-outline-danger btn-sm ms-1 btn-remove-one" data-id="{{ u.pk }}" data-path="{% if u.url_path %}{{ u.url_path }}{% else %}(root){% endif %}">Remove</button>
                                 </td>
                                 {% endif %}
                             </tr>
