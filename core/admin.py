@@ -39,6 +39,11 @@ from .models import (
     DashboardPointRule,
     DashboardTrophyDefinition,
     DashboardStreakConfig,
+    StaticPage,
+    StaticPageSection,
+    PageSEO,
+    ScannedURL,
+    GeneratedPage,
 )
 # Register your models here.
 
@@ -1778,4 +1783,62 @@ class FourPillarsAssessmentScoringGuideAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request)
 
+
+# --- Static Page CMS & Page SEO (SEO dashboard uses same models) ---
+
+
+class StaticPageSectionInline(admin.TabularInline):
+    model = StaticPageSection
+    extra = 0
+    ordering = ("order",)
+
+
+@admin.register(StaticPage)
+class StaticPageAdmin(admin.ModelAdmin):
+    list_display = ("url_key", "title", "is_active", "modified")
+    list_filter = ("is_active",)
+    search_fields = ("url_key", "title")
+    ordering = ("url_key",)
+    inlines = (StaticPageSectionInline,)
+    fieldsets = (
+        (None, {"fields": ("url_key", "title", "is_active")}),
+        ("Content", {"fields": ("content_html", "content_json", "content_css", "content_js")}),
+    )
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
+
+@admin.register(PageSEO)
+class PageSEOAdmin(admin.ModelAdmin):
+    list_display = ("url_key", "title", "modified")
+    search_fields = ("url_key", "title", "description", "keywords")
+    ordering = ("url_key",)
+    fieldsets = (
+        (None, {"fields": ("url_key",)}),
+        ("Meta", {"fields": ("title", "description", "keywords")}),
+        ("Open Graph", {"fields": ("og_image",)}),
+    )
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
+
+@admin.register(ScannedURL)
+class ScannedURLAdmin(admin.ModelAdmin):
+    list_display = ("url_path", "created_at", "last_seen_at")
+    search_fields = ("url_path",)
+    ordering = ("url_path",)
+    readonly_fields = ("created_at", "last_seen_at")
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
+
+@admin.register(GeneratedPage)
+class GeneratedPageAdmin(admin.ModelAdmin):
+    list_display = ("slug", "title", "is_active", "modified")
+    list_filter = ("is_active",)
+    search_fields = ("slug", "title")
+    ordering = ("-created",)
 

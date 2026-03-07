@@ -1,0 +1,39 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Create page from URL | Content &amp; SEO | Top Teen{% endblock %}
+
+{% block page_title %}Create page from URL{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Static Pages</a>
+        <a href="{% url 'seo_dashboard:generated_page_list' %}" class="btn btn-outline-secondary btn-sm ms-2">Generated pages</a>
+    </div>
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>Import static HTML and create a dynamic CMS page</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Enter a URL to a static HTML page. We will fetch the page, extract the body content, CSS, and JavaScript, and create a new page that you can serve at <code>/page/&lt;slug&gt;/</code> with styles and scripts included in the page.</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="source_url" class="form-label">Source URL <span class="text-danger">*</span></label>
+                    <input type="url" id="source_url" name="source_url" class="form-control" value="{{ source_url|default:'' }}" placeholder="https://example.com/page.html" required>
+                </div>
+                <div class="mb-3">
+                    <label for="slug" class="form-label">URL slug <span class="text-danger">*</span></label>
+                    <input type="text" id="slug" name="slug" class="form-control" value="{{ slug|default:'' }}" placeholder="e.g. my-landing-page" style="max-width: 320px;">
+                    <small class="text-muted">Page will be available at /page/<strong>&lt;slug&gt;</strong>/</small>
+                </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">Page title (optional)</label>
+                    <input type="text" id="title" name="title" class="form-control" value="{{ title|default:'' }}" placeholder="Leave blank to use title from source page" style="max-width: 400px;">
+                </div>
+                <button type="submit" class="btn btn-primary">Fetch URL and create page</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -16,14 +16,14 @@ from django.db import connection
 from django.db.models import Q
 from django.db.utils import ProgrammingError
 from xml.etree.ElementInclude import include
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import redirect
 from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
 from core import choices
 from django.views.generic import TemplateView
-from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment, MIAssessmentResult, EQAssessmentResult, CareerBattleFight, CounsellingSession
+from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment, MIAssessmentResult, EQAssessmentResult, CareerBattleFight, CounsellingSession, GeneratedPage
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
@@ -282,6 +282,18 @@ def contact_us(request):
             messages.error(request,"")
     ctx["html_head"]=build_html_head(title=name, description=name)
     return render(request,template_name,ctx)
+
+
+def generated_page_view(request, slug):
+    """Serve a GeneratedPage by slug: HTML + CSS + JS in the page div."""
+    page = get_object_or_404(GeneratedPage, slug=slug, is_active=True)
+    ctx = {
+        "page": page,
+        "html_head": build_html_head(title=page.title, description=page.title[:160] if page.title else ""),
+        "breadcrumb": get_breadcrumb([{"text": page.title, "url": request.path}]),
+    }
+    return render(request, "template20/generated_page.html", ctx)
+
 
 def upload(request):
     if request.method == "POST":

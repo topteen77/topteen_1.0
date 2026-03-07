@@ -1,0 +1,47 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Edit SEO: {{ url_key }} | Top Teen{% endblock %}
+
+{% block page_title %}Edit SEO: {{ url_key }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Page list</a>
+    </div>
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>SEO meta</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title (max 70 chars)</label>
+                    <input type="text" id="title" name="title" class="form-control" value="{{ seo_title|default:'' }}" maxlength="70" style="max-width: 500px;">
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description (max 300 chars)</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" maxlength="300">{{ seo_description|default:'' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="keywords" class="form-label">Keywords (optional, comma-separated)</label>
+                    <input type="text" id="keywords" name="keywords" class="form-control" value="{{ seo_keywords|default:'' }}" style="max-width: 500px;">
+                </div>
+                <div class="mb-3">
+                    <label for="og_image" class="form-label">OG Image URL (optional)</label>
+                    <input type="url" id="og_image" name="og_image" class="form-control" value="{{ seo_og_image|default:'' }}" style="max-width: 500px;">
+                </div>
+                <button type="submit" class="btn btn-primary">Save SEO</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

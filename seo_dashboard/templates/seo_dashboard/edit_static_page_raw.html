@@ -1,0 +1,48 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Edit (HTML/CSS/JS): {{ url_key }} | Content &amp; SEO | Top Teen{% endblock %}
+
+{% block page_title %}Edit page: {{ url_key }} (HTML / CSS / JS){% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Static Pages</a>
+        <a href="{% url 'seo_dashboard:edit_content' url_key=url_key %}" class="btn btn-outline-secondary btn-sm ms-2">Edit content (form)</a>
+        {% if view_url %}
+        <a href="{{ view_url }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-2">View on site</a>
+        {% endif %}
+    </div>
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>Edit HTML, CSS &amp; JS (slug: <code>{{ url_key }}</code>)</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" id="title" name="title" class="form-control" value="{{ page.title|default:'' }}" style="max-width: 500px;">
+                </div>
+                <div class="mb-3">
+                    <label for="content_html" class="form-label">HTML content</label>
+                    <textarea id="content_html" name="content_html" class="form-control font-monospace" rows="14" style="font-size: 13px;">{{ page.content_html|default:'' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="content_css" class="form-label">CSS (injected in page)</label>
+                    <textarea id="content_css" name="content_css" class="form-control font-monospace" rows="10" style="font-size: 13px;">{{ page.content_css|default:'' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="content_js" class="form-label">JavaScript (injected at end of page)</label>
+                    <textarea id="content_js" name="content_js" class="form-control font-monospace" rows="10" style="font-size: 13px;">{{ page.content_js|default:'' }}</textarea>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active"{% if page.is_active %} checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

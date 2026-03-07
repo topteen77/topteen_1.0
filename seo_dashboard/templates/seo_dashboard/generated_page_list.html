@@ -1,0 +1,54 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Generated pages | Content &amp; SEO | Top Teen{% endblock %}
+
+{% block page_title %}Generated pages (from URL){% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Static Pages</a>
+        {% if can_edit_content %}
+        <a href="{% url 'seo_dashboard:create_page_from_url' %}" class="btn btn-primary btn-sm ms-2">Create page from URL</a>
+        {% endif %}
+    </div>
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>Pages created from URL import</h5>
+        </div>
+        <div class="card-body">
+            {% if generated_pages %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Slug</th>
+                        <th>Title</th>
+                        <th>Source URL</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in generated_pages %}
+                    <tr>
+                        <td><code>{{ p.slug }}</code></td>
+                        <td>{{ p.title }}</td>
+                        <td>{% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener">{{ p.source_url|truncatechars:50 }}</a>{% else %}—{% endif %}</td>
+                        <td>{% if p.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td>
+                            <a href="/page/{{ p.slug }}/" target="_blank" class="btn btn-outline-primary btn-sm">View</a>
+                            {% if can_edit_content %}
+                            <a href="{% url 'seo_dashboard:edit_generated_page' slug=p.slug %}" class="btn btn-primary btn-sm ms-1">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted mb-0">No generated pages yet. <a href="{% url 'seo_dashboard:create_page_from_url' %}">Create one from a URL</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

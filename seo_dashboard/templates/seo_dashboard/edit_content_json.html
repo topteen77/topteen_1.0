@@ -1,0 +1,131 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Edit content: {{ url_key }} | Top Teen{% endblock %}
+
+{% block page_title %}Edit content (JSON): {{ url_key }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Page list</a>
+    </div>
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>Page content (dynamic fields)</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="json-content-form" data-upload-url="{{ upload_image_url }}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title (optional)</label>
+                    <input type="text" id="title" name="title" class="form-control" value="{{ static_page.title|default:'' }}" style="max-width: 400px;">
+                </div>
+                {% for row in form_fields %}
+                <div class="mb-3 json-field" data-field-id="{{ row.field.id }}" data-field-type="{{ row.field.type }}">
+                    <label for="json_{{ row.field.id }}" class="form-label">{{ row.field.label }}</label>
+                    {% if row.field.type == 'text' %}
+                    <input type="text" id="json_{{ row.field.id }}" name="json_{{ row.field.id }}" class="form-control" value="{{ row.value }}" placeholder="{{ row.field.placeholder|default:'' }}">
+                    {% elif row.field.type == 'textarea' %}
+                    <textarea id="json_{{ row.field.id }}" name="json_{{ row.field.id }}" class="form-control" rows="4" placeholder="{{ row.field.placeholder|default:'' }}">{{ row.value }}</textarea>
+                    {% elif row.field.type == 'richtext' %}
+                    <textarea id="json_{{ row.field.id }}" name="json_{{ row.field.id }}" class="form-control ckeditor-json" rows="8" placeholder="{{ row.field.placeholder|default:'' }}">{{ row.value }}</textarea>
+                    {% elif row.field.type == 'image' %}
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <input type="hidden" id="json_{{ row.field.id }}" name="json_{{ row.field.id }}" value="{{ row.value }}">
+                        <input type="file" class="cms-image-file form-control" data-field-id="{{ row.field.id }}" accept="image/*" style="max-width: 280px;">
+                        <button type="button" class="btn btn-outline-secondary cms-image-upload" data-field-id="{{ row.field.id }}">Upload to S3</button>
+                        <span class="cms-image-status text-muted small"></span>
+                    </div>
+                    <div class="mt-1 cms-image-preview">
+                        {% if row.value %}
+                        <img src="{{ row.value }}" alt="Preview" style="max-height: 80px; max-width: 200px;" class="img-thumbnail">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active"{% if static_page.is_active %} checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_head %}
+<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@44.3.0/build/ckeditor.js"></script>
+<style>
+    .ck.ck-editor { max-width: 100%; }
+    .ck.ck-editor__editable { min-height: 220px; }
+</style>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+(function() {
+    var uploadUrl = document.getElementById('json-content-form').getAttribute('data-upload-url');
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    var jsonEditors = [];
+
+    document.querySelectorAll('.ckeditor-json').forEach(function(ta) {
+        if (typeof ClassicEditor !== 'undefined') {
+            ClassicEditor.create(ta, {
+                toolbar: ['bold', 'italic', 'underline', '|', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+            }).then(function(editor) {
+                jsonEditors.push(editor);
+            }).catch(function(err) {
+                console.error(err);
+            });
+        }
+    });
+    document.getElementById('json-content-form').addEventListener('submit', function() {
+        jsonEditors.forEach(function(editor) {
+            editor.updateSourceElement();
+        });
+    });
+
+    document.querySelectorAll('.cms-image-upload').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var fieldId = this.getAttribute('data-field-id');
+            var fileInput = document.querySelector('.cms-image-file[data-field-id="' + fieldId + '"]');
+            var hiddenInput = document.getElementById('json_' + fieldId);
+            var statusEl = this.closest('.d-flex').querySelector('.cms-image-status');
+            var previewEl = this.closest('.json-field').querySelector('.cms-image-preview');
+            if (!fileInput || !fileInput.files.length) {
+                statusEl.textContent = 'Choose a file first.';
+                return;
+            }
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            statusEl.textContent = 'Uploading…';
+            fetch(uploadUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'
+            }).then(function(r) {
+                return r.json().then(function(data) {
+                    if (data.success && data.url) {
+                        hiddenInput.value = data.url;
+                        statusEl.textContent = 'Uploaded.';
+                        if (previewEl) {
+                            previewEl.innerHTML = '<img src="' + data.url + '" alt="Preview" style="max-height: 80px; max-width: 200px;" class="img-thumbnail">';
+                        }
+                    } else {
+                        statusEl.textContent = data.error || 'Upload failed.';
+                    }
+                });
+            }).catch(function() {
+                statusEl.textContent = 'Upload failed.';
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}
