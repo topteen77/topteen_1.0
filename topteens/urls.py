@@ -66,6 +66,7 @@ urlpatterns = [
     path('analytics/', include('analytics_dashboard.urls')),
     path('user-analytics/', include('user_analytics.urls', namespace='user_analytics')),
     path('forum/', include('forum.urls', namespace='forum')),
+    path('seo-dashboard/', include('seo_dashboard.urls', namespace='seo_dashboard')),
 
     # old code not in use - start
     # New isolated routes for marketing authentication frontend

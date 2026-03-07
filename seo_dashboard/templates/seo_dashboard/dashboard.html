@@ -1,0 +1,25 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Content &amp; SEO Dashboard | Top Teen{% endblock %}
+
+{% block page_title %}Content &amp; SEO Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="admin-card">
+        <div class="card-body">
+            <h5 class="card-title">Content &amp; SEO</h5>
+            <p class="mb-3">Manage static page content and SEO meta from one place.</p>
+            <p class="mb-2"><strong>Your access:</strong>
+                {% if can_edit_content %}Edit content (CMS) and SEO.{% else %}{% if can_edit_seo %}Edit SEO only.{% else %}No permissions.{% endif %}{% endif %}
+            </p>
+            <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-primary">View all pages</a>
+            {% if can_edit_seo %}
+            <a href="{% url 'seo_dashboard:add_seo_by_url' %}" class="btn btn-outline-primary ms-2">Add SEO for any URL</a>
+            <a href="{% url 'seo_dashboard:scanned_url_list' %}" class="btn btn-outline-secondary ms-2">Scanned URLs</a>
+            {% endif %}
+            <p class="text-muted mt-2 mb-0">Edit content (staff only) or SEO meta (staff / SEO users). SEO works for all pages: static, blogs, careers, and any future URL.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

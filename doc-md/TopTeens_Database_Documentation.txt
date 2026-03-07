@@ -1,0 +1,1389 @@
+# TopTeens Database - Complete Documentation
+# Tables with Descriptions and Structures
+#
+# This document describes the database tables used by the TopTeens Django project.
+# Use it to understand table structure, relationships, and to write queries.
+#
+# Conventions:
+# - Table names: app_label + '_' + model_name (lowercase). E.g. blog_blog, users_user.
+# - Many-to-many relations create extra tables (e.g. blog_blog_tags for Blog.tags).
+# - Models inheriting BaseModel include: created, modified, object_status (soft delete).
+# - object_status: 1 = active, other = deleted (filter with object_status=1 for active).
+# - Actual column types may vary by DB backend (MySQL/PostgreSQL); check migrations if needed.
+
+# SECTION 1: CORE MASTER & CONFIGURATION TABLES
+
+1. CORE_CONFIGURATION
+
+Description:
+Stores key-value configuration used across the application (e.g. STUDENT_ID_PREFIX,
+SCHOOL_STUDENT_ID_PREFIX). Values can be edited from admin. Soft-deleted rows are
+excluded by default (object_status).
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_configuration (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  key varchar(120) NOT NULL UNIQUE,
+  value varchar(120) NOT NULL,
+  editable tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (id)
+);
+
+2. CORE_MASTERCLASS
+
+Description:
+Master table of school classes/grades (e.g. Class 6 to 12). Used for dropdowns and
+filtering. value is numeric (6..12), label is display text (e.g. "Class 10").
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_masterclass (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NOT NULL,
+  value smallint unsigned NOT NULL UNIQUE,
+  label varchar(64) NOT NULL,
+  active tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (id)
+);
+
+3. CORE_COUNTRY
+
+Description:
+Master table of countries. Used for location (colleges, users) and filtering.
+Includes short_name and phone_code.
+
+Main FK Relations with other tables:
+- core_state (country_id): States belong to a country
+
+Table Structure:
+
+TABLE core_country (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NOT NULL,
+  short_name varchar(5) NOT NULL,
+  phone_code varchar(5) NOT NULL,
+  priority smallint unsigned NOT NULL DEFAULT 1,
+  flag varchar(100) NULL,
+  PRIMARY KEY (id)
+);
+
+4. CORE_STATE
+
+Description:
+States/provinces within a country. Used with Country and City for location data.
+
+Main FK Relations with other tables:
+- core_country (country_id): State belongs to a country
+- core_city (state_id): Cities belong to a state
+
+Table Structure:
+
+TABLE core_state (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NOT NULL,
+  country_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (country_id)
+);
+
+5. CORE_CITY
+
+Description:
+Cities within a state. Used for college and location data.
+
+Main FK Relations with other tables:
+- core_state (state_id): City belongs to a state
+
+Table Structure:
+
+TABLE core_city (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NOT NULL,
+  state_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (state_id)
+);
+
+6. CORE_REVIEW
+
+Description:
+Student testimonials/success stories shown on the home page. Has name, image,
+quote, description, profession, and display priority. Uses publish_status for
+draft/published.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_review (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(100) NOT NULL,
+  image varchar(100) NULL,
+  image_s3_url varchar(500) NULL,
+  quote varchar(300) NULL,
+  description longtext NOT NULL,
+  profession varchar(100) NOT NULL,
+  priority smallint unsigned NOT NULL DEFAULT 1,
+  publish_status smallint NOT NULL DEFAULT 1,
+  PRIMARY KEY (id)
+);
+
+7. CORE_COMMONFAQ
+
+Description:
+FAQ entries with question, answer (rich text), priority, user_type (e.g. student/parent),
+and is_featured flag. Used for FAQ sections across the site.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_commonfaq (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  question varchar(300) NULL,
+  answer longtext NULL,
+  priority smallint unsigned NOT NULL DEFAULT 1,
+  user_type smallint NOT NULL DEFAULT 0,
+  is_featured smallint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+8. CORE_CONTACT
+
+Description:
+Contact form submissions: name, mobile, email, message. Used for "Contact Us" form.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_contact (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(100) NOT NULL,
+  mobile varchar(20) NULL,
+  email varchar(254) NOT NULL,
+  message varchar(500) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+9. CORE_LEAD
+
+Description:
+Simple lead capture (name, mobile). Used for quick lead forms. Distinct from
+user_analytics.Lead which tracks full attribution.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_lead (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(100) NOT NULL,
+  mobile varchar(20) NULL,
+  PRIMARY KEY (id)
+);
+
+10. CORE_STATICPAGE
+
+Description:
+CMS content for static pages (terms, privacy, about, career_planning, etc.).
+Editable from admin and Content & SEO dashboard. url_key matches route (e.g. terms).
+content_html is main body; content_json for structured content; content_css/content_js
+for injected assets.
+
+Main FK Relations with other tables:
+- core_staticpagesection (static_page_id): Optional sections per page
+
+Table Structure:
+
+TABLE core_staticpage (
+  id integer NOT NULL AUTO_INCREMENT,
+  url_key varchar(80) NOT NULL UNIQUE,
+  title varchar(255) NOT NULL DEFAULT '',
+  content_html longtext NOT NULL DEFAULT '',
+  content_json json NULL,
+  content_css longtext NOT NULL DEFAULT '',
+  content_js longtext NOT NULL DEFAULT '',
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+11. CORE_PAGESEO
+
+Description:
+SEO meta (title, description, keywords, og_image) for pages. url_key can be
+url name (e.g. core:aboutus) or static page key (e.g. about).
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_pageseo (
+  id integer NOT NULL AUTO_INCREMENT,
+  url_key varchar(120) NOT NULL UNIQUE,
+  title varchar(70) NOT NULL DEFAULT '',
+  description varchar(300) NOT NULL DEFAULT '',
+  keywords varchar(500) NOT NULL DEFAULT '',
+  og_image varchar(500) NOT NULL DEFAULT '',
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+12. CORE_GENERATEDPAGE
+
+Description:
+CMS pages generated from a static HTML URL. Admin enters source_url; we store
+slug, title, content_html, content_css, content_js. Served at /page/<slug>/.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE core_generatedpage (
+  id integer NOT NULL AUTO_INCREMENT,
+  slug varchar(120) NOT NULL UNIQUE,
+  title varchar(255) NOT NULL,
+  content_html longtext NOT NULL DEFAULT '',
+  content_css longtext NOT NULL DEFAULT '',
+  content_js longtext NOT NULL DEFAULT '',
+  source_url varchar(2000) NOT NULL DEFAULT '',
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+# SECTION 2: USERS AND AUTHENTICATION
+
+13. USERS_USER (AUTH_USER_MODEL)
+
+Description:
+Main user table. Supports students, parents, institute, counselor, etc. (user_type).
+EMAIL is USERNAME_FIELD. Includes name, mobile, image, referral, user_status,
+is_demo_account, is_system_demo. Soft-deleted via object_status.
+
+Main FK Relations with other tables:
+- users_userprofile (user_id): One-to-one profile
+- users_parentstudentlink: parent_id, student_id
+- blog_blog (author_id): Blog posts
+- Many other tables reference user_id for ownership or assignment
+
+Table Structure:
+
+TABLE users_user (
+  id integer NOT NULL AUTO_INCREMENT,
+  password varchar(128) NOT NULL,
+  last_login datetime(6) NULL,
+  is_superuser tinyint(1) NOT NULL DEFAULT 0,
+  name varchar(255) NULL,
+  email varchar(255) NULL UNIQUE,
+  mobile varchar(25) NULL,
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  is_staff tinyint(1) NOT NULL DEFAULT 0,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  image varchar(100) NULL,
+  is_completed tinyint(1) NOT NULL DEFAULT 0,
+  referral varchar(255) NULL,
+  user_type smallint NOT NULL DEFAULT 0,
+  user_status smallint NOT NULL DEFAULT 0,
+  is_demo_account tinyint(1) NOT NULL DEFAULT 0,
+  is_system_demo tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+14. USERS_USERPROFILE
+
+Description:
+Extended profile for a user: birthdate, gender, schoolname, grade, and M2M to
+hobbies, subject, figure_out (core models). One-to-one with User.
+
+Main FK Relations with other tables:
+- users_user (user_id): One-to-one
+- core_hobbies (via M2M users_userprofile_hobbies)
+- core_subject (via M2M users_userprofile_subject)
+- core_userfigureout (via M2M users_userprofile_figure_out)
+
+Table Structure:
+
+TABLE users_userprofile (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  user_id integer NOT NULL UNIQUE,
+  birthdate date NULL,
+  gender smallint unsigned NOT NULL DEFAULT 1,
+  schoolname varchar(250) NULL,
+  grade varchar(100) NULL,
+  PRIMARY KEY (id),
+  KEY (user_id)
+);
+
+15. USERS_PARENTSTUDENTLINK
+
+Description:
+Links a parent user to one or more student users. A student can have multiple
+parents. Used for parent dashboard and shared bookmarks.
+
+Main FK Relations with other tables:
+- users_user (parent_id): Parent user
+- users_user (student_id): Student user
+
+Table Structure:
+
+TABLE users_parentstudentlink (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  parent_id integer NOT NULL,
+  student_id integer NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (parent_id, student_id),
+  KEY (parent_id),
+  KEY (student_id)
+);
+
+
+# SECTION 3: BLOG
+
+16. BLOG_BLOGCATEGORY
+
+Description:
+Blog categories with name and color. Slug used in URLs.
+
+Main FK Relations with other tables:
+- blog_blog (category_id): Blog posts belong to a category
+
+Table Structure:
+
+TABLE blog_blogcategory (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(200) NOT NULL,
+  slug varchar(255) NULL UNIQUE,
+  color varchar(7) NULL,
+  PRIMARY KEY (id)
+);
+
+17. BLOG_BLOG
+
+Description:
+Blog posts. Author is User; category optional; has title, image, summary,
+content (rich text), views_count, tags (M2M). publish_status for draft/published.
+
+Main FK Relations with other tables:
+- users_user (author_id): Author of the post
+- blog_blogcategory (category_id): Category
+- blog_blogtag (via blog_blog_tags M2M): Tags
+
+Table Structure:
+
+TABLE blog_blog (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  slug varchar(255) NULL UNIQUE,
+  seo_title varchar(70) NULL,
+  seo_description varchar(300) NULL,
+  publish_status smallint NOT NULL DEFAULT 1,
+  author_id integer NOT NULL,
+  title varchar(250) NOT NULL,
+  image varchar(100) NOT NULL,
+  category_id integer NULL,
+  summary varchar(255) NOT NULL DEFAULT '',
+  content longtext NOT NULL DEFAULT '',
+  views_count integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (author_id),
+  KEY (category_id)
+);
+
+18. BLOG_BLOGSHORTLIST
+
+Description:
+User bookmarks for blog posts. Unique per (user, blog). Used by students and
+parents; students can see linked parents' bookmarks.
+
+Main FK Relations with other tables:
+- users_user (user_id): User who bookmarked
+- blog_blog (blog_id): Blog post bookmarked
+
+Table Structure:
+
+TABLE blog_blogshortlist (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  user_id integer NULL,
+  blog_id integer NULL,
+  PRIMARY KEY (id),
+  UNIQUE (user_id, blog_id),
+  KEY (user_id),
+  KEY (blog_id)
+);
+
+
+# SECTION 4: INSTITUTE AND COUNSELING
+
+19. INSTITUTE_INSTITUTEGROUP
+
+Description:
+Group of institutes. institute_group_admin is a User (INSTITUTEGROUPADMIN type).
+Used to manage multiple institutes under one admin.
+
+Main FK Relations with other tables:
+- users_user (institute_group_admin_id): Group admin
+- institute_institute (institute_group_id): Institutes in this group
+
+Table Structure:
+
+TABLE institute_institutegroup (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  group_name varchar(250) NOT NULL,
+  institute_group_admin_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (institute_group_admin_id)
+);
+
+20. INSTITUTE_INSTITUTE
+
+Description:
+Educational institute (school/college). Has name, logo, address, contact_info,
+credit_counts (seat allocation), institute_group, marketing_group, institute_type,
+institute_status, seat capacities per stream (pcm, cbm, comm, hme, hmb).
+is_demo_institute and is_system_demo for demo data.
+
+Main FK Relations with other tables:
+- users_user (created_by_id): Creator (INSTITUTE type)
+- institute_institutegroup (institute_group_id): Optional group
+- institute_institutemarketinggroup (marketing_group_id): Optional marketing group
+- institute_studentmanagement (institute_id): Students enrolled
+
+Table Structure:
+
+TABLE institute_institute (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(500) NOT NULL,
+  slug varchar(255) NULL UNIQUE,
+  created_by_id integer NULL,
+  logo varchar(100) NULL,
+  address varchar(350) NULL,
+  contact_info varchar(250) NULL,
+  administrator_contact varchar(250) NULL,
+  credit_counts integer unsigned NOT NULL DEFAULT 0,
+  institute_group_id integer NULL,
+  marketing_group_id integer NULL,
+  institute_type smallint NOT NULL DEFAULT 0,
+  institute_status smallint NOT NULL DEFAULT 0,
+  is_demo_institute tinyint(1) NOT NULL DEFAULT 0,
+  is_system_demo tinyint(1) NOT NULL DEFAULT 0,
+  pcm integer unsigned NOT NULL DEFAULT 100,
+  cbm integer unsigned NOT NULL DEFAULT 100,
+  comm integer unsigned NOT NULL DEFAULT 100,
+  hme integer unsigned NOT NULL DEFAULT 100,
+  hmb integer unsigned NOT NULL DEFAULT 100,
+  PRIMARY KEY (id),
+  KEY (created_by_id),
+  KEY (institute_group_id),
+  KEY (marketing_group_id)
+);
+
+21. INSTITUTE_STUDENTMANAGEMENT
+
+Description:
+Links a student (User) to an institute, with optional class_and_section and
+counselor. Used for school/institute-registered students; provides school
+student ID and psychometric test linkage.
+
+Main FK Relations with other tables:
+- institute_institute (institute_id): Institute
+- users_user (student_id): Student
+- institute_classandsection (class_and_section_id): Class/section
+- counselor_counselor (counselor_id): Assigned counselor
+
+Table Structure:
+
+TABLE institute_studentmanagement (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  institute_id integer NULL,
+  student_id integer NULL,
+  class_and_section_id integer NULL,
+  counselor_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (institute_id),
+  KEY (student_id),
+  KEY (class_and_section_id),
+  KEY (counselor_id)
+);
+
+22. COUNSELOR_COUNSELOR
+
+Description:
+Counselor profile. Links to User (coun_user), institute (counselor_admin), and
+M2M to StudentManagement (students). Stores name, email, address, contact_info,
+education, gender.
+
+Main FK Relations with other tables:
+- users_user (coun_user_id): Counselor user account
+- institute_institute (counselor_admin_id): Admin institute
+- institute_studentmanagement (via M2M counselor_counselor_students): Assigned students
+
+Table Structure:
+
+TABLE counselor_counselor (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  counselor_name varchar(250) NOT NULL,
+  coun_user_id integer NULL,
+  counselor_email varchar(255) NULL UNIQUE,
+  counselor_address varchar(350) NULL,
+  counselor_contact_info varchar(250) NULL,
+  counselor_education varchar(250) NULL,
+  counselor_gender smallint unsigned NOT NULL DEFAULT 1,
+  counselor_admin_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (coun_user_id),
+  KEY (counselor_admin_id)
+);
+
+
+# SECTION 5: COLLEGES AND COURSES
+
+23. COLLEGES_COLLEGE
+
+Description:
+College/institution. Has name, banner, logo, country, state, city, category,
+stream, college_type, university_type. Shortlist M2M to User. Uses publish_status
+and object_status. Text/facts/images stored in child tables (CollegeText,
+CollegeFacts, CollegeImages, etc.).
+
+Main FK Relations with other tables:
+- core_country (country_id): Country
+- core_state (state_id): State
+- core_city (city_id): City
+- colleges_collegecategory (category_id): Category
+- colleges_stream (stream_id): Stream
+- users_user (created_by_id, updated_by_id): Audit
+
+Table Structure:
+
+TABLE colleges_college (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(200) NOT NULL DEFAULT '',
+  slug varchar(255) NULL UNIQUE,
+  seo_title varchar(70) NULL,
+  seo_description varchar(300) NULL,
+  publish_status smallint NOT NULL DEFAULT 1,
+  created_by_id integer NULL,
+  updated_by_id integer NULL,
+  country_id integer NULL,
+  banner varchar(100) NULL,
+  logo varchar(100) NULL,
+  state_id integer NULL,
+  city_id integer NULL,
+  category_id integer NULL,
+  stream_id integer NULL,
+  college_type smallint unsigned NOT NULL DEFAULT 0,
+  university_type smallint unsigned NOT NULL DEFAULT 0,
+  currency smallint NOT NULL DEFAULT 0,
+  amount integer unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (country_id),
+  KEY (state_id),
+  KEY (city_id),
+  KEY (category_id),
+  KEY (stream_id),
+  KEY (created_by_id),
+  KEY (updated_by_id)
+);
+
+24. COURSES_COURSE
+
+Description:
+Course/degree program. Belongs to a College; has name, overview, logo, duration_months,
+program_level, course_type, stream. Child tables: CourseFacts, CourseText,
+CourseMoneyValue, CourseIntake, CourseEnglighRequirements.
+
+Main FK Relations with other tables:
+- colleges_college (college_id): College offering the course
+- courses_stream (stream_id): Stream (e.g. PCM)
+
+Table Structure:
+
+TABLE courses_course (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  name varchar(250) NOT NULL,
+  slug varchar(255) NULL UNIQUE,
+  seo_title varchar(70) NULL,
+  seo_description varchar(300) NULL,
+  college_id integer NULL,
+  overview longtext NOT NULL DEFAULT '',
+  logo varchar(100) NULL,
+  duration_months smallint unsigned NOT NULL DEFAULT 0,
+  program_level smallint unsigned NOT NULL DEFAULT 0,
+  course_type smallint unsigned NOT NULL DEFAULT 0,
+  stream_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (college_id),
+  KEY (stream_id)
+);
+
+
+# SECTION 6: CAREERS
+
+25. CAREERS_CAREERCLUSTER
+
+Description:
+Career track/cluster (e.g. Engineering, Arts). Can have parent for hierarchy.
+Has name, image, career_track_icon (SVG), slug. Careers link to clusters via M2M.
+
+Main FK Relations with other tables:
+- self (parent_id): Parent cluster for hierarchy
+- careers_career (via M2M career_career_cluster): Careers in this cluster
+
+Table Structure:
+
+TABLE careers_careercluster (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(500) NULL,
+  slug varchar(255) NULL UNIQUE,
+  parent_id integer NULL,
+  image varchar(100) NULL,
+  career_track_icon varchar(100) NULL,
+  career_track_icon_s3_url varchar(500) NULL,
+  PRIMARY KEY (id),
+  KEY (parent_id)
+);
+
+26. CAREERS_CAREER
+
+Description:
+Career/occupation. Name, summary, description (rich text), description_json,
+image, skills/prospective_employment_areas/prospective_recruiters/career_tags
+(M2M), courses (M2M), career_cluster (M2M), career_paths, video_url, videos (M2M).
+Uses publish_status and object_status.
+
+Main FK Relations with other tables:
+- careers_careercluster (via M2M): Clusters
+- careers_skill (via M2M): Skills
+- courses_course (via M2M from courses app - careers.Course is from courses.models): Related courses (app courses)
+- career_embeddings (career_id): One-to-one for AI embedding cache
+
+Table Structure:
+
+TABLE careers_career (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(500) NULL,
+  slug varchar(255) NULL UNIQUE,
+  seo_title varchar(70) NULL,
+  seo_description varchar(300) NULL,
+  publish_status smallint NOT NULL DEFAULT 1,
+  summary longtext NULL,
+  description longtext NULL,
+  description_json json NULL,
+  image varchar(100) NULL,
+  video_url varchar(250) NOT NULL DEFAULT '',
+  PRIMARY KEY (id)
+);
+
+27. CAREER_EMBEDDINGS (db_table override)
+
+Description:
+Stores cached embedding vector (JSON) for a career for AI/semantic search.
+One-to-one with Career. embedding_text_hash for cache invalidation; provider
+and model_name identify the embedding model.
+
+Main FK Relations with other tables:
+- careers_career (career_id): One-to-one
+
+Table Structure:
+
+TABLE career_embeddings (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  career_id integer NOT NULL UNIQUE,
+  embedding json NOT NULL,
+  embedding_text_hash varchar(64) NOT NULL,
+  provider varchar(20) NOT NULL DEFAULT 'openai',
+  model_name varchar(100) NOT NULL DEFAULT 'text-embedding-3-small',
+  PRIMARY KEY (id),
+  KEY (career_id),
+  KEY (embedding_text_hash)
+);
+
+
+# SECTION 7: PSYCHOMETRIC TESTS AND APP (ASSESSMENT/QUIZ)
+
+28. PSYCHOMETRICTESTS_PSYCHOMETRICTESTPAYMENT
+
+Description:
+Payment record for psychometric test (Stream Sorter / Career Direction). Links
+to User; gateway_receipt, test_type, is_success. On success triggers
+CentralTestCandidate and CandidateTest creation.
+
+Main FK Relations with other tables:
+- users_user (user_id): User who paid
+- psychometric_tests_candidatetest (pyschometric_test_payment_id): Candidate test(s)
+
+Table Structure:
+
+TABLE psychometric_tests_psychometrictestpayment (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  user_id integer NOT NULL,
+  gateway_receipt varchar(120) NULL,
+  test_type smallint NOT NULL,
+  is_success smallint NOT NULL DEFAULT 0,
+  currency smallint NOT NULL DEFAULT 0,
+  amount integer unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (user_id)
+);
+
+29. PSYCHOMETRICTESTS_CENTRALTESTCANDIDATE
+
+Description:
+Candidate record for external Central Test (psychometric) service. One-to-one
+with User. Stores candidate_id, title_id, email, login, names, etc. from API.
+
+Main FK Relations with other tables:
+- users_user (user_id): One-to-one
+- psychometric_tests_candidatetest (central_test_candidate_id): Test attempts
+
+Table Structure:
+
+TABLE psychometric_tests_centraltestcandidate (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  user_id integer NOT NULL UNIQUE,
+  candidate_id integer NOT NULL,
+  title_id integer NOT NULL,
+  country_code varchar(120) NULL,
+  email varchar(120) NULL,
+  login varchar(255) NULL,
+  last_name varchar(255) NULL,
+  first_name varchar(120) NULL,
+  last_connection_date varchar(120) NULL,
+  groups json NULL,
+  postal_code varchar(120) NULL,
+  phone varchar(120) NULL,
+  candidate_function varchar(120) NULL,
+  sector_id varchar(120) NULL,
+  observations json NULL,
+  PRIMARY KEY (id),
+  KEY (user_id)
+);
+
+30. PSYCHOMETRICTESTS_CANDIDATETEST
+
+Description:
+Single psychometric test attempt. Links payment, central candidate, assessment_id
+from API, test_link, is_success. When is_success, PsychometricTestResult is created.
+
+Main FK Relations with other tables:
+- psychometric_tests_psychometrictestpayment (pyschometric_test_payment_id): Payment
+- psychometric_tests_centraltestcandidate (central_test_candidate_id): Candidate
+- psychometric_tests_psychometrictestresult (assessment_id): One-to-one result
+
+Table Structure:
+
+TABLE psychometric_tests_candidatetest (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  pyschometric_test_payment_id integer NULL,
+  central_test_candidate_id integer NULL,
+  assessment_id integer NOT NULL,
+  test_link varchar(255) NULL,
+  is_success smallint NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (pyschometric_test_payment_id),
+  KEY (central_test_candidate_id)
+);
+
+31. PSYCHOMETRICTESTS_PSYCHOMETRICTESTRESULT
+
+Description:
+RIASEC scores and result text for a completed psychometric assessment. One-to-one
+with CandidateTest. Stores realistic, investigative, artistic, social,
+entrepreneurial, conventional, about, suggested_trades, pdf_url, xml_file_url.
+
+Main FK Relations with other tables:
+- psychometric_tests_candidatetest (assessment_id): One-to-one
+
+Table Structure:
+
+TABLE psychometric_tests_psychometrictestresult (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  assessment_id integer NULL UNIQUE,
+  realistic double NULL,
+  investigative double NULL,
+  artistic double NULL,
+  social double NULL,
+  entrepreneurial double NULL,
+  conventional double NULL,
+  about longtext NULL,
+  suggested_trades longtext NULL,
+  pdf_url varchar(250) NULL,
+  xml_file_url varchar(250) NULL,
+  PRIMARY KEY (id),
+  KEY (assessment_id)
+);
+
+32. APP_TESTCOMPLETION
+
+Description:
+Tracks which assessment tests a user has completed (test1, test2, test3,
+numerical, verbal, logical, emotional, etc.). One row per user.
+
+Main FK Relations with other tables:
+- users_user (user_id): User
+
+Table Structure:
+
+TABLE app_testcompletion (
+  id integer NOT NULL AUTO_INCREMENT,
+  user_id integer NOT NULL,
+  test1_complete tinyint(1) NOT NULL DEFAULT 0,
+  test2_complete tinyint(1) NOT NULL DEFAULT 0,
+  test3_complete tinyint(1) NOT NULL DEFAULT 0,
+  numerical_complete tinyint(1) NOT NULL DEFAULT 0,
+  verbal_complete tinyint(1) NOT NULL DEFAULT 0,
+  logical_complete tinyint(1) NOT NULL DEFAULT 0,
+  emotional_complete tinyint(1) NOT NULL DEFAULT 0,
+  machanical_complete tinyint(1) NOT NULL DEFAULT 0,
+  language_complete tinyint(1) NOT NULL DEFAULT 0,
+  spatial_complete tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (user_id)
+);
+
+33. APP_RESULTS
+
+Description:
+Stores assessment results per user per test_paper. scores, results, selected_answers
+as JSON; modified timestamp. Used for final assessment report.
+
+Main FK Relations with other tables:
+- users_user (user_id): User
+
+Table Structure:
+
+TABLE app_results (
+  id integer NOT NULL AUTO_INCREMENT,
+  user_id integer NOT NULL,
+  test_paper varchar(100) NOT NULL,
+  scores json NOT NULL,
+  results json NOT NULL,
+  selected_answers json NOT NULL,
+  modified datetime(6) NOT NULL,
+  PRIMARY KEY (id),
+  KEY (user_id),
+  KEY (modified)
+);
+
+
+# SECTION 8: SKILLLAB (COURSES)
+
+34. SKILLLAB_SKILLLABCOURSE
+
+Description:
+Skill Lab course. Name, image, category, description, course_intro_html,
+course_index_html, video_url. amount/currency from BaseMoneyModel; free if amount=0.
+
+Main FK Relations with other tables:
+- skilllab_skilllabcoursechapter (skilllab_id): Chapters
+- skilllab_skilllabcourpayment (skilllab_course_id): Payments
+- skilllab_skilllabcourseprogress (skilllab_course_id): User progress
+
+Table Structure:
+
+TABLE skilllab_skilllabcourse (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  name varchar(160) NOT NULL,
+  slug varchar(255) NULL UNIQUE,
+  image varchar(100) NULL,
+  category smallint NOT NULL DEFAULT 0,
+  description longtext NULL,
+  course_intro_html longtext NULL,
+  course_index_html longtext NULL,
+  video_url varchar(250) NOT NULL DEFAULT '',
+  currency smallint NOT NULL DEFAULT 0,
+  amount integer unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+35. SKILLLAB_SKILLLABCOURSEPAYMENT
+
+Description:
+Payment for a Skill Lab course. user, skilllab_course, gateway_receipt, is_success.
+On success user can access paid course content.
+
+Main FK Relations with other tables:
+- skilllab_skilllabcourse (skilllab_course_id): Course
+- users_user (user_id): User
+
+Table Structure:
+
+TABLE skilllab_skilllabcourpayment (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  skilllab_course_id integer NULL,
+  user_id integer NOT NULL,
+  gateway_receipt varchar(120) NULL,
+  is_success smallint NOT NULL DEFAULT 0,
+  currency smallint NOT NULL DEFAULT 0,
+  amount integer unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (skilllab_course_id),
+  KEY (user_id)
+);
+
+
+# SECTION 9: PAYMENTS AND INVOICES
+
+36. PAYMENTS_PAYMENT
+
+Description:
+Generic payment record (Razorpay/EazyPay). user, gateway_receipt, gateway,
+gateway_order_id, gateway_payment_id, gateway_signature, is_success. obj_id and
+obj_type identify what was paid for (psychometric test, skilllab course, counselor, etc.).
+is_test_payment marks demo payments that can be deleted.
+
+Main FK Relations with other tables:
+- users_user (user_id): User who paid
+- invoices_invoice (payment_id): One-to-one invoice when success
+
+Table Structure:
+
+TABLE payments_payment (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  user_id integer NOT NULL,
+  is_test_payment tinyint(1) NOT NULL DEFAULT 0,
+  gateway_receipt varchar(120) NULL,
+  gateway smallint NOT NULL,
+  gateway_order_id varchar(120) NULL,
+  gateway_payment_id varchar(120) NULL,
+  gateway_signature varchar(120) NULL,
+  is_success smallint NOT NULL DEFAULT 0,
+  obj_id integer NOT NULL,
+  obj_type smallint NOT NULL,
+  response_details longtext NULL,
+  response_code varchar(120) NULL,
+  service_tax_amount varchar(120) NULL,
+  processing_fee_amount varchar(120) NULL,
+  total_amount varchar(120) NULL,
+  transaction_amount varchar(120) NULL,
+  transaction_date datetime(6) NULL,
+  interchange_value varchar(255) NULL,
+  tdr varchar(255) NULL,
+  payment_mode varchar(255) NULL,
+  currency smallint NOT NULL DEFAULT 0,
+  amount integer unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (user_id)
+);
+
+37. INVOICES_INVOICE
+
+Description:
+GST invoice for a successful payment. One-to-one with Payment. invoice_number,
+transaction_id, service, amount, gst fields, customer_*, invoice_pdf.
+
+Main FK Relations with other tables:
+- payments_payment (payment_id): One-to-one
+
+Table Structure:
+
+TABLE invoices_invoice (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  payment_id integer NOT NULL UNIQUE,
+  invoice_number varchar(64) NOT NULL UNIQUE,
+  transaction_id varchar(120) NOT NULL,
+  service varchar(128) NOT NULL,
+  service_obj_type smallint NULL,
+  amount integer unsigned NOT NULL,
+  currency smallint NOT NULL DEFAULT 0,
+  gst_rate decimal(5,2) NOT NULL DEFAULT 18,
+  taxable_value decimal(12,2) NOT NULL DEFAULT 0,
+  cgst decimal(12,2) NOT NULL DEFAULT 0,
+  sgst decimal(12,2) NOT NULL DEFAULT 0,
+  customer_name varchar(255) NOT NULL DEFAULT '',
+  customer_email varchar(254) NOT NULL DEFAULT '',
+  customer_address longtext NOT NULL DEFAULT '',
+  invoice_pdf varchar(100) NULL,
+  PRIMARY KEY (id),
+  KEY (payment_id),
+  KEY (invoice_number),
+  KEY (transaction_id)
+);
+
+
+# SECTION 10: USER ANALYTICS AND TRACKING
+
+38. USER_ANALYTICS_ENQUIRYSOURCE
+
+Description:
+UTM/tracking links. name (admin label), agency_name, user_name, event, token
+(used in URL as ?ref=TOKEN), base_url, is_active. get_full_url() builds the
+tracking link. Activities and journeys can link to enquiry_source_id.
+
+Main FK Relations with other tables:
+- user_analytics_useractivity (enquiry_source_id): Activities from this source
+- user_analytics_userjourney (enquiry_source_id): Journeys from this source
+
+Table Structure:
+
+TABLE user_analytics_enquirysource (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(255) NOT NULL,
+  agency_name varchar(255) NULL,
+  user_name varchar(255) NULL,
+  event varchar(255) NULL,
+  token varchar(32) NOT NULL UNIQUE,
+  base_url varchar(500) NULL,
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (id),
+  KEY (token),
+  KEY (is_active)
+);
+
+39. USER_ANALYTICS_USERACTIVITY
+
+Description:
+Page views and session data. user (nullable for anonymous), session_id, page_path,
+page_url, page_title, referrer, UTM fields, ip_address, user_agent, device_type,
+browser, os, country, city, traffic_source_category, time_on_page, is_bounce,
+created. enquiry_source_id set when user arrived via ?ref= token.
+
+Main FK Relations with other tables:
+- users_user (user_id): Logged-in user (nullable)
+- user_analytics_enquirysource (enquiry_source_id): Source when ref= token used
+
+Table Structure:
+
+TABLE user_analytics_useractivity (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  user_id integer NULL,
+  session_id varchar(255) NOT NULL,
+  page_path varchar(500) NOT NULL,
+  page_url varchar(500) NULL,
+  page_title varchar(500) NULL,
+  referrer varchar(500) NULL,
+  utm_source varchar(255) NULL,
+  utm_medium varchar(255) NULL,
+  utm_campaign varchar(255) NULL,
+  utm_term varchar(255) NULL,
+  utm_content varchar(255) NULL,
+  ip_address char(39) NULL,
+  user_agent longtext NULL,
+  device_type varchar(50) NULL,
+  browser varchar(100) NULL,
+  os varchar(100) NULL,
+  country varchar(100) NULL,
+  city varchar(100) NULL,
+  traffic_source_category varchar(20) NULL,
+  time_on_page integer NOT NULL DEFAULT 0,
+  is_bounce tinyint(1) NOT NULL DEFAULT 0,
+  enquiry_source_id integer NULL,
+  PRIMARY KEY (id),
+  KEY (user_id),
+  KEY (session_id),
+  KEY (page_path),
+  KEY (created),
+  KEY (enquiry_source_id)
+);
+
+40. USER_ANALYTICS_USEREVENT
+
+Description:
+Business events: registration, payment_success, psychometric_test_completed,
+course_enrolled, page_view, etc. user, event_type, event_name, event_value,
+content_type/object_id (generic FK), metadata (JSON), session_id, ip_address,
+user_agent, created.
+
+Main FK Relations with other tables:
+- users_user (user_id): User (nullable)
+- django_content_type (content_type_id): For generic object link
+
+Table Structure:
+
+TABLE user_analytics_userevent (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  user_id integer NULL,
+  event_type varchar(100) NOT NULL,
+  event_name varchar(255) NOT NULL,
+  event_value decimal(10,2) NOT NULL DEFAULT 0,
+  content_type_id integer NULL,
+  object_id integer unsigned NULL,
+  metadata json NOT NULL DEFAULT '{}',
+  session_id varchar(255) NULL,
+  ip_address char(39) NULL,
+  user_agent longtext NULL,
+  PRIMARY KEY (id),
+  KEY (user_id),
+  KEY (event_type),
+  KEY (event_name),
+  KEY (created),
+  KEY (session_id)
+);
+
+41. USER_ANALYTICS_LEAD
+
+Description:
+Lead/prospect with attribution. email, name, phone, user (set when they register),
+source, medium, campaign, referrer, landing_page, first_visit, last_visit,
+visit_count, is_converted, converted_at, conversion_value, notes. Distinct from
+core_lead (simple name/mobile).
+
+Main FK Relations with other tables:
+- users_user (user_id): Linked user after registration
+
+Table Structure:
+
+TABLE user_analytics_lead (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  email varchar(254) NOT NULL,
+  name varchar(255) NULL,
+  phone varchar(20) NULL,
+  user_id integer NULL,
+  source varchar(255) NOT NULL,
+  medium varchar(255) NULL,
+  campaign varchar(255) NULL,
+  referrer varchar(500) NULL,
+  landing_page varchar(500) NULL,
+  first_visit datetime(6) NOT NULL,
+  last_visit datetime(6) NOT NULL,
+  visit_count integer NOT NULL DEFAULT 1,
+  is_converted tinyint(1) NOT NULL DEFAULT 0,
+  converted_at datetime(6) NULL,
+  conversion_value decimal(10,2) NOT NULL DEFAULT 0,
+  notes longtext NULL,
+  PRIMARY KEY (id),
+  KEY (user_id),
+  KEY (email),
+  KEY (is_converted),
+  KEY (first_visit)
+);
+
+
+# SECTION 11: COMMUNICATION AND CRM
+
+42. COMMUNICATION_COMMUNICATIONLOG
+
+Description:
+Log of sent communications (email/SMS). to, body, response, type (choice).
+Used for debugging and audit.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE communication_communicationlog (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  to varchar(500) NOT NULL,
+  body longtext NOT NULL,
+  response longtext NOT NULL,
+  type smallint unsigned NOT NULL,
+  PRIMARY KEY (id),
+  KEY (type),
+  KEY (created)
+);
+
+43. CRM_LEAD
+
+Description:
+CRM lead: user, action, status. Tracks lead actions and status (e.g. FRESH).
+Uses core choices LeadAction, LeadStatus.
+
+Main FK Relations with other tables:
+- users_user (user_id): Lead user
+
+Table Structure:
+
+TABLE crm_lead (
+  id integer NOT NULL AUTO_INCREMENT,
+  created datetime(6) NOT NULL,
+  modified datetime(6) NOT NULL,
+  object_status smallint NOT NULL DEFAULT 1,
+  name varchar(120) NULL,
+  user_id integer NULL,
+  action smallint unsigned NOT NULL,
+  status smallint unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY (user_id)
+);
+
+
+# SECTION 12: EXAMPLE QUERIES
+
+-- Get all published blog posts with author name and category:
+-- SELECT b.id, b.title, b.slug, b.modified, u.name AS author_name, c.name AS category_name
+-- FROM blog_blog b
+-- LEFT JOIN users_user u ON b.author_id = u.id
+-- LEFT JOIN blog_blogcategory c ON b.category_id = c.id
+-- WHERE b.publish_status = 1 AND b.object_status = 1
+-- ORDER BY b.modified DESC;
+
+-- Get student display ID and institute (if any):
+-- SELECT u.id, u.email, u.name,
+--   (SELECT CONCAT(c.value, LPAD(u.id, 6, '0')) FROM core_configuration c WHERE c.key = 'STUDENT_ID_PREFIX' AND c.object_status = 1 LIMIT 1) AS student_display_id,
+--   sm.id AS student_management_id, i.name AS institute_name
+-- FROM users_user u
+-- LEFT JOIN institute_studentmanagement sm ON sm.student_id = u.id AND sm.object_status = 1
+-- LEFT JOIN institute_institute i ON i.id = sm.institute_id AND i.object_status = 1
+-- WHERE u.user_type = 0 AND u.object_status = 1;
+
+-- List successful psychometric test payments with user email:
+-- SELECT p.id, p.created, u.email, u.name, p.test_type, p.amount
+-- FROM psychometric_tests_psychometrictestpayment p
+-- JOIN users_user u ON p.user_id = u.id
+-- WHERE p.is_success = 1 AND p.object_status = 1
+-- ORDER BY p.created DESC;
+
+-- Page views per path (last 30 days, from user_analytics):
+-- SELECT page_path, COUNT(*) AS views
+-- FROM user_analytics_useractivity
+-- WHERE created >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+-- GROUP BY page_path
+-- ORDER BY views DESC
+-- LIMIT 20;
+
+END OF DOCUMENT
+
+This documentation contains:
+- Major tables grouped into 12 sections
+- Descriptions and main foreign key relations for each table
+- Table structures reflecting Django model fields (actual DB may use slightly
+  different types depending on database backend: MySQL, PostgreSQL, etc.)
+- Example SQL queries for common use cases
+
+Use this document to understand the TopTeens database schema and to write
+queries for reporting, analytics, and data integration. For many-to-many
+tables not listed explicitly (e.g. blog_blog_tags), check Django migrations
+or the model's M2M field name for the through table name.

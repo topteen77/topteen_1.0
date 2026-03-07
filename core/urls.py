@@ -14,6 +14,7 @@ urlpatterns = [
     path("contact-us/",views.contact_us,name="contactus"),
     path("upload/",views.upload,name="upload"),
     path("about-us/",views.AboutUsView.as_view(),name="aboutus"),
+    path("page/<slug:slug>/", views.generated_page_view, name="generated_page"),
     path("all-faq/",views.AllFaqView.as_view(),name="allfaq"),
     path("extracurricular-activities/", views.ExtracurricularActivitiesView.as_view(), name="extracurricular_activities"),
     path("extracurricular-activities/activity/<int:pk>/", views.ExtracurricularActivityDetailView.as_view(), name="extracurricular_activity_detail"),

@@ -1,0 +1,172 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Page List | Content &amp; SEO | Top Teen{% endblock %}
+
+{% block page_title %}Static Pages{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+        <a href="{% url 'seo_dashboard:dashboard' %}" class="btn btn-outline-primary btn-sm">← Back to Dashboard</a>
+        {% if can_edit_seo %}
+        <a href="{% url 'seo_dashboard:add_seo_by_url' %}" class="btn btn-outline-secondary btn-sm">Add SEO for any URL</a>
+        {% endif %}
+    </div>
+
+    {% if can_edit_seo %}
+    <div class="admin-card mb-3">
+        <div class="card-body py-3">
+            <h6 class="mb-2 text-muted">SEO status overview</h6>
+            <div class="d-flex flex-wrap gap-4">
+                <div>
+                    <strong>Static pages</strong>:
+                    <span class="badge bg-success">{{ static_seo_completed }} completed</span>
+                    <span class="badge bg-warning text-dark">{{ static_seo_pending }} pending</span>
+                </div>
+                {% if blog_pages %}
+                <div>
+                    <strong>Blog posts</strong>:
+                    <span class="badge bg-success">{{ blog_seo_completed }} completed</span>
+                    <span class="badge bg-warning text-dark">{{ blog_seo_pending }} pending</span>
+                </div>
+                {% endif %}
+                {% if other_pages %}
+                <div>
+                    <strong>Other URLs</strong>:
+                    <span class="badge bg-success">{{ other_seo_completed }} completed</span>
+                    <span class="badge bg-warning text-dark">{{ other_seo_pending }} pending</span>
+                </div>
+                {% endif %}
+            </div>
+            <p class="small text-muted mb-0 mt-2">Completed = has title or description set in SEO. Click &quot;Edit SEO&quot; on pending rows to fill meta.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="admin-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Static Pages</h5>
+            {% if can_edit_seo and static_seo_pending %}
+            <span class="badge bg-warning text-dark">{{ static_seo_pending }} pending SEO</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th>CMS content</th>
+                        <th>SEO status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pages %}
+                    <tr class="{% if not p.has_seo %}table-warning{% endif %}">
+                        <td>{{ p.label }}</td>
+                        <td>{% if p.has_cms_content %}Yes{% else %}—{% endif %}</td>
+                        <td>
+                            {% if p.has_seo %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if can_edit_content %}
+                            <a href="{% url 'seo_dashboard:edit_content' url_key=p.url_key %}" class="btn btn-primary btn-sm">Edit content</a>
+                            {% endif %}
+                            {% if can_edit_seo %}
+                            <a href="{% url 'seo_dashboard:edit_seo' url_key=p.url_key %}" class="btn btn-outline-secondary btn-sm ms-1">Edit SEO</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if blog_pages %}
+    <div class="admin-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Blog posts</h5>
+            {% if can_edit_seo and blog_seo_pending %}
+            <span class="badge bg-warning text-dark">{{ blog_seo_pending }} pending SEO</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">SEO for blog detail pages (e.g. /blogs/&lt;slug&gt;/). Create or edit meta so it appears on the live page.</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th>SEO status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in blog_pages %}
+                    <tr class="{% if not p.has_seo %}table-warning{% endif %}">
+                        <td>{{ p.label }}</td>
+                        <td>
+                            {% if p.has_seo %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if can_edit_seo %}
+                            <a href="{% url 'seo_dashboard:edit_seo' url_key=p.url_key %}" class="btn btn-outline-secondary btn-sm">Edit SEO</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    {% if other_pages %}
+    <div class="admin-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Other pages (by URL)</h5>
+            {% if can_edit_seo and other_seo_pending %}
+            <span class="badge bg-warning text-dark">{{ other_seo_pending }} pending SEO</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">SEO added via &quot;Add SEO for any URL&quot; (careers, colleges, skilllab, etc.). Same path as in the browser.</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>URL path</th>
+                        <th>SEO status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in other_pages %}
+                    <tr class="{% if not p.has_seo %}table-warning{% endif %}">
+                        <td><code>{{ p.label }}</code></td>
+                        <td>
+                            {% if p.has_seo %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if can_edit_seo %}
+                            <a href="{% url 'seo_dashboard:edit_seo' url_key=p.url_key %}" class="btn btn-outline-secondary btn-sm">Edit SEO</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

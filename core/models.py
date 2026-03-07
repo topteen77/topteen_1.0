@@ -885,6 +885,179 @@ class CareerBattleEligibilityProfile(models.Model):
         return f"Eligibility for {self.user_id}"
 
 
+# --- Static Page CMS & SEO (Content & SEO Dashboard) ---
+
+STATIC_PAGE_URL_KEYS = [
+    "terms",
+    "privacy",
+    "contact",
+    "about",
+    "career_planning",
+    "career_planning_4_year",
+    "career_planning_class_9",
+    "career_planning_class_10",
+    "career_planning_class_11",
+    "career_planning_class_12",
+    "emotional_intelligences",
+    "multiple_intelligences",
+    "four_pillars",
+]
+
+
+class StaticPage(models.Model):
+    """
+    CMS content for static pages (terms, privacy, about, career planning, etc.).
+    Editable from admin and from Content & SEO dashboard (staff only).
+    """
+    url_key = models.CharField(
+        max_length=80,
+        unique=True,
+        db_index=True,
+        help_text="Stable id matching the route, e.g. terms, about, career_planning",
+    )
+    title = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Optional in-page heading",
+    )
+    content_html = RichTextField(
+        blank=True,
+        help_text="Main body HTML. Rendered when present; otherwise template uses default.",
+    )
+    content_json = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Structured content as JSON. When set, edit form shows dynamic fields (text, textarea, image) and frontend can render from this.",
+    )
+    content_css = models.TextField(
+        blank=True,
+        help_text="Optional CSS injected in the page when rendering (edit via Edit HTML/CSS/JS).",
+    )
+    content_js = models.TextField(
+        blank=True,
+        help_text="Optional JavaScript injected at end of page when rendering (edit via Edit HTML/CSS/JS).",
+    )
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["url_key"]
+        verbose_name = "Static Page (CMS)"
+        verbose_name_plural = "Static Pages (CMS)"
+
+    def __str__(self):
+        return f"{self.url_key}"
+
+    @property
+    def content_html_display(self):
+        """Content for display: breadcrumb stripped for all; leading h1 stripped only on simple pages."""
+        from core.utils import get_static_page_content_display
+        return get_static_page_content_display(self.content_html or "", self.url_key)
+
+
+class StaticPageSection(models.Model):
+    """Optional sectioned content for a static page (e.g. About Us: Our Story, Team)."""
+    static_page = models.ForeignKey(
+        StaticPage,
+        on_delete=models.CASCADE,
+        related_name="sections",
+    )
+    section_id = models.CharField(max_length=80, help_text="Standard section ID, e.g. our_story, team")
+    title = models.CharField(max_length=255, help_text="Section title")
+    content_html = RichTextField(help_text="HTML content for this section")
+    order = models.PositiveSmallIntegerField(default=1, help_text="Display order")
+
+    class Meta:
+        ordering = ["static_page", "order"]
+        unique_together = [["static_page", "section_id"]]
+        verbose_name = "Static Page Section"
+        verbose_name_plural = "Static Page Sections"
+
+    def __str__(self):
+        return f"{self.static_page.url_key} – {self.title}"
+
+
+class PageSEO(models.Model):
+    """SEO meta (title, description, keywords, OG) for static pages and any url_key."""
+    url_key = models.CharField(
+        max_length=120,
+        unique=True,
+        db_index=True,
+        help_text="Stable id: url_name e.g. core:aboutus or url_key e.g. about",
+    )
+    title = models.CharField(
+        max_length=70,
+        blank=True,
+        validators=[MaxLengthValidator(70)],
+        help_text="SEO title (50–60 chars recommended)",
+    )
+    description = models.CharField(
+        max_length=300,
+        blank=True,
+        validators=[MaxLengthValidator(300)],
+        help_text="Meta description (150–160 chars recommended)",
+    )
+    keywords = models.CharField(max_length=500, blank=True, help_text="Optional comma-separated keywords")
+    og_image = models.URLField(max_length=500, blank=True, help_text="Open Graph image URL")
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["url_key"]
+        verbose_name = "Page SEO"
+        verbose_name_plural = "Page SEO"
+
+    def __str__(self):
+        return f"{self.url_key}"
+
+
+class ScannedURL(models.Model):
+    """URL path collected by the SEO dashboard 'Scan' action. No duplicates; next scan adds only new URLs."""
+    url_path = models.CharField(
+        max_length=500,
+        unique=True,
+        db_index=True,
+        help_text="URL path without domain (e.g. careers/software-engineer)",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_seen_at = models.DateTimeField(auto_now=True, help_text="Last time this URL was seen in a scan")
+
+    class Meta:
+        ordering = ["url_path"]
+        verbose_name = "Scanned URL"
+        verbose_name_plural = "Scanned URLs"
+
+    def __str__(self):
+        return self.url_path
+
+
+class GeneratedPage(models.Model):
+    """CMS page generated from a static HTML URL. Admin enters a URL; we fetch the page, extract HTML body + CSS + JS."""
+    slug = models.SlugField(
+        max_length=120,
+        unique=True,
+        db_index=True,
+        help_text="URL path segment, e.g. my-landing → /page/my-landing/",
+    )
+    title = models.CharField(max_length=255, help_text="Page title (heading and SEO)")
+    content_html = models.TextField(blank=True, help_text="Main body HTML extracted from the source page")
+    content_css = models.TextField(blank=True, help_text="CSS to inject in the page")
+    content_js = models.TextField(blank=True, help_text="JavaScript to inject at end of page")
+    source_url = models.URLField(max_length=2000, blank=True, help_text="URL this page was imported from")
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created"]
+        verbose_name = "Generated Page (from URL)"
+        verbose_name_plural = "Generated Pages (from URL)"
+
+    def __str__(self):
+        return self.slug
+
+
 # --- Dashboard Statistics (Gamification) - Admin-configurable for student dashboard ---
 
 class DashboardLevelBand(models.Model):
