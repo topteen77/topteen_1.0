@@ -103,8 +103,15 @@ class AnalyticsMiddleware(MiddlewareMixin):
         All tracking is wrapped in try/except so failures never cause 502 or break the response.
         Celery worker check runs with a short timeout to avoid blocking when broker is slow.
         """
-        # Only track successful GET requests
-        if not (hasattr(request, 'analytics_data') and request.method == 'GET' and response.status_code == 200):
+        # Track GET requests that either return 200, or had ?ref= (enquiry link) even on redirect (3xx)
+        # so that "link was hit" is counted when the server responds with redirect (e.g. login, trailing slash)
+        if not (hasattr(request, 'analytics_data') and request.method == 'GET'):
+            return response
+        status = response.status_code
+        allow_track = status == 200 or (
+            status in (301, 302, 303, 307, 308) and request.analytics_data.get('enquiry_source_id')
+        )
+        if not allow_track:
             return response
 
         try:
@@ -122,6 +129,12 @@ class AnalyticsMiddleware(MiddlewareMixin):
 
             if use_sync:
                 # Use synchronous tracking (worker not running)
+                enquiry_source_id = request.analytics_data.get('enquiry_source_id')
+                if enquiry_source_id:
+                    logger.warning(
+                        "Enquiry tracking: recording visit for source_id=%s path=%s (response %s)",
+                        enquiry_source_id, request.analytics_data['path'], response.status_code,
+                    )
                 track_page_view_sync(
                     session_id=request.analytics_data['session_id'],
                     user_id=request.analytics_data['user_id'],
@@ -136,7 +149,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     utm_campaign=request.analytics_data['utm_campaign'],
                     utm_term=request.analytics_data['utm_term'],
                     utm_content=request.analytics_data['utm_content'],
-                    enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
+                    enquiry_source_id=enquiry_source_id,
                 )
                 
                 # Get device and country from user agent
