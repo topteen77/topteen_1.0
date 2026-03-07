@@ -2859,6 +2859,7 @@ def enquiry_source_test_ref_view(request):
             })
         page_views = UserActivity.objects.filter(enquiry_source=es).count()
         sessions = UserJourney.objects.filter(enquiry_source=es).count()
+        ref_landing_url = request.build_absolute_uri('/ref-landing/') + '?ref=' + es.token
         return JsonResponse({
             'ok': True,
             'ref': ref_token[:12] + '...',
@@ -2867,7 +2868,8 @@ def enquiry_source_test_ref_view(request):
             'source_name': es.name,
             'page_views': page_views,
             'sessions': sessions,
-            'message': 'Token is valid. Visit a page with ?ref=' + es.token + ' in a new tab to record a visit.',
+            'message': f'Token is valid. To record a visit, open the URL below in a new incognito tab (page must return 200).',
+            'ref_landing_url': ref_landing_url,
         })
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)

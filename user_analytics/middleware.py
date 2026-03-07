@@ -122,6 +122,12 @@ class AnalyticsMiddleware(MiddlewareMixin):
 
             if use_sync:
                 # Use synchronous tracking (worker not running)
+                enquiry_source_id = request.analytics_data.get('enquiry_source_id')
+                if enquiry_source_id:
+                    logger.warning(
+                        "Enquiry tracking: recording visit for source_id=%s path=%s (response 200)",
+                        enquiry_source_id, request.analytics_data['path'],
+                    )
                 track_page_view_sync(
                     session_id=request.analytics_data['session_id'],
                     user_id=request.analytics_data['user_id'],
@@ -136,7 +142,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     utm_campaign=request.analytics_data['utm_campaign'],
                     utm_term=request.analytics_data['utm_term'],
                     utm_content=request.analytics_data['utm_content'],
-                    enquiry_source_id=request.analytics_data.get('enquiry_source_id'),
+                    enquiry_source_id=enquiry_source_id,
                 )
                 
                 # Get device and country from user agent
