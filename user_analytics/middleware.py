@@ -54,11 +54,20 @@ class AnalyticsMiddleware(MiddlewareMixin):
         if ref_token:
             try:
                 from user_analytics.models import EnquirySource
-                es = EnquirySource.objects.filter(token=ref_token, is_active=True).first()
+                from core import choices
+                # Only active, non–soft-deleted sources; exact token match
+                es = EnquirySource.objects.filter(
+                    token=ref_token,
+                    is_active=True,
+                    object_status=choices.ObjectStatus.ACTIVE,
+                ).first()
                 if es:
                     enquiry_source_id = es.id
-            except Exception:
-                pass
+                    logger.debug("Enquiry ref=%s -> source id=%s", ref_token[:8], enquiry_source_id)
+                else:
+                    logger.debug("Enquiry ref=%s -> no matching active source", ref_token[:8])
+            except Exception as e:
+                logger.warning("Enquiry source lookup failed for ref=%s: %s", ref_token[:8], e)
 
         # Store analytics data in request for async processing
         request.analytics_data = {

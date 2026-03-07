@@ -233,6 +233,15 @@ def terms_and_condition(request):
     ctx['breadcrumb'] = get_breadcrumb([{'text': 'Terms and Condition', 'url': reverse('core:terms&condition')}])
     return render(request,template_name,ctx)
 
+
+@require_GET
+def ref_landing(request):
+    """
+    Public page that always returns 200. Use with ?ref=TOKEN to test enquiry-source tracking:
+    visits here are counted in Page views and Sessions for that EnquirySource.
+    """
+    return HttpResponse('OK', content_type='text/plain')
+
 def validation(request,mobile,email):
     mvalid = r'^\d{3}\d{3}\d{4}$'
     evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
