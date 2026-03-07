@@ -68,6 +68,11 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     logger.debug("Enquiry ref=%s -> no matching active source", ref_token[:8])
             except Exception as e:
                 logger.warning("Enquiry source lookup failed for ref=%s: %s", ref_token[:8], e)
+                es = EnquirySource.objects.filter(token=ref_token, is_active=True).first()
+                if es:
+                    enquiry_source_id = es.id
+            except Exception:
+                pass
 
         # Store analytics data in request for async processing
         request.analytics_data = {
