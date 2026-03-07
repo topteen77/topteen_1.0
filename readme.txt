@@ -557,4 +557,34 @@ Step 6. (Optional) Confirm in database
 6. Share link for campaigns
    - For real campaigns, share the link that returns 200 with ref=TOKEN, e.g. https://www.topteen.in/ref-landing/?ref=TOKEN or https://www.topteen.in/about-us/?ref=TOKEN (if about-us is public and returns 200). Do not share a URL that redirects before returning 200.
 
+---------- Tables and SQL for Enquiry Source counts ----------
+Page views and Sessions on the Enquiry Sources page come from these tables:
+
+  • user_analytics_enquirysource  – one row per source (name, token, agency, etc.).
+  • user_analytics_useractivity   – one row per page view; enquiry_source_id = FK to enquirysource when visit had ?ref=TOKEN.
+  • user_analytics_userjourney    – one row per session; enquiry_source_id = FK to enquirysource when visit had ?ref=TOKEN.
+
+SQL to test in DB (replace TOKEN and id 5 with your source’s token/id):
+
+  -- List all enquiry sources and their counts (same logic as the dashboard)
+  SELECT
+    es.id,
+    es.name,
+    es.token,
+    (SELECT COUNT(*) FROM user_analytics_useractivity a WHERE a.enquiry_source_id = es.id) AS page_views,
+    (SELECT COUNT(*) FROM user_analytics_userjourney j WHERE j.enquiry_source_id = es.id) AS sessions
+  FROM user_analytics_enquirysource es
+  WHERE es.object_status = 'ACTIVE'
+  ORDER BY es.id;
+
+  -- For one source by token (e.g. Iapply marketing, token BFxiH5R2l8id)
+  SELECT id, name, token FROM user_analytics_enquirysource WHERE token = 'BFxiH5R2l8id' AND object_status = 'ACTIVE';
+
+  -- Page views for that source (use id from above, e.g. 5)
+  SELECT id, session_id, page_path, created FROM user_analytics_useractivity WHERE enquiry_source_id = 5 ORDER BY created DESC LIMIT 10;
+
+  -- Sessions for that source
+  SELECT id, session_id, page_path, created FROM user_analytics_userjourney WHERE enquiry_source_id = 5 ORDER BY created DESC LIMIT 10;
+
+  -- If both return 0 rows for source id 5, no request with ?ref=BFxiH5R2l8id has yet returned HTTP 200 on the server that writes to this DB.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
