@@ -10,10 +10,26 @@
         <div>
             <h1 class="h4 mb-1"><i class="fas fa-link text-primary"></i> Enquiry Sources</h1>
             <p class="text-muted small mb-0">Links use a non-readable token (<code>?ref=...</code>). Share the link; users cannot tell which source it is. You identify sources by name here.</p>
+            <p class="text-info small mb-0 mt-1"><i class="fas fa-info-circle"></i> With a shared DB, visits from any server appear here. If both stay 0, ensure the <strong>server that serves the link</strong> (e.g. topteen.in) has the latest code and that <code>?ref=</code> is not stripped by nginx/proxy.</p>
         </div>
         <a href="{{ url('user_analytics:enquiry_source_create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add Enquiry Source
         </a>
+    </div>
+
+    <div class="admin-card mb-3">
+        <button class="btn btn-outline-secondary btn-sm w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#how-to-test" aria-expanded="false">
+            <i class="fas fa-vial"></i> How to test tracking manually (localhost)
+        </button>
+        <div class="collapse mt-2" id="how-to-test">
+            <ol class="small mb-0 ps-3">
+                <li class="mb-1">Pick a source above and copy its <strong>full link</strong> (e.g. <code>http://localhost:8002/...?ref=TOKEN</code>).</li>
+                <li class="mb-1"><strong>Verify the token</strong>: open <a href="{{ url('user_analytics:enquiry_source_test_ref') }}" target="_blank">Test ref</a>, then add <code>?ref=YOUR_TOKEN</code> to the URL (e.g. <code>.../test-ref/?ref=U14fSkYzV50</code>). You should see <code>"found": true</code> and current counts.</li>
+                <li class="mb-1">Open a link that returns <strong>200</strong> with <code>?ref=TOKEN</code>. E.g. <code>http://localhost:8000/ref-landing/?ref=YOUR_TOKEN</code> (or your runserver port). Use a new incognito/private window so you get a new session.</li>
+                <li class="mb-1">Come back here and <strong>refresh</strong> this page. <strong>Page views</strong> and <strong>Sessions</strong> for that source should increase by 1.</li>
+                <li class="mb-1">If they stay 0: (1) Confirm the link you opened is the one from this table and includes <code>?ref=...</code>. (2) Ensure your runserver is the same app that has the analytics middleware and enquiry ref lookup. (3) Check server logs for <code>Enquiry ref=</code> to see if the token was recognized.</li>
+            </ol>
+        </div>
     </div>
 
     {% if agencies or events %}
@@ -58,6 +74,8 @@
                         <th>Event</th>
                         <th>Link (copy)</th>
                         <th>QR code</th>
+                        <th class="text-end">Page views</th>
+                        <th class="text-end">Sessions</th>
                         <th class="text-end">Visits</th>
                         <th class="text-end">Registrations</th>
                         <th class="text-end">Payments</th>
@@ -93,6 +111,8 @@
                             <span class="text-muted small">Set base URL</span>
                             {% endif %}
                         </td>
+                        <td class="text-end" title="UserActivity with this source">{{ item.stats.page_views }}</td>
+                        <td class="text-end" title="UserJourney (sessions) with this source">{{ item.stats.visit_count }}</td>
                         <td class="text-end">{{ item.stats.visit_count }}</td>
                         <td class="text-end">{{ item.stats.registrations }}</td>
                         <td class="text-end">{{ item.stats.payment_success }}</td>
@@ -108,6 +128,7 @@
                     </tr>
                     {% else %}
                     <tr>
+                        <td colspan="13" class="text-center text-muted py-4">
                         <td colspan="12" class="text-center text-muted py-4">
                             No enquiry sources yet. <a href="{{ url('user_analytics:enquiry_source_create') }}">Add one</a> to get a non-readable link and QR code.
                         </td>

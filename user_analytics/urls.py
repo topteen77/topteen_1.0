@@ -42,6 +42,7 @@ urlpatterns = [
     path('admin-analytics/enquiry-sources/<int:pk>/edit/', views.enquiry_source_edit_view, name='enquiry_source_edit'),
     path('admin-analytics/enquiry-sources/<int:pk>/delete/', views.enquiry_source_delete_view, name='enquiry_source_delete'),
     path('admin-analytics/enquiry-sources/<int:pk>/qr.png', views.enquiry_source_qr_view, name='enquiry_source_qr'),
+    path('admin-analytics/enquiry-sources/test-ref/', views.enquiry_source_test_ref_view, name='enquiry_source_test_ref'),
     
     # API Endpoints
     path('api/dashboard-data/', views.api_dashboard_data, name='api_dashboard_data'),
