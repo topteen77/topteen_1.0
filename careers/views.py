@@ -373,9 +373,11 @@ class CareerDetail(TemplateView):
     template_name = "template20/career_detail_accordion.html"
     # template_name = "template20/career_detail.html"  # Original template
     # template_name = "template20/career_detail_mindmap.html"  # Mindmap version
-    def html_head(self,career):
-        titleb=career.name
-        descriptionb=career.get_display_summary()
+    def html_head(self, career):
+        # Use admin-configured SEO when set (SeoModel), else name/summary for title/description and OG alignment
+        titleb = (career.seo_title or career.name or "").strip() or career.name
+        summary = career.get_display_summary() or ""
+        descriptionb = (career.seo_description or summary).strip() or summary
         return build_html_head(title=titleb, description=descriptionb)
     
 

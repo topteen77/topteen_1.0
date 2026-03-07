@@ -173,10 +173,15 @@ class Blogs(TemplateView):
 class BlogDetail(TemplateView):
     template_name = "template20/blog_detail.html"
 
-    def html_head(self,blog):
-        titleb=blog.title
-        descriptionb=blog.summary
-        return build_html_head(title=titleb, description=descriptionb)
+    def html_head(self, blog, request=None):
+        titleb = blog.title
+        descriptionb = blog.summary
+        image_url = None
+        if blog.image and blog.image.name:
+            image_url = blog.get_image_url()
+            if request and image_url and not image_url.startswith(('http://', 'https://')):
+                image_url = request.build_absolute_uri(image_url)
+        return build_html_head(title=titleb, description=descriptionb, image=image_url)
     
     def _breadcrumb(self, blog):
         url = str(reverse('blog:blogs'))
@@ -206,9 +211,16 @@ class BlogDetail(TemplateView):
         ctx['categories']=BlogCategory.objects.all()
         ctx['blog']=blog    
         ctx['views_count']=blog.views_count
-        ctx['html_head'] = self.html_head(blog)
+        ctx['html_head'] = self.html_head(blog, request)
         bread_crumb =self._breadcrumb(blog)
         ctx['breadcrumb']= bread_crumb
+        # SEO: Article schema for blog detail (dates + author)
+        ctx['seo_schema_type'] = 'Article'
+        ctx['seo_schema_extra'] = {
+            'date_published': blog.created.isoformat() if blog.created else None,
+            'date_modified': blog.modified.isoformat() if blog.modified else None,
+            'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'Top Teen'),
+        }
         ctx['latest_blogs']= latest_blogs[:5]
         # Bookmark state
         ctx['is_parent_student_context'] = False
