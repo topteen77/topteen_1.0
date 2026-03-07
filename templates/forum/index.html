@@ -7,189 +7,205 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>TopTeen Career AI - High School Career Counseling</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
     {% csrf_token %}
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">🎯 TopTeen Career AI</div>
-            <div class="tagline">Your Personal AI Career Guide for High School Success</div>
-            <div class="ai-status">
-                <i class="fas fa-robot"></i>
-                AI Career Expert Online - Ready to Guide You!
-            </div>
-        </div>
-
-        <!-- Student Profile Bar (shown only if user is logged in) -->
-        {% if user.is_authenticated and user_data %}
-        <div class="student-profile">
-            <div class="student-profile-content">
-                <div class="student-profile-left">
-                    <h3>👋 Welcome, {{ user_data.name }}!</h3>
-                    <div class="student-info">
-                        {% if user_data.grade %}
-                        <span>Grade: {{ user_data.grade }}</span>
+        <div class="dashboard-grid">
+            <!-- Left Sidebar: Profile + AI Features -->
+            <aside class="left-sidebar">
+                <!-- User Profile Card -->
+                <div class="card profile-card">
+                    <div class="welcom-card"><p> <img class="img-fluid" src="{% static 'forum/images/waving-hand.webp' %}" alt="icon" /> Welcome</p></div>
+                    <div class="card-header card-header-gradient">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h2 class="profile-name text-purple">{% if user.is_authenticated and user_data %}{{ user_data.name }}{% else %}Guest{% endif %}</h2>
+                        <div class="profile-id"><span class="fw-800">ID:</span> {% if user.is_authenticated and user_data %}STD0000256{% else %}—{% endif %}</span></div>
+                    </div>
+                    <div class="card-body">
+                        {% if user.is_authenticated and user_data %}
+                        <div class="profile-details">
+                            <div class="profile-details-item"> <span class="fw-800 text-purple">Grade: </span> {{ user_data.grade }}</span></div>
+                          
+                                <div class="profile-details-item"> {% if user_data.school %}<span class="fw-800 text-purple">School: </span> {{ user_data.school }}</span>{% endif %}</div>
+                            <div class="profile-details-item"> {% if user_data.email %}<span class="fw-800 text-purple">Email: </span> {{ user.email|default:user_data.email }}</span>{% endif %}</div>  
+                        </div>
+                        <div class="career-readiness-bar">
+                            <span class="readiness-icon"><img class="img-fluid" style="width: 30px;" src="{% static 'forum/images/trophy.webp' %}" alt="icon" /></span>
+                            <span class="readiness-text">Career Readiness: {{ user_data.career_readiness }}%</span>
+                            <div class="readiness-progress"><div class="readiness-fill" style="width: {{ user_data.career_readiness }}%"></div></div>
+                        </div>
+                        {% if user_data.top_matches %}
+                        <div class="top-matches">Top Matches: {{ user_data.top_matches|join:", " }}</div>
                         {% endif %}
-                        {% if user_data.school %}
-                        <span>School: {{ user_data.school }}</span>
+                        {% else %}
+                        <div class="profile-details"><span>Sign in to see your profile</span></div>
+                        <div class="career-readiness-bar">
+                            <span class="readiness-icon"> <img class="img-fluid" style="width: 30px;" src="{% static 'forum/images/trophy.webp' %}" alt="icon" /></span>
+                            <span class="readiness-text">Career Readiness: 0%</span>
+                            <div class="readiness-progress"><div class="readiness-fill" style="width: 0%"></div></div>
+                        </div>
                         {% endif %}
-                        {% if user_data.age %}
-                        <span>Age: {{ user_data.age }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="student-info">
-                        {% if user_data.stream %}
-                        <span>Stream: {{ user_data.stream }}</span>
-                        {% endif %}
-                        {% if user_data.psychometric_score %}
-                        <span>Psychometric Score: {{ user_data.psychometric_score }}/100</span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="student-profile-right">
-                    <div class="career-readiness">
-                        <span class="readiness-icon">🏆</span>
-                        <span class="readiness-text">Career Readiness: {{ user_data.career_readiness }}%</span>
-                    </div>
-                    {% if user_data.top_matches %}
-                    <div class="top-matches">
-                        Top Matches: {{ user_data.top_matches|join:", " }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Query Input Area -->
-        <div class="query-input-area">
-            <h2 style="text-align: center; margin-bottom: 20px; color: #333;">
-                <i class="fas fa-comments"></i> Ask Your Career Question
-            </h2>
-            
-            <div class="quick-actions">
-                <div class="quick-action" onclick="quickQuery('What should I do after 10th?')">📚 After 10th Options</div>
-                <div class="quick-action" onclick="quickQuery('Best careers in science stream?')">🔬 Science Careers</div>
-                <div class="quick-action" onclick="quickQuery('How to prepare for JEE?')">🎯 JEE Preparation</div>
-                <div class="quick-action" onclick="quickQuery('Careers without maths?')">📊 Non-Math Careers</div>
-                <div class="quick-action" onclick="quickQuery('Part-time jobs for students?')">💼 Student Jobs</div>
-                <div class="quick-action" onclick="quickQuery('Study abroad after 12th?')">🌍 Study Abroad</div>
-            </div>
-            
-            <div class="input-group">
-                <textarea class="query-input" id="userQuery" placeholder="Ask any career question... For example: 'Which stream should I choose?' or 'What are high-paying careers without NEET?'"></textarea>
-            </div>
-            
-            <button class="submit-btn" onclick="submitQuery()">
-                <i class="fas fa-paper-plane"></i> Get Career Guidance
-            </button>
-            
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-                <small>AI Career Expert is thinking...</small>
-            </div>
-            
-            <div class="ai-response" id="aiResponse"></div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <h3><i class="fas fa-chart-bar"></i> <span id="progress-title">Your Progress</span></h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-total-queries">0</span>
-                        <span class="stat-label">Careers Explored</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-accuracy">0%</span>
-                        <span class="stat-label">Stream Match</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-countries">0</span>
-                        <span class="stat-label">Skills Identified</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-response-time">0</span>
-                        <span class="stat-label">Universities Viewed</span>
+                        <button type="button" class="btn btn-settings"><i class="fas fa-cog"></i> Setting</button>
                     </div>
                 </div>
 
-                <h3><i class="fas fa-star"></i> AI Features</h3>
-                <ul class="feature-list" id="aiFeatures">
-                    {% if ai_features %}
-                        {% for feature in ai_features %}
-                            <li>
-                                {% if feature.link_url %}
+                <!-- AI Features Card -->
+                <div class="card features-card">
+                    <div class="card-header new-card-header-gradient">
+                        <h3><img class="img-fluid" src="{% static 'forum/images/ai-feature.png' %}" alt="icon" /> AI Features</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="feature-list" id="aiFeatures">
+                            {% if ai_features %}
+                                {% for feature in ai_features %}
+                                <li>
+                                    {% if feature.link_url %}
                                     <a href="{{ feature.link_url }}" class="feature-link" title="{{ feature.description|default:feature.name }}" target="_blank" rel="noopener noreferrer">
-                                        <i class="{{ feature.icon|default:'fas fa-check-circle' }}"></i> {{ feature.name }}
+                                        <i class="{{ feature.icon|default:'fas fa-play' }}"></i> {{ feature.name }}
                                     </a>
-                                {% else %}
-                                    <i class="{{ feature.icon|default:'fas fa-check-circle' }}"></i> {{ feature.name }}
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li style="color: #999; font-style: italic;">Loading AI Features...</li>
-                    {% endif %}
-                </ul>
-            </div>
-
-            <!-- Main Panel -->
-            <div class="main-panel">
-                <h3><i class="fas fa-graduation-cap"></i> Career Exploration Zones</h3>
-                <div class="category-tabs" id="categoryTabs">
-                    <div class="category-tab active" onclick="switchCategory('all', this)">All Careers</div>
-                    <div class="category-tab" onclick="switchCategory('stem', this)">🔬 STEM</div>
-                    <div class="category-tab" onclick="switchCategory('commerce', this)">💼 Commerce</div>
-                    <div class="category-tab" onclick="switchCategory('arts', this)">🎨 Arts</div>
-                    <div class="category-tab" onclick="switchCategory('vocational', this)">🛠️ Vocational</div>
-                    <div class="category-tab" onclick="switchCategory('emerging', this)">🚀 Emerging</div>
-                    <div class="category-tab" onclick="switchCategory('studyabroad', this)">🌍 Study Abroad</div>
-                </div>
-
-                <div id="categoryContent">
-                    <h4>Popular Career Questions & AI Answers</h4>
-                    <div id="popularQueries">
-                        <!-- Popular queries will be loaded here dynamically -->
+                                    {% else %}
+                                    <span><i class="{{ feature.icon|default:'fas fa-play' }}"></i> {{ feature.name }}</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="muted"><i class="fas fa-spinner"></i> Loading AI Features...</li>
+                            {% endif %}
+                        </ul>
                     </div>
                 </div>
-            </div>
+            </aside>
 
-            <!-- Info Panel -->
-            <div class="info-panel">
-                <h3><i class="fas fa-fire"></i> Trending Careers 2025</h3>
-                <div class="recent-queries" id="trendingQueries">
-                    <!-- Trending queries will be loaded here dynamically -->
+            <!-- Center: Banner + Ask Question + AI Response + Exploration Zones -->
+            <main class="center-content">
+                <!-- Main Banner -->
+                <div class="card banner-card">
+                    <div class="banner-inner">
+                        <h1 class="banner-title">TopTeen Career AI</h1>
+                        <p class="banner-tagline">Your Personal AI Career Guide for High School Success.</p>
+                        <div class="cta-bt">AI Career Expert Online - Ready to Guide You!</div>
+                    </div>
                 </div>
 
-                <h3 style="margin-top: 25px;"><i class="fas fa-robot"></i> AI Capabilities</h3>
-                <ul class="feature-list" id="aiCapabilities">
-                    {% if ai_capabilities %}
-                        {% for capability in ai_capabilities %}
-                            <li>
-                                {% if capability.link_url %}
+                <!-- Ask Your Career Question Card -->
+                <div class="card query-card">
+                    <h2 class="card-title-plain"><i class="fas fa-comments"></i> Ask Your Career Question</h2>
+                    <div class="quick-actions">
+                        <button type="button" class="quick-action" onclick="quickQuery('What should I do after 10th?')"><i class="fas fa-graduation-cap"></i> After 10th Options</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Best careers in science stream?')"><i class="fas fa-flask"></i> Science Careers</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('How to prepare for JEE?')"><i class="fas fa-pen"></i> JEE Preparation</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Careers without maths?')"><i class="fas fa-calculator"></i> Non-Math Careers</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Study abroad after 12th?')"><i class="fas fa-plane"></i> Study Abroad</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Part-time jobs for students?')"><i class="fas fa-briefcase"></i> Student Jobs</button>
+                    </div>
+                    <div class="input-group">
+                        <textarea class="query-input" id="userQuery" placeholder="Ask any career question... e.g. 'Which stream should I choose?' or 'What are high-paying careers without NEET?'" rows="3"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary submit-btn" onclick="submitQuery()"><i class="fas fa-paper-plane"></i> Get Career Guidance</button>
+
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="typing-dots"><span></span><span></span><span></span></div>
+                        <small>AI Career Expert is thinking...</small>
+                    </div>
+
+                    <!-- AI Expert Response Section -->
+                    <div class="ai-response-block" id="aiResponseBlock" style="display: none;">
+                        <div class="response-top-bar" id="responseTopBar" style="display: none;">
+                            <button type="button" class="btn-back-to-query" id="backToQueryBtn" onclick="backToQuery()" aria-label="Back to question">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <h3 class="response-heading"><i class="fas fa-robot"></i> AI Expert Response</h3>
+                        <div class="response-query-tag"><i class="fas fa-file-alt"></i> Query</div>
+                        <div class="response-query-text" id="displayQuery"></div>
+                        <div class="response-content ai-response response-scroll" id="aiResponse"></div>
+                        <button type="button" class="btn btn-primary btn-block" id="responseBottomBtn" onclick="document.getElementById('userQuery').focus()"><i class="fas fa-paper-plane"></i> Get Career Guidance</button>
+                    </div>
+                </div>
+
+                <!-- Career Exploration Zones Card -->
+                <div class="card exploration-card">
+                    <h3 class="card-title-plain"><i class="fas fa-graduation-cap"></i> Career Exploration Zones</h3>
+                    <div class="category-tabs" id="categoryTabs">
+                        <button type="button" class="category-tab active" onclick="switchCategory('all', this)">All Career</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('stem', this)">STEM</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('commerce', this)">Commerce</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('arts', this)">Arts</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('vocational', this)">Vocational</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('emerging', this)">Emerging</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('studyabroad', this)">Study Abroad</button>
+                    </div>
+                    <div id="categoryContent">
+                        <div id="popularQueries">
+                            <!-- Popular queries loaded by JS -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar: Stats + AI Capabilities + Trending -->
+            <aside class="right-sidebar">
+                <!-- Career Statistics Card -->
+                <div class="card stats-card">
+                    <div class="card-header new-card-header-gradient">
+                        <h3><i style="color: #fff;" class="fas fa-chart-bar"></i> Career Statistics</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="stat-box stat-purple"><span class="stat-number" id="stat-total-queries">34</span><span class="stat-label">Career Explored</span></div>
+                            <div class="stat-box stat-blue"><span class="stat-number" id="stat-accuracy">5%</span><span class="stat-label">Stream Match</span></div>
+                            <div class="stat-box stat-purple"><span class="stat-number" id="stat-countries">10</span><span class="stat-label">Skills Identified</span></div>
+                            <div class="stat-box stat-blue"><span class="stat-number" id="stat-response-time">15</span><span class="stat-label">Universities Viewed</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Capabilities Card -->
+                <div class="card capabilities-card">
+                    <div class="card-header new-card-header-gradient">
+                        <h3><i style="color: #fff;" class="fas fa-robot"></i> AI Capabilities</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="feature-list" id="aiCapabilities">
+                            {% if ai_capabilities %}
+                                {% for capability in ai_capabilities %}
+                                <li>
+                                    {% if capability.link_url %}
                                     <a href="{{ capability.link_url }}" class="feature-link" title="{{ capability.description|default:capability.name }}" target="_blank" rel="noopener noreferrer">
-                                        <i class="{{ capability.icon|default:'fas fa-brain' }}"></i> {{ capability.name }}
+                                        <i class="{{ capability.icon|default:'fas fa-chart-pie' }}"></i> {{ capability.name }}
                                     </a>
-                                {% else %}
-                                    <i class="{{ capability.icon|default:'fas fa-brain' }}"></i> {{ capability.name }}
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    {% else %}
-                        <li style="color: #999; font-style: italic;">Loading AI Capabilities...</li>
-                    {% endif %}
-                </ul>
-            </div>
+                                    {% else %}
+                                    <span><i class="{{ capability.icon|default:'fas fa-chart-pie' }}"></i> {{ capability.name }}</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="muted"><i class="fas fa-spinner"></i> Loading AI Capabilities...</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Trending Careers Card -->
+                <div class="card trending-card">
+                    <div class="card-header new-card-header-gradient">
+                        <h3><i style="color: #fff;" class="fas fa-fire"></i> Trending Careers 2026</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="recent-queries" id="trendingQueries">
+                            <!-- Trending loaded by JS -->
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
 
