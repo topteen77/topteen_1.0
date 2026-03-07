@@ -2653,11 +2653,14 @@ def cleanup_analytics_data_view(request):
 def _enquiry_source_stats(source):
     """Return dict of visit count and conversion counts for an EnquirySource."""
     from django.db.models import Count
+    # Page views: any UserActivity with this enquiry_source (proves ref= is being tracked)
+    page_views = UserActivity.objects.filter(enquiry_source=source).count()
     sessions = UserJourney.objects.filter(enquiry_source=source)
     visit_count = sessions.count()
     session_ids = list(sessions.values_list('session_id', flat=True))
     if not session_ids:
         return {
+            'page_views': page_views,
             'visit_count': 0,
             'registrations': 0,
             'payment_success': 0,
@@ -2672,6 +2675,7 @@ def _enquiry_source_stats(source):
     ).count()
     converted = sessions.filter(converted=True).count()
     return {
+        'page_views': page_views,
         'visit_count': visit_count,
         'registrations': reg,
         'payment_success': pay,
@@ -2823,6 +2827,50 @@ def enquiry_source_delete_view(request, pk):
     source.delete(hard_delete=False)
     messages.success(request, 'Enquiry source deactivated.')
     return redirect('user_analytics:enquiry_sources_list')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def enquiry_source_test_ref_view(request):
+    """
+    Manual test helper: GET ?ref=TOKEN returns JSON with lookup result and current counts.
+    Use to verify the token is recognized before testing a full page visit.
+    """
+    from django.http import JsonResponse
+    ref_token = (request.GET.get('ref') or '').strip()
+    if not ref_token:
+        return JsonResponse({
+            'ok': False,
+            'error': 'Missing ref parameter. Use ?ref=YOUR_TOKEN',
+            'hint': 'Copy the ref value from your enquiry link (e.g. ...?ref=U14fSkYzV50)',
+        }, status=400)
+    try:
+        es = EnquirySource.objects.filter(
+            token=ref_token,
+            is_active=True,
+            object_status=choices.ObjectStatus.ACTIVE,
+        ).first()
+        if not es:
+            return JsonResponse({
+                'ok': True,
+                'ref': ref_token[:12] + '...',
+                'found': False,
+                'message': 'No active EnquirySource with this token. Check token or create the source.',
+            })
+        page_views = UserActivity.objects.filter(enquiry_source=es).count()
+        sessions = UserJourney.objects.filter(enquiry_source=es).count()
+        return JsonResponse({
+            'ok': True,
+            'ref': ref_token[:12] + '...',
+            'found': True,
+            'enquiry_source_id': es.id,
+            'source_name': es.name,
+            'page_views': page_views,
+            'sessions': sessions,
+            'message': 'Token is valid. Visit a page with ?ref=' + es.token + ' in a new tab to record a visit.',
+        })
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 
 @login_required
