@@ -280,10 +280,13 @@ class CareerDescriptionJSONParser:
         print("\nSECTION SUMMARY:")
         print("-" * 80)
         for section_key, section_data in self.sections.items():
+            if section_data is None:
+                print(f"?  {section_key:40s} | Title: {'N/A':40s} | Size:      0 chars")
+                continue
             has_content = bool(section_data.get('html'))
-            title = section_data.get('title', 'N/A')
-            content_length = len(section_data.get('html', ''))
+            title = (section_data.get('title') or 'N/A')[:40]
+            content_length = len(section_data.get('html') or '')
             status = "✓" if has_content else "✗"
-            print(f"{status} {section_key:40s} | Title: {title[:40]:40s} | Size: {content_length:6d} chars")
+            print(f"{status} {section_key:40s} | Title: {title:40s} | Size: {content_length:6d} chars")
         print("-" * 80)
 
