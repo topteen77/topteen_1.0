@@ -648,6 +648,12 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
+        # Set to DEBUG temporarily to see "Enquiry ref=... -> source id=..." in logs (ref-landing tracking)
+        'user_analytics': {
+            'handlers': ['console', 'file_app'],
+            'level': config('LOG_LEVEL_USER_ANALYTICS', default='WARNING'),
+            'propagate': False,
+        },
     },
 }
 

@@ -474,3 +474,87 @@ python manage.py generate_sample_content
 .....
 ....
 .
+
+
+========================================================
+Enquiry source analytics – manual check on production
+========================================================
+Dashboard: https://www.topteen.in/user-analytics/admin-analytics/enquiry-sources/
+Tracking only runs when the response is HTTP 200. Redirects (e.g. login) do not record a visit.
+
+---------- MANUAL STEPS TO TEST ON PRODUCTION ----------
+
+Step 1. Confirm the ref-landing page is deployed and returns 200
+   - Open: https://www.topteen.in/ref-landing/
+   - You must see plain "OK" and the URL must stay as above (no redirect to login).
+   - If you get a redirect to login, use the test URL in Step 3 only in an incognito window after logging in elsewhere is not an option, or use a public page that you know returns 200 (e.g. /about-us/ if it is public).
+
+Step 2. Get a valid token from the dashboard
+   - Log in as staff/superuser and go to: Enquiry Sources.
+   - Create a source or pick an existing one. Copy the "Link" (or the token from the link; it is the value of ref=).
+   - Example link: https://www.topteen.in/ref-landing/?ref=Ab12Cd34Ef56
+   - Token in this example: Ab12Cd34Ef56
+
+Step 3. Verify token (optional but recommended)
+   - While logged in, open: https://www.topteen.in/user-analytics/admin-analytics/enquiry-sources/test-ref/?ref=YOUR_TOKEN
+   - Replace YOUR_TOKEN with the token from Step 2.
+   - Response should be JSON with "found": true and current "page_views" and "sessions" counts.
+   - If "found": false, the token is wrong or the source is inactive/soft-deleted.
+
+Step 4. Trigger a visit that will be counted
+   - In a new incognito/private browser window (so you get a new session), open exactly:
+     https://www.topteen.in/ref-landing/?ref=YOUR_TOKEN
+   - The page must load and show "OK" and the URL must still contain ?ref=YOUR_TOKEN (no redirect that drops the query string).
+   - Wait for the page to fully load.
+
+Step 5. Check that counts increased
+   - In your normal (logged-in) window, refresh the Enquiry Sources list page.
+   - The row for that source should show Page views and Sessions increased by 1.
+   - If they did not increase, go to "Fix checklist" below.
+
+Step 6. (Optional) Confirm in database
+   On the server (with same DB as the app):
+   python manage.py shell -c "
+   from user_analytics.models import EnquirySource, UserActivity, UserJourney
+   es = EnquirySource.objects.filter(token='YOUR_TOKEN').first()
+   if es: print('Page views:', UserActivity.objects.filter(enquiry_source=es).count()); print('Sessions:', UserJourney.objects.filter(enquiry_source=es).count())
+   "
+
+---------- FIX CHECKLIST (if counts still 0) ----------
+
+1. Query string preserved?
+   - Nginx/proxy must NOT strip query parameters. In nginx, do not use rewrite rules that remove $args. The request to the app should include QUERY_STRING with ref=TOKEN.
+   - Test: open https://www.topteen.in/ref-landing/?ref=test123 and confirm in server logs or a debug view that request.GET.get('ref') == 'test123'.
+
+2. Response is 200?
+   - Tracking runs only when response.status_code == 200. If /ref-landing/ or the page you use redirects (302), the middleware does not record the visit.
+   - Use /ref-landing/ which is designed to always return 200. If /ref-landing/ redirects (e.g. to login), make the ref-landing view public (no login_required).
+
+3. Path not skipped?
+   - Middleware skips: /admin/, /static/, /media/, /api/, /analytics/api/.
+   - Your URL (e.g. /ref-landing/) must not start with any of these.
+
+4. Same database?
+   - The app server that serves the request must use the same database as where you view the Enquiry Sources dashboard. If you have multiple app servers, they must all use the same DB and have the latest code (with ref handling and ref-landing).
+
+5. Logging (temporary)
+   Use one of the two methods below to confirm the ref token is received and resolved on the server.
+
+   Method A – Enable DEBUG for user_analytics logger (so existing logger.debug() lines appear):
+   - The project already has a 'user_analytics' logger in settings; its level is read from env LOG_LEVEL_USER_ANALYTICS (default WARNING).
+   - On the app server, set in .env or the process environment: LOG_LEVEL_USER_ANALYTICS=DEBUG
+   - Restart the app (e.g. gunicorn/uwsgi or restart the process).
+   - Visit https://www.topteen.in/ref-landing/?ref=YOUR_TOKEN (use the exact token from the dashboard).
+   - Check logs: tail -f /path/to/logs/django_app.log (or wherever LOG_PATH in .env points). You should see a line like "Enquiry ref=BFxiH5R2 -> source id=5" if the token was resolved, or "no matching active source" if not.
+   - When done debugging, remove LOG_LEVEL_USER_ANALYTICS or set it to WARNING and restart.
+
+   Method B – Temporary INFO log (no settings change; works even when root level is WARNING):
+   - In user_analytics/middleware.py, in process_request, right after the line "enquiry_source_id = es.id" (inside "if es:"), add:
+       logger.info("Enquiry ref=%s -> source id=%s (path=%s)", ref_token[:12], enquiry_source_id, path)
+   - Deploy and restart the app. Visit https://www.topteen.in/ref-landing/?ref=YOUR_TOKEN.
+   - Check the same log file; you should see the INFO line with ref, source id, and path. Remove this line after debugging.
+
+6. Share link for campaigns
+   - For real campaigns, share the link that returns 200 with ref=TOKEN, e.g. https://www.topteen.in/ref-landing/?ref=TOKEN or https://www.topteen.in/about-us/?ref=TOKEN (if about-us is public and returns 200). Do not share a URL that redirects before returning 200.
+
+---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
