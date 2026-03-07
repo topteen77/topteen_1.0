@@ -48,6 +48,11 @@ async function submitQuery() {
 
     // Clear any previous response
     document.getElementById('aiResponse').innerHTML = '';
+    const block = document.getElementById('aiResponseBlock');
+    if (block) block.style.display = 'none';
+    const topBar = document.getElementById('responseTopBar');
+    if (topBar) topBar.style.display = 'none';
+    document.getElementById('displayQuery').textContent = '';
     
     // Show typing indicator
     document.getElementById('typingIndicator').style.display = 'block';
@@ -202,25 +207,52 @@ async function waitForResponse(queryId) {
 function displayAIResponse(responseText, isWelcomeMessage = false) {
     document.getElementById('typingIndicator').style.display = 'none';
     const responseDiv = document.getElementById('aiResponse');
-    
-    // For welcome message, don't add the "AI Expert Response" header
+    const block = document.getElementById('aiResponseBlock');
+    const displayQueryEl = document.getElementById('displayQuery');
+    const userQueryEl = document.getElementById('userQuery');
+    const topBar = document.getElementById('responseTopBar');
+    const headingEl = block ? block.querySelector('.response-heading') : null;
+    const queryTagEl = block ? block.querySelector('.response-query-tag') : null;
+    const bottomBtn = document.getElementById('responseBottomBtn');
+
+    if (block) block.style.display = 'block';
+
     if (isWelcomeMessage) {
-        responseDiv.innerHTML = responseText;
+        // Welcome state: show only the welcome text, hide all extra labels and buttons
+        if (topBar) topBar.style.display = 'none';
+        if (headingEl) headingEl.style.display = 'none';
+        if (queryTagEl) queryTagEl.style.display = 'none';
+        if (displayQueryEl) displayQueryEl.style.display = 'none';
+        if (bottomBtn) bottomBtn.style.display = 'none';
     } else {
-        // For actual AI responses, add the header
-        responseDiv.innerHTML = `
-            <h3><i class="fas fa-robot"></i> AI Expert Response</h3>
-            <div>
-                ${responseText}
-            </div>
-        `;
+        // Real response: show full UI (single response content, no duplicate AI Analysis block)
+        if (topBar) topBar.style.display = 'block';
+        if (headingEl) headingEl.style.display = 'block';
+        if (queryTagEl) queryTagEl.style.display = 'block';
+        if (displayQueryEl) {
+            displayQueryEl.style.display = 'block';
+            displayQueryEl.textContent = userQueryEl && userQueryEl.value.trim() ? userQueryEl.value.trim() : 'Your question';
+        }
+        if (bottomBtn) bottomBtn.style.display = 'block';
     }
+
+    responseDiv.innerHTML = responseText;
     responseDiv.style.display = 'block';
+
+    // Scroll response block into view
+    if (block) block.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Display error
 function displayError(message) {
     document.getElementById('typingIndicator').style.display = 'none';
+    const block = document.getElementById('aiResponseBlock');
+    const topBar = document.getElementById('responseTopBar');
+    const displayQueryEl = document.getElementById('displayQuery');
+    const userQueryEl = document.getElementById('userQuery');
+    if (block) block.style.display = 'block';
+    if (topBar) topBar.style.display = 'block';
+    if (displayQueryEl && userQueryEl) displayQueryEl.textContent = userQueryEl.value.trim() || 'Your question';
     const responseDiv = document.getElementById('aiResponse');
     responseDiv.innerHTML = `
         <div class="error-message">
@@ -229,6 +261,7 @@ function displayError(message) {
         </div>
     `;
     responseDiv.style.display = 'block';
+    if (block) block.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Show validation error (styled message near input)
@@ -251,7 +284,7 @@ function showValidationError(message) {
     `;
     
     // Insert after the input field or its container
-    const queryContainer = queryInput.closest('.query-input-area') || queryInput.parentElement;
+    const queryContainer = queryInput.closest('.query-card') || queryInput.closest('.query-input-area') || queryInput.parentElement;
     if (queryContainer) {
         // Insert after the input field within the container
         const submitBtn = queryContainer.querySelector('.submit-btn');
@@ -290,6 +323,17 @@ function clearValidationError() {
     }
 }
 
+// Back to query: scroll to input and optionally hide response
+function backToQuery() {
+    const queryInput = document.getElementById('userQuery');
+    const block = document.getElementById('aiResponseBlock');
+    const topBar = document.getElementById('responseTopBar');
+    if (queryInput) queryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (block) block.style.display = 'none';
+    if (topBar) topBar.style.display = 'none';
+    if (queryInput) queryInput.focus();
+}
+
 // Quick query function - just fills input field
 function quickQuery(question) {
     // Only set the question in the input field, don't submit
@@ -299,12 +343,19 @@ function quickQuery(question) {
     document.getElementById('aiResponse').innerHTML = '';
     document.getElementById('aiResponse').style.display = 'none';
     document.getElementById('typingIndicator').style.display = 'none';
+    const block = document.getElementById('aiResponseBlock');
+    if (block) block.style.display = 'none';
+    const topBar = document.getElementById('responseTopBar');
+    if (topBar) topBar.style.display = 'none';
+    const displayQueryEl = document.getElementById('displayQuery');
+    if (displayQueryEl) displayQueryEl.textContent = '';
     
     // Clear any validation errors
     clearValidationError();
     
     // Scroll to input area for better UX
-    document.querySelector('.query-input-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const scrollTarget = document.querySelector('.query-card') || document.querySelector('.query-input-area');
+    if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     // Focus on the input field
     document.getElementById('userQuery').focus();
@@ -322,7 +373,8 @@ function showStoredAnswer(question, responseText) {
     displayAIResponse(cleanedResponse);
     
     // Scroll to response area for better UX
-    document.querySelector('.query-input-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const scrollTarget = document.querySelector('.query-card') || document.querySelector('.query-input-area');
+    if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Switch category
@@ -840,7 +892,10 @@ function getTagEmoji(tag) {
 // Show welcome message
 function showWelcomeMessage() {
     const welcomeResponse = `
-        <h3><i class="fas fa-hand-peace"></i> Welcome to TopTeen Career AI!</h3>
+    <div class="welcome-message">
+         <div class="waving-hand"><img class="img-fluid" src="../static/forum/images/waving-hand.webp" alt="icon"  width="30" 
+     height="30" /></div> <h3> Welcome to Top<span class="text-purple">Teen</span> Career AI!</h3>
+     </div>
         <p>I'm your personal AI career counselor, specially designed for high school students like you! Ask me about:</p>
         <ul>
             <li>Stream selection after 10th</li>
@@ -853,17 +908,37 @@ function showWelcomeMessage() {
             <li>Skill development paths</li>
         </ul>
         <p><strong>Simply type your career question above and get instant, personalized guidance!</strong></p>
-        <p><small>💡 Tip: I consider your grade, stream, and psychometric assessment results to give you the best advice!</small></p>
+        <div class="tip-message">
+            <p><small>💡 Tip: I consider your grade, stream, and psychometric assessment results to give you the best advice!</small></p>
+        </div>
     `;
     displayAIResponse(welcomeResponse, true); // Pass true to indicate it's a welcome message
+}
+
+// First-load state: ai-response-block class is present until user clicks anywhere
+function initFirstLoadAiBlock() {
+    const block = document.getElementById('aiResponseBlock');
+    if (!block) return;
+    block.classList.add('ai-response-block');
+
+    function removeFirstLoadClass() {
+        block.classList.remove('ai-response-block');
+        document.removeEventListener('click', removeFirstLoadClass);
+        document.removeEventListener('keydown', removeFirstLoadClass);
+    }
+    document.addEventListener('click', removeFirstLoadClass, true);
+    document.addEventListener('keydown', removeFirstLoadClass, true);
 }
 
 // Initialize on page load
 window.addEventListener('load', function() {
     loadInitialData();
-    
-    // Show welcome message immediately on page load
-    showWelcomeMessage();
+    initFirstLoadAiBlock();
+
+    // Show welcome message on load (only the welcome text, no extra labels/buttons)
+    requestAnimationFrame(function() {
+        showWelcomeMessage();
+    });
 });
 
 // Auto-suggestions as user types (optional)
