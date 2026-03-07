@@ -1,11 +1,34 @@
 """
 Django Admin integration for user_analytics models.
+All analytics models use hard delete in admin so admins can permanently remove data.
 """
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Q
 from .models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache, EnquirySource
+
+
+def hard_delete_queryset(model_admin, request, queryset):
+    """Permanently delete selected objects (for models that inherit BaseModel soft-delete)."""
+    for obj in queryset:
+        if hasattr(obj, 'delete') and callable(getattr(obj, 'delete')):
+            obj.delete(hard_delete=True)
+        else:
+            obj.delete()
+
+
+class UserAnalyticsHardDeleteMixin:
+    """Mixin so admin 'Delete selected' and single-object delete do hard delete for user_analytics models."""
+
+    def delete_queryset(self, request, queryset):
+        hard_delete_queryset(self, request, queryset)
+
+    def delete_model(self, request, obj):
+        if hasattr(obj, 'delete') and callable(getattr(obj, 'delete')):
+            obj.delete(hard_delete=True)
+        else:
+            obj.delete()
 
 
 class ReferrerSourceFilter(admin.SimpleListFilter):
@@ -30,12 +53,39 @@ class ReferrerSourceFilter(admin.SimpleListFilter):
         return queryset
 
 
+class URLTypeFilter(admin.SimpleListFilter):
+    """Filter by URL type: Local (localhost/test) vs Production/Other. Use to bulk-delete test data."""
+    title = 'URL type'
+    parameter_name = 'url_type'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('local', 'Local (localhost, 127.0.0.1, test)'),
+            ('production', 'Production / other (e.g. topteen.in)'),
+            ('no_url', 'No URL stored (old records)'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'local':
+            return queryset.filter(
+                Q(page_url__icontains='localhost') |
+                Q(page_url__icontains='127.0.0.1') |
+                Q(page_url__icontains='testserver') |
+                Q(page_path__istartswith='/ref-landing/')
+            )
+        if self.value() == 'production':
+            return queryset.filter(page_url__icontains='topteen.in').exclude(page_url__isnull=True).exclude(page_url='')
+        if self.value() == 'no_url':
+            return queryset.filter(Q(page_url__isnull=True) | Q(page_url=''))
+        return queryset
+
+
 @admin.register(UserActivity)
-class UserActivityAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user_link', 'page_path', 'device_type', 'utm_source', 'traffic_source_category', 'country', 'city', 'created']
-    list_filter = [ReferrerSourceFilter, 'device_type', 'utm_source', 'utm_medium', 'traffic_source_category', 'created', 'country']
-    search_fields = ['page_path', 'page_title', 'user__email', 'session_id', 'referrer', 'utm_source']
-    readonly_fields = ['created', 'modified']
+class UserActivityAdmin(UserAnalyticsHardDeleteMixin, admin.ModelAdmin):
+    list_display = ['id', 'user_link', 'page_url_display', 'page_path', 'device_type', 'utm_source', 'traffic_source_category', 'country', 'city', 'created']
+    list_filter = [URLTypeFilter, ReferrerSourceFilter, 'device_type', 'utm_source', 'utm_medium', 'traffic_source_category', 'created', 'country']
+    search_fields = ['page_path', 'page_title', 'page_url', 'user__email', 'session_id', 'referrer', 'utm_source']
+    readonly_fields = ['created', 'modified', 'page_url']
     date_hierarchy = 'created'
     
     def user_link(self, obj):
@@ -44,6 +94,12 @@ class UserActivityAdmin(admin.ModelAdmin):
             return format_html('<a href="{}">{}</a>', url, obj.user.email)
         return 'Anonymous'
     user_link.short_description = 'User'
+
+    def page_url_display(self, obj):
+        if obj.page_url:
+            return format_html('<a href="{}" target="_blank" rel="noopener">{}</a>', obj.page_url, obj.page_url[:60] + ('...' if len(obj.page_url) > 60 else ''))
+        return obj.page_path or '—'
+    page_url_display.short_description = 'URL'
     
     class Meta:
         verbose_name = "User Activity"
@@ -51,7 +107,7 @@ class UserActivityAdmin(admin.ModelAdmin):
 
 
 @admin.register(Lead)
-class LeadAdmin(admin.ModelAdmin):
+class LeadAdmin(UserAnalyticsHardDeleteMixin, admin.ModelAdmin):
     list_display = ['email', 'name', 'source', 'medium', 'is_converted', 'first_visit', 'visit_count']
     list_filter = ['is_converted', 'source', 'medium', 'first_visit']
     search_fields = ['email', 'name', 'phone', 'source']
@@ -82,7 +138,7 @@ class LeadAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserEvent)
-class UserEventAdmin(admin.ModelAdmin):
+class UserEventAdmin(UserAnalyticsHardDeleteMixin, admin.ModelAdmin):
     list_display = ['id', 'user_link', 'event_type', 'event_name', 'event_value', 'created']
     list_filter = ['event_type', 'created']
     search_fields = ['event_name', 'user__email', 'session_id']
@@ -139,7 +195,7 @@ class JourneyReferrerSourceFilter(admin.SimpleListFilter):
 
 
 @admin.register(UserJourney)
-class UserJourneyAdmin(admin.ModelAdmin):
+class UserJourneyAdmin(UserAnalyticsHardDeleteMixin, admin.ModelAdmin):
     list_display = ['session_id', 'user_link', 'start_time', 'total_pages', 'total_time', 'device_type', 'utm_source', 'traffic_source_category', 'country', 'converted']
     list_filter = [JourneyReferrerSourceFilter, 'converted', 'device_type', 'utm_source', 'traffic_source_category', 'start_time']
     search_fields = ['session_id', 'user__email', 'entry_page', 'referrer', 'utm_source']
@@ -177,7 +233,7 @@ class UserJourneyAdmin(admin.ModelAdmin):
 
 
 @admin.register(AnalyticsCache)
-class AnalyticsCacheAdmin(admin.ModelAdmin):
+class AnalyticsCacheAdmin(UserAnalyticsHardDeleteMixin, admin.ModelAdmin):
     list_display = ['cache_key', 'cache_type', 'date_range_start', 'date_range_end', 'updated', 'expires_at']
     list_filter = ['cache_type', 'expires_at']
     search_fields = ['cache_key']
@@ -190,7 +246,7 @@ class AnalyticsCacheAdmin(admin.ModelAdmin):
 
 
 @admin.register(EnquirySource)
-class EnquirySourceAdmin(admin.ModelAdmin):
+class EnquirySourceAdmin(UserAnalyticsHardDeleteMixin, admin.ModelAdmin):
     list_display = ['name', 'agency_name', 'user_name', 'event', 'token', 'is_active', 'created']
     list_filter = ['is_active', 'agency_name', 'created']
     search_fields = ['name', 'token', 'agency_name', 'user_name', 'event']

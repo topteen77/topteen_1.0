@@ -1,4 +1,4 @@
-from careers.models import Career, CareerTags,Videos
+from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
 from blog.models import Blog, BlogCategory
 from django.db.models import Count
@@ -10,10 +10,24 @@ from entrance_exams.models import EntranceExam
 from users.models import User
 from core import choices
 from core.choices import MINDMAP_TYPE_CHOICES
-from django.db.models import Q
+from django.db.models import Q, Count, Q as DjangoQ
 from functools import reduce
 from operator import or_
 from django.conf import settings
+
+
+def _footer_career_clusters():
+    """Same clusters as careers page grid: active, with at least one published career, ordered by name. Links use /careers/cluster/<slug>-<id>/."""
+    try:
+        clusters_qs = CareerCluster.objects.filter(
+            career_clusters__publish_status=1,
+            object_status=1,
+        ).distinct().annotate(
+            career_count=Count('career_clusters', filter=DjangoQ(career_clusters__publish_status=1), distinct=True)
+        ).filter(career_count__gt=0).order_by('name')
+        return [{'id': c.id, 'name': c.name or '', 'slug': c.slug or ''} for c in clusters_qs]
+    except Exception:
+        return []
 
 
 def _config_bool(key, settings_default=True):
@@ -123,6 +137,7 @@ def globals(request):
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
     # Freetrail: seconds guest can view gated content before login popup (used by ebook/vocational/extracurricular detail and any freetrail-gated page)
     kwargs = {
+        "allow_search_engine_index": getattr(settings, 'ALLOW_SEARCH_ENGINE_INDEX', False),
         "freetrail_seconds": getattr(settings, 'FREETRAIL_TIME_SECONDS', 5),
         "show_chatbot": _should_show_chatbot(request),
         "show_ai_counsellor_bot": _should_show_ai_counsellor_bot(request),
@@ -143,6 +158,10 @@ def globals(request):
         'most_searchcolleges':College.objects.all().order_by('id')[:5],
         'tranding_content':Blog.objects.all(),
         "careervideos_count":Videos.objects.count(),
+        # Footer: top-level career clusters for "Trending Career Paths" (links to /careers/cluster/<slug>-<id>/)
+        "footer_career_clusters": _footer_career_clusters(),
+        # SEO: absolute site base URL for canonical/og:image when request is not available
+        "site_base_url": getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/"),
         # "popular_tag_count":popular_tag_count
     }
     return kwargs

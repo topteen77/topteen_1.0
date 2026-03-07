@@ -5,8 +5,10 @@
   <meta charset="utf-8">
   <meta charset="UTF-8" />
   {% block robots %}
-  <meta name="robots" content="noindex" />
-  <meta name="googlebot" content="noindex">
+  {% if not (allow_search_engine_index | default(false)) %}
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="googlebot" content="noindex, nofollow">
+  {% endif %}
   {% endblock %}
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-icon-114x114.png') }}">
@@ -29,6 +31,28 @@
   {% else %}
   <meta name="description" content="{% block description_content %}TopTeen helps students find their perfect career path with confidence. Join 10k+ students working towards figuring out their ideal streams and colleges.{% endblock %}">
   {% endif %}
+  {% endblock %}
+
+  {# SEO: Open Graph and Twitter Card meta tags for social sharing and search #}
+  {% block seo_social %}
+  {% set _seo_title = (html_head.title if (html_head and html_head.title) else 'Every Student, Career Ready') %}
+  {% set _seo_desc = (html_head.description if (html_head and html_head.description) else 'TopTeen helps students find their perfect career path with confidence. Join 10k+ students working towards figuring out their ideal streams and colleges.') %}
+  {% set _seo_image = (html_head.image if (html_head and html_head.image) else none) %}
+  {% if not _seo_image %}{% set _seo_image = request.build_absolute_uri(static('images_new/fav-icon/apple-icon-114x114.png')) if request else (site_base_url + static('images_new/fav-icon/apple-icon-114x114.png')) %}{% endif %}
+  {% set _seo_url = (html_head.url if (html_head and html_head.url) else none) %}
+  {% if not _seo_url and request %}{% set _seo_url = request.build_absolute_uri(request.path) %}{% endif %}
+  {% if _seo_url %}<link rel="canonical" href="{{ _seo_url }}">{% endif %}
+  <meta property="og:type" content="{{ html_head.og_type if (html_head and html_head.og_type) else 'website' }}">
+  <meta property="og:site_name" content="Top Teen">
+  <meta property="og:title" content="{{ _seo_title }} | Top Teen">
+  <meta property="og:description" content="{{ _seo_desc }}">
+  <meta property="og:image" content="{{ _seo_image }}">
+  {% if _seo_url %}<meta property="og:url" content="{{ _seo_url }}">{% endif %}
+  <meta property="og:locale" content="en_IN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ _seo_title }} | Top Teen">
+  <meta name="twitter:description" content="{{ _seo_desc }}">
+  <meta name="twitter:image" content="{{ _seo_image }}">
   {% endblock %}
 
   <!-- Bootstrap CSS -->

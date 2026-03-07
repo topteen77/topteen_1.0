@@ -1,6 +1,35 @@
 from typing import List, Dict, Any, Iterable
 
+from django.conf import settings
+from django.db.models import Count, Q as DjangoQ
+
 from .models import MasterClass
+
+
+def _footer_career_clusters():
+    """Same clusters as careers page grid: active, with at least one published career, ordered by name. Used by Django templates. Links use /careers/cluster/<slug>-<id>/."""
+    try:
+        from careers.models import CareerCluster
+        clusters_qs = CareerCluster.objects.filter(
+            career_clusters__publish_status=1,
+            object_status=1,
+        ).distinct().annotate(
+            career_count=Count('career_clusters', filter=DjangoQ(career_clusters__publish_status=1), distinct=True)
+        ).filter(career_count__gt=0).order_by('name')
+        return [{'id': c.id, 'name': c.name or '', 'slug': c.slug or ''} for c in clusters_qs]
+    except Exception:
+        return []
+
+
+def allow_search_engine_index_processor(request):
+    """
+    Django context processor: only production (ENVIRONMENT=production) should be indexed by Google.
+    Injects allow_search_engine_index (bool) for templates.
+    """
+    return {
+        "allow_search_engine_index": getattr(settings, "ALLOW_SEARCH_ENGINE_INDEX", False),
+        "footer_career_clusters": _footer_career_clusters(),
+    }
 
 
 def _fallback_master_classes(min_value: int = 6, max_value: int = 12) -> List[Dict[str, Any]]:

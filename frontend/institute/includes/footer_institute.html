@@ -77,19 +77,11 @@
         <div class="col-12 col-md-3 col-sm-12 mt-md-0 mt-5">
           <ul class="list-group tp-footer-text">
             <li class="ft-title">Trending Career Paths</li>
-            <li><a href="{{ url('careers:career') }}?category=Engineering">Engineering & Technology</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Medicine">Medicine & Health Sciences</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Management">Management & Business Studies</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Law">Law & Public Safety</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Data Science">Data Science and Artificial Intelligence</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Design">Design & Creative Arts</a></li>
-            <li><a href="{{ url('careers:career') }}?category=IT">Computer Applications & IT</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Arts">Arts and Humanities</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Finance">Finance & Accounting</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Hospitality">Hospitality and Tourism</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Journalism">Journalism and Mass Communication</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Architecture">Architecture</a></li>
-            <li><a href="{{ url('careers:career') }}?category=Education">Education and Teaching</a></li>
+            {% for cluster in footer_career_clusters or [] %}
+            <li><a href="{{ url('careers:career_cluster', args=[cluster.slug, cluster.id]) }}">{{ cluster.name|title }}</a></li>
+            {% else %}
+            <li><a href="{{ url('careers:defaultcareerlibrary') }}">Explore Career Tracks</a></li>
+            {% endfor %}
           </ul>
         </div>
       </div>

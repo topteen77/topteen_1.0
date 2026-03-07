@@ -31,6 +31,9 @@ class AnalyticsMiddleware(MiddlewareMixin):
     
     def process_request(self, request):
         """Process request and extract analytics data"""
+        from django.conf import settings
+        if not getattr(settings, 'ENABLE_USER_ANALYTICS_TRACKING', True):
+            return None
         # Skip tracking for admin, static files, and API endpoints
         path = request.path
         skip_paths = ['/admin/', '/static/', '/media/', '/api/', '/analytics/api/']
@@ -70,11 +73,13 @@ class AnalyticsMiddleware(MiddlewareMixin):
                 logger.warning("Enquiry source lookup failed for ref=%s: %s", ref_token[:8], e)
 
         # Store analytics data in request for async processing
+        page_url = request.build_absolute_uri(path) if path else ''
         request.analytics_data = {
             'session_id': request.session.get('analytics_session_id'),
             'user_id': request.user.id if request.user.is_authenticated else None,
             'ga4_client_id': ga4_client_id,
             'path': path,
+            'page_url': page_url,
             'referrer': request.META.get('HTTP_REFERER', ''),
             'user_agent': request.META.get('HTTP_USER_AGENT', ''),
             'ip_address': self.get_client_ip(request),
@@ -140,6 +145,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     user_id=request.analytics_data['user_id'],
                     ga4_client_id=request.analytics_data.get('ga4_client_id'),
                     page_path=request.analytics_data['path'],
+                    page_url=request.analytics_data.get('page_url'),
                     page_title=page_title,
                     referrer=request.analytics_data['referrer'],
                     user_agent=request.analytics_data['user_agent'],
@@ -198,6 +204,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         user_id=request.analytics_data['user_id'],
                         ga4_client_id=request.analytics_data.get('ga4_client_id'),
                         page_path=request.analytics_data['path'],
+                        page_url=request.analytics_data.get('page_url'),
                         page_title=page_title,
                         referrer=request.analytics_data['referrer'],
                         user_agent=request.analytics_data['user_agent'],
@@ -258,6 +265,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         user_id=request.analytics_data['user_id'],
                         ga4_client_id=request.analytics_data.get('ga4_client_id'),
                         page_path=request.analytics_data['path'],
+                        page_url=request.analytics_data.get('page_url'),
                         page_title=page_title,
                         referrer=request.analytics_data['referrer'],
                         user_agent=request.analytics_data['user_agent'],
