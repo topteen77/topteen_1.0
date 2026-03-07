@@ -7,6 +7,7 @@ from celery import shared_task
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.utils import IntegrityError
 from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent, GA4Session
 from user_analytics.utils import (
     parse_user_agent_info,
@@ -26,6 +27,7 @@ def track_page_view_sync(
     user_id=None,
     ga4_client_id=None,
     page_path='',
+    page_url=None,
     page_title='',
     referrer='',
     user_agent='',
@@ -83,6 +85,8 @@ def track_page_view_sync(
                 'city': geo.get('city'),
                 'traffic_source_category': traffic_category,
             }
+            if page_url:
+                activity_kw['page_url'] = page_url[:500]
             if enquiry_source_id:
                 activity_kw['enquiry_source_id'] = enquiry_source_id
             activity = UserActivity.objects.create(**activity_kw)
@@ -162,10 +166,15 @@ def update_user_journey_sync(
             if enquiry_source_id:
                 defaults['enquiry_source_id'] = enquiry_source_id
             
-            journey, created = UserJourney.objects.get_or_create(
-                session_id=session_id,
-                defaults=defaults
-            )
+            try:
+                journey, created = UserJourney.objects.get_or_create(
+                    session_id=session_id,
+                    defaults=defaults
+                )
+            except IntegrityError:
+                # Race: another request created this session_id already; get and update
+                journey = UserJourney.objects.get(session_id=session_id)
+                created = False
             
             if not created:
                 # Update existing journey
@@ -209,6 +218,7 @@ def track_page_view_async(
     user_id=None,
     ga4_client_id=None,
     page_path='',
+    page_url=None,
     page_title='',
     referrer='',
     user_agent='',
@@ -280,6 +290,8 @@ def track_page_view_async(
                 'city': geo.get('city'),
                 'traffic_source_category': traffic_category,
             }
+            if page_url:
+                activity_kw['page_url'] = page_url[:500]
             if enquiry_source_id:
                 activity_kw['enquiry_source_id'] = enquiry_source_id
             activity = UserActivity.objects.create(**activity_kw)
@@ -372,10 +384,14 @@ def update_user_journey_async(
             if enquiry_source_id:
                 defaults['enquiry_source_id'] = enquiry_source_id
             
-            journey, created = UserJourney.objects.get_or_create(
-                session_id=session_id,
-                defaults=defaults
-            )
+            try:
+                journey, created = UserJourney.objects.get_or_create(
+                    session_id=session_id,
+                    defaults=defaults
+                )
+            except IntegrityError:
+                journey = UserJourney.objects.get(session_id=session_id)
+                created = False
             
             if not created:
                 # Update existing journey

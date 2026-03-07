@@ -80,6 +80,9 @@ INSTALLED_APPS = [
 ENABLE_REDIS = config('ENABLE_REDIS', default=True, cast=bool)
 ENABLE_CELERY = config('ENABLE_CELERY', default=True, cast=bool)
 
+# User analytics: set False in .env to disable all tracking (debugging / manual data clean)
+ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', default=True, cast=bool)
+
 # Add django_elasticsearch_dsl conditionally based on environment
 ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)
 if ENABLE_ELASTICSEARCH:
@@ -206,6 +209,8 @@ TEMPLATES = [
                 'app.context_processors.has_payment',
                 # Inject master class list for grade/class dropdowns (Django templates)
                 'core.context_processors.master_classes_processor',
+                # Only ENVIRONMENT=production allows search engine indexing (noindex otherwise)
+                'core.context_processors.allow_search_engine_index_processor',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],
@@ -749,6 +754,8 @@ DEMO_EMAIL=[]
 CREDIT_LIMIT=5000
 
 ENVIRONMENT = config('ENVIRONMENT', default='production')
+# Only allow Google (and other search engines) to index when ENVIRONMENT=production in .env
+ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production')
 
 # Enquiry source UTM links: base URL is always www.topteen.in or demo.topteen.in (set in .env per environment).
 ENQUIRY_SOURCE_BASE_URL = config('ENQUIRY_SOURCE_BASE_URL', default='https://www.topteen.in').rstrip('/')

@@ -587,4 +587,19 @@ SQL to test in DB (replace TOKEN and id 5 with your source’s token/id):
   SELECT id, session_id, page_path, created FROM user_analytics_userjourney WHERE enquiry_source_id = 5 ORDER BY created DESC LIMIT 10;
 
   -- If both return 0 rows for source id 5, no request with ?ref=BFxiH5R2l8id has yet returned HTTP 200 on the server that writes to this DB.
+
+---------- Search engine indexing (Google, etc.) ----------
+Only production is allowed to be indexed. Set in .env:
+  ENVIRONMENT=production   # Production site: no noindex meta; Google can index.
+  ENVIRONMENT=development  # Staging/local: <meta name="robots" content="noindex, nofollow"> is output; site is not indexed.
+Defaults: ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production'). Used in template20/base.html and topteenfrontend/super_base.html.
+
+---------- User analytics: tracking toggle and admin URL ----------
+.env:
+  ENABLE_USER_ANALYTICS_TRACKING=True   # Set to False to disable all page/session tracking (debugging or before bulk delete).
+
+Django Admin → user_analytics → User Activity:
+  • URL column: full page_url is stored and shown (link). Use to identify local vs production hits.
+  • Filter "URL type": "Local (localhost, 127.0.0.1, test)" / "Production / other (topteen.in)" / "No URL stored (old records)".
+  • Filter to e.g. Local, select rows, Action → Delete to clean test data. Or set ENABLE_USER_ANALYTICS_TRACKING=False, then clean, then set back to True.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------

@@ -2,7 +2,9 @@
 <html>
   <head>
 
-    <meta name="robots" content="noindex">      
+    {% if not (allow_search_engine_index | default(false)) %}
+    <meta name="robots" content="noindex, nofollow">
+    {% endif %}
     {%if html_head%}
     <title>{{html_head.title}} | Top Teen</title>
     <meta name="description" content="{{html_head.description}}" />
@@ -10,6 +12,24 @@
     <title>{%block title%} | Top Teen {%endblock%}</title>
     <meta name="description" content="Top Teen Career Building website" />
     {%endif%}
+
+    {# SEO: Open Graph and Twitter Card meta tags #}
+    {% set _st = (html_head.title if html_head and html_head.title else 'Top Teen') %}
+    {% set _sd = (html_head.description if html_head and html_head.description else 'Top Teen Career Building website') %}
+    {% set _si = (html_head.image if (html_head and html_head.image) else (request.build_absolute_uri(static('topteenfrontend/assets/images/graduation-hat 1.png')) if request else (site_base_url + static('topteenfrontend/assets/images/graduation-hat 1.png')))) %}
+    {% set _su = (html_head.url if (html_head and html_head.url) else (request.build_absolute_uri(request.path) if request else '')) %}
+    {% if _su %}<link rel="canonical" href="{{ _su }}">{% endif %}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Top Teen">
+    <meta property="og:title" content="{{ _st }} | Top Teen">
+    <meta property="og:description" content="{{ _sd }}">
+    <meta property="og:image" content="{{ _si }}">
+    {% if _su %}<meta property="og:url" content="{{ _su }}">{% endif %}
+    <meta property="og:locale" content="en_IN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ _st }} | Top Teen">
+    <meta name="twitter:description" content="{{ _sd }}">
+    <meta name="twitter:image" content="{{ _si }}">
 
     <!-- FOR STATIC FILES -->
     {%block staticadditionalheader%} {%endblock%}

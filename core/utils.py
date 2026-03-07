@@ -50,6 +50,12 @@ def build_breadcrumb(list_of_dict):
 	return lst
 
 def build_html_head(**kwargs):
+	"""
+	Build context dict for page <head> (title, description, optional SEO/social).
+	Views pass e.g. build_html_head(title='...', description='...').
+	Optional keys for social/SEO (used by base templates): image (absolute URL),
+	url (canonical/og:url), og_type (default 'website').
+	"""
 	return kwargs
 
 def wait_for_db():

@@ -96,6 +96,13 @@ class UserActivity(BaseModel):
     )
     session_id = models.CharField(max_length=255, db_index=True, help_text="Unique session identifier")
     page_path = models.CharField(max_length=500, db_index=True, help_text="URL path visited")
+    page_url = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="Full URL visited (for filtering local vs production in admin)."
+    )
     page_title = models.CharField(max_length=500, blank=True, null=True)
     referrer = models.CharField(max_length=500, blank=True, null=True, help_text="HTTP referrer")
     utm_source = models.CharField(max_length=255, blank=True, null=True, db_index=True)
