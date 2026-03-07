@@ -3,6 +3,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    {% if allow_search_engine_index %}
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    {% else %}
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow">
+    {% endif %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
