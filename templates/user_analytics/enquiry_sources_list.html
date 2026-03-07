@@ -76,7 +76,6 @@
                         <th>QR code</th>
                         <th class="text-end">Page views</th>
                         <th class="text-end">Sessions</th>
-                        <th class="text-end">Visits</th>
                         <th class="text-end">Registrations</th>
                         <th class="text-end">Payments</th>
                         <th class="text-end">Enrolled</th>
@@ -113,7 +112,6 @@
                         </td>
                         <td class="text-end" title="UserActivity with this source">{{ item.stats.page_views }}</td>
                         <td class="text-end" title="UserJourney (sessions) with this source">{{ item.stats.visit_count }}</td>
-                        <td class="text-end">{{ item.stats.visit_count }}</td>
                         <td class="text-end">{{ item.stats.registrations }}</td>
                         <td class="text-end">{{ item.stats.payment_success }}</td>
                         <td class="text-end">{{ item.stats.course_enrolled }}</td>
@@ -129,7 +127,6 @@
                     {% else %}
                     <tr>
                         <td colspan="13" class="text-center text-muted py-4">
-                        <td colspan="12" class="text-center text-muted py-4">
                             No enquiry sources yet. <a href="{{ url('user_analytics:enquiry_source_create') }}">Add one</a> to get a non-readable link and QR code.
                         </td>
                     </tr>

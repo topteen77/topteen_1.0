@@ -2653,6 +2653,8 @@ def cleanup_analytics_data_view(request):
 def _enquiry_source_stats(source):
     """Return dict of visit count and conversion counts for an EnquirySource."""
     from django.db.models import Count
+    # Page views: any UserActivity with this enquiry_source (proves ref= is being tracked)
+    page_views = UserActivity.objects.filter(enquiry_source=source).count()
     sessions = UserJourney.objects.filter(enquiry_source=source)
     visit_count = sessions.count()
     session_ids = list(sessions.values_list('session_id', flat=True))
