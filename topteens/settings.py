@@ -128,6 +128,7 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.slash_middleware.AppendSlashRedirectMiddleware',  # Redirect /path to /path/ when /path/ resolves (before catch-all 404)
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -172,6 +173,9 @@ if USE_HTTPS:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ROOT_URLCONF = 'topteens.urls'
+# Trailing slash: our AppendSlashRedirectMiddleware redirects /path -> /path/ when /path/ resolves.
+# APPEND_SLASH still used by CommonMiddleware for any URL that does not match (e.g. before catch-all).
+APPEND_SLASH = True
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 TEMPLATES = [
      {

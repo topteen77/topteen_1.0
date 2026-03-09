@@ -27,7 +27,9 @@
       <div class="row">
         <div class="col-md-12 col-sm-12">
           <h1 class="title-two fs-38 fw-700 mb-3 text-left fs-sm-28">Terms and Conditions</h1>
-        
+          {% if static_page and static_page.content_html %}
+          <div class="terms-content">{{ static_page.content_html_display|safe }}</div>
+          {% else %}
           <div class="terms-content">
             <h2><span class="section-num">1.</span> AGREEMENT FORMATION AND ACCEPTANCE</h2>
             <p class="lead-intro">These Terms and Conditions constitute a comprehensive legal agreement between TopTeen Educational Services Private Limited, a company incorporated under the laws of India with its registered office at SCO 83-84, Sector 17 D, Chandigarh-160017, India ("Company," "TopTeen," "we," "us," or "our"), and any individual or entity accessing or utilizing our educational platform and services ("User," "you," or "your").</p>
@@ -224,6 +226,7 @@
             <p>Email notices are considered delivered when sent to the email address on file, regardless of whether the user actually receives or reads the email. Postal notices are considered delivered when sent via registered mail to the most recent address provided by the user.</p>
             <p>Users should regularly check their email accounts and update their contact information promptly when changes occur to ensure they receive important notices about service changes, policy updates, or account matters.</p>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>

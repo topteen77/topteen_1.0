@@ -27,8 +27,9 @@
       <div class="row">
         <div class="col-md-12 col-sm-12">
           <h1 class="title-two fs-38 fw-700 mb-3 text-left fs-sm-28">Privacy Policy</h1>
-         
-
+          {% if static_page and static_page.content_html %}
+          <div class="privacy-policy-content">{{ static_page.content_html_display|safe }}</div>
+          {% else %}
           <div class="privacy-policy-content">
             <h2><span class="section-num">1.</span> OVERVIEW</h2>
             <p class="lead-intro">TopTeen Educational Services Private Limited ("TopTeen," "Company," "we," "us," or "our") operates the website www.topteen.in and provides comprehensive educational services to students, parents, and educational institutions across India and internationally. This Privacy Policy governs how we collect, process, store, and disclose personal information obtained through our digital platform and related services.</p>
@@ -138,6 +139,7 @@
             <h3>14.3 Complaints and Dispute Resolution</h3>
             <p>Users may file complaints with relevant data protection authorities in India or contact our internal dispute resolution team at <a href="mailto:operations@topteen.in">operations@topteen.in</a>. We maintain procedures for handling privacy complaints fairly and expeditiously, and we work cooperatively with regulatory authorities to resolve any concerns about our data handling practices.</p>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>

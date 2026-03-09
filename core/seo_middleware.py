@@ -14,6 +14,30 @@ def _normalize_path(path, max_len=120):
     return key[:max_len] if len(key) > max_len else key
 
 
+# Map request path (normalized, no leading slash) to dashboard url_key so SEO applies site-wide.
+# Covers core static pages, career planning, assessments, extracurricular, etc.
+PATH_TO_STATIC_KEY = {
+    "about-us": "about",
+    "terms-and-condition": "terms",
+    "contact-us": "contact",
+    "privacy-policy": "privacy",
+    "career-planning": "career_planning",
+    "career-planning/4-year-course-plan": "career_planning_4_year",
+    "career-planning/class-9": "career_planning_class_9",
+    "career-planning/class-10": "career_planning_class_10",
+    "career-planning/class-11": "career_planning_class_11",
+    "career-planning/class-12": "career_planning_class_12",
+    "assessments/emotional-intelligences": "emotional_intelligences",
+    "assessments/multiple-intelligences": "multiple_intelligences",
+    "four-pillars-of-learning": "four_pillars",
+    "searchand-explore": "searchand-explore",
+    "all-faq": "all-faq",
+    "extracurricular-activities": "extracurricular-activities",
+    "vocational-courses": "vocational-courses",
+    "ebooks": "ebooks",
+}
+
+
 class PageSEOMiddleware:
     """
     After the view runs, if context has 'html_head' (dict), look up PageSEO by request.path.
@@ -41,6 +65,7 @@ class PageSEOMiddleware:
         url_key = _normalize_path(path)
         if not url_key:
             return response
+        url_key = PATH_TO_STATIC_KEY.get(url_key, url_key)
         try:
             from core.models import PageSEO
             from core.utils import get_page_seo_html_head
