@@ -172,8 +172,14 @@ def update_user_journey_sync(
                     defaults=defaults
                 )
             except IntegrityError:
-                # Race: another request created this session_id already; get and update
-                journey = UserJourney.objects.get(session_id=session_id)
+                # Race: another request may have created this session_id; fetch if exists
+                journey = UserJourney.objects.filter(session_id=session_id).first()
+                if journey is None:
+                    logger.warning(
+                        "IntegrityError on UserJourney get_or_create but no record found for session_id=%s",
+                        session_id,
+                    )
+                    return f"Updated journey: {session_id}"
                 created = False
             
             if not created:
@@ -390,7 +396,13 @@ def update_user_journey_async(
                     defaults=defaults
                 )
             except IntegrityError:
-                journey = UserJourney.objects.get(session_id=session_id)
+                journey = UserJourney.objects.filter(session_id=session_id).first()
+                if journey is None:
+                    logger.warning(
+                        "IntegrityError on UserJourney get_or_create but no record found for session_id=%s",
+                        session_id,
+                    )
+                    return f"Updated journey: {session_id}"
                 created = False
             
             if not created:
