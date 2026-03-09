@@ -1,6 +1,7 @@
 import time
 from django.shortcuts import redirect, render
 from core.breadcrumbs import get_breadcrumb
+from core.utils import ensure_user_pdf_folder
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from .forms import UploadFileForm
@@ -481,6 +482,9 @@ def class10_combined_report(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if user has attempted tests
         if not has_attempted_test(target_user):
@@ -662,6 +666,9 @@ def class10_report_download_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if user has attempted tests
         if not has_attempted_test(target_user):
@@ -996,6 +1003,8 @@ def handle_uploaded_file(file):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test1_intro(request):
+    # Ensure user PDF folder exists before starting test
+    ensure_user_pdf_folder(request.user.id)
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
@@ -1008,7 +1017,8 @@ def test1_intro(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test2_intro(request):
-    
+    # Ensure user PDF folder exists before starting test
+    ensure_user_pdf_folder(request.user.id)
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
@@ -1021,6 +1031,8 @@ def test2_intro(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_intro(request):
+    # Ensure user PDF folder exists before starting test
+    ensure_user_pdf_folder(request.user.id)
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
@@ -2079,10 +2091,11 @@ def download_pdf(request,test_paper):
 
             # return response
 
-            # Create the directory if it doesn't exist
-            user_directory = os.path.join(settings.MEDIA_ROOT, 'users_pdfs',  str(request.user.id))
-            if not os.path.exists(user_directory):
-                os.makedirs(user_directory)
+            # Ensure user PDF folder exists (same helper as report views / psychometric flow)
+            user_directory = ensure_user_pdf_folder(request.user.id)
+            if not user_directory:
+                messages.error(request, 'Error creating download folder')
+                return redirect('app:app_submit')
 
             # Save the PDF file
             pdf_path = os.path.join(user_directory, filename)
@@ -2126,6 +2139,9 @@ def test1_report_html(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download/save)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test1 is completed
         try:
@@ -2225,6 +2241,9 @@ def test2_report_html(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download/save)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test2 is completed
         try:
@@ -2319,6 +2338,9 @@ def test3_report_html(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download/save)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test3 is completed
         try:
@@ -2470,6 +2492,9 @@ def test1_report_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test1 is completed
         try:
@@ -2591,6 +2616,9 @@ def test2_report_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test2 is completed
         try:
@@ -2707,6 +2735,9 @@ def test3_report_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test3 is completed
         try:

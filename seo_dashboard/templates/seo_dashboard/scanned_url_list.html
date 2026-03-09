@@ -23,12 +23,17 @@
             <h5 class="card-title">Scan website for URLs</h5>
             <p class="text-muted mb-2">Collect all open (accessible) URLs by crawling the site. Next scan adds only new or missed URLs; no duplicates are stored.</p>
             <p class="alert alert-info py-2 px-3 small mb-2">Scan runs only on <strong>production or staging</strong> (not on localhost). On local, you will see an error message if you try to scan.</p>
-            <form method="post" action="{% url 'seo_dashboard:scanned_url_list' %}" class="d-inline" id="scanForm">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="scan">
-                <button type="submit" class="btn btn-primary" id="scanBtn">Scan now</button>
-            </form>
-            <span class="text-muted small ms-2" id="scanHint">(This may take 10–30 seconds.)</span>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <button type="button" class="btn btn-primary" id="scanBtn">Scan now</button>
+                <span class="text-muted small" id="scanHint">(This may take 10–30 seconds.)</span>
+            </div>
+            <div id="scanStatus" class="mt-2" style="display: none;">
+                <div class="alert alert-secondary py-2 mb-0 d-flex align-items-center">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span id="scanStatusText">Connecting…</span>
+                </div>
+            </div>
+            <div id="scanResult" class="mt-2" style="display: none;"></div>
         </div>
     </div>
 
@@ -109,12 +114,66 @@
 {% block additional_js %}
 <script>
 (function() {
-    var scanForm = document.getElementById('scanForm');
     var scanBtn = document.getElementById('scanBtn');
-    if (scanForm && scanBtn) {
-        scanForm.addEventListener('submit', function() {
+    var scanStatus = document.getElementById('scanStatus');
+    var scanStatusText = document.getElementById('scanStatusText');
+    var scanResult = document.getElementById('scanResult');
+    var scanHint = document.getElementById('scanHint');
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    var csrf = csrfToken ? csrfToken.value : (document.querySelector('#formScannedUrls input[name=csrfmiddlewaretoken]') && document.querySelector('#formScannedUrls input[name=csrfmiddlewaretoken]').value);
+
+    function setStatus(text) {
+        if (scanStatusText) scanStatusText.textContent = text;
+        if (scanStatus) scanStatus.style.display = 'block';
+        if (scanResult) scanResult.style.display = 'none';
+    }
+    function showResult(html, isError) {
+        if (scanStatus) scanStatus.style.display = 'none';
+        if (scanResult) {
+            scanResult.innerHTML = html;
+            scanResult.style.display = 'block';
+        }
+    }
+
+    if (scanBtn) {
+        scanBtn.addEventListener('click', function() {
             scanBtn.disabled = true;
-            scanBtn.textContent = 'Scanning…';
+            if (scanHint) scanHint.style.visibility = 'hidden';
+            setStatus('Scanning website…');
+            setTimeout(function() { if (scanStatusText) scanStatusText.textContent = 'Crawling pages…'; }, 1500);
+            setTimeout(function() { if (scanStatusText) scanStatusText.textContent = 'Almost done…'; }, 6000);
+
+            var formData = new FormData();
+            formData.append('csrfmiddlewaretoken', csrf || '');
+            formData.append('action', 'scan');
+
+            fetch('{% url "seo_dashboard:scanned_url_scan_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            }).then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+              .then(function(result) {
+                scanBtn.disabled = false;
+                if (scanHint) scanHint.style.visibility = '';
+                if (result.ok && result.data.success) {
+                    var msg = result.data.message || 'Scan complete.';
+                    var errs = result.data.errors || [];
+                    var html = '<div class="alert alert-success py-2">' + msg + '</div>';
+                    if (errs.length) {
+                        html += '<div class="alert alert-warning py-2 small">' + errs.slice(0, 3).join('<br>') + (errs.length > 3 ? '<br>… and ' + (errs.length - 3) + ' more' : '') + '</div>';
+                    }
+                    showResult(html);
+                    window.location.reload();
+                } else {
+                    showResult('<div class="alert alert-danger py-2">' + (result.data.message || 'Scan failed.') + '</div>', true);
+                }
+              })
+              .catch(function(err) {
+                scanBtn.disabled = false;
+                if (scanHint) scanHint.style.visibility = '';
+                showResult('<div class="alert alert-danger py-2">Request failed. Please try again.</div>', true);
+              });
         });
     }
     var form = document.getElementById('formScannedUrls');
