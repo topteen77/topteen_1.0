@@ -107,7 +107,7 @@
       </div>
     </div>
   </div>
-  
+
   <div class="copyright py-3">
     <div class="container">
       <div class="row">
@@ -117,4 +117,132 @@
   </div>
 </footer>
 <!-- Footer Section -->
+
+{# EU cookie consent – sticky at bottom of viewport, black 0.6 opacity, professional UI #}
+<div id="eu-cookie-consent" class="eu-cookie-consent" role="dialog" aria-label="Cookie consent" style="display: none;">
+  <div class="eu-cookie-consent-backdrop"></div>
+  <div class="container">
+    <div class="eu-cookie-consent-inner">
+      <div class="eu-cookie-consent-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M14 8a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0"/><path d="M15 16a2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+      </div>
+      <p class="eu-cookie-consent-text">
+        We use cookies to improve your experience, remember preferences and analyse traffic. By continuing you agree to our use of cookies. <a href="{{ url('core:privacypolicy') }}">Privacy Policy</a>.
+      </p>
+      <div class="eu-cookie-consent-actions">
+        <!-- <a href="{{ url('core:privacypolicy') }}" class="eu-cookie-consent-link">Learn more</a> -->
+        <button type="button" class="eu-cookie-consent-accept-btn" id="eu-cookie-consent-accept" aria-label="Accept cookies">Accept</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.eu-cookie-consent {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9990;
+  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+}
+.eu-cookie-consent-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.eu-cookie-consent .container {
+  position: relative;
+  z-index: 1;
+}
+.eu-cookie-consent-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  max-width: 100%;
+}
+.eu-cookie-consent-icon {
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.95);
+  line-height: 0;
+}
+.eu-cookie-consent-text {
+  flex: 1 1 280px;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.95);
+  font-weight: 400;
+}
+.eu-cookie-consent-text a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 500;
+}
+.eu-cookie-consent-text a:hover {
+  color: rgba(255,255,255,0.9);
+}
+.eu-cookie-consent-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.eu-cookie-consent-link {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.eu-cookie-consent-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.12);
+}
+.eu-cookie-consent-accept-btn {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.eu-cookie-consent-accept-btn:hover {
+  background: #f0f0f0;
+}
+.eu-cookie-consent-accept-btn:active {
+  transform: scale(0.98);
+}
+</style>
+<script>
+(function() {
+  var STORAGE_KEY = 'cookie_consent_eu';
+  var banner = document.getElementById('eu-cookie-consent');
+  if (!banner) return;
+  try {
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      banner.style.display = 'flex';
+    }
+    var btn = document.getElementById('eu-cookie-consent-accept');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        try { localStorage.setItem(STORAGE_KEY, 'accepted'); } catch (e) {}
+        banner.style.display = 'none';
+      });
+    }
+  } catch (e) {}
+})();
+</script>
 
