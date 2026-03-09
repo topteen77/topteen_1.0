@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
-from .utils import build_html_head, clean_html, get_static_page, get_static_page_html_head
+from .utils import build_html_head, clean_html, get_static_page, get_static_page_html_head, get_page_seo_html_head
 from .breadcrumbs import get_breadcrumb
 from django.db import connection
 from django.db.models import Q
@@ -371,14 +371,16 @@ class AllFaqView(TemplateView):
 
 class ExtracurricularActivitiesView(TemplateView):
     template_name = "template20/extracurricular_activities.html"
-
-    def html_head(self):
-        name = "Extracurricular Activities"
-        return build_html_head(title=name, description=name)
+    url_key = "extracurricular-activities"
 
     def get_context(self, request, *args, **kwargs):
         ctx = {}
-        ctx["html_head"] = self.html_head()
+        ctx["html_head"] = get_page_seo_html_head(
+            self.url_key,
+            "Extracurricular Activities",
+            "Unlock your potential through diverse extracurricular activities that enhance your skills, build character, and create memorable experiences.",
+            request=request,
+        )
         ctx["breadcrumb"] = get_breadcrumb([{'text': 'Extracurricular Activities', 'url': reverse('core:extracurricular_activities')}])
         # Dynamic categories + activities (admin-managed)
         try:

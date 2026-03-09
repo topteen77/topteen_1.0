@@ -7,6 +7,7 @@ urlpatterns = [
     path("login/", views.SEOLoginView.as_view(), name="login"),
     path("logout/", views.SEOLogoutView.as_view(), name="logout"),
     path("", views.DashboardView.as_view(), name="dashboard"),
+    path("clear-cache/", views.ClearCacheView.as_view(), name="clear_cache"),
     path("pages/", views.PageListView.as_view(), name="page_list"),
     path("pages/add-seo-by-url/", views.AddSEOByURLView.as_view(), name="add_seo_by_url"),
     path("scanned-urls/", views.ScannedURLListView.as_view(), name="scanned_url_list"),

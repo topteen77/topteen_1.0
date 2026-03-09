@@ -11,7 +11,7 @@ from core.models import StaticPage, PageSEO, STATIC_PAGE_URL_KEYS, GeneratedPage
 from .seo_suggestions import get_seo_suggestions
 from .ai_seo import generate_seo_with_ai, get_page_content_for_seo
 from core.page_import import import_page_from_url
-from core.utils import RICH_LAYOUT_STATIC_PAGES
+from core.utils import RICH_LAYOUT_STATIC_PAGES, get_frontend_path_for_url_key
 from core.static_page_schema import get_static_page_schema, get_form_fields_with_values
 from .decorators import seo_user_only, can_edit_content, can_edit_seo
 
@@ -49,6 +49,67 @@ class SEOLogoutView(View):
 
 
 @method_decorator(seo_user_only, name="dispatch")
+class ClearCacheView(LoginRequiredMixin, View):
+    """POST: clear cache by scope. Staff or SEO. scope=all | home | pages. Returns JSON for AJAX for instant feedback."""
+    login_url = reverse_lazy("seo_dashboard:login")
+
+    def post(self, request, *args, **kwargs):
+        from django.core.cache import cache
+        from django.contrib import messages
+        scope = (request.POST.get("scope") or request.GET.get("scope") or "all").strip().lower()
+        is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.accepts("application/json")
+        msg_success = None
+        msg_error = None
+        if scope == "all":
+            try:
+                cache.clear()
+                msg_success = "All cache cleared."
+                messages.success(request, msg_success)
+            except Exception as e:
+                msg_error = str(e)
+                messages.error(request, f"Failed to clear cache: {e}")
+        elif scope == "home":
+            try:
+                _clear_cache_by_patterns(cache, ["home*", "home_*"])
+                msg_success = "Home page cache cleared."
+                messages.success(request, msg_success)
+            except Exception as e:
+                msg_error = str(e)
+                messages.error(request, f"Failed to clear home cache: {e}")
+        elif scope == "pages":
+            try:
+                _clear_cache_by_patterns(
+                    cache,
+                    ["career_library_ctx_*", "ga4_*", "template_cache_*"],
+                )
+                msg_success = "Other page caches cleared."
+                messages.success(request, msg_success)
+            except Exception as e:
+                msg_error = str(e)
+                messages.error(request, f"Failed to clear page cache: {e}")
+        else:
+            msg_error = "Invalid scope."
+            messages.error(request, msg_error)
+        if is_ajax:
+            if msg_error:
+                return JsonResponse({"success": False, "message": msg_error}, status=400)
+            return JsonResponse({"success": True, "message": msg_success or "Done."})
+        return redirect(reverse("seo_dashboard:dashboard"))
+
+
+def _clear_cache_by_patterns(cache_backend, patterns):
+    """Clear cache keys matching any of the patterns. Uses delete_pattern if available, else clear()."""
+    if getattr(cache_backend, "delete_pattern", None):
+        for pattern in patterns:
+            try:
+                cache_backend.delete_pattern(pattern)
+            except Exception:
+                pass
+    else:
+        cache_backend.clear()
+
+
+@method_decorator(seo_user_only, name="dispatch")
 class DashboardView(LoginRequiredMixin, TemplateView):
     """Dashboard home: link to page list."""
     template_name = "seo_dashboard/dashboard.html"
@@ -83,6 +144,7 @@ class PageListView(LoginRequiredMixin, TemplateView):
                 "label": label,
                 "has_cms_content": bool(sp and sp.content_html),
                 "has_seo": seo is not None and (bool(seo.title) or bool(seo.description)),
+                "frontend_url": self.request.build_absolute_uri(get_frontend_path_for_url_key(key)),
             })
         # Sort so pending SEO appears first (SEO user can tackle pending first)
         pages.sort(key=lambda p: (p["has_seo"], p["label"]))
@@ -109,6 +171,7 @@ class PageListView(LoginRequiredMixin, TemplateView):
                     "url_key": url_key,
                     "label": b.title or b.slug,
                     "has_seo": has_seo,
+                    "frontend_url": self.request.build_absolute_uri(get_frontend_path_for_url_key(url_key)),
                 })
             # Sort so pending SEO appears first
             blog_pages.sort(key=lambda p: (p["has_seo"], p["label"]))
@@ -130,6 +193,7 @@ class PageListView(LoginRequiredMixin, TemplateView):
                 "url_key": seo.url_key,
                 "label": seo.url_key,
                 "has_seo": bool(seo.title or seo.description),
+                "frontend_url": self.request.build_absolute_uri(get_frontend_path_for_url_key(seo.url_key)),
             }
             for seo in other_seo
         ]
@@ -222,12 +286,14 @@ class EditContentView(LoginRequiredMixin, TemplateView):
                 "content_json": content_json,
                 "form_fields": form_fields,
                 "upload_image_url": reverse("seo_dashboard:upload_image"),
+                "frontend_url": request.build_absolute_uri(get_frontend_path_for_url_key(url_key)),
             }, using="django")
         is_rich_layout = url_key in RICH_LAYOUT_STATIC_PAGES
         return render(request, self.template_name, {
             "static_page": page,
             "url_key": url_key,
             "is_rich_layout": is_rich_layout,
+            "frontend_url": request.build_absolute_uri(get_frontend_path_for_url_key(url_key)),
         }, using="django")
 
     def post(self, request, *args, **kwargs):
@@ -431,6 +497,7 @@ class EditSEOView(LoginRequiredMixin, TemplateView):
                 pass
         context["seo_keywords"] = (page_seo.keywords or "").strip()
         context["seo_og_image"] = (page_seo.og_image or "").strip()
+        context["frontend_url"] = self.request.build_absolute_uri(get_frontend_path_for_url_key(url_key))
         return context
 
     def get(self, request, *args, **kwargs):

@@ -73,6 +73,9 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if p.frontend_url %}
+                            <a href="{{ p.frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm" title="Open page in new tab">Visit</a>
+                            {% endif %}
                             {% if can_edit_content %}
                             <a href="{% url 'seo_dashboard:edit_content' url_key=p.url_key %}" class="btn btn-primary btn-sm">Edit content</a>
                             {% endif %}
@@ -116,6 +119,9 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if p.frontend_url %}
+                            <a href="{{ p.frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm" title="Open page in new tab">Visit</a>
+                            {% endif %}
                             {% if can_edit_seo %}
                             <a href="{% url 'seo_dashboard:edit_seo' url_key=p.url_key %}" class="btn btn-outline-secondary btn-sm">Edit SEO</a>
                             {% endif %}
@@ -157,6 +163,9 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if p.frontend_url %}
+                            <a href="{{ p.frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm" title="Open page in new tab">Visit</a>
+                            {% endif %}
                             {% if can_edit_seo %}
                             <a href="{% url 'seo_dashboard:edit_seo' url_key=p.url_key %}" class="btn btn-outline-secondary btn-sm">Edit SEO</a>
                             {% endif %}

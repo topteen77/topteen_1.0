@@ -6,8 +6,11 @@
 
 {% block content %}
 <div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
-    <div class="mb-3">
+    <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
         <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Page list</a>
+        {% if frontend_url %}
+        <a href="{{ frontend_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success btn-sm">Visit page ↗</a>
+        {% endif %}
     </div>
     <div class="admin-card">
         <div class="card-header">
