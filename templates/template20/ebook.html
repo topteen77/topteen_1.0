@@ -378,14 +378,16 @@
       <div class="row">
         <div class="col-12">
           <h2 class="heading-title text-center">E-Books</h2>
-
+ 
           <!-- Search Bar -->
           <div class="ebooks-search-wrapper">
             <div class="ebooks-search-container">
-              <input type="text" class="ebooks-search-input" id="ebooksSearchInput" placeholder="Search e-books..." autocomplete="off" />
-              <button type="button" class="ebooks-search-btn" id="ebooksSearchBtn" aria-label="Search">
-                <i class='bx bx-search'></i>
-              </button>
+              <form autocomplete="off"> 
+                <input type="text" class="ebooks-search-input" id="ebooksSearchInput" placeholder="Search e-books..." name="search" />
+                <button type="submit" class="ebooks-search-btn" id="ebooksSearchBtn" aria-label="Search">
+                  <i class='bx bx-search'></i>
+                </button>
+              </form>           
               <div class="ebooks-search-suggestions" id="ebooksSearchSuggestions" role="listbox"></div>
             </div>
           </div>

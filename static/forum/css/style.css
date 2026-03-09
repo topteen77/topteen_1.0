@@ -31,7 +31,7 @@ body {
 }
 
 .text-purple {
-    color: #6860F6;
+    color: #3F37C9;
 }
 
 .profile-details-item {
@@ -138,14 +138,19 @@ body {
     padding: 20px;
 }
 
+button.quick-action img {
+    width: 24px;
+}
+
 .card-title-plain {
     font-size: 1.2rem;
     font-weight: 700;
     color: #333;
-    margin: 0 0 16px 0;
+    margin: 0 0 27px 0;
     display: flex;
     align-items: center;
     gap: 8px;
+    justify-content: center;
 }
 
 .card-title-plain i {
@@ -433,6 +438,7 @@ body {
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 20px;
+    justify-content: center;
 }
 
 .quick-action {
@@ -591,7 +597,8 @@ body {
     font-weight: 600;
     color: #333;
     margin-bottom: 16px;
-    font-size: 1rem;
+    font-size: 21px;
+    color: #3f37c9;
 }
 
 .response-analysis-text {
@@ -860,14 +867,24 @@ div#aiResponseBlock button#responseBottomBtn {
     background: #F5F4FF;
     border: 1px solid #ddd;
     color: #555;
-    padding: 8px 16px;
+    padding: 4px 22px;
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
     font-size: 0.9rem;
     border: 1px solid #D1C2FF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
 }
+
+button.category-tab img {
+    width: 26px;
+}
+
+
 
 .category-tab:hover {
     border-color: var(--purple-light);
@@ -1916,7 +1933,16 @@ div#aiResponse ul {
 
 .welcome-message h3 {
     font-size: 24px;
+    padding-bottom: 0px !important;
   }
+
+  .response-heading-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    justify-content: center;
+}
+
 
   .tip-message {
     background: #edeaf6;

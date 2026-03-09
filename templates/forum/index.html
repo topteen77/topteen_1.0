@@ -104,14 +104,15 @@
 
                 <!-- Ask Your Career Question Card -->
                 <div class="card query-card">
-                    <h2 class="card-title-plain"><i class="fas fa-comments"></i> Ask Your Career Question</h2>
+                    <div class="heading-title">   <h2 class="card-title-plain"><i class="fas fa-comments"></i> Ask Your <span class="text-purple"> Career Question</span></h2> </div>
+
                     <div class="quick-actions">
-                        <button type="button" class="quick-action" onclick="quickQuery('What should I do after 10th?')"><i class="fas fa-graduation-cap"></i> After 10th Options</button>
-                        <button type="button" class="quick-action" onclick="quickQuery('Best careers in science stream?')"><i class="fas fa-flask"></i> Science Careers</button>
-                        <button type="button" class="quick-action" onclick="quickQuery('How to prepare for JEE?')"><i class="fas fa-pen"></i> JEE Preparation</button>
-                        <button type="button" class="quick-action" onclick="quickQuery('Careers without maths?')"><i class="fas fa-calculator"></i> Non-Math Careers</button>
-                        <button type="button" class="quick-action" onclick="quickQuery('Study abroad after 12th?')"><i class="fas fa-plane"></i> Study Abroad</button>
-                        <button type="button" class="quick-action" onclick="quickQuery('Part-time jobs for students?')"><i class="fas fa-briefcase"></i> Student Jobs</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('What should I do after 10th?')"><img class="img-fluid" src="{% static 'forum/images/after-10.webp' %}" alt="After 10th Options" /> After 10th Options</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Best careers in science stream?')"><img class="img-fluid" src="{% static 'forum/images/science-career.webp' %}" alt="Science Careers" />  Science Careers</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('How to prepare for JEE?')"><img class="img-fluid" src="{% static 'forum/images/career-target.webp' %}" alt="JEE Preparation<" /> JEE Preparation</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Careers without maths?')"><img class="img-fluid" src="{% static 'forum/images/non-math.png' %}" alt="JEE Preparation" /> Non-Math Careers</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Study abroad after 12th?')"><img class="img-fluid" src="{% static 'forum/images/study-abroad.png' %}" alt="Study Abroad" /> Study Abroad</button>
+                        <button type="button" class="quick-action" onclick="quickQuery('Part-time jobs for students?')"><img class="img-fluid" src="{% static 'forum/images/student-job.png' %}" alt="Student Jobs" /> Student Jobs</button>
                     </div>
                     <div class="input-group">
                         <textarea class="query-input" id="userQuery" placeholder="Ask any career question... e.g. 'Which stream should I choose?' or 'What are high-paying careers without NEET?'" rows="3"></textarea>
@@ -130,7 +131,8 @@
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
-                        <h3 class="response-heading"><i class="fas fa-robot"></i> AI Expert Response</h3>
+                        <div class="response-heading-icon"><h3 class="response-heading"><img class="img-fluid" src="{% static 'forum/images/ai-response.png' %}" alt="AI Response" />  AI Expert Response</h3></div>
+                        
                         <div class="response-query-tag"><i class="fas fa-file-alt"></i> Query</div>
                         <div class="response-query-text" id="displayQuery"></div>
                         <div class="response-content ai-response response-scroll" id="aiResponse"></div>
@@ -140,15 +142,15 @@
 
                 <!-- Career Exploration Zones Card -->
                 <div class="card exploration-card">
-                    <h3 class="card-title-plain"><i class="fas fa-graduation-cap"></i> Career Exploration Zones</h3>
+                    <h3 class="card-title-plain"><i class="fas fa-graduation-cap"></i> Career <span class="text-purple"> Exploration</span> Zones</h3>
                     <div class="category-tabs" id="categoryTabs">
                         <button type="button" class="category-tab active" onclick="switchCategory('all', this)">All Career</button>
-                        <button type="button" class="category-tab" onclick="switchCategory('stem', this)">STEM</button>
-                        <button type="button" class="category-tab" onclick="switchCategory('commerce', this)">Commerce</button>
-                        <button type="button" class="category-tab" onclick="switchCategory('arts', this)">Arts</button>
-                        <button type="button" class="category-tab" onclick="switchCategory('vocational', this)">Vocational</button>
-                        <button type="button" class="category-tab" onclick="switchCategory('emerging', this)">Emerging</button>
-                        <button type="button" class="category-tab" onclick="switchCategory('studyabroad', this)">Study Abroad</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('stem', this)"> <img class="img-fluid" src="{% static 'forum/images/stem.png' %}" alt="stem" /> STEM</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('commerce', this)"> <img class="img-fluid" src="{% static 'forum/images/commerce.webp' %}" alt="commerce" /> Commerce</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('arts', this)"> <img class="img-fluid" src="{% static 'forum/images/arts.png' %}" alt="arts" /> Arts</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('vocational', this)"> <img class="img-fluid" src="{% static 'forum/images/vocational.png' %}" alt="vocational" /> Vocational</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('emerging', this)"> <img class="img-fluid" src="{% static 'forum/images/emerging.webp' %}" alt="emerging" /> Emerging</button>
+                        <button type="button" class="category-tab" onclick="switchCategory('studyabroad', this)"> <img class="img-fluid" src="{% static 'forum/images/study-abroad.png' %}" alt="study-abroad" /> Study Abroad</button>
                     </div>
                     <div id="categoryContent">
                         <div id="popularQueries">
@@ -163,7 +165,7 @@
                 <!-- Career Statistics Card -->
                 <div class="card stats-card">
                     <div class="card-header new-card-header-gradient">
-                        <h3><i style="color: #fff;" class="fas fa-chart-bar"></i> Career Statistics</h3>
+                        <h3><img class="img-fluid" src="{% static 'forum/images/career-static.png' %}" alt="Career Statistics" />  Career Statistics</h3>
                     </div>
                     <div class="card-body">
                         <div class="stats-grid">
@@ -178,26 +180,10 @@
                 <!-- AI Capabilities Card -->
                 <div class="card capabilities-card">
                     <div class="card-header new-card-header-gradient">
-                        <h3><i style="color: #fff;" class="fas fa-robot"></i> AI Capabilities</h3>
+                        <h3><img class="img-fluid" src="{% static 'forum/images/ai-capability.png' %}" alt="AI Capabilities" />  AI Capabilities</h3>
                     </div>
                     <div class="card-body">
-                        <ul class="feature-list" id="aiCapabilities">
-                            {% if ai_capabilities %}
-                                {% for capability in ai_capabilities %}
-                                <li>
-                                    {% if capability.link_url %}
-                                    <a href="{{ capability.link_url }}" class="feature-link" title="{{ capability.description|default:capability.name }}" target="_blank" rel="noopener noreferrer">
-                                        <i class="{{ capability.icon|default:'fas fa-chart-pie' }}"></i> {{ capability.name }}
-                                    </a>
-                                    {% else %}
-                                    <span><i class="{{ capability.icon|default:'fas fa-chart-pie' }}"></i> {{ capability.name }}</span>
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                <li class="muted"><i class="fas fa-spinner"></i> Loading AI Capabilities...</li>
-                            {% endif %}
-                        </ul>
+                        <ul class="feature-list" id="aiCapabilities"></ul>
                     </div>
                 </div>
 
