@@ -204,7 +204,13 @@ class EditContentView(LoginRequiredMixin, TemplateView):
             from django.contrib import messages
             messages.error(request, "You do not have permission to edit page content.")
             return redirect(reverse("seo_dashboard:page_list"))
-        page = get_object_or_404(StaticPage, url_key=url_key)
+        if url_key in STATIC_PAGE_URL_KEYS:
+            page, _ = StaticPage.objects.get_or_create(
+                url_key=url_key,
+                defaults={"title": "", "content_html": "", "is_active": True},
+            )
+        else:
+            page = get_object_or_404(StaticPage, url_key=url_key)
         schema = get_static_page_schema(url_key)
         if schema:
             content_json = page.content_json or {}
@@ -229,7 +235,13 @@ class EditContentView(LoginRequiredMixin, TemplateView):
         url_key = kwargs.get("url_key")
         if not can_edit_content(request):
             return redirect(reverse("seo_dashboard:page_list"))
-        page = get_object_or_404(StaticPage, url_key=url_key)
+        if url_key in STATIC_PAGE_URL_KEYS:
+            page, _ = StaticPage.objects.get_or_create(
+                url_key=url_key,
+                defaults={"title": "", "content_html": "", "is_active": True},
+            )
+        else:
+            page = get_object_or_404(StaticPage, url_key=url_key)
         schema = get_static_page_schema(url_key)
         if schema:
             content_json = {}

@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
-from .utils import build_html_head, clean_html
+from .utils import build_html_head, clean_html, get_static_page, get_static_page_html_head
 from .breadcrumbs import get_breadcrumb
 from django.db import connection
 from django.db.models import Q
@@ -216,22 +216,28 @@ class Home(TemplateView):
 
 
 def privacy_policy(request):
-    template_name='template20/privacy_policy.html'
-    name="Privacy Policy"
-    ctx={}
-    ctx["html_head"]=build_html_head(title=name, description=name)
+    template_name = 'template20/privacy_policy.html'
+    url_key = 'privacy'
+    static_page = get_static_page(url_key)
+    ctx = {
+        'static_page': static_page,
+        'html_head': get_static_page_html_head(url_key, 'Privacy Policy', 'Privacy Policy for TopTeen.', request=request),
+    }
     from django.urls import reverse
     ctx['breadcrumb'] = get_breadcrumb([{'text': 'Privacy Policy', 'url': reverse('core:privacypolicy')}])
-    return render(request,template_name,ctx)
+    return render(request, template_name, ctx)
 
 def terms_and_condition(request):
-    template_name='template20/terms_and_condition.html'
-    name="Terms and Condition"
-    ctx={}
-    ctx["html_head"]=build_html_head(title=name, description=name)
+    template_name = 'template20/terms_and_condition.html'
+    url_key = 'terms'
+    static_page = get_static_page(url_key)
+    ctx = {
+        'static_page': static_page,
+        'html_head': get_static_page_html_head(url_key, 'Terms and Condition', 'Terms and Conditions for TopTeen.', request=request),
+    }
     from django.urls import reverse
     ctx['breadcrumb'] = get_breadcrumb([{'text': 'Terms and Condition', 'url': reverse('core:terms&condition')}])
-    return render(request,template_name,ctx)
+    return render(request, template_name, ctx)
 
 
 @require_GET
@@ -260,28 +266,29 @@ def validation(request,mobile,email):
         messages.error(request,"Invalid phone number and email !!")
 
 def contact_us(request):
-    template_name='template20/contact_us.html'
-    name="Contact Us"
+    template_name = 'template20/contact_us.html'
+    url_key = 'contact'
+    static_page = get_static_page(url_key)
     from django.urls import reverse
     from django.middleware.csrf import get_token
-    ctx={}
+    ctx = {'static_page': static_page}
     ctx['breadcrumb'] = get_breadcrumb([{'text': 'Contact Us', 'url': reverse('core:contactus')}])
     ctx['csrf_token'] = get_token(request)
-    if request.method=="POST":
-        first_name=request.POST.get("first_name")
-        last_name=request.POST.get("last_name")
-        full_name="{} {}".format(first_name,last_name)
-        mobile=request.POST.get("mobile")
-        email=request.POST.get("email")
-        message=request.POST.get("message")
-        if full_name and message and validation(request,mobile,email):
-            form=Contact(name=full_name,mobile=mobile,email=email,message=message)
+    if request.method == "POST":
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        full_name = "{} {}".format(first_name, last_name)
+        mobile = request.POST.get("mobile")
+        email = request.POST.get("email")
+        message = request.POST.get("message")
+        if full_name and message and validation(request, mobile, email):
+            form = Contact(name=full_name, mobile=mobile, email=email, message=message)
             form.save()
-            messages.success(request,"Thank you, Your response has been submitted!")
+            messages.success(request, "Thank you, Your response has been submitted!")
         else:
-            messages.error(request,"")
-    ctx["html_head"]=build_html_head(title=name, description=name)
-    return render(request,template_name,ctx)
+            messages.error(request, "")
+    ctx["html_head"] = get_static_page_html_head(url_key, 'Contact Us', 'Contact TopTeen for career guidance and support.', request=request)
+    return render(request, template_name, ctx)
 
 
 def generated_page_view(request, slug):
@@ -306,21 +313,21 @@ def upload(request):
 
 
 class AboutUsView(TemplateView):
-    template_name ="template20/about_us.html"
+    template_name = "template20/about_us.html"
+    url_key = 'about'
 
-    def html_head(self):
-        name='About Us'
-        return build_html_head(title=name, description=name)
-
-    def get_context(self,request, *args, **kwargs):
-        ctx={}
-        ctx["html_head"] = self.html_head()
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['static_page'] = get_static_page(self.url_key)
+        ctx['html_head'] = get_static_page_html_head(
+            self.url_key, 'About Us', 'About TopTeen career guidance for students in India.', request=self.request
+        )
         from django.urls import reverse
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'About Us', 'url': reverse('core:aboutus')}])
         return ctx
 
-    def get(self, request,*args, **kwargs):
-        return render(request, self.template_name, self.get_context(request,args,kwargs))
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context_data(**kwargs))
 
 class AllFaqView(TemplateView):
     template_name ="template20/all_faq.html"
