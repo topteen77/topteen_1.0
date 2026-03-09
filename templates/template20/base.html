@@ -5,7 +5,10 @@
   <meta charset="utf-8">
   <meta charset="UTF-8" />
   {% block robots %}
-  {% if not (allow_search_engine_index | default(false)) %}
+  {% if allow_search_engine_index | default(false) %}
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  {% else %}
   <meta name="robots" content="noindex, nofollow" />
   <meta name="googlebot" content="noindex, nofollow">
   {% endif %}
@@ -30,6 +33,12 @@
   <meta name="description" content="{{ html_head.description }}">
   {% else %}
   <meta name="description" content="{% block description_content %}TopTeen helps students find their perfect career path with confidence. Join 10k+ students working towards figuring out their ideal streams and colleges.{% endblock %}">
+  {% endif %}
+  {% endblock %}
+
+  {% block keywords %}
+  {% if html_head and html_head.keywords %}
+  <meta name="keywords" content="{{ html_head.keywords }}">
   {% endif %}
   {% endblock %}
 

@@ -388,6 +388,12 @@
                     <span class="menu-title">Enquiry Sources</span>
                 </a>
             </div>
+            <div class="menu-item">
+                <a href="{{ url('seo_dashboard:dashboard') }}" class="menu-link {% if request and request.path.startswith('/seo-dashboard') %}active{% endif %}" title="Content &amp; SEO: static pages, meta, OG">
+                    <i class="fas fa-search"></i>
+                    <span class="menu-title">SEO Dashboard</span>
+                </a>
+            </div>
             <div class="menu-item" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                 <a href="/admin/" class="menu-link">
                     <i class="fas fa-cog"></i>

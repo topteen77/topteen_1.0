@@ -1,0 +1,1583 @@
+# Canam Etracs Database - Complete Documentation
+# Tables with Descriptions and Structures
+
+# SECTION 1: MASTER TABLES
+
+1. COUNTRY
+
+Description:
+This table is master table of the countries that Canam deals with. Here we have data like why this country, scholarships and country name etc.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `country` (
+  `c_id` int(11) NOT NULL AUTO_INCREMENT,
+  `c_name` varchar(100) NOT NULL,
+  `about` longtext NOT NULL,
+  `edu_system` longtext NOT NULL,
+  `why_study` longtext NOT NULL,
+  `study_options` longtext NOT NULL,
+  `cost_of_study` longtext NOT NULL,
+  `scholarships` longtext NOT NULL,
+  `benefits` longtext NOT NULL,
+  `study_visa` longtext NOT NULL,
+  `logo` varchar(100) NOT NULL,
+  `banner` longtext NOT NULL,
+  `canam_logo` varchar(200) NOT NULL,
+  `canam_banner` varchar(200) NOT NULL,
+  `status` varchar(100) NOT NULL DEFAULT 'active',
+  `etracs_status` tinyint(1) NOT NULL,
+  `thumb` varchar(100) NOT NULL,
+  `c_show_site` varchar(100) NOT NULL,
+  `Etracs_id` int(11) NOT NULL,
+  PRIMARY KEY (`c_id`),
+  KEY `c_id` (`c_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+2. COUNTRY_LIST
+
+Description:
+This table is general master table where we have list of all the countries and their country code etc.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `country_list` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `country_code` varchar(2) NOT NULL DEFAULT '',
+  `country_name` varchar(100) NOT NULL DEFAULT '',
+  `dialling_code` varchar(20) DEFAULT NULL,
+  `country_status` varchar(10) NOT NULL DEFAULT 'A',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=250 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+3. PROVINCE
+
+Description:
+This table stores province/state information for countries.
+
+Main FK Relations with other tables:
+- Linked with country (col: p_country_id): Links provinces to their countries
+
+Table Structure:
+
+TABLE `province` (
+  `p_id` int(11) NOT NULL AUTO_INCREMENT,
+  `p_country_id` int(11) NOT NULL,
+  `p_name` varchar(100) NOT NULL,
+  `p_banner` longtext DEFAULT NULL,
+  `p_thumb` longtext DEFAULT NULL,
+  `p_popularity` int(11) NOT NULL,
+  PRIMARY KEY (`p_id`),
+  KEY `fk_province_cntry` (`p_country_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=323 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+# SECTION 2: CANAM ORGANIZATION TABLES
+
+4. CANAM_BRANCHES
+
+Description:
+This table stores the data of all Canam branches in India or outside of India.
+
+Main FK Relations with other tables:
+None (this is a master table referenced by many other tables)
+
+Table Structure:
+
+TABLE `canam_branches` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branchname` varchar(255) NOT NULL,
+  `etracs_branch_id` int(11) DEFAULT NULL,
+  `branch` varchar(255) NOT NULL COMMENT 'branch city',
+  `etracs_branch_name` varchar(255) DEFAULT NULL,
+  `branch_short_name` varchar(10) DEFAULT NULL,
+  `zoom_link` varchar(255) DEFAULT NULL,
+  `address` text NOT NULL,
+  `pincode` varchar(6) NOT NULL,
+  `tel` varchar(255) NOT NULL,
+  `latitude` varchar(10) NOT NULL,
+  `longitude` varchar(10) NOT NULL,
+  `status` int(11) NOT NULL DEFAULT 1,
+  `email` varchar(255) NOT NULL,
+  `international` tinyint(1) NOT NULL DEFAULT 0,
+  `city` varchar(255) NOT NULL,
+  `state` varchar(20) NOT NULL,
+  `country` varchar(15) NOT NULL,
+  `content` text NOT NULL,
+  `counseling_mode` int(11) NOT NULL DEFAULT 1 COMMENT '1->Offline,2->Online,3->Both',
+  `event_infoline` varchar(300) DEFAULT NULL,
+  `branch_slug` varchar(255) DEFAULT NULL,
+  `service_countries` varchar(200) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `f_image` varchar(255) DEFAULT NULL,
+  `virtual_callback` tinyint(4) DEFAULT NULL COMMENT '0 =none, 1=virtual, 2=callback, 3=both	',
+  `meta_title` text DEFAULT NULL,
+  `meta_desc` text DEFAULT NULL,
+  `meta_keyword` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+5. CANAM_GROUPS
+
+Description:
+Canam Groups is used to assign roles to staff members.
+
+Main FK Relations with other tables:
+None (this is a master table referenced by canam_staff)
+
+Table Structure:
+
+TABLE `canam_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `controller` varchar(255) NOT NULL,
+  `weight` int(11) NOT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+6. CANAM_STAFF (also called Canam Advisors)
+
+Description:
+This table stores the data of Canam staff like the user table of employees.
+
+Main FK Relations with other tables:
+- Linked with canam_groups (col: role_id): Canam Groups is used to assign roles
+- Linked with canam_branches (col: branch_id): This table stores the data of 
+  all Canam branches in India or outside of India
+- Linked with country (col: country_expertise): This column indicates which 
+  countries the user is an expert on
+
+Table Structure:
+
+TABLE `canam_staff` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `workflow_user_id` int(11) NOT NULL DEFAULT 0,
+  `username` varchar(255) NOT NULL,
+  `fullname` varchar(200) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `telephone` bigint(20) DEFAULT NULL,
+  `country_code` varchar(10) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  `branch_id` int(11) NOT NULL,
+  `extra_assigned_branches` varchar(255) DEFAULT NULL,
+  `country_expertise` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `status` int(11) NOT NULL DEFAULT 1,
+  `blocked` tinyint(4) NOT NULL DEFAULT 0,
+  `blocked_on` datetime DEFAULT NULL,
+  `block_type` tinyint(1) NOT NULL DEFAULT 0,
+  `masterprep` tinyint(4) NOT NULL DEFAULT 0,
+  `admission_show_limited` int(11) NOT NULL DEFAULT 0,
+  `admission_show_all_branches` smallint(6) NOT NULL DEFAULT 0,
+  `event_university_id` smallint(6) DEFAULT NULL,
+  `parent_id` int(11) DEFAULT NULL,
+  `extra_assigned_parent_id` varchar(50) DEFAULT NULL,
+  `work_home` smallint(6) NOT NULL DEFAULT 0,
+  `modify_by` int(11) DEFAULT NULL,
+  `advisor_online_status` int(1) NOT NULL DEFAULT 0 COMMENT '1-> Active,0->In active',
+  `advisor_session_status` int(1) DEFAULT 0,
+  `doc_permission` int(11) NOT NULL,
+  `visa_permission` int(11) NOT NULL,
+  `is_logged_in` int(1) NOT NULL DEFAULT 0,
+  `calling_permission` int(1) NOT NULL DEFAULT 0 COMMENT '0-not allowed,1-allowed',
+  `virtual_number` varchar(12) DEFAULT NULL COMMENT 'for calling permissions users only',
+  `is_msm` tinyint(4) DEFAULT 0,
+  `lead_access` tinyint(1) NOT NULL DEFAULT 0,
+  `application_pool_access` tinyint(1) NOT NULL DEFAULT 0,
+  `after_office_login_access` tinyint(1) NOT NULL DEFAULT 0,
+  `is_agree` smallint(1) NOT NULL DEFAULT 0,
+  `agree_date` datetime DEFAULT NULL,
+  `incentive_popup_alert_date` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `username_2` (`username`),
+  KEY `group_id` (`role_id`),
+  KEY `branch_id` (`branch_id`),
+  KEY `parent_id` (`parent_id`),
+  KEY `username` (`username`),
+  KEY `id` (`id`),
+  KEY `workflow_user_id` (`workflow_user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4484 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+# SECTION 3: MASTER DATA TABLES
+
+7. MASTER_ENQUIRY_SOURCES
+
+Description:
+This table stores Enquiry Source Entries.
+
+Main FK Relations with other tables:
+- Linked with {unknown} (col: category_id): This needs to be confirmed with 
+  the DB manager
+- Linked with {unknown} (col: display_preferences): This needs to be confirmed 
+  with the DB manager, but maybe it is related to the 'country' table
+
+Table Structure:
+
+TABLE `master_enquiry_sources` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Primary Key: Unique Enquiry Source ID.',
+  `enquiry_source` varchar(255) NOT NULL DEFAULT '' COMMENT 'Name of the Enquiry Source.',
+  `status` tinyint(4) NOT NULL COMMENT 'Status of the Enquiry Source.',
+  `category_id` int(11) NOT NULL,
+  `display_preferences` int(5) NOT NULL DEFAULT 999,
+  `created_date` datetime NOT NULL,
+  `modify_date` datetime NOT NULL,
+  `add_type` smallint(6) NOT NULL DEFAULT 1 COMMENT '1 For Canam 2 For iApply , 3 for both',
+  `short_name` varchar(30) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1429 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci COMMENT='Stores Enquiry Source Entries.';
+
+8. MASTER_EXAM
+
+Description:
+This table stores master data of exams and their scoring columns.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `master_exam` (
+  `master_exam_id` int(11) NOT NULL AUTO_INCREMENT,
+  `master_exam_name` varchar(100) NOT NULL,
+  `col1` varchar(100) NOT NULL,
+  `col1_range` varchar(20) NOT NULL COMMENT 'Like 0,30',
+  `col2` varchar(100) NOT NULL,
+  `col2_range` varchar(20) NOT NULL,
+  `col3` varchar(100) NOT NULL,
+  `col3_range` varchar(20) NOT NULL,
+  `col4` varchar(100) NOT NULL,
+  `col4_range` varchar(20) NOT NULL,
+  `col5` varchar(100) NOT NULL,
+  `col5_range` varchar(20) NOT NULL,
+  `col6` varchar(100) NOT NULL,
+  `col6_range` varchar(20) NOT NULL,
+  `col7` varchar(100) NOT NULL,
+  `col7_range` varchar(20) NOT NULL,
+  `col8` varchar(100) NOT NULL,
+  `col8_range` varchar(20) NOT NULL,
+  `exam_status` int(2) NOT NULL DEFAULT 1 COMMENT '1 for active, 0 for inactive',
+  `etracs_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`master_exam_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+9. MASTER_GRADE_SCHEME
+
+Description:
+Link to the 'master_grade_scheme' table. Where we have the master data of the 
+Grade Schemes of different study programs i.e. grade_scheme_name.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `master_grade_scheme` (
+  `grade_scheme_id` int(11) NOT NULL AUTO_INCREMENT,
+  `grade_scheme_name` varchar(200) NOT NULL,
+  PRIMARY KEY (`grade_scheme_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=425 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+10. MASTER_LEVEL
+
+Description:
+From here we get the program level details.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `master_level` (
+  `level_id` int(11) NOT NULL AUTO_INCREMENT,
+  `level_name` varchar(100) NOT NULL,
+  `level_slug` varchar(200) DEFAULT NULL,
+  `level_heading_name` varchar(100) NOT NULL,
+  `etracs_level_name` varchar(200) NOT NULL,
+  `etracs_level_id` smallint(6) DEFAULT NULL,
+  `color` varchar(100) DEFAULT NULL,
+  `level_short_name` varchar(100) NOT NULL,
+  `level_order_by` int(11) NOT NULL,
+  `country_id` varchar(100) NOT NULL,
+  PRIMARY KEY (`level_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+11. MASTER_MIN_QUALIFICATION
+
+Description:
+This column links to the master minimum qualification table where we have 
+master type of qualification_name and qualification_level.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `master_min_qualification` (
+  `qualification_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qualification_name` varchar(200) NOT NULL,
+  `qualification_level_id` int(11) NOT NULL,
+  PRIMARY KEY (`qualification_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+12. MASTER_DOCUMENTS
+
+Description:
+This linked table stores information about the documents like the title, serial 
+number, is it the loan document, is it mandatory etc. where we have manage the 
+documents level wise.
+
+Main FK Relations with other tables:
+None (this is a master table)
+
+Table Structure:
+
+TABLE `master_documents` (
+  `document_id` int(11) NOT NULL AUTO_INCREMENT,
+  `document_name` varchar(200) NOT NULL,
+  `document_sr_no` int(11) NOT NULL,
+  `document_heading` varchar(200) NOT NULL,
+  `document_attachment` varchar(255) NOT NULL,
+  `document_descr` varchar(255) DEFAULT NULL,
+  `is_mandatory` int(11) NOT NULL DEFAULT 0,
+  `loan_profile` tinyint(4) NOT NULL DEFAULT 0,
+  `loan_doc` tinyint(4) NOT NULL DEFAULT 0,
+  `m_c_id` int(11) DEFAULT NULL,
+  `status` int(11) NOT NULL DEFAULT 1 COMMENT '1 For active\r\n2 for inavtive',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `udpated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`document_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1171 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+# SECTION 4: LEAD MANAGEMENT TABLES
+
+13. LEAD_STUDENTS
+
+Description:
+This table stores the data of fresh leads that are come from branches and from 
+other sources. This table is parent of lead related tables.
+
+Main FK Relations with other tables:
+- Linked with canam_branches (col: branch_id): This table stores the data of 
+  all Canam branches in India or outside of India and tells us that from which 
+  branch the query comes from
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with canam_staff {need to confirm from DB manager} (col: 
+  assigned_advisor_id, assigned_advisor_id1, assigned_advisor_id2): These 
+  columns are linked with the canam_staff (90%) but it needs to be confirmed 
+  from the DB manager
+
+Table Structure:
+
+TABLE `lead_students` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) DEFAULT NULL,
+  `first_name` varchar(255) DEFAULT NULL,
+  `middle_name` varchar(255) DEFAULT NULL,
+  `last_name` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `telephone` varchar(15) DEFAULT NULL,
+  `alternative_phone_no` varchar(12) DEFAULT NULL COMMENT 'Alternative Phone No',
+  `calling_country` smallint(6) DEFAULT NULL,
+  `alternative_country_code` varchar(12) DEFAULT NULL,
+  `international_no` bigint(20) DEFAULT NULL,
+  `age` smallint(2) DEFAULT NULL,
+  `dob` date DEFAULT NULL,
+  `gender` int(4) DEFAULT NULL COMMENT '1= male, 2= female, 3=transgender',
+  `branch_id` int(11) NOT NULL,
+  `english_test` smallint(6) DEFAULT NULL COMMENT '0 = No,1 = Yes',
+  `lead_category` int(11) DEFAULT 0 COMMENT '0=un-qualified, 1 = qualified',
+  `lead_temperature` int(11) NOT NULL DEFAULT 1 COMMENT 'hot=3,warm=2,cold=1,normal=0	 prev->(hot = 1,warm= 2,cold = 0)',
+  `prgm_intake` varchar(50) DEFAULT NULL,
+  `assigned_advisor_id` int(11) DEFAULT NULL,
+  `assigned_advisor_id1` int(11) DEFAULT NULL COMMENT 'for based on country preferace',
+  `assigned_advisor_id2` int(11) DEFAULT NULL COMMENT 'for based on country preferace',
+  `assigned_sub_adv_id` int(11) DEFAULT NULL,
+  `assigned_sub_adv_id1` int(11) DEFAULT NULL COMMENT 'based on other branch advisor assigned',
+  `assigned_sub_adv_id2` int(11) DEFAULT NULL COMMENT 'based on other branch advisor assigned',
+  `assigned_loan_advisor_id` int(11) DEFAULT NULL COMMENT 'loan advisor assigned',
+  `program_level_id` int(11) DEFAULT NULL,
+  `field_of_study_id` int(11) DEFAULT NULL,
+  `re_enquire` varchar(250) DEFAULT NULL,
+  `priority pass` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `soft_delete` int(11) NOT NULL DEFAULT 0,
+  `mode_of_service` int(11) NOT NULL DEFAULT 1 COMMENT '0 = offline , 1 = online',
+  `company_name` int(11) DEFAULT 0 COMMENT '0 = canam,1 = iapply',
+  `referral_partner_id` int(11) NOT NULL DEFAULT 0,
+  `sms_count` int(11) NOT NULL DEFAULT 0,
+  `email_count` int(11) NOT NULL DEFAULT 0,
+  `whatsapp_count` int(11) NOT NULL DEFAULT 0,
+  `last_followup_date` datetime DEFAULT NULL,
+  `next_followup_date` timestamp NULL DEFAULT NULL,
+  `last_appointment_date` timestamp NULL DEFAULT NULL,
+  `lead_last_status` varchar(255) DEFAULT NULL,
+  `lead_last_mode` varchar(255) DEFAULT NULL,
+  `marital_status` tinyint(4) DEFAULT NULL,
+  `loan_lead` tinyint(2) NOT NULL DEFAULT 0,
+  `created_by` int(11) NOT NULL DEFAULT 0,
+  `modify_by` int(11) NOT NULL DEFAULT 0,
+  `etracs_id` int(11) DEFAULT NULL,
+  `lead_verify` varchar(3) DEFAULT NULL,
+  `lead_otp` int(11) DEFAULT NULL,
+  `lead_created_by_mkt` int(11) DEFAULT NULL,
+  `fresh_lead` tinyint(1) NOT NULL DEFAULT 0,
+  `stu_ambd_id` int(11) DEFAULT NULL,
+  `school_name` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telephone` (`telephone`,`email`) USING BTREE,
+  KEY `branch_id` (`branch_id`),
+  KEY `assigned_advisor_id` (`assigned_advisor_id`),
+  KEY ` international_no` (`international_no`),
+  KEY `student_id` (`student_id`),
+  KEY `assigned_sub_adv_id` (`assigned_sub_adv_id`),
+  KEY `lead_category` (`lead_category`),
+  KEY `assigned_advisor_id1` (`assigned_advisor_id1`),
+  KEY `assigned_advisor_id2` (`assigned_advisor_id2`),
+  KEY `assigned_sub_adv_id1` (`assigned_sub_adv_id1`),
+  KEY `assigned_sub_adv_id2` (`assigned_sub_adv_id2`),
+  KEY `assigned_loan_advisor_id` (`assigned_loan_advisor_id`),
+  KEY `program_level_id` (`program_level_id`),
+  KEY `field_of_study_id` (`field_of_study_id`),
+  KEY `referral_partner_id` (`referral_partner_id`),
+  KEY `created_by` (`created_by`),
+  KEY `modify_by` (`modify_by`),
+  KEY `calling_country` (`calling_country`),
+  KEY `alternative_country_code` (`alternative_country_code`),
+  KEY `etracs_id` (`etracs_id`),
+  KEY `id` (`id`),
+  KEY `fresh_lead` (`fresh_lead`),
+  KEY `lead_created_by_mkt` (`lead_created_by_mkt`),
+  KEY `created_at` (`created_at`)
+) ENGINE=MyISAM AUTO_INCREMENT=856101 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+14. LEAD_STUDENT_PREFERENCES
+
+Description:
+This table stores the data related to the 'lead_students' table. Here we have 
+data like for which country lead student is interested in and assigned 
+staff/advisor. Here a lead also can be assigned to multiple advisors (eg. in 
+counsel_user_id or in user_id values can be: 2,45,3 or 3) but the maximum 
+advisors can be assigned is 3 not more than that for now.
+
+Main FK Relations with other tables:
+- Linked with lead_students (col: lead_id): This id helps to link this table 
+  with the 'lead_students'
+- Linked with country (col: country_id): This column stores the student's 
+  preferred country where the student is interested to go
+- Linked with canam_staff (col: counsel_user_id): This column contains the 
+  user ID of the staff to whom the student is assigned
+- Linked with canam_staff (col: user_id): This column contains the user ID of 
+  the staff member the student is speaking with. It can happen that a student 
+  is assigned an advisor/staff member but encounters a different person in the 
+  office. This column allows for tracking this. If it is the same person, the 
+  IDs in the "counsel_user_id" and "user_id" columns will match
+
+Table Structure:
+
+TABLE `lead_student_preferences` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `lead_id` int(11) NOT NULL,
+  `country_id` tinyint(6) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL COMMENT 'To Meet',
+  `counsel_user_id` bigint(20) DEFAULT 0,
+  `counsel_sub_user_id` int(11) DEFAULT NULL,
+  `modify_by` int(11) NOT NULL DEFAULT 0,
+  `next_followup_date` timestamp NULL DEFAULT NULL,
+  `last_followup_date` timestamp NULL DEFAULT NULL,
+  `last_appointment_date` timestamp NULL DEFAULT NULL,
+  `lead_last_status` int(11) DEFAULT NULL,
+  `lead_last_mode` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp(),
+  `etracs_pref_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `lead_students` (`id`),
+  KEY `lead_id` (`lead_id`),
+  KEY `user_id` (`user_id`),
+  KEY `counsel_user_id` (`counsel_user_id`),
+  KEY `counsel_sub_user_id` (`counsel_sub_user_id`),
+  KEY `country_id` (`country_id`),
+  KEY `lead_last_status` (`lead_last_status`),
+  KEY `lead_last_mode` (`lead_last_mode`),
+  KEY `modify_by` (`modify_by`),
+  KEY `branch_id` (`branch_id`),
+  KEY `updated_at` (`updated_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=919519 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+15. LEAD_STUDENT_ENGLISH_TESTS
+
+Description:
+This table stores the data related to the 'lead_students' table. Here we have 
+data on the language tests that students have taken.
+
+Main FK Relations with other tables:
+- Linked with lead_students (col: lead_id): This id helps to link this table 
+  with the 'lead_students'
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with master_exam (col: test_id): This column contains the English 
+  test data entered by the student
+- Linked with master_exam (col: other_test_id): This column contains the 
+  other (Except English) test data entered by the student
+
+Table Structure:
+
+TABLE `lead_student_english_tests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `lead_id` int(11) NOT NULL DEFAULT 0,
+  `student_id` int(11) DEFAULT NULL,
+  `study_status` tinyint(4) DEFAULT 0,
+  `test_status` tinyint(4) DEFAULT 0,
+  `other_test` int(1) DEFAULT 0 COMMENT '1 other',
+  `test_id` int(11) DEFAULT 0,
+  `other_test_id` int(11) DEFAULT NULL,
+  `test_date` date DEFAULT NULL,
+  `other_test_date` date DEFAULT NULL,
+  `overall` float(10,2) DEFAULT 0.00,
+  `other_overall` float(10,2) NOT NULL DEFAULT 0.00,
+  `reading` float(10,2) DEFAULT 0.00,
+  `listening` float(10,2) DEFAULT 0.00,
+  `writing` float(10,2) DEFAULT 0.00,
+  `speaking` float(10,2) DEFAULT 0.00,
+  `created_at` timestamp NULL DEFAULT NULL COMMENT 'create_date',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT 'modify_date',
+  `modify_by` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `lead_id` (`lead_id`),
+  KEY `student_id` (`student_id`),
+  KEY `test_id` (`test_id`),
+  KEY `modify_by` (`modify_by`),
+  KEY `other_test_id` (`other_test_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=155938 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+16. LEAD_STUDENT_EDUCATION
+
+Description:
+This table stores the data related to the 'lead_students' table. Here we have 
+data of the lead student educational data.
+
+Main FK Relations with other tables:
+- Linked with lead_students (col: lead_id): This id helps to link this table 
+  with the 'lead_students'
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with master_min_qualification (col: master_min_qualification_id): 
+  This column links this table to the master minimum qualification table where 
+  we have master type of qualification_name and qualification_level
+- Linked with country_list (col: education_country_list_id): Link to the 
+  'country_list' table. This tells us from which country student has done 
+  his/her education
+- Linked with master_grade_scheme (col: education_grade_scheme): Link to the 
+  'master_grade_scheme' table. Where we have the master data of the Grade 
+  Schemes of different study programs i.e. grade_scheme_name
+
+Table Structure:
+
+TABLE `lead_student_education` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) DEFAULT NULL,
+  `lead_id` int(11) NOT NULL,
+  `qualification_subject_id` int(11) DEFAULT NULL,
+  `master_min_qualification_id` int(11) DEFAULT NULL,
+  `education_country_list_id` int(11) DEFAULT NULL,
+  `education_grade_scheme` int(11) DEFAULT NULL,
+  `education_grade_average` varchar(200) DEFAULT NULL,
+  `education_other_grade_input` varchar(255) DEFAULT NULL,
+  `education_cgpa` varchar(255) DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `qualification_status` int(4) NOT NULL DEFAULT 1 COMMENT '0= still studying, 1= completed',
+  `result_awaited` int(1) NOT NULL DEFAULT 0 COMMENT '0 = not awaited , 1 = awaited',
+  `university` varchar(255) DEFAULT NULL,
+  `completion_year` int(11) DEFAULT NULL,
+  `modify_by` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `is_study_complete` int(11) DEFAULT NULL COMMENT '1.complete 2.currently studying 3.discontinued',
+  `complete_study_date` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `lead_id` (`lead_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=156563 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+17. LEAD_INTERESTS
+
+Description:
+This table stores the data related to the 'lead_students' table. Here we have 
+the data of the program that student is interested in.
+
+Main FK Relations with other tables:
+- Linked with lead_students (col: lead_id): This id helps to link this table 
+  with the 'lead_students'
+- Linked with master_level (col: program_level_id): From here we get the 
+  program level details
+- Linked with prog_cat (col: field_of_study_id): From the prog_cat we get the 
+  program name and other program related details like description etc
+- Linked with master_enquiry_sources (col: enquiry_source_id): From this we 
+  can get the source of enquiry of the student
+
+Table Structure:
+
+TABLE `lead_interests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `lead_id` int(11) DEFAULT NULL,
+  `program_level_id` int(11) DEFAULT NULL,
+  `field_of_study_id` int(11) DEFAULT NULL,
+  `walkin_approach_id` int(11) DEFAULT NULL,
+  `enquiry_source_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`),
+  KEY `lead_id` (`lead_id`),
+  KEY `enquiry_source_id` (`enquiry_source_id`),
+  KEY `program_level_id` (`program_level_id`),
+  KEY `field_of_study_id` (`field_of_study_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=855159 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+# SECTION 5: STUDENT MANAGEMENT TABLES
+
+Note: When the lead is converted into a student, we get the student details 
+and pass the student id in the student_id column of 'lead_student' table. When 
+the lead becomes the student then we deal with the below tables mostly.
+
+18. CANAM_STUDENT_REGISTRATION
+
+Description:
+This is the user table of the student where we have all the account information 
+of the student. If I need to look for student of a specific branch then I need 
+to select student from here 'canam_student_registration' but if I need to 
+select the student of a particular advisor then I need to select student from 
+the 'canam_student_assign' table because the student can be linked in specific 
+branch but the advisor who is assigned to student can be present in different 
+branches so for to track who is assigned to this student we have 
+'canam_student_assign' table.
+
+Main FK Relations with other tables:
+- Linked with canam_branches (col: branch_id): By this we can know that the 
+  student is associated with which branch
+- Linked with country_list (col: nationality_id): Link to the 'country_list' 
+  table. This tells us the nationality of the student
+- Linked with country_list (col: education_country_id): Link to the 
+  'country_list' table. This tells us from which country student has done 
+  his/her education
+- Linked with country (col: country_preference1, country_preference2, 
+  country_preference3 and country_preference4): These four columns tell in 
+  which countries the student is interested in
+- Linked with canam_staff (col: assigned_advisor_id): From here we get the 
+  assigned advisor details
+- Linked with prog_cat (col: field_of_study_id): From the prog_cat we get the 
+  program name and other program related details like description etc
+- Linked with master_level (col: program_level_id): From here we get the 
+  program level details
+- Linked with master_enquiry_sources (col: enquiry_source_id): From this we 
+  can get the source of enquiry of the student
+
+Table Structure:
+
+TABLE `canam_student_registration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `testprep_student_id` int(11) DEFAULT NULL,
+  `registration_code` varchar(100) DEFAULT NULL,
+  `etrac_registration_code` varchar(100) DEFAULT NULL,
+  `first_name` varchar(255) DEFAULT NULL,
+  `middle_name` varchar(255) DEFAULT NULL,
+  `last_name` varchar(255) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
+  `telephone` varchar(15) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `plain_password` varchar(255) DEFAULT NULL,
+  `branch_id` int(11) NOT NULL DEFAULT 0,
+  `alternative_phone_no` varchar(12) DEFAULT NULL COMMENT 'Alternative Phone No',
+  `calling_country` smallint(6) DEFAULT NULL,
+  `alter_calling_country` smallint(6) DEFAULT NULL,
+  `passport_no` varchar(15) DEFAULT NULL,
+  `passport_expiry` date DEFAULT NULL,
+  `country` text DEFAULT NULL,
+  `state` text DEFAULT NULL,
+  `zipcode` varchar(10) DEFAULT NULL,
+  `city` text DEFAULT NULL,
+  `dob` date DEFAULT NULL,
+  `gender` int(4) DEFAULT NULL COMMENT '1= male, 2= female, 3=transgender',
+  `temperature` int(11) NOT NULL DEFAULT 1 COMMENT 'hot = 3,warm= 2,cold = 1,normal=0',
+  `marital_status` tinyint(4) DEFAULT NULL COMMENT '0=unmarried,1=married',
+  `refferal` int(11) DEFAULT 0 COMMENT 'refferal id',
+  `father_name` varchar(55) DEFAULT NULL,
+  `nationality_id` int(11) DEFAULT 99,
+  `education_country_id` int(11) DEFAULT NULL,
+  `profile_status` tinyint(4) DEFAULT 0 COMMENT '0=pending,1=completed',
+  `country_preference1` tinyint(4) DEFAULT NULL,
+  `country_preference2` tinyint(4) DEFAULT NULL,
+  `country_preference3` tinyint(4) DEFAULT NULL,
+  `country_preference4` tinyint(4) DEFAULT NULL,
+  `preffered_intake` varchar(255) DEFAULT NULL,
+  `assigned_advisor_id` int(11) DEFAULT NULL,
+  `program_level_id` varchar(255) DEFAULT NULL,
+  `field_of_study_id` varchar(255) DEFAULT NULL,
+  `re_enquire` varchar(250) DEFAULT NULL,
+  `priority_pass` text DEFAULT NULL,
+  `student_verify` int(11) NOT NULL DEFAULT 0 COMMENT '0=unverified, 1=verified',
+  `created_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `soft_delete` int(11) NOT NULL DEFAULT 0,
+  `mode_of_service` int(11) NOT NULL DEFAULT 1 COMMENT '0 = offline , 1 = online',
+  `company_name` int(11) DEFAULT NULL COMMENT '0 = canam,1 = iapply',
+  `company_transfer_date` timestamp NULL DEFAULT NULL,
+  `remember_token` varchar(255) DEFAULT NULL,
+  `sms_count` int(11) NOT NULL DEFAULT 0,
+  `email_count` int(11) NOT NULL DEFAULT 0,
+  `whatsapp_count` int(11) NOT NULL DEFAULT 0,
+  `limit_quota` int(11) DEFAULT 20,
+  `created_by` int(11) NOT NULL DEFAULT 0,
+  `modify_by` int(11) NOT NULL DEFAULT 0,
+  `etrac_student_id` int(11) DEFAULT NULL,
+  `etracs_created_at` timestamp NULL DEFAULT NULL,
+  `mode_type` int(1) NOT NULL DEFAULT 1,
+  `etracs_branch` varchar(100) DEFAULT NULL,
+  `login_token` text DEFAULT NULL,
+  `is_counselled` int(11) DEFAULT 0,
+  `last_followup_date` timestamp NULL DEFAULT NULL,
+  `next_followup_date` timestamp NULL DEFAULT NULL,
+  `last_status_id` int(11) DEFAULT 0,
+  `last_mode_id` int(11) DEFAULT 0,
+  `no_of_followups` int(11) DEFAULT 0,
+  `enquiry_source_id` int(11) DEFAULT 0,
+  `is_qa_done` tinyint(4) DEFAULT 0 COMMENT 'i if questionaire filled',
+  `pool_status` int(11) NOT NULL DEFAULT 1 COMMENT '1->registered,2->datacenter,3->Admission Pool',
+  `is_logged_in` int(1) NOT NULL DEFAULT 0 COMMENT '1->active session,0->in active session',
+  `agent_id` int(11) NOT NULL DEFAULT 0,
+  `sub_agent_id` int(11) DEFAULT 0,
+  `sm_id` int(11) NOT NULL DEFAULT 0,
+  `am_id` int(11) NOT NULL DEFAULT 0,
+  `referral_partner_id` int(11) NOT NULL DEFAULT 0,
+  `reg_through_website` smallint(1) NOT NULL DEFAULT 0,
+  `read_email` int(11) NOT NULL DEFAULT 0 COMMENT '0 = not Read, 1 = Read',
+  `read_email_date` datetime DEFAULT NULL,
+  `verified_by` int(11) DEFAULT NULL,
+  `first_retain_date` timestamp NULL DEFAULT NULL,
+  `quick_admit` smallint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telephone` (`telephone`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `registration_code` (`registration_code`),
+  KEY `assigned_advisor_id` (`assigned_advisor_id`),
+  KEY `id` (`id`),
+  KEY `branch_id` (`branch_id`),
+  KEY `enquiry_source_id` (`enquiry_source_id`),
+  KEY `country_preference4` (`country_preference4`),
+  KEY `country_preference3` (`country_preference3`),
+  KEY `country_preference2` (`country_preference2`),
+  KEY `country_preference1` (`country_preference1`)
+) ENGINE=InnoDB AUTO_INCREMENT=168418 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+19. CANAM_STUDENT_ASSIGN
+
+Description:
+This table stores the data related to the assigned advisor track. Details like 
+is the student counseled, which counsel_user_id is assigned, 
+advisor_assign_date etc. This table is similar to the 'lead_student_preferences' 
+but the difference is where we track which advisor is assigned to the lead, 
+similarly here we have which advisors are assigned to students. I am writing 
+advisors here because a student can have multiple advisors assigned (eg. in 
+counsel_user_id or in user_id values can be: 2,45,3 or 3) but the maximum 
+advisors can be assigned is 4 not more than that for now. Here we have a column 
+called advisor_assign_date which is the date when an advisor converts this lead 
+into a student and also we have a column called counsel_date, this date is when 
+the student gets counseled by the advisor and we also need to track for which 
+country.
+
+Main FK Relations with other tables:
+- Linked with canam_branches (col: branch_id): By this we can know that the 
+  student is associated with which branch
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with country (col: country_id): This column indicates the advisor's 
+  consulting country, i.e. the country with which the advisor deals and also 
+  this indicates that the student is counseled for this country
+- Linked with canam_staff (col: counsel_user_id): This column contains the 
+  user ID of the staff to whom the student is assigned
+- Linked with canam_staff (col: user_id): This column contains the user ID of 
+  the staff member the student is speaking with. It can happen that a student 
+  is assigned an advisor/staff member but encounters a different person in the 
+  office. This column allows for tracking this. If it is the same person, the 
+  IDs in the "counsel_user_id" and "user_id" columns will match
+
+Table Structure:
+
+TABLE `canam_student_assign` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) DEFAULT NULL,
+  `branch_id` int(11) NOT NULL,
+  `country_id` int(11) DEFAULT NULL,
+  `user_id` bigint(20) DEFAULT NULL COMMENT 'To Meet',
+  `counsel_user_id` bigint(20) DEFAULT NULL,
+  `advisor_assign_date` datetime DEFAULT NULL,
+  `is_counsel` tinyint(1) NOT NULL DEFAULT 0,
+  `counsel_date` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `is_qc` int(11) DEFAULT 0,
+  `user_role_type` int(11) NOT NULL DEFAULT 0,
+  `from_adv_to_sub` int(11) DEFAULT 0,
+  `shared_from` int(11) DEFAULT NULL,
+  `shared_to` int(11) DEFAULT NULL,
+  `shared_date` timestamp NULL DEFAULT NULL,
+  `is_frontdesk` int(11) NOT NULL DEFAULT 0 COMMENT 'assigned from frontdesk ',
+  `qc_assigned_date` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `branch_id` (`branch_id`),
+  KEY `country_id` (`country_id`),
+  KEY `user_id` (`user_id`),
+  KEY `counsel_user_id` (`counsel_user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=210594 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+20. CANAM_STUDENT_EDUCATION
+
+Description:
+This table stores the data related to the student educational data.
+
+Main FK Relations with other tables:
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with master_min_qualification (col: master_min_qualification_id): 
+  This column links this table to the master minimum qualification table where 
+  we have master type of qualification_name and qualification_level
+- Linked with country_list (col: education_country_list_id): Link to the 
+  'country_list' table. This tells us from which country student has done 
+  his/her education
+- Linked with master_grade_scheme (col: education_grade_scheme): Link to the 
+  'master_grade_scheme' table. Where we have the master data of the Grade 
+  Schemes of different study programs i.e. grade_scheme_name
+
+Table Structure:
+
+TABLE `canam_student_education` (
+  `education_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `master_min_qualification_id` int(11) DEFAULT NULL,
+  `education_country_list_id` int(11) NOT NULL,
+  `education_grade_scheme` int(11) DEFAULT NULL,
+  `education_grade_average` varchar(200) DEFAULT NULL,
+  `education_other_grade_input` varchar(255) DEFAULT NULL,
+  `education_cgpa` varchar(255) DEFAULT NULL,
+  `qualification_subject_id` int(11) DEFAULT NULL,
+  `completion_year` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `is_study_complete` int(11) DEFAULT NULL COMMENT '1.complete 2.currently studying 3.discontinued',
+  `complete_study_date` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`education_id`),
+  KEY `fk_stu_edu_id` (`student_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=131669 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+21. CANAM_STUDENT_TESTS
+
+Description:
+This table stores the data related to the student tests - which are the 
+language and other tests that students have taken.
+
+Main FK Relations with other tables:
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+
+Table Structure:
+
+TABLE `canam_student_tests` (
+  `test_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) DEFAULT NULL,
+  `test_name` varchar(50) DEFAULT 'IELTS',
+  `ielts_taken` varchar(50) NOT NULL DEFAULT '1',
+  `pte_test_name` varchar(50) DEFAULT NULL,
+  `test_date` date DEFAULT NULL,
+  `overall_score` double DEFAULT NULL,
+  `pte_overall_score` double DEFAULT NULL,
+  `listening` double DEFAULT NULL,
+  `reading` double DEFAULT NULL,
+  `writing` double DEFAULT NULL,
+  `speaking` double DEFAULT NULL,
+  `verbal_score` double DEFAULT NULL,
+  `verbal_rank` double DEFAULT NULL,
+  `quantitative_score` double DEFAULT NULL,
+  `quantitative_rank` double DEFAULT NULL,
+  `writing_score` double DEFAULT NULL,
+  `writing_rank` double DEFAULT NULL,
+  `total_score` double DEFAULT NULL,
+  `total_rank` double DEFAULT NULL,
+  `gre_overall` double DEFAULT NULL,
+  `gre_date` date DEFAULT NULL,
+  `gre_verbal` double DEFAULT NULL,
+  `gre_quant` double DEFAULT NULL,
+  `gre_analytic` double DEFAULT NULL,
+  `gmat_overall` double DEFAULT NULL,
+  `gmat_date` date DEFAULT NULL,
+  `gmat_verbal` double DEFAULT NULL,
+  `gmat_quant` double DEFAULT NULL,
+  `gmat_analytic` double DEFAULT NULL,
+  `sat_overall` double DEFAULT NULL,
+  `sat_date` date DEFAULT NULL,
+  `sat_verbal` double DEFAULT NULL,
+  `sat_quant` double DEFAULT NULL,
+  `sat_analytic` double DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`test_id`),
+  KEY `fk_stu_test` (`student_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=115626 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+22. CANAM_STUDENT_DOCUMENTS
+
+Description:
+This table stores the documents of the student and they are unique - no 
+duplicates allowed. These documents are further used for applications for 
+universities. This table stores which documents are used for the applications.
+
+Main FK Relations with other tables:
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with master_documents (col: master_documents_id): This linked table 
+  stores information about the documents like the title, serial number, is it 
+  the loan document, is it mandatory etc. where we have manage the documents 
+  level wise
+- Linked with canam_student_application (col: student_application_id): This 
+  linked table has the whole information about the student application
+- Linked with master_min_qualification (col: master_min_qualification_id): 
+  This column links this table to the master minimum qualification table where 
+  we have master type of qualification_name and qualification_level
+
+Table Structure:
+
+TABLE `canam_student_documents` (
+  `student_document_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) DEFAULT NULL,
+  `master_documents_id` int(11) DEFAULT NULL,
+  `master_min_qualification_id` int(11) DEFAULT NULL,
+  `student_application_id` bigint(20) NOT NULL,
+  `document_name` varchar(255) DEFAULT NULL,
+  `document_type` varchar(255) DEFAULT NULL,
+  `document_status` tinyint(4) DEFAULT 0 COMMENT 'reference table => document_status_mails',
+  `doc_remark` longtext DEFAULT NULL,
+  `document_cdate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `upload_date` datetime DEFAULT NULL,
+  `removed_by` int(11) DEFAULT NULL COMMENT 'removed by user',
+  `removed_on` datetime DEFAULT NULL COMMENT 'removal date',
+  `extra_doc` int(11) NOT NULL DEFAULT 0,
+  `loan_doc` tinyint(2) NOT NULL DEFAULT 0,
+  `loan_doc_type` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`student_document_id`),
+  KEY `fk_stu_id` (`student_id`),
+  KEY `fk_stu_docs` (`master_documents_id`),
+  KEY `student_document_id` (`student_document_id`),
+  KEY `student_application_id` (`student_application_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=726430 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+23. CANAM_STUDENT_APPLICATION
+
+Description:
+This table stores the application data that the student made for different 
+universities and all the application related tracking data like who completed 
+the document, offer letter status, tuition fee status etc. This table is the 
+core of the student and tracking the performance for the employees there are so 
+many things and columns which give us information but below are some important 
+relations but it doesn't mean that other columns are not so important.
+
+Main FK Relations with other tables:
+- Linked with canam_student_registration (col: student_id): This is connected 
+  to the Canam student table which is the user table of the student where we 
+  have the user login details and other details
+- Linked with country (col: country_id): This column indicates for which 
+  country the application is for
+- Linked with canam_student_documents (col: application_id): This column is 
+  link between student document and application
+- Linked with canam_staff (col: advisor_id): This tells us who is linked with 
+  this application
+- Linked with canam_staff (col: doc_exec_id): This tells us who is document 
+  executive for this application
+- Linked with canam_staff (col: admission_exec_id): This tells us who is 
+  admission executive for this application
+- Linked with canam_staff (col: visa_exec_id): This tells us who is visa 
+  executive for this application
+- Linked with visa_status_remarks (col: visa_status_id): From here we get the 
+  information about the visa status
+- Linked with canam_staff (col: application_doc_completed_by): This tells us 
+  who completed the application documents
+- Linked with master_university (col: university_id): This tells us the 
+  application is related to which university
+- Linked with master_prgm (col: prgm_id): This tells us the application is 
+  related to which program of the university
+- Linked with master_level (col: prgm_level_id): From here we get the program 
+  level details
+- Linked with tution_fee_status_remarks (col: tuition_fee_status_id): Here you 
+  can get the tuition fee remarks data
+- Linked with application_status_remarks (col: application_status_id): This 
+  table stores the data of the application communication with the university by 
+  email and here we can find all the remarks of the applications
+
+Table Structure:
+
+TABLE `canam_student_application` (
+  `student_application_pk` int(11) NOT NULL AUTO_INCREMENT,
+  `application_id` bigint(20) DEFAULT NULL,
+  `etracs_app_id` int(11) NOT NULL DEFAULT 0,
+  `student_id` int(11) DEFAULT NULL,
+  `country_id` int(11) NOT NULL DEFAULT 0,
+  `university_id` int(11) DEFAULT NULL,
+  `prgm_id` int(11) DEFAULT NULL,
+  `prgm_level_id` int(11) NOT NULL DEFAULT 0,
+  `agent_id` int(11) NOT NULL DEFAULT 0,
+  `sub_agent_id` int(11) NOT NULL DEFAULT 0,
+  `advisor_id` int(11) DEFAULT NULL,
+  `doc_exec_id` int(11) DEFAULT 0,
+  `admission_exec_id` int(11) DEFAULT 0,
+  `expect_doc_submit_date` date DEFAULT NULL,
+  `visa_exec_id` int(11) DEFAULT 0,
+  `current_intake` varchar(15) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `deffered_intake` varchar(15) DEFAULT NULL,
+  `application_flag` varchar(10) NOT NULL DEFAULT '0' COMMENT '0= applied/draft, 1= retained, 2= approved by advisor,3=sent to advisor, 4= cancel ',
+  `application_type` smallint(1) DEFAULT 1 COMMENT '1->Normal,2->Onshore,3->Assessment,4->Change Of Agent',
+  `old_application_type` smallint(1) NOT NULL DEFAULT 0,
+  `update_app_type_date` datetime DEFAULT NULL,
+  `prgm_eligible_check` int(11) DEFAULT NULL COMMENT '0=>not eligible,\r\n1=> eligible',
+  `app_quick_admin` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0->Normal,1->quick admit',
+  `noteligible_reason` text DEFAULT NULL,
+  `application_cdate` datetime DEFAULT current_timestamp(),
+  `retained_date` datetime DEFAULT NULL,
+  `preference` int(11) NOT NULL DEFAULT 0,
+  `priority` int(11) NOT NULL DEFAULT 0 COMMENT '0-No Priority Set,1-Regular,2-High,3-Super Priority 1,4-Super Priority 2, ',
+  `priority_date` datetime DEFAULT NULL,
+  `application_fee_status` varchar(255) DEFAULT 'unpaid',
+  `application_fee` varchar(255) DEFAULT NULL,
+  `doc_assgin_date` date DEFAULT NULL,
+  `application_document_status` varchar(100) NOT NULL DEFAULT '0' COMMENT '0=pending , 1=completed,2=part-complete,3=resubmit',
+  `application_document_complete_date` datetime DEFAULT NULL,
+  `application_doc_completed_by` int(11) NOT NULL DEFAULT 0,
+  `application_document_specail_case_stat` tinyint(4) DEFAULT 0 COMMENT '0= no special case(normal),\r\n1= special case\r\n',
+  `application_document_specail_case_stat_date` datetime DEFAULT NULL,
+  `special_case_status` tinyint(4) DEFAULT 0 COMMENT '1=approved,\r\n2=rejected,\r\n3=resubmit',
+  `special_case_status_change_date` datetime DEFAULT NULL,
+  `doc_resubmit_date` datetime DEFAULT NULL,
+  `doc_resubmit_by` int(11) DEFAULT NULL,
+  `application_status_id` int(11) NOT NULL DEFAULT 0 COMMENT '0 = Not started',
+  `application_status_date` datetime DEFAULT NULL,
+  `application_applied_status` smallint(6) DEFAULT 0 COMMENT '1=>applied complete,\r\n2=>applied incomplete,\r\n3=>applied on Consent,\r\n4=>applied for assessment',
+  `etracs_application_status` varchar(255) DEFAULT NULL,
+  `offerletter_status` int(11) NOT NULL DEFAULT 0,
+  `offerletter_recieved_date` datetime DEFAULT NULL,
+  `offer_letter_expire_date` date DEFAULT NULL,
+  `offerletter_check` int(11) NOT NULL DEFAULT 0,
+  `final_selection` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1=> final section done',
+  `final_selection_date` datetime DEFAULT NULL,
+  `etracs_payment_type_status` int(11) DEFAULT NULL COMMENT '1 =>Complete, 0 => Partially',
+  `etracs_tuition_fee_status` varchar(250) DEFAULT NULL,
+  `tuition_fee_status` varchar(255) DEFAULT 'Not Paid',
+  `tuition_fee_status_id` int(11) DEFAULT 0,
+  `tuition_fee` varchar(255) DEFAULT NULL,
+  `tuition_fee_mark_date` datetime DEFAULT NULL,
+  `tuition_fee_status_type` smallint(6) DEFAULT NULL COMMENT '1 =>Complete, 0 => Partially, 2=>Confirmation Deposit',
+  `visa_status` varchar(100) NOT NULL DEFAULT 'not started',
+  `visa_status_id` int(11) NOT NULL DEFAULT 0,
+  `visa_status_mark_date` datetime DEFAULT NULL,
+  `visa_app_no` varchar(20) DEFAULT NULL,
+  `country_wise_status_type` int(11) DEFAULT NULL,
+  `country_wise_status` int(11) DEFAULT NULL,
+  `country_wise_status_date` datetime DEFAULT NULL,
+  `student_card_number` varchar(300) DEFAULT NULL,
+  `student_card_expiry` varchar(100) DEFAULT NULL,
+  `student_card_name` varchar(300) DEFAULT NULL,
+  `student_card_cvv` varchar(100) DEFAULT NULL,
+  `student_card_cdate` datetime NOT NULL DEFAULT current_timestamp(),
+  `cardstring` varchar(100) DEFAULT NULL,
+  `read_status` int(11) NOT NULL DEFAULT 0,
+  `application_submit_by_advisor` int(11) NOT NULL DEFAULT 0,
+  `application_submitted_date` datetime DEFAULT NULL,
+  `application_commission` double DEFAULT NULL,
+  `assessment` int(11) NOT NULL DEFAULT 0,
+  `nflag` int(11) NOT NULL DEFAULT 0,
+  `ndate` datetime DEFAULT NULL,
+  `enrolment_id` varchar(50) DEFAULT NULL,
+  `enrolment_date` date DEFAULT NULL,
+  `agent_retainer_doc` varchar(255) DEFAULT NULL,
+  `retainer_doc` varchar(255) DEFAULT NULL,
+  `retainer_accept` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1=>upload retainer by user , 2 => retainer conditions are accepted by student self from student panel',
+  `retainer_accept_date` datetime DEFAULT NULL,
+  `old_retainer` tinyint(4) NOT NULL DEFAULT 0,
+  `visa_retainer` varchar(250) DEFAULT NULL,
+  `visa_retainer_upload_date` datetime DEFAULT NULL,
+  `agent_workflow_stuid` int(11) NOT NULL DEFAULT 0,
+  `ocas_app_id` varchar(50) DEFAULT NULL,
+  `application_status` varchar(255) DEFAULT NULL,
+  `student_portal_details` tinyint(4) NOT NULL DEFAULT 0 COMMENT '0=>no,1 => yes',
+  `inst_comm_status_id` smallint(6) DEFAULT NULL,
+  `branch_comm_status_id` smallint(6) DEFAULT NULL,
+  `institute_name` varchar(300) DEFAULT NULL,
+  `program_name` varchar(300) DEFAULT NULL,
+  `enrolled_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1=>Enrolled,2=>Not Enrolled,3=>Enrolled without proof',
+  `enrollment_proof_updated` tinyint(1) NOT NULL DEFAULT 0,
+  `enrolled_date` datetime DEFAULT NULL,
+  `application_state_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1->active,2->In active',
+  `application_state_date` timestamp NULL DEFAULT NULL,
+  `application_state_upd_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`student_application_pk`) USING BTREE,
+  UNIQUE KEY `application_id_2` (`application_id`),
+  KEY `fk_stu_uni` (`university_id`),
+  KEY `fk_stu_prgm` (`prgm_id`),
+  KEY `fk_student_id` (`student_id`),
+  KEY `application_id` (`application_id`),
+  KEY `student_application_pk` (`student_application_pk`),
+  KEY `country_id` (`country_id`),
+  KEY `visa_exec_id` (`visa_exec_id`),
+  KEY `admission_exec_id` (`admission_exec_id`),
+  KEY `doc_exec_id` (`doc_exec_id`),
+  KEY `advisor_id` (`advisor_id`),
+  KEY `application_status_id` (`application_status_id`),
+  KEY `tuition_fee_status_id` (`tuition_fee_status_id`),
+  KEY `visa_status_id` (`visa_status_id`),
+  KEY `enrolment_id` (`enrolment_id`),
+  KEY `ocas_app_id` (`ocas_app_id`),
+  KEY `application_applied_status` (`application_applied_status`)
+) ENGINE=InnoDB AUTO_INCREMENT=199905 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+# SECTION 6: STATUS AND REMARKS TABLES
+
+24. APPLICATION_STATUS_REMARKS
+
+Description:
+This table stores the data of the application communication with the university 
+by email and here we can find all the remarks of the applications.
+
+Main FK Relations with other tables:
+None (this is a master table referenced by canam_student_application)
+
+Table Structure:
+
+TABLE `application_status_remarks` (
+  `remarks_id` int(11) NOT NULL AUTO_INCREMENT,
+  `remarks_title` varchar(300) NOT NULL,
+  `status` tinyint(4) NOT NULL DEFAULT 1 COMMENT '1-active',
+  `template` longtext NOT NULL,
+  `etracs_id` int(11) NOT NULL,
+  `group_status` int(11) DEFAULT NULL COMMENT '1- Applied\r\n2 - Offers\r\n3. case closed\r\n4. RTB\r\n5. ANO\r\n6. Hold\r\n7. Others\r\n\r\n',
+  PRIMARY KEY (`remarks_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+25. TUTION_FEE_STATUS_REMARKS
+
+Description:
+Here you can get the tuition fee remarks data.
+
+Main FK Relations with other tables:
+None (this is a master table referenced by canam_student_application)
+
+Table Structure:
+
+TABLE `tution_fee_status_remarks` (
+  `remarks_id` int(11) NOT NULL AUTO_INCREMENT,
+  `remarks_title` varchar(300) NOT NULL,
+  `template` longtext NOT NULL,
+  `status` tinyint(4) NOT NULL DEFAULT 1,
+  `category` int(11) NOT NULL DEFAULT 1 COMMENT '1-> All,2->Refund',
+  `tf_paid_flag` smallint(6) NOT NULL DEFAULT 0 COMMENT '1->paid,2->Refund,3->Not Paid',
+  `etracs_id` smallint(6) DEFAULT NULL,
+  PRIMARY KEY (`remarks_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+26. VISA_STATUS_REMARKS
+
+Description:
+From here we get the information about the visa status.
+
+Main FK Relations with other tables:
+- Linked with country (col: country_id): Links visa status to specific countries
+
+Table Structure:
+
+TABLE `visa_status_remarks` (
+  `remarks_id` int(11) NOT NULL AUTO_INCREMENT,
+  `remarks_title` varchar(300) NOT NULL,
+  `etrcas_id` smallint(6) DEFAULT NULL,
+  `template` longtext NOT NULL,
+  `status` int(11) NOT NULL DEFAULT 1,
+  `country_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`remarks_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+# SECTION 7: UNIVERSITY AND PROGRAM MASTER TABLES
+
+27. MASTER_UNIVERSITY
+
+Description:
+This table stores all the university related data like where is the university, 
+name of the university, description etc.
+
+Main FK Relations with other tables:
+- Linked with country (col: u_c_id): This column indicates where the university 
+  is
+- Linked with province (col: u_p_id): Here we have the university province 
+  information
+
+Table Structure:
+
+TABLE `master_university` (
+  `u_id` int(11) NOT NULL AUTO_INCREMENT,
+  `u_c_id` int(11) NOT NULL,
+  `u_p_id` int(11) NOT NULL,
+  `u_type` varchar(30) NOT NULL,
+  `u_name` varchar(200) NOT NULL,
+  `u_slug` longtext DEFAULT NULL,
+  `u_logo` varchar(200) NOT NULL,
+  `u_edm_logo` varchar(200) NOT NULL,
+  `u_link` varchar(200) NOT NULL,
+  `u_city` varchar(250) NOT NULL,
+  `u_weather_link` longtext NOT NULL,
+  `u_location_type_id` int(11) NOT NULL,
+  `u_featured` int(2) NOT NULL DEFAULT 0 COMMENT '1 for featured, 0 for unfeatured',
+  `about` longtext NOT NULL,
+  `affiliation` varchar(150) DEFAULT NULL,
+  `founded` int(11) DEFAULT NULL,
+  `total_students` int(11) DEFAULT NULL,
+  `international_students` int(11) DEFAULT NULL,
+  `living_cost` longtext DEFAULT NULL,
+  `tuition_fee_ug_can` varchar(100) DEFAULT NULL,
+  `tuition_fee_pg_can` varchar(100) DEFAULT NULL,
+  `tuition_fee_ug_int_from` varchar(100) DEFAULT NULL,
+  `tuition_fee_ug_int_to` varchar(100) DEFAULT NULL,
+  `tuition_fee_pg_int_from` varchar(100) NOT NULL,
+  `tuition_fee_pg_int_to` varchar(100) DEFAULT NULL,
+  `features` longtext DEFAULT NULL,
+  `address` longtext DEFAULT NULL,
+  `accomodation` longtext DEFAULT NULL,
+  `collab_certificate` varchar(100) DEFAULT NULL,
+  `brochure_upload` varchar(100) DEFAULT NULL,
+  `shortlisted_count` int(11) DEFAULT 0,
+  `views` int(11) DEFAULT 0,
+  `ranking` varchar(100) DEFAULT NULL,
+  `country_ranking` varchar(100) NOT NULL,
+  `ielts_score_ug` float DEFAULT NULL,
+  `ielts_score_pg` float DEFAULT NULL,
+  `toefl_score_ug` float DEFAULT NULL,
+  `toefl_score_pg` float DEFAULT NULL,
+  `pte_score_ug` float DEFAULT NULL,
+  `pte_score_pg` float DEFAULT NULL,
+  `u_listing_type` varchar(100) DEFAULT NULL,
+  `u_prgm_type` varchar(200) NOT NULL,
+  `u_highlights` longtext DEFAULT NULL,
+  `u_exempted_country` longtext DEFAULT NULL,
+  `whats_new` longtext NOT NULL,
+  `student_support` longtext NOT NULL,
+  `uni_refund_policy` longtext DEFAULT NULL,
+  `opportunities` longtext NOT NULL,
+  `uni_entry_requirements` longtext NOT NULL,
+  `uni_scholarships` longtext NOT NULL,
+  `uni_page_view` int(11) NOT NULL DEFAULT 0 COMMENT '0 for normal, 1 for lengthy',
+  `uni_status` varchar(100) NOT NULL DEFAULT 'active',
+  `uni_status_b` varchar(100) DEFAULT NULL,
+  `cdate` datetime NOT NULL DEFAULT current_timestamp(),
+  `uni_mdate` datetime NOT NULL,
+  `uni_cuser` varchar(50) NOT NULL,
+  `uni_muser` varchar(50) DEFAULT NULL,
+  `uni_town` varchar(50) NOT NULL,
+  `upoint` int(11) NOT NULL,
+  `upoint_notes` text DEFAULT NULL,
+  `nu_logo` varchar(500) DEFAULT NULL,
+  `global_univ` int(11) NOT NULL DEFAULT 0,
+  `agent_univ_check` int(11) NOT NULL DEFAULT 0,
+  `univ_express_offer` int(1) NOT NULL DEFAULT 0,
+  `defer_policy` longtext DEFAULT NULL,
+  `offer_tat` int(11) DEFAULT NULL,
+  `change_agent` varchar(3) DEFAULT NULL,
+  `moi` varchar(5) DEFAULT 'no',
+  `groups` int(11) DEFAULT NULL,
+  `ass_ment` int(11) NOT NULL DEFAULT 0 COMMENT '1--Yes\r\n0--No\r\nDefault is 0',
+  PRIMARY KEY (`u_id`),
+  KEY `fk_master_uni_cntry` (`u_c_id`),
+  KEY `fk_master_uni_province` (`u_p_id`),
+  KEY `u_id` (`u_id`),
+  KEY `u_name` (`u_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=2512 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+28. PROG_CAT (Program Category)
+
+Description:
+This stores the category of the programs. From the prog_cat we get the program 
+name and other program related details like description etc.
+
+Main FK Relations with other tables:
+None
+
+Table Structure:
+
+TABLE `prog_cat` (
+  `pg_id` int(11) NOT NULL AUTO_INCREMENT,
+  `pg_name` varchar(200) NOT NULL,
+  `pg_slug` varchar(200) NOT NULL,
+  `pg_desc` varchar(500) NOT NULL,
+  `pg_image` varchar(100) NOT NULL,
+  `picon` longtext DEFAULT NULL,
+  `canam_pg_image` varchar(200) NOT NULL,
+  `canam_picon` varchar(200) NOT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'active',
+  `popular_level` int(11) NOT NULL DEFAULT 0,
+  `sort` int(11) NOT NULL,
+  `etracs_name` varchar(300) DEFAULT NULL,
+  `etracs_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pg_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+29. PROG_SUBJECT (Program Subject)
+Description:
+From here we can find the subjects information of the programs.
+
+Main FK Relations with other tables:
+- Linked with prog_cat (col: pg_id): Links subjects to their program categories
+
+Table Structure:
+
+TABLE `prog_subject` (
+  `pg_sid` int(11) NOT NULL AUTO_INCREMENT,
+  `pg_sname` varchar(200) NOT NULL,
+  `pg_id` int(11) NOT NULL,
+  PRIMARY KEY (`pg_sid`),
+  KEY `pg_id` (`pg_id`),
+  CONSTRAINT `prog_subject_ibfk_1` FOREIGN KEY (`pg_id`) REFERENCES `prog_cat` (`pg_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=660 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+30. MASTER_PRGM (Master Program)
+
+Description:
+This table stores all the program related data like program name, category, 
+description etc.
+
+Main FK Relations with other tables:
+- Linked with master_university (col: prgm_uni_id): This tells us the program 
+  is related to which university
+- Linked with prog_cat (col: prgm_cat_id, prgm_cat_id2, prgm_cat_id3): From 
+  here we can find the category of the program
+- Linked with prog_subject (col: prgm_sub_id, prgm_sub_id2, prgm_sub_id3): 
+  From here we can find the subjects information of the programs
+- Linked with master_level (col: prgm_level_id): From here we get the program 
+  level details
+
+Table Structure:
+
+TABLE `master_prgm` (
+  `prgm_id` int(11) NOT NULL AUTO_INCREMENT,
+  `prgm_slug` varchar(255) NOT NULL,
+  `prgm_cat_id` int(11) NOT NULL,
+  `prgm_sub_id` varchar(250) NOT NULL,
+  `prgm_cat_id2` int(11) NOT NULL,
+  `prgm_sub_id2` varchar(250) NOT NULL,
+  `prgm_cat_id3` int(11) NOT NULL,
+  `prgm_sub_id3` varchar(250) NOT NULL,
+  `prgm_uni_id` int(11) NOT NULL,
+  `prgm_code` varchar(100) NOT NULL,
+  `prgm_name` varchar(255) NOT NULL,
+  `prgm_link` varchar(200) NOT NULL,
+  `prgm_about` longtext NOT NULL,
+  `prgm_level_id` int(11) NOT NULL,
+  `prgm_nzqf_level_id` int(11) NOT NULL,
+  `prgm_type_id` int(11) NOT NULL,
+  `prgm_featured` int(2) NOT NULL DEFAULT 0 COMMENT ' 	1 for featured, 0 for unfeatured ',
+  `essential_subject` varchar(255) NOT NULL,
+  `backlogs_allowed` int(11) NOT NULL,
+  `backlogs_allowed_b` int(11) NOT NULL,
+  `gap_years` int(11) NOT NULL,
+  `work_experience` int(11) NOT NULL,
+  `portfolio_required` int(2) NOT NULL DEFAULT 0 COMMENT ' 	1 for yes, 0 for no ',
+  `prgm_transfer` int(2) NOT NULL COMMENT ' 	1 for available, 0 for not available 	',
+  `prgm_transfer_notes` longtext NOT NULL,
+  `prgm_features` longtext NOT NULL,
+  `master_careers_id` varchar(255) NOT NULL,
+  `prgm_duration` varchar(200) NOT NULL,
+  `prgm_coop_available` int(2) NOT NULL COMMENT '1 for yes, 0 for no',
+  `prgm_coop_duration` int(11) NOT NULL,
+  `prgm_pre_req_notes` mediumtext NOT NULL,
+  `prgm_intake` varchar(50) NOT NULL,
+  `prgm_scholarship` longtext NOT NULL,
+  `admission_req` longtext DEFAULT NULL,
+  `admission_req_b` longtext NOT NULL,
+  `refund_policy` longtext DEFAULT NULL,
+  `tests_req` longtext DEFAULT NULL,
+  `other` longtext DEFAULT NULL,
+  `uni_application_fee` int(10) NOT NULL,
+  `uni_application_fee_b` int(11) NOT NULL,
+  `canam_application_fee` int(10) NOT NULL,
+  `canam_application_fee_b` int(11) NOT NULL,
+  `application_fee` int(11) NOT NULL,
+  `tuition_fee` int(11) DEFAULT 0,
+  `living_cost` varchar(100) NOT NULL,
+  `process_time` varchar(100) NOT NULL,
+  `prgm_views` int(11) NOT NULL,
+  `prgm_shortlist` int(11) NOT NULL,
+  `add_doc_requirement` longtext DEFAULT NULL,
+  `min_cgpa` float NOT NULL,
+  `min_cgpa_b` float NOT NULL COMMENT 'B-Bangladesh ',
+  `min_education` int(11) NOT NULL,
+  `ielts_overall` float NOT NULL,
+  `ielts_listening` float NOT NULL,
+  `ielts_reading` float NOT NULL,
+  `ielts_writing` float NOT NULL,
+  `ielts_speaking` float NOT NULL,
+  `ielts_overall_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `ielts_listening_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `ielts_reading_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `ielts_writing_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `ielts_speaking_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_overall` float NOT NULL,
+  `toefl_listening` float NOT NULL,
+  `toefl_reading` float NOT NULL,
+  `toefl_writing` float NOT NULL,
+  `toefl_speaking` float NOT NULL,
+  `toefl_overall_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_listening_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_reading_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_writing_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_speaking_b` float NOT NULL COMMENT 'B-Bangladesh',
+  `pte_overall` float NOT NULL,
+  `pte_listening` float NOT NULL,
+  `pte_reading` float NOT NULL,
+  `pte_writing` float NOT NULL,
+  `pte_speaking` float NOT NULL,
+  `duolingo_overall` float NOT NULL,
+  `duolingo_listening` float NOT NULL,
+  `duolingo_reading` float NOT NULL,
+  `duolingo_writing` float NOT NULL,
+  `duolingo_speaking` float NOT NULL,
+  `gre_overall` float NOT NULL,
+  `gre_analytical` float NOT NULL,
+  `gre_verbal` float NOT NULL,
+  `gre_quantitative` float NOT NULL,
+  `gmat_overall` float NOT NULL,
+  `gmat_analytical` float NOT NULL,
+  `gmat_verbal` float NOT NULL,
+  `gmat_quantitative` float NOT NULL,
+  `sat_overall` float NOT NULL,
+  `sat_reading` float NOT NULL,
+  `sat_writing` float NOT NULL,
+  `sat_mathematics` float NOT NULL,
+  `prgm_listing_type` varchar(200) NOT NULL,
+  `prgm_pgwp` int(11) NOT NULL DEFAULT 0,
+  `prgm_cpt` int(11) NOT NULL,
+  `prgm_opt` int(11) NOT NULL,
+  `prgm_external_notes` longtext NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `pcdate` datetime NOT NULL DEFAULT current_timestamp(),
+  `prgm_mdate` datetime NOT NULL,
+  `prgm_fee_update_date` datetime DEFAULT NULL,
+  `prgm_bulk_ieltstofle_upd_date` datetime DEFAULT NULL,
+  `prgm_min_cgpa_upd_date` datetime DEFAULT NULL,
+  `prgm_refund_upd_date` datetime DEFAULT NULL,
+  `prgm_bulk_list_update` datetime DEFAULT NULL,
+  `prgm_cuser` varchar(50) NOT NULL,
+  `prgm_muser` varchar(50) DEFAULT NULL,
+  `score` double NOT NULL,
+  `score_condition_id` longtext NOT NULL,
+  `score_b` double NOT NULL COMMENT 'B-Bangladesh',
+  `score_condition_id_b` int(11) NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_score` double NOT NULL,
+  `toefl_score_condition_id` int(11) NOT NULL,
+  `toefl_score_b` double NOT NULL COMMENT 'B-Bangladesh',
+  `toefl_score_condition_id_b` int(11) NOT NULL COMMENT 'B-Bangladesh',
+  `pte_score` double NOT NULL,
+  `pte_score_condition_id` int(11) NOT NULL,
+  `pte_score_b` double NOT NULL,
+  `pte_score_condition_id_b` int(11) NOT NULL,
+  `duolingo_score` double NOT NULL,
+  `duolingo_score_condition_id` int(11) NOT NULL,
+  `duolingo_score_b` double NOT NULL,
+  `duolingo_score_condition_id_b` int(11) NOT NULL,
+  `gre_condition` int(1) DEFAULT 0 COMMENT '1=waiver,2=optional,3=required, 4= waiver available',
+  `gre_condition_notes` text DEFAULT NULL,
+  `gre_condition_b` int(1) DEFAULT 0 COMMENT '1=waiver,2=optional,3=required, 4=Waiver Available',
+  `gre_condition_notes_b` text DEFAULT NULL,
+  `gmat_condition` int(1) DEFAULT 0 COMMENT '1=waiver,2=optional,3=required,4=Waiver Available',
+  `gmat_condition_notes` text DEFAULT NULL,
+  `gmat_condition_b` int(1) DEFAULT 0 COMMENT '1=waiver,2=optional,3=required,4=Waiver Available',
+  `gmat_condition_notes_b` text DEFAULT NULL,
+  `sat_condition` int(1) DEFAULT 0 COMMENT '1=waiver,2=optional,3=required,4=Waiver Available',
+  `sat_condition_notes` text DEFAULT NULL,
+  `sat_condition_b` int(1) DEFAULT 0 COMMENT '1=waiver,2=optional,3=required,4=Waiver Available',
+  `sat_condition_notes_b` text DEFAULT NULL,
+  `prgm_avilable_bangladesh` varchar(50) DEFAULT NULL,
+  `prgm_difficult_level` int(11) NOT NULL,
+  `ppoint` int(11) NOT NULL,
+  `ppoint_notes` text DEFAULT NULL,
+  `gregmatnotes` longtext DEFAULT NULL,
+  `low` int(11) NOT NULL DEFAULT 0,
+  `intermidate` int(11) NOT NULL DEFAULT 0,
+  `high` int(11) NOT NULL DEFAULT 0,
+  `lowstart` int(11) DEFAULT NULL,
+  `lowend` int(11) DEFAULT NULL,
+  `intermidatestart` int(11) DEFAULT NULL,
+  `intermidateend` int(11) DEFAULT NULL,
+  `highstart` int(11) DEFAULT NULL,
+  `highend` int(11) DEFAULT NULL,
+  `prgm_express_offer` int(1) NOT NULL DEFAULT 0,
+  `express_update_user` varchar(255) DEFAULT NULL,
+  `express_update_date` datetime DEFAULT NULL,
+  `tf_gap_backlog_muser` varchar(100) DEFAULT NULL,
+  `tf_gap_backlog_update_date` datetime NOT NULL,
+  `apt_muser` varchar(100) DEFAULT NULL,
+  `apt_update_date` datetime DEFAULT NULL,
+  `bulk_minlevel_upd_user` varchar(100) DEFAULT NULL,
+  `bulk_minlevel_upd_date` datetime DEFAULT NULL,
+  `stem` int(1) NOT NULL DEFAULT 0,
+  `wes` int(11) DEFAULT NULL,
+  `i20_process_time` int(11) DEFAULT NULL,
+  `i20_deposit_amt` int(11) DEFAULT NULL,
+  `i20_deposit_remark` text DEFAULT NULL,
+  `i20_deposit_waiver` int(11) DEFAULT NULL,
+  `confirm_deposit_amt` int(11) DEFAULT NULL,
+  `pal` longtext DEFAULT NULL,
+  `non_credit` varchar(5) DEFAULT NULL,
+  `min_requirement_notes` longtext DEFAULT NULL,
+  `pal_info` int(11) NOT NULL DEFAULT 0 COMMENT '\r\n1=Not Required,\r\n2=Required For Visa,\r\n3=Not Eligible For Visa',
+  `pal_info_notes` longtext DEFAULT NULL COMMENT 'notes for pal requried,not required for visa,not eligible',
+  `prgm_mode` int(11) DEFAULT NULL,
+  `quick_admit` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`prgm_id`),
+  KEY `fk_prog_cat` (`prgm_cat_id`),
+  KEY `fk_prog_sub` (`prgm_sub_id`),
+  KEY `fk_master_prgm_bak_university` (`prgm_uni_id`),
+  KEY `fk_master_prgm_bak_level` (`prgm_level_id`),
+  KEY `fk_master_prgm_bak_type` (`prgm_type_id`),
+  KEY `prgm_id` (`prgm_id`),
+  KEY `prgm_uni_id` (`prgm_uni_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=178907 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+END OF DOCUMENT
+
+This comprehensive documentation contains:
+- 30 tables organized into 7 logical sections
+- Complete descriptions of each table's purpose
+- Foreign key relationships and their meanings
+- Full table structures with all columns and constraints
+
+This document serves as a complete reference for understanding the Canam Etracs 
+database schema and the relationships between tables.
+

@@ -1,0 +1,247 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Edit SEO: {{ url_key }} | Top Teen{% endblock %}
+
+{% block page_title %}Edit SEO: {{ url_key }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Page list</a>
+    </div>
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="admin-card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+            <h5 class="mb-0">Generate with AI</h5>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <label class="mb-0 small d-flex align-items-center gap-1">
+                    <input type="checkbox" id="aiIncludeContent" checked> Include page content for better results
+                </label>
+                <button type="button" class="btn btn-primary btn-sm" id="btnGenerateAI">Generate with AI</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="btnRegenerateAI">Regenerate</button>
+            </div>
+        </div>
+        <div class="card-body d-none" id="aiPanel">
+            <p class="text-muted small mb-2">AI-generated SEO based on current meta and optional page content. Use the buttons to fill the form below.</p>
+            <div class="mb-2">
+                <strong>Title:</strong> <span id="aiTitle"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm ms-2 ai-apply" data-target="title">Apply</button>
+            </div>
+            <div class="mb-2">
+                <strong>Description:</strong> <p id="aiDescription" class="small text-muted mb-1"></p>
+                <button type="button" class="btn btn-outline-secondary btn-sm ai-apply" data-target="description">Apply</button>
+            </div>
+            <div class="mb-2">
+                <strong>Keywords:</strong> <span id="aiKeywords" class="small text-muted"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm ms-2 ai-apply" data-target="keywords">Apply</button>
+            </div>
+            <div class="mb-0">
+                <button type="button" class="btn btn-success btn-sm" id="aiUseAll">Use all</button>
+            </div>
+            <div id="aiError" class="alert alert-danger mt-2 d-none"></div>
+        </div>
+    </div>
+    <div class="admin-card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+            <h5 class="mb-0">SEO suggestions (rule-based)</h5>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="btnGenerateSuggestions">Generate title, description &amp; keywords</button>
+        </div>
+        <div class="card-body d-none" id="suggestionsPanel">
+            <p class="text-muted small mb-2">Marketing-driven, Google-friendly suggestions. Apply any field to the form below.</p>
+            <div class="mb-2">
+                <strong>Suggested title:</strong>
+                <span id="suggestedTitle"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm ms-2 apply-suggestion" data-target="title">Apply</button>
+            </div>
+            <div class="mb-2">
+                <strong>Suggested description:</strong>
+                <p id="suggestedDescription" class="small text-muted mb-1"></p>
+                <button type="button" class="btn btn-outline-secondary btn-sm apply-suggestion" data-target="description">Apply</button>
+            </div>
+            <div class="mb-2">
+                <strong>Suggested keywords:</strong>
+                <span id="suggestedKeywords" class="small text-muted"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm ms-2 apply-suggestion" data-target="keywords">Apply</button>
+            </div>
+            <div class="mt-3">
+                <strong>Page improvement tips:</strong>
+                <ul id="suggestedImprovements" class="small mb-0 mt-1"></ul>
+            </div>
+            <div id="suggestionsError" class="alert alert-danger mt-2 d-none"></div>
+        </div>
+    </div>
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>SEO meta</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title (max 70 chars)</label>
+                    <input type="text" id="title" name="title" class="form-control" value="{{ seo_title|default:'' }}" maxlength="70" style="max-width: 500px;">
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description (max 300 chars)</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" maxlength="300">{{ seo_description|default:'' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="keywords" class="form-label">Keywords (optional, comma-separated)</label>
+                    <input type="text" id="keywords" name="keywords" class="form-control" value="{{ seo_keywords|default:'' }}" style="max-width: 500px;">
+                </div>
+                <div class="mb-3">
+                    <label for="og_image" class="form-label">OG Image URL (optional)</label>
+                    <input type="url" id="og_image" name="og_image" class="form-control" value="{{ seo_og_image|default:'' }}" style="max-width: 500px;">
+                </div>
+                <button type="submit" class="btn btn-primary">Save SEO</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+(function() {
+    function getCsrfToken() {
+        var name = 'csrftoken';
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var c = cookies[i].trim();
+            if (c.indexOf(name + '=') === 0) return c.substring(name.length + 1);
+        }
+        return '';
+    }
+    var suggestionsBaseUrl = '{% url "seo_dashboard:seo_suggestions" url_key=url_key %}';
+    var aiSeoBaseUrl = '{% url "seo_dashboard:ai_seo_generate" url_key=url_key %}';
+    var btn = document.getElementById('btnGenerateSuggestions');
+    var panel = document.getElementById('suggestionsPanel');
+    var suggestedTitle = document.getElementById('suggestedTitle');
+    var suggestedDescription = document.getElementById('suggestedDescription');
+    var suggestedKeywords = document.getElementById('suggestedKeywords');
+    var suggestedImprovements = document.getElementById('suggestedImprovements');
+    var suggestionsError = document.getElementById('suggestionsError');
+
+    btn.addEventListener('click', function() {
+        btn.disabled = true;
+        btn.textContent = 'Loading…';
+        suggestionsError.classList.add('d-none');
+        var title = document.getElementById('title').value;
+        var description = document.getElementById('description').value;
+        var url = suggestionsBaseUrl + (suggestionsBaseUrl.indexOf('?') !== -1 ? '&' : '?') + 'title=' + encodeURIComponent(title) + '&description=' + encodeURIComponent(description);
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) {
+                    suggestionsError.textContent = data.error;
+                    suggestionsError.classList.remove('d-none');
+                } else {
+                    suggestedTitle.textContent = data.title || '';
+                    suggestedDescription.textContent = data.description || '';
+                    suggestedKeywords.textContent = data.keywords || '';
+                    suggestedImprovements.innerHTML = '';
+                    (data.improvements || []).forEach(function(tip) {
+                        var li = document.createElement('li');
+                        li.textContent = tip;
+                        suggestedImprovements.appendChild(li);
+                    });
+                    panel.classList.remove('d-none');
+                }
+            })
+            .catch(function(err) {
+                suggestionsError.textContent = 'Could not load suggestions. Try again.';
+                suggestionsError.classList.remove('d-none');
+            })
+            .finally(function() {
+                btn.disabled = false;
+                btn.textContent = 'Generate title, description \u0026 keywords';
+            });
+    });
+
+    document.querySelectorAll('.apply-suggestion').forEach(function(b) {
+        b.addEventListener('click', function() {
+            var target = this.getAttribute('data-target');
+            var el = document.getElementById(target);
+            if (target === 'title' && suggestedTitle.textContent) el.value = suggestedTitle.textContent;
+            if (target === 'description' && suggestedDescription.textContent) el.value = suggestedDescription.textContent;
+            if (target === 'keywords' && suggestedKeywords.textContent) el.value = suggestedKeywords.textContent;
+        });
+    });
+
+    var btnAI = document.getElementById('btnGenerateAI');
+    var btnRegen = document.getElementById('btnRegenerateAI');
+    var aiPanel = document.getElementById('aiPanel');
+    var aiTitle = document.getElementById('aiTitle');
+    var aiDescription = document.getElementById('aiDescription');
+    var aiKeywords = document.getElementById('aiKeywords');
+    var aiError = document.getElementById('aiError');
+    var aiUseAll = document.getElementById('aiUseAll');
+
+    function runAIGenerate() {
+        btnAI.disabled = true;
+        btnAI.textContent = 'Generating…';
+        aiError.classList.add('d-none');
+        var payload = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            keywords: document.getElementById('keywords').value,
+            include_content: document.getElementById('aiIncludeContent').checked
+        };
+        fetch(aiSeoBaseUrl, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) {
+                    aiError.textContent = data.error;
+                    aiError.classList.remove('d-none');
+                } else {
+                    aiTitle.textContent = data.title || '';
+                    aiDescription.textContent = data.description || '';
+                    aiKeywords.textContent = data.keywords || '';
+                    aiPanel.classList.remove('d-none');
+                    btnRegen.classList.remove('d-none');
+                }
+            })
+            .catch(function(err) {
+                aiError.textContent = 'Request failed. Try again.';
+                aiError.classList.remove('d-none');
+            })
+            .finally(function() {
+                btnAI.disabled = false;
+                btnAI.textContent = 'Generate with AI';
+            });
+    }
+
+    if (btnAI) btnAI.addEventListener('click', runAIGenerate);
+    if (btnRegen) btnRegen.addEventListener('click', runAIGenerate);
+    if (aiUseAll) aiUseAll.addEventListener('click', function() {
+        if (aiTitle.textContent) document.getElementById('title').value = aiTitle.textContent;
+        if (aiDescription.textContent) document.getElementById('description').value = aiDescription.textContent;
+        if (aiKeywords.textContent) document.getElementById('keywords').value = aiKeywords.textContent;
+    });
+    document.querySelectorAll('.ai-apply').forEach(function(b) {
+        b.addEventListener('click', function() {
+            var target = this.getAttribute('data-target');
+            var el = document.getElementById(target);
+            if (target === 'title' && aiTitle.textContent) el.value = aiTitle.textContent;
+            if (target === 'description' && aiDescription.textContent) el.value = aiDescription.textContent;
+            if (target === 'keywords' && aiKeywords.textContent) el.value = aiKeywords.textContent;
+        });
+    });
+})();
+</script>
+{% endblock %}

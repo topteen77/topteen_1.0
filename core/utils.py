@@ -1,3 +1,4 @@
+import re
 from django.db.models import Q
 from core import choices
 from django.conf import settings
@@ -7,6 +8,13 @@ import time
 import os
 from datetime import datetime
 from bs4 import BeautifulSoup
+
+# Pages that use rich layout (highlighter, hero sections). We only strip breadcrumb; keep full content.
+RICH_LAYOUT_STATIC_PAGES = frozenset([
+    "about", "career_planning", "career_planning_4_year",
+    "career_planning_class_9", "career_planning_class_10", "career_planning_class_11", "career_planning_class_12",
+    "emotional_intelligences", "multiple_intelligences", "four_pillars",
+])
 _thread_locals = local()
 
 
@@ -57,6 +65,79 @@ def build_html_head(**kwargs):
 	url (canonical/og:url), og_type (default 'website').
 	"""
 	return kwargs
+
+
+def strip_leading_h1_html(html):
+	"""Remove the first <h1>...</h1> from HTML so the page title is not duplicated in content."""
+	if not html or not isinstance(html, str):
+		return html
+	pattern = re.compile(r'^\s*<h1\b[^>]*>.*?</h1>\s*', re.IGNORECASE | re.DOTALL)
+	return pattern.sub('', html, count=1).strip()
+
+
+def strip_breadcrumb_html(html):
+	"""Remove leading breadcrumb markup so breadcrumbs come only from the template."""
+	if not html or not isinstance(html, str):
+		return html
+	out = html
+	while True:
+		m = re.match(
+			r'^\s*(?:<div[^>]*>\s*)?<nav\s[^>]*aria-label\s*=\s*["\']breadcrumb["\'][^>]*>.*?</nav>\s*(?:</div>)?\s*',
+			out, re.IGNORECASE | re.DOTALL,
+		)
+		if not m:
+			break
+		out = out[m.end():].strip()
+	return out
+
+
+def get_static_page_content_display(html, url_key):
+	"""Return HTML for display: strip breadcrumb for all; strip leading h1 only for simple pages."""
+	if not html or not isinstance(html, str):
+		return html or ""
+	html = strip_breadcrumb_html(html)
+	if url_key not in RICH_LAYOUT_STATIC_PAGES:
+		html = strip_leading_h1_html(html)
+	return html
+
+
+def get_static_page(url_key):
+	"""Return StaticPage for url_key if active, else None."""
+	from core.models import StaticPage
+	return StaticPage.objects.filter(url_key=url_key, is_active=True).prefetch_related("sections").first()
+
+
+def get_static_page_html_head(url_key, default_title, default_description, request=None):
+	"""Build html_head for a static page: merge PageSEO if exists, else use defaults. Sets image and url for OG."""
+	return get_page_seo_html_head(url_key, default_title, default_description, default_image=None, request=request)
+
+
+def get_page_seo_html_head(url_key, default_title, default_description, default_image=None, request=None):
+	"""
+	Build html_head for any page by url_key (e.g. static 'terms' or path 'blogs/24-jobs-that-will-never-disappear').
+	If PageSEO exists for url_key, its title/description/keywords/og_image override defaults.
+	Sets url for OG when request is provided.
+	"""
+	from core.models import PageSEO
+	head = build_html_head(title=default_title or "", description=default_description or "")
+	if default_image:
+		head["image"] = default_image
+	try:
+		seo = PageSEO.objects.filter(url_key=url_key).first()
+		if seo:
+			if seo.title:
+				head["title"] = seo.title
+			if seo.description:
+				head["description"] = seo.description
+			if seo.keywords:
+				head["keywords"] = seo.keywords
+			if seo.og_image:
+				head["image"] = seo.og_image
+	except Exception:
+		pass
+	if request and hasattr(request, "build_absolute_uri"):
+		head["url"] = request.build_absolute_uri(request.path)
+	return head
 
 def wait_for_db():
     """Handle the command"""

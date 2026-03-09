@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEO Dashboard Login | Top Teen</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 400px; margin: 60px auto; padding: 20px; }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 8px 12px; box-sizing: border-box; }
+    button { padding: 10px 20px; background: #3F37C9; color: #fff; border: none; cursor: pointer; }
+    .error { color: #c00; margin-bottom: 1rem; }
+    .messages .error { color: #c00; }
+    .messages .success { color: #0a0; }
+  </style>
+</head>
+<body>
+  <h1>SEO Dashboard Login</h1>
+  <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Use the same username and password as <strong>Django admin</strong> (<code>/admin/</code>). Staff and SEO group users can access the dashboard. If you're already logged in there, use the same browser and open the SEO dashboard link again.</p>
+  {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <form method="post" action="{% url 'seo_dashboard:login' %}{% if next %}?next={{ next }}{% endif %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">Log in</button>
+  </form>
+</body>
+</html>

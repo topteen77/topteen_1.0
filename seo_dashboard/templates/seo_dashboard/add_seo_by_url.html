@@ -1,0 +1,37 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Add SEO for URL | Content &amp; SEO | Top Teen{% endblock %}
+
+{% block page_title %}Add SEO for any page{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Page list</a>
+    </div>
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>Add SEO by URL path</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Enter the <strong>path</strong> of the page (without domain). Same as in the browser address bar after the domain. Works for any current or future page on the site.</p>
+            <p class="small text-muted mb-3">Examples: <code>careers/software-engineer</code>, <code>colleges/some-college</code>, <code>skilllabcourse/intro-to-python</code>, <code>blogs/24-jobs-that-will-never-disappear</code></p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="url_path" class="form-label">URL path</label>
+                    <input type="text" id="url_path" name="url_path" class="form-control" value="{{ url_path|default:'' }}" placeholder="e.g. careers/software-engineer" style="max-width: 500px;" autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary">Add SEO &amp; edit</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

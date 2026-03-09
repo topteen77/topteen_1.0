@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from core.breadcrumbs import get_breadcrumb
 from django.shortcuts import get_object_or_404
-from core.utils import  build_html_head
+from core.utils import build_html_head, get_page_seo_html_head
 from .models import BlogCategory,Blog,BlogTag,SubscriptionEmail
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator,EmptyPage, PageNotAnInteger
@@ -174,14 +174,16 @@ class BlogDetail(TemplateView):
     template_name = "template20/blog_detail.html"
 
     def html_head(self, blog, request=None):
-        titleb = blog.title
-        descriptionb = blog.summary
+        titleb = blog.title or ""
+        descriptionb = blog.summary or ""
         image_url = None
         if blog.image and blog.image.name:
             image_url = blog.get_image_url()
             if request and image_url and not image_url.startswith(('http://', 'https://')):
                 image_url = request.build_absolute_uri(image_url)
-        return build_html_head(title=titleb, description=descriptionb, image=image_url)
+        # url_key for PageSEO: path-style so dashboard can create/edit SEO for this page
+        url_key = "blogs/{}".format(blog.slug)
+        return get_page_seo_html_head(url_key, titleb, descriptionb, default_image=image_url, request=request)
     
     def _breadcrumb(self, blog):
         url = str(reverse('blog:blogs'))
@@ -212,8 +214,16 @@ class BlogDetail(TemplateView):
         ctx['blog']=blog    
         ctx['views_count']=blog.views_count
         ctx['html_head'] = self.html_head(blog, request)
+        ctx['html_head'] = self.html_head(blog, request)
         bread_crumb =self._breadcrumb(blog)
         ctx['breadcrumb']= bread_crumb
+        # SEO: Article schema for blog detail (dates + author)
+        ctx['seo_schema_type'] = 'Article'
+        ctx['seo_schema_extra'] = {
+            'date_published': blog.created.isoformat() if blog.created else None,
+            'date_modified': blog.modified.isoformat() if blog.modified else None,
+            'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'Top Teen'),
+        }
         # SEO: Article schema for blog detail (dates + author)
         ctx['seo_schema_type'] = 'Article'
         ctx['seo_schema_extra'] = {

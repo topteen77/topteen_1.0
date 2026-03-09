@@ -1,0 +1,75 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Edit content: {{ url_key }} | Top Teen{% endblock %}
+
+{% block page_title %}Edit content: {{ url_key }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3">
+        <a href="{% url 'seo_dashboard:page_list' %}" class="btn btn-outline-primary btn-sm">← Back to Page list</a>
+    </div>
+    <div class="admin-card">
+        <div class="card-header">
+            <h5>Page content (HTML)</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title (optional)</label>
+                    <input type="text" id="title" name="title" class="form-control" value="{{ static_page.title|default:'' }}" style="max-width: 400px;">
+                </div>
+                <div class="mb-3">
+                    <label for="content_html" class="form-label">Body (HTML)</label>
+                    <textarea id="content_html" name="content_html" class="form-control {% if not is_rich_layout %}ckeditor-body{% endif %}" rows="{% if is_rich_layout %}25{% else %}20{% endif %}">{{ static_page.content_html|default:'' }}</textarea>
+                    {% if is_rich_layout %}
+                    <small class="text-muted d-block mt-1">This page uses a rich layout (sections, styles). Edit the HTML directly so structure is not altered. Do not use the visual editor for this page.</small>
+                    {% else %}
+                    <small class="text-muted">Use the toolbar above to format text, add links, and paste HTML. Content is saved as HTML.</small>
+                    {% endif %}
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active"{% if static_page.is_active %} checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_head %}
+{% if not is_rich_layout %}
+<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@44.3.0/build/ckeditor.js"></script>
+<style>
+    .ck.ck-editor { max-width: 100%; }
+    .ck.ck-editor__editable { min-height: 420px; }
+</style>
+{% endif %}
+{% endblock %}
+
+{% block additional_js %}
+{% if not is_rich_layout %}
+<script>
+(function() {
+    var textarea = document.getElementById('content_html');
+    if (textarea && typeof ClassicEditor !== 'undefined') {
+        ClassicEditor.create(textarea, {
+            toolbar: ['heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'blockQuote', 'insertTable', '|', 'bulletedList', 'numberedList', 'outdent', 'indent', '|', 'undo', 'redo']
+        }).then(function(editor) {
+            window._seoContentEditor = editor;
+        }).catch(function(err) {
+            console.error(err);
+        });
+        document.querySelector('form').addEventListener('submit', function() {
+            if (window._seoContentEditor) {
+                window._seoContentEditor.updateSourceElement();
+            }
+        });
+    }
+})();
+</script>
+{% endif %}
+{% endblock %}

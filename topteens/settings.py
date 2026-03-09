@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'forum',
     'demo_data',
     'invoices',
+    'seo_dashboard',
 ]
 
 # Optional services: set False in .env when not running (avoids errors, uses fallbacks)
@@ -138,6 +139,7 @@ MIDDLEWARE = [
     'topteens.custome_middleware.TopteenAdminRequireLoginCheck',
     'topteens.custome_middleware.TopteenAdminPermissionMiddleware',
     'user_analytics.middleware.AnalyticsMiddleware',
+    'core.seo_middleware.PageSEOMiddleware',  # Merge PageSEO into html_head by request path (all pages)
 ]
 
 
