@@ -103,7 +103,14 @@ class Careers(TemplateView):
             data=pro+skill+course
             ctx['data']=data
         ctx['html_head'] = self.html_head()
-        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Career Tracks', 'url': reverse('careers:career')}])
+        # Breadcrumb: Home / Career Tracks; on cluster page add cluster name (first letter capital, e.g. Architecture Construction Planning)
+        if ctx.get('current_cluster_name'):
+            ctx['breadcrumb'] = get_breadcrumb([
+                {'text': 'Career Tracks', 'url': reverse('careers:career')},
+                {'text': (ctx.get('current_cluster_name') or '').title(), 'url': ''},
+            ])
+        else:
+            ctx['breadcrumb'] = get_breadcrumb([{'text': 'Career Tracks', 'url': reverse('careers:career')}])
         
         # Add mode context for template toggle (default to view mode; AI/View toggle hidden for now)
         ctx['view_mode'] = request_data.get('mode', 'view-mode')
@@ -115,8 +122,23 @@ class Careers(TemplateView):
         
         return ctx
         
-    def get(self, request,*args, **kwargs):      
-        return render(request, self.template_name, self.get_context(request,args, kwargs))
+    def get(self, request, *args, **kwargs):
+        # Cluster page: store GET params in session for clean URL; clear session when no params (Reset)
+        url_cluster_id = kwargs.get('cluster_id')
+        if url_cluster_id is not None and request.method == 'GET':
+            session_key = 'career_cluster_%s' % url_cluster_id
+            if request.GET.getlist('career') or request.GET.get('page'):
+                request.session[session_key] = {
+                    'career_ids': request.GET.getlist('career'),
+                    'page': request.GET.get('page') or '1',
+                }
+                request.session.modified = True
+            else:
+                # Clean URL with no params (e.g. Reset): clear session so results are unfiltered
+                if session_key in request.session:
+                    del request.session[session_key]
+                    request.session.modified = True
+        return render(request, self.template_name, self.get_context(request, args, kwargs))
     
     def post(self, request, *args, **kwargs):
         # SEO redirect: single cluster from form -> /careers/cluster/<slug>-<id>/
@@ -141,6 +163,14 @@ class Careers(TemplateView):
         request_data = request.POST if request.method == 'POST' else request.GET
         # SEO-friendly URL can pass single cluster via url_cluster_id
         selected_clusters = request_data.getlist("cluster") or ([str(url_cluster_id)] if url_cluster_id is not None else [])
+        # Cluster page: prefer session-stored params (clean URL); fall back to GET
+        session_page = None
+        if url_cluster_id is not None:
+            session_data = request.session.get('career_cluster_%s' % url_cluster_id, {})
+            selected_career_ids = session_data.get('career_ids') or request_data.getlist("career")
+            session_page = session_data.get('page')
+        else:
+            selected_career_ids = request_data.getlist("career")
         
         # Optimize prefetch_related to avoid N+1 queries in template
         # Prefetch career_cluster with only active clusters to reduce data transfer
@@ -152,7 +182,6 @@ class Careers(TemplateView):
         # Handle selected filters
         selected_professions = request_data.getlist("professions")
         selected_skills = request_data.getlist("skills")
-        selected_career_ids = request_data.getlist("career")
         
         # Apply career filter (inner page: filter by selected career IDs)
         if selected_career_ids:
@@ -195,9 +224,9 @@ class Careers(TemplateView):
 
         # Ensure deterministic ordering before pagination (distinct() may clear order_by)
         careers = careers.order_by('name', 'id')
-        # Pagination: 15 results per page
+        # Pagination: 15 results per page (use session page on cluster page for clean URL)
         paginator = Paginator(careers, 15)
-        page = request_data.get('page')
+        page = session_page if session_page is not None else request_data.get('page')
         try:
             careers_page = paginator.page(page)
         except PageNotAnInteger:
@@ -285,6 +314,7 @@ class Careers(TemplateView):
         # Current cluster for inner page (when viewing a single cluster)
         current_cluster_id = None
         current_cluster_slug = None
+        current_cluster_name = None
         cluster_page_url = None
         if url_cluster_id is not None:
             try:
@@ -292,6 +322,7 @@ class Careers(TemplateView):
                 if current_cluster:
                     current_cluster_id = current_cluster.id
                     current_cluster_slug = current_cluster.slug or ''
+                    current_cluster_name = current_cluster.name or ''
                     cluster_page_url = reverse('careers:career_cluster', args=[current_cluster_slug, current_cluster_id])
             except (ValueError, TypeError):
                 pass
@@ -302,6 +333,7 @@ class Careers(TemplateView):
                 if current_cluster:
                     current_cluster_id = current_cluster.id
                     current_cluster_slug = current_cluster.slug or ''
+                    current_cluster_name = current_cluster.name or ''
                     cluster_page_url = reverse('careers:career_cluster', args=[current_cluster_slug, current_cluster_id])
             except (ValueError, TypeError):
                 pass
@@ -318,10 +350,22 @@ class Careers(TemplateView):
                         cluster_names = [cl.name for cl in c.career_cluster.all() if cl and cl.name]
                         cluster_part = ' | '.join(cluster_names) if cluster_names else ''
                         text = f"{c.name}  [{cluster_part}]" if cluster_part else c.name
-                        selected_careers_display.append({'id': c.id, 'text': text})
+                        selected_careers_display.append({'id': c.id, 'text': text, 'name': c.name})
             except (ValueError, TypeError):
                 pass
 
+        # All careers in this cluster for dropdown (load from memory, no AJAX delay)
+        cluster_careers_options = []
+        if current_cluster_id and current_cluster_name:
+            cluster_careers_qs = Career.objects.filter(
+                publish_status=1
+            ).filter(
+                Q(career_cluster__id=current_cluster_id) | Q(career_cluster__parent_id=current_cluster_id)
+            ).distinct().order_by('name', 'id')
+            for c in cluster_careers_qs.only('id', 'name'):
+                name = (c.name or '').strip() or 'Career'
+                text = f"{name}  [{current_cluster_name}]"
+                cluster_careers_options.append({'id': str(c.id), 'text': text})
         ctx_out = {
             'careers': careers_page,
             'clusters': clusters,
@@ -341,8 +385,10 @@ class Careers(TemplateView):
             'selected_career_ids': selected_career_ids if selected_career_ids else [],
             'current_cluster_id': current_cluster_id,
             'current_cluster_slug': current_cluster_slug,
+            'current_cluster_name': current_cluster_name,
             'cluster_page_url': cluster_page_url,
             'selected_careers_display': selected_careers_display,
+            'cluster_careers_options': cluster_careers_options,
             'shortlisted_career_ids': shortlisted_career_ids,
         }
 

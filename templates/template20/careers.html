@@ -129,15 +129,22 @@ Explore our comprehensive collection of career paths organized by industry and i
 .career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
   padding: 0;
 }
+/* Remove cross/clear icon from career search Select2 input */
+.career-inner-search-input-wrap .select2-selection__clear,
+.career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection__clear,
+.career-inner-search-input-wrap .select2-selection__choice__remove {
+  display: none !important;
+}
 .career-inner-search-bar .career-inner-search-btn {
   background: #3F37C9;
   color: #fff;
   border: none;
   border-radius: 9999px;
-  padding: 10px 20px;
-  font-weight: 600;
+  padding: 10px 16px;
   margin: 6px 4px 6px 0;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 .career-inner-search-bar .career-inner-search-btn:hover {
   background: #322fb0;
@@ -160,7 +167,29 @@ Explore our comprehensive collection of career paths organized by industry and i
   color: #0aa2c0;
   border-color: #0dcaf0;
 }
-
+/* Selected career tags above search: increased height */
+#selected-career-tags .career-selected-tag {
+  min-height: 38px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  align-items: center;
+}
+/* Loader overlay while career search is submitting */
+.career-search-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.career-search-loader-content {
+  text-align: center;
+}
 .career-bookmark-btn {
   position: absolute;
   background: #ffffffbf;
@@ -551,24 +580,43 @@ Explore our comprehensive collection of career paths organized by industry and i
               <form method="get" action="{{ cluster_page_url }}" id="career-filter-inner-form" class="career-inner-filter-form" autocomplete="off">
                 <div class="row g-3 align-items-end">
                   <div class="col-12">
+                    <div class="d-flex flex-wrap gap-2 align-items-center mb-3" id="selected-career-tags" data-cluster-page-url="{{ cluster_page_url }}">
+                      {% for item in selected_careers_display or [] %}
+                      {% set others = (selected_careers_display or [])|rejectattr('id', 'eq', item.id)|list %}
+                      <span class="badge career-selected-tag bg-light text-dark border border-secondary d-inline-flex align-items-center gap-1 px-3 py-2" style="font-weight: 500;" data-career-id="{{ item.id }}">
+                        {{ item.name if item.name is defined else item.text }}
+                        <a href="{{ cluster_page_url }}{% if others %}?career={{ others|map(attribute='id')|join('&career=') }}{% endif %}" class="text-decoration-none ms-1 text-secondary" aria-label="Remove {{ item.name if item.name is defined else item.text }}" title="Remove">×</a>
+                      </span>
+                      {% endfor %}
+                    </div>
+                    <script>
+                      window.CAREER_CLUSTER_OPTIONS = {{ (cluster_careers_options or [])|tojson }};
+                    </script>
                     <div class="career-inner-search-bar">
                       <div class="career-inner-search-input-wrap">
                         <select name="career" id="careerFilterInner" class="form-select border-0 w-100" multiple
                                 data-placeholder="Type career name..."
-                                data-ajax-url="{{ url('careers:autocomplete_careers_from_clusters') }}"
-                                data-cluster-id="{{ current_cluster_id or '' }}" autocomplete="off">
+                                autocomplete="off">
                           {% for item in selected_careers_display %}
                             <option value="{{ item.id|string }}" selected>{{ item.text }}</option>
                           {% endfor %}
                         </select>
                       </div>
-                      <button type="submit" class="btn career-inner-search-btn">Search</button>
+                      <button type="submit" class="btn career-inner-search-btn" title="Search" aria-label="Search"><i class="bx bx-search" aria-hidden="true"></i></button>
                       <a href="{{ cluster_page_url }}" class="btn career-inner-reset-btn">Reset</a>
                     </div>
                     <p class="small text-muted mt-1 mb-0">Suggestions show career name and cluster. Select one or more, then click Search or Reset.</p>
                   </div>
                 </div>
               </form>
+              <div id="career-search-loader" class="career-search-loader-overlay" style="display: none;" aria-hidden="true">
+                <div class="career-search-loader-content">
+                  <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="text-white mt-3 mb-0 fw-medium">Searching...</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -810,7 +858,13 @@ Explore our comprehensive collection of career paths organized by industry and i
             <div class="row mb-3">
               <div class="col-12">
                 <p class="text-muted mb-0 text-capitalize align-items-center d-flex gap-2">
-                   <i class='bx bx-briefcase text-purple' style="font-size: 18px;"></i> <strong>{{ career_count }}</strong> career{{ 's' if career_count != 1 else '' }} found
+                   <i class='bx bx-briefcase text-purple' style="font-size: 18px;"></i>
+                   <strong>{{ career_count }}</strong>
+                   {% if current_cluster_name %}
+                     {{ current_cluster_name }} career{{ 's' if career_count != 1 else '' }} found
+                   {% else %}
+                     career{{ 's' if career_count != 1 else '' }} found
+                   {% endif %}
                 </p>
               </div>
             </div>
@@ -856,15 +910,13 @@ Explore our comprehensive collection of career paths organized by industry and i
                         {# Only show "Career" if we didn't already show cluster name above #}
                         <span class="blog-category category-parent">Career</span>
                       {% endif %}
-                      {% if request.user.is_authenticated %}
                       <button class="career-bookmark-btn" 
-                              title="Bookmark this career"
+                              title="{% if request.user.is_authenticated %}Bookmark this career{% else %}Shortlist (login to save){% endif %}"
                               data-careerslug="{{ career.slug }}"
-                              {% if career.id in shortlisted_career_ids %}data-bookmarked="true"{% endif %}>
-                        <i class='bx {% if career.id in shortlisted_career_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}' 
-                           style="color: {% if career.id in shortlisted_career_ids %}#28a745{% else %}inherit{% endif %};"></i>
+                              {% if request.user.is_authenticated and career.id in shortlisted_career_ids %}data-bookmarked="true"{% endif %}>
+                        <i class='bx {% if request.user.is_authenticated and career.id in shortlisted_career_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'
+                           style="color: {% if request.user.is_authenticated and career.id in shortlisted_career_ids %}#28a745{% else %}inherit{% endif %};"></i>
                       </button>
-                      {% endif %}
                     </div>
                     <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                       {% if career._image_url and career._image_url != 'None' %}
@@ -2033,6 +2085,10 @@ body.ai-fullscreen-active {
           }
         });
         {% else %}
+        var careerSlug = this.getAttribute('data-careerslug');
+        if (careerSlug) {
+          window.pendingCareerBookmarkSlug = careerSlug;
+        }
         if (typeof window.showLoginRequiredPopup === 'function') {
           window.showLoginRequiredPopup();
         } else {
@@ -2452,6 +2508,15 @@ body.ai-fullscreen-active {
   }
 })();
 
+// Cluster page: remove GET params from address bar (state is in session)
+{% if cluster_page_url %}
+(function() {
+  if (window.location.search) {
+    history.replaceState(null, '', window.location.pathname);
+  }
+})();
+{% endif %}
+
 // Inner page career filter: Select2 multiselect with AJAX [careername] [cluster name], update results on selection
 (function() {
   'use strict';
@@ -2463,40 +2528,59 @@ body.ai-fullscreen-active {
     const $ = jQuery;
     const $el = $('#careerFilterInner');
     if ($el.length === 0) return;
-    const ajaxUrl = $el.data('ajax-url');
-    const clusterId = ($el.data('cluster-id') || '').toString().trim();
-    if (!ajaxUrl) return;
+    var careerOptions = window.CAREER_CLUSTER_OPTIONS || [];
     if ($el.hasClass('select2-hidden-accessible')) {
       $el.select2('destroy');
     }
     $el.select2({
       theme: 'bootstrap-5',
       placeholder: $el.data('placeholder') || 'Type career name...',
-      allowClear: true,
+      allowClear: false,
       multiple: true,
       width: '100%',
-      closeOnSelect: false,
-      ajax: {
-        url: ajaxUrl,
-        dataType: 'json',
-        delay: 250,
-        cache: false,
-        data: function(params) {
-          return { q: params.term || '', limit: 30, cluster_id: clusterId };
-        },
-        processResults: function(data) {
-          var list = (data.results || []).map(function(r) {
-            return { id: String(r.id), text: r.text || String(r.id) };
-          });
-          return { results: list };
-        }
-      },
+      closeOnSelect: true,
+      data: careerOptions,
       minimumInputLength: 0
     });
-    // Keep dropdown open after each selection until user clicks Search or Reset
-    $el.on('select2:select', function() {
-      setTimeout(function() { $el.select2('open'); }, 10);
+    // On selection: add tag immediately; submit (search) only after user stops selecting for 3 seconds
+    var careerSearchSubmitTimer = null;
+    var SEARCH_DEBOUNCE_MS = 3000;
+    $el.on('select2:select', function(e) {
+      var data = e.params.data;
+      if (!data || !data.id) return;
+      var $tags = $('#selected-career-tags');
+      var $form = $('#career-filter-inner-form');
+      if ($tags.length && $form.length) {
+        // 1) Apply tag immediately
+        var displayName = (data.text || '').replace(/\s*\[.*\]\s*$/, '').trim() || data.text || 'Career';
+        var $chip = $('<span class="badge career-selected-tag bg-light text-dark border border-secondary d-inline-flex align-items-center gap-1 px-3 py-2" style="font-weight: 500;" data-career-id="' + data.id + '">' + escapeHtml(displayName) + ' <span class="text-secondary ms-1" aria-hidden="true">×</span></span>');
+        $tags.append($chip);
+        // 2) Debounce search: wait 3s after last selection so we don't miss any; then brief flush for Select2, show loader, submit
+        if (careerSearchSubmitTimer) clearTimeout(careerSearchSubmitTimer);
+        careerSearchSubmitTimer = setTimeout(function() {
+          careerSearchSubmitTimer = null;
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              $('#career-search-loader').css('display', 'flex').attr('aria-hidden', 'false');
+              $form.trigger('submit');
+            });
+          });
+        }, SEARCH_DEBOUNCE_MS);
+      }
     });
+    // Show loader on form submit (search icon click) and on tag × click
+    $('#career-filter-inner-form').on('submit', function() {
+      $('#career-search-loader').css('display', 'flex').attr('aria-hidden', 'false');
+    });
+    $(document).on('click', '#selected-career-tags a', function() {
+      $('#career-search-loader').css('display', 'flex').attr('aria-hidden', 'false');
+    });
+    function escapeHtml(s) {
+      if (!s) return '';
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCareerFilterInner);
