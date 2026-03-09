@@ -12,6 +12,7 @@
     {%if html_head%}
     <title>{{html_head.title}} | Top Teen</title>
     <meta name="description" content="{{html_head.description}}" />
+    {% if html_head.keywords %}<meta name="keywords" content="{{html_head.keywords}}" />{% endif %}
     {%else%}
     <title>{%block title%} | Top Teen {%endblock%}</title>
     <meta name="description" content="Top Teen Career Building website" />

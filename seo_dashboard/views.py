@@ -8,6 +8,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from core.models import StaticPage, PageSEO, STATIC_PAGE_URL_KEYS, GeneratedPage, ScannedURL
+from .seo_suggestions import get_seo_suggestions
+from .ai_seo import generate_seo_with_ai, get_page_content_for_seo
 from core.page_import import import_page_from_url
 from core.utils import RICH_LAYOUT_STATIC_PAGES
 from core.static_page_schema import get_static_page_schema, get_form_fields_with_values
@@ -21,6 +23,9 @@ class SEOLoginView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated and (request.user.is_staff or request.user.groups.filter(name="SEO").exists()):
+            next_url = request.GET.get("next", "").strip()
+            if next_url and next_url.startswith("/") and "seo-dashboard" in next_url and "//" not in next_url:
+                return redirect(next_url)
             return redirect(reverse("seo_dashboard:dashboard"))
         return render(request, self.template_name, {"next": request.GET.get("next", "")}, using="django")
 
@@ -448,6 +453,89 @@ class EditSEOView(LoginRequiredMixin, TemplateView):
         seo.save()
         messages.success(request, "SEO meta saved.")
         return redirect(reverse("seo_dashboard:edit_seo", kwargs={"url_key": url_key}))
+
+
+@method_decorator(seo_user_only, name="dispatch")
+class SEOSuggestionsView(LoginRequiredMixin, View):
+    """GET: return JSON with suggested title, description, keywords and improvements for a url_key."""
+    login_url = reverse_lazy("seo_dashboard:login")
+
+    def get(self, request, *args, **kwargs):
+        if not can_edit_seo(request):
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        url_key = kwargs.get("url_key") or request.GET.get("url_key", "")
+        current_title = request.GET.get("title", "")
+        current_description = request.GET.get("description", "")
+        page_label = None
+        if url_key.startswith("blogs/"):
+            try:
+                from blog.models import Blog
+                from core import choices
+                slug = url_key[6:].strip("/")
+                blog = Blog.get_published_objects().filter(slug=slug).first()
+                if blog:
+                    page_label = blog.title
+            except Exception:
+                pass
+        elif url_key.startswith("careers/"):
+            try:
+                from careers.models import Career
+                slug = url_key.replace("careers/", "").strip("/")
+                career = Career.objects.filter(slug=slug).first()
+                if career:
+                    page_label = career.name
+            except Exception:
+                pass
+        try:
+            out = get_seo_suggestions(
+                url_key=url_key,
+                current_title=current_title,
+                current_description=current_description,
+                page_label=page_label,
+            )
+            return JsonResponse(out)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+
+@method_decorator(seo_user_only, name="dispatch")
+class AISEOGenerateView(LoginRequiredMixin, View):
+    """POST: send current SEO (and optional page content) to AI; return generated title, description, keywords."""
+    login_url = reverse_lazy("seo_dashboard:login")
+
+    def post(self, request, *args, **kwargs):
+        if not can_edit_seo(request):
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        url_key = kwargs.get("url_key", "")
+        if request.content_type and "application/json" in request.content_type:
+            try:
+                import json
+                data = json.loads(request.body)
+            except Exception:
+                data = {}
+        else:
+            data = request.POST
+        current_title = (data.get("title") or "").strip()
+        current_description = (data.get("description") or "").strip()
+        current_keywords = (data.get("keywords") or "").strip()
+        include_content = data.get("include_content") in (True, "true", "1", "on")
+        page_content = None
+        if include_content and url_key:
+            page_content = get_page_content_for_seo(url_key)
+        result = generate_seo_with_ai(
+            url_key=url_key,
+            current_title=current_title,
+            current_description=current_description,
+            current_keywords=current_keywords,
+            page_content=page_content,
+        )
+        if result.get("error"):
+            return JsonResponse({"error": result["error"]}, status=400)
+        return JsonResponse({
+            "title": result.get("title", ""),
+            "description": result.get("description", ""),
+            "keywords": result.get("keywords", ""),
+        })
 
 
 @method_decorator(seo_user_only, name="dispatch")
