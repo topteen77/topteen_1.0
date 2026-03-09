@@ -457,12 +457,13 @@ body.logged-in.test-view-page {
       // }
     }
 
-    // Question navigation
+    // Question navigation (cap number to avoid 61/60 display bug when auto-advance fires past last question)
     function showQuestion(number) {
+      const safeNum = Math.min(Math.max(1, number), totalQuestions);
       $('.question').removeClass('active');
-      $('#question' + number).addClass('active');
+      $('#question' + safeNum).addClass('active');
       
-      const progressText = number + ' / ' + totalQuestions;
+      const progressText = safeNum + ' / ' + totalQuestions;
       $('#questionProgress').text(progressText);
       $('#questionProgressMobile').text(progressText);
       
@@ -470,18 +471,18 @@ body.logged-in.test-view-page {
       $('.next-button').hide();
       $('.prev-button').hide();
       $('.submit-button').hide();
-      if (number < totalQuestions) {
-        $('#question' + number).find('.next-button').show();
+      if (safeNum < totalQuestions) {
+        $('#question' + safeNum).find('.next-button').show();
       } else {
-        $('#question' + number).find('.submit-button').show();
+        $('#question' + safeNum).find('.submit-button').show();
       }
-      if (number > 1) {
-        $('#question' + number).find('.prev-button').show();
+      if (safeNum > 1) {
+        $('#question' + safeNum).find('.prev-button').show();
       }
       
       // Track time for answer quality widget
-      if (!questionStartTimes[number]) {
-        questionStartTimes[number] = Date.now();
+      if (!questionStartTimes[safeNum]) {
+        questionStartTimes[safeNum] = Date.now();
       }
       if (typeof updatePaletteCurrent === 'function') updatePaletteCurrent();
     }
@@ -536,7 +537,7 @@ body.logged-in.test-view-page {
         }
         
         if (currentQuestion < totalQuestions) {
-          currentQuestion++;
+          currentQuestion = Math.min(currentQuestion + 1, totalQuestions);
           if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
           showQuestion(currentQuestion);
           $('#error-message').hide();
@@ -573,7 +574,7 @@ body.logged-in.test-view-page {
       
       if (isChecked && enableAutoForward && currentQuestion < totalQuestions) {
         setTimeout(function () {
-          currentQuestion++;
+          currentQuestion = Math.min(currentQuestion + 1, totalQuestions);
           if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
           showQuestion(currentQuestion);
           $('#error-message').hide();
