@@ -36,6 +36,12 @@
   {% endif %}
   {% endblock %}
 
+  {% block keywords %}
+  {% if html_head and html_head.keywords %}
+  <meta name="keywords" content="{{ html_head.keywords }}">
+  {% endif %}
+  {% endblock %}
+
   {# SEO: Open Graph and Twitter Card meta tags for social sharing and search #}
   {% block seo_social %}
   {% set _seo_title = (html_head.title if (html_head and html_head.title) else 'Every Student, Career Ready') %}
