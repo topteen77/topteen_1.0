@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView,View
 from django.urls import reverse_lazy
-from core.utils import build_html_head, get_preferred_payment_gateway, is_gateway_available
+from core.utils import build_html_head, get_preferred_payment_gateway, is_gateway_available, ensure_user_pdf_folder
 from core.breadcrumbs import get_breadcrumb
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -798,8 +798,11 @@ class FetchCandidateTestLink(APIView):
             sign=Signer()
             signobj=sign.unsign_object(enc_id)
             id=signobj.get('enc_id')
-            text_payment=get_object_or_404(PsychometricTestPayment,id=id) 
-            
+            text_payment=get_object_or_404(PsychometricTestPayment,id=id)
+
+            # Ensure user PDF folder exists before starting test (e.g. class 10 psychometric)
+            ensure_user_pdf_folder(request.user.id)
+
             candidate_test=text_payment.candidate_test.last()
             if candidate_test:
                 data["testlink"]=candidate_test.test_link

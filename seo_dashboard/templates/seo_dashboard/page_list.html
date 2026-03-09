@@ -13,6 +13,16 @@
         {% endif %}
     </div>
 
+    {% if can_edit_seo and has_duplicate_seo %}
+    <div class="alert alert-warning mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <span>Duplicate SEO entries detected (same URL path listed more than once). Remove duplicates to keep one entry per URL.</span>
+        <form method="post" action="{% url 'seo_dashboard:page_seo_remove_duplicates' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning btn-sm">Remove duplicate entries</button>
+        </form>
+    </div>
+    {% endif %}
+
     {% if can_edit_seo %}
     <div class="admin-card mb-3">
         <div class="card-body py-3">

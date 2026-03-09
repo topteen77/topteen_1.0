@@ -12,276 +12,249 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .test-submit-page {
     padding-top: 60px;
   }
-  .test-card {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 24px;
-    margin-bottom: 20px;
+  p { margin-bottom: 0px; }
+  .title-test-info {
+    font-weight: 600;
+    margin-bottom: 29px;
+    font-size: 24px;
+    color: #333333;
+  }
+  .view-reports {
+    padding-bottom: 38px;
+  }
+  .psychometric-grid {
+    display: grid;
+    grid-template-columns: repeat(1,1fr);
+    gap: 24px;
+  }
+  .psychometric-card {
+    border-radius: 14px;
+    padding: 22px 20px 20px;
+    background: #fff;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e5e7eb;
     display: flex;
-    align-items: center;
+    flex-direction: row;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
     justify-content: space-between;
-    transition: all 0.3s;
   }
-  .test-card:hover {
-    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.1);
+  .psychometric-card-header {
+    display: flex;
+    align-items: start;
+    gap: 14px;
+    flex-direction: row;
   }
-  .test-card-content {
+  .psychometric-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: #ffffff;
     display: flex;
     align-items: center;
-    gap: 20px;
-    flex: 1;
-  }
-  .test-icon {
-    width: 64px;
-    height: 64px;
+    justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 10px 25px rgba(129, 140, 248, 0.25);
   }
-  .test-info h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
+  .psychometric-card-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+  .psychometric-card h3 {
     margin-bottom: 4px;
-  }
-  .test-info p {
-    font-size: 14px;
-    color: #828282;
-    margin: 0;
-  }
-  .test-actions {
-    display: flex;
-    gap: 12px;
-  }
-  .btn-test-action {
-    min-width: 133px;
-    padding: 10px 20px;
-    border-radius: 8px;
+    font-size: 17px;
+    color: #333333;
     font-weight: 600;
-    font-size: 14px;
+  }
+  .psychometric-card p {
+    font-size: 13px;
+    color: #6b7280;
+  }
+  .psychometric-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    margin-top: 6px;
+  }
+  .view-rr {
+    display: flex;
+    align-items: center;
+  }
+  .blue-button {
+    background: #04A9DD;
+    color: #fff;
+    border-bottom: 6px solid #0388b8;
+    width: auto;
+    border-radius: 10px;
+    padding: 7px 20px;
+    font-size: 13px;
+    font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
   }
-  .btn-test-action.purple-button {
-    background: #3f37c9;
+  .blue-button:hover {
+    background: #05b8f0;
     color: #fff;
   }
-  .btn-test-action.purple-button:hover {
-    background: #2e289d;
+  .purple-button {
+    width: 133px;
   }
-  .btn-test-action.blue-button {
-    background: #4cc9f0;
-    color: #fff;
+  @media screen and (max-width: 768px) {
+    .psychometric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .purple-button { width: 101px !important; padding: 7px 0px; }
+    .blue-button { width: 101px !important; padding: 7px 0px; }
+    .view-rr { width: 100%; justify-content: center; }
+    .title-test-info { font-size: 20px; }
   }
-  .btn-test-action.blue-button:hover {
-    background: #3aa8c4;
-  }
-  @media (max-width: 767.98px) {
-    .test-card {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .test-card-content {
-      width: 100%;
-    }
-    .test-actions {
-      width: 100%;
-      justify-content: flex-end;
-    }
-    .btn-test-action {
-      flex: 1;
-    }
+  @media screen and (max-width: 576px) {
+    .psychometric-grid { grid-template-columns: 1fr; }
+    .psychometric-card { flex-direction: column; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="test-submit-page pb-5">
-  <div class="container">
-    <div class="row">
-      <!-- Left Sidebar (Desktop) -->
-      <div class="col-lg-4 d-none d-lg-block border rounded-3 py-3">
-        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
-          <div class="profile-header text-center">
-            {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
-            {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
-              <i class='bx bx-user fs-48 text-gray'></i>
-            </div>
-            {% endif %}
-            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
-            <div class="profile-meta text-gray fs-14">
-              <p class="mb-1">
-                <i class='bx bx-calendar me-1'></i>
-                Joined {{ request.user.created.strftime("%B, %Y") if request.user.created else "" }}
-              </p>
-              {% if request.user.user_profile %}
-              <p class="mb-0">
-                <i class='bx bx-book me-1'></i>
-                {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
-              </p>
-              {% endif %}
-            </div>
-          </div>
+<div class="container my-md-8 mt-3 pt-md-10 pt-8">
+  <!-- Mobile profile drawer trigger (same as home) -->
+  <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
+    <button
+      class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
+      style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#mobileProfileDrawer"
+      aria-controls="mobileProfileDrawer"
+      aria-label="Open profile">
+      <i class='bx bxs-user-detail fs-22'></i>
+    </button>
+  </div>
 
-          <!-- Profile Progress -->
-          <div class="profile-progress mt-4">
-            <h6 class="fs-14 fw-semibold">Complete your profile</h6>
-            <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
-            <div class="progress mt-2">
-              <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
-            </div>
-            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
-          </div>
+  <div class="row g-4">
+    <!-- Left Sidebar - Same as psychometric home (Desktop) -->
+    <div class="col-lg-4 d-none d-lg-block">
+      {% include 'template20/user/includes/profile_sidebar.html' %}
+    </div>
+
+    <!-- Right Content - Test List (same layout as home) -->
+    <div class="col-lg-8 col-md-12">
+      {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default('danger') }}" role="alert">
+          {{ message }}
         </div>
+        {% endfor %}
       </div>
+      {% endif %}
 
-      <!-- Main Content Area -->
-      <div class="col-lg-8">
-        <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3">
-          <div class="d-flex align-items-center">
-            {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
-            {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
-              <i class='bx bx-user fs-24 text-gray'></i>
-            </div>
-            {% endif %}
-            <div>
-              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
-              <p class="text-gray fs-12 mb-0">Joined {{ request.user.created.strftime("%B, %Y") if request.user.created else "" }}</p>
-            </div>
-          </div>
-          <!-- <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
-            <i class='bx bx-cog'></i>
-          </button> -->
-        </div>
+      <h2 class="title-test-info mb-0 mt-md-0 mt-3">Psychometric Assessment</h2>
 
-        <!-- Mobile Profile Progress -->
-        <div class="d-lg-none mb-4">
-          <div class="bg-light rounded p-3">
-            <h6 class="fs-14 fw-semibold mb-2">Complete your profile</h6>
-            <p class="text-gray fs-12 mb-2">A complete profile helps us cater the best content to you</p>
-            <div class="progress mb-2">
-              <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
-            </div>
-            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 btn-sm">Settings</a>
-          </div>
-        </div>
-
-        {% if messages %}
-        <div class="mb-4">
-          {% for message in messages %}
-          <div class="alert alert-{{ message.tags|default('danger') }}" role="alert">
-            {{ message }}
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <h2 class="fs-24 fw-semibold mb-4">Psychometric Assessment</h2>
-
-        <div class="test-list">
+      <div class="view-reports mt-5">
+        <div class="psychometric-grid">
           <!-- Test 1: Personality Assessment -->
-          <div class="test-card">
-            <div class="test-card-content">
-              <img src="{{ static('images_new/icons/interest-icon.svg') }}" alt="Personality Assessment" class="test-icon">
-              <div class="test-info">
-                <h3>Personality Assessment</h3>
+          <div class="psychometric-card">
+            <div class="psychometric-card-header">
+              <div class="psychometric-card-icon">
+                <img class="img-fluid" src="{{ static('images/interest-icon.svg') }}" alt="Personality assessment" />
+              </div>
+              <div>
+                <h3>Personality assessment</h3>
                 <p>Discover your personality traits and career preferences</p>
               </div>
             </div>
-            <div class="test-actions">
-              {% if test_completion.test1_complete %}
-              <form id="downloadForm1" action="{{ url('app:test_1', args=['test1']) }}" method="GET" target="_blank">
-                <button type="submit" class="btn btn-test-action blue-button">View Report</button>
-              </form>
-              {% else %}
-              <form action="{{ url('app:test1-intro') }}" method="GET">
-                <button type="submit" class="btn btn-test-action purple-button">Start Test</button>
-              </form>
-              {% endif %}
+            <div class="psychometric-card-body">
+              <div class="psychometric-card-action">
+                <div class="view-rr">
+                  {% if test_completion.test1_complete %}
+                  <a href="{{ url('app:test1_report_html') }}" class="btn blue-button" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
+                  {% else %}
+                  <form action="{{ url('app:test1-intro') }}" method="GET">
+                    <button type="submit" class="btn purple-button" style="width: 133px;">Start Test</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Test 2: Career Interest Assessment -->
-          <div class="test-card">
-            <div class="test-card-content">
-              <img src="{{ static('images_new/icons/personality-icon.svg') }}" alt="Career Interest Assessment" class="test-icon">
-              <div class="test-info">
-                <h3>Career Interest Assessment</h3>
+          <div class="psychometric-card">
+            <div class="psychometric-card-header">
+              <div class="psychometric-card-icon">
+                <img class="img-fluid" src="{{ static('images/personality-icon.svg') }}" alt="Career interest assessment" />
+              </div>
+              <div>
+                <h3>Career Interest assessment</h3>
                 <p>Explore careers that match your interests and values</p>
               </div>
             </div>
-            <div class="test-actions">
-              {% if test_completion.test2_complete %}
-              <form id="downloadForm2" action="{{ url('app:test_1', args=['test2']) }}" method="GET" target="_blank">
-                <button type="submit" class="btn btn-test-action blue-button">View Report</button>
-              </form>
-              {% else %}
-              <form action="{{ url('app:test2-intro') }}" method="GET">
-                <button type="submit" class="btn btn-test-action purple-button">
-                  {% if test_started_status.test2_started %}Resume Test{% else %}Start Test{% endif %}
-                </button>
-              </form>
-              {% endif %}
+            <div class="psychometric-card-body">
+              <div class="psychometric-card-action">
+                <div class="view-rr">
+                  {% if test_completion.test2_complete %}
+                  <a href="{{ url('app:test2_report_html') }}" class="btn blue-button" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
+                  {% else %}
+                  <form action="{{ url('app:test2-intro') }}" method="GET">
+                    <button type="submit" class="btn purple-button" style="width: 133px;">
+                      {% if test_started_status.test2_started %}Resume Test{% else %}Start Test{% endif %}
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Test 3: Comprehensive Aptitude Assessment -->
-          <div class="test-card">
-            <div class="test-card-content">
-              <img src="{{ static('images_new/icons/aptitute-icon.svg') }}" alt="Aptitude Assessment" class="test-icon">
-              <div class="test-info">
-                <h3>Comprehensive Aptitude Assessment</h3>
+          <div class="psychometric-card">
+            <div class="psychometric-card-header">
+              <div class="psychometric-card-icon">
+                <img class="img-fluid" src="{{ static('images/aptitute-icon.svg') }}" alt="Comprehensive aptitude assessment" />
+              </div>
+              <div>
+                <h3>Comprehensive Aptitude assessment</h3>
                 <p>Assess your cognitive abilities across multiple dimensions</p>
               </div>
             </div>
-            <div class="test-actions">
-              {% if test_completion and test_completion.test3_complete and all_test3_subtests_complete %}
-              <form id="downloadForm3" action="{{ url('app:test_1', args=['test3']) }}" method="GET" target="_blank">
-                <button type="submit" class="btn btn-test-action blue-button">View Report</button>
-              </form>
-              {% else %}
-              <form action="{{ url('app:test3-intro') }}" method="GET">
-                <button type="submit" class="btn btn-test-action purple-button">
-                  {% if test_started_status.test3_started %}Resume Test{% else %}Start Test{% endif %}
-                </button>
-              </form>
-              {% endif %}
+            <div class="psychometric-card-body">
+              <div class="psychometric-card-action mt-0">
+                <div class="view-rr">
+                  {% if test_completion and test_completion.test3_complete and all_test3_subtests_complete %}
+                  <a href="{{ url('app:test3_report_html') }}" class="btn blue-button" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
+                  {% else %}
+                  <form action="{{ url('app:test3-intro') }}" method="GET">
+                    <button type="submit" class="btn purple-button mt-0" style="width: 133px;">
+                      {% if test_started_status.test3_started %}Resume Test{% else %}Start Test{% endif %}
+                    </button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- Mobile Drawer -->
-<div class="drawerModal d-md-none" style="display: none;">
-  <div class="drawerContent">
-    <div class="drawerHeader">
-      <h5>Menu</h5>
-      <button type="button" class="drawerClose">
-        <i class='bx bx-x fs-24'></i>
-      </button>
-    </div>
-    <div class="drawerBody">
-      <a href="{{ url('users:userdashboard') }}" class="drawerItem">
-        <i class='bx bx-home me-2'></i> Dashboard
-      </a>
-      <a href="{{ url('users:profiledetails') }}" class="drawerItem">
-        <i class='bx bx-user me-2'></i> Edit Profile
-      </a>
-      <a href="{{ url('users:logout') }}" class="drawerItem">
-        <i class='bx bx-log-out me-2'></i> Sign Out
-      </a>
-    </div>
+<!-- Mobile profile drawer (same as home - reuses desktop sidebar content) -->
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    {% include 'template20/user/includes/profile_sidebar.html' %}
   </div>
 </div>
 {% endblock %}
@@ -289,37 +262,12 @@
 {% block additionaljs %}
 {{ super() }}
 <script>
-  // Drawer functionality for mobile
-  document.addEventListener('DOMContentLoaded', function() {
-    const drawerTrigger = document.querySelector('.drawerTrigger');
-    const drawerModal = document.querySelector('.drawerModal');
-    const drawerClose = document.querySelector('.drawerClose');
-
-    if (drawerTrigger) {
-      drawerTrigger.addEventListener('click', function() {
-        if (drawerModal) {
-          drawerModal.style.display = 'block';
-        }
-      });
-    }
-
-    if (drawerClose) {
-      drawerClose.addEventListener('click', function() {
-        if (drawerModal) {
-          drawerModal.style.display = 'none';
-        }
-      });
-    }
-
-    // Close drawer when clicking outside
-    if (drawerModal) {
-      drawerModal.addEventListener('click', function(e) {
-        if (e.target === drawerModal) {
-          drawerModal.style.display = 'none';
-        }
-      });
-    }
-  });
+  // Handle download form submission (if any download forms added later)
+  if (document.getElementById('downloadForm')) {
+    document.getElementById('downloadForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      window.open(this.action + '?' + new URLSearchParams(new FormData(this)).toString(), '_blank');
+    });
+  }
 </script>
 {% endblock %}
-
