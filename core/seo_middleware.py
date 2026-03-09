@@ -14,6 +14,15 @@ def _normalize_path(path, max_len=120):
     return key[:max_len] if len(key) > max_len else key
 
 
+# Map URL path segments to dashboard url_key so SEO stored for "about" applies to /about-us/
+PATH_TO_STATIC_KEY = {
+    "about-us": "about",
+    "terms-and-condition": "terms",
+    "contact-us": "contact",
+    "privacy-policy": "privacy",
+}
+
+
 class PageSEOMiddleware:
     """
     After the view runs, if context has 'html_head' (dict), look up PageSEO by request.path.
@@ -41,6 +50,7 @@ class PageSEOMiddleware:
         url_key = _normalize_path(path)
         if not url_key:
             return response
+        url_key = PATH_TO_STATIC_KEY.get(url_key, url_key)
         try:
             from core.models import PageSEO
             from core.utils import get_page_seo_html_head

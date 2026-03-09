@@ -87,7 +87,18 @@
 
 </style>
 <main class="py-test-page">
-
+    {% if static_page and static_page.content_html %}
+    <section class="pt-md-18 pt-14 pb-5">
+      <div class="container">
+        <div class="row">
+          {% include 'template20/includes/breadcrumb.html' %}
+        </div>
+        <div class="row">
+          <div class="col-md-12 about-us-cms-content">{{ static_page.content_html_display|safe }}</div>
+        </div>
+      </div>
+    </section>
+    {% else %}
     <section class="hero-section-inner pt-md-18 pt-14 pb-5">
       <div class="container">
         <div class="row">
@@ -964,6 +975,7 @@
       </div>
     </section>
     <!-- FAQ Section -->
+    {% endif %}
 
   
 </main>

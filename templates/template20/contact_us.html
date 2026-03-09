@@ -49,10 +49,11 @@
         <div class="row">
           {% include 'template20/includes/breadcrumb.html' %}
         </div>
-
-
-
-
+        {% if static_page and static_page.content_html %}
+        <div class="row">
+          <div class="col-md-12 mt-3 mb-2 contact-us-cms-content">{{ static_page.content_html_display|safe }}</div>
+        </div>
+        {% endif %}
         <div class="row">
 
           <div class="col-md-4 col-sm-12 mt-md-5">
