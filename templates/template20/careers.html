@@ -32,6 +32,10 @@ Explore our comprehensive collection of career paths organized by industry and i
 
 <style>
 
+.badge.career-selected-tag span.career-cluster-tag {
+    display: none !important;
+}
+
 .career-mode-hero {
   width: 100%;
   background: #e5e4fd url('/static/images_new/general/aipt-bg1.png') !important;
@@ -135,6 +139,124 @@ Explore our comprehensive collection of career paths organized by industry and i
 .career-inner-search-input-wrap .select2-selection__choice__remove {
   display: none !important;
 }
+/* Cluster as small tag in career search dropdown */
+.career-cluster-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15em 0.5em;
+  border-radius: 9999px;
+  background: rgba(63, 55, 201, 0.12);
+  color: #3F37C9;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  max-width: 12em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.select2-results__option .career-cluster-tag {
+  margin-top: 1px;
+}
+.select2-selection__choice .career-cluster-tag {
+  font-size: 0.65rem;
+  padding: 0.1em 0.4em;
+}
+/* Career dropdown: checkbox-style option + white cluster tag when selected/highlighted */
+.select2-results__option:has(.career-cluster-tag) {
+  padding-left: 2rem;
+  position: relative;
+}
+.select2-results__option:has(.career-cluster-tag)::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #adb5bd;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+/* Selected: white checkbox background + purple tick */
+.select2-results__option:has(.career-cluster-tag).select2-results__option--selected::before,
+.select2-results__option:has(.career-cluster-tag)[aria-selected="true"]:not(.select2-results__option--highlighted)::before {
+  content: '\2713';
+  background-color: #fff;
+  border: 2px solid #3F37C9;
+  color: #3F37C9;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+/* Hover (highlighted) unselected: empty box, white border so it’s visible on purple row */
+.select2-results__option:has(.career-cluster-tag).select2-results__option--highlighted:not(.select2-results__option--selected):not([aria-selected="true"])::before {
+  content: '';
+  border: 2px solid #fff;
+  background-color: transparent;
+}
+/* Hover (highlighted) selected: white checkbox + purple tick so tick shows properly */
+.select2-results__option:has(.career-cluster-tag).select2-results__option--highlighted.select2-results__option--selected::before,
+.select2-results__option:has(.career-cluster-tag).select2-results__option--highlighted[aria-selected="true"]::before {
+  content: '\2713';
+  background-color: #fff;
+  border: 2px solid #fff;
+  color: #3F37C9;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.select2-results__option:has(.career-cluster-tag).select2-results__option--selected .career-cluster-tag,
+.select2-results__option:has(.career-cluster-tag).select2-results__option--highlighted .career-cluster-tag,
+.select2-results__option:has(.career-cluster-tag)[aria-selected="true"] .career-cluster-tag {
+  background: #fff !important;
+  color: #3F37C9 !important;
+}
+/* Higher specificity: ensure cluster tag is white when option selected (overrides option color inheritance) */
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option .career-cluster-tag {
+  background: rgba(63, 55, 201, 0.12);
+  color: #3F37C9;
+}
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--selected .career-cluster-tag,
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--highlighted .career-cluster-tag,
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option[aria-selected="true"] .career-cluster-tag {
+  background: #fff !important;
+  color: #3F37C9 !important;
+}
+/* Checkbox (career options only): selected = white bg + purple tick; hover selected = same so tick shows properly */
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option:has(.career-cluster-tag).select2-results__option--selected::before,
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option:has(.career-cluster-tag)[aria-selected="true"]:not(.select2-results__option--highlighted)::before {
+  content: '\2713' !important;
+  background-color: #fff !important;
+  border: 2px solid #3F37C9 !important;
+  color: #3F37C9 !important;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option:has(.career-cluster-tag).select2-results__option--highlighted.select2-results__option--selected::before,
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option:has(.career-cluster-tag).select2-results__option--highlighted[aria-selected="true"]::before {
+  content: '\2713' !important;
+  background-color: #fff !important;
+  border: 2px solid #fff !important;
+  color: #3F37C9 !important;
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
 .career-inner-search-bar .career-inner-search-btn {
   background: #3F37C9;
   color: #fff;
@@ -167,12 +289,36 @@ Explore our comprehensive collection of career paths organized by industry and i
   color: #0aa2c0;
   border-color: #0dcaf0;
 }
-/* Selected career tags above search: increased height */
+/* Selected career tags above search: increased height + hover effect with close button */
 #selected-career-tags .career-selected-tag {
   min-height: 38px;
   font-size: 0.95rem;
   line-height: 1.4;
   align-items: center;
+  border-radius: 20px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+#selected-career-tags .career-selected-tag:hover {
+  background-color: #f8f9fa !important;
+  border-color: #3F37C9 !important;
+  box-shadow: 0 2px 8px rgba(63, 55, 201, 0.15);
+}
+#selected-career-tags .career-selected-tag a {
+  border-radius: 50%;
+  padding: 2px 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+    justify-content: center;
+    width: 21px;
+    height: 21px;
+}
+#selected-career-tags .career-selected-tag a:hover {
+  background-color: rgba(63, 55, 201, 0.15);
+  color: #3F37C9 !important;
+}
+#selected-career-tags .career-selected-tag a i {
+  font-size: 1.1rem;
+  line-height: 1;
 }
 /* Loader overlay while career search is submitting */
 .career-search-loader-overlay {
@@ -201,6 +347,9 @@ Explore our comprehensive collection of career paths organized by industry and i
   left: 10px;
   top: 6px;
   z-index: 1;
+  display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .career-track-card {
@@ -528,6 +677,10 @@ Explore our comprehensive collection of career paths organized by industry and i
   z-index: 999999999;
 }
 
+#selected-career-tags .career-selected-tag {
+    font-size: 11px;
+}
+
 }
 </style>
 
@@ -584,8 +737,11 @@ Explore our comprehensive collection of career paths organized by industry and i
                       {% for item in selected_careers_display or [] %}
                       {% set others = (selected_careers_display or [])|rejectattr('id', 'eq', item.id)|list %}
                       <span class="badge career-selected-tag bg-light text-dark border border-secondary d-inline-flex align-items-center gap-1 px-3 py-2" style="font-weight: 500;" data-career-id="{{ item.id }}">
-                        {{ item.name if item.name is defined else item.text }}
-                        <a href="{{ cluster_page_url }}{% if others %}?career={{ others|map(attribute='id')|join('&career=') }}{% endif %}" class="text-decoration-none ms-1 text-secondary" aria-label="Remove {{ item.name if item.name is defined else item.text }}" title="Remove">×</a>
+                        <span class="d-inline-flex align-items-center flex-wrap gap-1">
+                          {{ item.name if item.name is defined else item.text }}
+                          {% if item.cluster %}<span class="career-cluster-tag">{{ item.cluster }}</span>{% endif %}
+                        </span>
+                        <a href="{{ cluster_page_url }}{% if others %}?career={{ others|map(attribute='id')|join('&career=') }}{% endif %}" class="text-decoration-none ms-1 text-secondary" aria-label="Remove {{ item.name if item.name is defined else item.text }}" title="Remove"><i class='bx bx-x'></i></a>
                       </span>
                       {% endfor %}
                     </div>
@@ -645,9 +801,7 @@ Explore our comprehensive collection of career paths organized by industry and i
 <section class="pb-10">
   <div class="container">
     <div class="row">
-      <div class="col-md-12 custom-faq">
-
-       
+      <div class="col-md-12 custom-faq">      
 
         <!-- AI Mode Interface -->
         {% if is_ai_mode %}
@@ -2532,6 +2686,24 @@ body.ai-fullscreen-active {
     if ($el.hasClass('select2-hidden-accessible')) {
       $el.select2('destroy');
     }
+    function escapeHtml(s) {
+      if (!s) return '';
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+    function formatCareerWithCluster(item) {
+      var name = (item && item.name) ? item.name : (item && item.text) ? item.text.replace(/\s*\[.*\]\s*$/, '').trim() : (item && item.text) || '';
+      var cluster = (item && item.cluster) ? String(item.cluster).trim() : '';
+      if (cluster) {
+        var $wrap = $('<span class="d-inline-flex align-items-center flex-wrap gap-1 ps-3 justify-content-between w-100"></span>');
+        $wrap.append($('<span></span>').text(name));
+        $wrap.append(' ');
+        $wrap.append($('<span class="career-cluster-tag"></span>').text(cluster));
+        return $wrap;
+      }
+      return $('<span></span>').text(name);
+    }
     $el.select2({
       theme: 'bootstrap-5',
       placeholder: $el.data('placeholder') || 'Type career name...',
@@ -2540,7 +2712,18 @@ body.ai-fullscreen-active {
       width: '100%',
       closeOnSelect: true,
       data: careerOptions,
-      minimumInputLength: 0
+      minimumInputLength: 0,
+      templateResult: function(item) {
+        if (!item) return null;
+        if (item.loading) return $('<span></span>').text(item.text);
+        if (!item.id) return item.text ? $('<span></span>').text(item.text) : null;
+        return formatCareerWithCluster(item);
+      },
+      templateSelection: function(item) {
+        if (!item) return null;
+        if (!item.id) return item.text ? $('<span></span>').text(item.text) : null;
+        return formatCareerWithCluster(item);
+      }
     });
     // On selection: add tag immediately; submit (search) only after user stops selecting for 3 seconds
     var careerSearchSubmitTimer = null;
@@ -2575,12 +2758,6 @@ body.ai-fullscreen-active {
     $(document).on('click', '#selected-career-tags a', function() {
       $('#career-search-loader').css('display', 'flex').attr('aria-hidden', 'false');
     });
-    function escapeHtml(s) {
-      if (!s) return '';
-      var div = document.createElement('div');
-      div.textContent = s;
-      return div.innerHTML;
-    }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCareerFilterInner);
