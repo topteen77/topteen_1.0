@@ -350,7 +350,7 @@ class Careers(TemplateView):
                         cluster_names = [cl.name for cl in c.career_cluster.all() if cl and cl.name]
                         cluster_part = ' | '.join(cluster_names) if cluster_names else ''
                         text = f"{c.name}  [{cluster_part}]" if cluster_part else c.name
-                        selected_careers_display.append({'id': c.id, 'text': text, 'name': c.name})
+                        selected_careers_display.append({'id': c.id, 'text': text, 'name': c.name, 'cluster': cluster_part})
             except (ValueError, TypeError):
                 pass
 
@@ -365,7 +365,12 @@ class Careers(TemplateView):
             for c in cluster_careers_qs.only('id', 'name'):
                 name = (c.name or '').strip() or 'Career'
                 text = f"{name}  [{current_cluster_name}]"
-                cluster_careers_options.append({'id': str(c.id), 'text': text})
+                cluster_careers_options.append({
+                    'id': str(c.id),
+                    'text': text,
+                    'name': name,
+                    'cluster': current_cluster_name,
+                })
         ctx_out = {
             'careers': careers_page,
             'clusters': clusters,
