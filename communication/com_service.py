@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.utils.crypto import get_random_string
 import requests
+import logging
 from urllib.parse import urlencode
 from core import choices
 from .models import OTP,CommunicationLog
@@ -15,9 +16,13 @@ from datetime import datetime,timedelta
 from users.models import User
 from django.urls import reverse
 
+logger = logging.getLogger(__name__)
+
+
 class ComService:
     _SERVICE_URL = settings.MOBILE_SMS_SERVICE
-    from_email = settings.TOPTEEN_FROM_EMAIL
+    # Use DEFAULT_FROM_EMAIL (has display name) for better inbox delivery; fallback to TOPTEEN_FROM_EMAIL
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'TOPTEEN_FROM_EMAIL', '')
 
     def generate_otp(self):
         return get_random_string(6, allowed_chars='0123456789')
@@ -82,19 +87,18 @@ class ComService:
 
 
     def send_mail(self,subject,to,text_content, html_content,attachment=None,attachment_name=None,attachment_type=None):
-        status=False
-
-        print("Sending email to:", to)
+        status = False
+        to_list = [to] if not isinstance(to, list) else to
         try:
-            if not isinstance(to, list):
-                to = [to]
-            msg = EmailMultiAlternatives(subject, text_content, self.from_email, to)
+            msg = EmailMultiAlternatives(subject, text_content, self.from_email, to_list)
             msg.attach_alternative(html_content, "text/html")
             if attachment and attachment_name and attachment_type:
-                msg.attach(attachment_name,attachment,attachment_type)
-            status=msg.send()
+                msg.attach(attachment_name, attachment, attachment_type)
+            msg.send(fail_silently=False)
+            status = True
+            logger.info("Email sent to %s subject=%s", to_list, subject[:50] if subject else "")
         except Exception as e:
-            print("Email sending error:", str(e))
+            logger.warning("Email sending failed to %s subject=%s: %s", to_list, subject[:50] if subject else "", e)
         # Convert to string if it's a list for logging purposes
         # log_to = to if isinstance(to, str) else ", ".join(to)
         self.make_log_entry(to, html_content, choices.CommunicationTypeChooices.EMAIL, status)

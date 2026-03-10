@@ -171,13 +171,18 @@ def _send_invoice_email_to_customer_with_bcc(invoice, to_email, bcc_list=None, p
             success=False,
         )
     try:
+        # Use DEFAULT_FROM_EMAIL so From has display name (e.g. "Topteen <noreply@...>") for better inbox delivery
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'TOPTEEN_FROM_EMAIL', '')
         email = EmailMultiAlternatives(
             subject=subject,
             body=body,
-            from_email=settings.TOPTEEN_FROM_EMAIL or settings.DEFAULT_FROM_EMAIL,
+            from_email=from_email,
             to=[to_email],
             bcc=bcc_list,
         )
+        # Reply-To so replies go to accounts; helps deliverability and support
+        if bcc_list:
+            email.reply_to = [bcc_list[0]]
         if pdf_bytes:
             email.attach('invoice_{}.pdf'.format(invoice.invoice_number), pdf_bytes, 'application/pdf')
         email.send(fail_silently=False)
@@ -208,10 +213,11 @@ def _send_invoice_email(invoice, to_email, recipient_type, pdf_bytes):
         success=False,
     )
     try:
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'TOPTEEN_FROM_EMAIL', '')
         email = EmailMultiAlternatives(
             subject=subject,
             body=body,
-            from_email=settings.TOPTEEN_FROM_EMAIL or settings.DEFAULT_FROM_EMAIL,
+            from_email=from_email,
             to=[to_email],
         )
         if pdf_bytes:

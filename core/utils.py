@@ -1,4 +1,5 @@
 import re
+import logging
 from django.db.models import Q
 from core import choices
 from django.conf import settings
@@ -6,6 +7,8 @@ from django.conf import settings
 from threading import local
 import time
 import os
+
+logger = logging.getLogger(__name__)
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -58,7 +61,8 @@ def ensure_user_pdf_folder(user_id):
         if not os.path.exists(user_pdf_dir):
             os.makedirs(user_pdf_dir, exist_ok=True)
         return user_pdf_dir
-    except OSError:
+    except OSError as e:
+        logger.warning("ensure_user_pdf_folder failed for user_id=%s (MEDIA_ROOT=%s): %s", user_id, getattr(settings, 'MEDIA_ROOT', None), e)
         return None
 
 def sort_colleges(colleges,request):

@@ -21,9 +21,12 @@ from django.conf import settings
 import csv
 from django.contrib.staticfiles import finders
 import re
+import logging
 from django.shortcuts import get_object_or_404
 # from django.contrib.auth.models import User
 from .models import TestCompletion,Answer,Results
+
+logger = logging.getLogger(__name__)
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -471,6 +474,14 @@ def Assessment_pdf_inst_user(request, user_id=None):
     return render(request, 'Asessment_report.html', context)
 
 
+def _add_no_cache_headers(response):
+    """Set headers so the report is not cached (fixes view result in normal browser mode)."""
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+
 @login_required(login_url=reverse_lazy('users:login'))
 def class10_combined_report(request, user_id=None):
     """
@@ -489,7 +500,7 @@ def class10_combined_report(request, user_id=None):
         
         # Check if user has attempted tests
         if not has_attempted_test(target_user):
-            return render(request, 'template20/app/class10_combined_report.html', {
+            resp = render(request, 'template20/app/class10_combined_report.html', {
                 'error': 'No completed test found. Please complete all tests first.',
                 'no_results': True,
                 'user': target_user,
@@ -498,6 +509,7 @@ def class10_combined_report(request, user_id=None):
                     {'text': 'Combined Report', 'url': ''},
                 ]),
             })
+            return _add_no_cache_headers(resp)
         
         # Get test completion status
         try:
@@ -513,7 +525,7 @@ def class10_combined_report(request, user_id=None):
         all_tests_completed = test1_completed and test2_completed and test3_completed
         
         if not all_tests_completed:
-            return render(request, 'template20/app/class10_combined_report_new.html', {
+            resp = render(request, 'template20/app/class10_combined_report_new.html', {
                 'error': 'Please complete all three tests (Personality, Interest, and Intelligence) to view your combined report.',
                 'no_results': True,
                 'user': target_user,
@@ -521,6 +533,7 @@ def class10_combined_report(request, user_id=None):
                 'test2_completed': test2_completed,
                 'test3_completed': test3_completed
             })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -532,11 +545,12 @@ def class10_combined_report(request, user_id=None):
         try:
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except UserHasNotAttemptedTestException:
-            return render(request, 'template20/app/class10_combined_report_new.html', {
+            resp = render(request, 'template20/app/class10_combined_report_new.html', {
                 'error': 'User hasn\'t attempted the test yet. Please complete the test first.',
                 'no_results': True,
                 'user': target_user
             })
+            return _add_no_cache_headers(resp)
         except Exception as e:
             import traceback
             print(f"Error in db_results_inst_user for user {target_user.id}: {str(e)}")
@@ -638,18 +652,19 @@ def class10_combined_report(request, user_id=None):
             'user_id': user_id if user_id else target_user.id
         }
         
-        return render(request, 'template20/app/class10_combined_report_new.html', context)
+        resp = render(request, 'template20/app/class10_combined_report_new.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        print(f"Error in class10_combined_report: {str(e)}")
-        print(trace)
-        return render(request, 'template20/app/class10_combined_report_new.html', {
+        logger.exception("Error in class10_combined_report: %s", e)
+        resp = render(request, 'template20/app/class10_combined_report_new.html', {
             'error': f'An error occurred: {str(e)}',
             'traceback': trace,
             'no_results': True
         })
+        return _add_no_cache_headers(resp)
 
 
 @login_required(login_url=reverse_lazy('users:login'))
@@ -657,6 +672,7 @@ def class10_report_download_pdf(request, user_id=None):
     """
     Generate and download PDF for Class 10 combined report.
     """
+    target_user = None
     try:
         import weasyprint
         import ssl
@@ -773,19 +789,28 @@ def class10_report_download_pdf(request, user_id=None):
         # Create response
         response = HttpResponse(content_type='application/pdf')
         user_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
-        # Clean filename - remove special characters
-        import re
-        safe_name = re.sub(r'[^\w\s-]', '', str(user_name))[:50]  # Limit length
+        safe_name = re.sub(r'[^\w\s-]', '', str(user_name)).strip()[:50] or 'user'
         filename = f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        response['Pragma'] = 'no-cache'
         response.write(pdf_file)
+        
+        # Save copy to user PDF folder (for production debugging and consistency)
+        user_directory = ensure_user_pdf_folder(target_user.id)
+        if user_directory:
+            try:
+                pdf_path = os.path.join(user_directory, filename)
+                with open(pdf_path, 'wb') as f:
+                    f.write(pdf_file)
+            except OSError as e:
+                logger.warning("class10_report_download_pdf: could not save PDF to user folder user_id=%s: %s", target_user.id, e)
         
         return response
         
     except Exception as e:
-        import traceback
-        print(f"Error in class10_report_download_pdf: {str(e)}")
-        print(traceback.format_exc())
+        uid = getattr(target_user, 'id', None) if target_user else getattr(request.user, 'id', None)
+        logger.exception("class10_report_download_pdf failed for user_id=%s: %s", uid, e)
         return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
@@ -2600,13 +2625,20 @@ def test1_report_pdf(request, user_id=None):
         filename = f"{safe_name}-Personality_Assessment_report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         
+        # Save copy to user PDF folder (production and debugging)
+        user_directory = ensure_user_pdf_folder(target_user.id)
+        if user_directory:
+            try:
+                pdf_path = os.path.join(user_directory, filename)
+                with open(pdf_path, 'wb') as f:
+                    f.write(pdf_file)
+            except OSError as err:
+                logger.warning("test1_report_pdf: could not save to user folder user_id=%s: %s", target_user.id, err)
+        
         return response
         
     except Exception as e:
-        import traceback
-        trace = traceback.format_exc()
-        print(f"Error in test1_report_pdf: {str(e)}")
-        print(trace)
+        logger.exception("test1_report_pdf failed: %s", e)
         return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
@@ -2714,18 +2746,23 @@ def test2_report_pdf(request, user_id=None):
         finally:
             ssl._create_default_https_context = original_ssl_context
         
-        # Create response
+        # Create response (safe filename for Gmail/email users)
+        raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
+        safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+        filename = f"{safe_name}-Interest_Assessment_report.pdf"
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        filename = f"{target_user.name if target_user.name else target_user.email}-Interest_Assessment_report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
+        user_directory = ensure_user_pdf_folder(target_user.id)
+        if user_directory:
+            try:
+                with open(os.path.join(user_directory, filename), 'wb') as f:
+                    f.write(pdf_file)
+            except OSError as err:
+                logger.warning("test2_report_pdf: could not save to user folder user_id=%s: %s", target_user.id, err)
         return response
-        
+
     except Exception as e:
-        import traceback
-        trace = traceback.format_exc()
-        print(f"Error in test2_report_pdf: {str(e)}")
-        print(trace)
+        logger.exception("test2_report_pdf failed: %s", e)
         return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
@@ -2837,18 +2874,23 @@ def test3_report_pdf(request, user_id=None):
         finally:
             ssl._create_default_https_context = original_ssl_context
         
-        # Create response
+        # Create response (safe filename for Gmail/email users)
+        raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
+        safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+        filename = f"{safe_name}-Intelligence_Assessment_report.pdf"
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        filename = f"{target_user.name if target_user.name else target_user.email}-Intelligence_Assessment_report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
+        user_directory = ensure_user_pdf_folder(target_user.id)
+        if user_directory:
+            try:
+                with open(os.path.join(user_directory, filename), 'wb') as f:
+                    f.write(pdf_file)
+            except OSError as err:
+                logger.warning("test3_report_pdf: could not save to user folder user_id=%s: %s", target_user.id, err)
         return response
-        
+
     except Exception as e:
-        import traceback
-        trace = traceback.format_exc()
-        print(f"Error in test3_report_pdf: {str(e)}")
-        print(trace)
+        logger.exception("test3_report_pdf failed: %s", e)
         return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
