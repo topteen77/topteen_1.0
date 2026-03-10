@@ -2197,7 +2197,7 @@ def test1_report_html(request, user_id=None):
                 alt_user = (
                     User.objects.filter(email__iexact=target_user.email)
                     .exclude(pk=target_user.pk)
-                    .filter(results_set__test_paper='test1')
+                    .filter(results__test_paper='test1')
                     .first()
                 )
                 if alt_user:
