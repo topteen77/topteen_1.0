@@ -475,10 +475,11 @@ def Assessment_pdf_inst_user(request, user_id=None):
 
 
 def _add_no_cache_headers(response):
-    """Set headers so the report is not cached (fixes view result in normal browser mode)."""
+    """Set headers so the report is not cached (fixes view result in normal browser mode after Google login)."""
     response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
+    response['Vary'] = 'Cookie'  # Ensure cached responses (if any) are not shared across users
     return response
 
 
@@ -772,19 +773,26 @@ def class10_report_download_pdf(request, user_id=None):
         template = get_template('template20/app/class10_combined_report_pdf.html')
         html = template.render(context)
         
-        # Configure SSL to disable verification for WeasyPrint
-        original_ssl_context = ssl._create_default_https_context
-        ssl._create_default_https_context = ssl._create_unverified_context
-        
+        # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
         try:
-            # Generate PDF
-            pdf_file = weasyprint.HTML(
-                string=html,
-                base_url=request.build_absolute_uri('/')
-            ).write_pdf()
-        finally:
-            # Restore original SSL context
-            ssl._create_default_https_context = original_ssl_context
+            original_ssl_context = ssl._create_default_https_context
+            ssl._create_default_https_context = ssl._create_unverified_context
+            try:
+                pdf_file = weasyprint.HTML(
+                    string=html,
+                    base_url=request.build_absolute_uri('/')
+                ).write_pdf()
+            finally:
+                ssl._create_default_https_context = original_ssl_context
+        except Exception as pdf_err:
+            logger.exception(
+                "class10_report_download_pdf: PDF generation failed for user_id=%s (WeasyPrint/template): %s",
+                target_user.id, pdf_err
+            )
+            return HttpResponse(
+                'PDF generation failed. Check server logs (WeasyPrint).',
+                status=500
+            )
         
         # Create response
         response = HttpResponse(content_type='application/pdf')
