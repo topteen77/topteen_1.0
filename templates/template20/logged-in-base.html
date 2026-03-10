@@ -3,6 +3,21 @@
 {% block bodyclass %}logged-in{% endblock %}
 
 {% block additionalhead %}
+{% if student_localstorage %}
+<script>
+(function() {
+  try {
+    var d = {{ student_localstorage | tojson }};
+    if (d && typeof localStorage !== 'undefined') {
+      localStorage.setItem('student_id', String(d.student_id != null ? d.student_id : ''));
+      localStorage.setItem('student_class', String(d.student_class != null ? d.student_class : ''));
+      localStorage.setItem('psychometric_class10_status', String(d.psychometric_class10_status != null ? d.psychometric_class10_status : 'pending'));
+      localStorage.setItem('psychometric_class12_status', String(d.psychometric_class12_status != null ? d.psychometric_class12_status : 'pending'));
+    }
+  } catch (e) {}
+})();
+</script>
+{% endif %}
 <style>
   /* CRITICAL: Hide footer immediately for logged-in pages - must be first to prevent any flash */
   body.logged-in .footer-cta,
