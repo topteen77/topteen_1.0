@@ -2171,7 +2171,10 @@ def test_1(request, test_paper):
 @login_required(login_url=reverse_lazy('users:login'))
 def test1_report_html(request, user_id=None):
     """
-    HTML report view for Test 1 (Personality Assessment)
+    HTML report view for Test 1 (Personality Assessment).
+    Uses no-cache headers so view-result works after Google login. If the current
+    user has no result but another account with the same email has test1 data,
+    that result is shown (same person, e.g. Google vs email signup).
     """
     try:
         # Get the target user
@@ -2183,17 +2186,33 @@ def test1_report_html(request, user_id=None):
         # Ensure user PDF folder exists (for later download/save)
         ensure_user_pdf_folder(target_user.id)
         
-        # Check if test1 is completed
+        # Check if test1 is completed for this user
+        test1_result = None
+        result_from_same_email_user = False
         try:
             test1_result = Results.objects.get(user=target_user, test_paper='test1')
         except Results.DoesNotExist:
-            return render(request, 'template20/app/test1_report.html', {
-                'error': 'Please complete the Personality Assessment test first.',
-                'no_results': True,
-                'user': target_user,
-                'user_ID': target_user.id if target_user else None,
-                'viewing_as_admin': False
-            })
+            # Fallback: same person may have completed test with another account (e.g. email vs Google)
+            if target_user.email:
+                alt_user = (
+                    User.objects.filter(email__iexact=target_user.email)
+                    .exclude(pk=target_user.pk)
+                    .filter(results_set__test_paper='test1')
+                    .first()
+                )
+                if alt_user:
+                    test1_result = Results.objects.get(user=alt_user, test_paper='test1')
+                    target_user = alt_user  # show report for the account that has the result
+                    result_from_same_email_user = True
+            if not test1_result:
+                resp = render(request, 'template20/app/test1_report.html', {
+                    'error': 'Please complete the Personality Assessment test first.',
+                    'no_results': True,
+                    'user': request.user,
+                    'user_ID': request.user.id if request.user else None,
+                    'viewing_as_admin': False
+                })
+                return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2251,23 +2270,26 @@ def test1_report_html(request, user_id=None):
             'user_name': target_user.name if target_user.name else target_user.email,
             'user_ID': target_user.id,
             'no_results': False,
-            'viewing_as_admin': user_id is not None and user_id != request.user.id
+            'viewing_as_admin': user_id is not None and user_id != request.user.id,
+            'result_from_same_email_user': result_from_same_email_user,
         }
         
-        return render(request, 'template20/app/test1_report.html', context)
+        resp = render(request, 'template20/app/test1_report.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in test1_report_html: {str(e)}")
         print(trace)
-        return render(request, 'template20/app/test1_report.html', {
+        resp = render(request, 'template20/app/test1_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
             'user': request.user,
             'user_ID': request.user.id if request.user.is_authenticated else None,
             'viewing_as_admin': False
         })
+        return _add_no_cache_headers(resp)
 
 
 @login_required(login_url=reverse_lazy('users:login'))
