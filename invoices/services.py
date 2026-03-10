@@ -96,7 +96,7 @@ def _next_invoice_number(config):
 
 
 def _generate_pdf_and_send_emails(invoice, config=None):
-    """Generate invoice PDF, save to invoice, send to admin and optionally customer, log each send."""
+    """Generate invoice PDF, save to invoice. Send one email to customer with BCC to admin; if no customer send, send to admin only."""
     if config is None:
         config = get_config()
     html = _render_invoice_html(invoice, config)
@@ -104,20 +104,20 @@ def _generate_pdf_and_send_emails(invoice, config=None):
     if pdf_bytes:
         fname = 'invoice_{}.pdf'.format(invoice.invoice_number.replace('/', '-'))
         invoice.invoice_pdf.save(fname, ContentFile(pdf_bytes), save=True)
-    # Always send to accounts email
-    if config.accounts_email:
+    # Send to customer with BCC to admin (one email), or to admin only if no customer send
+    if config.auto_send_invoice_to_customer and invoice.customer_email:
+        bcc_list = [config.accounts_email] if config.accounts_email else []
+        _send_invoice_email_to_customer_with_bcc(
+            invoice,
+            invoice.customer_email,
+            bcc_list=bcc_list,
+            pdf_bytes=pdf_bytes,
+        )
+    elif config.accounts_email:
         _send_invoice_email(
             invoice,
             config.accounts_email,
             InvoiceEmailLog.RECIPIENT_ADMIN,
-            pdf_bytes,
-        )
-    # Optionally send to customer
-    if config.auto_send_invoice_to_customer and invoice.customer_email:
-        _send_invoice_email(
-            invoice,
-            invoice.customer_email,
-            InvoiceEmailLog.RECIPIENT_CUSTOMER,
             pdf_bytes,
         )
 
@@ -146,6 +146,52 @@ def _html_to_pdf(html):
         print('Invoice PDF generation failed:', e)
         traceback.print_exc()
         return None
+
+
+def _send_invoice_email_to_customer_with_bcc(invoice, to_email, bcc_list=None, pdf_bytes=None):
+    """Send one invoice email to customer with BCC to admin; log both customer and admin (BCC) sends."""
+    from django.core.mail import EmailMultiAlternatives
+    bcc_list = bcc_list or []
+    subject = 'Invoice {} - {}'.format(invoice.invoice_number, invoice.service)
+    body = 'Please find your invoice attached.\n\nTransaction ID: {}\nAmount: ₹ {}\n\nThank you.'.format(
+        invoice.transaction_id, invoice.amount
+    )
+    log_customer = InvoiceEmailLog.objects.create(
+        invoice=invoice,
+        recipient_type=InvoiceEmailLog.RECIPIENT_CUSTOMER,
+        recipient_email=to_email,
+        success=False,
+    )
+    log_admin = None
+    if bcc_list:
+        log_admin = InvoiceEmailLog.objects.create(
+            invoice=invoice,
+            recipient_type=InvoiceEmailLog.RECIPIENT_ADMIN,
+            recipient_email=bcc_list[0],
+            success=False,
+        )
+    try:
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=body,
+            from_email=settings.TOPTEEN_FROM_EMAIL or settings.DEFAULT_FROM_EMAIL,
+            to=[to_email],
+            bcc=bcc_list,
+        )
+        if pdf_bytes:
+            email.attach('invoice_{}.pdf'.format(invoice.invoice_number), pdf_bytes, 'application/pdf')
+        email.send(fail_silently=False)
+        log_customer.success = True
+        log_customer.save(update_fields=['success', 'modified'])
+        if log_admin:
+            log_admin.success = True
+            log_admin.save(update_fields=['success', 'modified'])
+    except Exception as e:
+        log_customer.error_message = str(e)
+        log_customer.save(update_fields=['error_message', 'modified'])
+        if log_admin:
+            log_admin.error_message = str(e)
+            log_admin.save(update_fields=['error_message', 'modified'])
 
 
 def _send_invoice_email(invoice, to_email, recipient_type, pdf_bytes):

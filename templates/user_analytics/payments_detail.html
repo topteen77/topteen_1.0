@@ -21,7 +21,7 @@
                 </p>
                 {% endif %}
             </div>
-            <a href="{{ url('user_analytics:business_dashboard') }}?period={{ time_period }}" class="btn btn-outline-secondary">
+            <a href="{{ url('user_analytics:business_dashboard') }}?period={{ time_period|default('30days') }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
         </div>
@@ -30,7 +30,7 @@
     <!-- Filters -->
     <div class="admin-card mb-4">
         <form id="filter-form" class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Time Period</label>
                 <select name="period" id="period-select" class="form-select">
                     <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
@@ -39,13 +39,32 @@
                     <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
                     <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
                     <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
+                    {% if payment_type == 'successful' %}
+                    <option value="custom" {% if time_period == 'custom' %}selected{% endif %}>Custom range</option>
+                    {% endif %}
                 </select>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Search</label>
-                <input type="text" name="search" id="search-input" class="form-control" placeholder="Search by user email, event name..." value="{{ search_query|default('') }}">
+            {% if payment_type == 'successful' %}
+            <div class="col-md-2" id="date-from-wrap" style="display: none;">
+                <label class="form-label">From date</label>
+                <input type="date" name="date_from" id="date-from" class="form-control" value="{{ date_from|default('') }}">
             </div>
+            <div class="col-md-2" id="date-to-wrap" style="display: none;">
+                <label class="form-label">To date</label>
+                <input type="date" name="date_to" id="date-to" class="form-control" value="{{ date_to|default('') }}">
+            </div>
+            {% endif %}
             <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" id="search-input" class="form-control" placeholder="Search by user email, service..." value="{{ search_query|default('') }}">
+            </div>
+            {% if payment_type == 'successful' %}
+            <div class="col-md-2">
+                <label class="form-label">Traffic source</label>
+                <input type="text" name="source" id="source-input" class="form-control" placeholder="e.g. Agent name" value="{{ source_filter|default('') }}" title="Filter by traffic/enquiry source (e.g. Enquiry Source name)">
+            </div>
+            {% endif %}
+            <div class="col-md-2">
                 <label class="form-label">&nbsp;</label>
                 <div class="d-flex gap-2">
                     <button type="button" id="filter-btn" class="btn btn-primary w-100">
@@ -57,6 +76,15 @@
                 </div>
             </div>
         </form>
+        {% if payment_type == 'successful' %}
+        <div class="row mt-2">
+            <div class="col">
+                <a href="#" id="excel-download-link" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel"></i> Download Excel
+                </a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Payments Table -->
@@ -75,11 +103,14 @@
                         <tr>
                             <th>#</th>
                             <th>User</th>
-                            <th>Event Name</th>
+                            <th>Invoice No</th>
+                            <th>Transaction ID</th>
+                            <th>Student ID</th>
+                            <th>Service</th>
                             <th>Amount</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Source</th>
+                            <th>Traffic source</th>
                             <th>Gateway</th>
                             <th>Order ID</th>
                         </tr>
@@ -165,24 +196,53 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     let currentPeriod = '{{ time_period|default("30days") }}';
     let currentSearch = '{{ search_query|default("") }}';
+    let currentSource = '{{ source_filter|default("") }}';
+    let currentDateFrom = '{{ date_from|default("") }}';
+    let currentDateTo = '{{ date_to|default("") }}';
+    
+    function toggleCustomDateInputs() {
+        const fromWrap = document.getElementById('date-from-wrap');
+        const toWrap = document.getElementById('date-to-wrap');
+        if (!fromWrap || !toWrap) return;
+        const isCustom = document.getElementById('period-select').value === 'custom';
+        fromWrap.style.display = isCustom ? 'block' : 'none';
+        toWrap.style.display = isCustom ? 'block' : 'none';
+    }
+    toggleCustomDateInputs();
     
     // Load initial data
     loadPayments();
+    updateExcelLink();
     
     // Filter button click
     document.getElementById('filter-btn').addEventListener('click', function() {
         currentPage = 1;
         currentPeriod = document.getElementById('period-select').value;
         currentSearch = document.getElementById('search-input').value;
+        const srcEl = document.getElementById('source-input');
+        currentSource = (srcEl && srcEl.value) ? srcEl.value.trim() : '';
+        const df = document.getElementById('date-from'), dt = document.getElementById('date-to');
+        currentDateFrom = (df && df.value) || '';
+        currentDateTo = (dt && dt.value) || '';
         loadPayments();
+        updateExcelLink();
     });
     
     // Clear button click
     document.getElementById('clear-btn').addEventListener('click', function() {
         document.getElementById('search-input').value = '';
+        const srcEl = document.getElementById('source-input');
+        if (srcEl) srcEl.value = '';
+        const df = document.getElementById('date-from'), dt = document.getElementById('date-to');
+        if (df) df.value = '';
+        if (dt) dt.value = '';
         currentPage = 1;
         currentSearch = '';
+        currentSource = '';
+        currentDateFrom = '';
+        currentDateTo = '';
         loadPayments();
+        updateExcelLink();
     });
     
     // Enter key on search
@@ -197,8 +257,37 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('period-select').addEventListener('change', function() {
         currentPage = 1;
         currentPeriod = this.value;
+        toggleCustomDateInputs();
+        if (this.value === 'custom') {
+            const df = document.getElementById('date-from'), dt = document.getElementById('date-to');
+            currentDateFrom = (df && df.value) || '';
+            currentDateTo = (dt && dt.value) || '';
+        }
         loadPayments();
+        updateExcelLink();
     });
+    
+    function buildQueryParams() {
+        const params = new URLSearchParams();
+        const dateFromEl = document.getElementById('date-from');
+        const dateToEl = document.getElementById('date-to');
+        if (currentPeriod === 'custom' && dateFromEl && dateToEl && currentDateFrom && currentDateTo) {
+            params.set('date_from', currentDateFrom);
+            params.set('date_to', currentDateTo);
+        } else {
+            params.set('period', currentPeriod);
+        }
+        if (currentSearch) params.set('search', currentSearch);
+        if (currentSource) params.set('source', currentSource);
+        return params;
+    }
+    
+    function updateExcelLink() {
+        const link = document.getElementById('excel-download-link');
+        if (!link) return;
+        const base = '{{ url("user_analytics:successful_payments_export_excel") }}';
+        link.href = base + '?' + buildQueryParams().toString();
+    }
     
     function loadPayments() {
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -210,11 +299,10 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingIndicator.style.display = 'block';
         tableContainer.style.opacity = '0.5';
         
-        // Build URL
-        let url = apiUrl + '?period=' + currentPeriod + '&page=' + currentPage;
-        if (currentSearch) {
-            url += '&search=' + encodeURIComponent(currentSearch);
-        }
+        // Build URL (same params as Excel + page)
+        const params = buildQueryParams();
+        params.set('page', currentPage);
+        let url = apiUrl + '?' + params.toString();
         
         // Fetch data
         fetch(url, {
@@ -259,10 +347,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             statusBadge = '<span class="badge bg-success">Success</span>';
                         }
                         
+                        const invoiceNo = (payment.invoice_number && payment.invoice_number !== 'N/A') ? payment.invoice_number : '<span class="text-muted">N/A</span>';
+                        const txnId = (payment.transaction_id && payment.transaction_id !== 'N/A') ? '<code>' + payment.transaction_id + '</code>' : '<span class="text-muted">N/A</span>';
+                        const studentId = (payment.student_id !== undefined && payment.student_id !== '' && payment.student_id !== null) ? payment.student_id : '<span class="text-muted">—</span>';
                         const row = `
                             <tr>
                                 <td>${rowNum}</td>
                                 <td>${payment.user_email}</td>
+                                <td>${invoiceNo}</td>
+                                <td>${txnId}</td>
+                                <td>${studentId}</td>
                                 <td>${payment.event_name}</td>
                                 <td><strong>₹${payment.amount.toFixed(2)}</strong></td>
                                 <td>${payment.date}</td>
@@ -277,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="9" class="text-center text-muted py-4">
+                            <td colspan="12" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-2x mb-2" style="opacity: 0.3;"></i>
                                 <p class="mb-0">No payments found for the selected period</p>
                             </td>
@@ -299,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tableContainer.style.opacity = '1';
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-danger py-4">
+                    <td colspan="12" class="text-center text-danger py-4">
                         <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
                         <p>Error loading data. Please try again.</p>
                     </td>

@@ -113,7 +113,12 @@
                         <td class="text-end" title="UserActivity with this source">{{ item.stats.page_views }}</td>
                         <td class="text-end" title="UserJourney (sessions) with this source">{{ item.stats.visit_count }}</td>
                         <td class="text-end">{{ item.stats.registrations }}</td>
-                        <td class="text-end">{{ item.stats.payment_success }}</td>
+                        <td class="text-end">
+                            <span title="Payments in sessions from this link">{{ item.stats.payment_success }}</span>
+                            {% if item.source.name %}
+                            | <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days&amp;source={{ item.source.name|urlencode }}" class="small" title="Payments attributed to this source (Traffic source = {{ item.source.name }})">View ({{ item.stats.payments_attributed }})</a>
+                            {% endif %}
+                        </td>
                         <td class="text-end">{{ item.stats.course_enrolled }}</td>
                         <td class="text-end">{{ item.stats.converted_sessions }}</td>
                         <td>

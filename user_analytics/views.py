@@ -3,11 +3,11 @@ Analytics Dashboard Views for Business Owner, Accounts, and Web Owner.
 Provides comprehensive analytics reports and visualizations.
 """
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Sum, Count, Avg, Q, F
+from django.db.models import Sum, Count, Avg, Q, F, OuterRef, Subquery
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.utils.html import format_html
@@ -21,6 +21,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from django.contrib.contenttypes.models import ContentType
 from user_analytics.models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache, EnquirySource
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
@@ -68,6 +69,26 @@ def get_date_range_from_period(time_period, default_days=30):
         start_date = end_date - timedelta(days=default_days)
     
     return (start_date, end_date)
+
+
+def get_date_range_from_request(request, period_param='period', date_from_param='date_from', date_to_param='date_to'):
+    """
+    Get (start_date, end_date) from request: use custom date_from/date_to if both provided,
+    otherwise use period (e.g. 30days). Returns (start_date, end_date, time_period_used).
+    """
+    date_from_str = request.GET.get(date_from_param, '').strip()
+    date_to_str = request.GET.get(date_to_param, '').strip()
+    time_period = request.GET.get(period_param, '30days')
+    if date_from_str and date_to_str:
+        try:
+            start_date = timezone.make_aware(datetime.strptime(date_from_str, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0))
+            end_date = timezone.make_aware(datetime.strptime(date_to_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59, microsecond=999999))
+            if start_date <= end_date:
+                return (start_date, end_date, 'custom')
+        except ValueError:
+            pass
+    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+    return (start_date, end_date, time_period)
 
 
 def is_superuser_only(user):
@@ -1498,17 +1519,16 @@ def api_dashboard_data(request):
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def successful_payments_detail(request):
-    """Detail page for successful payments with filters"""
+    """Detail page for successful payments with filters (period or custom date range)"""
     # If AJAX request, return JSON data
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
         return successful_payments_api(request)
     
-    time_period = request.GET.get('period', '30days')
     search_query = request.GET.get('search', '')
-    page_number = request.GET.get('page', 1)
-    
-    # Calculate date range
-    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+    source_filter = request.GET.get('source', '').strip()
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    start_date, end_date, time_period = get_date_range_from_request(request)
     
     # Base queryset - Try UserEvent first, fallback to Payment model
     payments = UserEvent.objects.filter(event_type='payment_success')
@@ -1518,21 +1538,19 @@ def successful_payments_detail(request):
             created__lte=end_date
         )
     payments = payments.select_related('user').order_by('-created')
-    
-    # Apply search filter
     if search_query:
         payments = payments.filter(
             Q(user__email__icontains=search_query) |
             Q(event_name__icontains=search_query) |
             Q(metadata__icontains=search_query)
         )
+    if source_filter:
+        payments = payments.filter(metadata__source=source_filter)
     
     # If no UserEvent data, fallback to Payment model (but API will handle the actual data)
-    # For the template, we just need the count
     total_count = payments.count()
     total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
-    # If no UserEvent data, check Payment model for count
     if total_count == 0:
         try:
             from payments.models import Payment
@@ -1550,6 +1568,12 @@ def successful_payments_detail(request):
                     Q(user__name__icontains=search_query) |
                     Q(order_id__icontains=search_query)
                 )
+            if source_filter:
+                latest_act = UserActivity.objects.filter(user_id=OuterRef('user_id')).order_by('-created')
+                payment_query = payment_query.annotate(
+                    _latest_src=Subquery(latest_act.values('utm_source')[:1]),
+                    _latest_enq=Subquery(latest_act.values('enquiry_source__name')[:1])
+                ).filter(Q(_latest_src=source_filter) | Q(_latest_enq=source_filter))
             total_count = payment_query.count()
             total_revenue = payment_query.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         except Exception as e:
@@ -1564,9 +1588,12 @@ def successful_payments_detail(request):
     context = {
         'payments': payments_page,
         'time_period': time_period,
+        'date_from': date_from,
+        'date_to': date_to,
         'start_date': start_date,
         'end_date': end_date,
         'search_query': search_query,
+        'source_filter': source_filter,
         'total_revenue': total_revenue,
         'total_amount': total_revenue,  # For consistency
         'total_count': total_count,
@@ -1581,13 +1608,11 @@ def successful_payments_detail(request):
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def successful_payments_api(request):
-    """API endpoint for successful payments data (AJAX)"""
-    time_period = request.GET.get('period', '30days')
-    search_query = request.GET.get('search', '')
+    """API endpoint for successful payments data (AJAX). Supports period or date_from/date_to, search, source."""
+    search_query = request.GET.get('search', '').strip()
+    source_filter = request.GET.get('source', '').strip()
     page_number = request.GET.get('page', 1)
-    
-    # Calculate date range
-    start_date, end_date = get_date_range_from_period(time_period, default_days=30)
+    start_date, end_date, _ = get_date_range_from_request(request)
     
     # Base queryset - Try UserEvent first, fallback to Payment model
     payments = UserEvent.objects.filter(event_type='payment_success')
@@ -1605,6 +1630,9 @@ def successful_payments_api(request):
             Q(event_name__icontains=search_query) |
             Q(metadata__icontains=search_query)
         )
+    # Filter by traffic/enquiry source (e.g. EnquirySource name so agents can filter)
+    if source_filter:
+        payments = payments.filter(metadata__source=source_filter)
     
     # Check if we have data, if not fallback to Payment model
     use_payment_model = False
@@ -1638,7 +1666,17 @@ def successful_payments_api(request):
                 
                 payment_query = payment_query.filter(search_q)
             
-            payments = payment_query.select_related('user').order_by('-created')
+            # Annotate with user's latest traffic source and enquiry source name (for agent/enquiry filtering)
+            latest_activity = UserActivity.objects.filter(user_id=OuterRef('user_id')).order_by('-created')
+            payment_query = payment_query.annotate(
+                latest_traffic_source=Subquery(latest_activity.values('utm_source')[:1]),
+                latest_enquiry_source_name=Subquery(latest_activity.values('enquiry_source__name')[:1])
+            )
+            if source_filter:
+                payment_query = payment_query.filter(
+                    Q(latest_traffic_source=source_filter) | Q(latest_enquiry_source_name=source_filter)
+                )
+            payments = payment_query.select_related('user', 'invoice').order_by('-created')
             use_payment_model = True
         except Exception as e:
             logger.warning(f"Error fetching Payment model data: {e}")
@@ -1651,6 +1689,20 @@ def successful_payments_api(request):
         payments_page = paginator.page(1)
     except EmptyPage:
         payments_page = paginator.page(paginator.num_pages)
+    
+    # Build invoice map for UserEvent path (payment_id -> Invoice)
+    invoice_map = {}
+    ct_payment = None
+    if not use_payment_model:
+        try:
+            from invoices.models import Invoice
+            ct_payment = ContentType.objects.get_for_model(Payment)
+            payment_ids = [p.object_id for p in payments_page if p.content_type_id == ct_payment.id and p.object_id]
+            if payment_ids:
+                for inv in Invoice.objects.filter(payment_id__in=payment_ids):
+                    invoice_map[inv.payment_id] = inv
+        except Exception as e:
+            logger.warning(f"Error fetching invoices for UserEvents: {e}")
     
     # Calculate totals
     if use_payment_model:
@@ -1674,27 +1726,38 @@ def successful_payments_api(request):
             if hasattr(choices, 'GatewayChoices') and payment.gateway:
                 gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, f'Gateway {payment.gateway}')
             
+            inv = getattr(payment, 'invoice', None)
+            # Enquiry source name (e.g. agent) takes precedence, then utm_source, then Direct
+            source = (getattr(payment, 'latest_enquiry_source_name', None) or '').strip() or (getattr(payment, 'latest_traffic_source', None) or '').strip() or 'Direct'
             payments_data.append({
                 'id': payment.id,
                 'user_email': payment.user.email if payment.user else 'Anonymous',
+                'invoice_number': getattr(inv, 'invoice_number', None) or 'N/A',
+                'transaction_id': getattr(inv, 'transaction_id', None) or payment.gateway_payment_id or payment.gateway_order_id or 'N/A',
+                'student_id': payment.user_id or '',
                 'event_name': obj_type_name,
                 'amount': float(payment.amount or 0),
                 'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
-                'source': 'Unknown',  # Payment model doesn't have source
+                'source': source,
                 'gateway': gateway_name,
                 'order_id': payment.gateway_order_id or 'N/A',
             })
         else:
             # UserEvent model
+            inv = invoice_map.get(payment.object_id) if (ct_payment and payment.content_type_id == ct_payment.id and payment.object_id) else None
+            meta = payment.metadata or {}
             payments_data.append({
                 'id': payment.id,
                 'user_email': payment.user.email if payment.user else 'Anonymous',
+                'invoice_number': inv.invoice_number if inv else 'N/A',
+                'transaction_id': inv.transaction_id if inv else meta.get('gateway_payment_id') or meta.get('order_id') or 'N/A',
+                'student_id': payment.user_id or '',
                 'event_name': payment.event_name or 'N/A',
                 'amount': float(payment.event_value or 0),
                 'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
-                'source': payment.metadata.get('source', 'Unknown') if payment.metadata else 'Unknown',
-                'gateway': payment.metadata.get('gateway', 'N/A') if payment.metadata else 'N/A',
-                'order_id': payment.metadata.get('order_id', 'N/A') if payment.metadata else 'N/A',
+                'source': (meta.get('source') or '').strip() or 'Direct',  # Traffic/acquisition source
+                'gateway': meta.get('gateway', 'N/A'),
+                'order_id': meta.get('order_id', 'N/A'),
             })
     
     return JsonResponse({
@@ -1713,6 +1776,123 @@ def successful_payments_api(request):
             'total_revenue': float(total_revenue),
         }
     })
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def successful_payments_export_excel(request):
+    """Export successful payments to Excel with same filters (period or date_from/date_to, search)."""
+    try:
+        import io
+        import openpyxl
+        from openpyxl.styles import Font
+    except ImportError:
+        return HttpResponse('Excel export requires openpyxl. pip install openpyxl', status=500)
+    start_date, end_date, _ = get_date_range_from_request(request)
+    search_query = request.GET.get('search', '').strip()
+    source_filter = request.GET.get('source', '').strip()
+    payments = UserEvent.objects.filter(event_type='payment_success')
+    if start_date is not None:
+        payments = payments.filter(created__gte=start_date, created__lte=end_date)
+    payments = payments.select_related('user').order_by('-created')
+    if search_query:
+        payments = payments.filter(
+            Q(user__email__icontains=search_query) |
+            Q(event_name__icontains=search_query) |
+            Q(metadata__icontains=search_query)
+        )
+    if source_filter:
+        payments = payments.filter(metadata__source=source_filter)
+    use_payment_model = False
+    if payments.count() == 0:
+        try:
+            payment_query = Payment.objects.filter(is_success=choices.YesNoChoices.YES)
+            if start_date is not None:
+                payment_query = payment_query.filter(
+                    created__gte=start_date,
+                    created__lte=end_date
+                )
+            if search_query:
+                search_q = Q(user__email__icontains=search_query) | Q(user__name__icontains=search_query) | Q(gateway_order_id__icontains=search_query) | Q(gateway_receipt__icontains=search_query)
+                if hasattr(choices, 'PaymentObjectType'):
+                    for choice_value, choice_name in choices.PaymentObjectType.CHOICES:
+                        if search_query.lower() in choice_name.lower() or choice_name.lower() in search_query.lower():
+                            search_q |= Q(obj_type=choice_value)
+                            break
+                payment_query = payment_query.filter(search_q)
+            latest_activity_excel = UserActivity.objects.filter(user_id=OuterRef('user_id')).order_by('-created')
+            payment_query = payment_query.annotate(
+                latest_traffic_source=Subquery(latest_activity_excel.values('utm_source')[:1]),
+                latest_enquiry_source_name=Subquery(latest_activity_excel.values('enquiry_source__name')[:1])
+            )
+            if source_filter:
+                payment_query = payment_query.filter(
+                    Q(latest_traffic_source=source_filter) | Q(latest_enquiry_source_name=source_filter)
+                )
+            payments = payment_query.select_related('user', 'invoice').order_by('-created')
+            use_payment_model = True
+        except Exception as e:
+            logger.warning(f"Excel export Payment fallback error: {e}")
+    # For UserEvent path, build invoice map (payment_id -> Invoice)
+    excel_invoice_map = {}
+    if not use_payment_model:
+        try:
+            from invoices.models import Invoice
+            ct = ContentType.objects.get_for_model(Payment)
+            payment_ids = [p.object_id for p in payments if p.content_type_id == ct.id and p.object_id]
+            if payment_ids:
+                for inv in Invoice.objects.filter(payment_id__in=payment_ids):
+                    excel_invoice_map[inv.payment_id] = inv
+        except Exception as e:
+            logger.warning(f"Excel export invoices for UserEvents: {e}")
+    ct_excel = ContentType.objects.get_for_model(Payment) if not use_payment_model else None
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Successful Payments'
+    headers = ['#', 'User', 'Invoice No', 'Transaction ID', 'Student ID', 'Service', 'Amount (₹)', 'Date', 'Status', 'Traffic source', 'Gateway', 'Order ID']
+    for col, h in enumerate(headers, 1):
+        ws.cell(row=1, column=col, value=h)
+        ws.cell(row=1, column=col).font = Font(bold=True)
+    for row_idx, payment in enumerate(payments, 2):
+        if use_payment_model:
+            inv = getattr(payment, 'invoice', None)
+            obj_type_name = dict(choices.PaymentObjectType.CHOICES).get(payment.obj_type, f'Type {payment.obj_type}') if hasattr(choices, 'PaymentObjectType') and payment.obj_type else 'Payment'
+            gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, str(payment.gateway)) if hasattr(choices, 'GatewayChoices') and payment.gateway else 'N/A'
+            source = (getattr(payment, 'latest_enquiry_source_name', None) or '').strip() or (getattr(payment, 'latest_traffic_source', None) or '').strip() or 'Direct'
+            ws.cell(row=row_idx, column=1, value=row_idx - 1)
+            ws.cell(row=row_idx, column=2, value=payment.user.email if payment.user else 'Anonymous')
+            ws.cell(row=row_idx, column=3, value=getattr(inv, 'invoice_number', None) or 'N/A')
+            ws.cell(row=row_idx, column=4, value=getattr(inv, 'transaction_id', None) or payment.gateway_payment_id or payment.gateway_order_id or 'N/A')
+            ws.cell(row=row_idx, column=5, value=payment.user_id or '')
+            ws.cell(row=row_idx, column=6, value=obj_type_name)
+            ws.cell(row=row_idx, column=7, value=float(payment.amount or 0))
+            ws.cell(row=row_idx, column=8, value=payment.created.strftime('%Y-%m-%d %H:%M') if payment.created else 'N/A')
+            ws.cell(row=row_idx, column=9, value='Success')
+            ws.cell(row=row_idx, column=10, value=source)
+            ws.cell(row=row_idx, column=11, value=gateway_name)
+            ws.cell(row=row_idx, column=12, value=payment.gateway_order_id or 'N/A')
+        else:
+            inv = excel_invoice_map.get(payment.object_id) if (ct_excel and payment.content_type_id == ct_excel.id and payment.object_id) else None
+            meta = payment.metadata or {}
+            ws.cell(row=row_idx, column=1, value=row_idx - 1)
+            ws.cell(row=row_idx, column=2, value=payment.user.email if payment.user else 'Anonymous')
+            ws.cell(row=row_idx, column=3, value=inv.invoice_number if inv else 'N/A')
+            ws.cell(row=row_idx, column=4, value=inv.transaction_id if inv else meta.get('gateway_payment_id') or meta.get('order_id') or 'N/A')
+            ws.cell(row=row_idx, column=5, value=payment.user_id or '')
+            ws.cell(row=row_idx, column=6, value=payment.event_name or 'N/A')
+            ws.cell(row=row_idx, column=7, value=float(payment.event_value or 0))
+            ws.cell(row=row_idx, column=8, value=payment.created.strftime('%Y-%m-%d %H:%M') if payment.created else 'N/A')
+            ws.cell(row=row_idx, column=9, value='Success')
+            ws.cell(row=row_idx, column=10, value=(meta.get('source') or '').strip() or 'Direct')
+            ws.cell(row=row_idx, column=11, value=meta.get('gateway', 'N/A'))
+            ws.cell(row=row_idx, column=12, value=meta.get('order_id', 'N/A'))
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    response = HttpResponse(buf.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    filename = 'successful_payments_export.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @login_required
@@ -2658,12 +2838,18 @@ def _enquiry_source_stats(source):
     sessions = UserJourney.objects.filter(enquiry_source=source)
     visit_count = sessions.count()
     session_ids = list(sessions.values_list('session_id', flat=True))
+    # Payments attributed to this source (Traffic source = EnquirySource name on successful payments)
+    payments_attributed = UserEvent.objects.filter(
+        event_type='payment_success',
+        metadata__source=source.name
+    ).count()
     if not session_ids:
         return {
             'page_views': page_views,
             'visit_count': 0,
             'registrations': 0,
             'payment_success': 0,
+            'payments_attributed': payments_attributed,
             'course_enrolled': 0,
             'converted_sessions': 0,
         }
@@ -2679,6 +2865,7 @@ def _enquiry_source_stats(source):
         'visit_count': visit_count,
         'registrations': reg,
         'payment_success': pay,
+        'payments_attributed': payments_attributed,
         'course_enrolled': course,
         'converted_sessions': converted,
     }

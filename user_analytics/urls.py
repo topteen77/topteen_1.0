@@ -49,6 +49,7 @@ urlpatterns = [
     
     # Detail Pages with Filters
     path('business/payments/successful/', views.successful_payments_detail, name='successful_payments_detail'),
+    path('business/payments/successful/export-excel/', views.successful_payments_export_excel, name='successful_payments_export_excel'),
     path('business/payments/failed/', views.failed_payments_detail, name='failed_payments_detail'),
     path('business/payments/pending/', views.pending_payments_detail, name='pending_payments_detail'),
     path('business/enrollments/', views.enrollments_detail, name='enrollments_detail'),

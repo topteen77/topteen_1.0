@@ -115,15 +115,26 @@ def track_payment_event(sender, instance, created, **kwargs):
             except Exception:
                 pass
         
-        # Get session_id from user's recent activity
+        # Get session_id and traffic acquisition source from user's recent activity
         session_id = None
         try:
             from user_analytics.models import UserActivity
-            recent_activity = UserActivity.objects.filter(user=instance.user).order_by('-created').first()
+            recent_activity = UserActivity.objects.filter(user=instance.user).select_related('enquiry_source').order_by('-created').first()
             if recent_activity:
                 session_id = recent_activity.session_id
+                # Enquiry source (e.g. agent link ?ref=TOKEN) takes precedence so we can filter by agent on payments
+                if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
+                    metadata['source'] = recent_activity.enquiry_source.name
+                else:
+                    metadata['source'] = (
+                        (recent_activity.utm_source and recent_activity.utm_source.strip()) or
+                        (recent_activity.traffic_source_category and recent_activity.traffic_source_category.strip()) or
+                        'Direct'
+                    )
+            else:
+                metadata['source'] = 'Direct'
         except Exception:
-            pass
+            metadata['source'] = 'Direct'
         
         track_user_event_async.delay(
             event_type=event_type,
@@ -147,13 +158,22 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
     Also tracks test started event when payment is successful.
     """
     try:
-        # Get session_id from user's recent activity
+        # Get session_id and traffic acquisition source from user's recent activity
         session_id = None
+        source = 'Direct'
         try:
             from user_analytics.models import UserActivity
-            recent_activity = UserActivity.objects.filter(user=instance.user).order_by('-created').first()
+            recent_activity = UserActivity.objects.filter(user=instance.user).select_related('enquiry_source').order_by('-created').first()
             if recent_activity:
                 session_id = recent_activity.session_id
+                if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
+                    source = recent_activity.enquiry_source.name
+                else:
+                    source = (
+                        (recent_activity.utm_source and recent_activity.utm_source.strip()) or
+                        (recent_activity.traffic_source_category and recent_activity.traffic_source_category.strip()) or
+                        'Direct'
+                    )
         except Exception:
             pass
         
@@ -169,7 +189,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         
         content_type = ContentType.objects.get_for_model(instance)
         
-        # Track payment event
+        # Track payment event (include traffic source for reporting)
         track_user_event_async.delay(
             event_type=event_type,
             event_name=event_name,
@@ -181,6 +201,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
             metadata={
                 'test_type': instance.get_test_type_display(),
                 'test_name': instance.get_test_name(),
+                'source': source,
             }
         )
         
