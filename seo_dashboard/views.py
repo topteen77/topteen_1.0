@@ -201,6 +201,15 @@ class PageListView(LoginRequiredMixin, TemplateView):
         ctx["other_pages"] = other_pages
         ctx["other_seo_completed"] = sum(1 for p in other_pages if p["has_seo"])
         ctx["other_seo_pending"] = sum(1 for p in other_pages if not p["has_seo"])
+        # Detect duplicate PageSEO (same url_key multiple times) for "Remove duplicates" action
+        from django.db.models import Count
+        dupes = list(
+            PageSEO.objects.values("url_key")
+            .annotate(cnt=Count("id"))
+            .filter(cnt__gt=1)
+        )
+        ctx["has_duplicate_seo"] = len(dupes) > 0
+        ctx["duplicate_seo_count"] = sum(d["cnt"] - 1 for d in dupes)
         return ctx
 
 
@@ -448,11 +457,14 @@ class AddSEOByURLView(LoginRequiredMixin, TemplateView):
         if error:
             messages.error(request, error)
             return render(request, self.template_name, {"url_path": raw}, using="django")
-        PageSEO.objects.get_or_create(
+        seo, created = PageSEO.objects.get_or_create(
             url_key=url_key,
             defaults={"title": "", "description": "", "keywords": "", "og_image": ""},
         )
-        messages.success(request, "URL verified. You can now set title, description, and OG image.")
+        if created:
+            messages.success(request, "URL verified. You can now set title, description, and OG image.")
+        else:
+            messages.info(request, "This URL already has an SEO entry. You can edit it below.")
         return redirect(reverse("seo_dashboard:edit_seo", kwargs={"url_key": url_key}))
 
 
@@ -618,6 +630,38 @@ class AISEOGenerateView(LoginRequiredMixin, View):
 
 
 @method_decorator(seo_user_only, name="dispatch")
+class PageSEORemoveDuplicatesView(LoginRequiredMixin, View):
+    """POST: remove duplicate PageSEO entries (keep one per url_key, latest modified). Redirects to page_list."""
+    login_url = reverse_lazy("seo_dashboard:login")
+
+    def post(self, request, *args, **kwargs):
+        if not can_edit_seo(request):
+            from django.contrib import messages
+            messages.error(request, "You do not have permission.")
+            return redirect(reverse("seo_dashboard:page_list"))
+        from django.contrib import messages
+        from django.db.models import Count, Max
+        # Find url_keys that have more than one PageSEO
+        dupes = list(
+            PageSEO.objects.values("url_key")
+            .annotate(cnt=Count("id"), max_modified=Max("modified"))
+            .filter(cnt__gt=1)
+        )
+        deleted = 0
+        for d in dupes:
+            # Keep the one with latest modified; delete others
+            to_keep = PageSEO.objects.filter(url_key=d["url_key"]).order_by("-modified").first()
+            if to_keep:
+                n, _ = PageSEO.objects.filter(url_key=d["url_key"]).exclude(pk=to_keep.pk).delete()
+                deleted += n
+        if deleted:
+            messages.success(request, "Removed {} duplicate SEO entry(ies). One entry per URL kept.".format(deleted))
+        else:
+            messages.info(request, "No duplicate SEO entries found.")
+        return redirect(reverse("seo_dashboard:page_list"))
+
+
+@method_decorator(seo_user_only, name="dispatch")
 class ScannedURLListView(LoginRequiredMixin, TemplateView):
     """List scanned URLs; Scan button adds new/missed URLs; Remove selected with confirmation."""
     template_name = "seo_dashboard/scanned_url_list.html"
@@ -667,6 +711,41 @@ class ScannedURLListView(LoginRequiredMixin, TemplateView):
                 messages.error(request, "Scan failed: {}.".format(str(e)))
             return redirect(reverse("seo_dashboard:scanned_url_list"))
         return redirect(reverse("seo_dashboard:scanned_url_list"))
+
+
+@method_decorator(seo_user_only, name="dispatch")
+class ScannedURLScanAjaxView(LoginRequiredMixin, View):
+    """POST: run site scan and return JSON with added/total/seen/errors. For AJAX so UI can show status then result."""
+    login_url = reverse_lazy("seo_dashboard:login")
+
+    def post(self, request, *args, **kwargs):
+        if not can_edit_seo(request):
+            return JsonResponse({"success": False, "message": "Permission denied."}, status=403)
+        host = (request.get_host() or "").split(":")[0].lower()
+        if host in ("localhost", "127.0.0.1", "0.0.0.0", "") or host.startswith("192.168.") or host.startswith("10."):
+            return JsonResponse({
+                "success": False,
+                "message": "URL scan is not available on local or private networks. Run the scan from production or staging.",
+            }, status=400)
+        from .scanner import run_site_scan
+        try:
+            added, total_found, seen, errs = run_site_scan()
+            if total_found == 0:
+                message = "Scan complete. No open URLs were found. Check that the site is reachable."
+            elif added == 0 and seen > 0:
+                message = "Scan complete. No new URLs added. {} URL(s) already stored (last seen updated).".format(seen)
+            else:
+                message = "Scan complete. Found {} open URL(s). Added {} new; {} already stored.".format(total_found, added, seen)
+            return JsonResponse({
+                "success": True,
+                "added": added,
+                "total": total_found,
+                "seen": seen,
+                "errors": errs[:10],
+                "message": message,
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "message": "Scan failed: {}.".format(str(e))}, status=500)
 
 
 @method_decorator(seo_user_only, name="dispatch")

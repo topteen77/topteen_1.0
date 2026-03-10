@@ -1,6 +1,8 @@
 import time
 from django.shortcuts import redirect, render
 from core.breadcrumbs import get_breadcrumb
+from core.utils import ensure_user_pdf_folder
+from core.utils import ensure_user_pdf_folder
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from .forms import UploadFileForm
@@ -481,6 +483,9 @@ def class10_combined_report(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if user has attempted tests
         if not has_attempted_test(target_user):
@@ -662,6 +667,9 @@ def class10_report_download_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if user has attempted tests
         if not has_attempted_test(target_user):
@@ -996,6 +1004,8 @@ def handle_uploaded_file(file):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test1_intro(request):
+    # Ensure user PDF folder exists before starting test
+    ensure_user_pdf_folder(request.user.id)
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
@@ -1008,7 +1018,8 @@ def test1_intro(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test2_intro(request):
-    
+    # Ensure user PDF folder exists before starting test
+    ensure_user_pdf_folder(request.user.id)
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
@@ -1021,6 +1032,8 @@ def test2_intro(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_intro(request):
+    # Ensure user PDF folder exists before starting test
+    ensure_user_pdf_folder(request.user.id)
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
@@ -2067,22 +2080,27 @@ def download_pdf(request,test_paper):
                 # Restore original SSL context
                 ssl._create_default_https_context = original_ssl_context
             response = HttpResponse(content_type='application/pdf')
+            # Safe filename for Gmail/email usernames (no @, . or other chars that break on some filesystems)
+            raw_name = getattr(request.user, 'name', None) or getattr(request.user, 'email', None) or str(request.user)
+            safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
             # Define the filename based on the test_paper value
             if test_paper == 'test1':
-                filename = f"{user_name}-Personality_Assessment_report.pdf"
+                filename = f"{safe_name}-Personality_Assessment_report.pdf"
             elif test_paper == 'test2':
-                filename = f"{user_name}-Interest_Assessment_report.pdf"
+                filename = f"{safe_name}-Interest_Assessment_report.pdf"
             elif test_paper == 'test3':
-                filename = f"{user_name}-Intelligence_Assessment_report.pdf"
+                filename = f"{safe_name}-Intelligence_Assessment_report.pdf"
             else:
-                filename = f"{user_name}-Final_Assessment_report.pdf"
+                filename = f"{safe_name}-Final_Assessment_report.pdf"
 
-            # return response
-
-            # Create the directory if it doesn't exist
-            user_directory = os.path.join(settings.MEDIA_ROOT, 'users_pdfs',  str(request.user.id))
-            if not os.path.exists(user_directory):
-                os.makedirs(user_directory)
+            # Ensure user PDF folder exists (works for all users including Gmail/Google login)
+            user_directory = ensure_user_pdf_folder(request.user.id)
+            if not user_directory:
+                import traceback
+                print(f"download_pdf: ensure_user_pdf_folder failed for user_id={request.user.id}")
+                traceback.print_exc()
+                messages.error(request, 'Error creating download folder')
+                return redirect('app:app_submit')
 
             # Save the PDF file
             pdf_path = os.path.join(user_directory, filename)
@@ -2092,7 +2110,9 @@ def download_pdf(request,test_paper):
             return redirect('app:app_submit')
             
         except Exception as e:
-            print(f"Error generating PDF: {e}")  # Log the error
+            import traceback
+            print(f"Error generating PDF: {e}")
+            traceback.print_exc()
             messages.error(request, 'Error generating PDF')
             return redirect('app:app_submit')
     else:
@@ -2126,6 +2146,9 @@ def test1_report_html(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download/save)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test1 is completed
         try:
@@ -2225,6 +2248,9 @@ def test2_report_html(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download/save)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test2 is completed
         try:
@@ -2319,6 +2345,9 @@ def test3_report_html(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists (for later download/save)
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test3 is completed
         try:
@@ -2470,6 +2499,9 @@ def test1_report_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test1 is completed
         try:
@@ -2561,9 +2593,11 @@ def test1_report_pdf(request, user_id=None):
         finally:
             ssl._create_default_https_context = original_ssl_context
         
-        # Create response
+        # Create response (safe filename for Gmail/email users)
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        filename = f"{target_user.name if target_user.name else target_user.email}-Personality_Assessment_report.pdf"
+        raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
+        safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+        filename = f"{safe_name}-Personality_Assessment_report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         
         return response
@@ -2591,6 +2625,9 @@ def test2_report_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test2 is completed
         try:
@@ -2707,6 +2744,9 @@ def test3_report_pdf(request, user_id=None):
             target_user = get_object_or_404(User, id=user_id)
         else:
             target_user = request.user
+
+        # Ensure user PDF folder exists
+        ensure_user_pdf_folder(target_user.id)
         
         # Check if test3 is completed
         try:

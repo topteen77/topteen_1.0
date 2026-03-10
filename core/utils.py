@@ -44,6 +44,23 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+
+def ensure_user_pdf_folder(user_id):
+    """
+    Ensure media/users_pdfs/<user_id> folder exists for storing user PDFs
+    (e.g. psychometric reports). Safe to call on every request; creates only if missing.
+    Returns the directory path if successful, None on error.
+    """
+    if user_id is None:
+        return None
+    try:
+        user_pdf_dir = os.path.join(settings.MEDIA_ROOT, 'users_pdfs', str(user_id))
+        if not os.path.exists(user_pdf_dir):
+            os.makedirs(user_pdf_dir, exist_ok=True)
+        return user_pdf_dir
+    except OSError:
+        return None
+
 def sort_colleges(colleges,request):
     return colleges
 
