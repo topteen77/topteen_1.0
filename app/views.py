@@ -250,6 +250,79 @@ def dashboard(request, student_id=None):
         # Save the updated test3_result to the database
         test3_result.save()
 
+        # Display percentages for Psychometric Test Report cards (match dashboard screen)
+        personality_pct = round(float(personality_highest_value)) if personality_highest_value is not None else 0
+        try:
+            total_interest = sum(sorted_test2_result.values()) if sorted_test2_result else 0
+            interest_pct = round(100 * interest_highest_value / total_interest) if total_interest else 0
+        except (TypeError, ZeroDivisionError):
+            interest_pct = 0
+        try:
+            intelligence_pct = round(float(intelligence_highest_value)) if intelligence_highest_value is not None else 0
+            if intelligence_pct > 100:
+                intelligence_pct = min(100, intelligence_pct)
+        except (TypeError, ValueError):
+            intelligence_pct = 0
+
+        # Vocational courses for "Below Average" section: only when student has below-average areas;
+        # cards are dynamic from result; each card links to its actual detail page only.
+        vocational_course_cards = []
+        try:
+            from core.models import VocationalCourse
+            from core import choices
+            # Map intelligence areas (below average) to recommended vocational course names
+            BELOW_AREA_TO_VOCATIONAL_NAMES = {
+                'NUMERICAL': ['Actuarial Science', 'Data Analytics', 'Accounting'],
+                'VERBAL': ['Journalism', 'Content Writing', 'Communication'],
+                'LOGICAL': ['Computer Applications', 'IT', 'Software Development'],
+                'MECHANICAL': ['Aerospace Engineering', 'Automobile Engineering', 'Mechanical Engineering'],
+                'SPATIAL': ['Accessory Designing', 'Fashion Designing', 'Interior Design'],
+                'LANGUAGE': ['Foreign Languages', 'Translation', 'Content Writing'],
+                'CRITICAL': ['Law', 'Research Methodology', 'Critical Thinking'],
+            }
+            recommended_names = []
+            if isinstance(below, list) and below:
+                seen = set()
+                for area in below:
+                    for name in BELOW_AREA_TO_VOCATIONAL_NAMES.get(area, []):
+                        if name not in seen:
+                            seen.add(name)
+                            recommended_names.append(name)
+            # Resolve names to VocationalCourse; only include cards with an actual course (detail link)
+            for name in recommended_names[:6]:
+                course = (
+                    VocationalCourse.objects.filter(
+                        name__iexact=name,
+                        object_status=choices.ObjectStatus.ACTIVE,
+                    ).first()
+                    or VocationalCourse.objects.filter(
+                        name__icontains=name,
+                        object_status=choices.ObjectStatus.ACTIVE,
+                    ).first()
+                )
+                if course:
+                    vocational_course_cards.append({"label": course.name, "course": course})
+        except Exception:
+            vocational_course_cards = []
+
+        # Statistics for template20 dashboard (trophies, points, streak, level)
+        try:
+            from core.dashboard_stats import get_student_dashboard_stats
+            stats = get_student_dashboard_stats(request.user)
+            trophies_unlocked = stats['trophies_unlocked']
+            total_points = stats['total_points']
+            streak_days = stats['streak_days']
+            current_level = stats['current_level']
+            next_level_min_points = stats.get('next_level_min_points')
+            level_progress_percent = stats.get('level_progress_percent', 0)
+        except Exception:
+            trophies_unlocked = 0
+            total_points = 0
+            streak_days = 0
+            current_level = 'Explorer'
+            next_level_min_points = None
+            level_progress_percent = 0
+
         context = {
             'user_profile': user_profile,
             'top_category': top_category,
@@ -260,13 +333,23 @@ def dashboard(request, student_id=None):
             'below': below,
             'avg': avg,
             'above_avg': above_avg,
-            'above_avg_score':above_avg_score,
+            'above_avg_score': above_avg_score,
             'highest_value': personality_highest_value,
             'interest_highest_value': interest_highest_value,
             'intelligence_highest_value': intelligence_highest_value,
+            'personality_pct': personality_pct,
+            'interest_pct': interest_pct,
+            'intelligence_pct': intelligence_pct,
+            'trophies_unlocked': trophies_unlocked,
+            'total_points': total_points,
+            'streak_days': streak_days,
+            'current_level': current_level,
+            'next_level_min_points': next_level_min_points,
+            'level_progress_percent': level_progress_percent,
+            'vocational_course_cards': vocational_course_cards,
         }
 
-        return render(request, 'topteenfrontend/user/app/dashboard.html', context)
+        return render(request, 'template20/psychometric/dashboard.html', context)
 
     except Exception as e:
         # Log the error for debugging purposes (optional)
@@ -1729,6 +1812,10 @@ def app_submit(request):
         'all_test3_subtests_complete': all_subtests_complete,  # Add this for template check
     }
     generate_pdf(request)
+    # When student has finished all tests, show psychometric dashboard
+    if (test_completion.test1_complete and test_completion.test2_complete and
+            test_completion.test3_complete and all_subtests_complete):
+        return redirect(reverse('app:dashboard'))
     return render(request, 'template20/psychometric/test_submit.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
