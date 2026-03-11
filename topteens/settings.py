@@ -31,6 +31,10 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,www.topteen.in,test.topteen.in').split(',')
 
+# Student localStorage payload encryption (for chatbot decryption use same key)
+# Generate a key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+STUDENT_DATA_ENCRYPTION_KEY = config('STUDENT_DATA_ENCRYPTION_KEY', default='')
+
 
 # Application definition
 

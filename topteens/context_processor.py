@@ -15,6 +15,30 @@ from django.db.models import Q, Count, Q as DjangoQ
 from functools import reduce
 from operator import or_
 from django.conf import settings
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _encrypt_student_data(data_dict):
+    """
+    Encrypt student localStorage payload with Fernet (AES-128-CBC + HMAC).
+    Returns base64-encoded ciphertext string, or None if key is missing/invalid.
+    Use the same key and Fernet in your chatbot to decrypt.
+    """
+    key = getattr(settings, 'STUDENT_DATA_ENCRYPTION_KEY', None) or ''
+    key = (key or '').strip()
+    if not key:
+        return None
+    try:
+        from cryptography.fernet import Fernet
+        f = Fernet(key.encode() if isinstance(key, str) else key)
+        payload = json.dumps(data_dict, sort_keys=True).encode('utf-8')
+        return f.encrypt(payload).decode('ascii')
+    except Exception as e:
+        logger.warning("Student data encryption failed: %s", e)
+        return None
 
 
 def _footer_career_clusters():
@@ -134,6 +158,20 @@ def _student_localstorage_data(request):
         return None
 
 
+def _student_localstorage_context(request):
+    """
+    Returns context for student localStorage: encrypted payload when
+    STUDENT_DATA_ENCRYPTION_KEY is set, else plain dict. For students only.
+    """
+    data = _student_localstorage_data(request)
+    if data is None:
+        return {"student_localstorage_enc": None, "student_localstorage": None}
+    enc = _encrypt_student_data(data)
+    if enc:
+        return {"student_localstorage_enc": enc, "student_localstorage": None}
+    return {"student_localstorage_enc": None, "student_localstorage": data}
+
+
 def _should_show_ai_counsellor_bot(request):
     """
     Show floating AI Career Counsellor bot for logged-in students/parents on dashboard-like pages.
@@ -238,8 +276,8 @@ def globals(request):
         # SEO: JSON-LD schema for Organization and WebSite (included on every page)
         "seo_organization": _seo_organization_schema(),
         "seo_website": _seo_website_schema(),
-        # Student-only: data to store in localStorage (student_id, student_class, psychometric attempts)
-        "student_localstorage": _student_localstorage_data(request),
+        # Student-only: encrypted or plain payload for localStorage (see STUDENT_DATA_ENCRYPTION_KEY)
+        **_student_localstorage_context(request),
         # "popular_tag_count":popular_tag_count
     }
     return kwargs
