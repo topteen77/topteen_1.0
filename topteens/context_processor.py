@@ -15,6 +15,30 @@ from django.db.models import Q, Count, Q as DjangoQ
 from functools import reduce
 from operator import or_
 from django.conf import settings
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _encrypt_student_data(data_dict):
+    """
+    Encrypt student localStorage payload with Fernet (AES-128-CBC + HMAC).
+    Returns base64-encoded ciphertext string, or None if key is missing/invalid.
+    Use the same key and Fernet in your chatbot to decrypt.
+    """
+    key = getattr(settings, 'STUDENT_DATA_ENCRYPTION_KEY', None) or ''
+    key = (key or '').strip()
+    if not key:
+        return None
+    try:
+        from cryptography.fernet import Fernet
+        f = Fernet(key.encode() if isinstance(key, str) else key)
+        payload = json.dumps(data_dict, sort_keys=True).encode('utf-8')
+        return f.encrypt(payload).decode('ascii')
+    except Exception as e:
+        logger.warning("Student data encryption failed: %s", e)
+        return None
 
 
 def _footer_career_clusters():
@@ -73,6 +97,79 @@ def _should_show_chatbot(request):
     for prefix in excluded_prefixes:
         if path == prefix or path.startswith(prefix + '/'):
             return False
+
+
+def _student_localstorage_data(request):
+    """
+    For students only: return dict to store in localStorage (student_id, student_class,
+    psychometric_class10_status, psychometric_class12_status as pending/inprocess/completed).
+    Works for institute students, direct signups, and Google/Facebook (OAuth) students.
+    Returns None for non-students.
+    """
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return None
+    if getattr(request.user, 'user_type', None) != choices.UserType.STUDENT:
+        return None
+    try:
+        from app.models import Results
+        from institute.models import StudentManagement
+        from psychometric_tests.models import CandidateTest
+        import re
+        user = request.user
+        student_class = "10"
+        if hasattr(user, 'user_profile') and user.user_profile and getattr(user.user_profile, 'grade', None):
+            student_class = str(user.user_profile.grade).strip() or "10"
+        else:
+            try:
+                sm = StudentManagement.objects.filter(student=user).first()
+                if sm and sm.class_and_section and getattr(sm.class_and_section, 'class_and_section', None):
+                    class_name = sm.class_and_section.class_and_section
+                    nums = re.findall(r'\d+', class_name)
+                    if nums:
+                        n = int(nums[0])
+                        student_class = "12" if n >= 11 else "10"
+            except Exception:
+                pass
+        # Class 10 psychometric (test1, test2, test3): pending / inprocess / completed
+        class10_count = Results.objects.filter(user=user, test_paper__in=['test1', 'test2', 'test3']).count()
+        if class10_count == 0:
+            psychometric_class10_status = "pending"
+        elif class10_count < 3:
+            psychometric_class10_status = "inprocess"
+        else:
+            psychometric_class10_status = "completed"
+        # Class 12 psychometric (stream sorter / paid test): pending / inprocess / completed
+        class12_tests = CandidateTest.objects.filter(central_test_candidate__user=user).order_by('-modified')
+        class12_completed = class12_tests.filter(is_success=choices.YesNoChoices.YES).exists()
+        class12_any = class12_tests.exists()
+        if not class12_any:
+            psychometric_class12_status = "pending"
+        elif class12_completed:
+            psychometric_class12_status = "completed"
+        else:
+            psychometric_class12_status = "inprocess"
+        return {
+            "student_id": user.id,
+            "student_class": student_class,
+            "psychometric_class10_status": psychometric_class10_status,
+            "psychometric_class12_status": psychometric_class12_status,
+        }
+    except Exception:
+        return None
+
+
+def _student_localstorage_context(request):
+    """
+    Returns context for student localStorage: encrypted payload when
+    STUDENT_DATA_ENCRYPTION_KEY is set, else plain dict. For students only.
+    """
+    data = _student_localstorage_data(request)
+    if data is None:
+        return {"student_localstorage_enc": None, "student_localstorage": None}
+    enc = _encrypt_student_data(data)
+    if enc:
+        return {"student_localstorage_enc": enc, "student_localstorage": None}
+    return {"student_localstorage_enc": None, "student_localstorage": data}
 
 
 def _should_show_ai_counsellor_bot(request):
@@ -179,6 +276,8 @@ def globals(request):
         # SEO: JSON-LD schema for Organization and WebSite (included on every page)
         "seo_organization": _seo_organization_schema(),
         "seo_website": _seo_website_schema(),
+        # Student-only: encrypted or plain payload for localStorage (see STUDENT_DATA_ENCRYPTION_KEY)
+        **_student_localstorage_context(request),
         # "popular_tag_count":popular_tag_count
     }
     return kwargs

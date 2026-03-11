@@ -3,6 +3,26 @@
 {% block bodyclass %}logged-in{% endblock %}
 
 {% block additionalhead %}
+{% if student_localstorage_enc or student_localstorage %}
+{% if student_localstorage %}
+<script>window.__studentLocalStoragePayload = {{ student_localstorage | tojson }};</script>
+{% endif %}
+<script>
+(function() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    var enc = {{ (student_localstorage_enc or '') | tojson }};
+    if (enc) {
+      localStorage.setItem('student_data', enc);
+      localStorage.setItem('student_data_encrypted', '1');
+    } else if (window.__studentLocalStoragePayload) {
+      localStorage.setItem('student_data', JSON.stringify(window.__studentLocalStoragePayload));
+      localStorage.setItem('student_data_encrypted', '0');
+    }
+  } catch (e) {}
+})();
+</script>
+{% endif %}
 <style>
   /* CRITICAL: Hide footer immediately for logged-in pages - must be first to prevent any flash */
   body.logged-in .footer-cta,

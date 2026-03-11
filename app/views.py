@@ -475,10 +475,11 @@ def Assessment_pdf_inst_user(request, user_id=None):
 
 
 def _add_no_cache_headers(response):
-    """Set headers so the report is not cached (fixes view result in normal browser mode)."""
+    """Set headers so the report is not cached (fixes view result in normal browser mode after Google login)."""
     response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
+    response['Vary'] = 'Cookie'  # Ensure cached responses (if any) are not shared across users
     return response
 
 
@@ -772,19 +773,26 @@ def class10_report_download_pdf(request, user_id=None):
         template = get_template('template20/app/class10_combined_report_pdf.html')
         html = template.render(context)
         
-        # Configure SSL to disable verification for WeasyPrint
-        original_ssl_context = ssl._create_default_https_context
-        ssl._create_default_https_context = ssl._create_unverified_context
-        
+        # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
         try:
-            # Generate PDF
-            pdf_file = weasyprint.HTML(
-                string=html,
-                base_url=request.build_absolute_uri('/')
-            ).write_pdf()
-        finally:
-            # Restore original SSL context
-            ssl._create_default_https_context = original_ssl_context
+            original_ssl_context = ssl._create_default_https_context
+            ssl._create_default_https_context = ssl._create_unverified_context
+            try:
+                pdf_file = weasyprint.HTML(
+                    string=html,
+                    base_url=request.build_absolute_uri('/')
+                ).write_pdf()
+            finally:
+                ssl._create_default_https_context = original_ssl_context
+        except Exception as pdf_err:
+            logger.exception(
+                "class10_report_download_pdf: PDF generation failed for user_id=%s (WeasyPrint/template): %s",
+                target_user.id, pdf_err
+            )
+            return HttpResponse(
+                'PDF generation failed. Check server logs (WeasyPrint).',
+                status=500
+            )
         
         # Create response
         response = HttpResponse(content_type='application/pdf')
@@ -1482,13 +1490,18 @@ def generate_pdf(request):
                     'Conventional': 0
                 }
             
+                # Pre-allocate 60 slots (question i -> index i-1); use 0 for missing answers
+                num_questions = 60
+                submitted_answer = [0] * num_questions
                 for idx, question in enumerate(questions):
+                    if idx >= num_questions:
+                        break
                     answer = request.POST.get(f"question_{idx + 1}", None)
                     if answer is not None:
                         selected_options[question.id] = answer
-                        submitted_answer.append(int(answer))
+                        submitted_answer[idx] = int(answer)
                         score += 1
-                total_score = sum(submitted_answer) if submitted_answer else 0
+                total_score = sum(submitted_answer)
 
                 variable_indices = {
                 'R': [1, 7, 13, 19, 25, 31, 37, 43, 49, 55],
@@ -1499,7 +1512,7 @@ def generate_pdf(request):
                 'C': [6, 12, 18, 24, 30, 36, 42, 48, 54, 60],
                 }
 
-                # Calculate sums
+                # Calculate sums (submitted_answer[i-1] is answer for question i)
                 sum_R = sum(submitted_answer[i-1] for i in variable_indices['R'])
                 sum_I = sum(submitted_answer[i-1] for i in variable_indices['I'])
                 sum_A = sum(submitted_answer[i-1] for i in variable_indices['A'])
@@ -1548,7 +1561,13 @@ def generate_pdf(request):
             return JsonResponse({'message': 'Invalid request'}, status=400)
         
     except Exception as e:
-       return HttpResponse("No pdf gerenated for the new changes", status=404)
+        logger.exception(
+            "generate_pdf failed (test_paper=%s, user_id=%s): %s",
+            request.POST.get('test_paper') if request.method == 'POST' else None,
+            getattr(request.user, 'id', None),
+            e,
+        )
+        return HttpResponse("Result could not be saved. Please try again.", status=500)
         
  
 def read_json_file(file_path):
@@ -1640,13 +1659,16 @@ def app_submit(request):
         test_paper = request.POST.get('test_paper')
         test_completion = TestCompletion.objects.get(user=request.user)
 
-        # Update test completion status based on the test_paper value
+        # For test1, save result first via generate_pdf; only then mark complete (so "View result" always finds data)
         if test_paper == 'test1':
+            error_resp = generate_pdf(request)
+            if error_resp is not None:
+                return error_resp
             test_completion.test1_complete = True
             test_completion.save()
-        elif test_paper == 'test2':            
+        elif test_paper == 'test2':
             test_completion.test2_complete = True
-            test_completion.save()         
+            test_completion.save()
         elif test_paper == 'test3':
             # Check if all subtests are completed before marking test3 as complete
             all_subtests_complete = (
@@ -2179,13 +2201,14 @@ def test1_report_html(request, user_id=None):
         try:
             test1_result = Results.objects.get(user=target_user, test_paper='test1')
         except Results.DoesNotExist:
-            return render(request, 'template20/app/test1_report.html', {
+            resp = render(request, 'template20/app/test1_report.html', {
                 'error': 'Please complete the Personality Assessment test first.',
                 'no_results': True,
                 'user': target_user,
                 'user_ID': target_user.id if target_user else None,
                 'viewing_as_admin': False
             })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2246,20 +2269,22 @@ def test1_report_html(request, user_id=None):
             'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
         
-        return render(request, 'template20/app/test1_report.html', context)
+        resp = render(request, 'template20/app/test1_report.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in test1_report_html: {str(e)}")
         print(trace)
-        return render(request, 'template20/app/test1_report.html', {
+        resp = render(request, 'template20/app/test1_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
             'user': request.user,
             'user_ID': request.user.id if request.user.is_authenticated else None,
             'viewing_as_admin': False
         })
+        return _add_no_cache_headers(resp)
 
 
 @login_required(login_url=reverse_lazy('users:login'))
@@ -2281,13 +2306,14 @@ def test2_report_html(request, user_id=None):
         try:
             test2_result = Results.objects.get(user=target_user, test_paper='test2')
         except Results.DoesNotExist:
-            return render(request, 'template20/app/test2_report.html', {
+            resp = render(request, 'template20/app/test2_report.html', {
                 'error': 'Please complete the Career Interest Assessment test first.',
                 'no_results': True,
                 'user': target_user,
                 'user_ID': target_user.id if target_user else None,
                 'viewing_as_admin': False
             })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2343,20 +2369,22 @@ def test2_report_html(request, user_id=None):
             'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
         
-        return render(request, 'template20/app/test2_report.html', context)
+        resp = render(request, 'template20/app/test2_report.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in test2_report_html: {str(e)}")
         print(trace)
-        return render(request, 'template20/app/test2_report.html', {
+        resp = render(request, 'template20/app/test2_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
             'user': request.user,
             'user_ID': request.user.id if request.user.is_authenticated else None,
             'viewing_as_admin': False
         })
+        return _add_no_cache_headers(resp)
 
 
 @login_required(login_url=reverse_lazy('users:login'))
@@ -2378,13 +2406,14 @@ def test3_report_html(request, user_id=None):
         try:
             test3_result = Results.objects.get(user=target_user, test_paper='test3')
         except Results.DoesNotExist:
-            return render(request, 'template20/app/test3_report.html', {
+            resp = render(request, 'template20/app/test3_report.html', {
                 'error': 'Please complete the Intelligence Assessment test first.',
                 'no_results': True,
                 'user': target_user,
                 'user_ID': target_user.id if target_user else None,
                 'viewing_as_admin': False
             })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2444,20 +2473,22 @@ def test3_report_html(request, user_id=None):
             'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
         
-        return render(request, 'template20/app/test3_report.html', context)
+        resp = render(request, 'template20/app/test3_report.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in test3_report_html: {str(e)}")
         print(trace)
-        return render(request, 'template20/app/test3_report.html', {
+        resp = render(request, 'template20/app/test3_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
             'user': request.user,
             'user_ID': request.user.id if request.user.is_authenticated else None,
             'viewing_as_admin': False
         })
+        return _add_no_cache_headers(resp)
 
 
 def _resolve_static_urls_to_local_paths(html_content, base_url):
