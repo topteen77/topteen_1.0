@@ -1490,13 +1490,18 @@ def generate_pdf(request):
                     'Conventional': 0
                 }
             
+                # Pre-allocate 60 slots (question i -> index i-1); use 0 for missing answers
+                num_questions = 60
+                submitted_answer = [0] * num_questions
                 for idx, question in enumerate(questions):
+                    if idx >= num_questions:
+                        break
                     answer = request.POST.get(f"question_{idx + 1}", None)
                     if answer is not None:
                         selected_options[question.id] = answer
-                        submitted_answer.append(int(answer))
+                        submitted_answer[idx] = int(answer)
                         score += 1
-                total_score = sum(submitted_answer) if submitted_answer else 0
+                total_score = sum(submitted_answer)
 
                 variable_indices = {
                 'R': [1, 7, 13, 19, 25, 31, 37, 43, 49, 55],
@@ -1507,7 +1512,7 @@ def generate_pdf(request):
                 'C': [6, 12, 18, 24, 30, 36, 42, 48, 54, 60],
                 }
 
-                # Calculate sums
+                # Calculate sums (submitted_answer[i-1] is answer for question i)
                 sum_R = sum(submitted_answer[i-1] for i in variable_indices['R'])
                 sum_I = sum(submitted_answer[i-1] for i in variable_indices['I'])
                 sum_A = sum(submitted_answer[i-1] for i in variable_indices['A'])
