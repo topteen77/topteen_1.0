@@ -206,6 +206,36 @@ body.logged-in.test-view-page {
     div#cb-fab-wrap {
     display: none;
 }
+
+.st-m-icon.mb-2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .st-m-icon.mb-2 p {
+  margin-bottom: 0px;
+}
+
+.test-stats-box .stat-label {
+  margin-bottom: 0px;
+}
+
+.test-stats-box {
+  padding: 4px;
+  text-align: center;
+  position: sticky;
+  top: 20px;
+  z-index: 222;
+}
+
+.test-actions {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 13px 9px;
+}
+
   }
 </style>
 {% with mode='css', page_type='test' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
@@ -290,32 +320,34 @@ body.logged-in.test-view-page {
         </div>
 
         <!-- Mobile Test Stats -->
-        <div class="d-lg-none mb-4">
-          <div class="test-stats-box">
+    
+          <div class="test-stats-box d-lg-none mb-4">
             <div class="row g-3">
               <div class="col-6">
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-time fs-32 text-purple'></i>
+                  <p class="stat-value" id="totalTimeMobile">00:00</p>
                 </div>
-                <p class="stat-value" id="totalTimeMobile">00:00</p>
+               
                 <p class="stat-label">Total Time</p>
               </div>
               <div class="col-6">
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-list-check fs-32 text-purple'></i>
+                  <p class="stat-value" id="questionProgressMobile">1/{{ questions.count() }}</p>
                 </div>
-                <p class="stat-value" id="questionProgressMobile">1/{{ questions.count() }}</p>
+               
                 <p class="stat-label">Question</p>
               </div>
             </div>
           </div>
-        </div>
+    
 
         <h2 class="fs-24 fw-semibold mb-3">Holland Code Career Quiz</h2>
         
         <div class="alert alert-info d-flex align-items-center mb-4">
           <i class='bx bx-info-circle me-2 fs-20'></i>
-          <div class="fs-14">Select the most effective option from the choices provided based on the given statement</div>
+          <div class="fs-14 lh-sm">Select the most effective option from the choices provided based on the given statement</div>
         </div>
 
         <form id="multiStepForm" method="post" action="{{ url('app:app_submit') }}">

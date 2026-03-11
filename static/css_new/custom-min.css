@@ -15708,3 +15708,146 @@ a.list-group-item .bx {
 }
 
 
+
+
+/**** report Changes ****/
+
+.cat-list {
+	border-radius: 0 !important;
+	background: #efedff !important;
+	padding: 4px 28px !important;
+}
+
+
+.cat-box.cat-one-box ul {
+  position: relative !important;
+  padding-left: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+.cat-box.cat-one-box ul li {
+  line-height: 20px !important;
+  font-size: 15px !important;
+  margin-bottom: 12px !important;
+}
+
+
+.cat-box.cat-one-box ul li::before {
+  top: 2px !important;
+  width: 18px !important;
+}
+
+
+
+.cat-box.cat-one-box ul li {
+  list-style: none !important;
+  position: relative !important;
+  padding-left: 24px !important;
+}
+
+.cat-box.cat-one-box ul li::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 3px !important;
+  width: 18px !important;
+  height: 17px !important;
+  background-image: url('../images/small-blue-tick.png') !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+
+
+.chapterPage {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.box-i.onebox {
+	background: #e5ebff !important;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: center !important;
+}
+
+.cat-box.cat-one-box {
+  border-radius: 15px !important;
+  overflow: hidden;
+}
+
+.cat-head h4 {
+	font-size: 21px !important;
+	text-align: center;
+	width: 100% !important;
+}
+
+
+@media (max-width: 768px) {
+
+.top-layout {
+  margin-top: 0 !important;
+}
+
+.db-header h1 {
+	font-size: 13pt !important;
+	font-weight: 600 !important;
+}
+
+
+.ris-box img {
+	width: 100% !important;
+}
+
+.chapterPage {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.chapterPage tbody tr td:first-child {
+	width: auto !important;
+}
+
+.graph img {
+  width: 100% !important;
+}
+
+.thr-d-box {
+	display: grid !important;
+	grid-template-columns: repeat(2,1fr);
+}
+
+.threebox-col {
+	display: inline-block;
+	margin: 0px !important;
+}
+
+.box-i.onebox {
+	width: 94% !important;
+	margin-top: 12px;
+}
+
+.cat-list ul {
+	column-count: 1 !important;
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**** report Changes ****/
+
+
+
+
