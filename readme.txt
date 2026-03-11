@@ -603,3 +603,5 @@ Django Admin → user_analytics → User Activity:
   • Filter "URL type": "Local (localhost, 127.0.0.1, test)" / "Production / other (topteen.in)" / "No URL stored (old records)".
   • Filter to e.g. Local, select rows, Action → Delete to clean test data. Or set ENABLE_USER_ANALYTICS_TRACKING=False, then clean, then set back to True.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
+
+.
