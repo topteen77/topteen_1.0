@@ -3,16 +3,21 @@
 {% block bodyclass %}logged-in{% endblock %}
 
 {% block additionalhead %}
+{% if student_localstorage_enc or student_localstorage %}
 {% if student_localstorage %}
+<script>window.__studentLocalStoragePayload = {{ student_localstorage | tojson }};</script>
+{% endif %}
 <script>
 (function() {
   try {
-    var d = {{ student_localstorage | tojson }};
-    if (d && typeof localStorage !== 'undefined') {
-      localStorage.setItem('student_id', String(d.student_id != null ? d.student_id : ''));
-      localStorage.setItem('student_class', String(d.student_class != null ? d.student_class : ''));
-      localStorage.setItem('psychometric_class10_status', String(d.psychometric_class10_status != null ? d.psychometric_class10_status : 'pending'));
-      localStorage.setItem('psychometric_class12_status', String(d.psychometric_class12_status != null ? d.psychometric_class12_status : 'pending'));
+    if (typeof localStorage === 'undefined') return;
+    var enc = {{ (student_localstorage_enc or '') | tojson }};
+    if (enc) {
+      localStorage.setItem('student_data', enc);
+      localStorage.setItem('student_data_encrypted', '1');
+    } else if (window.__studentLocalStoragePayload) {
+      localStorage.setItem('student_data', JSON.stringify(window.__studentLocalStoragePayload));
+      localStorage.setItem('student_data_encrypted', '0');
     }
   } catch (e) {}
 })();

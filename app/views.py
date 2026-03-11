@@ -1556,7 +1556,13 @@ def generate_pdf(request):
             return JsonResponse({'message': 'Invalid request'}, status=400)
         
     except Exception as e:
-       return HttpResponse("No pdf gerenated for the new changes", status=404)
+        logger.exception(
+            "generate_pdf failed (test_paper=%s, user_id=%s): %s",
+            request.POST.get('test_paper') if request.method == 'POST' else None,
+            getattr(request.user, 'id', None),
+            e,
+        )
+        return HttpResponse("Result could not be saved. Please try again.", status=500)
         
  
 def read_json_file(file_path):
@@ -1648,13 +1654,16 @@ def app_submit(request):
         test_paper = request.POST.get('test_paper')
         test_completion = TestCompletion.objects.get(user=request.user)
 
-        # Update test completion status based on the test_paper value
+        # For test1, save result first via generate_pdf; only then mark complete (so "View result" always finds data)
         if test_paper == 'test1':
+            error_resp = generate_pdf(request)
+            if error_resp is not None:
+                return error_resp
             test_completion.test1_complete = True
             test_completion.save()
-        elif test_paper == 'test2':            
+        elif test_paper == 'test2':
             test_completion.test2_complete = True
-            test_completion.save()         
+            test_completion.save()
         elif test_paper == 'test3':
             # Check if all subtests are completed before marking test3 as complete
             all_subtests_complete = (
@@ -2171,10 +2180,7 @@ def test_1(request, test_paper):
 @login_required(login_url=reverse_lazy('users:login'))
 def test1_report_html(request, user_id=None):
     """
-    HTML report view for Test 1 (Personality Assessment).
-    Uses no-cache headers so view-result works after Google login. If the current
-    user has no result but another account with the same email has test1 data,
-    that result is shown (same person, e.g. Google vs email signup).
+    HTML report view for Test 1 (Personality Assessment)
     """
     try:
         # Get the target user
@@ -2186,33 +2192,18 @@ def test1_report_html(request, user_id=None):
         # Ensure user PDF folder exists (for later download/save)
         ensure_user_pdf_folder(target_user.id)
         
-        # Check if test1 is completed for this user
-        test1_result = None
-        result_from_same_email_user = False
+        # Check if test1 is completed
         try:
             test1_result = Results.objects.get(user=target_user, test_paper='test1')
         except Results.DoesNotExist:
-            # Fallback: same person may have completed test with another account (e.g. email vs Google)
-            if target_user.email:
-                alt_user = (
-                    User.objects.filter(email__iexact=target_user.email)
-                    .exclude(pk=target_user.pk)
-                    .filter(results__test_paper='test1')
-                    .first()
-                )
-                if alt_user:
-                    test1_result = Results.objects.get(user=alt_user, test_paper='test1')
-                    target_user = alt_user  # show report for the account that has the result
-                    result_from_same_email_user = True
-            if not test1_result:
-                resp = render(request, 'template20/app/test1_report.html', {
-                    'error': 'Please complete the Personality Assessment test first.',
-                    'no_results': True,
-                    'user': request.user,
-                    'user_ID': request.user.id if request.user else None,
-                    'viewing_as_admin': False
-                })
-                return _add_no_cache_headers(resp)
+            resp = render(request, 'template20/app/test1_report.html', {
+                'error': 'Please complete the Personality Assessment test first.',
+                'no_results': True,
+                'user': target_user,
+                'user_ID': target_user.id if target_user else None,
+                'viewing_as_admin': False
+            })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2270,8 +2261,7 @@ def test1_report_html(request, user_id=None):
             'user_name': target_user.name if target_user.name else target_user.email,
             'user_ID': target_user.id,
             'no_results': False,
-            'viewing_as_admin': user_id is not None and user_id != request.user.id,
-            'result_from_same_email_user': result_from_same_email_user,
+            'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
         
         resp = render(request, 'template20/app/test1_report.html', context)
@@ -2311,13 +2301,14 @@ def test2_report_html(request, user_id=None):
         try:
             test2_result = Results.objects.get(user=target_user, test_paper='test2')
         except Results.DoesNotExist:
-            return render(request, 'template20/app/test2_report.html', {
+            resp = render(request, 'template20/app/test2_report.html', {
                 'error': 'Please complete the Career Interest Assessment test first.',
                 'no_results': True,
                 'user': target_user,
                 'user_ID': target_user.id if target_user else None,
                 'viewing_as_admin': False
             })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2373,20 +2364,22 @@ def test2_report_html(request, user_id=None):
             'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
         
-        return render(request, 'template20/app/test2_report.html', context)
+        resp = render(request, 'template20/app/test2_report.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in test2_report_html: {str(e)}")
         print(trace)
-        return render(request, 'template20/app/test2_report.html', {
+        resp = render(request, 'template20/app/test2_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
             'user': request.user,
             'user_ID': request.user.id if request.user.is_authenticated else None,
             'viewing_as_admin': False
         })
+        return _add_no_cache_headers(resp)
 
 
 @login_required(login_url=reverse_lazy('users:login'))
@@ -2408,13 +2401,14 @@ def test3_report_html(request, user_id=None):
         try:
             test3_result = Results.objects.get(user=target_user, test_paper='test3')
         except Results.DoesNotExist:
-            return render(request, 'template20/app/test3_report.html', {
+            resp = render(request, 'template20/app/test3_report.html', {
                 'error': 'Please complete the Intelligence Assessment test first.',
                 'no_results': True,
                 'user': target_user,
                 'user_ID': target_user.id if target_user else None,
                 'viewing_as_admin': False
             })
+            return _add_no_cache_headers(resp)
         
         # Get user profile
         try:
@@ -2474,20 +2468,22 @@ def test3_report_html(request, user_id=None):
             'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
         
-        return render(request, 'template20/app/test3_report.html', context)
+        resp = render(request, 'template20/app/test3_report.html', context)
+        return _add_no_cache_headers(resp)
         
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
         print(f"Error in test3_report_html: {str(e)}")
         print(trace)
-        return render(request, 'template20/app/test3_report.html', {
+        resp = render(request, 'template20/app/test3_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
             'user': request.user,
             'user_ID': request.user.id if request.user.is_authenticated else None,
             'viewing_as_admin': False
         })
+        return _add_no_cache_headers(resp)
 
 
 def _resolve_static_urls_to_local_paths(html_content, base_url):
