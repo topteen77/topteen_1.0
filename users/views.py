@@ -2656,7 +2656,23 @@ class UserDashboard(TemplateView):
         ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
         # Class 12 students should redirect to post_matric tests dashboard
         ctx['test_buy_url_class12'] = reverse('post_matric:tests')
-        
+
+        # If Stream Sorter and user has completed all three tests, link to psychometric dashboard
+        if ctx.get('test_name') == 'Stream Sorter' and ctx.get('test_dashboard_url'):
+            try:
+                from app.models import TestCompletion
+                tc = TestCompletion.objects.filter(user=profile_user).first()
+                if tc and tc.test1_complete and tc.test2_complete and tc.test3_complete:
+                    all_subtests = (
+                        tc.numerical_complete and tc.verbal_complete and tc.logical_complete
+                        and tc.emotional_complete and tc.machanical_complete
+                        and tc.language_complete and tc.spatial_complete
+                    )
+                    if all_subtests:
+                        ctx['test_dashboard_url'] = reverse('app:dashboard')
+            except Exception:
+                pass
+
         # User's invoices (for dashboard download)
         try:
             from invoices.models import Invoice

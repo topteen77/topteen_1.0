@@ -1,0 +1,275 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Psychometric Dashboard | Top Teen{% endblock %}
+{% block description_content %}Your Stream Sorter psychometric dashboard with test results and statistics.{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+{% block footer_cta %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} psychometric-dashboard-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<style>
+  .psychometric-dashboard-page { padding-top: 60px; }
+  .title-test-info { font-weight: 600; margin-bottom: 29px; font-size: 24px; color: #333333; }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .report-card {
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .report-card-personality { background: rgba(127, 86, 168, 0.15); }
+  .report-card-interest { background: rgba(245, 158, 81, 0.2); }
+  .report-card-intelligence { background: rgba(233, 120, 168, 0.2); }
+  .report-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 10px;
+    max-width: 100%;
+    text-align: center;
+  }
+  .report-badge-personality { background: #5a3d7a; }
+  .report-badge-interest { background: #c97b3d; }
+  .report-badge-intelligence { background: #b83d6d; }
+  .circle-progress {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    border: 4px solid var(--circle-color, #ddd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+  }
+  .stream-card {
+    background: rgba(76, 201, 240, 0.12);
+    border: 1px solid rgba(76, 201, 240, 0.35);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stream-card-icon { width: 40px; height: 40px; flex-shrink: 0; }
+  .view-report-btn {
+    background: #3F37C9;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 0 #2e2899;
+  }
+  .view-report-btn:hover { color: #fff; background: #2e2899; }
+  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
+  .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
+  .vocational-card {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f7f7fa;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .vocational-img-wrap {
+    width: 100%;
+    height: 180px;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .vocational-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-md-8 mt-3 pt-md-10 pt-8">
+  <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
+    <button type="button" class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
+      style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
+      data-bs-toggle="offcanvas" data-bs-target="#mobileProfileDrawer" aria-controls="mobileProfileDrawer" aria-label="Open profile">
+      <i class='bx bxs-user-detail fs-22'></i>
+    </button>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4 d-none d-lg-block">
+      {% include 'template20/user/includes/profile_sidebar.html' %}
+    </div>
+
+    <div class="col-lg-8 col-md-12">
+      {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default('danger') }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Statistics (home layout) -->
+      <div class="mb-4">
+        <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div><i class='bx bx-trophy fs-30 text-warning'></i></div>
+              <div>
+                <p class="fs-18 fw-semibold mb-0">{{ trophies_unlocked|default(0) }}</p>
+                <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div><i class='bx bx-star fs-30 text-primary'></i></div>
+              <div>
+                <p class="fs-18 fw-semibold mb-0">{{ total_points|default(0) }}</p>
+                <p class="text-gray fs-10 mb-0">Total Points</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div><i class='bx bx-fire fs-30 text-warning'></i></div>
+              <div>
+                <p class="fs-18 fw-semibold mb-0">{{ streak_days|default(0) }}</p>
+                <p class="text-gray fs-10 mb-0">{% if (streak_days|default(0)) == 1 %}1 day{% else %}{{ streak_days|default(0) }} days{% endif %}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div><i class='bx bx-medal fs-30 text-success'></i></div>
+              <div>
+                <p class="fs-18 fw-semibold mb-0">{{ current_level|default('Explorer') }}</p>
+                <p class="text-gray fs-10 mb-0">Current Level</p>
+                {% if next_level_min_points is not none and level_progress_percent is not none %}
+                <div class="level-progress-wrap mt-1" style="max-width: 80px;">
+                  <div class="level-progress-bar" style="width: {{ level_progress_percent }}%;"></div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Psychometric Test Report (match screen: three cards with circular %, badges) -->
+      <div class="mb-4">
+        <h2 class="fs-24 fw-semibold mb-3">Psychometric Test Report</h2>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="report-card report-card-personality">
+              <div class="circle-progress" style="--circle-color: #5a3d7a;">{{ personality_pct|default(0) }}%</div>
+              <p class="fs-16 fw-bold mb-0">Personality</p>
+              <span class="report-badge report-badge-personality">{% if top_category %}{{ top_category.fullname|default('—') }}{% else %}—{% endif %}</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="report-card report-card-interest">
+              <div class="circle-progress" style="--circle-color: #c97b3d;">{{ interest_pct|default(0) }}%</div>
+              <p class="fs-16 fw-bold mb-0">Interest</p>
+              <span class="report-badge report-badge-interest">{{ max_length|default('—') }}</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="report-card report-card-intelligence">
+              <div class="circle-progress" style="--circle-color: #b83d6d;">{{ intelligence_pct|default(0) }}%</div>
+              <p class="fs-16 fw-bold mb-0">Intelligence</p>
+              <span class="report-badge report-badge-intelligence">{% if above_avg_score %}{{ above_avg_score }} REASONING{% else %}—{% endif %}</span>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <a href="{{ url('app:class10_combined_report_own') }}" class="btn view-report-btn">View Report</a>
+        </div>
+      </div>
+
+      <!-- Suggested Streams based on Personality (light blue cards with icon) -->
+      {% if streamsubject %}
+      <div class="mb-4">
+        <h3 class="title-test-info fs-18">Suggested Streams based on Personality</h3>
+        <div class="row g-3">
+          {% for stream, subject in streamsubject %}
+          <div class="col-6 col-md-4">
+            <div class="stream-card">
+              <div class="stream-card-icon">
+                <i class='bx bx-search-alt fs-28 text-primary'></i>
+              </div>
+              <div>
+                <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
+                <p class="fs-13 text-gray mb-0">{{ subject }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Vocational Courses for Below Average Students: shown only when result has below-average areas; cards dynamic, each links to its detail page -->
+      {% if vocational_course_cards|default([]) %}
+      <div class="mb-4">
+        <h3 class="title-test-info fs-18">
+          <a href="{{ url('core:vocational_courses') }}" class="text-dark text-decoration-none">Vocational Courses for Below Average Students</a>
+        </h3>
+        <div class="row g-3">
+          {% for card in vocational_course_cards %}
+          <div class="col-md-4">
+            <div class="vocational-card">
+              <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
+                <div class="vocational-img-wrap">
+                  {% if card.course.image %}
+                  <img src="{{ card.course.image.url }}" alt="{{ card.label }}">
+                  {% else %}
+                  <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="{{ card.label }}">
+                  {% endif %}
+                </div>
+                <p class="fs-14 fw-semibold mb-0 p-3">{{ card.label }}</p>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    {% include 'template20/user/includes/profile_sidebar.html' %}
+  </div>
+</div>
+{% endblock %}
