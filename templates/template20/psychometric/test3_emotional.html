@@ -16,6 +16,14 @@
 {{ super() }}
 <style>
 
+body.logged-in.test-view-page {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+
   .question {
     display: none;
   }
@@ -234,9 +242,7 @@
     align-items: center;
   }
   @media (max-width: 767.98px) {
-    .test-view-page {
-      padding-top: 60px;
-    }
+  
     .question-box {
       padding: 20px;
     }
@@ -316,11 +322,63 @@
       display: block;
     }
   }
+
+
+  
+  @media (max-width: 767.98px) {
+    div#cb-fab-wrap {
+    display: none;
+}
+
+
+.st-m-icon.mb-2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .st-m-icon.mb-2 p {
+  margin-bottom: 0px;
+}
+
+.test-stats-box .stat-label {
+  margin-bottom: 0px;
+}
+
+.test-stats-box {
+  padding: 4px;
+  text-align: center;
+  position: sticky;
+  top:7px;
+  z-index: 222;
+}
+
+.test-actions {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 13px 9px;
+  z-index: 999999;
+}
+
+.question-label.mb-2 {
+	width: 100%;
+}
+
+.question-image {
+	width: 100% !important;
+}
+
+
+  }
 </style>
+
+
+
 {% endblock %}
 
 {% block content %}
-<section class="test-view-page pb-5 mt-md-8 mt-3">
+<section class="test-view-page pb-5 mt-md-8 mt-3 w-100">
   <div class="container">
     <div class="row">
       <!-- Left Sidebar (Desktop) -->
@@ -393,7 +451,7 @@
       <!-- Main Content Area -->
       <div class="col-lg-8">
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4">
+        <div class="ps-2 d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3 mt-3">
           <div class="d-flex align-items-center">
             {% if request.user.image %}
             <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
@@ -407,7 +465,7 @@
               <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger">
+          <button type="button" class="btn btn-sm btn-outline-secondary drawerTrigger d-none">
             <i class='bx bx-cog'></i>
           </button>
         </div>
@@ -426,25 +484,27 @@
         {% endif %}
 
         <!-- Mobile Test Stats -->
-        <div class="d-lg-none mb-4">
+        <div class="test-stats-box d-lg-none mb-4">
           <div class="row g-3">
             <div class="col-6">
-              <div class="test-stats-box">
+   
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-time fs-32 text-purple'></i>
+                  <p class="stat-value" id="totalTimeMobile">00:00</p>
                 </div>
-                <p class="stat-value" id="totalTimeMobile">00:00</p>
+             
                 <p class="stat-label">Total Time</p>
-              </div>
+             
             </div>
             <div class="col-6">
-              <div class="test-stats-box">
+             
                 <div class="st-m-icon mb-2">
                   <i class='bx bx-show fs-32 text-purple'></i>
+                  <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
                 </div>
-                <p class="stat-value" id="questionProgressMobile">1/{{ questions|length }}</p>
+              
                 <p class="stat-label">Question<br>Displayed</p>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -453,7 +513,7 @@
         
         <div class="alert alert-info d-flex align-items-center mb-3 fs-13">
           <i class='bx bx-info-circle me-2 fs-18'></i>
-          <div>Select the most appropriate answer from the choices provided based on the given information.</div>
+          <div class="lh-sm">Select the most appropriate answer from the choices provided based on the given information.</div>
         </div>
 
         <form id="multiStepForm" method="post" action="{{ url('app:test3_view') }}">
@@ -547,7 +607,7 @@
               {% endif %}
             </div>
 
-            <div class="d-flex justify-content-center gap-3 my-3">
+            <div class="d-flex justify-content-center gap-3 my-3 test-actions">
               {% if not loop.first %}
               <button type="button" class="btn custom-button blue-button prev-button">Back</button>
               {% endif %}
@@ -588,7 +648,7 @@
 </div>
 
 <!-- Mobile Drawer -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-lg-none" data-direction="translate-y-full">
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-transform duration-500 translate-y-full d-none" data-direction="translate-y-full">
   <div class="drawerContent bg-white w-100 rounded-t-lg absolute bottom-0">
     <div class="p-4 d-flex flex-column gap-3">
       <a href="{{ url('users:logout') }}" class="d-flex justify-content-between align-items-center text-decoration-none text-danger">

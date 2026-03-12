@@ -222,6 +222,7 @@
     margin: 20px 0;
     margin-bottom: 50px;
     width: 100%;
+    padding-bottom: 16px;
   }
   
   .two-box-in {
@@ -260,6 +261,44 @@
   .no-results h3 {
     color: #3F37C9;
     margin-bottom: 20px;
+  }
+
+
+  @media (max-width: 768px) {
+
+    .threebox-col {
+  display: grid !important;
+  justify-content: center;
+}
+
+
+.box-i.onebox p {
+	width: 100% !important;
+}
+
+.box-i.onebox ul li {
+	width: 100% !important;
+}
+
+
+table {
+	width: 100% !important;
+}
+
+.ct-resultbox {
+	width: 100% !important;
+}
+
+.top-layout {
+	text-align: center;
+}
+
+.two-box {
+	width: 100% !important;
+	gap: 14px;
+	padding-bottom: 16px;
+}
+
   }
 </style>
 {% endblock %}
@@ -535,7 +574,7 @@
     </div>
 
     <!-- VERBAL Above Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'VERBAL' in intelligence_data.above_avg %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #2A740E; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
@@ -572,7 +611,7 @@
     </div>
 
     <!-- LOGICAL Above Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'LOGICAL' in intelligence_data.above_avg %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #FFB100; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
@@ -610,7 +649,7 @@
     </div>
 
     <!-- MECHANICAL Above Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'MECHANICAL' in intelligence_data.above_avg %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #DE6E61; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
@@ -647,7 +686,7 @@
     </div>
 
     <!-- SPATIAL Above Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'SPATIAL' in intelligence_data.above_avg %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #057190; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
@@ -684,7 +723,7 @@
     </div>
 
     <!-- LANGUAGE Above Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'LANGUAGE' in intelligence_data.above_avg %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;text-align: center;">
@@ -721,7 +760,7 @@
     </div>
 
     <!-- CRITICAL Above Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'CRITICAL' in intelligence_data.above_avg %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #2720A7; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;text-align: center;">
@@ -804,7 +843,7 @@
     </div>
 
     <!-- VERBAL Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'VERBAL' in intelligence_data.average %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #2A740E; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; text-align: center; border-radius: 10px 10px 0 0;">
@@ -841,7 +880,7 @@
     </div>
 
     <!-- LOGICAL Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'LOGICAL' in intelligence_data.average %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #FFB100; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
@@ -879,7 +918,7 @@
     </div>
 
     <!-- MECHANICAL Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'MECHANICAL' in intelligence_data.average %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #DE6E61; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
@@ -916,7 +955,7 @@
     </div>
 
     <!-- SPATIAL Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'SPATIAL' in intelligence_data.average %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #057190; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
@@ -953,7 +992,7 @@
     </div>
 
     <!-- LANGUAGE Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'LANGUAGE' in intelligence_data.average %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
@@ -990,7 +1029,7 @@
     </div>
 
     <!-- CRITICAL/EMOTIONAL Average -->
-    <div style="width: 900px; float: left; margin: 0 auto; clear: both;">
+    <div class="ct-resultbox" style="width: 900px; float: left; margin: 0 auto; clear: both;">
       {% if 'CRITICAL' in intelligence_data.average or 'EMOTIONAL' in intelligence_data.average %}
       <div class="text-color-top" style="display: flex; justify-content: center;">
         <div class="top-layout" style="background: #2720A7; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;text-align: center;">
