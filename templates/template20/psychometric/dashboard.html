@@ -207,7 +207,7 @@
           </div>
         </div>
         <div class="text-center mt-4">
-          <a href="{{ url('app:class10_combined_report_own') }}" class="btn view-report-btn">View Report</a>
+          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_combined_report', args=[report_user_id]) }}{% else %}{{ url('app:class10_combined_report_own') }}{% endif %}" class="btn view-report-btn">View Report</a>
         </div>
       </div>
 

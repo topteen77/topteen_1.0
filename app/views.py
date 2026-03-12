@@ -347,6 +347,7 @@ def dashboard(request, student_id=None):
             'next_level_min_points': next_level_min_points,
             'level_progress_percent': level_progress_percent,
             'vocational_course_cards': vocational_course_cards,
+            'report_user_id': request.user.id,
         }
 
         return render(request, 'template20/psychometric/dashboard.html', context)
@@ -588,6 +589,7 @@ def class10_combined_report(request, user_id=None):
                 'error': 'No completed test found. Please complete all tests first.',
                 'no_results': True,
                 'user': target_user,
+                'user_id': target_user.id,
                 'breadcrumb': get_breadcrumb([
                     {'text': 'Dashboard', 'url': reverse('app:dashboard')},
                     {'text': 'Combined Report', 'url': ''},
@@ -613,9 +615,14 @@ def class10_combined_report(request, user_id=None):
                 'error': 'Please complete all three tests (Personality, Interest, and Intelligence) to view your combined report.',
                 'no_results': True,
                 'user': target_user,
+                'user_id': target_user.id,
                 'test1_completed': test1_completed,
                 'test2_completed': test2_completed,
-                'test3_completed': test3_completed
+                'test3_completed': test3_completed,
+                'breadcrumb': get_breadcrumb([
+                    {'text': 'Dashboard', 'url': reverse('app:dashboard')},
+                    {'text': 'Combined Report', 'url': ''},
+                ]),
             })
             return _add_no_cache_headers(resp)
         
