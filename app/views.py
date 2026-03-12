@@ -9,6 +9,7 @@ from .forms import UploadFileForm
 from .models import Question
 from django.http import HttpResponse
 from django.template.loader import get_template
+from django.template import engines
 import json
 from django.contrib import messages
 
@@ -347,6 +348,7 @@ def dashboard(request, student_id=None):
             'next_level_min_points': next_level_min_points,
             'level_progress_percent': level_progress_percent,
             'vocational_course_cards': vocational_course_cards,
+            'report_user_id': request.user.id,
         }
 
         return render(request, 'template20/psychometric/dashboard.html', context)
@@ -588,6 +590,7 @@ def class10_combined_report(request, user_id=None):
                 'error': 'No completed test found. Please complete all tests first.',
                 'no_results': True,
                 'user': target_user,
+                'user_id': target_user.id,
                 'breadcrumb': get_breadcrumb([
                     {'text': 'Dashboard', 'url': reverse('app:dashboard')},
                     {'text': 'Combined Report', 'url': ''},
@@ -613,9 +616,14 @@ def class10_combined_report(request, user_id=None):
                 'error': 'Please complete all three tests (Personality, Interest, and Intelligence) to view your combined report.',
                 'no_results': True,
                 'user': target_user,
+                'user_id': target_user.id,
                 'test1_completed': test1_completed,
                 'test2_completed': test2_completed,
-                'test3_completed': test3_completed
+                'test3_completed': test3_completed,
+                'breadcrumb': get_breadcrumb([
+                    {'text': 'Dashboard', 'url': reverse('app:dashboard')},
+                    {'text': 'Combined Report', 'url': ''},
+                ]),
             })
             return _add_no_cache_headers(resp)
         
@@ -699,10 +707,48 @@ def class10_combined_report(request, user_id=None):
                 'above_avg': above_avg
             }
         
+        # Ensure graph images exist for report (personality, interest, intelligence)
+        graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
+        if not os.path.isdir(graph_dir):
+            try:
+                os.makedirs(graph_dir, exist_ok=True)
+            except OSError:
+                pass
+        graph_basename = f"{(getattr(target_user, 'name', None) or target_user.email)}-{target_user.id}"
+        graph_files = [
+            f"{graph_basename}_personality_Assessment.png",
+            f"{graph_basename}_interest_Assessment.png",
+            f"{graph_basename}_intelligence_Assessment.png",
+        ]
+        need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
+        if need_graphs:
+            original_user = getattr(request, 'user', None)
+            try:
+                request.user = target_user
+                gernate_graph(request)
+            except Exception as e:
+                logger.warning("class10_combined_report: could not generate graphs for user %s: %s", target_user.id, e)
+            finally:
+                if original_user is not None:
+                    request.user = original_user
+        
+        # Student info for first page (shared with PDF content)
+        from datetime import datetime as dt
+        _now = dt.now()
+        _student_name = getattr(target_user, 'name', None) or target_user.email
+        _created_date = None
+        if test1_result and hasattr(test1_result, 'created'):
+            _created_date = test1_result.created
+        if _created_date is None:
+            _created_date = getattr(target_user, 'date_joined', None)
+
         # Build context
         context = {
             'user': target_user,
             'user_profile': user_profile,
+            'student_name': _student_name,
+            'created_date': _created_date,
+            'now': _now,
             'all_tests_completed': all_tests_completed,
             'test1_completed': test1_completed,
             'test2_completed': test2_completed,
@@ -833,10 +879,50 @@ def class10_report_download_pdf(request, user_id=None):
                 'above_avg': above_avg
             }
         
-        # Build context for PDF
+        # Ensure graph images exist before PDF (same as backup download_pdf: gernate_graph first)
+        graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
+        if not os.path.isdir(graph_dir):
+            try:
+                os.makedirs(graph_dir, exist_ok=True)
+            except OSError:
+                pass
+        graph_basename = f"{(getattr(target_user, 'name', None) or target_user.email)}-{target_user.id}"
+        graph_files = [
+            f"{graph_basename}_personality_Assessment.png",
+            f"{graph_basename}_interest_Assessment.png",
+            f"{graph_basename}_intelligence_Assessment.png",
+        ]
+        need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
+        if need_graphs:
+            original_user = getattr(request, 'user', None)
+            try:
+                request.user = target_user
+                gernate_graph(request)
+            except Exception as e:
+                logger.warning("class10_report_download_pdf: could not generate graphs for user %s: %s", target_user.id, e)
+            finally:
+                if original_user is not None:
+                    request.user = original_user
+        
+        # Student info for first page (same as test1 report)
+        student_name = getattr(target_user, 'name', None) or target_user.email
+        created_date = None
+        if test1_result and hasattr(test1_result, 'created'):
+            created_date = test1_result.created
+        if created_date is None:
+            created_date = getattr(target_user, 'date_joined', None)
+        now = datetime.now()
+
+        # Build context for PDF (same as HTML report so content include matches)
+        # show_student_info_on_cover: only True for PDF so student info appears on first page of download only
         context = {
             'user': target_user,
             'user_profile': user_profile,
+            'user_id': target_user.id,
+            'show_student_info_on_cover': True,
+            'student_name': student_name,
+            'created_date': created_date,
+            'now': now,
             'personality_data': personality_data,
             'interest_data': interest_data,
             'intelligence_data': intelligence_data,
@@ -849,12 +935,24 @@ def class10_report_download_pdf(request, user_id=None):
             'below': below,
             'avg': avg,
             'above_avg': above_avg,
-            'now': datetime.now(),
         }
         
-        # Render HTML template
-        template = get_template('template20/app/class10_combined_report_pdf.html')
+        # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
+        pdf_template_name = 'template20/app/class10_combined_report_pdf.html'
+        try:
+            jinja2_engine = engines['jinja2']
+            template = jinja2_engine.get_template(pdf_template_name)
+        except (KeyError, Exception):
+            template = get_template(pdf_template_name)
         html = template.render(context)
+        
+        # Debug: return raw HTML to verify template/CSS (e.g. ?debug=html)
+        if request.GET.get('debug') == 'html':
+            from django.http import HttpResponse as HttpResp
+            r = HttpResp(html, content_type='text/html; charset=utf-8')
+            r['Content-Disposition'] = 'inline; filename=combined-report-debug.html'
+            r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+            return r
         
         # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
         try:
@@ -877,14 +975,15 @@ def class10_report_download_pdf(request, user_id=None):
                 status=500
             )
         
-        # Create response
+        # Create response (prevent any caching of PDF)
         response = HttpResponse(content_type='application/pdf')
         user_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
         safe_name = re.sub(r'[^\w\s-]', '', str(user_name)).strip()[:50] or 'user'
         filename = f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
         response.write(pdf_file)
         
         # Save copy to user PDF folder (for production debugging and consistency)
@@ -1859,7 +1958,7 @@ def gernate_graph(request):
 
      # Define the graph images folder for the user
     BASE_DIR = settings.BASE_DIR
-    user_name = request.user
+    user_name = getattr(request.user, 'name', None) or getattr(request.user, 'email', None) or str(request.user)
     user_ID = request.user.id
     graph_images_folder = BASE_DIR / 'media' / 'graph_images'
     if not os.path.exists(graph_images_folder):

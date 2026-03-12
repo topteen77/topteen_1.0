@@ -15708,6 +15708,21 @@ a.list-group-item .bx {
 }
 
 
+.google-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	border: 1px solid #DCDCDC;
+	background: #fff;
+	color: #494949;
+}
+
+.google-btn:hover {
+  background: #f8f8f8;
+  border-color: #3f37c9;
+}
+
 
 
 /**** report Changes ****/
@@ -15749,7 +15764,7 @@ a.list-group-item .bx {
   content: '' !important;
   position: absolute !important;
   left: 0 !important;
-  top: 3px !important;
+  top: 0px !important;
   width: 18px !important;
   height: 17px !important;
   background-image: url('../images/small-blue-tick.png') !important;
@@ -15765,7 +15780,6 @@ a.list-group-item .bx {
 }
 
 .box-i.onebox {
-	background: #e5ebff !important;
 	display: flex !important;
 	flex-direction: column !important;
 	justify-content: center !important;
@@ -15782,6 +15796,9 @@ a.list-group-item .bx {
 	width: 100% !important;
 }
 
+.logged-in.report-page {
+  padding-top: 54px;
+}
 
 @media (max-width: 768px) {
 
@@ -15829,6 +15846,14 @@ a.list-group-item .bx {
 
 .cat-list ul {
 	column-count: 1 !important;
+}
+
+.view-impact {
+	width: 100% !important;
+}
+
+.text-info-paragraph {
+	width: 100% !important;
 }
 
 }

@@ -109,7 +109,25 @@
     background: #2E289D;
     color: white;
   }
-  
+
+  .sticky-back-btn {
+    padding: 12px 30px;
+    background: transparent;
+    color: #3F37C9;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 600;
+    border: 2px solid #3F37C9;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .sticky-back-btn:hover {
+    background: #3F37C9;
+    color: white;
+  }
   
   .chapterPage {
     width: 100%;
@@ -527,7 +545,7 @@
           Next Steps
         </div>
       </div>
-      <div style="width:900px; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin:10px auto;">
+      <div class="view-impact" style="width:900px; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin:10px auto;">
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
           <strong style="color: #FF7D04;">• Explore Careers:</strong> Research the careers mentioned in this report to learn more about what they entail.
         </div>
@@ -552,9 +570,12 @@
   {% endif %}
   {% endif %}
   
-  <!-- Sticky Download Button -->
+  <!-- Sticky Back + Download Button -->
   {% if not no_results %}
   <div class="sticky-download-container">
+    <a href="{{ url('app:dashboard') }}" class="sticky-back-btn" onclick="event.preventDefault(); window.location = document.referrer || this.href;">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
     {% if viewing_as_admin and user_ID %}
       {% set pdf_url = url('app:test2_report_pdf', args=[user_ID]) %}
     {% else %}
