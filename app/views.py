@@ -9,6 +9,7 @@ from .forms import UploadFileForm
 from .models import Question
 from django.http import HttpResponse
 from django.template.loader import get_template
+from django.template import engines
 import json
 from django.contrib import messages
 
@@ -706,6 +707,31 @@ def class10_combined_report(request, user_id=None):
                 'above_avg': above_avg
             }
         
+        # Ensure graph images exist for report (personality, interest, intelligence)
+        graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
+        if not os.path.isdir(graph_dir):
+            try:
+                os.makedirs(graph_dir, exist_ok=True)
+            except OSError:
+                pass
+        graph_basename = f"{(getattr(target_user, 'name', None) or target_user.email)}-{target_user.id}"
+        graph_files = [
+            f"{graph_basename}_personality_Assessment.png",
+            f"{graph_basename}_interest_Assessment.png",
+            f"{graph_basename}_intelligence_Assessment.png",
+        ]
+        need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
+        if need_graphs:
+            original_user = getattr(request, 'user', None)
+            try:
+                request.user = target_user
+                gernate_graph(request)
+            except Exception as e:
+                logger.warning("class10_combined_report: could not generate graphs for user %s: %s", target_user.id, e)
+            finally:
+                if original_user is not None:
+                    request.user = original_user
+        
         # Build context
         context = {
             'user': target_user,
@@ -840,10 +866,36 @@ def class10_report_download_pdf(request, user_id=None):
                 'above_avg': above_avg
             }
         
-        # Build context for PDF
+        # Ensure graph images exist before PDF (same as backup download_pdf: gernate_graph first)
+        graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
+        if not os.path.isdir(graph_dir):
+            try:
+                os.makedirs(graph_dir, exist_ok=True)
+            except OSError:
+                pass
+        graph_basename = f"{(getattr(target_user, 'name', None) or target_user.email)}-{target_user.id}"
+        graph_files = [
+            f"{graph_basename}_personality_Assessment.png",
+            f"{graph_basename}_interest_Assessment.png",
+            f"{graph_basename}_intelligence_Assessment.png",
+        ]
+        need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
+        if need_graphs:
+            original_user = getattr(request, 'user', None)
+            try:
+                request.user = target_user
+                gernate_graph(request)
+            except Exception as e:
+                logger.warning("class10_report_download_pdf: could not generate graphs for user %s: %s", target_user.id, e)
+            finally:
+                if original_user is not None:
+                    request.user = original_user
+        
+        # Build context for PDF (same as HTML report so content include matches)
         context = {
             'user': target_user,
             'user_profile': user_profile,
+            'user_id': target_user.id,
             'personality_data': personality_data,
             'interest_data': interest_data,
             'intelligence_data': intelligence_data,
@@ -859,8 +911,13 @@ def class10_report_download_pdf(request, user_id=None):
             'now': datetime.now(),
         }
         
-        # Render HTML template
-        template = get_template('template20/app/class10_combined_report_pdf.html')
+        # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
+        pdf_template_name = 'template20/app/class10_combined_report_pdf.html'
+        try:
+            jinja2_engine = engines['jinja2']
+            template = jinja2_engine.get_template(pdf_template_name)
+        except (KeyError, Exception):
+            template = get_template(pdf_template_name)
         html = template.render(context)
         
         # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
@@ -884,14 +941,15 @@ def class10_report_download_pdf(request, user_id=None):
                 status=500
             )
         
-        # Create response
+        # Create response (prevent any caching of PDF)
         response = HttpResponse(content_type='application/pdf')
         user_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
         safe_name = re.sub(r'[^\w\s-]', '', str(user_name)).strip()[:50] or 'user'
         filename = f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        response['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
         response.write(pdf_file)
         
         # Save copy to user PDF folder (for production debugging and consistency)
@@ -1866,7 +1924,7 @@ def gernate_graph(request):
 
      # Define the graph images folder for the user
     BASE_DIR = settings.BASE_DIR
-    user_name = request.user
+    user_name = getattr(request.user, 'name', None) or getattr(request.user, 'email', None) or str(request.user)
     user_ID = request.user.id
     graph_images_folder = BASE_DIR / 'media' / 'graph_images'
     if not os.path.exists(graph_images_folder):
