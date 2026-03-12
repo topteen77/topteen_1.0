@@ -1,6 +1,16 @@
   <div class="report-container">
-    <!-- Cover Page -->
-    <div class="chapterPage coverPage">
+    
+
+
+
+
+
+
+    <!-- End Cover Page -->
+  
+
+    <!-- Introduction -->
+    <div class="chapterPage">
       <div class="text-color-top">
         <div class="top-layout">
           Your Psychometric Profile
@@ -9,10 +19,6 @@
       <p style="text-align: center; margin-top: 5px; font-size: 18px;">
         Here's what we understood about you from your responses
       </p>
-    </div>
-
-    <!-- Introduction -->
-    <div class="chapterPage">
       <div class="db-header">
         <h1>INTRODUCTION</h1>
       </div>
@@ -614,7 +620,7 @@
       {% endif %}
 
       <!-- Next Steps -->
-      <div style="width: 100%; float: left; display: flex; flex-direction: column; justify-content: center;">
+      <div style="width: 100%; float: left; justify-content: center;">
         <div class="text-color-top" style="display: flex; flex-direction: row; justify-content: center;">
           <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
             Next Steps
@@ -776,23 +782,24 @@
         </div>
       </div>
       <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
-        {% if intelligence_data.above_avg %}
-        <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
-          <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
+        {% if intelligence_data.above_avg and intelligence_data.above_avg|length > 0 %}
+        <div class="box-i onebox" style="background: #E7E5FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px;height: 180px; min-height: 180px;">
+          <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px; margin-top:0px; text-align: center;">Above Average</p>
+          <ul style="margin: 0px; list-style: none; padding:0px; width:180px; text-align: center;">
             {% for above in intelligence_data.above_avg %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ above }}</li>
+            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 22px; margin-bottom: 3px; width: 100%;">{{ above }}</li>
             {% endfor %}
           </ul>
         </div>
         {% endif %}
 
-        {% if intelligence_data.average %}
-        <div class="box-i onebox" style="background: #E5F9FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2E8AA6; border-bottom: 4px solid #2E8AA6; width:190px; height: 180px; min-height: 180px;">
-          <p style="color: #2E8AA6; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
+        {% if intelligence_data.average and intelligence_data.average|length > 0 %}
+        <div class="box-i onebox" style="background: #E5F9FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2E8AA6; border-bottom: 4px solid #2E8AA6; width:190px;height: 180px; min-height: 180px;">
+          <p style="color: #2E8AA6; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px; margin-top:0px; text-align: center;">Average</p>
+          <ul style="margin: 0px; list-style: none; padding:0px; width:180px; text-align: center;">
             {% for average in intelligence_data.average %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ average }}</li>
+            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 22px; margin-bottom: 3px; width: 100%;">{{ average }}</li>
+            
             {% endfor %}
           </ul>
         </div>
@@ -800,10 +807,10 @@
 
         {% if intelligence_data.below_avg %}
         <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-          <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Below Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
+          <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px; margin-top:0px; text-align: center;">Below Average</p>
+          <ul style="margin: 0px; list-style: none; padding:0px; width:180px; text-align: center;">
             {% for belowavg in intelligence_data.below_avg %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>
+            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 22px; margin-bottom: 3px; width: 100%;">{{ belowavg }}</li>
             {% endfor %}
           </ul>
         </div>

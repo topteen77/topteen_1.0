@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Stream Sorter Combined Assessment Report</title>
+  <!-- PDF layout v2: reduced gaps, content width fit (do not remove - used to verify template) -->
   <style>
     @page {
       size: A4;
@@ -17,37 +18,46 @@
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
+      box-sizing: border-box;
     }
+    *, *::before, *::after { box-sizing: border-box; }
     ul { list-style-type: none; padding: 0; }
     a { color: inherit; text-decoration: none; }
     hr { height: 0; border: 0; border-top: 1px solid #494949; margin: 10px 0; }
     .chapterPage {
       max-width: 100%;
-      width: 1000px;
+      width: 100%;
+      max-width: 21cm;
       margin: 0 auto;
       clear: both;
-      padding: 20px;
+      padding: 12px 16px;
       page-break-after: always;
       box-sizing: border-box;
     }
-    .pageBreak { page-break-before: always; height: 1cm; }
-    .coverPage { margin: .5cm; }
-    .coverPage h1 { margin-top: .23cm; font-size: 35px; color: #3F37C9; }
+    /* Screen 1: reduce gap on first (cover) page */
+    .coverPage {
+      margin: 0.3cm;
+      padding: 10px 16px 20px !important;
+      page-break-after: always;
+    }
+    .coverPage .top-layout { margin-top: 12px !important; }
+    .coverPage p { margin-top: 6px !important; margin-bottom: 0 !important; }
+    .pageBreak { page-break-before: always; height: 0.5cm; }
     .text-color-top { display: flex; justify-content: center; }
     .top-layout {
       background: #3F37C9;
       color: #fff;
       font-size: 27px;
       padding: 11px 38px;
-      margin-top: 28px;
+      margin-top: 16px;
       font-weight: 600;
       border-radius: 10px 10px 0 0;
     }
-    .db-header { margin-top: 10px; text-align: center; }
-    .db-header h1 { color: #3F37C9; font-size: 24pt; margin: 0 0 10px 0; }
-    .intro-box { background: #E7FEFF; padding: 18px; }
-    .intro-box p { font-size: 16px; color: #494949; font-weight: 500; margin-bottom: 10px; }
-    .text-info-paragraph p { font-size: 16px; color: #494949; margin-bottom: 10px; }
+    .db-header { margin-top: 6px; text-align: center; }
+    .db-header h1 { color: #3F37C9; font-size: 24pt; margin: 0 0 8px 0; }
+    .intro-box { background: #E7FEFF; padding: 12px 14px; }
+    .intro-box p { font-size: 15px; color: #494949; font-weight: 500; margin-bottom: 8px; }
+    .text-info-paragraph p { font-size: 15px; color: #494949; margin-bottom: 8px; }
     .box-info {
       background: #E7E5FF;
       border-radius: 10px;
@@ -80,7 +90,7 @@
       border-bottom: 4px solid #3F37C9;
     }
     .box-i p { color: #120d77; font-weight: 700; font-size: 23px; margin-bottom: 0; }
-    .two-box { display: flex; justify-content: center; margin: 54px 0; width: 100%; }
+    .two-box { display: flex; justify-content: center; margin: 20px 0; width: 100%; max-width: 100%; }
     .two-box-in {
       width: 300px;
       display: flex;
@@ -109,27 +119,116 @@
     .cat-list { background: #F7F6FF; padding: 6px; margin-top: 0; }
     .cat-list ul { column-count: 3; padding-left: 20px; }
     .cat-list ul li { padding: 5px 0; font-size: 14px; }
-    .test-title { color: #000; font-size: 16px; font-weight: 600; margin-top: 10px; }
+    .test-title { color: #000; font-size: 16px; font-weight: 600; margin-top: 6px; margin-bottom: 6px; }
     .combined-report-page { padding: 0; background: white; overflow-x: hidden; }
     .report-container {
-      max-width: 1000px;
+      max-width: 21cm;
       width: 100%;
       margin: 0 auto;
       background: white;
-      padding: 20px;
+      padding: 12px 16px;
       box-sizing: border-box;
       overflow-x: hidden;
     }
     .report-container img { max-width: 100%; height: auto; }
-    .report-container div[style*="900px"],
-    .report-container div[style*="width: 600px"] { max-width: 100%; box-sizing: border-box; }
+    /* Screen 3: content width fit in page - constrain fixed widths to page */
+    body.combined-report-page .report-container [style*="900px"],
+    body.combined-report-page .report-container [style*="width:900px"],
+    body.combined-report-page .report-container [style*="width: 600px"],
+    body.combined-report-page .report-container [style*="width:600px"],
+    body.combined-report-page .report-container div[style*="900px"],
+    body.combined-report-page .report-container div[style*="width: 600px"],
+    body.combined-report-page .report-container div[style*="width:600px"] {
+      max-width: 100% !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    body.combined-report-page .report-container [style*="550px"],
+    body.combined-report-page .report-container div[style*="550px"] { max-width: 100% !important; width: 100% !important; box-sizing: border-box !important; }
     .img-tow { margin-top: 0; }
     .r-img, .img-info, .framework-img, .ris-box { }
+    .framework-img { margin-top: 24px !important; }
+    .img-info { margin-top: 16px !important; }
     .graph { width: 100%; text-align: center; }
     .onebox { }
+    /* Screen 2: tighten vertical spacing in Part 2 / interest / aptitude sections */
+    .report-container .text-color-top .top-layout { margin-top: 6px !important; }
+    .report-container div[style*="margin-top: 30px"] { margin-top: 16px !important; }
+    .report-container div[style*="margin-top: 20px"] { margin-top: 12px !important; }
+    .report-container div[style*="margin-bottom: 30px"] { margin-bottom: 16px !important; }
+    .report-container .two-box-in { padding: 6px; }
+    .report-container p { word-wrap: break-word; overflow-wrap: break-word; }
   </style>
 </head>
 <body class="combined-report-page">
+  <div class="report-container">
+    <div class="coverPage">
+      <div class="img-top" style="width: 100%; text-align: center;">
+        <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
+      </div>
+      <div class="heading-cover" style="width: 100%; text-align: center;">
+        <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">Stream Sorter Assessment Report</h1>
+      </div>
+      <div class="image-cover" style="width: 100%; text-align: center;">
+        <img style="width: 320px;" src="{{ static('images/report-image.png') }}" alt="img" />
+      </div>
+
+      {% if show_student_info_on_cover is defined and show_student_info_on_cover and user_profile is defined and user_profile %}
+      <div class="student-detail-info" style="width: 100%; max-width: 650px; margin: 24px auto 24px auto;">
+        <div class="top-info" style="display: flex; gap: 26px; margin-bottom: 26px;">
+          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
+            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 2cm; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">Name</div>
+            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
+              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{{ student_name|default(user.email if user is defined else '') }}</p>
+            </div>
+          </div>
+          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
+            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 125px; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">School</div>
+            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
+              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{{ user_profile.schoolname if user_profile.schoolname else '' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="top-info" style="display: flex; gap: 26px;">
+          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
+            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 2cm; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">Grade</div>
+            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
+              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{{ user_profile.grade if user_profile.grade else '' }}</p>
+            </div>
+          </div>
+          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
+            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 3cm; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">Date of Test</div>
+            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
+              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{% if created_date is defined and created_date %}{{ created_date.strftime('%Y-%m-%d') }}{% elif now is defined and now %}{{ now.strftime('%Y-%m-%d') }}{% endif %}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div style="width:100%; margin-top: 40px; float: left;">
+        <table style="width:100%; margin-top: 20px;">
+          <tbody>
+            <tr style="border: 1px solid #3F37CB; border-radius: 10px;">
+              <td>
+                <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
+                  <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">Disclaimer</p>
+                </div>
+                <p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+
+
+
+
+    <!-- End Cover Page -->
+  </div>
 {% include 'template20/app/class10_combined_report_content.html' %}
 </body>
 </html>

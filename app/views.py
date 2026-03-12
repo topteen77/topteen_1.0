@@ -732,10 +732,23 @@ def class10_combined_report(request, user_id=None):
                 if original_user is not None:
                     request.user = original_user
         
+        # Student info for first page (shared with PDF content)
+        from datetime import datetime as dt
+        _now = dt.now()
+        _student_name = getattr(target_user, 'name', None) or target_user.email
+        _created_date = None
+        if test1_result and hasattr(test1_result, 'created'):
+            _created_date = test1_result.created
+        if _created_date is None:
+            _created_date = getattr(target_user, 'date_joined', None)
+
         # Build context
         context = {
             'user': target_user,
             'user_profile': user_profile,
+            'student_name': _student_name,
+            'created_date': _created_date,
+            'now': _now,
             'all_tests_completed': all_tests_completed,
             'test1_completed': test1_completed,
             'test2_completed': test2_completed,
@@ -891,11 +904,25 @@ def class10_report_download_pdf(request, user_id=None):
                 if original_user is not None:
                     request.user = original_user
         
+        # Student info for first page (same as test1 report)
+        student_name = getattr(target_user, 'name', None) or target_user.email
+        created_date = None
+        if test1_result and hasattr(test1_result, 'created'):
+            created_date = test1_result.created
+        if created_date is None:
+            created_date = getattr(target_user, 'date_joined', None)
+        now = datetime.now()
+
         # Build context for PDF (same as HTML report so content include matches)
+        # show_student_info_on_cover: only True for PDF so student info appears on first page of download only
         context = {
             'user': target_user,
             'user_profile': user_profile,
             'user_id': target_user.id,
+            'show_student_info_on_cover': True,
+            'student_name': student_name,
+            'created_date': created_date,
+            'now': now,
             'personality_data': personality_data,
             'interest_data': interest_data,
             'intelligence_data': intelligence_data,
@@ -908,7 +935,6 @@ def class10_report_download_pdf(request, user_id=None):
             'below': below,
             'avg': avg,
             'above_avg': above_avg,
-            'now': datetime.now(),
         }
         
         # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
@@ -919,6 +945,14 @@ def class10_report_download_pdf(request, user_id=None):
         except (KeyError, Exception):
             template = get_template(pdf_template_name)
         html = template.render(context)
+        
+        # Debug: return raw HTML to verify template/CSS (e.g. ?debug=html)
+        if request.GET.get('debug') == 'html':
+            from django.http import HttpResponse as HttpResp
+            r = HttpResp(html, content_type='text/html; charset=utf-8')
+            r['Content-Disposition'] = 'inline; filename=combined-report-debug.html'
+            r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+            return r
         
         # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
         try:
