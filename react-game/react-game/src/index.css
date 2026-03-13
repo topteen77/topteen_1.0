@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Space Grotesk', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -22,6 +22,65 @@ a:hover {
   color: #535bf2;
 }
 
+
+.custom-button {
+  padding: 13px 26px;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+
+}
+
+.skip-link {
+	display: none;
+}
+
+.purple-button:hover {
+  background: #5249DF;
+  color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+}
+
+.blue-button:hover {
+  background: #50B9F9;
+  color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+}
+
+
+.purple-button {
+  background: #3F37C9;
+  color: #fff;
+}
+
+.bg-light-pruple {
+  background: #EFECFF;
+}
+
+.blue-button {
+  background: #25A4F2;
+  color: #fff;
+}
+
+.source-skip-to-clusters:hover {
+  background: #25A4F2;
+  color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+  border: 1px solid #25A4F2;
+}
+.source-skip-to-clusters {
+  background: none;
+  border: 1px solid #25A4F2;
+  color: #25A4F2;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 12px 20px;
+}
+
+
+.text-purple {
+  color: #3F37C9;
+}
 body {
   margin: 0;
   min-width: 320px;
@@ -125,4 +184,52 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+
+@media (max-width: 420px) {
+  .career-cluster-selection-footer, .stream-selection-footer {
+    flex-wrap: inherit !important; }
+
+    .continue-button {
+      min-width: 25% !important;
+      width: 40% !important;
+     }
+
+     .stream-grid {
+      grid-template-columns: repeat(2,1fr) !important;
+    }
+
+    .stream-card {
+      min-height: 79px !important;
+    }
+
+    .streams-badge-container {
+           margin: 3px !important;
+      flex-direction: column !important;
+    }
+
+    .stream-badge {
+            height: 54px !important;
+         }
+
+         .vs-separator {
+               font-size: 21px !important;
+        }
+
+        .parameter-selection-header {
+          margin-bottom: 0 !important;
+        }
+
+        .parameter-item {
+          min-height: 59px !important;
+          padding: 9px !important;
+        }
+
+        .selected-count {
+          margin-bottom: 12px;
+        }
+      
+      
+
 }

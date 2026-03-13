@@ -2,17 +2,54 @@
 
 .fight-animation-container {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+    margin: 0 auto;
   padding: 2rem 1rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 50%, #0d0518 100%);
   position: relative;
   overflow: hidden;
+}
+
+/* Cinematic video background */
+.fight-video-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.fight-background-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter:
+    saturate(1.1)
+    contrast(1.15)
+    brightness(0.85);
+  transform: scale(1.02);
+  /* Slight, slow zoom for life */
+  animation: fightVideoSlowZoom 24s ease-in-out infinite alternate;
+}
+
+.fight-video-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 55%),
+    linear-gradient(180deg, rgba(22, 10, 40, 0.95) 0%, rgba(8, 3, 18, 0.95) 100%);
+  mix-blend-mode: multiply;
+}
+
+@keyframes fightVideoSlowZoom {
+  0% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1.08);
+  }
 }
 
 /* Arena floor effect */
@@ -29,17 +66,6 @@
   pointer-events: none;
 }
 
-.fight-arena-ring {
-  position: absolute;
-  inset: 50% 50%;
-  width: min(90vw, 700px);
-  height: min(50vw, 320px);
-  transform: translate(-50%, -50%);
-  border: 3px solid rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(102, 126, 234, 0.15);
-  pointer-events: none;
-}
 
 /* Header */
 .fight-header {
@@ -106,11 +132,12 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border-radius: 20px;
+  background: #000;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  width: 215px;
+  border-radius: 10px;
 }
 
 .fighter-card:hover {
@@ -130,30 +157,44 @@
 
 .fighter-avatar {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.fighter-body {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+.fighter-video-wrapper {
+  width: 120px;
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
   position: relative;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 -4px 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
   animation: fighterFloat 2.2s ease-in-out infinite;
 }
 
-.fighter-red {
-  background: linear-gradient(145deg, #ff6b6b 0%, #c0392b 100%);
-  border: 3px solid rgba(255, 255, 255, 0.35);
+/* .fighter-video-left {
+  box-shadow:
+    0 0 24px rgba(255, 112, 112, 0.6),
+    0 10px 26px rgba(0, 0, 0, 0.55),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.4);
+} */
+
+/* .fighter-video-right {
+  box-shadow:
+    0 0 24px rgba(88, 200, 255, 0.6),
+    0 10px 26px rgba(0, 0, 0, 0.55),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.4);
+} */
+
+.fighter-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.fighter-blue {
-  background: linear-gradient(145deg, #4ecdc4 0%, #2980b9 100%);
-  border: 3px solid rgba(255, 255, 255, 0.35);
+.fighter-video-right .fighter-video {
+  transform: scaleX(-1);
 }
 
 @keyframes fighterFloat {
@@ -410,13 +451,12 @@
   }
 
   .fighter-avatar {
-    width: 140px;
-    height: 140px;
+    width: 150px;
+    height: 150px;
   }
 
-  .fighter-body {
-    width: 100px;
-    height: 100px;
+  .fighter-video-wrapper {
+    width: 130px;
   }
 
   .vs-badge {
@@ -440,13 +480,12 @@
   }
 
   .fighter-avatar {
-    width: 160px;
-    height: 160px;
+    width: 107px;
+    height: 170px;
   }
 
-  .fighter-body {
-    width: 110px;
-    height: 110px;
+  .fighter-video-wrapper {
+    width: 140px;
   }
 
   .vs-badge {
@@ -462,15 +501,11 @@
 /* Mobile optimizations */
 @media (max-width: 767px) {
   .fight-animation-container {
-    padding: 1rem 0.5rem;
     min-height: 100vh;
+    padding:0px;
   }
 
-  .fight-arena-ring {
-    width: 95vw;
-    height: 55vw;
-  }
-
+ 
   .fight-header {
     margin-bottom: 1.5rem;
   }
@@ -495,18 +530,21 @@
     padding: 1rem;
   }
 
+  .fight-arena {
+    flex-direction: column;
+  }
+
   .fighter-name {
     font-size: 0.95rem;
   }
 
   .fighter-avatar {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: auto;
   }
 
-  .fighter-body {
-    width: 70px;
-    height: 70px;
+  .fighter-video-wrapper {
+    width: 110px;
   }
 
   .vs-badge {
@@ -530,16 +568,12 @@
   }
 
   .vs-badge {
-    width: 100%;
-    height: 60px;
     font-size: 1.75rem;
-    order: -1;
-    border-radius: 15px;
     margin-bottom: 0.5rem;
   }
 
   .progress-container {
-    width: 100%;
+    width:77%;
     padding: 0 0.75rem;
     max-width: 100%;
   }
@@ -586,3 +620,10 @@
   }
 }
 
+
+
+@media (max-width: 420px) {
+  .fight-arena-ring {
+    display: none;
+  }
+}

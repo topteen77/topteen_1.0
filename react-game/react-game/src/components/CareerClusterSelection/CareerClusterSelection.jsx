@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CAREER_CLUSTERS } from '../../utils/constants';
 import './CareerClusterSelection.css';
+import iconSelectTick from '../../assets/images/pruple-select-tick.svg';
 
 const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue, onBack }) => {
   const [selectedCluster, setSelectedCluster] = useState(null);
@@ -29,7 +30,7 @@ const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue,
     <div className="career-cluster-selection-container" role="region" aria-labelledby="cluster-selection-title">
       <div className="career-cluster-selection-header">
         <h1 id="cluster-selection-title" className="career-cluster-selection-title">
-          Select Career Cluster
+          Select <span className="text-purple">Career </span> Cluster
         </h1>
         <p className="career-cluster-selection-subtitle" id="cluster-selection-description">
           Choose a career cluster to explore related streams
@@ -91,7 +92,10 @@ const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue,
               aria-label={`${clusterName} - ${streams.length} streams available${isSelected ? ' - Selected' : ''}`}
             >
               <div className="cluster-card-content">
+
+
                 <h2 className="cluster-name">{clusterName}</h2>
+                
                 <div className="cluster-streams-preview">
                   <span className="streams-count-badge">{streams.length} streams</span>
                   <div className="streams-list-preview">
@@ -105,7 +109,7 @@ const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue,
                 </div>
                 {isSelected && (
                   <span className="cluster-checkmark" aria-label="Selected" aria-hidden="true">
-                    ✓
+                    <img src={iconSelectTick} alt="" className="cluster-checkmark-img" />
                   </span>
                 )}
               </div>
@@ -117,7 +121,7 @@ const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue,
       <div className="career-cluster-selection-footer">
         {onBack && (
           <button type="button" className="back-button" onClick={onBack}>
-            ← Back
+            <i className='back-button-icon bx bx-left-arrow-alt' ></i> Back
           </button>
         )}
         <button
@@ -126,7 +130,7 @@ const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue,
           disabled={!selectedCluster}
           aria-label={selectedCluster ? 'Continue to stream selection' : 'Select a career cluster to continue'}
         >
-          Continue
+          Continue <i className='bx bx-right-arrow-alt' ></i>
         </button>
       </div>
     </div>

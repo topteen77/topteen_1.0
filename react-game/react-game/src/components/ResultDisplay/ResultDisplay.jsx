@@ -146,7 +146,7 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistM
                   >
                     <span className="label-icon">✨</span>
                     Strengths
-                    <span className="expand-icon">{stream1StrengthsExpanded ? '▼' : '▶'}</span>
+                    <span className="expand-icon">{stream1StrengthsExpanded ? '−' : '+'}</span>
                   </h4>
                   {stream1StrengthsExpanded && (
                     <ul className="strengths-list expanded">
@@ -177,7 +177,7 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistM
                   >
                     <span className="label-icon">⚠️</span>
                     Weaknesses
-                    <span className="expand-icon">{stream1WeaknessesExpanded ? '▼' : '▶'}</span>
+                    <span className="expand-icon">{stream1WeaknessesExpanded ? '−' : '+'}</span>
                   </h4>
                   {stream1WeaknessesExpanded && (
                     <ul className="weaknesses-list expanded">
@@ -238,7 +238,7 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistM
                   >
                     <span className="label-icon">✨</span>
                     Strengths
-                    <span className="expand-icon">{stream2StrengthsExpanded ? '▼' : '▶'}</span>
+                    <span className="expand-icon">{stream2StrengthsExpanded ? '−' : '+'}</span>
                   </h4>
                   {stream2StrengthsExpanded && (
                     <ul className="strengths-list expanded">
@@ -269,7 +269,7 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistM
                   >
                     <span className="label-icon">⚠️</span>
                     Weaknesses
-                    <span className="expand-icon">{stream2WeaknessesExpanded ? '▼' : '▶'}</span>
+                    <span className="expand-icon">{stream2WeaknessesExpanded ? '−' : '+'}</span>
                   </h4>
                   {stream2WeaknessesExpanded && (
                     <ul className="weaknesses-list expanded">

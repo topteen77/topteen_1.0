@@ -1,10 +1,25 @@
 /* StreamSelection Component Styles */
 
+#main-content:has(.stream-selection-container) {
+  padding-bottom: 57px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('../../assets/images/home-grad-bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.text-purple {
+  color: #3F37C9;
+}
+
+
 .stream-selection-container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1rem 1rem 5.5rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -13,6 +28,11 @@
 .stream-selection-header {
   text-align: center;
   margin-bottom: 2rem;
+  position: sticky;
+  top: -25px;
+  z-index: 999;
+  background: #fff;
+  padding-bottom: 32px;
 }
 
 .stream-selection-title {
@@ -31,8 +51,8 @@
 .selected-count {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background: linear-gradient(90deg, #6E67DB 0%, #463FC9 100%);
+  color: #ffffff;
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 500;
@@ -44,7 +64,6 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
-  flex: 1;
   margin-bottom: 2rem;
 }
 
@@ -52,7 +71,7 @@
 .stream-card {
   min-height: 120px;
   background: #ffffff;
-  border: 2px solid #e0e0e0;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
   padding: 1.5rem;
   cursor: pointer;
@@ -66,7 +85,7 @@
 }
 
 .stream-card:hover:not(.stream-card-disabled):not(.stream-card-selected) {
-  border-color: #1976d2;
+  border-color: #3F37C9;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -76,13 +95,13 @@
 }
 
 .stream-card-selected {
-  border-color: #1976d2;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  border-color: #3F37C9;
+  background: linear-gradient(323deg, #F5F4FF -1.46%, #FFFFFF 98.24%);
+  box-shadow: 0 4px 12px rgba(81, 25, 210, 0.3);
 }
 
 .stream-card-disabled {
-  opacity: 0.5;
+  opacity: 0.9;
   cursor: not-allowed;
   background-color: #f5f5f5;
 }
@@ -102,22 +121,26 @@
 }
 
 .stream-card-selected .stream-name {
-  color: #1976d2;
+  color: #3F37C9;
 }
 
 .stream-checkmark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background-color: #1976d2;
-  color: white;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  font-weight: bold;
   margin-top: 0.5rem;
 }
+
+.stream-checkmark-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+  position: absolute;
+  top: 3px;
+  right: 7px;
+}
+
 
 /* No Streams Message */
 .no-streams-message {
@@ -187,54 +210,69 @@
 
 /* Footer with Continue Button */
 .stream-selection-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 0;
-  margin-top: auto;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .stream-selection-footer .back-button {
-  min-height: 48px;
+  min-height: 52px;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  border: 2px solid #e0e0e0;
+  border: 1px solid #25A4F2;
   border-radius: 8px;
   background: #fff;
   cursor: pointer;
-  color: #333;
+  color: #25A4F2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 .stream-selection-footer .back-button:hover {
-  border-color: #1976d2;
-  color: #1976d2;
+  border-color: #25A4F2;
+  color:#ffffff;
+background: #25A4F2;
 }
 
 .continue-button {
-  min-height: 48px;
   min-width: 200px;
-  padding: 0.75rem 2rem;
+  padding: 1rem 2rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .continue-button-active {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  background: #3F37C9;
   color: white;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
+
 
 .continue-button-active:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(25, 118, 210, 0.5);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
 }
 
 .continue-button-active:active {
@@ -259,12 +297,12 @@
   }
 
   .stream-card {
-    min-height: 140px;
-    padding: 2rem;
+    min-height: 137px;
+    padding: 1rem;
   }
 
   .stream-name {
-    font-size: 1.25rem;
+    font-size: 18px;
   }
 }
 
@@ -298,7 +336,7 @@
 /* Mobile optimizations */
 @media (max-width: 767px) {
   .stream-selection-container {
-    padding: 0.75rem;
+    padding: 0.75rem 0.75rem 5.5rem;
   }
 
   .stream-selection-header {
