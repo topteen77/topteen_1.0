@@ -15,42 +15,163 @@
 <style>
   .career-matches-page {
     padding-top: 80px;
-    background: #f8f9fa;
+    background: linear-gradient(180deg, #f5f7ff 0%, #f9fafb 40%, #ffffff 100%);
     min-height: 100vh;
+    background-repeat: no-repeat;
   }
+
   .matches-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 40px 0;
-    margin-bottom: 30px;
+	background: radial-gradient(circle at top left, #4f46e5 0%, #7c3aed 40%, #4835e4 100%);
+	color: white;
+	padding: 40px 0 32px;
+	margin-bottom: 30px;
+	box-shadow: 0 14px 35px rgba(15, 23, 42, 0.35);
+	margin-top: 21px;
+}
+
+  .matches-header h1 {
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
+
+  .matches-header p {
+    opacity: 0.95;
+  }
+
   .match-card {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
+    position: relative;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 16px 16px 14px;
+    margin-bottom: 24px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    overflow: hidden;
+    transition:
+      transform 0.18s ease-out,
+      box-shadow 0.18s ease-out,
+      border-color 0.18s ease-out,
+      background 0.18s ease-out;
   }
+
+  .match-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.18), transparent 55%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease-out;
+  }
+
   .match-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+    border-color: rgba(129, 140, 248, 0.75);
   }
-  .match-score-badge {
-    background: #3f37c9;
-    color: white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-block;
+
+  .match-card:hover::before {
+    opacity: 1;
   }
+
+  .match-card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .match-card-image-wrapper {
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .career-image {
     width: 100%;
-    max-width: 200px;
-    height: 150px;
+    height: 190px;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 14px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.15);
+  }
+
+  .match-score-badge {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 5px 14px rgba(22, 163, 74, 0.55);
+  }
+
+  .match-score-badge i {
+    font-size: 14px;
+  }
+
+  .match-card-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .career-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: #0f172a;
+  }
+
+  .career-cluster {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  .career-summary {
+    font-size: 14px;
+    color: #4b5563;
+    margin-bottom: 10px;
+    min-height: 135px;
+  }
+
+  .match-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.5);
+  }
+
+  .match-card-footer small {
+    font-size: 12px;
+    color: #6b7280 !important;
+  }
+
+  .btn-view-details {
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 999px;
+    font-weight: 600;
+    border-width: 1px;
+  }
+
+  .btn-view-details i {
+    font-size: 14px;
+  }
+
+  .user-notes {
+    font-size: 13px;
+    color: #374151;
   }
 </style>
 {% endblock %}
@@ -58,8 +179,11 @@
 {% block content %}
 <div class="matches-header">
   <div class="container text-center">
-    <h1 class="mb-3">💼 My Career Matches</h1>
-    <p class="fs-18 mb-0">You've liked {{ match_count }} career{{ 's' if match_count != 1 else '' }}</p>
+    <h1 class="mb-3"> 
+      
+     
+      <img class="img-fluid" style="width: 50px;" src="{{ static('images_new/general/career-3d-icon.png') }}" alt="Career Matches Icon" />  My Career Matches</h1>
+    <p class="fs-18 mb-0 text-white">You've liked {{ match_count }} career{{ 's' if match_count != 1 else '' }}</p>
   </div>
 </div>
 
@@ -67,41 +191,56 @@
   {% if matches %}
     <div class="row">
       {% for match in matches %}
-      <div class="col-md-6 col-lg-4 mb-4">
-        <div class="match-card">
-          <div class="d-flex justify-content-between align-items-start mb-3">
-            <h4 class="mb-0">{{ match.career.name }}</h4>
-            <span class="match-score-badge">Match: {{ match.match_score|default(85) }}%</span>
-          </div>
-          
-          <img src="{{ match.career.get_image_url() if match.career.get_image_url else static('images/career-icon.png') }}" 
-               alt="{{ match.career.name }}" class="career-image mb-3">
-          
-          <div class="mb-2">
-            {% set clusters = match.career.career_cluster.all() %}
-            {% if clusters %}
-              {% for cluster in clusters %}
-                {% if loop.first %}
-                  <span class="text-muted">{{ cluster.name }}</span>
+      <div class="col-md-4 mb-4">
+        <div class="match-card h-100">
+          <div class="match-card-inner">
+            <div class="match-card-image-wrapper">
+              <img
+                src="{{ match.career.get_image_url() if match.career.get_image_url else static('images/career-icon.png') }}"
+                alt="{{ match.career.name }}"
+                class="career-image"
+              >
+              <span class="match-score-badge">
+                <i class='bx bxs-star'></i>
+                {{ match.match_score|default(85) }}% match
+              </span>
+            </div>
+
+            <div class="match-card-body">
+              <h4 class="career-title text-truncate" title="{{ match.career.name }}">
+                {{ match.career.name }}
+              </h4>
+
+              <div class="career-cluster">
+                {% set clusters = match.career.career_cluster.all() %}
+                {% if clusters %}
+                  {% for cluster in clusters %}
+                    {% if loop.first %}
+                      {{ cluster.name }}
+                    {% endif %}
+                  {% endfor %}
                 {% endif %}
-              {% endfor %}
-            {% endif %}
+              </div>
+
+              <p class="career-summary mb-0">
+                {{ match.career.display_summary if match.career.display_summary else (match.career.description|striptags|truncate(110) if match.career.description else 'No description available') }}
+              </p>
+
+              <div class="match-card-footer">
+                <small>{{ date_format(match.created_at) }}</small>
+                <a href="{{ match.career.url() }}" class="btn btn-outline-primary btn-view-details">
+                  View details
+                  <i class='bx bx-right-arrow-alt ms-1'></i>
+                </a>
+              </div>
+
+              {% if match.notes %}
+              <div class="mt-2 px-2 py-1 bg-light rounded user-notes">
+                <strong>Your notes:</strong> {{ match.notes }}
+              </div>
+              {% endif %}
+            </div>
           </div>
-          
-          <p class="text-muted mb-3">
-            {{ match.career.display_summary if match.career.display_summary else (match.career.description|striptags|truncate(100) if match.career.description else 'No description available') }}
-          </p>
-          
-          <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">{{ date_format(match.created_at) }}</small>
-            <a href="{{ match.career.url() }}" class="btn btn-sm btn-primary">View Details</a>
-          </div>
-          
-          {% if match.notes %}
-          <div class="mt-3 p-2 bg-light rounded">
-            <small><strong>Your notes:</strong> {{ match.notes }}</small>
-          </div>
-          {% endif %}
         </div>
       </div>
       {% endfor %}
