@@ -4,6 +4,7 @@ import './StreamSelection.css';
 import iconSelectTick from '../../assets/images/pruple-select-tick.svg';
 
 
+
 const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, onContinue, onBack, disqualifiedStreams = [], onReset }) => {
   const [selectedStreams, setSelectedStreams] = useState([]);
   const clusters = careerClusters && Object.keys(careerClusters).length > 0 ? careerClusters : CAREER_CLUSTERS;

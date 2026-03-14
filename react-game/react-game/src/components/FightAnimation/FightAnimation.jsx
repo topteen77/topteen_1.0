@@ -3,6 +3,7 @@ import { compareStreamsWithLLM } from '../../services/llmService';
 import battleVideo from '../../assets/battel-video.mp4';
 import fighter1Video from '../../assets/fighter1-video.mp4';
 import fighter2Video from '../../assets/fighter2-video.mp4';
+import swordImage from '../../assets/sword-image.png';
 
 import './FightAnimation.css';
 
@@ -114,9 +115,9 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
 
       <div className="fight-header">
         <h1 id="fight-title" className="fight-title">
-          <span className="fight-title-icon" aria-hidden="true">⚔</span>
+          <img src={swordImage} alt="" className="fight-title-icon" aria-hidden="true" />
           {loading ? 'BATTLE!' : error ? 'Error' : 'Done!'}
-          <span className="fight-title-icon" aria-hidden="true">⚔</span>
+          <img src={swordImage} alt="" className="fight-title-icon" aria-hidden="true" />
         </h1>
         <p className="fight-subtitle" id="fight-status">
           {loading ? battlePhrase : error ? 'Something went wrong' : 'Winner incoming!'}

@@ -88,7 +88,10 @@
 }
 
 .fight-title-icon {
-  font-size: 1.4em;
+  height: 1.4em;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
   filter: drop-shadow(0 0 8px rgba(255, 200, 100, 0.6));
   animation: iconPulse 1.2s ease-in-out infinite;
 }
@@ -288,12 +291,16 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
-  background-size: 200% 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffd700,
+    #ffd700 8px,
+    #e6c200 8px,
+    #e6c200 16px
+  );
   border-radius: 999px;
   transition: width 0.25s ease;
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
-  animation: progressShine 1.2s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
 }
 
 @keyframes progressShine {

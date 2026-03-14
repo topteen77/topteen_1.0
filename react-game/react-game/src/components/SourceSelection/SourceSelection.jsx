@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import './SourceSelection.css';
 import iconAllCareer from '../../assets/images/all-career.png';
 import iconSelectTick from '../../assets/images/pruple-select-tick.svg';
+import swordImage from '../../assets/sword-image.png';
+import starImage from '../../assets/star.png';
+import bookImage from '../../assets/book.png';
+import pinImage from '../../assets/pin.png';
 
 const SOURCE_OPTIONS = [
-  { id: 'past_battles', label: 'Past battles', short: 'Your previous fights', icon: '⚔️' },
-  { id: 'shown_interest', label: 'Favourites', short: 'Streams you liked (winners)', icon: '⭐' },
-  { id: 'psychometric', label: 'My test results', short: 'Careers from your report', icon: '📋' },
-  { id: 'shortlist', label: 'Shortlist', short: 'Careers you saved', icon: '📌' },
+  { id: 'past_battles', label: 'Past battles', short: 'Your previous fights', icon: '⚔️', image: swordImage },
+  { id: 'shown_interest', label: 'Favourites', short: 'Streams you liked (winners)', icon: '⭐', image: starImage },
+  { id: 'psychometric', label: 'My test results', short: 'Careers from your report', icon: '📋', image: bookImage },
+  { id: 'shortlist', label: 'Shortlist', short: 'Careers you saved', icon: '📌', image: pinImage },
   { id: 'all_clusters', label: 'All careers', short: 'Pick from every cluster', icon: '🌐', image: iconAllCareer },
 ];
 
@@ -91,7 +95,7 @@ const SourceSelection = ({ onContinue, onSkipToClusters }) => {
     <div className="source-selection-container" role="region" aria-labelledby="source-selection-title">
       <div className="source-selection-header">
         <h1 id="source-selection-title" className="source-selection-title">
-          <span className="text-purple">Choose </span> your arena
+          <span className="text-purple">Choose </span> your Arena
         </h1>
         <p className="source-selection-subtitle" id="source-selection-description">
           Where should we get your 2 fighters from? Pick one or mix several.
