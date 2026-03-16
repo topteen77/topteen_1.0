@@ -946,8 +946,8 @@ def class10_report_download_pdf(request, user_id=None):
             template = get_template(pdf_template_name)
         html = template.render(context)
         
-        # Debug: return raw HTML to verify template/CSS (e.g. ?debug=html)
-        if request.GET.get('debug') == 'html':
+        # Debug: return raw HTML to verify template/CSS (?debug=true)
+        if request.GET.get('debug') == 'true':
             from django.http import HttpResponse as HttpResp
             r = HttpResp(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=combined-report-debug.html'
@@ -2819,6 +2819,13 @@ def test1_report_pdf(request, user_id=None):
         template = get_template('template20/app/test1_report_pdf.html')
         html = template.render(context)
         
+        # Debug: return raw HTML (?debug=true)
+        if request.GET.get('debug') == 'true':
+            r = HttpResponse(html, content_type='text/html; charset=utf-8')
+            r['Content-Disposition'] = 'inline; filename=test1-personality-report-debug.html'
+            r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+            return r
+        
         # Generate PDF with optimizations
         # Keep HTTP base_url for proper static/media resolution
         # The main optimization is graph generation check (skip if exists)
@@ -2947,6 +2954,13 @@ def test2_report_pdf(request, user_id=None):
         template = get_template('template20/app/test2_report_pdf.html')
         html = template.render(context)
         
+        # Debug: return raw HTML (?debug=true)
+        if request.GET.get('debug') == 'true':
+            r = HttpResponse(html, content_type='text/html; charset=utf-8')
+            r['Content-Disposition'] = 'inline; filename=test2-interest-report-debug.html'
+            r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+            return r
+        
         # Generate PDF with optimizations
         # Keep HTTP base_url for proper static/media resolution
         # The main optimization is graph generation check (skip if exists)
@@ -3074,6 +3088,13 @@ def test3_report_pdf(request, user_id=None):
         # Render HTML template
         template = get_template('template20/app/test3_report_pdf.html')
         html = template.render(context)
+        
+        # Debug: return raw HTML (?debug=true)
+        if request.GET.get('debug') == 'true':
+            r = HttpResponse(html, content_type='text/html; charset=utf-8')
+            r['Content-Disposition'] = 'inline; filename=test3-intelligence-report-debug.html'
+            r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+            return r
         
         # Generate PDF with optimizations
         # Keep HTTP base_url for proper static/media resolution
