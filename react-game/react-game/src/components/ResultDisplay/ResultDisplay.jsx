@@ -124,6 +124,10 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistM
 
           <div className="winner-name" aria-label={`Winner: ${winner}`}>{winner}</div>
 
+          <p className="textwhite">vs</p>
+
+          <div className="winner-subtitle"> {loser}</div>
+
 
           </div> 
 
@@ -145,7 +149,7 @@ const ResultDisplay = ({ result, streams, onInterested, onFightAgain, shortlistM
 
 
 
-          <div className="winner-subtitle">vs {loser}</div>
+        
       
         </div>
       </div>

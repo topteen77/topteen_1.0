@@ -8,6 +8,11 @@
   background-repeat: no-repeat;
 }
 
+.textwhite {
+  color: #fff;
+  margin: 0px;
+  font-size: 18px;
+}
 
 
 .result-display-container {
@@ -311,12 +316,13 @@
 }
 
 .winner-video-wrapper {
-  width: 120px;
+  width: 164px;
   aspect-ratio: 9 / 16;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 0 24px rgba(255, 215, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
   border: 2px solid rgba(255, 215, 0, 0.4);
+  height: 209px !important;
 }
 
 .winner-character-video {
@@ -1049,7 +1055,7 @@
 
   .winner-subtitle {
     font-size: 0.9rem;
-    margin-top:1.25rem;
+    margin-top:0px;
   }
 
   .action-button.interested-button img {
@@ -1227,6 +1233,7 @@
     font-size: 12px;
   }
 
+ 
   .button-icon {
     font-size: 1.25rem;
   }
