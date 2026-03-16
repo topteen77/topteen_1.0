@@ -98,4 +98,18 @@
     </div>
   </section>
 </main>
+<script>
+(function() {
+  document.querySelectorAll('.show-more-exams').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tabContent = this.closest('.e-tab-content');
+      var grid = tabContent ? tabContent.querySelector('.exam-grid') : null;
+      if (!grid) return;
+      var isExpanded = grid.classList.toggle('show-all');
+      this.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      this.textContent = isExpanded ? 'Show less' : 'Show more';
+    });
+  });
+})();
+</script>
 {% endblock %}

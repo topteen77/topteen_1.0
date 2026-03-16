@@ -10,6 +10,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.utils import OperationalError
 
 from core import choices
 from core.models import (
@@ -170,9 +171,13 @@ class Command(BaseCommand):
                         ).first()
                     existing_exam = None
                     if category:
-                        existing_exam = EntranceTestPrepExam._base_manager.filter(
-                            category=category, name__iexact=exam_name
-                        ).first()
+                        existing_exam = (
+                            EntranceTestPrepExam._base_manager.filter(
+                                category=category, name__iexact=exam_name
+                            )
+                            .defer("content_json")
+                            .first()
+                        )
                     action = "update" if existing_exam else "create"
                 except Exception:
                     action = "create or update"
@@ -258,24 +263,38 @@ class Command(BaseCommand):
                     continue
 
                 # No duplicate: lookup by (category, name) case-insensitive. If exists → update; else → insert.
-                existing_exam = EntranceTestPrepExam._base_manager.filter(
-                    category=parent, name__iexact=exam_name
-                ).first()
+                # Defer content_json so this works when DB has no content_json column yet (e.g. production pre-migration).
+                existing_exam = (
+                    EntranceTestPrepExam._base_manager.filter(
+                        category=parent, name__iexact=exam_name
+                    )
+                    .defer("content_json")
+                    .first()
+                )
                 if existing_exam:
                     existing_exam.name = exam_name
                     existing_exam.content_html = content_html
                     existing_exam.object_status = choices.ObjectStatus.ACTIVE
-                    existing_exam.save()
+                    existing_exam.save(update_fields=["name", "content_html", "object_status"])
                     updated_exams += 1
                 else:
-                    EntranceTestPrepExam.objects.create(
-                        category=parent,
-                        name=exam_name,
-                        content_html=content_html,
-                        priority=1,
-                        object_status=choices.ObjectStatus.ACTIVE,
-                    )
-                    created_exams += 1
+                    try:
+                        EntranceTestPrepExam.objects.create(
+                            category=parent,
+                            name=exam_name,
+                            content_html=content_html,
+                            priority=1,
+                            object_status=choices.ObjectStatus.ACTIVE,
+                        )
+                        created_exams += 1
+                    except OperationalError as e:
+                        if e.args[0] == 1054 and "content_json" in str(e.args):
+                            raise OperationalError(
+                                e.args[0],
+                                "Cannot create new exams: database table is missing column "
+                                "'content_json'. Run: python manage.py migrate core",
+                            ) from e
+                        raise
 
             self.stdout.write(
                 self.style.SUCCESS(
