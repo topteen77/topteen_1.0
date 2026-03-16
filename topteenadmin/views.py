@@ -32,7 +32,7 @@ from topteenadmin.filters import (CareerFAQFilter, CareerFilter, CareerMediaFilt
                                   CountryFilter, SkillLabCourseActivityFilter,StateFilter,CityFilter,
                                   ProspectiveRecruiterFilter, SkillFilter,ProfessionFilter,StreamFilter,CourseFilter,CourseFactsFilter,CourseIntakeFilter,
                                   CourseTextFilter,CourseMoneyValueFilter,CourseEnglighRequirementsFilter,SkillLabCourseChapterFilter,
-                                  EntranceExamFilter,BlogFilter,BlogCategoryFilter,BlogTagFilter,CareerClusterFilter,SkillLabCourseFilter,SkillLabCourseActivity,ExamTagsFilter,VideoCategoryFilter,VideosFilter,HobbiesFilter,SubjectFilter,UserFigureOutFilter,StoriesFilter,ApilogFilter,LeadFilter,PsychometricFaqFilter,StudentFilter,VocationalCourseCategoryFilter,VocationalCourseFilter,ExtracurricularActivityCategoryFilter,ExtracurricularActivityFilter)
+                                  EntranceExamFilter,BlogFilter,BlogCategoryFilter,BlogTagFilter,CareerClusterFilter,SkillLabCourseFilter,SkillLabCourseActivity,ExamTagsFilter,VideoCategoryFilter,VideosFilter,HobbiesFilter,SubjectFilter,UserFigureOutFilter,StoriesFilter,ApilogFilter,LeadFilter,PsychometricFaqFilter,StudentFilter,VocationalCourseCategoryFilter,VocationalCourseFilter,ExtracurricularActivityCategoryFilter,ExtracurricularActivityFilter,EntranceTestPrepCategoryFilter,EntranceTestPrepExamFilter)
 
 from .base_views import (BaseCreateView, BaseDeleteView, BaseDetailView,
                          BaseListView, BaseUpdateView)
@@ -50,11 +50,11 @@ from .forms import ( CareerFAQModelForm, CareerMediaModelForm,
                     CourseIntakeModelForm,CourseEnglighRequirementsModelForm,
                     EntranceExamModelForm,CareerTagsForm,BlogModelForm,
                     BlogCategoryModelForm,TagModelForm,CareerClusterModelForm,ReviewModelForm,SkillLabCourseModelForm,SkillLabCourseActivityModelForm,
-                    ExamTagsModelForm,VideosForm,VideoCategoryForm,HobbiesModelForm,SubjectModelForm,UserFigureOutModelForm,StoriesModelForm,LeadModelForm,ApilogModelForm,PsychometricFaqModelForm,VocationalCourseCategoryModelForm,VocationalCourseModelForm,ExtracurricularActivityCategoryModelForm,ExtracurricularActivityModelForm)
+                    ExamTagsModelForm,VideosForm,VideoCategoryForm,HobbiesModelForm,SubjectModelForm,UserFigureOutModelForm,StoriesModelForm,LeadModelForm,ApilogModelForm,PsychometricFaqModelForm,VocationalCourseCategoryModelForm,VocationalCourseModelForm,ExtracurricularActivityCategoryModelForm,ExtracurricularActivityModelForm,EntranceTestPrepCategoryModelForm,EntranceTestPrepExamModelForm)
 
 from colleges.models import (College, CollegeFacts,CollegeImages,CollegeFlatText,RecruitingCompanies,CollegeFacility,
                             CollegeText,RecruitingCompanies,Facility,CollegeRecruitingCompanies,CollegeMoneyValue)
-from core.models import CommonFAQ, Country,City,State,Review,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
+from core.models import CommonFAQ, Country,City,State,Review,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity,EntranceTestPrepCategory,EntranceTestPrepExam
 from courses.models import (Stream,Course,CourseFacts,CourseIntake,CourseText,CourseMoneyValue,CourseEnglighRequirements)
 from entrance_exams.models import EntranceExam,ExamTags
 from crm.models import Lead
@@ -549,6 +549,87 @@ class ExtracurricularActivityDetailView(BaseDetailView):
     form_class = ExtracurricularActivityModelForm
     success_url = reverse_lazy('topteenadminmanaged:extracurricularactivitylist')
     active_tab = "extracurricularactivity"
+
+# Entrance Test Prep (core)
+class EntranceTestPrepCategoryListView(BaseListView):
+    template_name = "topteenadmin/entrancetestprepcategory_list.html"
+    title = "Entrance Test Prep Category"
+    active_tab = "entrancetestprepcategory"
+    model = EntranceTestPrepCategory
+    filterset_class = EntranceTestPrepCategoryFilter
+    context_object_name = "entrancetestprepcategory_list"
+
+class CreateEntranceTestPrepCategory(BaseCreateView):
+    template_name = "topteenadmin/entrancetestprepcategory_form.html"
+    model = EntranceTestPrepCategory
+    form_class = EntranceTestPrepCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepcategorylist')
+    title = "Entrance Test Prep Category"
+    active_tab = "entrancetestprepcategory"
+    success_message = "Category created successfully."
+
+class EntranceTestPrepCategoryUpdateView(BaseUpdateView):
+    template_name = "topteenadmin/entrancetestprepcategory_form.html"
+    model = EntranceTestPrepCategory
+    form_class = EntranceTestPrepCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepcategorylist')
+    title = "Entrance Test Prep Category"
+    active_tab = "entrancetestprepcategory"
+    success_message = "Category updated successfully."
+
+class EntranceTestPrepCategoryDeleteView(BaseDeleteView):
+    model = EntranceTestPrepCategory
+    active_tab = "entrancetestprepcategory"
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepcategorylist')
+    success_message = "Category deleted successfully."
+
+class EntranceTestPrepCategoryDetailView(BaseDetailView):
+    template_name = "topteenadmin/entrancetestprepcategory_detail.html"
+    model = EntranceTestPrepCategory
+    title = "Entrance Test Prep Category"
+    form_class = EntranceTestPrepCategoryModelForm
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepcategorylist')
+    active_tab = "entrancetestprepcategory"
+
+class EntranceTestPrepExamListView(BaseListView):
+    template_name = "topteenadmin/entrancetestprepexam_list.html"
+    title = "Entrance Test Prep Exam"
+    active_tab = "entrancetestprepexam"
+    model = EntranceTestPrepExam
+    filterset_class = EntranceTestPrepExamFilter
+    context_object_name = "entrancetestprepexam_list"
+
+class CreateEntranceTestPrepExam(BaseCreateView):
+    template_name = "topteenadmin/entrancetestprepexam_form.html"
+    model = EntranceTestPrepExam
+    form_class = EntranceTestPrepExamModelForm
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepexamlist')
+    title = "Entrance Test Prep Exam"
+    active_tab = "entrancetestprepexam"
+    success_message = "Exam created successfully."
+
+class EntranceTestPrepExamUpdateView(BaseUpdateView):
+    template_name = "topteenadmin/entrancetestprepexam_form.html"
+    model = EntranceTestPrepExam
+    form_class = EntranceTestPrepExamModelForm
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepexamlist')
+    title = "Entrance Test Prep Exam"
+    active_tab = "entrancetestprepexam"
+    success_message = "Exam updated successfully."
+
+class EntranceTestPrepExamDeleteView(BaseDeleteView):
+    model = EntranceTestPrepExam
+    active_tab = "entrancetestprepexam"
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepexamlist')
+    success_message = "Exam deleted successfully."
+
+class EntranceTestPrepExamDetailView(BaseDetailView):
+    template_name = "topteenadmin/entrancetestprepexam_detail.html"
+    model = EntranceTestPrepExam
+    title = "Entrance Test Prep Exam"
+    form_class = EntranceTestPrepExamModelForm
+    success_url = reverse_lazy('topteenadminmanaged:entrancetestprepexamlist')
+    active_tab = "entrancetestprepexam"
 
 class ProfessionListView(BaseListView):
     template_name = "topteenadmin/profession_list.html"

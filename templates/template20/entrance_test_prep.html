@@ -1,0 +1,101 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}Entrance Exam | Top Teen{% endblock %}
+{% block description_content %}Expert guidance and trusted resources to help you confidently prepare for entrance exams after 10th, 12th, or graduation.{% endblock %}
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+{% block additionalhead %}
+<style>
+.exam-single-hero-section { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+.exam-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1.25rem; }
+@media (min-width: 768px) { .exam-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 992px) { .exam-grid { grid-template-columns: repeat(3, 1fr); } }
+/* Card UI: light lavender left (image), white right (content), thin separator, rounded */
+.exam-card { display: flex; align-items: stretch; background: #E8E6FA; border-radius: 16px; padding: 0; box-shadow: 0 4px 16px rgba(63, 55, 201, 0.08); border: none; min-height: 180px; overflow: hidden; transition: transform 180ms ease, box-shadow 180ms ease; }
+.exam-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(63, 55, 201, 0.14); }
+.exam-card-img { flex: 0 0 40%; max-width: 40%; min-height: 180px; background: #E8E6FA; display: flex; align-items: center; justify-content: center; padding: 14px; }
+.exam-card-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.exam-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem 1.5rem; background: #fff; border-left: 1px solid rgba(63, 55, 201, 0.18); }
+.exam-card-body h3 { margin: 0; font-size: 1.2rem; line-height: 1.3; color: #3F37C9; font-weight: 700; }
+.exam-card-body .exam-card-btn-wrap { margin-top: auto; padding-top: 0.75rem; display: flex; justify-content: center; }
+.exam-card-body .exam-card-btn { display: inline-block; padding: 0.55rem 1.35rem; font-size: 0.9rem; font-weight: 600; color: #fff; background: #3F37C9; border: none; border-radius: 10px; text-align: center; transition: background 0.2s; }
+.exam-card:hover .exam-card-btn { background: #3530a8; }
+.exam-grid .extra-card { display: none; }
+.exam-grid.show-all .extra-card { display: flex; }
+.exam-grid-toggle { text-align: center; margin-top: 1rem; }
+.exam-card-link { display: block; text-decoration: none; color: inherit; }
+.exam-card-link:hover { color: inherit; }
+</style>
+{% endblock %}
+{% block content %}
+<main class="py-test-page">
+  <section class="hero-section-inner exam-single-hero-section pt-md-18 pt-14 position-relative">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
+          <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span>
+          <h1 class="heading-title mt-md-8 mt-5 mb-0">Shape Your Future</h1>
+          <p class="text-dark fs-25 fs-sm-18 fw-700">with <span class="text-yellow"> Expert Entrance Exam </span> Guidance</p>
+          <p class="text-gray fs-16">Expert guidance and trusted resources to help you confidently prepare for entrance exams after 10th, 12th, or graduation and shape a successful future.</p>
+        </div>
+        <div class="col-lg-6 col-md-12 order-md-2 order-1">
+          <div class="right-banner d-md-flex justify-content-center align-items-center">
+            <img class="img-fluid" src="{{ static('images_new/general/visinory-goal.svg') }}" alt="Entrance Exam" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="learning-prefernces-section py-md-8 py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9 mx-auto text-center">
+          <h2 class="title-two fs-34 fw-700 mb-4 fs-sm-28 mb-0">Your Pathway to Success After 10th, 12th &amp; Graduation</h2>
+          <p class="text-gray fs-18 fs-sm-16">Personalized expert guidance and strategic resources to help you confidently choose the right career path and excel in entrance exams.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 mx-auto custom-faq e-exam-tabs">
+          <ul class="nav nav-pills mb-6 d-flex justify-content-center my-5 gap-2" id="pills-tab" role="tablist">
+            <li class="nav-item" role="tab"><button class="nav-link active" id="pills-foundation-a-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-a" type="button" role="tab">After 10th</button></li>
+            <li class="nav-item" role="tab"><button class="nav-link" id="pills-foundation-b-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-b" type="button" role="tab">After 12th</button></li>
+            <li class="nav-item" role="tab"><button class="nav-link" id="pills-foundation-c-tab" data-bs-toggle="pill" data-bs-target="#pills-foundation-c" type="button" role="tab">After Graduation</button></li>
+          </ul>
+          <div class="tab-content mb-md-5 mb-3" id="pills-tabContent">
+            {% for level in levels %}
+            <div class="tab-pane fade {{ 'show active' if loop.first else '' }}" id="pills-foundation-{{ 'a' if loop.index0 == 0 else ('b' if loop.index0 == 1 else 'c') }}" role="tabpanel">
+              <div class="e-tab-content">
+                <div class="exam-grid">
+                  {% for cat in level.children.all() %}
+                  <a href="{{ url('core:entrance_test_prep_category', kwargs={'level_slug': level.slug, 'category_slug': cat.slug}) }}" class="exam-card exam-card-link {{ 'extra-card' if loop.index > 9 else '' }}">
+                    <div class="exam-card-img">
+                      {% if cat.image %}
+                      <img src="{{ cat.image.url }}" alt="{{ cat.name }}" />
+                      {% elif category_image_map and category_image_map.get(cat.name|lower) %}
+                      <img src="{{ static('images_new/entrance-exam/' ~ category_image_map.get(cat.name|lower)) }}" alt="{{ cat.name }}" onerror="this.src='{{ static('images_new/general/visinory-goal.svg') }}';" />
+                      {% else %}
+                      <img src="{{ static('images_new/general/visinory-goal.svg') }}" alt="{{ cat.name }}" />
+                      {% endif %}
+                    </div>
+                    <div class="exam-card-body">
+                      <h3>{{ cat.name }}</h3>
+                      <div class="exam-card-btn-wrap"><span class="exam-card-btn">Read More</span></div>
+                    </div>
+                  </a>
+                  {% endfor %}
+                </div>
+                {% if level.children.count() > 9 %}
+                <div class="exam-grid-toggle"><button class="btn custom-button blue-button show-more-exams" type="button" aria-expanded="false">Show more</button></div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+            {% if not levels %}
+            <div class="tab-pane fade show active" id="pills-foundation-a" role="tabpanel"><p class="text-gray">No categories yet. Import entrance test prep data to see levels and categories.</p></div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}

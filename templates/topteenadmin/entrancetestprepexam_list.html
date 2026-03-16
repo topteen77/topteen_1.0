@@ -1,0 +1,57 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<div id="kt_content_container" class="container-xxl">
+		<div class="card">
+			<div class="card-header border-0 pt-6">
+				<div class="card-title"></div>
+				{% include 'topteenadmin/includes/messages.html' %}
+				<div class="card-toolbar">
+					<div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
+						<button type="button" class="btn btn-light-primary me-3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">Filter</button>
+						{% set reset_url = url('topteenadminmanaged:entrancetestprepexamlist') %}
+						{% include 'topteenadmin/includes/filter-form.html' %}
+						<a href="{{url('topteenadminmanaged:entrancetestprepexamcreate')}}" class="btn btn-primary">Add Exam</a>
+					</div>
+				</div>
+			</div>
+			<div class="card-body pt-0">
+				<table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_ecommerce_products_table">
+					<thead>
+						<tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+							<th class="min-w-125px">Id</th>
+							<th class="min-w-80px">Image</th>
+							<th class="min-w-125px">Name</th>
+							<th class="min-w-125px">Category</th>
+							<th class="min-w-80px">Priority</th>
+							<th class="text-end min-w-80px">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="text-gray-600 fw-bold">
+						{% for obj in entrancetestprepexam_list|default([]) %}
+						<tr>
+							<td><a href="{{obj.detail_url}}" class="text-gray-800 text-hover-primary mb-1">{{obj.id}}</a></td>
+							<td>{% if obj.image %}<img src="{{ obj.image.url }}" alt="" class="rounded" style="max-width:48px; max-height:48px; object-fit:contain;" />{% else %}<span class="text-muted">—</span>{% endif %}</td>
+							<td><a href="{{obj.detail_url}}" class="text-gray-800 text-hover-primary mb-1">{{obj.name}}</a></td>
+							<td>{{ obj.category.name if obj.category else '-' }}</td>
+							<td>{{ obj.priority }}</td>
+							<td class="text-end">
+								<a href="#" class="btn btn-light btn-active-light-primary btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">Actions</a>
+								<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4" data-kt-menu="true">
+									<div class="menu-item px-3"><a href="{{obj.detail_url}}" class="menu-link px-3">View</a></div>
+									<div class="menu-item px-3"><a href="{{obj.edit_url}}" class="menu-link px-3">Edit</a></div>
+									<div class="menu-item px-3"><a href="#" data-kt-subscriptions-table-filter="delete_row" data-url="{{obj.delete_url}}" data-name="{{obj.name}}" class="menu-link px-3 deleteclick">Delete</a></div>
+								</div>
+							</td>
+						</tr>
+						{% else %}
+						<tr><td colspan="6" class="text-center text-muted py-8">No exams found.</td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% include 'topteenadmin/includes/pagination.html' %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

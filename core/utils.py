@@ -70,10 +70,15 @@ def sort_colleges(colleges,request):
 
 def build_breadcrumb(list_of_dict):
 	lst = []
-	home={}
-	home['title']="Home"
-	home['url'] = '/'
-	home['text'] = "Home"
+	home = {'title': 'Home', 'url': '/', 'text': 'Home'}
+	if not list_of_dict:
+		return [home]
+	first = list_of_dict[0] if list_of_dict else {}
+	first_text = (first.get('text') or first.get('title') or '').strip()
+	first_url = (first.get('url') or '').strip().rstrip('/')
+	# Avoid duplicate Home when caller already passed Home as first item
+	if first_text.lower() == 'home' and (not first_url or first_url == '/' or first_url.endswith('/home')):
+		return list(list_of_dict)
 	lst.append(home)
 	lst.extend(list_of_dict)
 	return lst
@@ -148,6 +153,7 @@ URL_KEY_TO_FRONTEND_PATH = {
 	"all-faq": "all-faq",
 	"extracurricular-activities": "extracurricular-activities",
 	"vocational-courses": "vocational-courses",
+	"entrance-test-prep": "entrance-test-prep",
 	"ebooks": "ebooks",
 }
 
@@ -166,6 +172,7 @@ OG_HERO_IMAGE_BY_URL_KEY = {
 	"all-faq": "images_new/general/faqs-img.svg",
 	"extracurricular-activities": "images_new/general/visinory-goal.svg",
 	"vocational-courses": "images_new/general/vocational-course.svg",
+	"entrance-test-prep": "images_new/general/visinory-goal.svg",
 	"ebooks": "images_new/ebook-hero-img.png",
 	"searchand-explore": "images_new/careers/career-track.svg",
 }

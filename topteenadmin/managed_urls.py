@@ -113,6 +113,20 @@ urlpatterns = [
     path('core/extracurricularactivity/change/<pk>', views.ExtracurricularActivityUpdateView.as_view(), name="extracurricularactivityedit"),
     path('core/extracurricularactivity/delete/<pk>', views.ExtracurricularActivityDeleteView.as_view(), name='extracurricularactivitydelete'),
 
+    # Entrance Test Prep Category CRUD
+    path('core/entrancetestprepcategory/list', views.EntranceTestPrepCategoryListView.as_view(), name="entrancetestprepcategorylist"),
+    path('core/entrancetestprepcategory/view/<pk>', views.EntranceTestPrepCategoryDetailView.as_view(), name='entrancetestprepcategorydetail'),
+    path('core/entrancetestprepcategory/add', views.CreateEntranceTestPrepCategory.as_view(), name="entrancetestprepcategorycreate"),
+    path('core/entrancetestprepcategory/change/<pk>', views.EntranceTestPrepCategoryUpdateView.as_view(), name="entrancetestprepcategoryedit"),
+    path('core/entrancetestprepcategory/delete/<pk>', views.EntranceTestPrepCategoryDeleteView.as_view(), name='entrancetestprepcategorydelete'),
+
+    # Entrance Test Prep Exam CRUD
+    path('core/entrancetestprepexam/list', views.EntranceTestPrepExamListView.as_view(), name="entrancetestprepexamlist"),
+    path('core/entrancetestprepexam/view/<pk>', views.EntranceTestPrepExamDetailView.as_view(), name='entrancetestprepexamdetail'),
+    path('core/entrancetestprepexam/add', views.CreateEntranceTestPrepExam.as_view(), name="entrancetestprepexamcreate"),
+    path('core/entrancetestprepexam/change/<pk>', views.EntranceTestPrepExamUpdateView.as_view(), name="entrancetestprepexamedit"),
+    path('core/entrancetestprepexam/delete/<pk>', views.EntranceTestPrepExamDeleteView.as_view(), name='entrancetestprepexamdelete'),
+
     #category CRUD
     path('careers/videocategory/list',views.CategoryListView.as_view(),name="videocategorylist"),
     path('careers/videocategory/view/<pk>',views.CategoryDetailView.as_view(),name='videocategorydetail'),

@@ -221,7 +221,20 @@ python manage.py collectstatic --noinput
 # Worker tuning: GUNICORN_WORKERS, GUNICORN_THREADS, CELERY_CONCURRENCY, DB_CONN_MAX_AGE in .env (see docker/.env.example).
 
 
-python3 scripts/convert_docx_to_html.py
+--- DOCX to HTML (scripts/convert_docx_to_html.py) ---
+# Converts .docx to HTML with proper H1/H2/H3 from Word "Heading 1/2/3" styles (and outline level). Output: .txt files with HTML body.
+
+# Single file: first arg = path to one .docx (output: <output_dir>/<stem>.txt)
+python scripts/convert_docx_to_html.py "JEE Main.docx"
+python scripts/convert_docx_to_html.py "JEE Main.docx" ./my_output
+
+# Directory: first arg = folder (converts all .docx under it, keeps structure)
+python scripts/convert_docx_to_html.py "/path/to/source_folder" career_html_output
+
+# Debug H1/H2/H3 detection (prints to console: outline level, w:pStyle, style.name, and [NOT HEADING] when style looks like heading but did not match)
+DEBUG_HEADINGS=1 python scripts/convert_docx_to_html.py "JEE Main.docx"
+DEBUG_HEADINGS=1 python scripts/convert_docx_to_html.py "/path/to/source" career_html_output
+
 python manage.py upload_careers_from_txt --input-dir career_html_output
 python manage.py upload_careers_from_txt --input-dir career_html_output --dry-run
 
