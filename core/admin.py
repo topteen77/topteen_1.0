@@ -763,6 +763,42 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
     ordering = ("category__name", "priority", "name")
     readonly_fields = ("created", "modified")
     actions = ["action_regenerate_image", "action_remove_image"]
+    fieldsets = (
+        ("Basic Information", {"fields": ("category", "name", "slug", "image", "priority", "object_status")}),
+        (
+            "Content",
+            {
+                "fields": ("content_html", "content_json"),
+                "description": "Edit content_html to generate accordion structure. Use the Content Editor and 'Generate Accordion from Content' below. The content_json field is auto-saved on form submit.",
+            },
+        ),
+        ("Timestamps", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+    )
+    change_form_template = "admin/core/entrancetestprepexam/change_form.html"
+    change_list_template = "admin/core/entrancetestprepexam/change_list.html"
+
+    class Media:
+        css = {"all": ("admin/css/hide_content_json.css",)}
+
+    def save_model(self, request, obj, form, change):
+        import json
+        import logging
+
+        logger = logging.getLogger(__name__)
+        content_json_str = request.POST.get("content_json", "")
+        if content_json_str:
+            try:
+                obj.content_json = json.loads(content_json_str)
+                logger.info(
+                    "Saved content_json for EntranceTestPrepExam %s. Sections: %s",
+                    obj.id or "new",
+                    len((obj.content_json or {}).get("sections", {})),
+                )
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning("Invalid content_json for exam: %s", e)
+                if not change:
+                    obj.content_json = None
+        super().save_model(request, obj, form, change)
 
     def category_name_safe(self, obj):
         try:
@@ -814,8 +850,6 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
             url,
         )
     remove_image_btn.short_description = "Remove"
-
-    change_list_template = "admin/core/entrancetestprepexam/change_list.html"
 
     def get_urls(self):
         urls = super().get_urls()

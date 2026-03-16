@@ -826,8 +826,28 @@ class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
         exam = EntranceTestPrepExam.objects.prefetch_related("sections").get(pk=exam.pk)
         category = exam.category
         level = category.parent if category else None
-        sections = list(exam.sections.order_by("order", "section_id"))
+        sections = []
         toc = []
+        # Prefer content_json (accordion from admin) when present
+        if getattr(exam, "content_json", None) and isinstance(exam.content_json, dict):
+            raw_sections = exam.content_json.get("sections") or {}
+            # Build sections in consistent order; skip empty if desired (frontend can hide empty)
+            for key, data in raw_sections.items():
+                if not isinstance(data, dict):
+                    continue
+                title = data.get("title") or key.replace("_", " ").title()
+                html = data.get("html") or data.get("content") or data.get("body") or ""
+                if html or key == "overview":
+                    section_id = key.replace(" ", "-").lower()[:80]
+                    sections.append({
+                        "section_id": section_id,
+                        "title": title,
+                        "content_html": html,
+                    })
+            for s in sections:
+                toc.append({"id": s["section_id"], "text": s["title"], "level": 2, "icon": _icon_for_heading(s["title"])})
+        if not sections:
+            sections = list(exam.sections.order_by("order", "section_id"))
         if not sections and exam.content_html:
             toc, content_with_ids = _toc_from_content_html(exam.content_html)
             sections = [

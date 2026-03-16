@@ -535,6 +535,11 @@ class EntranceTestPrepExam(BaseModel, SlugModel):
     name = models.CharField(max_length=300)
     image = models.ImageField(upload_to="upload/core/entrance_test_prep/exam/", blank=True, null=True)
     content_html = RichTextField(blank=True, null=True, help_text="Full HTML content or used when no sections")
+    content_json = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Stored JSON structure parsed from content_html (programtitle, overview, sections) for accordion display",
+    )
     priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
 
     class Meta(BaseModel.Meta):
