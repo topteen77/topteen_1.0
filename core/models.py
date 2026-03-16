@@ -503,6 +503,65 @@ class VocationalCourse(BaseModel, SlugModel):
         verbose_name_plural = "Vocational Courses"
 
 
+class EntranceTestPrepCategory(BaseModel, SlugModel):
+    """
+    Level (After 10 / After 12 / After Graduation) or category under a level.
+    parent=None for top-level "After 10", "After 12", "After Graduation".
+    """
+    name = models.CharField(max_length=250)
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="children",
+    )
+    priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+    image = models.ImageField(upload_to="upload/core/entrance_test_prep/category/", blank=True, null=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "name")
+        verbose_name = "Entrance Test Prep Category"
+        verbose_name_plural = "Entrance Test Prep Categories"
+
+
+class EntranceTestPrepExam(BaseModel, SlugModel):
+    """Single exam under an EntranceTestPrepCategory (leaf category, not level)."""
+    category = models.ForeignKey(
+        EntranceTestPrepCategory,
+        on_delete=models.CASCADE,
+        related_name="exams",
+    )
+    name = models.CharField(max_length=300)
+    image = models.ImageField(upload_to="upload/core/entrance_test_prep/exam/", blank=True, null=True)
+    content_html = RichTextField(blank=True, null=True, help_text="Full HTML content or used when no sections")
+    priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+
+    class Meta(BaseModel.Meta):
+        ordering = ("priority", "name")
+        verbose_name = "Entrance Test Prep Exam"
+        verbose_name_plural = "Entrance Test Prep Exams"
+
+
+class EntranceTestPrepExamSection(BaseModel):
+    """Section within an exam (e.g. Overview, Eligibility); drives accordion + quick links on detail page."""
+    exam = models.ForeignKey(
+        EntranceTestPrepExam,
+        on_delete=models.CASCADE,
+        related_name="sections",
+    )
+    section_id = models.CharField(max_length=80, help_text="Slug for anchor, e.g. overview, eligibility")
+    title = models.CharField(max_length=300, help_text="Section title (e.g. Overview)")
+    content_html = RichTextField(help_text="HTML content for this section")
+    order = models.PositiveSmallIntegerField(default=1, help_text="Display order")
+
+    class Meta(BaseModel.Meta):
+        ordering = ("order",)
+        unique_together = [("exam", "section_id")]
+        verbose_name = "Entrance Test Prep Exam Section"
+        verbose_name_plural = "Entrance Test Prep Exam Sections"
+
+
 def ebook_cover_directory(instance, filename):
     # file will be uploaded to MEDIA_ROOT/ebook/cover/<filename>
     return 'upload/core/ebook/cover/{0}'.format(filename)
