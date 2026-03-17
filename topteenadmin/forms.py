@@ -12,7 +12,7 @@ from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTag
 from bs4 import BeautifulSoup
 from django.urls import reverse
 from colleges.models import College, CollegeFacts, CollegeFlatText, CollegeImages, CollegeText, Facility,RecruitingCompanies,CollegeRecruitingCompanies,CollegeFacility,CollegeMoneyValue
-from core.models import City, CommonFAQ, Country, Review,State,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
+from core.models import City, CommonFAQ, Country, Review,State,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity,EntranceTestPrepCategory,EntranceTestPrepExam
 from courses.models import (Stream,Course,CourseFacts,CourseIntake,CourseText,CourseMoneyValue,CourseEnglighRequirements)
 from entrance_exams.models import EntranceExam,ExamTags
 from skilllab.models import SkillLabCourse,SkillLabCourseActivity,SkillLabCourseChapter
@@ -538,6 +538,18 @@ class ExtracurricularActivityModelForm(TranslationModelForm):
     class Meta:
         model = ExtracurricularActivity
         fields = ['category', 'name', 'image', 'url', 'priority', 'object_status']
+
+
+class EntranceTestPrepCategoryModelForm(TranslationModelForm):
+    class Meta:
+        model = EntranceTestPrepCategory
+        fields = ['name', 'parent', 'priority', 'image', 'object_status']
+
+
+class EntranceTestPrepExamModelForm(TranslationModelForm):
+    class Meta:
+        model = EntranceTestPrepExam
+        fields = ['category', 'name', 'image', 'content_html', 'priority', 'object_status']
 
 
 class SubjectModelForm(TranslationModelForm):

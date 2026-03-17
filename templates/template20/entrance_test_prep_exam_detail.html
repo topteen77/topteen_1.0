@@ -1,0 +1,403 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}{{ exam.name }} | Top Teen{% endblock %}
+{% block description_content %}{{ exam.name }}{% endblock %}
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+{% block additionalhead %}
+<style>
+.four-pillars-hero-section { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
+.exam-details-section .accordion-item { border: none; margin-bottom: 0.5rem; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+/* Accordion button: expanded = purple + white text; collapsed = light bg + dark text */
+.exam-details-section .accordion-button {
+  display: flex !important;
+  align-items: center;
+  background: linear-gradient(90deg, #3F37C9 0%, #5B54D4 100%) !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 0;
+  border: none;
+  padding: 1rem 1.25rem;
+  box-shadow: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.exam-details-section .accordion-button .accordion-title-text { color: inherit; flex: 1; text-align: left; }
+.exam-details-section .accordion-button:hover,
+.exam-details-section .accordion-button:focus {
+  color: #fff !important;
+  background: linear-gradient(90deg, #3530a8 0%, #4a43c4 100%) !important;
+  border-color: transparent;
+  box-shadow: none;
+}
+.exam-details-section .accordion-button.collapsed {
+  background: #f7f7ff !important;
+  color: #1f1a4e !important;
+}
+.exam-details-section .accordion-button.collapsed:hover,
+.exam-details-section .accordion-button.collapsed:focus {
+  background: #e8e6ff !important;
+  color: #1f1a4e !important;
+}
+/* + / − expand-collapse icon (replace Bootstrap chevron) */
+.exam-details-section .accordion-button::after {
+  background-image: none !important;
+  content: '−' !important;
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1;
+  width: auto;
+  height: auto;
+  margin-left: auto;
+  flex-shrink: 0;
+  pointer-events: none;
+  color: inherit;
+}
+.exam-details-section .accordion-button.collapsed::after {
+  content: '+' !important;
+}
+.exam-details-section .accordion-button .section-icon { margin-right: 0.5rem; opacity: 0.9; }
+.exam-details-section .accordion-body {
+  background: #fbfbfb;
+  color: #333;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #e8e8f0;
+  border-top: none;
+}
+.exam-details-section .accordion-body,
+.exam-details-section .accordion-body p,
+.exam-details-section .accordion-body li,
+.exam-details-section .accordion-body td {
+  color: #333;
+}
+.exam-details-section .accordion-body table { width: 100%; margin-top: 0.75rem; }
+.exam-details-section .accordion-body table tr td,
+.exam-details-section .accordion-body table tr th { border: 1px solid #9b9999; padding: 8px 14px; color: #333; }
+.exam-details-section .accordion-body table tr th { background: #f7f7ff; color: #3f37c9; font-weight: 600; }
+
+/* Quick links sidebar – same as vocational / single-exam-category reference */
+.exam-details-section .sticky-sidebar.quick-links-sidebar {
+  position: sticky;
+  top: 110px;
+  width: 100%;
+  background: #f7f7ff;
+  border-radius: 8px;
+  border: 1px solid #e3e3ff;
+  padding: 1rem !important;
+  box-shadow: 0 4px 12px rgba(63, 55, 201, 0.06);
+}
+.exam-details-section .quick-links-sidebar h6 {
+  color: #1f1a4e;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.exam-details-section .quick-links-sidebar .quick-links {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.exam-details-section .quick-links-sidebar .quick-links li {
+  border-bottom: 1px solid rgba(79, 69, 219, 0.12);
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+}
+.exam-details-section .quick-links-sidebar .quick-links li:last-child { border-bottom: none; }
+.exam-details-section .quick-links-sidebar .quick-links a {
+  color: #3F37C9;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  text-decoration: none;
+  line-height: 1.35;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+  font-size: 0.95rem;
+}
+.exam-details-section .quick-links-sidebar .quick-links a i {
+  margin-right: 10px !important;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  color: inherit;
+}
+.exam-details-section .quick-links-sidebar .quick-links a:hover {
+  background: rgba(63, 55, 201, 0.1);
+  text-decoration: none;
+  color: #3F37C9;
+}
+.exam-details-section .quick-links-sidebar .quick-links a.active {
+  background: #3F37C9;
+  color: #fff !important;
+  text-decoration: none;
+}
+.exam-details-section .quick-links-sidebar .quick-links a.active i { color: #fff !important; }
+.exam-details-section .quick-links-sidebar .quick-links a.active:hover {
+  background: #3530a8;
+  color: #fff !important;
+}
+.exam-details-section .quick-links-sidebar .quick-links a.toc-h2 { padding-left: 1.25rem; font-size: 0.9rem; }
+.exam-details-section .quick-links-sidebar .quick-links a.toc-h3 { padding-left: 2rem; font-size: 0.85rem; }
+
+/* Mobile quick-jump – same as vocational */
+.exam-details-section .mobile-quick-jump {
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.exam-details-section .mobile-quick-jump .select-wrap { position: relative; flex: 1 1 auto; }
+.exam-details-section .mobile-quick-jump .select-wrap .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e6e6ff;
+  box-shadow: 0 6px 18px rgba(63,55,201,0.06);
+  height: 48px;
+  width: 100%;
+}
+.exam-details-section .mobile-quick-jump .select-caret {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6d5ffb;
+  font-size: 1.05rem;
+  opacity: 0.95;
+}
+.exam-details-section .mobile-quick-jump .btn {
+  border-radius: 10px;
+  padding: .45rem .8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 64px;
+  box-shadow: 0 8px 22px rgba(109,95,251,0.12);
+  background: #50B9F9 !important;
+  border: 1px solid #50B9F9 !important;
+  color: #fff !important;
+  text-align: center;
+  justify-content: center;
+  height: 46px;
+}
+.exam-details-section [id^="collapse-"],
+.exam-details-section .accordion-body [id] { scroll-margin-top: 120px; }
+@media (max-width: 991px) {
+  .exam-details-section .sticky-sidebar { position: relative; top: 0; margin-bottom: .75rem; }
+  .exam-details-section [id^="collapse-"],
+  .exam-details-section .accordion-body [id] { scroll-margin-top: 100px; }
+}
+</style>
+{% endblock %}
+{% block content %}
+{% if show_freetrail_popup %}<div id="freetrail-content-wrap">{% endif %}
+<main class="py-test-page">
+  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 position-relative">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-6 col-md-12 career-direction-test-hero">
+          <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span>
+          <h1 class="heading-title mt-md-8 mt-5 mb-5 fs-30 fs-sm-20 lh-sm">{{ exam.name }}</h1>
+        </div>
+        <div class="col-lg-4 col-md-12 offset-lg-2">
+          <div class="right-banner d-md-flex justify-content-center align-items-center">
+            {% if exam.image %}<img class="img-fluid" src="{{ exam.image.url }}" alt="{{ exam.name }}" />
+            {% elif exam.category and exam.category.image %}<img class="img-fluid" src="{{ exam.category.image.url }}" alt="{{ exam.name }}" />
+            {% else %}<img class="img-fluid" src="{{ static('images_new/general/visinory-goal.svg') }}" alt="{{ exam.name }}" />{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="learning-prefernces-section py-4 exam-details-section">
+    <div class="container">
+      <div class="row">
+        {% if sections %}
+        <aside class="col-lg-3 d-none d-lg-block">
+          <div class="sticky-sidebar p-3 quick-links-sidebar">
+            <h6 class="fs-20 fw-700 mb-3">Quick links</h6>
+            <ul class="quick-links list-unstyled mb-0" id="exam-quick-links">
+              {% if toc %}
+              {% for item in toc %}
+              {% if item.level == 2 %}
+              <li><a class="quick-link toc-h2" href="#{{ item.id }}" data-section-id="{{ item.id }}"><i class="bx {{ item.icon|default('bx-info-circle') }} me-1"></i>{{ item.text }}</a></li>
+              {% endif %}
+              {% endfor %}
+              {% else %}
+              {% for section in sections %}
+              <li><a class="quick-link" href="#{{ section.section_id }}" data-section-id="{{ section.section_id }}"><i class="bx bx-info-circle me-1"></i>{{ section.title }}</a></li>
+              {% endfor %}
+              {% endif %}
+            </ul>
+          </div>
+        </aside>
+        <div class="col-12 d-lg-none mb-3">
+          <div class="mobile-quick-jump">
+            <div class="select-wrap w-100">
+              <select id="exam-quick-jump" class="form-select form-select-sm">
+                <option value="">Jump to section...</option>
+                {% if toc %}
+                {% for item in toc %}
+                {% if item.level == 2 %}<option value="{{ item.id }}">{{ item.text }}</option>{% endif %}
+                {% endfor %}
+                {% else %}
+                {% for section in sections %}
+                <option value="{{ section.section_id }}">{{ section.title }}</option>
+                {% endfor %}
+                {% endif %}
+              </select>
+              <i class="bx bx-chevron-down select-caret"></i>
+            </div>
+            <button type="button" id="exam-jump-go" class="btn btn-sm btn-primary">Go <i class="bx bx-arrow-right-circle"></i></button>
+          </div>
+        </div>
+        <div class="col-lg-9 col-md-12 custom-faq">
+          <div class="accordion custom-accordion" id="examAccordion">
+            {% for section in sections %}
+            <div class="accordion-item" id="{{ section.section_id }}">
+              <h2 class="accordion-header" id="heading-{{ section.section_id }}">
+                <button class="accordion-button {{ 'collapsed' if not loop.first else '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ section.section_id }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse-{{ section.section_id }}">
+                  <span class="section-icon"><i class="bx bx-info-circle"></i></span>
+                  <span class="accordion-title-text">{{ section.title }}</span>
+                </button>
+              </h2>
+              <div id="collapse-{{ section.section_id }}" class="accordion-collapse collapse {{ 'show' if loop.first else '' }}" aria-labelledby="heading-{{ section.section_id }}" data-bs-parent="#examAccordion">
+                <div class="accordion-body">
+                  {{ section.content_html|safe }}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+          <p class="text-gray">Content for this exam is not yet available.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</main>
+{% if sections %}
+<script>
+(function() {
+  var quickLinksUl = document.getElementById('exam-quick-links');
+  var accordion = document.getElementById('examAccordion');
+  var hasToc = {{ 'true' if toc else 'false' }};
+
+  // #region agent log
+  (function debugAccordion() {
+    var log = function(hid, msg, data) {
+      var payload = { sessionId: 'bf67cc', runId: 'run1', hypothesisId: hid, location: 'entrance_test_prep_exam_detail.html:script', message: msg, data: data || {}, timestamp: Date.now() };
+      fetch('http://127.0.0.1:7245/ingest/935fbf31-b537-4e77-b0f5-8f6124fa6b86', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'bf67cc' }, body: JSON.stringify(payload) }).catch(function() {});
+    };
+    var hasBootstrap = typeof bootstrap !== 'undefined';
+    var hasCollapse = hasBootstrap && typeof bootstrap.Collapse !== 'undefined';
+    log('H1', 'Bootstrap check', { hasBootstrap: hasBootstrap, hasCollapse: hasCollapse });
+    if (accordion) {
+      var buttons = accordion.querySelectorAll('.accordion-button');
+      var collapses = accordion.querySelectorAll('.accordion-collapse');
+      var firstBtn = buttons[0];
+      var targetSel = firstBtn ? firstBtn.getAttribute('data-bs-target') : null;
+      var targetEl = targetSel ? document.querySelector(targetSel) : null;
+      log('H2', 'Accordion DOM', { buttonCount: buttons.length, collapseCount: collapses.length, firstDataBsTarget: targetSel, targetExists: !!targetEl });
+      accordion.addEventListener('click', function(e) {
+        var t = e.target;
+        var isButton = t.classList && t.classList.contains('accordion-button') || (t.closest && t.closest('.accordion-button'));
+        log('H3', 'Accordion click', { targetTag: t.tagName, targetClass: t.className || '', isButton: !!isButton });
+      }, true);
+      accordion.addEventListener('show.bs.collapse', function(e) {
+        log('H4', 'Bootstrap show.bs.collapse fired', { targetId: e.target.id });
+      });
+    } else {
+      log('H2', 'Accordion missing', { accordion: null });
+    }
+  })();
+  // #endregion
+
+  function setActiveQuickLink(sectionId) {
+    if (!quickLinksUl) return;
+    quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('data-section-id') === sectionId);
+    });
+  }
+
+  if (quickLinksUl) {
+    quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id = a.getAttribute('data-section-id');
+        if (!id) return;
+        if (hasToc) {
+          var el = document.getElementById(id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActiveQuickLink(id);
+          }
+          return;
+        }
+        var col = document.getElementById('collapse-' + id);
+        if (col && typeof bootstrap !== 'undefined') {
+          var bs = bootstrap.Collapse.getOrCreateInstance(col, { toggle: true });
+          bs.show();
+          col.addEventListener('shown.bs.collapse', function once() {
+            col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            col.removeEventListener('shown.bs.collapse', once);
+          });
+          setActiveQuickLink(id);
+        }
+      });
+    });
+  }
+
+  if (accordion && !hasToc) {
+    accordion.querySelectorAll('.accordion-collapse').forEach(function(col) {
+      col.addEventListener('show.bs.collapse', function() {
+        var id = col.id.replace('collapse-', '');
+        setActiveQuickLink(id);
+      });
+    });
+    var open = accordion.querySelector('.accordion-collapse.show');
+    if (open) setActiveQuickLink(open.id.replace('collapse-', ''));
+  } else if (hasToc && quickLinksUl && quickLinksUl.children.length > 0) {
+    setActiveQuickLink(quickLinksUl.querySelector('a.quick-link').getAttribute('data-section-id'));
+  }
+
+  var jumpSelect = document.getElementById('exam-quick-jump');
+  var jumpGo = document.getElementById('exam-jump-go');
+  if (jumpGo && jumpSelect) {
+    jumpGo.onclick = function() {
+      var id = jumpSelect.value;
+      if (!id) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (hasToc) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveQuickLink(id);
+        return;
+      }
+      var col = document.getElementById('collapse-' + id);
+      if (col && typeof bootstrap !== 'undefined') {
+        var bs = bootstrap.Collapse.getOrCreateInstance(col, { toggle: false });
+        bs.show();
+        col.addEventListener('shown.bs.collapse', function once() {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          col.removeEventListener('shown.bs.collapse', once);
+        });
+        setActiveQuickLink(id);
+      } else if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveQuickLink(id);
+      }
+    };
+  }
+})();
+</script>
+{% endif %}
+{% if show_freetrail_popup %}</div>{% endif %}
+{% endblock %}

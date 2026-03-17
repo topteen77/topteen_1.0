@@ -3,7 +3,7 @@ import django_filters
 from django.db.models import Count, Q
 from blog.models import Blog,BlogCategory,BlogTag
 from colleges.models import College,CollegeImages,CollegeFlatText,CollegeFacts,CollegeFacility, CollegeText,Facility,CollegeMoneyValue, RecruitingCompanies,CollegeRecruitingCompanies
-from core.models import CommonFAQ, Country, Review,State,City,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity
+from core.models import CommonFAQ, Country, Review,State,City,Hobbies,Subject,UserFigureOut,Stories,APILog,VocationalCourseCategory,VocationalCourse,ExtracurricularActivityCategory,ExtracurricularActivity,EntranceTestPrepCategory,EntranceTestPrepExam
 from core import choices
 from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, Profession,Skill,ProspectiveRecruiter,ProspectiveEmploymentArea,CareerCluster,CareerTags,CareerPathStep,VideoCategory,Videos
 from .base_filters import NamedBaseFilter,BaseFilter       
@@ -230,7 +230,20 @@ class ExtracurricularActivityFilter(NamedBaseFilter):
     class Meta:
         model = ExtracurricularActivity
         fields = ['name', 'category']
-        
+
+
+class EntranceTestPrepCategoryFilter(NamedBaseFilter):
+    class Meta:
+        model = EntranceTestPrepCategory
+        fields = ['name', 'parent']
+
+
+class EntranceTestPrepExamFilter(NamedBaseFilter):
+    class Meta:
+        model = EntranceTestPrepExam
+        fields = ['name', 'category']
+
+
 class CityFilter(NamedBaseFilter):
     class Meta:
         model = City

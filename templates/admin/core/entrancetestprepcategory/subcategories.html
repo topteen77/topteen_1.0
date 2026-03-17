@@ -1,0 +1,91 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:core_entrancetestprepcategory_changelist' %}">Entrance test prep categories</a>
+  &rsaquo; {{ category.name }}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<p style="margin-bottom: 16px;">
+  <a href="{{ change_url }}" class="button">Edit category</a>
+</p>
+
+{% if subcategories %}
+<h2 style="margin-top: 24px;">Subcategories</h2>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+  <thead>
+    <tr>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">ID</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Name</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Priority</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Object status</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Image</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for sub in subcategories %}
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ sub.id }}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">
+        <a href="{% url 'admin:core_entrancetestprepcategory_subcategories' sub.pk %}">{{ sub.name }}</a>
+      </td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ sub.priority }}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ sub.get_object_status_display }}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{% if sub.image %}Yes{% else %}-{% endif %}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">
+        <a href="{% url 'admin:core_entrancetestprepcategory_change' sub.pk %}" class="button">Edit</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="margin-bottom: 24px; color: #666;">No subcategories.</p>
+{% endif %}
+
+<h2 style="margin-top: 24px;">Exams</h2>
+{% if exams %}
+<table style="width: 100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">ID</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Name</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Priority</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Object status</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Preview</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Image</th>
+      <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for exam in exams %}
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ exam.id }}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">
+        <a href="{% url 'admin:core_entrancetestprepexam_change' exam.pk %}">{{ exam.name }}</a>
+      </td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ exam.priority }}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ exam.get_object_status_display }}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">
+        <a href="{% url 'core:entrance_test_prep_exam_detail' slug=exam.slug %}" target="_blank" class="button" style="color: green; font-weight: 600;">Preview</a>
+      </td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{% if exam.image %}Yes{% else %}-{% endif %}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">
+        <a href="{% url 'admin:core_entrancetestprepexam_change' exam.pk %}" class="button">Edit</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="color: #666;">No exams in this category.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AIMA UGAT (Under Graduate Aptitude Test)</title>
+</head>
+<body>
+<h1 id="aima-under-graduate-aptitude-test-aima-ugat">AIMA Under Graduate Aptitude Test (AIMA UGAT) </h1>
+
+<h2 id="overview-and-details">Overview and Details</h2>
+<p>The All India Management Association (AIMA) conducts the Under Graduate Aptitude Test (UGAT) annually to facilitate admissions into various undergraduate programs in management, computer applications, and hospitality. Established in 1957, AIMA plays a pivotal role in providing students with access to top institutes across India.</p>
+<p>AIMA UGAT serves as a national-level entrance examination, allowing candidates to secure admission into courses such as Integrated Master of Business Administration (IMBA), Bachelor of Business Administration (BBA), Bachelor of Computer Applications (BCA), and Bachelor of Hotel Management (BHM), among others. Various UGAT-affiliated institutions accept UGAT scores for admission, making it a widely recognized platform for aspiring students.</p>
+
+<h2 id="aima-ugat-exam-overview">AIMA UGAT Exam Overview</h2>
+<table>
+<tr>
+<th>
+<p><strong>Parameter</strong></p>
+</th>
+<th>
+<p><strong>Details</strong></p>
+</th>
+</tr>
+<tr>
+<td>
+<p>Exam Name</p>
+</td>
+<td>
+<p>AIMA UGAT (All India Management Association Undergraduate Aptitude Test)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Exam Level</p>
+</td>
+<td>
+<p>National</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Conducting Body</p>
+</td>
+<td>
+<p>All India Management Association (AIMA)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Courses Offered</p>
+</td>
+<td>
+<p>IMBA, BBA, BCA, BHM, BHSP</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Application Mode</p>
+</td>
+<td>
+<p>Online</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Exam Mode</p>
+</td>
+<td>
+<p>Both Offline (PBT) and Online (IBT)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Exam Duration</p>
+</td>
+<td>
+<p>2 Hours (for IMBA, BBA, BCA), 3 Hours (for BHM)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Type of Questions</p>
+</td>
+<td>
+<p>Multiple Choice Questions (MCQs)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Total Marks</p>
+</td>
+<td>
+<p>130 (for IMBA, BBA, BCA), 180 (for BHM)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Negative Marking</p>
+</td>
+<td>
+<p>No</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Exam Language</p>
+</td>
+<td>
+<p>English</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Official Website</p>
+</td>
+<td>
+<p>www.aima.in</p>
+</td>
+</tr>
+</table>
+
+<h2 id="aima-ugat-eligibility-criteria">AIMA UGAT Eligibility Criteria</h2>
+<ul>
+<li>Candidates must be at least 17 years old.</li>
+<li>Applicants should have passed or be appearing for their higher secondary (10+2) exams from a recognized board.</li>
+<li>A minimum of 50% marks in 10+2 or equivalent is required.</li>
+<li>There are no category-based relaxations; all candidates must meet the same eligibility criteria.</li>
+</ul>
+
+<h2 id="aima-ugat-exam-pattern">AIMA UGAT Exam Pattern</h2>
+<table>
+<tr>
+<th>
+<p><strong>Parameter</strong></p>
+</th>
+<th>
+<p><strong>Details</strong></p>
+</th>
+</tr>
+<tr>
+<td>
+<p>Exam Mode</p>
+</td>
+<td>
+<p>Both Offline (Paper-Based Test) and Online (Internet-Based Test)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Duration</p>
+</td>
+<td>
+<p>2 Hours (IMBA, BBA, BCA) / 3 Hours (BHM)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Type of Questions</p>
+</td>
+<td>
+<p>Multiple Choice Questions (MCQs)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Number of Questions</p>
+</td>
+<td>
+<p>130 (IMBA, BBA, BCA) / 180 (BHM)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Total Marks</p>
+</td>
+<td>
+<p>130 (IMBA, BBA, BCA) / 180 (BHM)</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Negative Marking</p>
+</td>
+<td>
+<p>No</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Language</p>
+</td>
+<td>
+<p>English</p>
+</td>
+</tr>
+</table>
+
+<h2 id="subject-wise-marks-distribution">Subject-Wise Marks Distribution</h2>
+<h3 id="for-imba-bba-and-bca">For IMBA, BBA, and BCA:</h3>
+<table>
+<tr>
+<th>
+<p><strong>Subject</strong></p>
+</th>
+<th>
+<p><strong>Number of Questions</strong></p>
+</th>
+</tr>
+<tr>
+<td>
+<p>English Language</p>
+</td>
+<td>
+<p>40</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Numerical and Data Analysis</p>
+</td>
+<td>
+<p>30</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Reasoning and Intelligence</p>
+</td>
+<td>
+<p>30</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>General Knowledge</p>
+</td>
+<td>
+<p>30</p>
+</td>
+</tr>
+</table>
+
+<h3 id="for-bhm-bachelor-of-hotel-management">For BHM (Bachelor of Hotel Management):</h3>
+<table>
+<tr>
+<th>
+<p><strong>Subject</strong></p>
+</th>
+<th>
+<p><strong>Number of Questions</strong></p>
+</th>
+</tr>
+<tr>
+<td>
+<p>English Language</p>
+</td>
+<td>
+<p>40</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Numerical and Data Analysis</p>
+</td>
+<td>
+<p>30</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Reasoning and Intelligence</p>
+</td>
+<td>
+<p>30</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>General Knowledge</p>
+</td>
+<td>
+<p>30</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Service Aptitude</p>
+</td>
+<td>
+<p>25</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Scientific Aptitude</p>
+</td>
+<td>
+<p>25</p>
+</td>
+</tr>
+</table>
+
+<h2 id="aima-ugat-syllabus">AIMA UGAT Syllabus</h2>
+<p>The UGAT syllabus includes topics from the 10+2 curriculum and assesses candidates on various skills required for business, management, computer applications, and hospitality.</p>
+<h3 id="for-imba-bba-and-bca-1">For IMBA, BBA, and BCA:</h3>
+<ul>
+<li><strong>English Language</strong>: Reading Comprehension, Sentence Completion, Vocabulary, Synonyms &amp;amp; Antonyms, Grammar.</li>
+<li><strong>Numerical &amp;amp; Data Analysis</strong>: Arithmetic, Algebra, Probability, Data Interpretation, Time &amp;amp; Work, Profit &amp;amp; Loss.</li>
+<li><strong>Reasoning &amp;amp; Intelligence</strong>: Logical Reasoning, Series Completion, Blood Relations, Direction Sense, Analogies.</li>
+<li><strong>General Knowledge</strong>: Current Affairs, Business &amp;amp; Economy, Sports, Science &amp;amp; Technology, National &amp;amp; International Events.</li>
+</ul>
+<h3 id="for-bhm-in-addition-to-the-above-subjects">For BHM (In addition to the above subjects):</h3>
+<ul>
+<li><strong>Service Aptitude</strong>: Customer Service Skills, Hospitality Awareness, Hotel Management Concepts.</li>
+<li><strong>Scientific Aptitude</strong>: Basic Science, Food &amp;amp; Beverage Knowledge, Housekeeping &amp;amp; Catering Fundamentals.</li>
+</ul>
+<p>For a detailed syllabus, candidates can refer to resources provided on the official website.</p>
+
+<h2 id="aima-ugat-tentative-schedule-tentative-months-each-year">AIMA UGAT Tentative Schedule (Tentative Months Each Year)</h2>
+<table>
+<tr>
+<th>
+<p><strong>Event</strong></p>
+</th>
+<th>
+<p><strong>Tentative Month/Period</strong></p>
+</th>
+</tr>
+<tr>
+<td>
+<p>Registration Start Date</p>
+</td>
+<td>
+<p>December</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Registration End Date</p>
+</td>
+<td>
+<p>June</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Admit Card Availability</p>
+</td>
+<td>
+<p>June</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>UGAT Exam Date</p>
+</td>
+<td>
+<p>June</p>
+</td>
+</tr>
+<tr>
+<td>
+<p>Result Declaration</p>
+</td>
+<td>
+<p>July</p>
+</td>
+</tr>
+</table>
+<p><strong>Note</strong>: These months are tentative and subject to change. Candidates are advised to regularly check the official AIMA website for the most recent updates.</p>
+
+<h2 id="why-choose-aima-ugat">Why Choose AIMA UGAT?</h2>
+<ul>
+<li><strong>Widely Recognized</strong>: Accepted by various management, IT, and hospitality institutions across India for undergraduate admissions.</li>
+<li><strong>Flexible Exam Modes</strong>: Offers both offline (Paper-Based Test) and online (Internet-Based Test) options to accommodate student preferences.</li>
+<li><strong>Student-Friendly Format</strong>: No negative marking, allowing candidates to attempt questions without fear of penalty.</li>
+<li><strong>Diverse Program Coverage</strong>: Encompasses multiple undergraduate programs in business, IT, and hospitality, catering to varied career interests.</li>
+<li><strong>Reputed Conducting Body</strong>: Conducted by AIMA, a trusted organization in management education since 1957, ensuring credibility and transparency.</li>
+</ul>
+
+<h2 id="additional-information">Additional Information</h2>
+<ul>
+<li><strong>About AIMA</strong>: The All India Management Association, established in 1957, is a premier body dedicated to advancing management education and professional development in India. Through initiatives like UGAT, AIMA connects aspiring students with reputed institutions, fostering talent and career growth.</li>
+<li><strong>Career Prospects</strong>: Qualifying in AIMA UGAT opens doors to diverse career paths in business administration, computer applications, and hospitality management. Graduates can pursue roles in corporate management, IT solutions, software development, hotel operations, and more, depending on their chosen program.</li>
+<li><strong>Preparation Tips</strong>: Candidates should focus on strengthening their 10+2 concepts, particularly in English, numerical analysis, and reasoning. Regular practice with mock tests, staying updated on current affairs, and honing aptitude skills for BHM can enhance performance. Time management is crucial given the exam duration.</li>
+<li><strong>Support for Students</strong>: AIMA provides comprehensive resources and support through its official website, including syllabus details, sample papers, and helpline services for application and exam-related queries. The organization is committed to ensuring a fair and accessible testing process for all candidates.</li>
+</ul>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>The AIMA Under Graduate Aptitude Test (UGAT) is a significant national-level entrance examination for students aspiring to pursue undergraduate programs in management, computer applications, and hospitality. With its flexible exam modes, student-friendly format, and wide recognition, UGAT offers a valuable opportunity to secure admission into reputed institutions across India. Candidates are encouraged to prepare diligently and stay updated with official announcements to maximize their chances of success.</p>
+<p>For more details, visit the official website: .</p>
+
+</body>
+</html>

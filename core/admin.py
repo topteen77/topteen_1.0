@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from core.choices import MINDMAP_TYPE_CHOICES
 from django.utils.html import format_html, strip_tags
 from django.urls import path, reverse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib import messages
 from .models import (
@@ -23,6 +23,9 @@ from .models import (
     ExtracurricularActivitySection,
     VocationalCourseCategory,
     VocationalCourse,
+    EntranceTestPrepCategory,
+    EntranceTestPrepExam,
+    EntranceTestPrepExamSection,
     Ebook,
     S3FileUpload,
     FourPillarsAssessment,
@@ -606,6 +609,340 @@ class VocationalCourseCategoryAdmin(admin.ModelAdmin):
     search_fields = ("name", "parent__name")
     ordering = ("parent__name", "priority", "name")
     inlines = (VocationalCourseInline,)
+
+
+class EntranceTestPrepExamInline(admin.TabularInline):
+    model = EntranceTestPrepExam
+    extra = 0
+    fields = ("name", "image", "priority", "object_status")
+    ordering = ("priority", "name")
+    show_change_link = True
+
+
+@admin.register(EntranceTestPrepCategory)
+class EntranceTestPrepCategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name_link", "parent", "priority", "object_status", "image")
+    list_display_links = ("name_link",)
+    list_filter = ("object_status", "parent")
+    search_fields = ("name", "parent__name")
+    ordering = ("parent__name", "priority", "name")
+    inlines = (EntranceTestPrepExamInline,)
+
+    def name_link(self, obj):
+        """Link category name to subcategories/exams page instead of change form."""
+        url = reverse("admin:core_entrancetestprepcategory_subcategories", args=[obj.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.name)
+    name_link.short_description = "Name"
+    name_link.admin_order_field = "name"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "<int:pk>/subcategories/",
+                self.admin_site.admin_view(self.subcategories_view),
+                name="core_entrancetestprepcategory_subcategories",
+            ),
+        ]
+        return custom + urls
+
+    def subcategories_view(self, request, pk):
+        """Show subcategories and exams for this category; exam links open exam page, with Preview button."""
+        category = get_object_or_404(EntranceTestPrepCategory, pk=pk)
+        subcategories = EntranceTestPrepCategory._base_manager.filter(parent_id=category.pk).order_by("priority", "name")
+        exams = EntranceTestPrepExam._base_manager.filter(category_id=category.pk).order_by("priority", "name")
+        change_url = reverse("admin:core_entrancetestprepcategory_change", args=[category.pk])
+        return render(
+            request,
+            "admin/core/entrancetestprepcategory/subcategories.html",
+            {
+                "category": category,
+                "subcategories": subcategories,
+                "exams": exams,
+                "change_url": change_url,
+                "opts": self.model._meta,
+                "title": f"Subcategories & exams: {category.name}",
+            },
+        )
+
+
+class EntranceTestPrepExamSectionInline(admin.TabularInline):
+    model = EntranceTestPrepExamSection
+    extra = 0
+    fields = ("section_id", "title", "order", "object_status")
+    ordering = ("order",)
+    show_change_link = True
+
+
+def _draw_exam_artwork(draw, cx, cy, motif, fill_white, fill_soft):
+    """Draw exam-related artwork: 0=book, 1=graduation cap, 2=document, 3=lightbulb. Center (cx,cy)."""
+    s = 28  # scale
+    if motif == 0:  # Open book
+        draw.rectangle([cx - s * 2, cy - s, cx - 2, cy + s], outline=fill_white, fill=fill_soft, width=2)
+        draw.rectangle([cx + 2, cy - s, cx + s * 2, cy + s], outline=fill_white, fill=fill_soft, width=2)
+        draw.line([cx - 2, cy - s, cx - 2, cy + s], fill=fill_white, width=2)
+        draw.line([cx + 2, cy - s, cx + 2, cy + s], fill=fill_white, width=2)
+        for y in (cy - 8, cy, cy + 8):
+            draw.line([cx - s * 2 + 6, y, cx - 4, y], fill=fill_white)
+            draw.line([cx + 4, y, cx + s * 2 - 6, y], fill=fill_white)
+    elif motif == 1:  # Graduation cap
+        draw.polygon([(cx, cy - s - 10), (cx - s - 5, cy + 5), (cx + s + 5, cy + 5)], outline=fill_white, fill=fill_soft, width=2)
+        draw.rectangle([cx - s - 8, cy + 2, cx + s + 8, cy + 14], outline=fill_white, fill=fill_soft, width=2)
+        draw.ellipse([cx + s - 4, cy + 6, cx + s + 8, cy + 18], outline=fill_white, fill=fill_white)
+    elif motif == 2:  # Document with check
+        draw.rounded_rectangle([cx - s * 2, cy - s - 5, cx + s * 2, cy + s + 5], radius=6, outline=fill_white, fill=fill_soft, width=2)
+        for i, y in enumerate([cy - s + 8, cy - 4, cy + 6, cy + 16]):
+            draw.line([cx - s * 2 + 12, y, cx + s * 2 - 12, y], fill=fill_white)
+        draw.ellipse([cx + s - 10, cy - s, cx + s * 2 - 8, cy - s + 18], outline=fill_white, fill=fill_soft, width=2)
+        draw.line([cx + s - 4, cy - s + 8, cx + s + 2, cy - s + 14], fill=fill_white, width=2)
+        draw.line([cx + s + 4, cy - s + 4, cx + s + 2, cy - s + 14], fill=fill_white, width=2)
+    else:  # 3: Lightbulb (idea/study)
+        draw.ellipse([cx - s, cy - s - 15, cx + s, cy + s - 15], outline=fill_white, fill=fill_soft, width=2)
+        draw.rectangle([cx - 12, cy + s - 22, cx + 12, cy + s - 8], outline=fill_white, fill=fill_soft, width=2)
+        for dx in (-18, 0, 18):
+            draw.line([cx + dx, cy - s - 18, cx + dx + 6, cy - s - 28], fill=fill_white)
+            draw.line([cx + dx, cy - s - 18, cx + dx - 6, cy - s - 28], fill=fill_white)
+
+
+def _generate_exam_placeholder_image(exam, width=400, height=300):
+    """Generate a unique placeholder image with exam-related artwork (no category copy). Returns bytes (PNG) or None."""
+    try:
+        from io import BytesIO
+        from PIL import Image, ImageDraw, ImageFont
+        palette = (
+            (63, 55, 201), (91, 84, 212), (99, 102, 241),
+            (129, 140, 248), (79, 70, 229), (67, 56, 202),
+        )
+        idx = (exam.pk or hash(exam.name)) % len(palette)
+        base_color = palette[idx]
+        img = Image.new("RGB", (width, height), color=base_color)
+        draw = ImageDraw.Draw(img)
+        for i in range(height):
+            blend = 1 - (i / height) * 0.12
+            r, g, b = int(base_color[0] * blend), int(base_color[1] * blend), int(base_color[2] * blend)
+            draw.line([(0, i), (width, i)], fill=(r, g, b))
+        fill_white = (255, 255, 255)
+        fill_soft = (240, 240, 255)
+        motif = (exam.pk or hash(exam.name)) % 4
+        cx, cy = width // 2, height // 2 - 25
+        _draw_exam_artwork(draw, cx, cy, motif, fill_white, fill_soft)
+        label = (exam.name[:26] + "…") if len(exam.name) > 26 else exam.name
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
+        except Exception:
+            try:
+                font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 26)
+            except Exception:
+                font = ImageFont.load_default()
+        if hasattr(draw, "textbbox"):
+            bbox = draw.textbbox((0, 0), label, font=font)
+            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        else:
+            tw, th = draw.textsize(label, font=font)
+        tx, ty = (width - tw) // 2, height // 2 + 45
+        draw.text((tx + 1, ty + 1), label, fill=(30, 30, 50), font=font)
+        draw.text((tx, ty), label, fill=(255, 255, 255), font=font)
+        try:
+            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+        except Exception:
+            font_small = ImageFont.load_default()
+        draw.text((14, 12), "Entrance Exam", fill=(255, 255, 255), font=font_small)
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
+@admin.register(EntranceTestPrepExam)
+class EntranceTestPrepExamAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "category_name_safe", "priority", "object_status", "preview_link", "image_safe", "regenerate_image_btn", "remove_image_btn")
+    list_filter = ("object_status", "category")
+    search_fields = ("name", "category__name")
+    ordering = ("category__name", "priority", "name")
+    readonly_fields = ("created", "modified")
+    actions = ["action_regenerate_image", "action_remove_image"]
+    fieldsets = (
+        ("Basic Information", {"fields": ("category", "name", "slug", "image", "priority", "object_status")}),
+        (
+            "Content",
+            {
+                "fields": ("content_html", "content_json"),
+                "description": "Edit content_html to generate accordion structure. Use the Content Editor and 'Generate Accordion from Content' below. The content_json field is auto-saved on form submit.",
+            },
+        ),
+        ("Timestamps", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+    )
+    change_form_template = "admin/core/entrancetestprepexam/change_form.html"
+    change_list_template = "admin/core/entrancetestprepexam/change_list.html"
+
+    class Media:
+        css = {"all": ("admin/css/hide_content_json.css",)}
+
+    def save_model(self, request, obj, form, change):
+        import json
+        import logging
+
+        logger = logging.getLogger(__name__)
+        content_json_str = request.POST.get("content_json", "")
+        if content_json_str:
+            try:
+                obj.content_json = json.loads(content_json_str)
+                logger.info(
+                    "Saved content_json for EntranceTestPrepExam %s. Sections: %s",
+                    obj.id or "new",
+                    len((obj.content_json or {}).get("sections", {})),
+                )
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning("Invalid content_json for exam: %s", e)
+                if not change:
+                    obj.content_json = None
+        super().save_model(request, obj, form, change)
+
+    def category_name_safe(self, obj):
+        try:
+            return obj.category.name if obj.category_id and getattr(obj, "category", None) else "-"
+        except Exception:
+            return "-"
+    category_name_safe.short_description = "Category"
+    category_name_safe.admin_order_field = "category__name"
+
+    def image_safe(self, obj):
+        try:
+            return "Yes" if obj.image else "-"
+        except Exception:
+            return "-"
+    image_safe.short_description = "Image"
+
+    def preview_link(self, obj):
+        if not obj or not getattr(obj, "id", None):
+            return "-"
+        try:
+            url = reverse("core:entrance_test_prep_exam_detail", kwargs={"slug": obj.slug})
+            return format_html(
+                '<a href="{}" target="_blank" style="color: green; font-weight: 600; text-decoration: none;">View</a>',
+                url,
+            )
+        except Exception:
+            return "-"
+    preview_link.short_description = "Preview"
+    preview_link.admin_order_field = "name"
+
+    def regenerate_image_btn(self, obj):
+        if not obj or not getattr(obj, "pk", None):
+            return "-"
+        url = reverse("admin:core_entrancetestprepexam_regenerate_image", args=[obj.pk])
+        return format_html(
+            '<a href="{}" class="button" style="padding: 4px 8px; font-size: 11px;">Regenerate</a>',
+            url,
+        )
+    regenerate_image_btn.short_description = "Image"
+
+    def remove_image_btn(self, obj):
+        if not obj or not getattr(obj, "pk", None):
+            return "-"
+        if not obj.image:
+            return format_html('<span style="color: #999;">—</span>')
+        url = reverse("admin:core_entrancetestprepexam_remove_image", args=[obj.pk])
+        return format_html(
+            '<a href="{}" class="button" style="padding: 2px 6px; font-size: 12px; color: #ba2121; background: transparent;" title="Remove image">✕</a>',
+            url,
+        )
+    remove_image_btn.short_description = "Remove"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "generate-all-images/",
+                self.admin_site.admin_view(self.generate_all_images_view),
+                name="core_entrancetestprepexam_generate_all_images",
+            ),
+            path(
+                "<int:pk>/regenerate-image/",
+                self.admin_site.admin_view(self.regenerate_image_view),
+                name="core_entrancetestprepexam_regenerate_image",
+            ),
+            path(
+                "<int:pk>/remove-image/",
+                self.admin_site.admin_view(self.remove_image_view),
+                name="core_entrancetestprepexam_remove_image",
+            ),
+        ]
+        return custom + urls
+
+    def generate_all_images_view(self, request):
+        """Generate a fresh unique placeholder image for all exams (no category copy)."""
+        from django.core.files.base import ContentFile
+        qs = EntranceTestPrepExam._base_manager.all()
+        updated = 0
+        for exam in qs:
+            try:
+                data = _generate_exam_placeholder_image(exam)
+                if data:
+                    if exam.image:
+                        exam.image.delete(save=False)
+                    exam.image.save(f"exam-{exam.pk}-placeholder.png", ContentFile(data), save=True)
+                    updated += 1
+            except Exception:
+                pass
+        messages.success(request, f"Generated unique placeholder images for {updated} exam(s).")
+        return redirect("admin:core_entrancetestprepexam_changelist")
+
+    def regenerate_image_view(self, request, pk):
+        """Generate a fresh unique placeholder image for this exam (no category copy)."""
+        from django.core.files.base import ContentFile
+        exam = get_object_or_404(EntranceTestPrepExam, pk=pk)
+        try:
+            data = _generate_exam_placeholder_image(exam)
+            if data:
+                if exam.image:
+                    exam.image.delete(save=False)
+                exam.image.save(f"exam-{exam.pk}-placeholder.png", ContentFile(data), save=True)
+                messages.success(request, f"Generated new placeholder image for « {exam.name} ».")
+            else:
+                messages.error(request, "Could not generate image (PIL may be missing).")
+        except Exception as e:
+            messages.error(request, f"Failed to set image: {e}")
+        return redirect("admin:core_entrancetestprepexam_changelist")
+
+    def remove_image_view(self, request, pk):
+        """Clear exam image."""
+        exam = get_object_or_404(EntranceTestPrepExam, pk=pk)
+        if exam.image:
+            exam.image.delete(save=True)
+            messages.success(request, f"Image removed for « {exam.name} ».")
+        else:
+            messages.info(request, f"Exam « {exam.name} » had no image.")
+        return redirect("admin:core_entrancetestprepexam_changelist")
+
+    @admin.action(description="Generate placeholder image")
+    def action_regenerate_image(self, request, queryset):
+        from django.core.files.base import ContentFile
+        updated = 0
+        for exam in queryset:
+            try:
+                data = _generate_exam_placeholder_image(exam)
+                if data:
+                    if exam.image:
+                        exam.image.delete(save=False)
+                    exam.image.save(f"exam-{exam.pk}-placeholder.png", ContentFile(data), save=True)
+                    updated += 1
+            except Exception:
+                pass
+        messages.success(request, f"Generated placeholder images for {updated} exam(s).")
+        return None
+
+    @admin.action(description="Remove image")
+    def action_remove_image(self, request, queryset):
+        removed = 0
+        for exam in queryset:
+            if exam.image:
+                exam.image.delete(save=True)
+                removed += 1
+        messages.success(request, f"Removed image from {removed} exam(s).")
+        return None
 
 
 # Section headings used on vocational course detail accordion (must match template20/vocational_course_detail.html)
