@@ -21,6 +21,24 @@
 		<!--end::Global Stylesheets Bundle-->
         {% block additional_header %}
         {% endblock %}
+		<!-- Sidebar accordion: +/- and single-open -->
+		<style>
+			#kt_aside_menu .menu-item.menu-accordion > .menu-link .menu-arrow {
+				display: inline-flex !important;
+				align-items: center;
+				justify-content: center;
+				width: 1.25rem;
+				font-size: 1rem;
+				font-weight: 700;
+				opacity: 0.7;
+			}
+			#kt_aside_menu .menu-item.menu-accordion > .menu-link .menu-arrow::before {
+				content: '+';
+			}
+			#kt_aside_menu .menu-item.menu-accordion.show > .menu-link .menu-arrow::before {
+				content: '−';
+			}
+		</style>
 	</head>
 	<!--end::Head-->
 	<!--begin::Body-->
@@ -968,6 +986,24 @@
 					var parent = activeLink.closest('.menu-item.menu-accordion');
 					if (parent) parent.classList.add('show');
 				}
+			})();
+
+			// Sidebar: single accordion - when one opens, close all others; arrow shows +/−
+			(function() {
+				var menu = document.getElementById('kt_aside_menu');
+				if (!menu) return;
+				menu.addEventListener('click', function(e) {
+					var link = e.target.closest('.menu-link');
+					if (!link) return;
+					var acc = link.closest('.menu-item.menu-accordion');
+					if (!acc || !acc.querySelector('.menu-sub')) return;
+					setTimeout(function() {
+						var wasOpen = acc.classList.contains('show');
+						var all = menu.querySelectorAll('.menu-item.menu-accordion');
+						all.forEach(function(a) { a.classList.remove('show'); });
+						if (!wasOpen) acc.classList.add('show');
+					}, 0);
+				}, true);
 			})();
 
 			// Sidebar filter: sticky "Start typing" - show only matching accordions

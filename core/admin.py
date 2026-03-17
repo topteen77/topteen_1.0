@@ -114,8 +114,6 @@ class StudentDashboardSettingsForm(forms.Form):
 
 
 class ConfigurationAdmin(admin.ModelAdmin):
-    readonly_fields = ('created','modified','key')
-    fields = ['created','modified','key','value']
     # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display = ['id', 'key','value','created','modified']
     sortable_by=['id', 'key','created']
@@ -125,6 +123,16 @@ class ConfigurationAdmin(admin.ModelAdmin):
     search_fields=['key','value']
     list_display_links=['id','key']
 
+    def get_fields(self, request, obj=None):
+        if obj is None:
+            return ['key', 'value']  # Add form: created/modified are auto, non-editable
+        return ['created', 'modified', 'key', 'value']
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return []  # Add form: key and value both editable
+        return ('created', 'modified', 'key')
+
     def get_queryset(self, request):
         qs = super(ConfigurationAdmin, self).get_queryset(request)
         return qs.filter(editable=True)
@@ -132,8 +140,13 @@ class ConfigurationAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    def has_add_permission(self, request):
+        return True
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.editable = True
+        super().save_model(request, obj, form, change)
 
     def get_urls(self):
         urls = super().get_urls()

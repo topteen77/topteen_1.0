@@ -209,6 +209,26 @@ class Home(TemplateView):
                 })
         ctx['career_track_cards'] = career_track_cards
         ctx['default_career_library_url'] = default_career_library_url
+
+        # Homepage hero video: Configuration keys HOME_VIDEO_URL, HOME_VIDEO_THUMBNAIL (thumbnail shown first in modal, then play on click)
+        from core.models import Configuration
+        default_home_video = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'
+        home_video_url = (Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True) or default_home_video or '').strip()
+        home_video_thumbnail_url = (Configuration.get('HOME_VIDEO_THUMBNAIL', default='', editable=True) or '').strip()
+        home_video_embed_url = home_video_url
+        home_video_yt_id = ''
+        if home_video_url:
+            yt_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})', home_video_url)
+            if yt_match:
+                home_video_yt_id = yt_match.group(1)
+                home_video_embed_url = 'https://www.youtube.com/embed/' + home_video_yt_id + '?autoplay=1'
+                if not home_video_thumbnail_url:
+                    home_video_thumbnail_url = 'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
+        ctx['home_video_url'] = home_video_url
+        ctx['home_video_thumbnail_url'] = home_video_thumbnail_url
+        ctx['home_video_embed_url'] = home_video_embed_url
+        ctx['home_video_yt_id'] = home_video_yt_id
+
         return ctx
         
     def get(self, request, *args, **kwargs):
