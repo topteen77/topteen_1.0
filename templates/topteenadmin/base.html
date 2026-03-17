@@ -54,12 +54,17 @@
 					</div>
 					<!--end::Brand-->
 					<!--begin::Aside menu-->
-					<div class="aside-menu flex-column-fluid">
+					<div class="aside-menu flex-column-fluid d-flex flex-column">
+						<!--begin::Sidebar filter - sticky at top-->
+						<div class="aside-menu-filter position-sticky top-0 z-index-10 bg-dark px-5 pt-3 pb-3" id="kt_aside_menu_filter_wrapper" style="z-index: 10;">
+							<input type="text" id="kt_aside_menu_filter" class="form-control form-control-solid form-control-sm" placeholder="Start typing to filter..." autocomplete="off" />
+						</div>
+						<!--end::Sidebar filter-->
 						<!--begin::Aside Menu-->
-						<div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0">
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+						<div class="hover-scroll-overlay-y my-3 my-lg-3 flex-grow-1 overflow-auto" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_menu_filter_wrapper, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0">
+														<!--begin::Menu - single wrapper so only one accordion is open-->
+														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="Core">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -159,12 +164,7 @@
 																	</div>						
 																</div>
 															</div>
-															
-														</div>
-														<!--end::Menu-->
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="Blogs">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -209,26 +209,21 @@
 																											
 																</div>
 															</div>
-															
-														</div>
-														<!--end::Menu-->
-																												<!--begin::Menu-->
-																												<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-																													<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-																														<span class="menu-link">
-																															<span class="menu-icon">
-																																<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																																<span class="svg-icon svg-icon-2">
-																																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																																		<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																		<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																	</svg>
-																																</span>
-																																<!--end::Svg Icon-->
-																															</span>
-																															<span class="menu-title">CRM</span>
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="CRM">
+																<span class="menu-link">
+																	<span class="menu-icon">
+																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																		<span class="svg-icon svg-icon-2">
+																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																				<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																				<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																			</svg>
+																		</span>
+																		<!--end::Svg Icon-->
+																	</span>
+																	<span class="menu-title">CRM</span>
 																															<span class="menu-arrow"></span>
 																														</span>
 																														<div class="menu-sub menu-sub-accordion menu-active-bg">
@@ -243,26 +238,21 @@
 																																									
 																														</div>
 																													</div>
-																													
-																												</div>
-																												<!--end::Menu-->
-																													<!--begin::Menu-->
-																													<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-																														<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-																															<span class="menu-link">
-																																<span class="menu-icon">
-																																	<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-																																	<span class="svg-icon svg-icon-2">
-																																		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-																																			<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																			<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-																																		</svg>
-																																	</span>
-																																	<!--end::Svg Icon-->
+																													<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="Psychometric Test">
+																														<span class="menu-link">
+																															<span class="menu-icon">
+																																<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+																																<span class="svg-icon svg-icon-2">
+																																	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+																																		<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																		<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+																																	</svg>
 																																</span>
-																																<span class="menu-title">Psychometric Test</span>
+																																<!--end::Svg Icon-->
+																															</span>
+																															<span class="menu-title">Psychometric Test</span>
 																																<span class="menu-arrow"></span>
 																															</span>
 																															<div class="menu-sub menu-sub-accordion menu-active-bg">
@@ -285,26 +275,21 @@
 																																										
 																															</div>
 																														</div>
-																														
-																													</div>
-																													<!--end::Menu-->
-							<!--begin::Menu-->
-							<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-								<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
-									<span class="menu-link">
-										<span class="menu-icon">
-											<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
-											<span class="svg-icon svg-icon-2">
-												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-													<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-													<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-													<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-													<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
-												</svg>
-											</span>
-											<!--end::Svg Icon-->
+							<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="Careers">
+								<span class="menu-link">
+									<span class="menu-icon">
+										<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+										<span class="svg-icon svg-icon-2">
+											<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+												<rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
+												<rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
+												<rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
+												<rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+											</svg>
 										</span>
-										<span class="menu-title">Careers</span>
+										<!--end::Svg Icon-->
+									</span>
+									<span class="menu-title">Careers</span>
 										<span class="menu-arrow"></span>
 									</span>
 									<div class="menu-sub menu-sub-accordion menu-active-bg">
@@ -416,13 +401,7 @@
 										
 									</div>
 								</div>
-								
-							</div>
-							<!--end::Menu-->
-
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="Colleges">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -525,12 +504,7 @@
 																	
 																</div>
 															</div>
-															
-														</div>
-														<!--end::Menu-->
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="Courses">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -611,13 +585,7 @@
 								
 																</div>
 															</div>
-															
-														</div>
-														<!--end::Menu-->
-
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="EntranceExam">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -653,12 +621,7 @@
 																	</div>
 																</div>
 															</div>
-															
-														</div>
-														<!--end::Menu-->
-														<!--begin::Menu-->
-														<div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
-															<div data-kt-menu-trigger="click" class="menu-item here show menu-accordion">
+															<div data-kt-menu-trigger="click" class="menu-item menu-accordion" data-section="SkillLabCourse">
 																<span class="menu-link">
 																	<span class="menu-icon">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
@@ -703,12 +666,8 @@
 																	</div>
 																</div>
 															</div>
-															
 														</div>
 														<!--end::Menu-->
-														
-
-
 
 						</div>
 						<!--end::Aside Menu-->
@@ -997,6 +956,47 @@
 			$(document).ready(function() {
 				$('.js-example-basic-single').select2();
 			});
+
+			// Sidebar: only expand the accordion that contains the active page link
+			(function() {
+				var menu = document.getElementById('kt_aside_menu');
+				if (!menu) return;
+				var accordions = menu.querySelectorAll('.menu-item.menu-accordion');
+				accordions.forEach(function(acc) { acc.classList.remove('show'); });
+				var activeLink = menu.querySelector('.menu-link.active');
+				if (activeLink) {
+					var parent = activeLink.closest('.menu-item.menu-accordion');
+					if (parent) parent.classList.add('show');
+				}
+			})();
+
+			// Sidebar filter: sticky "Start typing" - show only matching accordions
+			(function() {
+				var input = document.getElementById('kt_aside_menu_filter');
+				var menu = document.getElementById('kt_aside_menu');
+				if (!input || !menu) return;
+				var accordions = menu.querySelectorAll('.menu-item.menu-accordion');
+				function getAccordionText(acc) {
+					var titles = acc.querySelectorAll('.menu-title');
+					var parts = [];
+					titles.forEach(function(t) { parts.push((t.textContent || '').trim()); });
+					return parts.join(' ').toLowerCase();
+				}
+				input.addEventListener('input', function() {
+					var q = (this.value || '').trim().toLowerCase();
+					accordions.forEach(function(acc) {
+						var text = getAccordionText(acc);
+						var match = !q || text.indexOf(q) !== -1;
+						acc.style.display = match ? '' : 'none';
+						if (match && q) acc.classList.add('show');
+						else if (!q) {
+							acc.classList.remove('show');
+							var activeInAcc = acc.querySelector('.menu-link.active');
+							if (activeInAcc) acc.classList.add('show');
+						}
+					});
+				});
+			})();
 				function OpenWindow(url) { window.open(url,'newwindow',
              		config='height=670,width=1400,toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,directories=no,status=no');
 					settimeout( function(){document.location.href=url}, 1000 );
