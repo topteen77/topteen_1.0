@@ -147,7 +147,7 @@
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ student_name }}</p>
           </div>
         </div>
@@ -161,11 +161,11 @@
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
           </div>
         </div>
-        <div class="info-box">
+        <div class="info-box" style="margin-bottom: 0px;">
           <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
           <div class="output">
             <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>

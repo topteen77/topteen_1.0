@@ -148,7 +148,7 @@
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ student_name }}</p>
           </div>
         </div>
@@ -162,13 +162,13 @@
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
           </div>
         </div>
         <div class="info-box">
           <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
           </div>
         </div>
@@ -216,7 +216,7 @@
 
   <div class="chapterPage">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9;">HOW TO USE THIS REPORT</h1>
+      <h1 style="color: #3F37C9; font-size: 19pt;">HOW TO USE THIS REPORT</h1>
     </div>
     <div class="text-info-paragraph">
       <p>This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <strong>Personality, Interest and Aptitude</strong> and it helps you decide the suggested stream to consider in your high school.</p>
@@ -264,13 +264,13 @@
 
   <div class="chapterPage">
     <div class="text-color-top">
-      <div class="top-layout">Part - 3</div>
+      <div class="top-layout" style="margin-top:0px;">Part - 3</div>
     </div>
     <div class="db-header" style="margin-top: 0px; text-align: center;">
-      <h1 style="color: #3F37C9; margin-top: 10px;">INTELLIGENCE ASSESSMENT REPORT</h1>
+      <h1 style="color: #3F37C9; margin-top: 0px; font-size: 19pt;">INTELLIGENCE ASSESSMENT REPORT</h1>
     </div>
-    <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 10px;">
-      <p>An intelligence test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of intelligence to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an intelligence test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+    <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 5px;">
+      <p style="font-size: 14px;">An intelligence test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of intelligence to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an intelligence test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
     </div>
 
     <div class="test-title" style="color:#000; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Reasoning type description</div>
@@ -284,59 +284,59 @@
       <tbody>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex;align-items: center;">
+            <div style="display: flex;align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/numeric.png') }}" alt="Numerical Reasoning" /> </div> Numerical Reasoning
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to understand, interpret, and work with numerical concepts and relationships. It involves the capacity to reason with numbers and perform mathematical operations to solve problems.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand, interpret, and work with numerical concepts and relationships. It involves the capacity to reason with numbers and perform mathematical operations to solve problems.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/verbal.png') }}" alt="Verbal Reasoning" /> </div> Verbal Reasoning
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/logical.png') }}" alt="Logical Reasoning" /> </div>Logical Reasoning
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/mechanical-reasoning.png') }}" alt="Mechanical Reasoning" /> </div> Mechanical Reasoning
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to understand and work with mechanical systems, tools, and physical principles. It involves visualizing how mechanical components work together and solving problems related to machinery and equipment.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand and work with mechanical systems, tools, and physical principles. It involves visualizing how mechanical components work together and solving problems related to machinery and equipment.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/spatial-reasoning.png') }}" alt="Spatial Reasoning" /> </div> Spatial Reasoning
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/language-usage.png') }}" alt="Language Usage and Spelling" /> </div> Language Usage and Spelling
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves the accurate and effective use of words in communication.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves the accurate and effective use of words in communication.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
               <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/emotional-reasoning.png') }}" alt="Critical Reasoning" /> </div> Critical Reasoning
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">Ability to analyze, evaluate and synthesize information objectively and systematically. It involves reasoned judgements, problem-solving ability and capability to form well-supported conclusions along with recognizing biases and considering alternative perspective.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to analyze, evaluate and synthesize information objectively and systematically. It involves reasoned judgements, problem-solving ability and capability to form well-supported conclusions along with recognizing biases and considering alternative perspective.</td>
         </tr>
       </tbody>
     </table>
@@ -344,7 +344,7 @@
 
   <div class="chapterPage">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+      <h1 style="color: #3F37C9; font-size: 19pt;">Interpretation & Recommendations</h1>
     </div>
     <div class="text-info-paragraph">
       <p>Based on your test results, your strongest Reasoning Area is:</p>
@@ -423,7 +423,7 @@
   {% if above_avg %}
   <div class="chapterPage">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9; margin-bottom: 5px;">Best Suited Careers and Subjects for your Reasoning type</h1>
+      <h1 style="color: #3F37C9; margin-bottom: 5px; font-size: 19pt;">Best Suited Careers and Subjects for your Reasoning type</h1>
     </div>
 
     {% if 'NUMERICAL' in above_avg %}
@@ -670,7 +670,7 @@
   {% if avg %}
   <div class="chapterPage">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9; margin-bottom: 5px;">Best Suited Careers and Subjects for your Reasoning type</h1>
+      <h1 style="color: #3F37C9; margin-bottom: 5px; font-size: 16pt;">Best Suited Careers and Subjects for your Reasoning type</h1>
     </div>
 
     {% if 'NUMERICAL' in avg %}

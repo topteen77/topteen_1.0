@@ -168,13 +168,13 @@
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ student_name }}</p>
           </div>
         </div>
-        <div class="info-box">
+        <div class="info-box" >
           <div class="dt-i-info" style="color:#fff; width: 125px;margin-bottom: 0px;">School</div>
-          <div class="output">
+          <div class="output" >
             <p>{{ user_profile.schoolname if user_profile.schoolname else '' }}</p>
           </div>
         </div>
@@ -182,13 +182,13 @@
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
           </div>
         </div>
         <div class="info-box">
           <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
-          <div class="output">
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
           </div>
         </div>
@@ -284,21 +284,19 @@
 
   <div class="chapterPage">
     <div class="text-color-top" style="display: flex; justify-content: center;">
-      <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 28px; font-weight: 600; border-radius: 10px 10px 0 0;">Part -1</div>
+      <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 0px; font-weight: 600; border-radius: 10px 10px 0 0;">Part -1</div>
     </div>
     <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9;">PERSONALITY ASSESSMENT REPORT</h1>
+      <h1 style="color: #3F37C9; margin-top:0px">PERSONALITY ASSESSMENT REPORT</h1>
     </div>
-    <div class="text-info-paragraph">
-      <p>This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+    <div class="text-info-paragraph" >
+      <p style="font-size: 14px;">This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
     </div>
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 10px;">Holland's Code description</div>
+    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 10px; width:100%; text-align: center;">Holland's Code description</div>
     <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
       <img style="width:600px;" src="{{ static('images/riasec-ig.png') }}" alt="riasec" />
     </div>
-  </div>
 
-  <div class="chapterPage">
     <table style="margin-bottom: 30px; margin-top:0px;">
       <thead>
         <tr>
@@ -309,55 +307,57 @@
       <tbody>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="r-img"><img style="width:45px;" src="{{ static('images/r.png') }}" alt="text" /><br>
+            <div class="r-img"><img style="width:30px;" src="{{ static('images/r.png') }}" alt="text" /><br>
               <span style="color:#057190; font-size: 14px; font-weight: 600;">Realistic</span>
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:45px;" src="{{ static('images/i.png') }}" alt="text" /><br>
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/i.png') }}" alt="text" /><br>
               <span style="color:#A92CAF; font-size: 16px; font-weight: 600;">Investigative</span>
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:45px;" src="{{ static('images/a.png') }}" alt="text" /><br>
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/a.png') }}" alt="text" /><br>
               <span style="color:#2A740E; font-size: 16px; font-weight: 600;">Artistic</span>
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:45px;" src="{{ static('images/s.png') }}" alt="text" /><br>
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/s.png') }}" alt="text" /><br>
               <span style="color:#6D5C04; font-size: 16px; font-weight: 600;">Social</span>
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:45px;" src="{{ static('images/e.png') }}" alt="text" /><br>
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/e.png') }}" alt="text" /><br>
               <span style="color:#A22717; font-size: 16px; font-weight: 600;">Enterprising</span>
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
           <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:45px;" src="{{ static('images/c.png') }}" alt="text" /><br>
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/c.png') }}" alt="text" /><br>
               <span style="color:#0B5BA1; font-size: 16px; font-weight: 600;">Conventional</span>
             </div>
           </td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
         </tr>
       </tbody>
     </table>
   </div>
+
+
 
   <div class="chapterPage">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
@@ -398,7 +398,7 @@
     <div class="two-box">
       {% if streamsubject %}
       {% for stream, subject in streamsubject %}
-      <div class="two-box-in" style="width:210px; height:150px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9;">
+      <div class="two-box-in" style="width:210px; height:150px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9; gap: 3px;">
         <div class="img-tow"><img style="width:50px; margin-bottom:0px; margin-top: 0px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
         <div style="color: #000; font-size: 14px; margin-bottom: 0px; margin-top: 0px; text-align: center; width:100%; font-weight: 600;">{{ stream }}</div>
         <p style="font-size: 14px; margin-top: 0px; text-align: center; list-style: none; padding: 0; margin-left: 0;">{{ subject }}</p>
@@ -409,13 +409,13 @@
 
     <div class="cat-box cat-one-box">
       <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-        <h4 style="font-size: 16px; width:600px; margin: 0px;">Suggested Careers</h4>
+        <h4 style="font-size: 16px; width:600px; margin: 0px; text-align: center;">Suggested Careers</h4>
       </div>
       <div class="cat-list" style="padding:6px; margin-top:0px;">
-        <ul style="column-count:3;">
+        <ul style="column-count:3; list-style: disc; padding-left: 23px;">
           {% if courseName %}
           {% for value in courseName %}
-          <li>{{ value }}</li>
+          <li style="list-style: disc;">{{ value }}</li>
           {% endfor %}
           {% endif %}
         </ul>

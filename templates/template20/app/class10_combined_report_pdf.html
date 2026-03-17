@@ -2,23 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="preload stylesheet" href="{{ static('font/font-style.css') }}">
   <title>Stream Sorter Combined Assessment Report</title>
   <!-- PDF layout v2: reduced gaps, content width fit (do not remove - used to verify template) -->
   <style>
-    @page {
+    /* @page {
       size: A4;
       margin: 2cm;
+    } */
+
+    @page {
+      @top-left {
+        content: element(page-header);
+      }
+      margin-top: 2.5cm;
     }
+    
+    /* For PDF generation, make header a running element */
+    @media print {
+      .page-header {
+        position: running(page-header);
+        margin-bottom: 0;
+        padding: 0.3cm 0 0 0;
+      }
+      .page-header-line {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
+
+    .page-header {
+      width: 100%;
+    }
+
     body {
       margin: 0;
       padding: 0;
       color: #494949;
-      font-family: 'Galano Grotesque', Arial, sans-serif;
+      font-family: 'Galano Grotesque';
       font-size: 10pt;
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
-      box-sizing: border-box;
     }
     *, *::before, *::after { box-sizing: border-box; }
     ul { list-style-type: none; padding: 0; }
@@ -34,6 +59,13 @@
       page-break-after: always;
       box-sizing: border-box;
     }
+    .top-info { display: flex; }
+    .info-box { border: 1px solid #3F37C9; width: 100%; display: flex; margin-bottom: 26px; border-radius: 5px; }
+    .top-info .info-box:last-child { margin-left: 26px; }
+    .dt-i-info { background: #3F37C9; width: 2.4cm; font-size: 14px; font-weight: 600; padding: 10px 0 13px 20px; display: flex; align-items: center; border-radius: 4px; }
+    .top-info .info-box:first-child { margin-right: 26px; }
+    .output { display: flex; align-items: center; height: 44px; }
+    .output p { font-size: 12px; color: #494949; font-weight: 500; display: flex; justify-content: center; line-height: 19px; margin-bottom: 0px; padding-left: 11px;margin-top:0px; }
     /* Screen 1: reduce gap on first (cover) page */
     .coverPage {
       margin: 0.3cm;
@@ -41,23 +73,32 @@
       page-break-after: always;
     }
     .coverPage .top-layout { margin-top: 12px !important; }
-    .coverPage p { margin-top: 6px !important; margin-bottom: 0 !important; }
+    /* .coverPage p { margin-top: 6px !important; margin-bottom: 0 !important; } */
     .pageBreak { page-break-before: always; height: 0.5cm; }
     .text-color-top { display: flex; justify-content: center; }
     .top-layout {
       background: #3F37C9;
       color: #fff;
-      font-size: 27px;
+      font-size: 16px;
       padding: 11px 38px;
       margin-top: 16px;
       font-weight: 600;
       border-radius: 10px 10px 0 0;
     }
     .db-header { margin-top: 6px; text-align: center; }
-    .db-header h1 { color: #3F37C9; font-size: 24pt; margin: 0 0 8px 0; }
+    .db-header h1 { color: #3F37C9;  margin: 0 0 8px 0; }
     .intro-box { background: #E7FEFF; padding: 12px 14px; }
     .intro-box p { font-size: 15px; color: #494949; font-weight: 500; margin-bottom: 8px; }
     .text-info-paragraph p { font-size: 15px; color: #494949; margin-bottom: 8px; }
+    .box-i {
+  width: 250px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
     .box-info {
       background: #E7E5FF;
       border-radius: 10px;
@@ -71,25 +112,12 @@
     .box-info .img { text-align: center; margin-top: 20px; }
     .box-info h5 { font-size: 14px; text-align: center; color: #000; margin-bottom: 11px; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 4px; text-align: left; outline: 0; }
+    th, td { padding: 4px; text-align: left;}
     th { background-color: #E7E5FF; color: #3F37C9; padding: 21px 0 21px 14px; }
-    tr { border: 1px solid #9490dd; }
-    .threebox-col { display: flex; justify-content: center; }
-    .box-i {
-      width: 190px;
-      height: 100px;
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      align-items: center;
-      background: #ffe5e6;
-      margin: 20px 8px;
-      border-radius: 10px;
-      text-align: center;
-      border-right: 4px solid #3F37C9;
-      border-bottom: 4px solid #3F37C9;
-    }
-    .box-i p { color: #120d77; font-weight: 700; font-size: 23px; margin-bottom: 0; }
+
+    .threebox-col { display: flex; justify-content: center; width: 100%; }
+
+
     .two-box { display: flex; justify-content: center; margin: 20px 0; width: 100%; max-width: 100%; }
     .two-box-in {
       width: 300px;
@@ -121,15 +149,7 @@
     .cat-list ul li { padding: 5px 0; font-size: 14px; }
     .test-title { color: #000; font-size: 16px; font-weight: 600; margin-top: 6px; margin-bottom: 6px; }
     .combined-report-page { padding: 0; background: white; overflow-x: hidden; }
-    .report-container {
-      max-width: 21cm;
-      width: 100%;
-      margin: 0 auto;
-      background: white;
-      padding: 12px 16px;
-      box-sizing: border-box;
-      overflow-x: hidden;
-    }
+  
     .report-container img { max-width: 100%; height: auto; }
     /* Screen 3: content width fit in page - constrain fixed widths to page */
     body.combined-report-page .report-container [style*="900px"],
@@ -162,6 +182,10 @@
 </head>
 <body class="combined-report-page">
   <div class="report-container">
+
+ 
+
+      
     <div class="coverPage">
       <div class="img-top" style="width: 100%; text-align: center;">
         <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
@@ -175,31 +199,31 @@
 
       {% if show_student_info_on_cover is defined and show_student_info_on_cover and user_profile is defined and user_profile %}
       <div class="student-detail-info" style="width: 100%; max-width: 650px; margin: 24px auto 24px auto;">
-        <div class="top-info" style="display: flex; gap: 26px; margin-bottom: 26px;">
-          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
-            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 2cm; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">Name</div>
-            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
-              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{{ student_name|default(user.email if user is defined else '') }}</p>
+        <div class="top-info">
+          <div class="info-box">
+            <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
+            <div class="output" style="margin-bottom: 0px;">
+              <p>{{ student_name }}</p>
             </div>
           </div>
-          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
-            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 125px; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">School</div>
-            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
-              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{{ user_profile.schoolname if user_profile.schoolname else '' }}</p>
+          <div class="info-box" >
+            <div class="dt-i-info" style="color:#fff; width: 125px;margin-bottom: 0px;">School</div>
+            <div class="output" style="font-size:12px; margin-left:11px; color:#494949; font-weight: 500;" >
+            {{ user_profile.schoolname if user_profile.schoolname else '' }}
             </div>
           </div>
         </div>
-        <div class="top-info" style="display: flex; gap: 26px;">
-          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
-            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 2cm; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">Grade</div>
-            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
-              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{{ user_profile.grade if user_profile.grade else '' }}</p>
+        <div class="top-info">
+          <div class="info-box">
+            <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
+            <div class="output" style="margin-bottom: 0px;">
+              <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
             </div>
           </div>
-          <div class="info-box" style="border: 1px solid #3F37C9; border-radius: 5px; flex: 1; display: flex; margin-bottom: 0;">
-            <div class="dt-i-info" style="background: #3F37C9; color:#fff; min-width: 3cm; font-size: 16px; font-weight: 600; padding: 10px 20px; display: flex; align-items: center; border-radius: 4px 0 0 4px;">Date of Test</div>
-            <div class="output" style="display: flex; align-items: center; padding-left: 11px;">
-              <p style="font-size: 14px; color: #494949; font-weight: 500; margin: 0;">{% if created_date is defined and created_date %}{{ created_date.strftime('%Y-%m-%d') }}{% elif now is defined and now %}{{ now.strftime('%Y-%m-%d') }}{% endif %}</p>
+          <div class="info-box">
+            <div class="dt-i-info" style="width: 3.2cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
+            <div class="output" style="margin-bottom: 0px;">
+              <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
             </div>
           </div>
         </div>
@@ -214,7 +238,7 @@
                 <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
                   <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">Disclaimer</p>
                 </div>
-                <p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+                <p style="width:100%; text-align: center;font-size:12px;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
               </td>
             </tr>
           </tbody>
