@@ -201,7 +201,14 @@
         <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
         <div class="col-lg-6 col-md-12 career-direction-test-hero">
           <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span>
-          <h1 class="heading-title mt-md-8 mt-5 mb-5 fs-30 fs-sm-20 lh-sm">{{ exam.name }}</h1>
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <h1 class="heading-title mt-md-8 mt-5 mb-5 fs-30 fs-sm-20 lh-sm mb-0">{{ exam.name }}</h1>
+            {% if request.user.is_authenticated %}
+            <button type="button" class="btn btn-outline-secondary shortlist-exam {% if is_exam_bookmarked %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}" title="{% if is_exam_bookmarked %}Remove bookmark{% else %}Bookmark exam{% endif %}">
+              <i class='bx {% if is_exam_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i> {% if is_exam_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}
+            </button>
+            {% endif %}
+          </div>
         </div>
         <div class="col-lg-4 col-md-12 offset-lg-2">
           <div class="right-banner d-md-flex justify-content-center align-items-center">
@@ -396,6 +403,66 @@
       }
     };
   }
+})();
+</script>
+{% endif %}
+{% if request.user.is_authenticated %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function() {
+  var btn = document.querySelector('.shortlist-exam');
+  if (!btn) return;
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  function fireAlert(title, icon, timer) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({ title: title, icon: icon || 'success', position: 'top-end', showConfirmButton: false, toast: true, timer: timer || 2000 });
+    }
+  }
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    var examId = btn.getAttribute('data-exam-id');
+    var icon = btn.querySelector('i');
+    var label = btn.childNodes && btn.childNodes[2] && btn.childNodes[2].textContent ? btn.childNodes[2] : null;
+    if (!examId) return;
+    btn.disabled = true;
+    var formData = new FormData();
+    formData.append('examid', examId);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken') || '{{ csrf_token }}');
+    fetch('/api/v1/user/shortlistexam', { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          btn.classList.add('bookmarked');
+          if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
+          if (label) label.textContent = ' Bookmarked';
+          btn.title = 'Remove bookmark';
+          fireAlert(data.message || 'Exam bookmarked successfully!', 'success');
+        } else {
+          btn.classList.remove('bookmarked');
+          if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
+          if (label) label.textContent = ' Bookmark';
+          btn.title = 'Bookmark exam';
+          fireAlert(data.message || 'Exam removed from bookmarks', 'success');
+        }
+      })
+      .catch(function() {
+        fireAlert('Error updating bookmark. Please try again.', 'error');
+      })
+      .finally(function() { btn.disabled = false; });
+  });
 })();
 </script>
 {% endif %}

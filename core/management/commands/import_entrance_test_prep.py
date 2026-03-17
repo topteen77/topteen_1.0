@@ -245,9 +245,16 @@ class Command(BaseCommand):
                 cat_cache[key] = new_cat
                 return new_cat
 
+            level_folders = set()
+            category_folders = set()
+
             for txt_path in txt_files:
                 rel = txt_path.relative_to(source_dir)
                 parts = list(rel.parts[:-1])
+                if len(parts) >= 1:
+                    level_folders.add(parts[0])
+                if len(parts) >= 2:
+                    category_folders.add((parts[0], parts[1]))
                 if len(parts) < 2:
                     continue
                 parent = None
@@ -296,9 +303,17 @@ class Command(BaseCommand):
                             ) from e
                         raise
 
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Imported: categories created {created_categories}, "
-                    f"exams created {created_exams}, updated {updated_exams}."
-                )
-            )
+            # Completion report
+            num_levels = len(level_folders)
+            num_cat_folders = len(category_folders)
+            num_files = len(txt_files)
+            total_categories = len(cat_cache)
+            self.stdout.write("")
+            self.stdout.write(self.style.SUCCESS("--- IMPORT COMPLETE ---"))
+            self.stdout.write("  Source: %s" % source_dir)
+            self.stdout.write("  Level folders: %s" % num_levels)
+            self.stdout.write("  Category folders: %s" % num_cat_folders)
+            self.stdout.write("  Files (.txt) processed: %s" % num_files)
+            self.stdout.write("  Categories: %s created (total: %s)" % (created_categories, total_categories))
+            self.stdout.write("  Entrance exams: %s created, %s updated" % (created_exams, updated_exams))
+            self.stdout.write(self.style.SUCCESS("------------------------"))
