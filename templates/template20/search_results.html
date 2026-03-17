@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block description_content %}
-{% if searchname is defined and searchname %}Search results for "{{ searchname }}" across careers, professions, videos, blogs, courses, and colleges.{% else %}Search across careers, professions, videos, blogs, courses, and colleges.{% endif %}
+{% if searchname is defined and searchname %}Search results for "{{ searchname }}" across careers, professions, videos, blogs, courses, colleges, and entrance exams.{% else %}Search across careers, professions, videos, blogs, courses, colleges, and entrance exams.{% endif %}
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
@@ -131,7 +131,7 @@
           Search Results
           {% endif %}
         </h1>
-        <p class="text-gray fs-16">Find careers, professions, videos, blogs, courses, and colleges matching your search.</p>
+        <p class="text-gray fs-16">Find careers, professions, videos, blogs, courses, colleges, and entrance exams matching your search.</p>
       </div>
 
       <div class="col-lg-4 col-md-12">
@@ -324,8 +324,36 @@
     </div>
     {% endif %}
     
+    <!-- Entrance Exams -->
+    {% if allsearch.get('entrance_test_prep_exams') and allsearch.get('entrance_test_prep_exams')|length > 0 %}
+    <div class="search-result-section">
+      <h3 class="section-title mb-0">
+        <i class='bx bx-certification'></i> Entrance Exams ({{ allsearch.get('entrance_test_prep_exams')|length }})
+      </h3>
+      <div class="search-result-grid">
+        {% for exam in allsearch.get('entrance_test_prep_exams', []) %}
+        <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="search-result-card">
+          <div class="search-result-image-wrapper">
+            {% if exam.image and exam.image.name %}
+            <img src="{{ exam.image.url }}" alt="{{ exam.name }}" class="search-result-image" onerror="this.src='{{ static('images/career-icon.png') }}'">
+            {% else %}
+            <img src="{{ static('images/career-icon.png') }}" alt="{{ exam.name }}" class="search-result-image">
+            {% endif %}
+          </div>
+          <div class="search-result-content">
+            <h4 class="search-result-title">{{ exam.name }}</h4>
+            {% if exam.category %}
+            <p class="text-gray fs-14">{{ exam.category.name }}{% if exam.category.parent %} · {{ exam.category.parent.name }}{% endif %}</p>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
     <!-- No Results Message -->
-    {% if (not allsearch.get('career') or allsearch.get('career')|length == 0) and (not allsearch.get('professions') or allsearch.get('professions')|length == 0) and (not allsearch.get('college') or allsearch.get('college')|length == 0) and (not allsearch.get('videos') or allsearch.get('videos')|length == 0) and (not allsearch.get('blogs') or allsearch.get('blogs')|length == 0) and (not allsearch.get('course') or allsearch.get('course')|length == 0) %}
+    {% if (not allsearch.get('career') or allsearch.get('career')|length == 0) and (not allsearch.get('professions') or allsearch.get('professions')|length == 0) and (not allsearch.get('college') or allsearch.get('college')|length == 0) and (not allsearch.get('videos') or allsearch.get('videos')|length == 0) and (not allsearch.get('blogs') or allsearch.get('blogs')|length == 0) and (not allsearch.get('course') or allsearch.get('course')|length == 0) and (not allsearch.get('entrance_test_prep_exams') or allsearch.get('entrance_test_prep_exams')|length == 0) %}
     <div class="no-results">
       <img src="{{ static('images_new/icons/search-icon.svg') }}" alt="No results" onerror="this.style.display='none'">
       <h2>No Results Found</h2>

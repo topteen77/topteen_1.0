@@ -114,8 +114,6 @@ class StudentDashboardSettingsForm(forms.Form):
 
 
 class ConfigurationAdmin(admin.ModelAdmin):
-    readonly_fields = ('created','modified','key')
-    fields = ['created','modified','key','value']
     # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
     list_display = ['id', 'key','value','created','modified']
     sortable_by=['id', 'key','created']
@@ -125,6 +123,16 @@ class ConfigurationAdmin(admin.ModelAdmin):
     search_fields=['key','value']
     list_display_links=['id','key']
 
+    def get_fields(self, request, obj=None):
+        if obj is None:
+            return ['key', 'value']  # Add form: created/modified are auto, non-editable
+        return ['created', 'modified', 'key', 'value']
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return []  # Add form: key and value both editable
+        return ('created', 'modified', 'key')
+
     def get_queryset(self, request):
         qs = super(ConfigurationAdmin, self).get_queryset(request)
         return qs.filter(editable=True)
@@ -132,8 +140,13 @@ class ConfigurationAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    def has_add_permission(self, request):
+        return True
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.editable = True
+        super().save_model(request, obj, form, change)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -619,14 +632,54 @@ class EntranceTestPrepExamInline(admin.TabularInline):
     show_change_link = True
 
 
+def _entrance_test_prep_category_ids_with_descendants(category_ids):
+    """Return set of category PKs including all descendants (recursive)."""
+    from core.models import EntranceTestPrepCategory
+    ids = set(EntranceTestPrepCategory._base_manager.filter(pk__in=category_ids).values_list("pk", flat=True))
+    while True:
+        children = set(
+            EntranceTestPrepCategory._base_manager.filter(parent_id__in=ids).values_list("pk", flat=True)
+        )
+        if not children or children <= ids:
+            break
+        ids |= children
+    return ids
+
+
+def _hard_delete_entrance_test_prep_categories(category_ids):
+    """Hard delete these categories and all exams/sections under them. category_ids must include descendants."""
+    if not category_ids:
+        return 0, 0
+    ids = set(category_ids)
+    # Delete exams (sections CASCADE)
+    exam_deleted = EntranceTestPrepExam._base_manager.filter(category_id__in=ids).delete()[0]
+    # Delete categories leaf-first (so parent is deleted after its children)
+    cat_deleted = 0
+    while ids:
+        # In our set, which ids have a child that is also in our set?
+        has_child_in_set = set(
+            EntranceTestPrepCategory._base_manager.filter(
+                parent_id__in=ids, pk__in=ids
+            ).values_list("parent_id", flat=True)
+        )
+        leaves = ids - has_child_in_set
+        if not leaves:
+            break
+        EntranceTestPrepCategory._base_manager.filter(pk__in=leaves).delete()
+        cat_deleted += len(leaves)
+        ids -= leaves
+    return exam_deleted, cat_deleted
+
+
 @admin.register(EntranceTestPrepCategory)
 class EntranceTestPrepCategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name_link", "parent", "priority", "object_status", "image")
+    list_display = ("id", "name_link", "parent", "priority", "object_status", "image", "hard_delete_link")
     list_display_links = ("name_link",)
     list_filter = ("object_status", "parent")
     search_fields = ("name", "parent__name")
     ordering = ("parent__name", "priority", "name")
     inlines = (EntranceTestPrepExamInline,)
+    actions = ["action_hard_delete_categories"]
 
     def name_link(self, obj):
         """Link category name to subcategories/exams page instead of change form."""
@@ -634,6 +687,15 @@ class EntranceTestPrepCategoryAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', url, obj.name)
     name_link.short_description = "Name"
     name_link.admin_order_field = "name"
+
+    def hard_delete_link(self, obj):
+        """Link to hard-delete this category and all its descendants and exams."""
+        url = reverse("admin:core_entrancetestprepcategory_hard_delete", args=[obj.pk])
+        return format_html(
+            '<a href="{}" style="color: #ba2121;" title="Hard delete (permanent)">Hard delete</a>',
+            url,
+        )
+    hard_delete_link.short_description = "Hard delete"
 
     def get_urls(self):
         urls = super().get_urls()
@@ -643,8 +705,34 @@ class EntranceTestPrepCategoryAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.subcategories_view),
                 name="core_entrancetestprepcategory_subcategories",
             ),
+            path(
+                "<int:pk>/hard-delete/",
+                self.admin_site.admin_view(self.hard_delete_category_view),
+                name="core_entrancetestprepcategory_hard_delete",
+            ),
         ]
         return custom + urls
+
+    def hard_delete_category_view(self, request, pk):
+        """Hard delete this category and all descendants and their exams."""
+        category = get_object_or_404(EntranceTestPrepCategory._base_manager, pk=pk)
+        ids = _entrance_test_prep_category_ids_with_descendants([category.pk])
+        exam_deleted, cat_deleted = _hard_delete_entrance_test_prep_categories(ids)
+        messages.success(
+            request,
+            "Hard deleted %s category(ies) and %s exam(s) (permanent)." % (cat_deleted, exam_deleted),
+        )
+        return redirect("admin:core_entrancetestprepcategory_changelist")
+
+    @admin.action(description="Hard delete selected categories (permanent)")
+    def action_hard_delete_categories(self, request, queryset):
+        category_ids = list(queryset.values_list("pk", flat=True))
+        ids = _entrance_test_prep_category_ids_with_descendants(category_ids)
+        exam_deleted, cat_deleted = _hard_delete_entrance_test_prep_categories(ids)
+        messages.success(
+            request,
+            "Hard deleted %s category(ies) and %s exam(s) (permanent)." % (cat_deleted, exam_deleted),
+        )
 
     def subcategories_view(self, request, pk):
         """Show subcategories and exams for this category; exam links open exam page, with Preview button."""
@@ -755,14 +843,50 @@ def _generate_exam_placeholder_image(exam, width=400, height=300):
         return None
 
 
+class EntranceTestPrepCategoryWithCountFilter(admin.SimpleListFilter):
+    """Category filter showing Level » Category (count) so users can locate category/subcategory easily."""
+    title = "Category"
+    parameter_name = "category"
+
+    def lookups(self, request, model_admin):
+        qs = model_admin.get_queryset(request)
+        from django.db.models import Count
+        # Categories that have at least one exam in current admin queryset, with count
+        counts = (
+            qs.values("category_id")
+            .annotate(exam_count=Count("id"))
+            .order_by("category_id")
+        )
+        cat_ids = [c["category_id"] for c in counts if c["category_id"]]
+        if not cat_ids:
+            return []
+        count_map = {c["category_id"]: c["exam_count"] for c in counts}
+        categories = EntranceTestPrepCategory.objects.filter(
+            pk__in=cat_ids
+        ).select_related("parent").order_by("parent__name", "name")
+        return [
+            (str(cat.pk), "{} » {} ({})".format(
+                cat.parent.name if cat.parent else "(level)",
+                cat.name,
+                count_map.get(cat.pk, 0),
+            ))
+            for cat in categories
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(category_id=self.value())
+        return queryset
+
+
 @admin.register(EntranceTestPrepExam)
 class EntranceTestPrepExamAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category_name_safe", "priority", "object_status", "preview_link", "image_safe", "regenerate_image_btn", "remove_image_btn")
-    list_filter = ("object_status", "category")
+    list_display = ("id", "name", "category_name_safe", "priority", "object_status", "preview_link", "image_safe", "regenerate_image_btn", "remove_image_btn", "hard_delete_exam_link")
+    list_filter = ("object_status", EntranceTestPrepCategoryWithCountFilter)
     search_fields = ("name", "category__name")
     ordering = ("category__name", "priority", "name")
     readonly_fields = ("created", "modified")
-    actions = ["action_regenerate_image", "action_remove_image"]
+    actions = ["action_regenerate_image", "action_remove_image", "action_hard_delete_exams"]
     fieldsets = (
         ("Basic Information", {"fields": ("category", "name", "slug", "image", "priority", "object_status")}),
         (
@@ -851,6 +975,16 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
         )
     remove_image_btn.short_description = "Remove"
 
+    def hard_delete_exam_link(self, obj):
+        if not obj or not getattr(obj, "pk", None):
+            return "-"
+        url = reverse("admin:core_entrancetestprepexam_hard_delete", args=[obj.pk])
+        return format_html(
+            '<a href="{}" style="color: #ba2121;" title="Hard delete (permanent)">Hard delete</a>',
+            url,
+        )
+    hard_delete_exam_link.short_description = "Hard delete"
+
     def get_urls(self):
         urls = super().get_urls()
         custom = [
@@ -869,8 +1003,21 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.remove_image_view),
                 name="core_entrancetestprepexam_remove_image",
             ),
+            path(
+                "<int:pk>/hard-delete/",
+                self.admin_site.admin_view(self.hard_delete_exam_view),
+                name="core_entrancetestprepexam_hard_delete",
+            ),
         ]
         return custom + urls
+
+    def hard_delete_exam_view(self, request, pk):
+        """Hard delete this exam (and its sections)."""
+        exam = get_object_or_404(EntranceTestPrepExam._base_manager, pk=pk)
+        name = exam.name
+        exam.delete(hard_delete=True)
+        messages.success(request, f"Hard deleted exam « {name} » (permanent).")
+        return redirect("admin:core_entrancetestprepexam_changelist")
 
     def generate_all_images_view(self, request):
         """Generate a fresh unique placeholder image for all exams (no category copy)."""
@@ -916,6 +1063,12 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
         else:
             messages.info(request, f"Exam « {exam.name} » had no image.")
         return redirect("admin:core_entrancetestprepexam_changelist")
+
+    @admin.action(description="Hard delete selected exams (permanent)")
+    def action_hard_delete_exams(self, request, queryset):
+        pks = list(queryset.values_list("pk", flat=True))
+        count = EntranceTestPrepExam._base_manager.filter(pk__in=pks).delete()[0]
+        messages.success(request, "Hard deleted %s exam(s) (permanent)." % count)
 
     @admin.action(description="Generate placeholder image")
     def action_regenerate_image(self, request, queryset):

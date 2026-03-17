@@ -105,7 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
       videos: [],
       blogs: [],
       courses: [],
-      colleges: []
+      colleges: [],
+      entranceExams: []
     };
     
     // Extract careers
@@ -169,6 +170,20 @@ document.addEventListener('DOMContentLoaded', function() {
           name: name,
           url: link.getAttribute('href'),
           type: 'blog'
+        });
+      }
+    });
+    
+    // Extract entrance exams (Entrance Test Prep - /entrance-test-prep/exam/...)
+    const examLinks = doc.querySelectorAll('a[href*="/entrance-test-prep/exam/"]');
+    examLinks.forEach(link => {
+      const titleEl = link.querySelector('.search-result-title');
+      const name = titleEl ? titleEl.textContent.trim() : link.textContent.trim();
+      if (name && name.toLowerCase().includes(query.toLowerCase())) {
+        results.entranceExams.push({
+          name: name,
+          url: link.getAttribute('href'),
+          type: 'entranceExam'
         });
       }
     });
@@ -251,6 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (selectedFilters.includes('videos')) filteredResults.videos = results.videos;
     if (selectedFilters.includes('blogs')) filteredResults.blogs = results.blogs;
     if (selectedFilters.includes('courses')) filteredResults.courses = results.courses;
+    if (selectedFilters.includes('entranceExams')) filteredResults.entranceExams = results.entranceExams;
     
     const totalResults = Object.values(filteredResults).reduce((sum, arr) => sum + arr.length, 0);
     
@@ -311,6 +327,14 @@ document.addEventListener('DOMContentLoaded', function() {
         title: 'Courses',
         items: results.courses.slice(0, 5),
         icon: 'bx-book-reader'
+      });
+    }
+    
+    if (selectedFilters.includes('entranceExams') && results.entranceExams.length > 0) {
+      resultSections.push({
+        title: 'Entrance Exams',
+        items: results.entranceExams.slice(0, 5),
+        icon: 'bx-certification'
       });
     }
     

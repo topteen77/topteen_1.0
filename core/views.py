@@ -39,7 +39,7 @@ from careers.models import Videos,Career
 from colleges.models import College
 from .documents_filter import AllSearch
 from .counselling_utils import get_counselling_context
-from entrance_exams.models import EntranceExam
+from core.models import EntranceTestPrepExam
 from users.models import UserSearchHistory
 from django.shortcuts import HttpResponse,HttpResponseRedirect
 from skilllab.models import SkillLabCourse
@@ -146,12 +146,12 @@ class Home(TemplateView):
         ctx['after_college_course'] = SkillLabCourse.objects.filter(
             category=choices.SkillLabCourseTypeChoice.after_college
         ).first()
-        exam_ids = list(EntranceExam.objects.values_list('id', flat=True)[:30])
+        exam_ids = list(EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).values_list('id', flat=True)[:30])
         if exam_ids:
-            ctx['exams'] = EntranceExam.objects.filter(id__in=random.sample(exam_ids, min(3, len(exam_ids))))
+            ctx['exams'] = EntranceTestPrepExam.objects.filter(id__in=random.sample(exam_ids, min(3, len(exam_ids))), object_status=choices.ObjectStatus.ACTIVE)
             del exam_ids
         else:
-            ctx['exams'] = EntranceExam.objects.none()
+            ctx['exams'] = EntranceTestPrepExam.objects.none()
         # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=view-mode&cluster=ID
         clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
@@ -209,6 +209,26 @@ class Home(TemplateView):
                 })
         ctx['career_track_cards'] = career_track_cards
         ctx['default_career_library_url'] = default_career_library_url
+
+        # Homepage hero video: Configuration keys HOME_VIDEO_URL, HOME_VIDEO_THUMBNAIL (thumbnail shown first in modal, then play on click)
+        from core.models import Configuration
+        default_home_video = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'
+        home_video_url = (Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True) or default_home_video or '').strip()
+        home_video_thumbnail_url = (Configuration.get('HOME_VIDEO_THUMBNAIL', default='', editable=True) or '').strip()
+        home_video_embed_url = home_video_url
+        home_video_yt_id = ''
+        if home_video_url:
+            yt_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})', home_video_url)
+            if yt_match:
+                home_video_yt_id = yt_match.group(1)
+                home_video_embed_url = 'https://www.youtube.com/embed/' + home_video_yt_id + '?autoplay=1'
+                if not home_video_thumbnail_url:
+                    home_video_thumbnail_url = 'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
+        ctx['home_video_url'] = home_video_url
+        ctx['home_video_thumbnail_url'] = home_video_thumbnail_url
+        ctx['home_video_embed_url'] = home_video_embed_url
+        ctx['home_video_yt_id'] = home_video_yt_id
+
         return ctx
         
     def get(self, request, *args, **kwargs):
@@ -738,6 +758,15 @@ class EntranceTestPrepCategoryView(TemplateView):
             {"text": "Entrance Exam", "url": reverse("core:entrance_test_prep")},
             {"text": category.name, "url": reverse("core:entrance_test_prep_category", kwargs={"level_slug": level.slug, "category_slug": category.slug})},
         ])
+        bookmarked_exam_ids = set()
+        if request.user.is_authenticated:
+            bookmarked_exam_ids = set(
+                EntranceTestPrepExam.objects.filter(
+                    shortlist=request.user,
+                    object_status=choices.ObjectStatus.ACTIVE,
+                ).values_list("id", flat=True)
+            )
+        ctx["bookmarked_exam_ids"] = bookmarked_exam_ids
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -868,6 +897,10 @@ class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
             breadcrumb.append({"text": category.name, "url": reverse("core:entrance_test_prep_category", kwargs={"level_slug": level.slug, "category_slug": category.slug})})
         breadcrumb.append({"text": exam.name, "url": reverse("core:entrance_test_prep_exam_detail", kwargs={"slug": exam.slug})})
         ctx["breadcrumb"] = get_breadcrumb(breadcrumb)
+        ctx["is_exam_bookmarked"] = (
+            request.user.is_authenticated
+            and exam.shortlist.filter(id=request.user.id).exists()
+        )
         return self.inject_freetrail_context(request, ctx)
 
     def get(self, request, *args, **kwargs):

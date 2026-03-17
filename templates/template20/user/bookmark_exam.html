@@ -87,7 +87,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h1 class="fs-24 fw-semibold mb-0">Exams & Tests</h1>
           {% if exams %}
-          <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button purple-button d-none d-md-inline-flex">
+          <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button d-none d-md-inline-flex">
             <i class='bx bx-search me-2'></i>Browse Exams
           </a>
           {% endif %}
@@ -100,7 +100,7 @@
           </button>
           <h2 class="fs-16 fw-normal text-center mb-0">Exams & Tests</h2>
           {% if exams %}
-          <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn btn-sm custom-button purple-button position-absolute end-0 top-0">
+          <a href="{{ url('core:entrance_test_prep') }}" class="btn btn-sm custom-button purple-button position-absolute end-0 top-0">
             <i class='bx bx-search me-1'></i>Browse
           </a>
           {% endif %}
@@ -118,23 +118,23 @@
               <i class='bx bx-x'></i>
             </div>
             <div class="d-flex align-items-center gap-2 mb-3">
-              <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="d-flex align-items-center gap-2 text-decoration-none">
+              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="d-flex align-items-center gap-2 text-decoration-none">
                 <div style="width: 57px; height: 63px; flex-shrink: 0;">
-                  <img src="{{ exam.logo_url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />
+                  {% if exam.image %}<img src="{{ exam.image.url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />{% else %}<img src="{{ static('images_new/general/visinory-goal.svg') }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />{% endif %}
                 </div>
                 <div class="flex-grow-1">
                   <h5 class="fs-14 fw-semibold text-dark mb-1" style="max-height: 48px; overflow: hidden;">{{ exam.name }}</h5>
                 </div>
               </a>
             </div>
-            {% if exam.about %}
+            {% if exam.content_html %}
             <div class="exam-description">
-              {{ (exam.about|striptags|trim)|truncate(120) }}
+              {{ (exam.content_html|striptags|trim)|truncate(120) }}
             </div>
             {% endif %}
             <div class="border-top border-bottom py-2 mb-3"></div>
             <div class="text-center">
-              <a href="{{ url('entrance_exams:testprepdetail', args=[exam.slug]) }}" class="btn btn-outline-secondary btn-sm">
+              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="btn btn-outline-secondary btn-sm">
                 View Details
               </a>
             </div>
@@ -147,7 +147,7 @@
           <i class='bx bx-clipboard fs-64 text-gray mb-3'></i>
           <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Exams</h3>
           <p class="text-gray fs-14 mb-4">You haven't bookmarked any exams yet.</p>
-          <a href="{{ url('entrance_exams:testpreptenth') }}" class="btn custom-button purple-button">
+          <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button">
             Browse Exams
           </a>
         </div>

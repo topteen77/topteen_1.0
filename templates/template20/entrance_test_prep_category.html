@@ -59,18 +59,24 @@
           <div class="e-tab-content">
             <div class="exam-grid">
               {% for exam in exams %}
-              
-              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="exam-card exam-card-link {{ 'extra-card' if loop.index > 9 else '' }}">
-                <div class="exam-card-img">
-                  {% if exam.image %}<img src="{{ exam.image.url }}" alt="{{ exam.name }}" />
-                  {% elif category and category.image %}<img src="{{ category.image.url }}" alt="{{ exam.name }}" />
-                  {% else %}<img src="{{ static('images_new/general/visinory-goal.svg') }}" alt="{{ exam.name }}" />{% endif %}
-                </div>
-                <div class="exam-card-body">
-                  <h3>{{ exam.name }}</h3>
-                  <div class="exam-card-btn-wrap"><span class="exam-card-btn">Read More</span></div>
-                </div>
-              </a>
+              <div class="exam-card {{ 'extra-card' if loop.index > 9 else '' }}" style="position: relative;">
+                {% if request.user.is_authenticated %}
+                <button type="button" class="btn btn-sm btn-outline-secondary shortlist-exam position-absolute top-0 end-0 m-2 {% if exam.id in bookmarked_exam_ids %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}" style="z-index: 2;" title="{% if exam.id in bookmarked_exam_ids %}Remove bookmark{% else %}Bookmark{% endif %}">
+                  <i class='bx {% if exam.id in bookmarked_exam_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                </button>
+                {% endif %}
+                <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="exam-card-link d-flex align-items-stretch" style="text-decoration: none; color: inherit; flex: 1;">
+                  <div class="exam-card-img">
+                    {% if exam.image %}<img src="{{ exam.image.url }}" alt="{{ exam.name }}" />
+                    {% elif category and category.image %}<img src="{{ category.image.url }}" alt="{{ exam.name }}" />
+                    {% else %}<img src="{{ static('images_new/general/visinory-goal.svg') }}" alt="{{ exam.name }}" />{% endif %}
+                  </div>
+                  <div class="exam-card-body">
+                    <h3>{{ exam.name }}</h3>
+                    <div class="exam-card-btn-wrap"><span class="exam-card-btn">Read More</span></div>
+                  </div>
+                </a>
+              </div>
               {% else %}
               <p class="text-gray">No exams in this category yet.</p>
               {% endfor %}
@@ -84,4 +90,60 @@
     </div>
   </section>
 </main>
+{% if request.user.is_authenticated %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function() {
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  function fireAlert(title, icon, timer) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({ title: title, icon: icon || 'success', position: 'top-end', showConfirmButton: false, toast: true, timer: timer || 2000 });
+    }
+  }
+  document.querySelectorAll('.shortlist-exam').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var examId = this.getAttribute('data-exam-id');
+      var icon = this.querySelector('i');
+      if (!examId) return;
+      this.disabled = true;
+      var formData = new FormData();
+      formData.append('examid', examId);
+      formData.append('csrfmiddlewaretoken', getCookie('csrftoken') || '{{ csrf_token }}');
+      fetch('/api/v1/user/shortlistexam', { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            btn.classList.add('bookmarked', 'active');
+            if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
+            fireAlert(data.message || 'Exam bookmarked successfully!', 'success');
+          } else {
+            btn.classList.remove('bookmarked', 'active');
+            if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
+            fireAlert(data.message || 'Exam removed from bookmarks', 'success');
+          }
+        })
+        .catch(function(err) {
+          fireAlert('Error updating bookmark. Please try again.', 'error');
+        })
+        .finally(function() { btn.disabled = false; });
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -7,7 +7,7 @@ from core.utils import build_html_head
 from colleges.models import College
 from courses.models import Course
 from users.models import UserSearchHistory
-from entrance_exams.models import EntranceExam
+from core.models import EntranceTestPrepExam
 from users.models import User
 from core import choices
 from core.choices import MINDMAP_TYPE_CHOICES
@@ -15,6 +15,7 @@ from django.db.models import Q, Count, Q as DjangoQ
 from functools import reduce
 from operator import or_
 from django.conf import settings
+from django.db import connection
 import json
 import logging
 
@@ -239,7 +240,32 @@ def globals(request):
             q_object = reduce(or_,(Q(name__icontains=sh) for sh in user_search_hisotry))
             career_list=Career.objects.filter(q_object)[:5]
             college_list=College.objects.filter(q_object)[:5]
-            exam_list=EntranceExam.objects.filter(q_object)[:5]
+            # Build exam_list via raw SQL so modeltranslation cannot rewrite 'name' to 'name_en' (EntranceTestPrepExam has no translated fields).
+            search_terms = list(user_search_hisotry[:10])
+            try:
+                with connection.cursor() as cursor:
+                    if search_terms:
+                        placeholders = " OR ".join(["name LIKE %s"] * len(search_terms))
+                        params = ["%" + str(t) + "%" for t in search_terms] + [choices.ObjectStatus.ACTIVE]
+                        cursor.execute(
+                            f"""
+                            SELECT id FROM core_entrancetestprepexam
+                            WHERE ({placeholders}) AND object_status = %s
+                            ORDER BY name
+                            LIMIT 5
+                            """,
+                            params,
+                        )
+                        pks = [row[0] for row in cursor.fetchall()]
+                    else:
+                        pks = []
+                if pks:
+                    exam_list = list(EntranceTestPrepExam._base_manager.filter(pk__in=pks).order_by("name")[:5])
+                else:
+                    exam_list = []
+            except Exception as e:
+                logger.warning("Context processor exam_list raw SQL failed: %s", e)
+                exam_list = []
 
         
     popular_categories = Blog.objects.values("category").annotate(count=Count('category')).order_by("-count").values_list('category')

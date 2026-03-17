@@ -137,21 +137,11 @@ class TestPreptenth(TemplateView):
             if len(tenthtag) >= 10:
                 break
         
-        # Pre-compute bookmarked exams to avoid N+1 queries in template
-        bookmarked_exam_ids = set()
-        if request.user.is_authenticated:
-            bookmarked_exam_ids = set(
-                EntranceExam.objects.filter(
-                    Q(category=choices.EntranceExamTypechoice.after_10_class) | 
-                    Q(category=choices.EntranceExamTypechoice.BOTH),
-                    shortlist=request.user
-                ).values_list('id', flat=True)
-            )
-        
+        # Bookmark/shortlist now uses Entrance Test Prep (core); old list no longer shows bookmark state
         ctx['tenthexamtag'] = tenthtag  
         ctx['tenthstream'] = stmcat1 
         ctx['tenthexam'] = tenthexam
-        ctx['bookmarked_exam_ids'] = bookmarked_exam_ids
+        ctx['bookmarked_exam_ids'] = set()
         
         # Don't load other tabs initially - load via AJAX
         ctx['twelthexamtag'] = []
@@ -204,23 +194,12 @@ class TestPreptenth(TemplateView):
                 if len(twelthtag) >= 10:
                     break
             
-            # Pre-compute bookmarked exams
-            bookmarked_exam_ids = set()
-            if request.user.is_authenticated:
-                bookmarked_exam_ids = set(
-                    EntranceExam.objects.filter(
-                        Q(category=choices.EntranceExamTypechoice.after_12_class) | 
-                        Q(category=choices.EntranceExamTypechoice.BOTH),
-                        shortlist=request.user
-                    ).values_list('id', flat=True)
-                )
-            
             ctx = {
                 'twelthexamtag': twelthtag,
                 'twelthstreams': stmcat2,
                 'twelthexams': twelexam,
                 'entrance_exam_category': {'after12':"After 12th"},
-                'bookmarked_exam_ids': bookmarked_exam_ids,
+                'bookmarked_exam_ids': set(),
             }
             html = render_to_string('template20/testprep_list_tab_content.html', ctx, request=request)
             return JsonResponse({'html': html})
@@ -247,22 +226,12 @@ class TestPreptenth(TemplateView):
                 if len(collegetag) >= 10:
                     break
             
-            # Pre-compute bookmarked exams
-            bookmarked_exam_ids = set()
-            if request.user.is_authenticated:
-                bookmarked_exam_ids = set(
-                    EntranceExam.objects.filter(
-                        Q(category=choices.EntranceExamTypechoice.after_college),
-                        shortlist=request.user
-                    ).values_list('id', flat=True)
-                )
-            
             ctx = {
                 'collegeexamtag': collegetag,
                 'collegestreams': stmcat3,
                 'collegeexams': collexam,
                 'entrance_exam_category': {'aftercollge':"After College"},
-                'bookmarked_exam_ids': bookmarked_exam_ids,
+                'bookmarked_exam_ids': set(),
             }
             html = render_to_string('template20/testprep_list_tab_content.html', ctx, request=request)
             return JsonResponse({'html': html})
@@ -270,12 +239,7 @@ class TestPreptenth(TemplateView):
         return JsonResponse({'html': ''})
 
 def shortlist_exam_view(request):
-    id=request.GET.get("id")
-    exam=get_object_or_404(EntranceExam,id=id)
-    data=EntranceExam.objects.filter(id=id,shortlist=request.user).exists()
-    if data:
-        exam.shortlist.remove(request.user)
-        return JsonResponse({'success':'false'})
-    else:
-        exam.shortlist.add(request.user)
-        return JsonResponse({'success':'true'})
+    """Shortlist/bookmark is now for Entrance Test Prep exams only. Redirect to new section."""
+    from django.urls import reverse
+    from django.shortcuts import redirect
+    return redirect(reverse("core:entrance_test_prep"))

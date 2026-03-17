@@ -541,6 +541,12 @@ class EntranceTestPrepExam(BaseModel, SlugModel):
         help_text="Stored JSON structure parsed from content_html (programtitle, overview, sections) for accordion display",
     )
     priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+    shortlist = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="entrance_test_prep_exam_shortlist",
+        blank=True,
+        help_text="Users who bookmarked this exam.",
+    )
 
     class Meta(BaseModel.Meta):
         ordering = ("priority", "name")
