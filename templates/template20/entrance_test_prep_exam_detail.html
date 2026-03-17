@@ -33,6 +33,12 @@
   border-color: transparent;
   box-shadow: none;
 }
+.exam-details-section .accordion-button:not(.collapsed) {
+  background: linear-gradient(90deg, #3F37C9 0%, #5B54D4 100%) !important;
+  color: #fff !important;
+}
+.exam-details-section .accordion-button:not(.collapsed) .accordion-title-text,
+.exam-details-section .accordion-button:not(.collapsed) .section-icon { color: #fff !important; }
 .exam-details-section .accordion-button.collapsed {
   background: #f7f7ff !important;
   color: #1f1a4e !important;
@@ -74,9 +80,11 @@
   box-shadow: 0 6px 18px rgba(63, 55, 201, 0.14);
 }
 .exam-details-section .accordion-button .section-icon i { color: #fff; }
+/* Remove H1 from overview/accordion body so page has only one H1 (hero) */
+.exam-details-section .accordion-body h1 { display: none !important; }
 .exam-details-section .accordion-body {
   background: #fbfbfb;
-  color: #444;
+  color: #222;
   padding: 1.25rem 1.5rem;
   border: 1px solid #e8e8f0;
   border-top: none;
@@ -87,7 +95,8 @@
 .exam-details-section .accordion-body,
 .exam-details-section .accordion-body p,
 .exam-details-section .accordion-body li,
-.exam-details-section .accordion-body td { color: #444; }
+.exam-details-section .accordion-body td { color: #222 !important; }
+.exam-details-section .accordion-body a { color: #3F37C9; }
 .exam-details-section .accordion-body p { font-size: 16px; margin-bottom: 0.75rem; }
 .exam-details-section .accordion-body h2 { font-size: 20px; color: #3f37c9; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
 .exam-details-section .accordion-body h2:first-child { margin-top: 0; }

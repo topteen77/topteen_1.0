@@ -753,9 +753,13 @@ class EntranceTestPrepCategoryView(TemplateView):
             title=f"{category.name} | Entrance Exam",
             description=f"Comprehensive guidance for {category.name} entrance exams.",
         )
+        # Breadcrumb: Home > Entrance Exam > Level (After 10 / After 12 / Graduation) > Category
+        _level_tab = {"after-10": "a", "after-12": "b", "graduation": "c"}.get((level.slug or "").lower(), "a")
+        _level_url = reverse("core:entrance_test_prep") + "#pills-foundation-" + _level_tab
         ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Home", "url": reverse("core:home")},
             {"text": "Entrance Exam", "url": reverse("core:entrance_test_prep")},
+            {"text": level.name, "url": _level_url},
             {"text": category.name, "url": reverse("core:entrance_test_prep_category", kwargs={"level_slug": level.slug, "category_slug": category.slug})},
         ])
         bookmarked_exam_ids = set()
@@ -974,10 +978,14 @@ class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
         ctx["sections"] = sections
         ctx["toc"] = toc
         ctx["html_head"] = build_html_head(title=exam.name, description=exam.name)
+        # Breadcrumb: Home > Entrance Exam > Level (After 10 / After 12 / Graduation) > Category > Exam
         breadcrumb = [
             {"text": "Home", "url": reverse("core:home")},
             {"text": "Entrance Exam", "url": reverse("core:entrance_test_prep")},
         ]
+        if level:
+            _level_tab = {"after-10": "a", "after-12": "b", "graduation": "c"}.get((level.slug or "").lower(), "a")
+            breadcrumb.append({"text": level.name, "url": reverse("core:entrance_test_prep") + "#pills-foundation-" + _level_tab})
         if level and category:
             breadcrumb.append({"text": category.name, "url": reverse("core:entrance_test_prep_category", kwargs={"level_slug": level.slug, "category_slug": category.slug})})
         breadcrumb.append({"text": exam.name, "url": reverse("core:entrance_test_prep_exam_detail", kwargs={"slug": exam.slug})})

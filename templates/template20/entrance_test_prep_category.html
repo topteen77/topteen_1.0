@@ -8,21 +8,27 @@
 .exam-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1.25rem; }
 @media (min-width: 768px) { .exam-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 992px) { .exam-grid { grid-template-columns: repeat(3, 1fr); } }
-/* Card UI: light lavender left (image), white right (content), thin separator */
-.exam-card { display: flex; align-items: stretch; background: #E8E6FA; border-radius: 16px; padding: 0; box-shadow: 0 4px 16px rgba(63, 55, 201, 0.08); border: none; min-height: 180px; overflow: hidden; transition: transform 180ms ease, box-shadow 180ms ease; }
-.exam-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(63, 55, 201, 0.14); }
-.exam-card-img { flex: 0 0 40%; max-width: 40%; min-height: 180px; background: #E8E6FA; display: flex; align-items: center; justify-content: center; padding: 14px; }
+/* Card: soft rounded corners, subtle shadow, light lavender; left ~50% illustration, right content (ref pills-foundation-b) */
+.exam-card { display: flex; align-items: stretch; background: #F5F5FF; border-radius: 20px; padding: 0; box-shadow: 0 4px 20px rgba(31, 26, 78, 0.08); border: none; min-height: 180px; overflow: hidden; transition: transform 200ms ease, box-shadow 200ms ease; }
+.exam-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(31, 26, 78, 0.12); }
+.exam-card-img { flex: 0 0 50%; max-width: 50%; min-height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .exam-card-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.exam-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem 1.5rem; background: #fff; border-left: 1px solid rgba(63, 55, 201, 0.18); }
-.exam-card-body h3 { margin: 0; font-size: 1.2rem; line-height: 1.3; color: #3F37C9; font-weight: 700; }
-.exam-card-body .exam-card-btn-wrap { margin-top: auto; padding-top: 0.75rem; display: flex; justify-content: center; }
-.exam-card-body .exam-card-btn { display: inline-block; padding: 0.55rem 1.35rem; font-size: 0.9rem; font-weight: 600; color: #fff; background: #3F37C9; border: none; border-radius: 10px; text-align: center; transition: background 0.2s; }
-.exam-card:hover .exam-card-btn { background: #3530a8; }
+/* Category page: right section = title (left-aligned) + Read More (bottom-left), match ref pills-foundation-a */
+.exam-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem 1.5rem; background: #fff; border-left: 1px solid rgba(31, 26, 78, 0.08); text-align: left; }
+.exam-card-body h3 { margin: 0; font-size: 1.15rem; line-height: 1.35; color: #1f1a4e; font-weight: 700; }
+.exam-card-body .exam-card-btn-wrap { margin-top: auto; padding-top: 0.75rem; display: flex; justify-content: flex-start; }
+.exam-card-body .exam-card-btn { display: inline-block; padding: 0.55rem 1.35rem; font-size: 0.9rem; font-weight: 600; color: #fff; background: #4f46e5; border: none; border-radius: 12px; text-align: center; transition: background 0.2s; }
+.exam-card:hover .exam-card-btn { background: #4338ca; }
 .exam-grid .extra-card { display: none; }
 .exam-grid.show-all .extra-card { display: flex; }
 .exam-grid-toggle { text-align: center; margin-top: 1rem; }
 .exam-card-link { display: block; text-decoration: none; color: inherit; }
 .exam-card-link:hover { color: inherit; }
+/* Bookmark: light grey square background, dark icon (ref) */
+.e-exam-tabs .shortlist-exam { background: #e8e8ec !important; border: none !important; border-radius: 10px !important; color: #1f1a4e !important; width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.e-exam-tabs .shortlist-exam:hover { background: #d8d8dc !important; color: #1f1a4e !important; }
+.e-exam-tabs .shortlist-exam.bookmarked { background: rgba(91, 56, 237, 0.15) !important; color: #5b38ed !important; }
+.e-exam-tabs .shortlist-exam i { font-size: 1.1rem; }
 </style>
 {% endblock %}
 {% block content %}
@@ -90,6 +96,20 @@
     </div>
   </section>
 </main>
+<script>
+(function() {
+  document.querySelectorAll('.show-more-exams').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tabContent = this.closest('.e-tab-content');
+      var grid = tabContent ? tabContent.querySelector('.exam-grid') : null;
+      if (!grid) return;
+      var isExpanded = grid.classList.toggle('show-all');
+      this.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      this.textContent = isExpanded ? 'Show less' : 'Show more';
+    });
+  });
+})();
+</script>
 {% if request.user.is_authenticated %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
