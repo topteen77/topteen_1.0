@@ -773,19 +773,23 @@ class EntranceTestPrepCategoryView(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-# Icon class (Boxicons) per heading keyword for entrance exam Quick links. First match wins.
+# Icon class (Boxicons) from reference HTML single-exam-category-10th – use as-is for quick links and accordion.
 _ENTRANCE_TOC_ICON_MAP = [
-    (r"\b(about|overview|introduction)\b", "bx-info-circle"),
-    (r"\b(highlights?|key points?)\b", "bx-star"),
-    (r"\b(schedule|dates?|tentative|calendar)\b", "bx-calendar"),
+    (r"\b(overview|about|introduction)\b", "bx-info-circle"),
     (r"\b(eligibility|eligible)\b", "bx-id-card"),
-    (r"\b(application|apply|apply for)\b", "bx-file"),
+    (r"\b(exam pattern|pattern|structure)\b", "bx-layout"),
+    (r"\b(syllabus|syllabi|outline)\b", "bx-book-open"),
+    (r"\b(reservation|seat|allocation|quota)\b", "bx-group"),
+    (r"\b(application|apply|process)\b", "bx-send"),
+    (r"\b(exam day|result|calendar)\b", "bx-calendar-event"),
+    (r"\b(selection|admission)\b", "bx-check-circle"),
+    (r"\b(key dates?|dates?|indicative|schedule)\b", "bx-time"),
+    (r"\b(preparation|prep|tips?)\b", "bx-heart-circle"),
+    (r"\b(significance|importance)\b", "bx-star"),
+    (r"\b(official links?|resources?|links?)\b", "bx-link-external"),
+    (r"\b(conclusion|summary)\b", "bx-comment-check"),
+    (r"\b(highlights?|key points?)\b", "bx-star"),
     (r"\b(fee|fees|payment|cost)\b", "bx-dollar"),
-    (r"\b(exam pattern|pattern|structure)\b", "bx-list-check"),
-    (r"\b(syllabus|syllabi)\b", "bx-book"),
-    (r"\b(preparation|prep|tips?|prepare)\b", "bx-bulb"),
-    (r"\b(reservation|seats?|quota)\b", "bx-group"),
-    (r"\b(placement|career|opportunities?|jobs?)\b", "bx-briefcase"),
     (r"\b(additional|information|notes?)\b", "bx-info-circle"),
 ]
 
@@ -799,6 +803,75 @@ def _icon_for_heading(text):
         if re.search(pattern, lower, re.IGNORECASE):
             return icon
     return "bx-info-circle"
+
+
+def _strip_heading_numbers(text):
+    """Remove leading numbers from H2 titles, e.g. '1. Overview' -> 'Overview'."""
+    if not text or not isinstance(text, str):
+        return text or ""
+    return re.sub(r"^\s*\d+\.?\s*", "", text.strip()).strip() or text
+
+
+def _sections_from_content_html(html_content):
+    """Split HTML by H2 headings so accordion is based on H2 only. Content above the first H2 becomes the first 'Overview' accordion."""
+    if not html_content or not html_content.strip():
+        return []
+    try:
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html_content, "html.parser")
+        h2s = soup.find_all("h2")
+        if not h2s:
+            return [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
+        used = set()
+        sections = []
+        first_h2 = h2s[0]
+        first_h2_text = first_h2.get_text(strip=True)
+        first_h2_display = _strip_heading_numbers(first_h2_text).lower()
+        content_before_first_h2 = list(first_h2.previous_siblings)
+        prepend_to_first = ""
+        if content_before_first_h2:
+            prepend_to_first = "".join(str(n) for n in reversed(content_before_first_h2))
+        add_overview_section = prepend_to_first.strip() and first_h2_display != "overview"
+        if add_overview_section:
+            sections.append({
+                "section_id": "overview",
+                "title": "Overview",
+                "content_html": prepend_to_first,
+                "icon": "bx-info-circle",
+            })
+            used.add("overview")
+        for tag in h2s:
+            text = tag.get_text(strip=True)
+            if not text:
+                continue
+            existing_id = tag.get("id", "").strip()
+            if existing_id and existing_id not in used:
+                sid = existing_id
+            else:
+                sid = re.sub(r"[^a-z0-9]+", "-", text.lower())[:80].strip("-") or "section"
+                base, c = sid, 1
+                while sid in used:
+                    sid = f"{base}-{c}"
+                    c += 1
+            used.add(sid)
+            tag["id"] = sid
+            content_parts = []
+            for sib in tag.next_siblings:
+                if getattr(sib, "name", None) == "h2":
+                    break
+                content_parts.append(sib)
+            content_html = "".join(str(n) for n in content_parts)
+            if first_h2_display == "overview" and tag is first_h2 and prepend_to_first.strip():
+                content_html = prepend_to_first + content_html
+            sections.append({
+                "section_id": sid,
+                "title": text,
+                "content_html": content_html,
+                "icon": _icon_for_heading(text),
+            })
+        return sections
+    except Exception:
+        return [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
 
 
 def _toc_from_content_html(html_content):
@@ -872,16 +945,28 @@ class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
                         "section_id": section_id,
                         "title": title,
                         "content_html": html,
+                        "icon": _icon_for_heading(title),
                     })
-            for s in sections:
-                toc.append({"id": s["section_id"], "text": s["title"], "level": 2, "icon": _icon_for_heading(s["title"])})
+            sections.sort(key=lambda s: (0 if (s.get("section_id") == "overview" or (s.get("title") or "").lower() == "overview") else 1, (s.get("title") or "")))
+            toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
         if not sections:
-            sections = list(exam.sections.order_by("order", "section_id"))
-        if not sections and exam.content_html:
-            toc, content_with_ids = _toc_from_content_html(exam.content_html)
+            section_objs = list(exam.sections.order_by("order", "section_id"))
             sections = [
-                {"section_id": "overview", "title": "Overview", "content_html": content_with_ids},
+                {
+                    "section_id": getattr(s, "section_id", f"section-{i}"),
+                    "title": getattr(s, "title", "Section"),
+                    "content_html": getattr(s, "content_html", "") or "",
+                    "icon": _icon_for_heading(getattr(s, "title", "")),
+                }
+                for i, s in enumerate(section_objs)
             ]
+            toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
+        if not sections and exam.content_html:
+            sections = _sections_from_content_html(exam.content_html)
+            toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
+        for s in sections:
+            s["display_title"] = _strip_heading_numbers(s.get("title") or "")
+        toc = [{"id": s["section_id"], "text": s.get("display_title", s.get("title", "")), "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
         ctx = {}
         ctx["exam"] = exam
         ctx["category"] = category
