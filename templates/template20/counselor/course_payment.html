@@ -44,7 +44,11 @@
   .custom-bullet-list li { position: relative; padding-left: 25px; margin-bottom: 15px; }
   .custom-bullet-list li::before { content: ""; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; background: #3F37C9; border-radius: 50%; }
   .payment-first-screen-card { border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: #fff; }
-  .payment-first-screen-card .payment-card-left { background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); min-height: 320px; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .payment-first-screen-card .payment-card-left { background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); min-height: 320px; display: flex; align-items: end; justify-content: end; padding: 2rem; padding-bottom: 0; }
+  .payment-card-left img {
+	position: relative;
+	bottom: -9px;
+}
   .payment-first-screen-card .payment-card-right { padding: 2rem 2.5rem; }
   .payment-first-screen-card .payment-title { font-size: 1.75rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.25rem; }
   .payment-first-screen-card .payment-subtitle { font-size: 0.95rem; color: #6b7280; margin-bottom: 0.75rem; }
@@ -58,16 +62,18 @@
   .payment-first-screen-card .payment-features { list-style: none; padding: 0; margin: 0 0 1.5rem 0; }
   .payment-first-screen-card .payment-features li { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.6rem; font-size: 0.95rem; color: #374151; }
   .payment-first-screen-card .payment-features li::before { content: ""; flex-shrink: 0; width: 20px; height: 20px; background: #3F37C9; border-radius: 50%; margin-top: 2px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E"); background-size: 12px; background-position: center; }
-  .payment-first-screen-card .btn-book-now { background: #3F37C9; color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; width: 100%; cursor: pointer; }
+  .payment-first-screen-card .btn-book-now { background: #3F37C9; color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600;  cursor: pointer; }
   .payment-first-screen-card .btn-book-now:hover { background: #2f28a8; color: #fff; }
-  @media (max-width: 768px) { .mi-framework-section, .mi-unique-section { padding: 50px 0; } .mi-unique-section-content { padding: 11px; } .payment-first-screen-card .payment-card-left { min-height: 240px; } }
+  @media (max-width: 768px) { .payment-card-left img {
+     bottom: 0;
+} .mi-framework-section, .mi-unique-section { padding: 50px 0; } .mi-unique-section-content { padding: 11px; } .payment-first-screen-card .payment-card-left { min-height: 240px; } }
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="py-test-page">
   <!-- Hero Section -->
-  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 position-relative">
+  <section class="hero-section-inner four-pillars-hero-section  position-relative pt-md-3">
     <div class="container">
       <div class="row">
         {% include 'template20/includes/breadcrumb.html' %}
@@ -106,12 +112,12 @@
         </div>
       </div>
       <div class="row align-items-center mt-md-5 mt-3">
-        <div class="col-lg-6 mb-md-0 mb-6">
+        <div class="col-lg-5 mb-md-0 mb-6">
           <div class="counselor-image-container">
             <img src="{{ static('images_new/counselor/counsellor-program.png') }}" alt="Career Counselor Professional" class="img-fluid rounded-circle">
           </div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-7">
           <span class="highlighter"><img src="{{ static('images_new/general/find-direction.svg') }}" alt="icon"> Expert Training</span>
           <h2 class="title-two fs-38 fw-700 mb-4 fs-sm-26 mt-2 mb-3">Why <span class="text-purple">Choose</span> Our Program?</h2>
           <div class="row mb-4">
@@ -183,20 +189,21 @@
   </section>
 
   <!-- Payment info: first screen (above No Refund Policy) -->
-  <section class="mi-framework-section py-5">
+  <section class="mi-framework-section py-md-8 py-5">
     <div class="container">
       <div class="row justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-lg-12">
           <div class="payment-first-screen-card">
             <div class="row g-0">
               <div class="col-md-5 payment-card-left">
-                <img src="{{ static('images_new/counselor/cc-hero-img.png') }}" alt="Career Counseling Course" class="img-fluid" style="max-height: 280px; object-fit: contain;">
+                <img src="{{ static('images_new/counselor/businesswoman.png') }}" alt="Career Counseling Course" class="img-fluid" style=" object-fit: contain;">
               </div>
               <div class="col-md-7 payment-card-right">
                 <h2 class="payment-title">Career Counseling Course</h2>
-                <p class="payment-subtitle">Certification Program</p>
+                <p class="payment-subtitle"><i class='bx bx-certification me-1'></i> Certification Program</p>
                 <span class="payment-tag">Advanced</span>
                 <p class="payment-validity">Career guidance • 1 year validity</p>
+               
                 <div class="price-row">
                   <span class="price-current">₹ 999/-</span>
                   <span class="price-strike">₹ 2,999/-</span>
@@ -204,14 +211,17 @@
                 </div>
                 <p class="payment-onetime">One-time payment</p>
                 <ul class="payment-features">
-                  <li>Comprehensive psychometric assessment</li>
-                  <li>Stream selection guidance based on strengths</li>
-                  <li>Personalized report with subject-wise recommendations</li>
-                  <li>Access to career exploration resources</li>
+                  
+                                   <li>Access to career exploration resources</li>
+                  <li>Career roadmap: short-term goals + long-term direction</li>
+                  <li>Suitable course/college options based on interest & aptitude</li>
                 </ul>
+
+                <div class="payment-button-container">
                 <button type="button" class="btn btn-book-now" id="rzp-button-payment-card">
                   {% if user_authenticated %}<i class='bx bx-credit-card me-2'></i> Start Now{% else %}<i class='bx bx-calendar-check me-2'></i> Book Now{% endif %}
                 </button>
+                </div>
               </div>
             </div>
           </div>

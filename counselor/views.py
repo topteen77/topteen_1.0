@@ -957,7 +957,7 @@ def CounselorCoursepayment(request):
     # Dynamic content for Career Counseling Course page (can be moved to DB/CMS later)
     course_page = {
         'hero_heading': 'Transform Lives',
-        'hero_subline': 'Through Career Counselling',
+        'hero_subline': 'Career Counselling',
         'hero_description': "Master the art of guiding individuals to their perfect career paths with our comprehensive certification course",
         'about_heading': 'About the Course',
         'about_text': "Step into the world of career counselling with our comprehensive Certification Course. Designed by leading experts, this program equips you with cutting-edge techniques and foundational theories to effectively guide clients towards fulfilling career decisions. Whether you are starting your journey or seeking to deepen your expertise, our course offers a robust curriculum tailored to meet the demands of today's dynamic job market.",

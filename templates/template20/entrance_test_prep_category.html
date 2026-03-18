@@ -4,31 +4,112 @@
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 {% block additionalhead %}
 <style>
-.exam-single-hero-section { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); }
-.exam-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1.25rem; }
-@media (min-width: 768px) { .exam-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 992px) { .exam-grid { grid-template-columns: repeat(3, 1fr); } }
-/* Card: soft rounded corners, subtle shadow, light lavender; left ~50% illustration, right content (ref pills-foundation-b) */
-.exam-card { display: flex; align-items: stretch; background: #F5F5FF; border-radius: 20px; padding: 0; box-shadow: 0 4px 20px rgba(31, 26, 78, 0.08); border: none; min-height: 180px; overflow: hidden; transition: transform 200ms ease, box-shadow 200ms ease; }
-.exam-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(31, 26, 78, 0.12); }
-.exam-card-img { flex: 0 0 50%; max-width: 50%; min-height: 180px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.exam-card-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
-/* Category page: right section = title (left-aligned) + Read More (bottom-left), match ref pills-foundation-a */
-.exam-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem 1.5rem; background: #fff; border-left: 1px solid rgba(31, 26, 78, 0.08); text-align: left; }
-.exam-card-body h3 { margin: 0; font-size: 1.15rem; line-height: 1.35; color: #1f1a4e; font-weight: 700; }
-.exam-card-body .exam-card-btn-wrap { margin-top: auto; padding-top: 0.75rem; display: flex; justify-content: flex-start; }
-.exam-card-body .exam-card-btn { display: inline-block; padding: 0.55rem 1.35rem; font-size: 0.9rem; font-weight: 600; color: #fff; background: #4f46e5; border: none; border-radius: 12px; text-align: center; transition: background 0.2s; }
-.exam-card:hover .exam-card-btn { background: #4338ca; }
-.exam-grid .extra-card { display: none; }
-.exam-grid.show-all .extra-card { display: flex; }
-.exam-grid-toggle { text-align: center; margin-top: 1rem; }
-.exam-card-link { display: block; text-decoration: none; color: inherit; }
-.exam-card-link:hover { color: inherit; }
-/* Bookmark: light grey square background, dark icon (ref) */
-.e-exam-tabs .shortlist-exam { background: #e8e8ec !important; border: none !important; border-radius: 10px !important; color: #1f1a4e !important; width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
-.e-exam-tabs .shortlist-exam:hover { background: #d8d8dc !important; color: #1f1a4e !important; }
-.e-exam-tabs .shortlist-exam.bookmarked { background: rgba(91, 56, 237, 0.15) !important; color: #5b38ed !important; }
-.e-exam-tabs .shortlist-exam i { font-size: 1.1rem; }
+  .exam-single-hero-section {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%);
+  }
+
+
+  /* Responsive exam category cards (right-side text + left-side illustration) */
+  .exam-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .exam-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 992px) {
+    .exam-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .exam-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border-radius: 14px;
+    padding: 0;
+    box-shadow: 0 6px 22px rgba(16, 24, 40, 0.08);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+    border: 1px solid #BCB8FF;
+    /* height: 164px; */
+    overflow: hidden;
+  }
+
+  .exam-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 36px rgba(16, 24, 40, 0.12);
+  }
+
+  .exam-card-img {
+    flex: 0 0 148px;
+    height: 100%;
+    background: #EAE9FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    height: 130px;
+  }
+
+  .exam-card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 130px;
+    padding: 15px 8px;
+  }
+
+  .exam-card-body .custom-button {
+    width: 118px;
+  }
+
+
+  .exam-card-img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .exam-card-body h3 {
+    margin: 0 0 .3rem 0;
+    font-size: 14px;
+    line-height:17px;
+    color: #3F37C9;
+    font-weight: 600;
+  }
+
+  .exam-card-body p {
+    margin: 0 0 .6rem 0;
+    color: #6b6b7a;
+    font-size: 0.95rem;
+  }
+
+  .exam-card-body .btn {
+    padding: .45rem .85rem;
+    font-size: .9rem;
+  }
+
+  /* hide extra cards by default, reveal when .show-all is added */
+  .exam-grid .extra-card {
+    display: none;
+  }
+
+  .exam-grid.show-all .extra-card {
+    display: flex;
+  }
+
+  /* center the toggle button */
+  .exam-grid-toggle {
+    text-align: center;
+    margin-top: 1rem;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -38,15 +119,15 @@
       <div class="row">
         <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
         <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
-          <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span>
-          <h1 class="heading-title mt-md-8 mt-5 mb-0">{{ category.name }}</h1>
-          <p class="text-dark fs-25 fs-sm-18 fw-700"><span class="text-yellow">Preparation &amp; Entrance </span> Guidance</p>
-          <p class="text-gray fs-16">Comprehensive guidance and strategic training to help you successfully prepare for {{ category.name }} exams.</p>
+          <!-- <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span> -->
+          <h1 class="heading-title mt-md-5 mb-0">{{ category.name }}</h1>
+          <p class="text-dark fs-25 fs-sm-18 fw-700 mb-md-6"><span class="text-yellow">Preparation &amp; Entrance </span> Guidance</p>
+          <!-- <p class="text-gray fs-16">Comprehensive guidance and strategic training to help you successfully prepare for {{ category.name }} exams.</p> -->
         </div>
         <div class="col-lg-6 col-md-12 order-md-2 order-1">
-          <div class="right-banner d-md-flex justify-content-center align-items-center">
+          <div class="right-banner d-md-flex justify-content-center align-items-center right-banner-image">
             {% if category.image %}<img class="img-fluid" src="{{ category.image.url }}" alt="{{ category.name }}" />
-            {% else %}<img class="img-fluid" src="{{ static('images_new/general/visinory-goal.svg') }}" alt="{{ category.name }}" />{% endif %}
+            {% else %}<img class="img-fluid" src="{{ static('images_new/general/entrance-general-img.png') }}" alt="{{ category.name }}" />{% endif %}
           </div>
         </div>
       </div>
@@ -75,11 +156,11 @@
                   <div class="exam-card-img">
                     {% if exam.image %}<img src="{{ exam.image.url }}" alt="{{ exam.name }}" />
                     {% elif category and category.image %}<img src="{{ category.image.url }}" alt="{{ exam.name }}" />
-                    {% else %}<img src="{{ static('images_new/general/visinory-goal.svg') }}" alt="{{ exam.name }}" />{% endif %}
+                    {% else %}<img src="{{ static('images_new/general/entrance-general-img.png') }}" alt="{{ exam.name }}" />{% endif %}
                   </div>
                   <div class="exam-card-body">
                     <h3>{{ exam.name }}</h3>
-                    <div class="exam-card-btn-wrap"><span class="exam-card-btn">Read More</span></div>
+                    <div class="exam-card-btn-wrap"><span class="btn custom-button purple-button">Read More</span></div>
                   </div>
                 </a>
               </div>
