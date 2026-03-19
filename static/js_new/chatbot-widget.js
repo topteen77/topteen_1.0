@@ -23,8 +23,10 @@
    * CONFIG — merge defaults with window.ChatbotConfig
    * ============================================================ */
   const CFG = Object.assign({
-    baseUrl : 'https://careerbot.canamacademy.com',
-    wsBase  : 'wss://careerbot.canamacademy.com',
+    // baseUrl : 'https://careerbot.canamacademy.com',
+    baseUrl : 'http://127.0.0.1:8000',
+    wsBase  : 'ws://127.0.0.1:8000',
+    // wsBase  : 'wss://careerbot.canamacademy.com',
     botName : 'Career Counsellor',
     devMode : false,  // Production mode - auto-creates sessions
   }, global.ChatbotConfig || {});
@@ -328,6 +330,7 @@
       this._typingIndicator = null;
       this._typingMessageIndex = 0;
       this._typingInterval  = null;
+      this._firstMessageSent = false;  // Track if first message has been sent
 
       injectStylesheet();
       loadMarked();         // async — loaded before first message in normal use
@@ -811,12 +814,30 @@
       // Remove any visible suggestion chips before sending
       this._msgArea.querySelectorAll('.cb-suggestions').forEach(s => s.remove());
 
+      let messageToSend = text;
+
+      // Check if this is the first message and student data exists in localStorage
+      if (!this._firstMessageSent) {
+        const studentId = localStorage.getItem('student_id');
+        const studentClass = localStorage.getItem('student_class');
+        const class10Status = localStorage.getItem('psychometric_class10_status');
+        const class12Status = localStorage.getItem('psychometric_class12_status');
+
+        // If all student fields exist, append the system message
+        if (studentId && studentClass && class10Status && class12Status) {
+          const systemMessage = `\n\n------ system message bellow ------\n\nhere is the student details to access his Psychometric Test\n\nstudent_id : ${studentId}\nstudent_class : ${studentClass}\npsychometric_class10_status : ${class10Status}\npsychometric_class12_status : ${class12Status}`;
+          messageToSend = text + systemMessage;
+        }
+
+        this._firstMessageSent = true;
+      }
+
       this._appendMessage('user', text);
       this._input.value = '';
       this._input.style.height = '46px';
       this._scrollToBottom();
 
-      this._ws.send(JSON.stringify({ message: text }));
+      this._ws.send(JSON.stringify({ message: messageToSend }));
     }
 
     /* ── new conversation ───────────────────────────────────── */
