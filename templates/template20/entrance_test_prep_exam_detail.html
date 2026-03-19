@@ -47,6 +47,16 @@
       box-shadow: 0 12px 36px rgba(16, 24, 40, 0.12);
     }
 
+    .right-banner {
+	width: 80px;
+	height: 80px;
+	min-width: 80px;
+	min-height: 80px;
+	background: #ffff;
+	border-radius: 50px;
+}
+
+
     .exam-card-img {
       flex: 0 0 148px;
       height: 100%;
@@ -146,7 +156,7 @@
     }
 
     .quick-links a {
-      color: #3F37C9;
+      color: #494949;
       display: block;
       padding: 6px 0;
       text-decoration: none;
@@ -155,13 +165,25 @@
       line-height: 18px;
     }
 
+    .quick-link.toc-h2.active {
+	color: #3F37C9;
+}
+
+.btn.btn-outline-secondary.shortlist-exam {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
     .quick-links-sidebar .quick-links li a i {
       margin-right: 10px !important;
     }
 
     .quick-links a:hover {
       text-decoration: underline;
+      color: #3F37C9;
     }
+    
     
     /* Mobile quick-jump improved styles */
     .mobile-quick-jump {
@@ -313,6 +335,13 @@
 
 .exam-details-section .accordion-body table {
 	margin-bottom: 22px;
+  background:#fff;
+}
+
+.exam-details-section .accordion-body h1 {
+  font-size: 23px;
+  color: #3f37c9;
+  margin-bottom: 17px;
 }
 
     @media (max-width: 991px) {
@@ -335,27 +364,33 @@
 {% block content %}
 {% if show_freetrail_popup %}<div id="freetrail-content-wrap">{% endif %}
 <main class="py-test-page">
-  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 position-relative">
+  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 pb-5 position-relative">
     <div class="container">
       <div class="row">
         <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
-        <div class="col-lg-6 col-md-12 career-direction-test-hero">
+        <div class="col-lg-10 col-md-12 career-direction-test-hero mt-md-5" >
           <!-- <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span> -->
-          <div class="d-flex align-items-center gap-3 flex-wrap">
-            <h1 class="heading-title mt-md-8 mt-5 mb-5 fs-30 fs-sm-20 lh-sm mb-0">{{ exam.name }}</h1>
-            {% if request.user.is_authenticated %}
-            <button type="button" class="btn btn-outline-secondary shortlist-exam {% if is_exam_bookmarked %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}" title="{% if is_exam_bookmarked %}Remove bookmark{% else %}Bookmark exam{% endif %}">
-              <i class='bx {% if is_exam_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i> {% if is_exam_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}
-            </button>
-            {% endif %}
+          <div class="d-flex align-items-center gap-3 flex-row mb-md-4 mb-2" >
+
+            <div class="right-banner d-md-flex justify-content-center align-items-center">
+              {% if exam.image %}<img class="img-fluid" src="{{ exam.image.url }}" alt="{{ exam.name }}" />
+              {% elif exam.category and exam.category.image %}<img class="img-fluid" src="{{ exam.category.image.url }}" alt="{{ exam.name }}" />
+              {% else %}<img class="img-fluid" src="{{ static('images_new/general/entrance-general-img.png') }}" alt="{{ exam.name }}" />{% endif %}
+            </div>
+
+
+            <h1 class="heading-title  my-0 fs-30 fs-sm-20 lh-sm mb-0">{{ exam.name }}</h1>
+        
           </div>
+
         </div>
-        <div class="col-lg-4 col-md-12 offset-lg-2">
-          <div class="right-banner d-md-flex justify-content-center align-items-center">
-            {% if exam.image %}<img class="img-fluid" src="{{ exam.image.url }}" alt="{{ exam.name }}" />
-            {% elif exam.category and exam.category.image %}<img class="img-fluid" src="{{ exam.category.image.url }}" alt="{{ exam.name }}" />
-            {% else %}<img class="img-fluid" src="{{ static('images_new/general/entrance-general-img.png') }}" alt="{{ exam.name }}" />{% endif %}
-          </div>
+        <div class="col-lg-2 col-md-12 d-flex justify-md-content-end justify-content-center align-items-center">
+         
+          {% if request.user.is_authenticated %}
+          <button type="button" class="btn btn-outline-secondary shortlist-exam gap-2 {% if is_exam_bookmarked %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}" title="{% if is_exam_bookmarked %}Remove bookmark{% else %}Bookmark exam{% endif %}">
+            <i class='bx {% if is_exam_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i> {% if is_exam_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}
+          </button>
+          {% endif %}
         </div>
       </div>
     </div>

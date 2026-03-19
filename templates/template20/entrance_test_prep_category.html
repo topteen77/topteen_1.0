@@ -48,27 +48,56 @@
   }
 
   .exam-card-img {
-    flex: 0 0 148px;
-    height: 100%;
     background: #EAE9FF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  height: 80px;
+  width: 82px;
+  min-width: 82px;
+  min-height: 82px;
+  border-radius: 100px;
   }
 
   .exam-card-body {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 130px;
-    padding: 15px 8px;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 15px 8px;
+  align-items: center;
+  width: 100%;
   }
+  
+  .career-direction-test-hero h1 {
+	font-size: 38px;
+}
+
+  .right-banner-image img {
+	width: 180px;
+}
+
+
+  .exam-card-body i {
+	font-size: 21px;
+	color: #3f37c9;
+}
+
 
   .exam-card-body .custom-button {
     width: 118px;
   }
+
+  .shortlist-exam {
+	border-radius: 20px;
+	display: flex;
+	justify-content: center;
+	height: 30px;
+	width: 30px;
+	text-align: center;
+	font-size: 18px;
+  background:#fff;
+}
 
 
   .exam-card-img img {
@@ -114,7 +143,7 @@
 {% endblock %}
 {% block content %}
 <main class="py-test-page">
-  <section class="hero-section-inner exam-single-hero-section pt-md-18 pt-14 position-relative">
+  <section class="hero-section-inner exam-single-hero-section pt-md-18 pt-14 position-relative pb-5">
     <div class="container">
       <div class="row">
         <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
@@ -152,15 +181,17 @@
                   <i class='bx {% if exam.id in bookmarked_exam_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
                 </button>
                 {% endif %}
-                <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="exam-card-link d-flex align-items-stretch" style="text-decoration: none; color: inherit; flex: 1;">
+                <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="exam-card-link d-flex align-items-stretch p-2" style="text-decoration: none; color: inherit; flex: 1;">
                   <div class="exam-card-img">
                     {% if exam.image %}<img src="{{ exam.image.url }}" alt="{{ exam.name }}" />
                     {% elif category and category.image %}<img src="{{ category.image.url }}" alt="{{ exam.name }}" />
                     {% else %}<img src="{{ static('images_new/general/entrance-general-img.png') }}" alt="{{ exam.name }}" />{% endif %}
                   </div>
                   <div class="exam-card-body">
-                    <h3>{{ exam.name }}</h3>
-                    <div class="exam-card-btn-wrap"><span class="btn custom-button purple-button">Read More</span></div>
+                    <h3 class="ps-1 pe-5">{{ exam.name }}</h3>
+
+                    <i class='bx bx-chevron-right'></i>
+                    <!-- <div class="exam-card-btn-wrap"><span class="btn custom-button purple-button">Read More</span></div> -->
                   </div>
                 </a>
               </div>
