@@ -23,10 +23,10 @@
    * CONFIG — merge defaults with window.ChatbotConfig
    * ============================================================ */
   const CFG = Object.assign({
-    // baseUrl : 'https://careerbot.canamacademy.com',
-    baseUrl : 'http://127.0.0.1:8000',
-    wsBase  : 'ws://127.0.0.1:8000',
-    // wsBase  : 'wss://careerbot.canamacademy.com',
+    baseUrl : 'https://careerbot.canamacademy.com',
+    wsBase  : 'wss://careerbot.canamacademy.com',
+    // baseUrl : 'http://127.0.0.1:8000',
+    // wsBase  : 'ws://127.0.0.1:8000',
     botName : 'Career Counsellor',
     devMode : false,  // Production mode - auto-creates sessions
   }, global.ChatbotConfig || {});
