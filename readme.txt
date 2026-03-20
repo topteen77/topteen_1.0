@@ -660,4 +660,96 @@ Django Admin → user_analytics → User Activity:
   • Filter to e.g. Local, select rows, Action → Delete to clean test data. Or set ENABLE_USER_ANALYTICS_TRACKING=False, then clean, then set back to True.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
 
+========================================================
+Kaunsa College API mirror (PostgreSQL + sync) — complete commands
+========================================================
+Docs: doc-md/KAUNSA_IMPLEMENTATION_STATUS.md, doc-md/kaunsa-colleges-integration.md
+Env template: docker/kaunsa-postgres.env.example
+Run all commands from project root (directory containing manage.py).
+
+---------- .env variables (add when using Kaunsa mirror) ----------
+
+# Enable second database (PostgreSQL). When False, app behaves as before (MySQL only).
+KAUNSA_PG_ENABLED=True
+
+# Local Docker Postgres (defaults match docker-compose.kaunsa-postgres.yml)
+KAUNSA_PG_NAME=kaunsa_mirror
+KAUNSA_PG_USER=kaunsa
+KAUNSA_PG_PASSWORD=kaunsa_dev_change_me
+KAUNSA_PG_HOST=127.0.0.1
+KAUNSA_PG_PORT=5433
+
+# Optional: connection pool age / SSL
+# KAUNSA_PG_CONN_MAX_AGE=60
+# KAUNSA_PG_SSLMODE=require
+
+# Kaunsa Laravel API base URL (must include /api). India and international can share or differ.
+KAUNSA_INDIA_API_BASE_URL=http://127.0.0.1:8081/api
+KAUNSA_INTL_API_BASE_URL=http://127.0.0.1:8081/api
+
+# Optional: country id for POST /universities body { "cid": "..." } (from GET /api/countries)
+KAUNSA_INDIA_COUNTRY_ID=
+KAUNSA_INTL_COUNTRY_ID=
+
+KAUNSA_REQUEST_TIMEOUT=30
+
+---------- Step 1. Install Python dependency ----------
+
+pip install -r requirements.txt
+# Ensures psycopg2-binary is installed for PostgreSQL.
+
+---------- Step 2. Start local PostgreSQL (Docker) ----------
+
+docker compose -f docker/docker-compose.kaunsa-postgres.yml up -d
+
+# Check container (optional):
+docker ps --filter name=topteen-kaunsa-postgres
+
+# Stop (optional):
+# docker compose -f docker/docker-compose.kaunsa-postgres.yml down
+
+---------- Step 3. Create / migrate Kaunsa tables (PostgreSQL only) ----------
+
+# Apply only the kaunsa_mirror app to the kaunsa_mirror database (not MySQL default):
+python manage.py migrate --database=kaunsa_mirror kaunsa_mirror
+
+# If you add new kaunsa_mirror migrations later:
+# python manage.py makemigrations kaunsa_mirror
+# python manage.py migrate --database=kaunsa_mirror kaunsa_mirror
+
+---------- Step 4. Verify database connection ----------
+
+python manage.py kaunsa_sync --dry-run
+# Expected: "PostgreSQL kaunsa_mirror: connection OK"
+
+---------- Step 5. Sync universities list from Kaunsa API ----------
+
+# Requires KAUNSA_INDIA_API_BASE_URL (and/or INTL) set and API reachable.
+
+python manage.py kaunsa_sync india
+python manage.py kaunsa_sync international
+python manage.py kaunsa_sync both
+
+# Success: prints updated hash / row count; unchanged payload: "unchanged (hash=...)"
+# Failure: error logged to table kaunsa_sync_log (Django admin: Kaunsa mirror → Kaunsa sync logs)
+
+---------- Step 6. Django admin (optional) ----------
+
+# With KAUNSA_PG_ENABLED=True, staff can inspect:
+#   Kaunsa snapshot, Kaunsa sync logs
+# Default admin URL: /admin/
+
+---------- One-liner copy-paste (after .env is set) ----------
+
+docker compose -f docker/docker-compose.kaunsa-postgres.yml up -d && \
+python manage.py migrate --database=kaunsa_mirror kaunsa_mirror && \
+python manage.py kaunsa_sync --dry-run
+
+---------- Notes ----------
+
+• Default MySQL migrations are unchanged: run `python manage.py migrate` as usual for the main app.
+• Do not run `migrate` on default database expecting kaunsa_mirror tables; they live only on PostgreSQL when KAUNSA_PG_ENABLED=True.
+• Normalized university/program tables (optional DDL): doc-md/sql/kaunsa_mirror_schema.sql
+---------- END KAUNSA MIRROR COMMANDS ----------
+
 .

@@ -1,0 +1,26 @@
+# Local PostgreSQL for Kaunsa mirror DB (TopTeen).
+# From project root:
+#   docker compose -f docker/docker-compose.kaunsa-postgres.yml --env-file .env up -d
+# Or copy vars from docker/kaunsa-postgres.env.example into .env first.
+
+services:
+  kaunsa-postgres:
+    image: postgres:16-alpine
+    container_name: topteen-kaunsa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${KAUNSA_PG_NAME:-kaunsa_mirror}
+      POSTGRES_USER: ${KAUNSA_PG_USER:-kaunsa}
+      POSTGRES_PASSWORD: ${KAUNSA_PG_PASSWORD:-kaunsa_dev_change_me}
+    ports:
+      - "${KAUNSA_PG_PORT:-5433}:5432"
+    volumes:
+      - kaunsa_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KAUNSA_PG_USER:-kaunsa} -d ${KAUNSA_PG_NAME:-kaunsa_mirror}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  kaunsa_pg_data:

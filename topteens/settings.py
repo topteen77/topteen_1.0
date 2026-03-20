@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'careers',
     'topteenadmin',
     'colleges',
+    'kaunsa_mirror',
     'courses',
     'entrance_exams',
     'blog',
@@ -279,6 +280,33 @@ DATABASES = {
         },
     }
 }
+
+# Kaunsa College API mirror (PostgreSQL) — optional; enable for India/international sync cache.
+# Local Docker: docker compose -f docker/docker-compose.kaunsa-postgres.yml up -d
+# Env template: docker/kaunsa-postgres.env.example
+KAUNSA_PG_ENABLED = config('KAUNSA_PG_ENABLED', default=False, cast=bool)
+DATABASE_ROUTERS = []
+if KAUNSA_PG_ENABLED:
+    DATABASES['kaunsa_mirror'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('KAUNSA_PG_NAME', default='kaunsa_mirror'),
+        'USER': config('KAUNSA_PG_USER', default='kaunsa'),
+        'PASSWORD': config('KAUNSA_PG_PASSWORD', default=''),
+        'HOST': config('KAUNSA_PG_HOST', default='127.0.0.1'),
+        'PORT': config('KAUNSA_PG_PORT', default='5432'),
+        'CONN_MAX_AGE': config('KAUNSA_PG_CONN_MAX_AGE', default=60, cast=int),
+        'OPTIONS': {},
+    }
+    _kaunsa_ssl = config('KAUNSA_PG_SSLMODE', default='').strip()
+    if _kaunsa_ssl:
+        DATABASES['kaunsa_mirror']['OPTIONS']['sslmode'] = _kaunsa_ssl
+    DATABASE_ROUTERS = ['kaunsa_mirror.routers.KaunsaMirrorRouter']
+
+KAUNSA_INDIA_API_BASE_URL = config('KAUNSA_INDIA_API_BASE_URL', default='').rstrip('/')
+KAUNSA_INTL_API_BASE_URL = config('KAUNSA_INTL_API_BASE_URL', default='').rstrip('/')
+KAUNSA_INDIA_COUNTRY_ID = config('KAUNSA_INDIA_COUNTRY_ID', default='').strip()
+KAUNSA_INTL_COUNTRY_ID = config('KAUNSA_INTL_COUNTRY_ID', default='').strip()
+KAUNSA_REQUEST_TIMEOUT = config('KAUNSA_REQUEST_TIMEOUT', default=30, cast=int)
 
 # DATABASES = {
 #     'default': {
