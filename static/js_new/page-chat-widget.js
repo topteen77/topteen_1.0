@@ -32,7 +32,7 @@
    * CONFIG
    * ============================================================ */
   const CFG = Object.assign({
-    wsBase      : 'ws://careerbot.canamacademy.com',
+    wsBase      : 'wss://careerbot.canamacademy.com',
     botName     : 'Page Assistant',
     maxPageChars: 15000,
   }, global.PageChatConfig || {});
