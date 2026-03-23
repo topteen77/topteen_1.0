@@ -953,6 +953,32 @@ class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
                     })
             sections.sort(key=lambda s: (0 if (s.get("section_id") == "overview" or (s.get("title") or "").lower() == "overview") else 1, (s.get("title") or "")))
             toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
+            # If admin content_json buckets content but real H2s remain inside Overview, prefer H2-based split from content_html.
+            try:
+                from bs4 import BeautifulSoup
+                overview = next(
+                    (
+                        s
+                        for s in sections
+                        if s.get("section_id") == "overview" or (s.get("title") or "").strip().lower() == "overview"
+                    ),
+                    None,
+                )
+                overview_h2_count = 0
+                if overview and (overview.get("content_html") or "").strip():
+                    overview_h2_count = len(
+                        BeautifulSoup(overview.get("content_html") or "", "html.parser").find_all("h2")
+                    )
+                content_html_h2_count = (
+                    len(BeautifulSoup(exam.content_html or "", "html.parser").find_all("h2"))
+                    if (exam.content_html or "").strip()
+                    else 0
+                )
+                if content_html_h2_count >= 2 and overview_h2_count >= 1:
+                    sections = []
+                    toc = []
+            except Exception:
+                pass
         if not sections:
             section_objs = list(exam.sections.order_by("order", "section_id"))
             sections = [
