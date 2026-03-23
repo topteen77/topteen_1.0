@@ -56,6 +56,32 @@
     document.head.appendChild(link);
   }
 
+  /** Resolve welcome mascot image next to this script (…/js_new/ → …/images_new/general/). */
+  function getWelcomeIconSrc() {
+    let src = '/static/images_new/general/ai-ant-animation.gif';
+    const scripts = document.querySelectorAll('script[src]');
+    for (const s of scripts) {
+      if (s.src && s.src.includes('chatbot-widget.js')) {
+        src = s.src.replace(/chatbot-widget\.js(\?.*)?$/, '../images_new/general/ai-ant-animation.gif');
+        break;
+      }
+    }
+    return src;
+  }
+
+  /** Header avatar image (…/js_new/ → …/images_new/general/). */
+  function getHdrAvatarSrc() {
+    let src = '/static/images_new/general/topteen-aibot.svg';
+    const scripts = document.querySelectorAll('script[src]');
+    for (const s of scripts) {
+      if (s.src && s.src.includes('chatbot-widget.js')) {
+        src = s.src.replace(/chatbot-widget\.js(\?.*)?$/, '../images_new/general/topteen-aibot.svg');
+        break;
+      }
+    }
+    return src;
+  }
+
   /* ============================================================
    * SVG ICONS  (inline — zero external dependency)
    * ============================================================ */
@@ -63,7 +89,6 @@
     chat    : `<svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>`,
     close   : `<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
     newchat : `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`,
-    bot     : `<svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.38-1 1.72V7h1a7 7 0 017 7H3a7 7 0 017-7h1V5.72A2 2 0 0110 4a2 2 0 012-2zM7.5 13a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm9 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM3 21v-1a3 3 0 013-3h12a3 3 0 013 3v1H3z"/></svg>`,
     send    : `<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`,
     fullscr : `<svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`,
     restore : `<svg viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>`,
@@ -343,6 +368,7 @@
     /* ── build DOM ──────────────────────────────────────────── */
     _buildDOM() {
       this._root = el('div', { id: 'cb-root' });
+      this._backdrop = el('div', { id: 'cb-backdrop', className: 'cb-backdrop-hidden', 'aria-hidden': 'true' });
 
       /* ---- FAB ---- */
       const fabWrap    = el('div', { id: 'cb-fab-wrap' });
@@ -360,8 +386,15 @@
       const hdr     = el('div', { id: 'cb-header' });
 
       // Avatar
-      const av  = el('div', { id: 'cb-hdr-avatar' });
-      av.innerHTML = IC.bot;
+      const av = el('div', { id: 'cb-hdr-avatar' });
+      av.appendChild(el('img', {
+        src         : getHdrAvatarSrc(),
+        alt         : '',
+        width       : 28,
+        height      : 28,
+        decoding    : 'async',
+        draggable   : false,
+      }));
 
       // Info block
       const info       = el('div', { id: 'cb-hdr-info' });
@@ -473,6 +506,7 @@
       this._win.appendChild(inputArea);
 
       this._root.appendChild(fabWrap);
+      this._root.appendChild(this._backdrop);
       this._root.appendChild(this._win);
       document.body.appendChild(this._root);
     }
@@ -501,6 +535,7 @@
       this._isOpen = !this._isOpen;
       this._win.classList.toggle('cb-hide', !this._isOpen);
       this._fab.innerHTML = this._isOpen ? IC.close : IC.chat;
+      this._syncBackdrop();
       if (this._isOpen) {
         this._clearUnread();
         setTimeout(() => this._input.focus(), 350);
@@ -514,6 +549,13 @@
       this._fsBtn.innerHTML = this._isFullscreen ? IC.restore : IC.fullscr;
       this._fsBtn.classList.toggle('cb-fs-active', this._isFullscreen);
       this._fsBtn.title = this._isFullscreen ? 'Restore window' : 'Expand / Fullscreen';
+      this._syncBackdrop();
+    }
+
+    _syncBackdrop() {
+      if (!this._backdrop) return;
+      const showBackdrop = this._isOpen && this._isFullscreen;
+      this._backdrop.classList.toggle('cb-backdrop-hidden', !showBackdrop);
     }
 
     /* ── dev panel collapse / expand ────────────────────────── */
@@ -545,7 +587,7 @@
       this._msgArea.innerHTML = '';
       const w = el('div', { className: 'cb-welcome' });
       w.innerHTML = `
-        <div class="cb-welcome-icon">🤖</div>
+        <div class="cb-welcome-icon"><img src="${getWelcomeIconSrc()}" alt="" width="60" height="60" decoding="async" /></div>
         <h3>Hello! I'm ${CFG.botName}</h3>
         <p>Ask me anything — I'll help with accurate, up‑to‑date answers.</p>
         ${CFG.devMode

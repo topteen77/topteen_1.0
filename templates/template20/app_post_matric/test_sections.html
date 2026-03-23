@@ -266,6 +266,20 @@
         background: #534a9a;
     }
 
+    .instruction-content p {
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.instruction-content ol li {
+	font-size: 14px;
+}
+
+.instruction-content table {
+	font-size: 14px;
+	line-height: 17px;
+}
+
     @media (max-width: 768px) {
         .test-sections-page main {
             padding: 20px 10px;
@@ -302,6 +316,8 @@
             max-height: 400px;
         }
     }
+
+    .logged-in.test-sections-page #pc-root,   .logged-in.test-sections-page #cb-root {display: none;}
 </style>
 {% endblock %}
 

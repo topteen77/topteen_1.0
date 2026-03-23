@@ -59,6 +59,18 @@
     document.head.appendChild(link);
   }
 
+  function getFabIconSrc() {
+    let src = '/static/images_new/general/topteen-aibot.svg';
+    const scripts = document.querySelectorAll('script[src]');
+    for (const s of scripts) {
+      if (s.src && s.src.includes('page-chat-widget.js')) {
+        src = s.src.replace(/page-chat-widget\.js(\?.*)?$/, '../images_new/general/topteen-aibot.svg');
+        break;
+      }
+    }
+    return src;
+  }
+
   /* ============================================================
    * MARKED.JS LOADER
    * Reuses the instance already loaded by chatbot-widget.js if present.
@@ -195,10 +207,12 @@
     /* ── Build DOM ─────────────────────────────────────────── */
     _buildDOM() {
       this._root = el('div', { id: 'pc-root' });
+      this._backdrop = el('div', { id: 'pc-backdrop', className: 'pc-hide', 'aria-hidden': 'true' });
 
       /* ---- FAB (pill button, bottom-left) ---- */
       this._fab = el('button', { id: 'pc-fab', 'aria-label': 'Chat about this page' });
-      this._fab.innerHTML = IC.page + '<span id="pc-fab-label">Chat this page</span>';
+      this._fab.innerHTML = `<img src="${getFabIconSrc()}" alt="" width="22" height="22" decoding="async" />` +
+        '<span id="pc-fab-label">Chat this page</span>';
       this._badge = el('span', { id: 'pc-badge', className: 'pc-hide' }, '0');
       this._fab.appendChild(this._badge);
 
@@ -208,7 +222,7 @@
       /* ---- Header ---- */
       const hdr       = el('div', { id: 'pc-hdr' });
       const hdrAvatar = el('div', { id: 'pc-hdr-avatar' });
-      hdrAvatar.innerHTML = IC.page;
+      hdrAvatar.innerHTML = `<img src="${getFabIconSrc()}" alt="" width="22" height="22" decoding="async" />`;
 
       const hdrInfo = el('div', { id: 'pc-hdr-info' });
       const hdrName = el('div', { id: 'pc-hdr-name', textContent: CFG.botName });
@@ -283,6 +297,7 @@
 
       /* ---- Assemble root ---- */
       this._root.appendChild(this._fab);
+      this._root.appendChild(this._backdrop);
       this._root.appendChild(this._win);
       document.body.appendChild(this._root);
     }
@@ -304,6 +319,7 @@
     _toggleWindow() {
       this._isOpen = !this._isOpen;
       this._win.classList.toggle('pc-hide', !this._isOpen);
+      this._syncBackdrop();
 
       if (this._isOpen) {
         this._clearUnread();
@@ -318,6 +334,13 @@
       this._isFullscreen = !this._isFullscreen;
       this._win.classList.toggle('pc-fullscreen', this._isFullscreen);
       this._fsBtn.innerHTML = this._isFullscreen ? IC.restore : IC.fullscr;
+      this._syncBackdrop();
+    }
+
+    _syncBackdrop() {
+      if (!this._backdrop) return;
+      const showBackdrop = this._isOpen && this._isFullscreen;
+      this._backdrop.classList.toggle('pc-hide', !showBackdrop);
     }
 
     /* ── Init: scrape → WS connect → send init ─────────────── */

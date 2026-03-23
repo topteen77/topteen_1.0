@@ -85,6 +85,20 @@
   color: var(--cb-text-primary);
 }
 
+#cb-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 2147483644;
+  opacity: 1;
+  transition: opacity .2s ease;
+}
+
+#cb-backdrop.cb-backdrop-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 
 /* ============================================================
    3. FAB TOGGLE BUTTON
@@ -152,7 +166,7 @@
 ============================================================ */
 #cb-window {
   position: fixed;
-  bottom: 104px;
+  bottom: 108px;
   right: 28px;
   width: var(--cb-window-w);
   height: var(--cb-window-h);
@@ -174,7 +188,10 @@
               right    .3s ease,
               bottom   .3s ease,
               border-radius .3s ease;
+
+              height: clamp(400px, 70vh, 700px);
 }
+
 
 #cb-window.cb-hide {
   transform: scale(.65) translateY(12px);
@@ -212,10 +229,12 @@
   box-shadow: 0 2px 10px rgba(var(--cb-primary-rgb), .35);
 }
 
-#cb-hdr-avatar svg {
-  width: 20px;
-  height: 20px;
-  fill: white;
+#cb-hdr-avatar img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
 }
 
 /* Name + title block */
@@ -441,9 +460,16 @@
 }
 
 .cb-welcome-icon {
-  font-size: 48px;
   margin-bottom: 14px;
-  line-height: 1;
+  line-height: 0;
+}
+
+.cb-welcome-icon img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .cb-welcome h3 {

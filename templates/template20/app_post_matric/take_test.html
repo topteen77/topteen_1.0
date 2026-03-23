@@ -223,6 +223,17 @@
     align-items: center;
     gap: 0.5rem;
   }
+  @media (max-width: 767px) {
+    .test-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      border-radius: 12px 12px 0 0;
+      margin-top: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.14);
+    }
+  }
   .btn-submit {
     background: #3f37c9;
     color: white;
@@ -408,7 +419,7 @@
   .intro-content-col {
     flex: 0 0 66.666667%;
     max-width: 66.666667%;
-    padding: 40px;
+    padding: 14px;
   }
   .intro-content-col h3 {
     font-size: 1.75rem;
@@ -419,21 +430,22 @@
     padding-bottom: 8px;
   }
   .intro-content-col h4 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 20px;
+    font-size: 21px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
   }
   .intro-content-col h5 {
     color: #3f37c9;
-    font-weight: 600;
-    margin-top: 20px;
-    margin-bottom: 12px;
+  font-weight: 800;
+  margin-top: 20px;
+  margin-bottom: 12px;
   }
   .intro-content-col p {
     color: #666;
-    line-height: 1.6;
-    margin-bottom: 16px;
+  line-height: 22px;
+  margin-bottom: 16px;
+  font-size: 14px;
   }
   .intro-content-col ol {
     padding-left: 24px;
@@ -442,12 +454,14 @@
   }
   .intro-content-col ol li {
     margin-bottom: 12px;
+  line-height: 21px;
+  font-size: 14px;
   }
   .intro-content-col ol li strong {
     color: #333;
   }
   .intro-content-col table {
-    width: 100%;
+    width: 97%;
     border: 1px solid #e9ecef;
     border-collapse: collapse;
     margin: 16px 0;
@@ -457,7 +471,7 @@
   }
   .intro-content-col table th,
   .intro-content-col table td {
-    padding: 12px;
+    padding: 5px;
     text-align: left;
     border: 1px solid #e9ecef;
   }
@@ -512,6 +526,25 @@
     height: 3rem;
     border-width: 0.3em;
   }
+
+  .logged-in.take-test-page #pc-root,   .logged-in.take-test-page #cb-root {display: none;}
+
+
+  @media (max-width: 767px) {
+
+    .btn-submit {
+  background: #3f37c9;
+  color: white;
+  padding: 12px 32px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 13px;
+}
+  }
+
 </style>
 {# Test Features CSS - instruction (internet) + test (answer quality) #}
 {% with mode='css', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{% endwith %}
