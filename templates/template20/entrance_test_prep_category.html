@@ -163,7 +163,7 @@
         <div class="col-lg-6 col-md-12 order-md-2 order-1">
           <div class="right-banner d-md-flex justify-content-center align-items-center right-banner-image">
             {% if category.image %}<img class="img-fluid" src="{{ category.image.url }}" alt="{{ category.name }}" />
-            {% else %}<img class="img-fluid" src="{{ static('images_new/general/ai-ant-animation.gif') }}" alt="{{ category.name }}" />{% endif %}
+            {% else %}<img class="img-fluid" src="{{ static('images_new/entrance-exam/school-adm-test.png') }}" alt="{{ category.name }}" />{% endif %}
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@
                   <div class="exam-card-img">
                     {% if exam.image %}<img src="{{ exam.image.url }}" alt="{{ exam.name }}" />
                     {% elif category and category.image %}<img src="{{ category.image.url }}" alt="{{ exam.name }}" />
-                    {% else %}<img src="{{ static('images_new/general/ai-ant-animation.gif') }}" alt="{{ exam.name }}" />{% endif %}
+                    {% else %}<img src="{{ static('images_new/entrance-exam/school-adm-test.png') }}" alt="{{ exam.name }}" />{% endif %}
                   </div>
                   <div class="exam-card-body">
                     <h3 class="ps-1 pe-5">{{ exam.name }}</h3>
