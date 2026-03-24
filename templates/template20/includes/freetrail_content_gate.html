@@ -5,22 +5,51 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!wrap) return;
   var sec = {{ freetrail_seconds|default(5) }};
   var backUrl = "{{ back_url|escapejs }}";
+  var delayMs = (sec <= 0 ? 0 : sec) * 1000;
+  var popupCount = 0;
+  var redirectAfter = 3;
+  var popupTimer = null;
+  var guardKey = '__freetrailClosePatched';
   var origClose = window.closeLoginRequiredPopup;
-  if (typeof origClose === 'function') {
-    window.closeLoginRequiredPopup = function() {
-      origClose();
-      if (window.freetrailExpired && (typeof window.IS_AUTHENTICATED === 'undefined' || !window.IS_AUTHENTICATED)) {
-        window.location.href = document.referrer || backUrl || '/';
-      }
-    };
+
+  function shouldGate() {
+    return (typeof window.IS_AUTHENTICATED === 'undefined' || !window.IS_AUTHENTICATED);
   }
-  setTimeout(function() {
+
+  function scheduleNextPopup() {
+    if (!shouldGate()) return;
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(showGatePopup, delayMs);
+  }
+
+  function showGatePopup() {
+    if (!shouldGate()) return;
     wrap.style.display = 'none';
     window.freetrailExpired = true;
     window.studentLoginNextUrl = window.location.href;
+    popupCount += 1;
     if (typeof window.showLoginRequiredPopup === 'function') {
       window.showLoginRequiredPopup(window.location.href);
     }
-  }, (sec <= 0 ? 0 : sec) * 1000);
+  }
+
+  if (typeof origClose === 'function' && !window[guardKey]) {
+    window[guardKey] = true;
+    window.closeLoginRequiredPopup = function() {
+      origClose();
+      if (!shouldGate() || !window.freetrailExpired) return;
+      if (popupCount >= redirectAfter) {
+        window.location.href = document.referrer || backUrl || '/';
+        return;
+      }
+      // Keep page visible between popup attempts.
+      wrap.style.display = '';
+      window.freetrailExpired = false;
+      scheduleNextPopup();
+    };
+  }
+
+  // First popup after freemium time; subsequent popups are scheduled after each close.
+  scheduleNextPopup();
 });
 </script>
