@@ -20,8 +20,35 @@ from django.conf import settings
 from django.conf.urls import handler404
 from users import views as users_views
 from core import views as core_views
+from core.seo_views import robots_txt, sitemap_xml
+from core.sitemaps import (
+    BlogSitemap,
+    CareerSitemap,
+    CollegeSitemap,
+    CourseSitemap,
+    EntranceExamSitemap,
+    EntranceTestPrepExamSitemap,
+    GeneratedPageSitemap,
+    StaticViewSitemap,
+    VocationalCourseSitemap,
+)
+from django.views.generic import TemplateView
+
+sitemaps = {
+    "static": StaticViewSitemap,
+    "blogs": BlogSitemap,
+    "careers": CareerSitemap,
+    "colleges": CollegeSitemap,
+    "courses": CourseSitemap,
+    "entrance_exams": EntranceExamSitemap,
+    "entrance_test_prep_exams": EntranceTestPrepExamSitemap,
+    "vocational_courses": VocationalCourseSitemap,
+    "generated_pages": GeneratedPageSitemap,
+}
 
 urlpatterns = [
+    path("sitemap.xml", sitemap_xml, {"sitemaps": sitemaps}, name="sitemap"),
+    path("robots.txt", robots_txt, name="robots_txt"),
     # S3 media proxy: serve S3 files through Django when S3_MEDIA_ACCESS_MODE=proxy (only your site can show media)
     path('media/s3/<path:path>', core_views.s3_media_proxy, name='s3_media_proxy'),
     path('admin/', admin.site.urls),
@@ -92,8 +119,6 @@ if not getattr(settings, 'S3_MEDIA_ACCESS_MODE', None) == 'proxy':
 #         ]
 #     except ImportError:
 #         pass
-from django.urls import path, include, re_path
-from django.views.generic import TemplateView
 
 # Catch-all pattern for unmatched URLs - uses template20/404.html
 # Exclude all known URL prefixes to avoid intercepting valid routes
