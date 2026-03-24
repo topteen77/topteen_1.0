@@ -77,6 +77,7 @@
             TestPrep <i class='bx bx-chevron-down fs-20 d-md-none d-block'></i>
           </span>
           <div class="dropdown-content tabs-auto-fit exam-menu">
+            <a href="{{ url('core:entrance_test_prep') }}">Entrance Exam</a>
             <a href="https://www.testprepgpt.ai/" target="_blank" rel="noopener noreferrer">IELTS</a>
             <a href="https://www.testprepgpt.ai/pte-voucher" target="_blank" rel="noopener noreferrer">PTE</a>
             <a href="https://www.testprepgpt.ai/toefl-voucher" target="_blank" rel="noopener noreferrer">TOEFL</a>
@@ -185,7 +186,7 @@
 
   <div class="search-container">
     <div class="search-input-wrapper">
-      <input type="text" class="search-input custom-input" placeholder="Search careers, professions, videos, blogs, courses, colleges..." id="search-input" style="color: #000;" value="" autocomplete="off" aria-label="Search">
+      <input type="text" class="search-input custom-input" placeholder="Search careers, professions, videos, blogs, courses, colleges, entrance exams..." id="search-input" style="color: #000;" value="" autocomplete="off" aria-label="Search">
       <button class="search-btn"><i class='bx bx-search'></i></button>
       <button class="search-close"><i class='bx bx-x'></i></button>
     </div>
@@ -226,6 +227,12 @@
         <label class="search-filter-label">
           <input type="checkbox" class="search-filter-checkbox" value="courses" checked>
           <span>Courses</span>
+        </label>
+      </div>
+      <div class="search-filter-item">
+        <label class="search-filter-label">
+          <input type="checkbox" class="search-filter-checkbox" value="entranceExams" checked>
+          <span>Entrance Exams</span>
         </label>
       </div>
     </div>

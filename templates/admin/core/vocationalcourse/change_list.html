@@ -11,7 +11,7 @@
 {% block content %}
 <div class="module" style="margin-bottom: 10px;">
   <p class="help" style="margin: 0 0 8px 0;">
-    <strong>How to validate:</strong> Click <strong>Validate accordion</strong> above to check each course for blank sections (e.g. no content between headings, or only empty/&amp;nbsp; paragraphs). Results appear in the <strong>Accordion</strong> column; hover the warning icon for details. Use the <strong>Accordion</strong> filter in the sidebar to show only courses with errors.
+    <strong>How to validate:</strong> Click <strong>Validate accordion</strong> above to check each course for blank sections (e.g. no content between headings, or only empty/&amp;nbsp; paragraphs). Results are <strong>saved in the database</strong> and shown in the <strong>Accordion</strong> column (hover the warning icon for details). Use the sidebar <strong>Accordion</strong> filter (errors / OK / not yet run). Open the list with <code>?accordion=1</code> only after running validate once (or icons stay — until then).
   </p>
 </div>
 {{ block.super }}
@@ -36,8 +36,8 @@
             span.innerHTML = '<span style="color: #ba2121; cursor: help;">&#9888;</span>';
             span.title = title;
           } else {
-            span.innerHTML = '—';
-            span.title = title;
+            span.innerHTML = 'OK';
+            span.title = 'OK (saved)';
           }
         });
       })

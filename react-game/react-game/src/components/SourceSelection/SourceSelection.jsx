@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import './SourceSelection.css';
+import iconAllCareer from '../../assets/images/all-career.png';
+import iconSelectTick from '../../assets/images/pruple-select-tick.svg';
+import swordImage from '../../assets/sword-image.png';
+import starImage from '../../assets/star.png';
+import bookImage from '../../assets/book.png';
+import pinImage from '../../assets/pin.png';
 
 const SOURCE_OPTIONS = [
-  { id: 'past_battles', label: 'Past battles', short: 'Your previous fights', icon: '⚔️' },
-  { id: 'shown_interest', label: 'Favourites', short: 'Streams you liked (winners)', icon: '⭐' },
-  { id: 'psychometric', label: 'My test results', short: 'Careers from your report', icon: '📋' },
-  { id: 'shortlist', label: 'Shortlist', short: 'Careers you saved', icon: '📌' },
-  { id: 'all_clusters', label: 'All careers', short: 'Pick from every cluster', icon: '🌐' },
+  { id: 'past_battles', label: 'Past battles', short: 'Your previous fights', icon: '⚔️', image: swordImage },
+  { id: 'shown_interest', label: 'Favourites', short: 'Streams you liked (winners)', icon: '⭐', image: starImage },
+  { id: 'psychometric', label: 'My test results', short: 'Careers from your report', icon: '📋', image: bookImage },
+  { id: 'shortlist', label: 'Shortlist', short: 'Careers you saved', icon: '📌', image: pinImage },
+  { id: 'all_clusters', label: 'All careers', short: 'Pick from every cluster', icon: '🌐', image: iconAllCareer },
 ];
 
 const SourceSelection = ({ onContinue, onSkipToClusters }) => {
@@ -89,7 +95,7 @@ const SourceSelection = ({ onContinue, onSkipToClusters }) => {
     <div className="source-selection-container" role="region" aria-labelledby="source-selection-title">
       <div className="source-selection-header">
         <h1 id="source-selection-title" className="source-selection-title">
-          Choose your arena
+          <span className="text-purple">Choose </span> your Arena
         </h1>
         <p className="source-selection-subtitle" id="source-selection-description">
           Where should we get your 2 fighters from? Pick one or mix several.
@@ -114,11 +120,31 @@ const SourceSelection = ({ onContinue, onSkipToClusters }) => {
               aria-pressed={isSelected}
               aria-label={`${opt.label}${isSelected ? ' - Selected' : ''}`}
             >
-              <span className="source-option-icon" aria-hidden="true">{opt.icon}</span>
-              <span className="source-option-label">{opt.label}</span>
-              <span className="source-option-short">{opt.short}</span>
-              {count > 0 && <span className="source-option-count">{count}</span>}
-              {isSelected && <span className="source-option-check" aria-hidden="true">✓</span>}
+
+
+<div className='top-section'> 
+              <span className="source-option-icon" aria-hidden="true">
+              {opt.image ? (
+                <img src={opt.image} alt="" className="source-option-icon-img" />
+              ) : (
+                opt.icon
+              )}
+            </span>
+
+            <div className="source-option-card-content"> <div className="source-option-label">{opt.label}</div>
+            <span className="source-option-short">{opt.short}</span> </div>
+            </div>
+
+            <div className='bottom-section'>  {count > 0 && <span className="source-option-count">{count}</span>} </div>
+                        
+             
+              {isSelected && (
+                <span className="source-option-check" aria-hidden="true">
+                  <img src={iconSelectTick} alt="" className="source-option-check-img" />
+                </span>
+              )}
+
+
             </button>
           );
         })}
@@ -138,7 +164,7 @@ const SourceSelection = ({ onContinue, onSkipToClusters }) => {
         )}
         <button
           type="button"
-          className={`continue-button ${selected.size > 0 && !loading ? 'continue-button-active' : 'continue-button-disabled'}`}
+          className={`continue-button  custom-button purple-button ${selected.size > 0 && !loading ? 'continue-button-active' : 'continue-button-disabled'}`}
           onClick={handleContinue}
           disabled={selected.size === 0 || loading}
           aria-label={selected.size > 0 ? 'Continue to pick 2 streams' : 'Pick at least one option'}

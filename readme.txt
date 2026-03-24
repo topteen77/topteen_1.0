@@ -221,7 +221,63 @@ python manage.py collectstatic --noinput
 # Worker tuning: GUNICORN_WORKERS, GUNICORN_THREADS, CELERY_CONCURRENCY, DB_CONN_MAX_AGE in .env (see docker/.env.example).
 
 
-python3 scripts/convert_docx_to_html.py
+--- Entrance Exam (Test Prep) commands ---
+# Data lives under core: EntranceTestPrepCategory (levels: After 10 / After 12 / After Graduation), EntranceTestPrepExam, EntranceTestPrepExamSection.
+# Workflow: (1) Convert .docx → HTML .txt, (2) Import .txt into DB, (3) Optionally upload category images.
+
+# 1. Convert .docx to HTML (.txt) – preserves folder structure (After 10/..., After 12/..., After Graduation/...)
+python manage.py convert_entrance_test_prep_docx
+python manage.py convert_entrance_test_prep_docx --source /path/to/docx_folder --output entrance_test_prep_html
+python manage.py convert_entrance_test_prep_docx --dry-run
+
+# 2. Import from converted HTML folder – creates/updates categories and exams (no duplicates; re-runs safe)
+python manage.py import_entrance_test_prep
+python manage.py import_entrance_test_prep --source entrance_test_prep_html
+python manage.py import_entrance_test_prep --source entrance_test_prep_html --dry-run
+python manage.py import_entrance_test_prep --replace
+# Single record: folder + file name
+python manage.py import_entrance_test_prep "After 12/Engineering" "JEE Main.txt"
+# Single file by path (relative to --source)
+python manage.py import_entrance_test_prep --file "After 10/Defence Related/Indian Army Soldier.txt"
+# If DB has no content_json column yet (e.g. production pre-migration): updates work; new exam creation will fail until you run: python manage.py migrate core
+
+# 3. Upload category images – match image filename stem to category slug
+python manage.py upload_entrance_test_prep_images
+python manage.py upload_entrance_test_prep_images --images-dir /path/to/entrance-exam/images --dry-run
+python manage.py upload_entrance_test_prep_images --overwrite
+
+# 4. Test and fix exam categories – exams must be under a leaf category (not a level)
+python manage.py test_fix_exam_categories
+python manage.py test_fix_exam_categories --fix
+python manage.py test_fix_exam_categories --fix --dry-run
+python manage.py test_fix_exam_categories --fix --source entrance_test_prep_html
+python manage.py test_fix_exam_categories --fix --source entrance_test_prep_html --dry-run
+
+# 5. List folder structure (Level / Category / exams) for manual check – .docx or .txt
+python manage.py list_entrance_test_prep_folder
+python manage.py list_entrance_test_prep_folder --source "/path/to/Entrance test prep 2026"
+python manage.py list_entrance_test_prep_folder -o entrance_test_prep_folder_list.txt --quiet
+
+# 6. Hard delete all entrance test prep data (sections, exams, categories) – permanent
+python manage.py hard_delete_entrance_test_prep
+python manage.py hard_delete_entrance_test_prep --dry-run   # show counts only
+# Admin: Categories list has "Hard delete" link per row and action "Hard delete selected categories (permanent)".
+#        Exams list has "Hard delete" link per row and action "Hard delete selected exams (permanent)".
+
+--- DOCX to HTML (scripts/convert_docx_to_html.py) ---
+# Converts .docx to HTML with proper H1/H2/H3 from Word "Heading 1/2/3" styles (and outline level). Output: .txt files with HTML body.
+
+# Single file: first arg = path to one .docx (output: <output_dir>/<stem>.txt)
+python scripts/convert_docx_to_html.py "JEE Main.docx"
+python scripts/convert_docx_to_html.py "JEE Main.docx" ./my_output
+
+# Directory: first arg = folder (converts all .docx under it, keeps structure)
+python scripts/convert_docx_to_html.py "/path/to/source_folder" career_html_output
+
+# Debug H1/H2/H3 detection (prints to console: outline level, w:pStyle, style.name, and [NOT HEADING] when style looks like heading but did not match)
+DEBUG_HEADINGS=1 python scripts/convert_docx_to_html.py "JEE Main.docx"
+DEBUG_HEADINGS=1 python scripts/convert_docx_to_html.py "/path/to/source" career_html_output
+
 python manage.py upload_careers_from_txt --input-dir career_html_output
 python manage.py upload_careers_from_txt --input-dir career_html_output --dry-run
 

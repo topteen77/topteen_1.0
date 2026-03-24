@@ -6,9 +6,6 @@
 <!-- Content Tools - Add after the form fields -->
 <div class="content-tools-wrapper" style="margin: 20px 0; clear: both; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
     <div class="content-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button type="button" id="convert-to-h2-btn" class="button" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-            Convert Headings to H2
-        </button>
         <button type="button" id="generate-accordion-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
             Generate Accordion from Content
         </button>
@@ -156,6 +153,35 @@
     padding: 20px 28px 28px;
     background: #fff;
 }
+
+/* Admin preview: collapsed panels hidden (Bootstrap collapse CSS often not loaded in admin) */
+#accordion-preview-container .accordion-collapse.collapse:not(.show) {
+    display: none !important;
+}
+#accordion-preview-container .accordion-collapse.collapse.show {
+    display: block;
+}
+#accordion-preview-container .admin-acc-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin-right: 4px;
+    border: 2px solid #5046e5;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    color: #5046e5;
+    background: #f4f3ff;
+    user-select: none;
+}
+#accordion-preview-container .accordion-item.accordion-preview-error {
+    border-left: 4px solid #ba2121;
+    background: #fff8f8;
+}
 </style>
 
 <script>
@@ -163,6 +189,22 @@
     var contentTextarea = null;
     var accordionData = {};
     var jsonData = {};
+
+    function sectionHtmlIsEffectivelyBlank(html) {
+        if (!html || !String(html).trim()) return true;
+        var d = document.createElement('div');
+        try {
+            d.innerHTML = html;
+        } catch (e) {
+            return true;
+        }
+        var t = (d.textContent || d.innerText || '')
+            .replace(/\u00a0/g, ' ')
+            .replace(/[\u200b-\u200d\ufeff]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        return !t;
+    }
     
     // Fixed accordion headings as per requirements
     var FIXED_HEADINGS = [
@@ -265,6 +307,10 @@
                                 editor.on('change', function() {
                                     var content = editor.getData();
                                     contentTextarea.value = content;
+                                    clearTimeout(window.contentInputTimeout);
+                                    window.contentInputTimeout = setTimeout(function() {
+                                        generateAccordionFromContent();
+                                    }, 500);
                                 });
                                 
                                 editor.on('blur', function() {
@@ -417,11 +463,6 @@
     }
     
     function setupButtons() {
-        var convertH2Btn = document.getElementById('convert-to-h2-btn');
-        if (convertH2Btn) {
-            convertH2Btn.addEventListener('click', convertHeadingsToH2);
-        }
-        
         var generateBtn = document.getElementById('generate-accordion-btn');
         if (generateBtn) {
             generateBtn.addEventListener('click', generateAccordionFromContent);
@@ -448,92 +489,6 @@
                 document.getElementById('json-preview-modal').style.display = 'none';
             });
         }
-    }
-    
-    function convertHeadingsToH2() {
-        if (!contentTextarea) {
-            alert('Content field not found');
-            return;
-        }
-        
-        // Get content from CKEditor if available, otherwise from textarea
-        var html = '';
-        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
-            var editor = CKEDITOR.instances.id_content_html;
-            html = editor.getData() || contentTextarea.value || '';
-        } else {
-            html = contentTextarea.value || '';
-        }
-        
-        if (!html.trim()) {
-            alert('No content found to convert');
-            return;
-        }
-        
-        // Parse HTML
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Convert all headings (h1, h3-h6) to h2
-        var headings = tempDiv.querySelectorAll('h1, h3, h4, h5, h6');
-        var convertedCount = 0;
-        
-        headings.forEach(function(heading) {
-            var h2 = document.createElement('h2');
-            h2.innerHTML = heading.innerHTML;
-            h2.className = heading.className;
-            heading.parentNode.replaceChild(h2, heading);
-            convertedCount++;
-        });
-        
-        // Also convert strong tags in paragraphs that look like headings
-        var paragraphs = tempDiv.querySelectorAll('p');
-        paragraphs.forEach(function(p) {
-            var strong = p.querySelector('strong:first-child');
-            if (strong && p.children.length === 1) {
-                // If paragraph only contains strong tag, convert to h2
-                var strongText = strong.textContent.trim();
-                if (strongText.length < 100 && strongText.split(' ').length <= 10) {
-                    var h2 = document.createElement('h2');
-                    h2.textContent = strongText;
-                    p.parentNode.replaceChild(h2, p);
-                    convertedCount++;
-                }
-            } else if (strong && strong === p.firstElementChild) {
-                // If paragraph starts with strong, extract it as h2 and keep rest as content
-                var strongText = strong.textContent.trim();
-                if (strongText.length < 100 && strongText.split(' ').length <= 10) {
-                    var h2 = document.createElement('h2');
-                    h2.textContent = strongText;
-                    strong.remove();
-                    var remainingContent = p.innerHTML.trim();
-                    p.parentNode.insertBefore(h2, p);
-                    if (!remainingContent) {
-                        p.remove();
-                    }
-                    convertedCount++;
-                }
-            }
-        });
-        
-        // Get updated HTML
-        var updatedHtml = tempDiv.innerHTML;
-        
-        // Update content
-        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
-            var editor = CKEDITOR.instances.id_content_html;
-            editor.setData(updatedHtml);
-            contentTextarea.value = updatedHtml;
-        } else {
-            contentTextarea.value = updatedHtml;
-        }
-        
-        // Auto-generate accordion after conversion
-        setTimeout(function() {
-            generateAccordionFromContent();
-        }, 100);
-        
-        alert('Converted ' + convertedCount + ' heading(s) to H2. Accordion preview updated.');
     }
     
     function ensureContentJsonField() {
@@ -684,6 +639,11 @@
         
         return bestMatch;
     }
+
+    function headingKeyFromText(text) {
+        var key = (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        return key || 'section_' + Math.random().toString(36).slice(2, 8);
+    }
     
     // Helper function to check if a heading text is an exact match to a fixed heading
     function isExactFixedHeading(text) {
@@ -701,18 +661,9 @@
         current = current.nextSibling;
         
         while (current) {
-            // Stop at next heading (h1-h6) - but only if it matches a fixed heading exactly
+            // Stop at any next heading (h1-h6): each heading should become its own accordion
             if (current.nodeType === 1 && current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                var headingText = current.textContent.trim();
-                // Only stop if this is an exact match to a fixed heading
-                if (isExactFixedHeading(headingText)) {
-                    // This is a new section heading, stop here
-                    break;
-                }
-                // If it doesn't match a fixed heading, it's a sub-heading, include it
-                content += current.outerHTML || '';
-                current = current.nextSibling;
-                continue;
+                break;
             }
             
             // Handle element nodes
@@ -884,6 +835,12 @@
             
             // Match heading to section
             var matchedKey = matchHeadingToSection(headingText);
+            if (!matchedKey) {
+                matchedKey = headingKeyFromText(headingText);
+            }
+            if (!accordionData[matchedKey]) {
+                accordionData[matchedKey] = { title: headingText, html: '' };
+            }
             
             debugLog.push({
                 index: index,
@@ -892,26 +849,18 @@
                 tagName: heading.tagName
             });
             
-            if (matchedKey) {
-                // Extract content after this heading until next heading
-                var content = extractContentUntilNextHeading(heading);
-                
-                // If we found content, use it (don't overwrite if already has content)
-                if (content.trim()) {
-                    // If this section already has content, append with separator
-                    if (accordionData[matchedKey].html) {
-                        accordionData[matchedKey].html += '<hr style="margin: 20px 0;">' + content;
-                    } else {
-                        accordionData[matchedKey].html = content;
-                    }
-                    
-                    debugLog[debugLog.length - 1].contentLength = content.length;
+            // Extract content after this heading until next heading
+            var content = extractContentUntilNextHeading(heading);
+            if (content.trim()) {
+                if (accordionData[matchedKey].html) {
+                    accordionData[matchedKey].html += '<hr style="margin: 20px 0;">' + content;
                 } else {
-                    debugLog[debugLog.length - 1].contentLength = 0;
-                    debugLog[debugLog.length - 1].warning = 'No content extracted';
+                    accordionData[matchedKey].html = content;
                 }
+                debugLog[debugLog.length - 1].contentLength = content.length;
             } else {
-                debugLog[debugLog.length - 1].warning = 'No section match found';
+                debugLog[debugLog.length - 1].contentLength = 0;
+                debugLog[debugLog.length - 1].warning = 'No content extracted';
             }
         });
         
@@ -976,6 +925,48 @@
         };
         
         updateAccordionPreview();
+    }
+
+    function setAdminAccordionToggleIcon(btn, open) {
+        var ic = btn.querySelector('.admin-acc-toggle-icon');
+        if (ic) ic.textContent = open ? '\u2212' : '+';
+    }
+
+    function bindAdminAccordionPreviewToggles(accordion) {
+        function closeOthers(openTarget) {
+            accordion.querySelectorAll('.accordion-collapse').forEach(function(c) {
+                if (c === openTarget) return;
+                c.classList.remove('show');
+                var ob = accordion.querySelector('[data-acc-preview-target="#' + c.id + '"]');
+                if (ob) {
+                    ob.classList.add('collapsed');
+                    ob.setAttribute('aria-expanded', 'false');
+                    setAdminAccordionToggleIcon(ob, false);
+                }
+            });
+        }
+        accordion.querySelectorAll('.accordion-button').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var sel = btn.getAttribute('data-acc-preview-target');
+                if (!sel) return;
+                var target = document.querySelector(sel);
+                if (!target) return;
+                var isOpen = target.classList.contains('show');
+                closeOthers(target);
+                if (isOpen) {
+                    target.classList.remove('show');
+                    btn.classList.add('collapsed');
+                    btn.setAttribute('aria-expanded', 'false');
+                    setAdminAccordionToggleIcon(btn, false);
+                } else {
+                    target.classList.add('show');
+                    btn.classList.remove('collapsed');
+                    btn.setAttribute('aria-expanded', 'true');
+                    setAdminAccordionToggleIcon(btn, true);
+                }
+            });
+        });
     }
     
     function updateAccordionPreview() {
@@ -1112,48 +1103,58 @@
         accordion.className = 'accordion cat-accordion';
         accordion.id = 'vocationalAccordionPreview';
         
-        // Display accordions in fixed order (exclude Overview - it's shown in hero section, not in accordion)
+        // Display fixed headings first, then any additional dynamic H2 headings.
+        var orderedKeys = [];
+        FIXED_HEADINGS.forEach(function(heading) {
+            if (heading === 'Overview') return;
+            orderedKeys.push(heading.toLowerCase().replace(/[^a-z0-9]+/g, '_'));
+        });
+        Object.keys(sectionsToUse || {}).forEach(function(key) {
+            if (key === 'overview') return;
+            if (orderedKeys.indexOf(key) === -1) orderedKeys.push(key);
+        });
+
         var accordionIndex = 0;
-        FIXED_HEADINGS.forEach(function(heading, index) {
-            // Skip Overview section - it's displayed in hero section, not in accordion
-            if (heading === 'Overview') {
-                return;
-            }
-            
-            var key = heading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            var sectionData = sectionsToUse[key] || { title: heading, html: '' };
+        orderedKeys.forEach(function(key) {
+            var sectionData = sectionsToUse[key] || { title: key.replace(/_/g, ' '), html: '' };
+            var heading = sectionData.title || key.replace(/_/g, ' ');
             var sectionId = 'preview-accordion-' + accordionIndex;
             var iconClass = iconMap[heading] || 'bx bx-layer';
-            var isFirst = accordionIndex === 0;
-            var hasContent = sectionData.html && sectionData.html.trim().length > 0;
+            var hasContent = !sectionHtmlIsEffectivelyBlank(sectionData.html);
             
             // Create accordion item
             var accordionItem = document.createElement('div');
-            accordionItem.className = 'accordion-item';
+            accordionItem.className = 'accordion-item' + (hasContent ? '' : ' accordion-preview-error');
             
             // Create header
             var header = document.createElement('h2');
             header.className = 'accordion-header';
             header.id = sectionId + 'Heading';
             
-            // Create button
+            // Create button (all start collapsed; open via +/− click)
             var button = document.createElement('button');
             button.type = 'button';
-            button.className = 'accordion-button' + (isFirst && hasContent ? '' : ' collapsed');
-            button.setAttribute('data-bs-toggle', 'collapse');
-            button.setAttribute('data-bs-target', '#' + sectionId);
-            button.setAttribute('aria-expanded', (isFirst && hasContent ? 'true' : 'false'));
+            button.className = 'accordion-button collapsed';
+            button.setAttribute('data-acc-preview-target', '#' + sectionId);
+            button.setAttribute('aria-expanded', 'false');
             button.setAttribute('aria-controls', sectionId);
+
+            var toggleIcon = document.createElement('span');
+            toggleIcon.className = 'admin-acc-toggle-icon';
+            toggleIcon.setAttribute('aria-hidden', 'true');
+            toggleIcon.textContent = '+';
             
             // Add icon and text
             var buttonContent = document.createElement('span');
             buttonContent.style.display = 'flex';
             buttonContent.style.alignItems = 'center';
+            buttonContent.style.flex = '1';
             buttonContent.style.gap = '10px';
             buttonContent.innerHTML = '<i class="' + iconClass + '"></i><span>' + sectionData.title + '</span>';
             if (!hasContent) {
-                buttonContent.innerHTML += '<span style="margin-left: auto; color: #999; font-size: 12px;">(Empty)</span>';
+                buttonContent.innerHTML += '<span style="margin-left: auto; color: #ba2121; font-size: 12px; font-weight: 600;" title="No visible body text — this panel is hidden on the public site until you add content.">&#9888; Empty</span>';
             }
+            button.appendChild(toggleIcon);
             button.appendChild(buttonContent);
             
             header.appendChild(button);
@@ -1161,7 +1162,7 @@
             // Create collapse div
             var collapse = document.createElement('div');
             collapse.id = sectionId;
-            collapse.className = 'accordion-collapse collapse' + (isFirst && hasContent ? ' show' : '');
+            collapse.className = 'accordion-collapse collapse';
             collapse.setAttribute('aria-labelledby', header.id);
             collapse.setAttribute('data-bs-parent', '#vocationalAccordionPreview');
             
@@ -1171,7 +1172,7 @@
             if (hasContent) {
                 body.innerHTML = sectionData.html;
             } else {
-                body.innerHTML = '<p class="text-muted" style="font-style: italic;">No content available for this section.</p>';
+                body.innerHTML = '<p style="color: #ba2121; font-weight: 600; margin: 0;">&#9888; No body content — not shown on the public site until you add text here.</p>';
             }
             
             collapse.appendChild(body);
@@ -1189,62 +1190,8 @@
         // Clear and append wrapper
         container.innerHTML = '';
         container.appendChild(previewWrapper);
-        
-        // Initialize Bootstrap collapse functionality
-        // Add click handlers for accordion buttons
-        var accordionButtons = accordion.querySelectorAll('.accordion-button');
-        accordionButtons.forEach(function(button) {
-            button.addEventListener('click', function(e) {
-                var targetId = this.getAttribute('data-bs-target');
-                if (!targetId) return;
-                
-                var target = document.querySelector(targetId);
-                if (!target) return;
-                
-                // Toggle collapse manually if Bootstrap is not available
-                if (typeof bootstrap === 'undefined' && typeof $ === 'undefined') {
-                    e.preventDefault();
-                    var isExpanded = this.getAttribute('aria-expanded') === 'true';
-                    
-                    // Close all other accordions
-                    accordion.querySelectorAll('.accordion-collapse').forEach(function(collapse) {
-                        if (collapse !== target) {
-                            collapse.classList.remove('show');
-                            var otherButton = accordion.querySelector('[data-bs-target="#' + collapse.id + '"]');
-                            if (otherButton) {
-                                otherButton.classList.add('collapsed');
-                                otherButton.setAttribute('aria-expanded', 'false');
-                            }
-                        }
-                    });
-                    
-                    // Toggle current
-                    if (isExpanded) {
-                        target.classList.remove('show');
-                        this.classList.add('collapsed');
-                        this.setAttribute('aria-expanded', 'false');
-                    } else {
-                        target.classList.add('show');
-                        this.classList.remove('collapsed');
-                        this.setAttribute('aria-expanded', 'true');
-                    }
-                }
-            });
-        });
-        
-        // Initialize Bootstrap collapse if available
-        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-            // Bootstrap 5
-            var collapseElements = accordion.querySelectorAll('.collapse');
-            collapseElements.forEach(function(collapseEl) {
-                new bootstrap.Collapse(collapseEl, {
-                    toggle: false
-                });
-            });
-        } else if (typeof $ !== 'undefined' && $.fn.collapse) {
-            // Bootstrap 4/jQuery
-            $(accordion).find('.collapse').collapse();
-        }
+
+        bindAdminAccordionPreviewToggles(accordion);
     }
     
     function showJSONModal() {

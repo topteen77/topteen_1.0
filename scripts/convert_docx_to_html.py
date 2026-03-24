@@ -191,6 +191,140 @@ def get_list_level_and_type(paragraph) -> Tuple[int, str]:
 
 
 # ----------------------------------------------------------------------
+# Heading level: outline level (OOXML) first, then Word/LibreOffice style name or style_id
+# ----------------------------------------------------------------------
+W_NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+# Set DEBUG_HEADINGS=1 (or true/yes) to print H1/H2/H3 detection to console.
+# Example: DEBUG_HEADINGS=1 python scripts/convert_docx_to_html.py ...
+#          DEBUG_HEADINGS=1 python manage.py convert_entrance_test_prep_docx --source ... --output ...
+DEBUG_HEADINGS = os.environ.get("DEBUG_HEADINGS", "").strip().lower() in ("1", "true", "yes")
+
+
+def _outline_level_from_paragraph(paragraph) -> int:
+    """Return 1-6 from w:outlineLvl if set (0-based in OOXML: 0=first level), else 0."""
+    try:
+        p = paragraph._p
+        if p is None:
+            return 0
+        pPr = p.find(".//w:pPr", namespaces=W_NS)
+        if pPr is None:
+            return 0
+        outline = pPr.find(".//w:outlineLvl", namespaces=W_NS)
+        if outline is None:
+            return 0
+        val = outline.get(qn("w:val"))
+        if val is None:
+            return 0
+        n = int(val)
+        # outline 0 = first heading level (h1), 1 = h2, etc.
+        return max(1, min(6, n + 1))
+    except Exception:
+        return 0
+
+
+def _style_id_from_paragraph_xml(paragraph) -> str:
+    """Return the applied style id from w:pPr/w:pStyle @w:val (e.g. 'Heading2')."""
+    try:
+        p = paragraph._p
+        if p is None:
+            return ""
+        pPr = p.find(".//w:pPr", namespaces=W_NS)
+        if pPr is None:
+            return ""
+        pStyle = pPr.find(".//w:pStyle", namespaces=W_NS)
+        if pStyle is None:
+            return ""
+        return (pStyle.get(qn("w:val")) or "").strip()
+    except Exception:
+        return ""
+
+
+def heading_level_from_style(paragraph) -> int:
+    """Return 1-6 if paragraph is a heading (outline level or style), else 0."""
+    text_preview = (paragraph.text or "").strip()[:60].replace("\n", " ")
+    # 1) OOXML outline level (most reliable; used by Word and LibreOffice)
+    level = _outline_level_from_paragraph(paragraph)
+    if level >= 1:
+        if DEBUG_HEADINGS:
+            print(f"[H{level}] outlineLvl -> text: {text_preview!r}")
+        return level
+    # 2) Applied style id from XML (e.g. Heading1, Heading2, Heading_20_2 for "Heading 2")
+    style_id_xml = _style_id_from_paragraph_xml(paragraph)
+    if style_id_xml:
+        # LibreOffice can use _20_ for space in style id
+        decoded = style_id_xml.replace("_20_", " ").replace("_", " ")
+        m = re.match(r"Heading\s*(\d)", decoded, re.IGNORECASE)
+        if m:
+            n = int(m.group(1))
+            if 1 <= n <= 6:
+                if DEBUG_HEADINGS:
+                    print(f"[H{n}] pStyle (decoded) -> text: {text_preview!r}  (w:pStyle={style_id_xml!r})")
+                return n
+        if re.match(r"Heading(\d)", style_id_xml, re.IGNORECASE):
+            n = int(re.search(r"\d", style_id_xml).group())
+            if 1 <= n <= 6:
+                if DEBUG_HEADINGS:
+                    print(f"[H{n}] pStyle (match) -> text: {text_preview!r}  (w:pStyle={style_id_xml!r})")
+                return n
+        if re.match(r"Title", style_id_xml, re.IGNORECASE):
+            if DEBUG_HEADINGS:
+                print(f"[H1] pStyle Title -> text: {text_preview!r}")
+            return 1
+    # 3) Style name / style_id from python-docx (e.g. "Heading 2", "Heading 2")
+    try:
+        style = paragraph.style
+        if style is not None:
+            name = (getattr(style, "name", None) or "").strip()
+            style_id = (getattr(style, "style_id", None) or "").strip()
+            for s in (name, style_id):
+                if not s:
+                    continue
+                m = re.match(r"Heading\s*(\d)", s, re.IGNORECASE)
+                if m:
+                    n = int(m.group(1))
+                    if 1 <= n <= 6:
+                        if DEBUG_HEADINGS:
+                            print(f"[H{n}] style.name/id -> text: {text_preview!r}  (name={name!r}, style_id={style_id!r})")
+                        return n
+                if re.match(r"Heading(\d)", s, re.IGNORECASE):
+                    n = int(re.search(r"\d", s).group())
+                    if 1 <= n <= 6:
+                        if DEBUG_HEADINGS:
+                            print(f"[H{n}] style (HeadingN) -> text: {text_preview!r}  (name={name!r}, style_id={style_id!r})")
+                        return n
+                if s == "Title":
+                    if DEBUG_HEADINGS:
+                        print(f"[H1] style Title -> text: {text_preview!r}")
+                    return 1
+    except Exception as e:
+        if DEBUG_HEADINGS and (style_id_xml or "Heading" in (paragraph.style.name if getattr(paragraph, "style", None) else "")):
+            print(f"[?] style exception: {e}  text: {text_preview!r}")
+    # Debug: paragraph had heading-like style/XML but we didn't match -> will become <p>
+    if DEBUG_HEADINGS:
+        sn = (getattr(paragraph.style, "name", None) or "") if getattr(paragraph, "style", None) else ""
+        if ("heading" in (style_id_xml or "").lower() or "title" in (style_id_xml or "").lower() or
+                "heading" in sn.lower() or "title" in sn.lower()):
+            print(f"[NOT HEADING] -> <p>  text: {text_preview!r}  w:pStyle={style_id_xml!r}  style.name={sn!r}")
+    return 0
+
+
+def slug_for_heading(text: str, used_ids: set) -> str:
+    """Generate a unique id slug from heading text for anchor links."""
+    text = re.sub(r"<[^>]+>", "", text).strip()
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:80]
+    if not slug:
+        slug = "section"
+    base = slug
+    c = 1
+    while slug in used_ids:
+        slug = f"{base}-{c}"
+        c += 1
+    used_ids.add(slug)
+    return slug
+
+
+# ----------------------------------------------------------------------
 # HTML Builder
 # ----------------------------------------------------------------------
 class HTMLBuilder:
@@ -200,6 +334,7 @@ class HTMLBuilder:
         self.title_set = False
         self.h1_set = False
         self.list_stack: List[Tuple[str, int]] = []
+        self.heading_ids: set = set()  # per-instance, for unique id slugs
 
     def add(self, html_snippet: str):
         self.lines.append(html_snippet)
@@ -258,10 +393,12 @@ class HTMLBuilder:
         level = self.heading_level_from_size(size_pt)
         if level == 1 and not self.h1_set:
             self.h1_set = True
-            return f"<h1>{text}</h1>", 1
+            sid = slug_for_heading(text, self.heading_ids)
+            return f'<h1 id="{sid}">{text}</h1>', 1
         if level == 1:
             level = 2
-        return f"<h{level}>{text}</h{level}>", level
+        sid = slug_for_heading(text, self.heading_ids)
+        return f'<h{level} id="{sid}">{text}</h{level}>', level
 
 
 # ----------------------------------------------------------------------
@@ -330,6 +467,23 @@ def _format_run(text: str, run) -> str:
 def process_paragraph(builder: HTMLBuilder, paragraph) -> None:
     if not paragraph.text.strip() and not paragraph.runs:
         builder.add("<p>&nbsp;</p>")
+        return
+
+    # Prefer Word "Heading 1" / "Heading 2" / "Heading 3" styles for h1/h2/h3 (sidebar navigation)
+    style_level = heading_level_from_style(paragraph)
+    if style_level >= 1:
+        builder.close_all_lists()
+        runs_html = runs_to_html(paragraph.runs)
+        if not runs_html.strip() and paragraph.text.strip():
+            text = paragraph.text.strip()
+            text = html.escape(text, quote=False)
+            text = to_html_entities(text)
+            runs_html = text
+        if runs_html.strip():
+            sid = slug_for_heading(runs_html, builder.heading_ids)
+            if style_level == 1:
+                builder.h1_set = True
+            builder.add(f'<h{style_level} id="{sid}">{runs_html}</h{style_level}>')
         return
 
     try:
@@ -413,7 +567,10 @@ def process_paragraph(builder: HTMLBuilder, paragraph) -> None:
 
         max_size = max((get_font_size(r) for r in paragraph.runs), default=11)
         if max_size >= 13:
-            heading_tag, _ = builder.maybe_make_heading(runs_html, max_size)
+            heading_tag, lvl = builder.maybe_make_heading(runs_html, max_size)
+            if DEBUG_HEADINGS:
+                text_preview = re.sub(r"<[^>]+>", "", runs_html).strip()[:60]
+                print(f"[H{lvl}] size ({max_size}pt) -> text: {text_preview!r}")
             builder.add(heading_tag)
         else:
             builder.add(f"<p>{runs_html}</p>")
@@ -469,6 +626,8 @@ def image_to_data_uri(part, rel) -> str:
 # ----------------------------------------------------------------------
 def convert_docx_to_html(docx_path: Path) -> Optional[str]:
     try:
+        if DEBUG_HEADINGS:
+            print(f"\n--- DEBUG_HEADINGS: {docx_path.name} ---")
         doc = Document(str(docx_path))
         filename = docx_path.stem
         builder = HTMLBuilder(filename)
@@ -551,13 +710,33 @@ def main():
     if len(sys.argv) > 2:
         output = sys.argv[2]
 
-    if not Path(source).exists():
-        print(f"Source directory not found: {source}")
+    src_path = Path(source)
+    if not src_path.exists():
+        print(f"Source not found: {source}")
         sys.exit(1)
 
     print("DOCX → HTML: Soft Enter → <br>, Hard Enter → <p>/<li>")
     print(f"Source : {source}")
     print(f"Output : {output}\n")
+
+    # Single file mode: if source is a .docx file, convert it and write to output dir
+    if src_path.is_file() and src_path.suffix.lower() == ".docx":
+        out_dir = Path(output)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir / src_path.with_suffix(".txt").name
+        html_content = convert_docx_to_html(src_path)
+        if html_content:
+            out_file.write_text(html_content, encoding="utf-8")
+            print(f"Success: {src_path.name} → {out_file}")
+        else:
+            print(f"Failed: {src_path.name}")
+            sys.exit(1)
+        return
+
+    if not src_path.is_dir():
+        print(f"Source is not a directory or .docx file: {source}")
+        sys.exit(1)
+
     process_directory(source, output)
 
 

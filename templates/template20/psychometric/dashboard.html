@@ -55,6 +55,7 @@
     margin-top: 10px;
     max-width: 100%;
     text-align: center;
+    line-height: 17px;
   }
   .report-badge-personality { background: #5a3d7a; }
   .report-badge-interest { background: #c97b3d; }
@@ -79,7 +80,7 @@
     position: absolute;
     inset: 6px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255);
     z-index: 0;
   }
   .circle-progress .circle-progress-text { position: relative; z-index: 1; }
@@ -87,7 +88,7 @@
     display: flex;
     gap: 8px;
     margin-top: 12px;
-    opacity: 0;
+    /* opacity: 0; */
     transition: opacity 0.2s ease;
   }
   .report-card:hover .report-card-actions { opacity: 1; }
@@ -291,7 +292,7 @@
 
       <!-- Suggested Streams based on Personality (light blue cards with icon) -->
       {% if streamsubject %}
-      <div class="mb-4">
+      <div class="my-md-6 my-4">
         <h3 class="title-test-info fs-18">Suggested Streams based on Personality</h3>
         <div class="row g-3">
           {% for stream, subject in streamsubject %}
@@ -320,7 +321,7 @@
         <div class="row g-3">
           {% for card in vocational_course_cards %}
           <div class="col-md-4">
-            <div class="vocational-card">
+            <div class="vocational-card p-0">
               <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
                 <div class="vocational-img-wrap">
                   {% if card.course.image %}

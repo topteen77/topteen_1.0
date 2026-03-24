@@ -1,13 +1,35 @@
   <div class="report-container">
-    
+
+    <style>
+
+.page-header{display: none !important;}
+
+    /* For PDF generation, make header a running element */
+    @media print {
+      .page-header {
+        position: running(page-header);
+        margin-bottom: 0;
+        padding: 0.3cm 0 0 0;
+      }
+      .page-header-line {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
 
 
+    </style>
 
 
 
 
     <!-- End Cover Page -->
-  
+    <div class="page-header" style="width:650px ;">
+      <div class="page-header-content">
+        <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+      </div>
+            <hr class="page-header-line" style="width: 100%;" />
+    </div>
 
     <!-- Introduction -->
     <div class="chapterPage">
@@ -16,7 +38,7 @@
           Your Psychometric Profile
         </div>
       </div>
-      <p style="text-align: center; margin-top: 5px; font-size: 18px;">
+      <p style="text-align: center; margin-top: 5px; font-size: 16px;">
         Here's what we understood about you from your responses
       </p>
       <div class="db-header">
@@ -42,7 +64,12 @@
 
     <!-- How to Use This Report -->
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+        <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="db-header">
         <h1>HOW TO USE THIS REPORT</h1>
       </div>
@@ -73,25 +100,25 @@
 
       <table style="margin-bottom: 30px; margin-top:25px;">
         <thead>
-          <tr>
+          <tr >
             <th style="border-top-left-radius: 15px;">Part</th>
             <th style="border-top-right-radius: 15px;">Description</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 1- Personality Assessment</td>
             <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;">
               <span style="color:#2720A7;">Personality</span> encompasses the traits and characteristics that define how you interact with the world and approach tasks
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest Inventory</td>
             <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;">
               <span style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and excite you
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">Part 3- Aptitude Assessment</td>
             <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;">
               <span style="color:#2720A7;">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts
@@ -106,7 +133,12 @@
 
     <!-- Topteen Framework -->
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="db-header">
         <h1>Topteen Framework</h1>
       </div>
@@ -124,7 +156,13 @@
     <!-- Part 1: Personality Assessment Report -->
     {% if personality_data and personality_data.results %}
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
+
       <div class="text-color-top">
         <div class="top-layout" style="font-size: 16px;">Part -1</div>
       </div>
@@ -132,96 +170,83 @@
         <h1>PERSONALITY ASSESSMENT REPORT</h1>
       </div>
       <div class="text-info-paragraph">
-        <p>This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+        <p style="font-size: 12px;">This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
       </div>
-      <div class="test-title">Holland's Code description</div>
+      <div class="test-title" style="with:100%; text-align: center;">Holland's Code description</div>
       <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
         <img style="width:600px;" src="{{ static('images/riasec-ig.png') }}" alt="riasec" />
       </div>
+
+      
+    <table style="margin-bottom: 30px; margin-top:0px;">
+      <thead>
+        <tr>
+          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">Holland Code</th>
+          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border:1px solid #9490dd;">
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="r-img"><img style="width:30px;" src="{{ static('images/r.png') }}" alt="text" /><br>
+              <span style="color:#057190; font-size: 14px; font-weight: 600;">Realistic</span>
+            </div>
+          </td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/i.png') }}" alt="text" /><br>
+              <span style="color:#A92CAF; font-size: 16px; font-weight: 600;">Investigative</span>
+            </div>
+          </td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/a.png') }}" alt="text" /><br>
+              <span style="color:#2A740E; font-size: 16px; font-weight: 600;">Artistic</span>
+            </div>
+          </td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/s.png') }}" alt="text" /><br>
+              <span style="color:#6D5C04; font-size: 16px; font-weight: 600;">Social</span>
+            </div>
+          </td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/e.png') }}" alt="text" /><br>
+              <span style="color:#A22717; font-size: 16px; font-weight: 600;">Enterprising</span>
+            </div>
+          </td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
+        </tr>
+        <tr style="border:1px solid #9490dd;">
+          <td style="width: 200px; padding-left:14px; text-align: center;">
+            <div class="1-img"><img style="width:30px;" src="{{ static('images/c.png') }}" alt="text" /><br>
+              <span style="color:#0B5BA1; font-size: 16px; font-weight: 600;">Conventional</span>
+            </div>
+          </td>
+          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
+        </tr>
+      </tbody>
+    </table>
     </div>
 
-    <div class="chapterPage">
-      <hr />
-      <table style="margin-bottom: 30px; margin-top:0px;">
-        <thead>
-          <tr>
-            <th style="border-top-left-radius: 15px; font-size: 14px;">Holland Code</th>
-            <th style="border-top-right-radius: 15px;">Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="width: 200px; padding-left:14px; text-align: center;">
-              <div class="r-img">
-                <img style="width:45px;" src="{{ static('images/r.png') }}" alt="text" /><br>
-                <span style="color:#057190; font-size: 14px; font-weight: 600;">Realistic</span>
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
-              Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-left:14px; text-align: center;">
-              <div class="1-img">
-                <img style="width:45px;" src="{{ static('images/i.png') }}" alt="text" /><br>
-                <span style="color:#A92CAF; font-size: 16px; font-weight: 600;">Investigative</span>
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
-              Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-left:14px; text-align: center;">
-              <div class="1-img">
-                <img style="width:45px;" src="{{ static('images/a.png') }}" alt="text" /><br>
-                <span style="color:#2A740E; font-size: 16px; font-weight: 600;">Artistic</span>
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
-              Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-left:14px; text-align: center;">
-              <div class="1-img">
-                <img style="width:45px;" src="{{ static('images/s.png') }}" alt="text" /><br>
-                <span style="color:#6D5C04; font-size: 16px; font-weight: 600;">Social</span>
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
-              Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-left:14px; text-align: center;">
-              <div class="1-img">
-                <img style="width:45px;" src="{{ static('images/e.png') }}" alt="text" /><br>
-                <span style="color:#A22717; font-size: 16px; font-weight: 600;">Enterprising</span>
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
-              Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.
-            </td>
-          </tr>
-          <tr>
-            <td style="padding-left:14px; text-align: center;">
-              <div class="1-img">
-                <img style="width:45px;" src="{{ static('images/c.png') }}" alt="text" /><br>
-                <span style="color:#0B5BA1; font-size: 16px; font-weight: 600;">Conventional</span>
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 400; font-size: 14px;">
-              Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+
 
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="db-header">
         <h1>Interpretation & Recommendations</h1>
       </div>
@@ -241,9 +266,9 @@
         {% if personality_data.top_categories %}
         {% for result in personality_data.top_categories %}
         <div class="threebox-col">
-          <div class="box-i onebox">
-            <p style="color: #120d77;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ result.score }}</p>
-            <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px;">{{ result.category }}</p>
+          <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; float: left; width:190px; height:100px;">
+            <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px; margin-top: 0px;">{{ result.score }}</p>
+            <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px; margin-top: 0px;">{{ result.category }}</p>
           </div>
         </div>
         {% endfor %}
@@ -264,6 +289,13 @@
     </div>
 
     <div class="chapterPage">
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
+
       <div class="two-box">
         {% if streamsubject %}
         {% for stream, subject in streamsubject %}
@@ -285,10 +317,10 @@
       {% if courseName %}
       <div class="cat-box cat-one-box">
         <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-          <h4 style="font-size: 16px; width:600px; margin: 0px;">Suggested Careers</h4>
+          <h4 style="font-size: 16px; width:600px; margin: 0px;text-align: center;">Suggested Careers</h4>
         </div>
         <div class="cat-list" style="padding:6px; margin-top:0px;">
-          <ul style="column-count:3;">
+          <ul style="column-count:3; list-style:disc;">
             {% for value in courseName %}
             <li>{{ value }}</li>
             {% endfor %}
@@ -302,7 +334,12 @@
     <!-- Part 2: Interest Assessment Report -->
     {% if interest_data and interest_data.scores %}
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="text-color-top">
         <div class="top-layout" style="font-size: 16px;">Part -2</div>
       </div>
@@ -652,7 +689,12 @@
     <!-- Part 3: Aptitude Assessment Report -->
     {% if intelligence_data and intelligence_data.scores %}
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="text-color-top">
         <div class="top-layout" style="font-size: 16px;">Part - 3</div>
       </div>
@@ -674,7 +716,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex;align-items: center;">
                 <div>
@@ -683,11 +725,11 @@
                 Numerical Reasoning
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to understand, interpret, and work with numerical concepts and relationships. It involves the capacity to reason with numbers and perform mathematical operations to solve problems.
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex; align-items: center;">
                 <div>
@@ -696,11 +738,11 @@
                 Verbal Reasoning
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex; align-items: center;">
                 <div>
@@ -709,11 +751,11 @@
                 Logical Reasoning
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex; align-items: center;">
                 <div>
@@ -722,11 +764,11 @@
                 Mechanical Reasoning
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex; align-items: center;">
                 <div>
@@ -735,11 +777,11 @@
                 Spatial Reasoning
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex; align-items: center;">
                 <div>
@@ -748,11 +790,11 @@
                 Language Usage and Spelling
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves the accurate and effective use of words in communication.
             </td>
           </tr>
-          <tr>
+          <tr style="border:1px solid #9490dd;">
             <td style="padding-left:14px; color: #000; font-weight: 700;">
               <div style="display: flex; align-items: center;">
                 <div>
@@ -761,7 +803,7 @@
                 Critical Reasoning
               </div>
             </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
+            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
               Ability to perceive, understand, and manage emotions in oneself and others. It involves recognizing and interpreting critical cues and using this information to guide thinking and behavior.
             </td>
           </tr>
@@ -770,6 +812,12 @@
     </div>
 
     <div class="chapterPage">
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="db-header" style="margin-top: 10px;">
         <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
       </div>
@@ -871,7 +919,12 @@
     <!-- Below Average Note -->
     {% if intelligence_data.below_avg %}
     <div class="chapterPage">
-      <hr />
+      <div class="page-header" style="width:650px ;">
+        <div class="page-header-content">
+          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+        </div>
+              <hr class="page-header-line" style="width: 100%;" />
+      </div>
       <div class="db-header" style="margin-top: 10px;">
         <h1 style="color: RED; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
           <span>NOTE-</span> If your score is below average, you are suggested to take vocational training and guidance to improve your other reasoning areas.

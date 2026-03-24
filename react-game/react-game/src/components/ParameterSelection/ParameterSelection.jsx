@@ -1,9 +1,19 @@
 import { useState } from 'react';
 import { PARAMETERS, MIN_PARAMETER_SELECTION } from '../../utils/constants';
 import './ParameterSelection.css';
+import iconSelectTick from '../../assets/images/pruple-select-tick.svg';
 
 const ParameterSelection = ({ selectedStreams, onFight }) => {
   const [selectedParameters, setSelectedParameters] = useState([]);
+
+  const PARAM_ICONS = {
+    job_placement: { iconClass: 'bx bx-briefcase-alt-2', colorClass: 'parameter-icon-bg-1' },
+    job_security: { iconClass: 'bx bx-shield-quarter', colorClass: 'parameter-icon-bg-2' },
+    fees_cost: { iconClass: 'bx bx-rupee', colorClass: 'parameter-icon-bg-3' },
+    location: { iconClass: 'bx bx-map-pin', colorClass: 'parameter-icon-bg-4' },
+    career_growth: { iconClass: 'bx bx-trending-up', colorClass: 'parameter-icon-bg-5' },
+    industry_demand: { iconClass: 'bx bxl-graphql', colorClass: 'parameter-icon-bg-6' }
+  };
 
   const handleParameterToggle = (parameterId) => {
     if (selectedParameters.includes(parameterId)) {
@@ -30,28 +40,20 @@ const ParameterSelection = ({ selectedStreams, onFight }) => {
   return (
     <div className="parameter-selection-container" role="region" aria-labelledby="parameter-selection-title">
       <div className="parameter-selection-header">
-        <h1 id="parameter-selection-title" className="parameter-selection-title">Select Comparison Parameters</h1>
-        <p className="parameter-selection-subtitle" id="parameter-selection-description">
-          Choose the criteria for comparing your selected streams
-        </p>
-        
-        {/* Display selected streams */}
-        {selectedStreams && selectedStreams.length > 0 && (
-          <div className="selected-streams-context">
-            <span className="context-label">Comparing:</span>
+        <h1 id="parameter-selection-title" className="parameter-selection-title">Select <span className="text-purple">Comparison</span>  Parameters</h1>
+       
+       <p>Choose the criteria for comparing your selected streams</p>
+       
+        {Array.isArray(selectedStreams) && selectedStreams.length === 2 && (
+          <div className="selected-streams-context" aria-label={`Comparing ${selectedStreams[0]} versus ${selectedStreams[1]}`}>
+            <span className="context-label">COMPARING:</span>
             <div className="streams-badge-container">
-              {selectedStreams.map((stream, index) => (
-                <span key={stream} className="stream-badge">
-                  {stream}
-                  {index < selectedStreams.length - 1 && (
-                    <span className="vs-separator"> vs </span>
-                  )}
-                </span>
-              ))}
+              <span className="stream-badge">{selectedStreams[0]}</span>
+              <span className="vs-separator">vs</span>
+              <span className="stream-badge">{selectedStreams[1]}</span>
             </div>
           </div>
         )}
-
         {selectedParameters.length > 0 && (
           <div className="selected-count">
             {selectedParameters.length} parameter{selectedParameters.length !== 1 ? 's' : ''} selected
@@ -62,6 +64,7 @@ const ParameterSelection = ({ selectedStreams, onFight }) => {
       <div className="parameter-list" role="group" aria-labelledby="parameter-selection-title" aria-describedby="parameter-selection-description">
         {PARAMETERS.map((parameter) => {
           const isSelected = isParameterSelected(parameter.id);
+          const iconCfg = PARAM_ICONS[parameter.id] || PARAM_ICONS.job_placement;
           
           return (
             <div
@@ -80,26 +83,10 @@ const ParameterSelection = ({ selectedStreams, onFight }) => {
                 }
               }}
             >
-              {/* Stop propagation so checkbox/label click doesn't also trigger parent onClick (avoids double-toggle) */}
-              <div className="parameter-checkbox" onClick={(e) => e.stopPropagation()}>
-                <input
-                  type="checkbox"
-                  id={parameter.id}
-                  checked={isSelected}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    handleParameterToggle(parameter.id);
-                  }}
-                  className="checkbox-input"
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <label htmlFor={parameter.id} className="checkbox-label">
-                  <span className="checkbox-custom">
-                    {isSelected && (
-                      <span className="checkbox-checkmark">✓</span>
-                    )}
-                  </span>
-                </label>
+              <div className="parameter-icon-wrapper" aria-hidden="true">
+                <div className={`parameter-icon ${iconCfg.colorClass}`}>
+                  <i className={iconCfg.iconClass}></i>
+                </div>
               </div>
               <div className="parameter-content">
                 <span className="parameter-label" id={`parameter-${parameter.id}-label`}>
@@ -107,6 +94,11 @@ const ParameterSelection = ({ selectedStreams, onFight }) => {
                 </span>
                 <p className="parameter-description" id={`parameter-${parameter.id}-desc`}>{parameter.description}</p>
               </div>
+              {isSelected && (
+                <span className="parameter-checkmark" aria-hidden="true">
+                  <img src={iconSelectTick} alt="" className="parameter-checkmark-img" />
+                </span>
+              )}
             </div>
           );
         })}

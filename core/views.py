@@ -39,7 +39,7 @@ from careers.models import Videos,Career
 from colleges.models import College
 from .documents_filter import AllSearch
 from .counselling_utils import get_counselling_context
-from entrance_exams.models import EntranceExam
+from core.models import EntranceTestPrepExam
 from users.models import UserSearchHistory
 from django.shortcuts import HttpResponse,HttpResponseRedirect
 from skilllab.models import SkillLabCourse
@@ -146,12 +146,12 @@ class Home(TemplateView):
         ctx['after_college_course'] = SkillLabCourse.objects.filter(
             category=choices.SkillLabCourseTypeChoice.after_college
         ).first()
-        exam_ids = list(EntranceExam.objects.values_list('id', flat=True)[:30])
+        exam_ids = list(EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).values_list('id', flat=True)[:30])
         if exam_ids:
-            ctx['exams'] = EntranceExam.objects.filter(id__in=random.sample(exam_ids, min(3, len(exam_ids))))
+            ctx['exams'] = EntranceTestPrepExam.objects.filter(id__in=random.sample(exam_ids, min(3, len(exam_ids))), object_status=choices.ObjectStatus.ACTIVE)
             del exam_ids
         else:
-            ctx['exams'] = EntranceExam.objects.none()
+            ctx['exams'] = EntranceTestPrepExam.objects.none()
         # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=view-mode&cluster=ID
         clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
         ctx['clusters'] = clusters
@@ -209,6 +209,26 @@ class Home(TemplateView):
                 })
         ctx['career_track_cards'] = career_track_cards
         ctx['default_career_library_url'] = default_career_library_url
+
+        # Homepage hero video: Configuration keys HOME_VIDEO_URL, HOME_VIDEO_THUMBNAIL (thumbnail shown first in modal, then play on click)
+        from core.models import Configuration
+        default_home_video = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'
+        home_video_url = (Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True) or default_home_video or '').strip()
+        home_video_thumbnail_url = (Configuration.get('HOME_VIDEO_THUMBNAIL', default='', editable=True) or '').strip()
+        home_video_embed_url = home_video_url
+        home_video_yt_id = ''
+        if home_video_url:
+            yt_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})', home_video_url)
+            if yt_match:
+                home_video_yt_id = yt_match.group(1)
+                home_video_embed_url = 'https://www.youtube.com/embed/' + home_video_yt_id + '?autoplay=1'
+                if not home_video_thumbnail_url:
+                    home_video_thumbnail_url = 'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
+        ctx['home_video_url'] = home_video_url
+        ctx['home_video_thumbnail_url'] = home_video_thumbnail_url
+        ctx['home_video_embed_url'] = home_video_embed_url
+        ctx['home_video_yt_id'] = home_video_yt_id
+
         return ctx
         
     def get(self, request, *args, **kwargs):
@@ -599,6 +619,526 @@ class ExtracurricularActivityDetailView(FreetrailContentMixin, TemplateView):
             {"text": "Extracurricular Activities", "url": reverse("core:extracurricular_activities")},
             {"text": activity.name, "url": reverse("core:extracurricular_activity_detail", kwargs={"pk": activity.pk})},
         ])
+        return self.inject_freetrail_context(request, ctx)
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+# Category name (lowercase, normalized) -> entrance-exam icon filename (from reference HTML)
+ENTRANCE_TEST_PREP_CATEGORY_IMAGE_MAP = {
+    "defence": "defence-icon.png",
+    "government job": "govt-job-icon.png",
+    "govt. school entrance & scholarship exams": "govt-school-exam.png",
+    "independent olympiads": "india-olympiad.png",
+    "polytechnic exams": "polytech-exam.png",
+    "school admission tests": "school-adm-test.png",
+    "agriculture": "Agriculture.png",
+    "architecture": "Architecture.png",
+    "arts, media and communication": "media-communication.png",
+    "business and management": "business-and-management.png",
+    "commerce": "Commerce.png",
+    "computer applications": "computer-applications.png",
+    "defence exams": "defence-exams.png",
+    "design": "design.png",
+    "education": "education.png",
+    "engineering": "engineering.png",
+    "finance": "finance.png",
+    "government jobs": "government-jobs.png",
+    "medicine and health sciences": "medicine-and-health-sciences.png",
+    "law": "law.png",
+    "marketing and sales": "marketing-and-sales.png",
+    "hospitality and tourism": "hospitality-and-tourism.png",
+    "olympiads": "olympiads.png",
+    "scolarships and fellowships": "scolarships-and-fellowships.png",
+    "banking and financial sector exams": "govt-job-icon.png",
+    "central government exams": "govt-job-icon.png",
+    "design, architecture and fine arts": "india-olympiad.png",
+    "education and research sector": "polytech-exam.png",
+    "engineering technology and science": "school-adm-test.png",
+    "international entrance exams": "school-adm-test.png",
+    "management- integrated programs": "school-adm-test.png",
+    "medical- pg": "school-adm-test.png",
+    "other government exams": "school-adm-test.png",
+    "post-graduate law programs": "school-adm-test.png",
+    "research and phd programs": "school-adm-test.png",
+    "ssc and psc exams": "school-adm-test.png",
+}
+
+
+class EntranceTestPrepListView(TemplateView):
+    """Main entrance test prep page: tabs After 10th / After 12th / After Graduation, category cards per tab."""
+    template_name = "template20/entrance_test_prep.html"
+    url_key = "entrance-test-prep"
+
+    def get_context(self, request, *args, **kwargs):
+        from django.db.models import Prefetch
+        from core.models import EntranceTestPrepCategory, EntranceTestPrepExam
+        ctx = {}
+        ctx["html_head"] = get_page_seo_html_head(
+            self.url_key,
+            "Entrance Exam | Top Teen",
+            "Expert guidance and trusted resources to help you confidently prepare for entrance exams after 10th, 12th, or graduation.",
+            request=request,
+        )
+        ctx["breadcrumb"] = get_breadcrumb([
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Entrance Exam", "url": reverse("core:entrance_test_prep")},
+        ])
+        ctx["category_image_map"] = ENTRANCE_TEST_PREP_CATEGORY_IMAGE_MAP
+        try:
+            levels = EntranceTestPrepCategory.objects.filter(
+                parent__isnull=True,
+                object_status=choices.ObjectStatus.ACTIVE,
+            ).order_by("priority", "name").prefetch_related(
+                Prefetch(
+                    "children",
+                    queryset=EntranceTestPrepCategory.objects.filter(
+                        object_status=choices.ObjectStatus.ACTIVE
+                    ).order_by("priority", "name").prefetch_related(
+                        Prefetch(
+                            "exams",
+                            queryset=EntranceTestPrepExam.objects.filter(
+                                object_status=choices.ObjectStatus.ACTIVE
+                            ).order_by("priority", "name"),
+                        )
+                    ),
+                )
+            )
+            ctx["levels"] = list(levels)
+            # #region agent log
+            try:
+                _log_path = "/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug-0cd1d7.log"
+                import json
+                _per_level = [(getattr(l, "name", ""), l.children.count() if hasattr(l.children, "count") else len(list(l.children.all()))) for l in ctx["levels"]]
+                _total_cards = sum(c for _, c in _per_level)
+                with open(_log_path, "a") as _f:
+                    _f.write(json.dumps({"hypothesisId": "A", "message": "entrance_test_prep cards", "data": {"per_level": _per_level, "total_cards_expected": _total_cards}, "timestamp": __import__("time").time() * 1000}) + "\n")
+            except Exception:
+                pass
+            # #endregion
+        except Exception:
+            ctx["levels"] = []
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+class EntranceTestPrepCategoryView(TemplateView):
+    """Exams listing under one category (e.g. After 10 / Defence Related)."""
+    template_name = "template20/entrance_test_prep_category.html"
+
+    def get_context(self, request, *args, **kwargs):
+        from django.shortcuts import get_object_or_404
+        from core.models import EntranceTestPrepCategory, EntranceTestPrepExam
+        level_slug = kwargs.get("level_slug")
+        category_slug = kwargs.get("category_slug")
+        category = get_object_or_404(
+            EntranceTestPrepCategory,
+            slug=category_slug,
+            parent__slug=level_slug,
+            object_status=choices.ObjectStatus.ACTIVE,
+        )
+        level = category.parent
+        exams = EntranceTestPrepExam.objects.filter(
+            category=category,
+            object_status=choices.ObjectStatus.ACTIVE,
+        ).order_by("priority", "name")
+        ctx = {}
+        ctx["category"] = category
+        ctx["level"] = level
+        ctx["exams"] = exams
+        ctx["html_head"] = build_html_head(
+            title=f"{category.name} | Entrance Exam",
+            description=f"Comprehensive guidance for {category.name} entrance exams.",
+        )
+        # Breadcrumb: Home > Entrance Exam > Level (After 10 / After 12 / Graduation) > Category
+        _level_tab = {"after-10": "a", "after-12": "b", "graduation": "c"}.get((level.slug or "").lower(), "a")
+        _level_url = reverse("core:entrance_test_prep") + "#pills-foundation-" + _level_tab
+        ctx["breadcrumb"] = get_breadcrumb([
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Entrance Exam", "url": reverse("core:entrance_test_prep")},
+            {"text": level.name, "url": _level_url},
+            {"text": category.name, "url": reverse("core:entrance_test_prep_category", kwargs={"level_slug": level.slug, "category_slug": category.slug})},
+        ])
+        bookmarked_exam_ids = set()
+        if request.user.is_authenticated:
+            bookmarked_exam_ids = set(
+                EntranceTestPrepExam.objects.filter(
+                    shortlist=request.user,
+                    object_status=choices.ObjectStatus.ACTIVE,
+                ).values_list("id", flat=True)
+            )
+        ctx["bookmarked_exam_ids"] = bookmarked_exam_ids
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+
+
+# Icon class (Boxicons) from reference HTML single-exam-category-10th – use as-is for quick links and accordion.
+_ENTRANCE_TOC_ICON_MAP = [
+    (r"\b(overview|about|introduction)\b", "bx-info-circle"),
+    (r"\b(eligibility|eligible)\b", "bx-id-card"),
+    (r"\b(exam pattern|pattern|structure)\b", "bx-layout"),
+    (r"\b(syllabus|syllabi|outline)\b", "bx-book-open"),
+    (r"\b(reservation|seat|allocation|quota)\b", "bx-group"),
+    (r"\b(application|apply|process)\b", "bx-send"),
+    (r"\b(exam day|result|calendar)\b", "bx-calendar-event"),
+    (r"\b(selection|admission)\b", "bx-check-circle"),
+    (r"\b(key dates?|dates?|indicative|schedule)\b", "bx-time"),
+    (r"\b(preparation|prep|tips?)\b", "bx-heart-circle"),
+    (r"\b(significance|importance)\b", "bx-star"),
+    (r"\b(official links?|resources?|links?)\b", "bx-link-external"),
+    (r"\b(conclusion|summary)\b", "bx-comment-check"),
+    (r"\b(highlights?|key points?)\b", "bx-star"),
+    (r"\b(fee|fees|payment|cost)\b", "bx-dollar"),
+    (r"\b(additional|information|notes?)\b", "bx-info-circle"),
+]
+
+
+def _icon_for_heading(text):
+    """Return a Boxicons class for Quick links based on h2 text (keyword match)."""
+    if not text:
+        return "bx-info-circle"
+    lower = text.lower()
+    for pattern, icon in _ENTRANCE_TOC_ICON_MAP:
+        if re.search(pattern, lower, re.IGNORECASE):
+            return icon
+    return "bx-info-circle"
+
+
+def _strip_heading_numbers(text):
+    """Remove leading numbers from H2 titles, e.g. '1. Overview' -> 'Overview'."""
+    if not text or not isinstance(text, str):
+        return text or ""
+    return re.sub(r"^\s*\d+\.?\s*", "", text.strip()).strip() or text
+
+
+def _is_intro_heading(text):
+    """Overview / About / Introduction — treat as one intro block for entrance exam pages."""
+    if not text or not isinstance(text, str):
+        return False
+    t = _strip_heading_numbers(text).strip().lower()
+    return t in ("overview", "about", "introduction", "intro")
+
+
+def _section_html_is_blank(html):
+    """
+    True if section body has no meaningful text (empty tags, &nbsp;, <br> only,
+    script/style, HTML comments, zero-width chars). Used to hide empty accordions on the public page.
+    """
+    import html as html_module
+
+    from django.utils.html import strip_tags
+
+    if html is None:
+        return True
+    s = str(html).strip()
+    if not s:
+        return True
+
+    def _normalize_visible_text(t):
+        if not t:
+            return ""
+        t = t.replace("\u00a0", " ").replace("\u200b", "").replace("\ufeff", "")
+        t = re.sub(r"[\u200c\u200d\u2060\ufeff]", "", t)
+        t = re.sub(r"\s+", " ", t).strip()
+        return t
+
+    try:
+        from bs4 import BeautifulSoup, Comment
+
+        soup = BeautifulSoup(s, "html.parser")
+        for tag in soup(["script", "style", "noscript"]):
+            tag.decompose()
+        # Comments can contain text that would otherwise count as "content"
+        for c in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            c.extract()
+        text = soup.get_text(separator=" ", strip=True)
+        if _normalize_visible_text(text):
+            return False
+        # strip_tags on cleaned soup only — raw HTML may still contain script text if parsed oddly
+        plain = strip_tags(str(soup))
+        plain = html_module.unescape(plain)
+        return not _normalize_visible_text(plain)
+    except Exception:
+        plain = strip_tags(s)
+        plain = html_module.unescape(plain)
+        return not _normalize_visible_text(plain)
+
+
+def _merge_leading_intro_sections(sections):
+    """
+    Merge consecutive leading sections whose titles are intro-type (Overview/About/Introduction)
+    into one 'Overview' panel with stable section_id 'overview' when possible.
+    """
+    if not sections:
+        return []
+    intro_run = []
+    i = 0
+    while i < len(sections) and _is_intro_heading(sections[i].get("title")):
+        intro_run.append(sections[i])
+        i += 1
+    rest = sections[i:]
+    if not intro_run:
+        return list(sections)
+    merged_html = "".join((s.get("content_html") or "") for s in intro_run)
+    section_id = None
+    for s in intro_run:
+        sid = (s.get("section_id") or "").strip()
+        if sid.lower() == "overview":
+            section_id = "overview"
+            break
+    if section_id is None:
+        for s in intro_run:
+            sid = (s.get("section_id") or "").strip()
+            if sid:
+                section_id = sid
+                break
+    if not section_id:
+        section_id = "overview"
+    merged = {
+        "section_id": section_id if section_id else "overview",
+        "title": "Overview",
+        "content_html": merged_html,
+        "icon": _icon_for_heading("Overview"),
+    }
+    return [merged] + rest
+
+
+def _filter_blank_sections(sections):
+    """Drop accordion rows with no visible body content."""
+    return [s for s in sections if not _section_html_is_blank(s.get("content_html"))]
+
+
+def _normalize_entrance_exam_sections(sections):
+    """Common entrance exam rules: merge intro headings, drop empty panels."""
+    merged = _merge_leading_intro_sections(sections)
+    return _filter_blank_sections(merged)
+
+
+def _count_h2_in_html(html_content):
+    """Count opening <h2> tags (same notion as _sections_from_content_html splitting)."""
+    if not html_content or not str(html_content).strip():
+        return 0
+    return len(re.findall(r"<h2\b", str(html_content), re.IGNORECASE))
+
+
+def _sections_from_content_html(html_content):
+    """
+    Split HTML by every <h2>...</h2> in document order (string positions, not sibling
+    traversal) so nested <h2> inside divs each become their own accordion panel.
+
+    Preamble before the first <h2> becomes a separate Overview panel unless the first
+    heading is intro-type (Overview/About/Introduction/Intro), in which case preamble
+    is prepended to that section's body.
+    """
+    if not html_content or not html_content.strip():
+        return []
+    try:
+        from bs4 import BeautifulSoup
+
+        html_content = html_content.strip()
+        h2_opens = list(re.finditer(r"<h2\b[^>]*>", html_content, re.IGNORECASE))
+        if not h2_opens:
+            return [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
+
+        used = set()
+        sections = []
+        preamble = html_content[: h2_opens[0].start()].strip()
+
+        for i, m in enumerate(h2_opens):
+            title_start = m.end()
+            tail = html_content[title_start:]
+            close_m = re.search(r"</h2>", tail, re.IGNORECASE)
+            if not close_m:
+                continue
+            close_pos = title_start + close_m.start()
+            title_html = html_content[title_start:close_pos]
+            title_text = BeautifulSoup(title_html, "html.parser").get_text(separator=" ", strip=True)
+            if not title_text:
+                title_text = "Section"
+            body_start = close_pos + len(close_m.group(0))
+            body_end = h2_opens[i + 1].start() if i + 1 < len(h2_opens) else len(html_content)
+            body_html = html_content[body_start:body_end].strip()
+
+            if i == 0 and preamble:
+                if not _is_intro_heading(title_text):
+                    sections.append({
+                        "section_id": "overview",
+                        "title": "Overview",
+                        "content_html": preamble,
+                        "icon": "bx-info-circle",
+                    })
+                    used.add("overview")
+                else:
+                    body_html = (preamble + body_html).strip()
+
+            existing_id = None
+            try:
+                frag = html_content[m.start() : close_pos + len(close_m.group(0))]
+                soup_tag = BeautifulSoup(frag, "html.parser")
+                h2tag = soup_tag.find("h2")
+                if h2tag and h2tag.get("id", "").strip():
+                    existing_id = h2tag.get("id", "").strip()
+            except Exception:
+                pass
+
+            if existing_id and existing_id not in used:
+                sid = existing_id
+            else:
+                sid = re.sub(r"[^a-z0-9]+", "-", title_text.lower())[:80].strip("-") or "section"
+                base, c = sid, 1
+                while sid in used:
+                    sid = f"{base}-{c}"
+                    c += 1
+            used.add(sid)
+
+            sections.append({
+                "section_id": sid,
+                "title": title_text,
+                "content_html": body_html,
+                "icon": _icon_for_heading(title_text),
+            })
+
+        return sections if sections else [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
+    except Exception:
+        return [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
+
+
+def _toc_from_content_html(html_content):
+    """Extract h1/h2/h3 from HTML for Quick links sidebar. Returns (toc_list, html_with_ids).
+    toc_list: [{"id": str, "text": str, "level": 1|2|3, "icon": str}, ...]
+    """
+    if not html_content or not html_content.strip():
+        return [], html_content
+    try:
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html_content, "html.parser")
+        toc = []
+        used = set()
+        for tag in soup.find_all(["h1", "h2", "h3"]):
+            text = tag.get_text(strip=True)
+            if not text:
+                continue
+            level = int(tag.name[1])
+            existing_id = tag.get("id", "").strip()
+            if existing_id and existing_id not in used:
+                sid = existing_id
+            else:
+                sid = re.sub(r"[^a-z0-9]+", "-", text.lower())[:80].strip("-") or "section"
+                base, c = sid, 1
+                while sid in used:
+                    sid = f"{base}-{c}"
+                    c += 1
+            used.add(sid)
+            tag["id"] = sid
+            toc.append({
+                "id": sid,
+                "text": text,
+                "level": level,
+                "icon": _icon_for_heading(text),
+            })
+        return toc, str(soup)
+    except Exception:
+        return [], html_content
+
+
+def build_entrance_test_prep_exam_sections_raw(exam):
+    """
+    Build accordion section dicts the same way as the public detail view, *before*
+    intro-merge and blank filtering. Includes blank content_json rows so admin validation
+    can report them.
+    """
+    sections = []
+    if getattr(exam, "content_json", None) and isinstance(exam.content_json, dict):
+        raw_sections = exam.content_json.get("sections") or {}
+        ordered_keys = exam.content_json.get("section_order") if isinstance(exam.content_json.get("section_order"), list) else []
+        iter_keys = []
+        for key in ordered_keys:
+            if key in raw_sections and key not in iter_keys:
+                iter_keys.append(key)
+        for key in raw_sections.keys():
+            if key not in iter_keys:
+                iter_keys.append(key)
+
+        for key in iter_keys:
+            data = raw_sections.get(key)
+            if not isinstance(data, dict):
+                continue
+            title = data.get("title") or key.replace("_", " ").title()
+            html = data.get("html") or data.get("content") or data.get("body") or ""
+            section_id = key.replace(" ", "-").lower()[:80]
+            sections.append({
+                "section_id": section_id,
+                "title": title,
+                "content_html": html,
+                "icon": _icon_for_heading(title),
+            })
+    if not sections:
+        section_objs = list(exam.sections.order_by("order", "section_id"))
+        sections = [
+            {
+                "section_id": getattr(s, "section_id", f"section-{i}"),
+                "title": getattr(s, "title", "Section"),
+                "content_html": getattr(s, "content_html", "") or "",
+                "icon": _icon_for_heading(getattr(s, "title", "")),
+            }
+            for i, s in enumerate(section_objs)
+        ]
+    if not sections and exam.content_html:
+        sections = _sections_from_content_html(exam.content_html)
+    return sections
+
+
+class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
+    """Single exam detail: Quick links sidebar + accordion (sections or single Overview from content_html)."""
+    template_name = "template20/entrance_test_prep_exam_detail.html"
+    freetrail_back_url = "core:entrance_test_prep"
+
+    def get_context(self, request, *args, **kwargs):
+        from django.shortcuts import get_object_or_404
+        from core.models import EntranceTestPrepExam
+        exam = get_object_or_404(
+            EntranceTestPrepExam,
+            slug=kwargs.get("slug"),
+            object_status=choices.ObjectStatus.ACTIVE,
+        )
+        exam = EntranceTestPrepExam.objects.prefetch_related("sections").get(pk=exam.pk)
+        category = exam.category
+        level = category.parent if category else None
+        sections = build_entrance_test_prep_exam_sections_raw(exam)
+        sections = _normalize_entrance_exam_sections(sections)
+        # Defensive: never render accordion rows with no visible body (merge/edge cases, CKEditor junk)
+        sections = [s for s in sections if not _section_html_is_blank(s.get("content_html"))]
+        for s in sections:
+            s["display_title"] = _strip_heading_numbers(s.get("title") or "")
+        toc = [{"id": s["section_id"], "text": s.get("display_title", s.get("title", "")), "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
+        ctx = {}
+        ctx["exam"] = exam
+        ctx["category"] = category
+        ctx["level"] = level
+        ctx["sections"] = sections
+        ctx["toc"] = toc
+        ctx["html_head"] = build_html_head(title=exam.name, description=exam.name)
+        # Breadcrumb: Home > Entrance Exam > Level (After 10 / After 12 / Graduation) > Category > Exam
+        breadcrumb = [
+            {"text": "Home", "url": reverse("core:home")},
+            {"text": "Entrance Exam", "url": reverse("core:entrance_test_prep")},
+        ]
+        if level:
+            _level_tab = {"after-10": "a", "after-12": "b", "graduation": "c"}.get((level.slug or "").lower(), "a")
+            breadcrumb.append({"text": level.name, "url": reverse("core:entrance_test_prep") + "#pills-foundation-" + _level_tab})
+        if level and category:
+            breadcrumb.append({"text": category.name, "url": reverse("core:entrance_test_prep_category", kwargs={"level_slug": level.slug, "category_slug": category.slug})})
+        breadcrumb.append({"text": exam.name, "url": reverse("core:entrance_test_prep_exam_detail", kwargs={"slug": exam.slug})})
+        ctx["breadcrumb"] = get_breadcrumb(breadcrumb)
+        ctx["is_exam_bookmarked"] = (
+            request.user.is_authenticated
+            and exam.shortlist.filter(id=request.user.id).exists()
+        )
         return self.inject_freetrail_context(request, ctx)
 
     def get(self, request, *args, **kwargs):

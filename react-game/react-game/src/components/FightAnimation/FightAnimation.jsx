@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 import { compareStreamsWithLLM } from '../../services/llmService';
+import battleVideo from '../../assets/battel-video.mp4';
+import fighter1Video from '../../assets/fighter1-video.mp4';
+import fighter2Video from '../../assets/fighter2-video.mp4';
+import swordImage from '../../assets/sword-image.png';
+
 import './FightAnimation.css';
 
 const BATTLE_PHRASES = [
@@ -93,13 +98,26 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
 
   return (
     <div className="fight-animation-container" role="region" aria-labelledby="fight-title" aria-live="polite">
+      {/* Cinematic battle video background */}
+      <div className="fight-video-layer" aria-hidden="true">
+        <video
+          className="fight-background-video"
+          src={battleVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+        <div className="fight-video-overlay" />
+      </div>
+
       <div className="fight-arena-ring" aria-hidden="true"></div>
 
       <div className="fight-header">
         <h1 id="fight-title" className="fight-title">
-          <span className="fight-title-icon" aria-hidden="true">⚔</span>
+          <img src={swordImage} alt="" className="fight-title-icon" aria-hidden="true" />
           {loading ? 'BATTLE!' : error ? 'Error' : 'Done!'}
-          <span className="fight-title-icon" aria-hidden="true">⚔</span>
+          <img src={swordImage} alt="" className="fight-title-icon" aria-hidden="true" />
         </h1>
         <p className="fight-subtitle" id="fight-status">
           {loading ? battlePhrase : error ? 'Something went wrong' : 'Winner incoming!'}
@@ -112,7 +130,16 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
           <div className="fighter-card">
             <div className="fighter-name">{streams[0]}</div>
             <div className="fighter-avatar">
-              <div className="fighter-body fighter-red"></div>
+              <div className="fighter-video-wrapper fighter-video-left">
+                <video
+                  className="fighter-video"
+                  src={fighter1Video}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              </div>
               <div className="fighter-punch punch-left"></div>
             </div>
           </div>
@@ -126,7 +153,16 @@ const FightAnimation = ({ streams, parameters, onComplete }) => {
           <div className="fighter-card">
             <div className="fighter-name">{streams[1]}</div>
             <div className="fighter-avatar">
-              <div className="fighter-body fighter-blue"></div>
+              <div className="fighter-video-wrapper fighter-video-right">
+                <video
+                  className="fighter-video"
+                  src={fighter2Video}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              </div>
               <div className="fighter-punch punch-right"></div>
             </div>
           </div>

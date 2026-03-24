@@ -1,0 +1,240 @@
+======================================================================
+ENTRANCE TEST PREP: FOLDER LIST vs DB – VERIFICATION REPORT
+======================================================================
+List file: /home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/entrance_test_prep_folder_list.txt
+Folder entries: 402  |  DB exams: 0
+
+--- DUPLICATES IN FOLDER LIST (same exam name in multiple Level/Category) ---
+  all india entrance cum scholarship test (aiecst)
+    -> after 12 » computer applications
+    -> after 12 » education
+  eduheal foundation olympiads
+    -> after 10 » independent olympiads
+    -> after 12 » olympiads
+  humming bird education olympiads
+    -> after 10 » independent olympiads
+    -> after 12 » olympiads
+  kcet (karnataka common entrance test)
+    -> after 12 » architecture
+    -> after 12 » engineering
+
+--- DUPLICATES IN DB: none ---
+
+--- MISSING IN DB (in folder list but no exam with same Level/Category/Name) ---
+  Total: 402
+  after 10 » defence related | indian army soldier (general duty) & tradesman
+  after 10 » defence related | indian coast guard (navik, domestic branch)
+  after 10 » defence related | indian navy matric recruit (mr)
+  after 10 » defence related | maharaja ranjit singh afpi academy entrance test
+  after 10 » defence related | paramilitary forces (constable level)
+  after 10 » governement job related | india post gramin dak sevak (gds) recruitment exam
+  after 10 » governement job related | rrb group d (railways) recruitment exam
+  after 10 » governement job related | ssc mts (multi-tasking staff) exam
+  after 10 » governement job related | state government group d posts
+  after 10 » government school entrance and scholarship exams | aryabhatta ganit challenge (agc)
+  after 10 » government school entrance and scholarship exams | homi bhabha balvaidnyanik competition (maharashtra)
+  after 10 » government school entrance and scholarship exams | jawahar navodaya vidyalaya selection test (jnvst)
+  after 10 » government school entrance and scholarship exams | national means-cum-merit scholarship (nmms)
+  after 10 » government school entrance and scholarship exams | national talent search examination (ntse)
+  after 10 » government school entrance and scholarship exams | rashtriya military schools (rms) entrance exam
+  after 10 » government school entrance and scholarship exams | sainik school entrance exam (aissee)
+  after 10 » government school entrance and scholarship exams | simultala awasiya vidyalaya entrance exam (bihar)
+  after 10 » independent olympiads | asset (assessment of scholastic skills through educational testing)
+  after 10 » independent olympiads | crest olympiads
+  after 10 » independent olympiads | eduheal foundation olympiads
+  after 10 » independent olympiads | green olympiad
+  after 10 » independent olympiads | humming bird education olympiads
+  after 10 » independent olympiads | indian talent olympiad (ito)
+  after 10 » independent olympiads | international english olympiad (ieo)
+  after 10 » independent olympiads | international general knowledge olympiad (igko)
+  after 10 » independent olympiads | international informatics olympiad (iio)
+  after 10 » independent olympiads | international mathematics olympiad (imo)
+  after 10 » independent olympiads | international olympiad of english (ioe)
+  after 10 » independent olympiads | international olympiad of science (ios)
+  after 10 » independent olympiads | international social studies olympiad (isso)
+  after 10 » independent olympiads | national cyber olympiad (nco)
+  after 10 » independent olympiads | national level science talent search examination (nstse)
+  after 10 » independent olympiads | national science olympiad (nso)
+  after 10 » independent olympiads | spell bee competitions
+  after 10 » independent olympiads | technothlon (iit guwahati)
+  after 10 » independent olympiads | unified cyber olympiad (uco)
+  after 10 » independent olympiads | unified international english olympiad (uieo)
+  after 10 » independent olympiads | unified international mathematics olympiad (uimo)
+  after 10 » polytechnic exams | ap polycet
+  after 10 » polytechnic exams | arunachal pat
+  after 10 » polytechnic exams | assam polytechnic (pat)
+  after 10 » polytechnic exams | cg ppt – chhattisgarh pre-polytechnic test
+  after 10 » polytechnic exams | dcece (bihar combined entrance competitive exam)
+  after 10 » polytechnic exams | delhi cet
+  after 10 » polytechnic exams | goa polytechnic admission
+  after 10 » polytechnic exams | gujarat polytechnic entrance test (gpet)
+  after 10 » polytechnic exams | haryana polytechnic (det)
+  after 10 » polytechnic exams | hp pat (himachal pradesh polytechnic admission test)
+  after 10 » polytechnic exams | introduction to polytechnic exams
+  after 10 » polytechnic exams | j&k pet (polytechnic entrance test)
+  after 10 » polytechnic exams | jeecup (joint entrance examination council undergraduate program)
+  after 10 » polytechnic exams | jexpo (joint entrance examination for polytechnic)
+  after 10 » polytechnic exams | jharkhand polytechnic (pece)
+  after 10 » polytechnic exams | karnataka polytechnic test (kpt)
+  after 10 » polytechnic exams | kerala polytechnic entrance examination (kpee)
+  after 10 » polytechnic exams | maharashtra polytechnic entrance test (mpet)
+  after 10 » polytechnic exams | manipur polytechnic entrance examination (mpee)
+  after 10 » polytechnic exams | meghalaya polytechnic entrance examination (mgpee)
+  after 10 » polytechnic exams | mizoram polytechnic entrance examination (mizpee)
+  after 10 » polytechnic exams | mp polytechnic pre-test mp ppt
+  after 10 » polytechnic exams | nagaland polytechnic entrance test (npet)
+  after 10 » polytechnic exams | odisha det
+  after 10 » polytechnic exams | punjab jet
+  after 10 » polytechnic exams | rajasthan polytechnic entrance test (rpet)
+  after 10 » polytechnic exams | sikkim polytechnic entrance test (spet)
+  after 10 » polytechnic exams | tamil nadu polytechnic entrance test (tnpet)
+  after 10 » polytechnic exams | tripura polytechnic entrance test (tpet)
+  after 10 » polytechnic exams | ts polycet (telangana state polytechnic common entrance test)
+  after 10 » polytechnic exams | uttarakhand joint entrance examination for polytechnic (jeep)
+  after 10 » school admission tests | aligarh muslim university (amu) school entrance
+  after 10 » school admission tests | andhra pradesh residential junior colleges (aprjcs)
+  after 10 » school admission tests | banaras hindu university (bhu) school entrance
+  after 10 » school admission tests | banasthali vidyapith school admission (for girls)
+  after 10 » school admission tests | doon school (dehradun) test
+  after 10 » school admission tests | eklavya model residential schools (emrs)
+  after 10 » school admission tests | jamia millia islamia (jmi) school entrance
+  after 10 » school admission tests | jawahar navodaya vidyalaya (jnv) lateral entry
+  after 10 » school admission tests | kalinga institute of social sciences (kiss) – bhubaneswar, odisha
+  after 10 » school admission tests | kendriya vidyalaya (kv) class 11 admissions
+  after 10 » school admission tests | maharashtra prashala entrance
+  after 10 » school admission tests | mayo college (ajmer) test
+  after 10 » school admission tests | rajiv gandhi navodaya vidyalayas or state adarsh vidyalayas
+  after 10 » school admission tests | rashtriya military school (rms) lateral entry
+  after 10 » school admission tests | scindia school (gwalior) test
+  after 10 » school admission tests | telangana residential junior colleges (tsrjcs)
+  after 10 » school admission tests | welham boys’ and girls’ (dehradun) school test
+  after 12 » agriculture | agriculture common entrance test (agricet)
+  after 12 » agriculture | ap eapcet ts eamcet (agriculture stream)
+  after 12 » agriculture | assam agricultural university veterinary entrance test (aau vet)
+  after 12 » agriculture | banaras hindu university undergraduate entrance test (bhu uet)
+  after 12 » agriculture | bidhan chandra krishi viswavidyalaya (bckv)
+  after 12 » agriculture | bihar bcece (agriculture)
+  after 12 » agriculture | chhattisgarh pre-agriculture test (cg pat)
+  after 12 » agriculture | cskhpkv entrance exam
+  after 12 » agriculture | icar aieea (all india entrance examination for admission)
+  after 12 » agriculture | jharkhand combined entrance competitive examination (jcece)
+  after 12 » agriculture | kerala engineering, architecture, and medical (keam) entrance examination
+  after 12 » agriculture | madhya pradesh pre-agriculture test (mp pat)
+  after 12 » agriculture | maharashtra common entrance test (mht cet)
+  after 12 » agriculture | orissa university of agriculture and technology (ouat) common entrance test
+  after 12 » agriculture | rajasthan joint entrance test (rajasthan jet)
+  after 12 » agriculture | telangana state engineering, agriculture & medical common entrance test (ts eamcet)
+  after 12 » agriculture | tripura joint entrance examination (tjee)
+  after 12 » agriculture | uttar pradesh combined agriculture and technology entrance test (upcatet)
+  after 12 » architecture | architecture aptitude test (aat)
+  after 12 » architecture | comedk uget (b.arch.)
+  after 12 » architecture | integral university entrance test (iuet)
+  after 12 » architecture | jee advanced architecture aptitude test (aat)
+  after 12 » architecture | jee main paper 2 (b.arch.)
+  after 12 » architecture | kcet (karnataka common entrance test)
+  after 12 » architecture | kerala engineering architecture medical (keam) examination
+  after 12 » architecture | mht cet (architecture)
+  after 12 » architecture | national aptitude test in architectural (nata)
+  after 12 » architecture | odisha jee (ojee) – b.arch.
+  after 12 » architecture | other state architecture counselling
+  after 12 » architecture | people’s education society scholastic aptitude test (pessat)
+  after 12 » architecture | tnea (tamil nadu engineering admissions) – b.arch.
+  after 12 » architecture | west bengal joint entrance examination (wbjee)
+  after 12 » arts, media and communication | amu ba entrance
+  after 12 » arts, media and communication | bennett university entrance for ba journalism & mass communication
+  after 12 » arts, media and communication | bhu ug entrance (bhu uet) for arts & media,mass communication (undergraduate level)
+  after 12 » arts, media and communication | christ university entrance test for ba arts and ba journalism
+  after 12 » arts, media and communication | cuet ug for arts & media, mass communication (undergraduate level)
+  after 12 » arts, media and communication | ipu cet for ba (journalism) and ba (bjmc)
+  after 12 » arts, media and communication | jamia entrance (ba or ba (hons.) mass media
+  after 12 » arts, media and communication | manipal university online entrance test for journalism and mass communication (undergraduate level)
+  after 12 » arts, media and communication | st. xavier’s (mumbai) bmm entrance
+  after 12 » arts, media and communication | symbiosis entrance test (set) for ba mass communication
+  after 12 » business and management | aima ugat (for management courses)
+  after 12 » business and management | amity university entrance (bba in family business & entrepreneurship)
+  after 12 » business and management | apiit nat (national admission test) (for ug management programs)
+  after 12 » business and management | christ university bba entrance
+  after 12 » business and management | cuet ug (formerly du jat)
+  after 12 » business and management | iis university (jaipur) bba entrance
+  after 12 » business and management | imu cet (indian maritime university common entrance test)
+  after 12 » business and management | ipmat (integrated program in management aptitude test)
+  after 12 » business and management | ipu cet (bba)
+  after 12 » business and management | jipmat (joint integrated program in management aptitude test)
+  after 12 » business and management | mahe oet (manipal academy of higher education online entrance test) for business administration
+  after 12 » business and management | nmims npat (nmims programs aptitude test) for management and business
+  after 12 » business and management | peoples education society scholastic aptitude test (pessat) for management
+  after 12 » business and management | private university entrance tests for business and management (undergraduate level)
+  after 12 » business and management | sp jain aptitude test (spjet) for business
+  after 12 » business and management | st. xavier’s bms entrance (mumbai)
+  after 12 » business and management | symbiosis entrance test (set) for business and management (ug level)
+  after 12 » commerce | aligarh muslim university (amu) b.com entrance
+  after 12 » commerce | b.com entrance exams in state-level universities
+  after 12 » commerce | christ university entrance test (cuet)
+  after 12 » commerce | common proficiency test (cpt)
+  after 12 » commerce | indraprastha university common entrance test (ipu cet)
+  after 12 » commerce | jamia millia islamia (jmi) entrance test
+  after 12 » commerce | joint national entrance exam (jnee)
+  after 12 » commerce | nmims national test for programs after twelfth (npat)
+  after 12 » commerce | private college-specific entrance test
+  after 12 » commerce | st. xavier’s college (mumbai) entrance
+  after 12 » commerce | symbiosis entrance test (set - general)
+  after 12 » commerce | telangana residential degree common entrance test (tsrdc cet)
+  after 12 » computer applications | aima ugat (under graduate aptitude test)
+  after 12 » computer applications | all india entrance cum scholarship test (aiecst)
+  after 12 » computer applications | amu b.sc. (hons.) computer science & applications entrance exam
+  after 12 » computer applications | bitsat – b.e. computer science engineering (cs)
+  after 12 » computer applications | bumat (bharati vidyapeeth undergraduate management aptitude test)
+  after 12 » computer applications | christ university entrance (bca)
+  after 12 » computer applications | cuet ug – b.sc. computer science (for du, bhu, and other universities)
+  after 12 » computer applications | dsat (dayananda sagar admission test)
+  after 12 » computer applications | iem jee (institute of engineering and management joint entrance exam)
+  after 12 » computer applications | ipu cet (indraprastha university common entrance test)
+  after 12 » computer applications | jnee (joint national entrance exam)
+  after 12 » computer applications | manipal entrance test (met) - b.tech cse
+  after 12 » computer applications | mht- cet- kcet- wbjee – engineering with computer science engineering (cse)
+  after 12 » computer applications | mp cpct (madhya pradesh computer proficiency certification test)
+  after 12 » computer applications | pes scholastic aptitude test (pessat) - bca & b.tech cse
+  after 12 » computer applications | reva cet (reva common entrance test) bengaluru
+  after 12 » computer applications | srmjeee – b.tech computer science engineering (cse)
+  after 12 » computer applications | st. andrews joint entrance examination (sajee)
+  after 12 » computer applications | symbiosis entrance test (set) – bca -bba-it
+  after 12 » computer applications | viteee – b.tech computer science engineering (cse)
+  after 12 » defence exams | iaf airmen entrance test
+  after 12 » defence exams | iaf group y (non-technical) entrance test
+  after 12 » defence exams | indian air force group x (technical) entrance test
+  after 12 » defence exams | indian army soldier technical or clerk or store keeper
+  after 12 » defence exams | indian coast guard entrance test for navik (general duty) & yantrik
+  after 12 » defence exams | indian navy 10+2 - b.tech cadet entry
+  after 12 » defence exams | indian navy ssr (senior secondary recruit) entrance test
+  after 12 » defence exams | military nursing service (mns) (for female candidates)
+  after 12 » defence exams | naval academy exam
+  after 12 » defence exams | nda exam (national defence academy)
+  after 12 » defence exams | paramilitary forces (through ssc gd or other recruitments)
+  after 12 » defence exams | technical entry scheme (tes) – indian army
+  after 12 » defence exams | territorial army (ta) soldier or junior commissioned officer (jco)
+  after 12 » design | all india entrance examination for design (aieed)
+  after 12 » design | d-art (dalham - assessment & review tool)
+  after 12 » design | design aptitude test (decode)
+  after 12 » design | idat – iiad design aptitude test
+  after 12 » design | iiad entrance test
+  after 12 » design | mit institute of design – design aptitude test (mitid dat)
+  after 12 » design | nid design aptitude test (nid dat)
+  after 12 » design | nift entrance exam
+  after 12 » design | symbiosis entrance exam for design (seed)
+  after 12 » design | undergraduate common entrance examination for design (uceed)
+  ... and 202 more.
+
+--- MISSING IN FOLDER (in DB but no matching entry in folder list) ---
+  None
+
+--- WRONG CATEGORY (same exam name: DB category differs from folder) ---
+  None
+
+======================================================================
+SUMMARY
+======================================================================
+  Duplicates in folder: 4 exam names in multiple level/category
+  Duplicates in DB:     0 exam names in multiple categories
+  Missing in DB:       402
+  Missing in folder:   0
+  Wrong category:      0

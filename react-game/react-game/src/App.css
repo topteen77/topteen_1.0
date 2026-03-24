@@ -3,7 +3,7 @@
 .app-container {
   width: 100%;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #fff
   position: relative;
   outline: none; /* Remove default focus outline, we'll use custom */
 }

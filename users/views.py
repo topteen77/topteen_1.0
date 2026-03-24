@@ -27,7 +27,7 @@ from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from careers.models import Videos,Career,CareerTags
-from entrance_exams.models import EntranceExam
+from core.models import EntranceTestPrepExam
 from colleges.models import College,CollegeShortlist
 from courses.models import Course
 from core.models import Country,Subject,Hobbies,UserFigureOut,Stories
@@ -2559,7 +2559,7 @@ class UserDashboard(TemplateView):
         ctx['courses'] = Course.get_all_courses()
         ctx['tags']=tags
         ctx['countries']=country
-        ctx['exams']=EntranceExam.objects.all().order_by('?')[:3]
+        ctx['exams']=EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('?')[:3]
         
         # Determine user's class (10 or 12)
         from institute.models import StudentManagement
@@ -3343,7 +3343,7 @@ class BookmarkExam(TemplateView):
     def get_context(self,request,*args,**kwargs):
         ctx={}
         user_ids = _bookmark_owner_user_ids(request.user)
-        exams = EntranceExam.objects.filter(shortlist__in=user_ids).distinct()
+        exams = EntranceTestPrepExam.objects.filter(shortlist__in=user_ids, object_status=choices.ObjectStatus.ACTIVE).distinct().order_by("name")
         ctx["html_head"] = self.html_head()
         ctx["exams"] = exams
         ctx['breadcrumb']=self.__breadcrumb()

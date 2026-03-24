@@ -6,9 +6,6 @@
 <!-- Description Tools - Add after the form fields -->
 <div class="description-tools-wrapper" style="margin: 20px 0; clear: both; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
     <div class="description-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button type="button" id="convert-to-h2-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-            Convert to H2
-        </button>
         <button type="button" id="json-preview-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
             JSON Preview
         </button>
@@ -137,6 +134,10 @@
 #accordion-preview-container .accordion-body div,
 #accordion-preview-container .accordion-body span,
 #accordion-preview-container .accordion-body li { color: #000 !important; }
+#accordion-preview-container .accordion-item.preview-empty {
+    border-color: #dc3545;
+    box-shadow: 0 8px 24px rgba(220, 53, 69, 0.15);
+}
 </style>
 
 <script>
@@ -144,6 +145,7 @@
     var descriptionTextarea = null;
     var accordionData = [];
     var jsonData = {};
+    var updatePreviewDebounced = debounce(updatePreview, 300);
     
     // Wait for DOM to be ready
     if (document.readyState === 'loading') {
@@ -290,7 +292,7 @@
                                 editor.on('change', function() {
                                     var content = editor.getData();
                                     descriptionTextarea.value = content;
-                                    updatePreview();
+                                    updatePreviewDebounced();
                                 });
                                 
                                 editor.on('blur', function() {
@@ -302,7 +304,7 @@
                                     if (editor) {
                                         editor.setData(this.value);
                                     }
-                                    updatePreview();
+                                    updatePreviewDebounced();
                                 });
                                 
                                 descriptionTextarea.addEventListener('blur', function() {
@@ -323,7 +325,7 @@
                         } else {
                             // Regular textarea handling - sync changes
                             descriptionTextarea.addEventListener('input', function() {
-                                updatePreview();
+                                updatePreviewDebounced();
                             });
                             
                             descriptionTextarea.addEventListener('blur', function() {
@@ -363,12 +365,6 @@
     }
     
     function setupButtons() {
-        // Convert to H2 button
-        var convertBtn = document.getElementById('convert-to-h2-btn');
-        if (convertBtn) {
-            convertBtn.addEventListener('click', convertToH2);
-        }
-        
         // JSON Preview button
         var jsonBtn = document.getElementById('json-preview-btn');
         if (jsonBtn) {
@@ -447,25 +443,46 @@
             
             accordionItems.push({
                 title: title || 'Untitled Section',
-                content: content.trim() || '<p>No content</p>'
+                content: content.trim(),
+                isBlank: sectionHtmlIsEffectivelyBlank(content)
             });
         }
         
         return accordionItems;
     }
     
+    function sectionHtmlIsEffectivelyBlank(html) {
+        if (!html || !String(html).trim()) return true;
+        var temp = document.createElement('div');
+        temp.innerHTML = String(html);
+        Array.prototype.forEach.call(temp.querySelectorAll('script,style,noscript'), function(node) {
+            node.remove();
+        });
+        var text = (temp.textContent || '').replace(/\u00A0/g, ' ').trim();
+        return !text;
+    }
+
+    function sectionKeyFromTitle(title) {
+        var key = (title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        return key || 'section';
+    }
+
     function generateJSON(accordionItems) {
-        return {
-            accordion: accordionItems.map(function(item, index) {
-                return {
-                    id: index + 1,
-                    title: item.title,
-                    content: item.content
-                };
-            }),
-            total_items: accordionItems.length,
-            generated_at: new Date().toISOString()
-        };
+        var sections = {};
+        accordionItems.forEach(function(item, index) {
+            var baseKey = sectionKeyFromTitle(item.title);
+            var key = baseKey;
+            var suffix = 1;
+            while (sections[key]) {
+                key = baseKey + '_' + suffix;
+                suffix += 1;
+            }
+            sections[key] = {
+                title: item.title || ('Section ' + (index + 1)),
+                html: item.content || ''
+            };
+        });
+        return { sections: sections };
     }
     
     function updatePreview() {
@@ -523,16 +540,16 @@
         
         accordionData.forEach(function(item, index) {
             var itemId = 'preview-accordion-item-' + index;
-            html += '<div class="accordion-item" style="border: 1px solid #e4e7fb; border-radius: 16px; margin-bottom: 18px; overflow: hidden; box-shadow: 0 8px 24px rgba(12, 15, 37, 0.06);">';
+            html += '<div class="accordion-item ' + (item.isBlank ? 'preview-empty' : '') + '" style="border: 1px solid #e4e7fb; border-radius: 16px; margin-bottom: 18px; overflow: hidden; box-shadow: 0 8px 24px rgba(12, 15, 37, 0.06);">';
             html += '<button class="accordion-button" type="button" onclick="togglePreviewAccordion(\'' + itemId + '\')" style="font-weight: 600; font-size: 16px; padding: 15px 20px; width: 100%; text-align: left; background: #f4f3ff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">';
             html += '<span style="display: flex; align-items: center; gap: 10px;">';
             html += '<span style="background: #417690; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: bold;">' + (index + 1) + '</span>';
-            html += '<span>' + item.title + '</span>';
+            html += '<span>' + item.title + (item.isBlank ? ' <span style="color:#dc3545; font-weight:700;">⚠ Empty</span>' : '') + '</span>';
             html += '</span>';
             html += '<span style="font-size: 24px; color: #5046e5; font-weight: bold; min-width: 30px; text-align: center;">−</span>';
             html += '</button>';
             html += '<div id="' + itemId + '" class="accordion-body" style="display: block; padding: 20px 24px; background: #fff; border-top: 1px solid #e4e7fb; #f4f3f3 !important;">';
-            html += item.content;
+            html += item.content || '<p style="color:#dc3545; font-weight:600;">This section is empty in description HTML.</p>';
             html += '</div>';
             html += '</div>';
         });
@@ -558,27 +575,82 @@
         }
     }
     
-    function convertToH2() {
-        if (!descriptionTextarea) {
-            alert('Description field not found');
-            return;
+    function getCurrentDescription() {
+        if (!descriptionTextarea) return '';
+        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_description) {
+            var editor = CKEDITOR.instances.id_description;
+            var html = editor.getData() || descriptionTextarea.value || '';
+            descriptionTextarea.value = html;
+            return html;
         }
-        
-        var content = descriptionTextarea.value;
-        // Simple conversion - wrap paragraphs in H2 if they look like headings
-        // This is a basic implementation
-        alert('Convert to H2 feature - You can manually add <h2>Your Heading</h2> tags in the description.');
+        return descriptionTextarea.value || '';
     }
-    
+
+    function getJsonPreviewUrl() {
+        var path = window.location.pathname || '';
+        return path.replace(/\/change\/?$/, '/json-preview/');
+    }
+
     function showJSONModal() {
+        var currentHtml = getCurrentDescription();
         updateJSON();
         var modal = document.getElementById('json-preview-modal');
         var content = document.getElementById('json-preview-content');
-        
-        if (modal && content) {
-            content.textContent = JSON.stringify(jsonData, null, 2);
-            modal.style.display = 'block';
+        if (!modal || !content) return;
+        content.textContent = 'Loading...';
+        modal.style.display = 'block';
+
+        var formData = new FormData();
+        formData.append('description', currentHtml);
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+        fetch(getJsonPreviewUrl(), {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.success) {
+                content.textContent = JSON.stringify({ sections: data.sections || {} }, null, 2);
+            } else {
+                content.textContent = JSON.stringify({
+                    error: (data && data.error) ? data.error : 'Failed to generate JSON preview',
+                    fallback: jsonData
+                }, null, 2);
+            }
+        })
+        .catch(function(err) {
+            content.textContent = JSON.stringify({
+                error: err && err.message ? err.message : 'Request failed',
+                fallback: jsonData
+            }, null, 2);
+        });
+    }
+
+    function getCookie(name) {
+        var cookieValue = '';
+        var cookies = document.cookie ? document.cookie.split(';') : [];
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
         }
+        return cookieValue;
+    }
+
+    function debounce(fn, wait) {
+        var timeout = null;
+        return function() {
+            var args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                fn.apply(null, args);
+            }, wait || 250);
+        };
     }
     
     // Make toggle function available globally

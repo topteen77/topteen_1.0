@@ -1,0 +1,25 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<div id="kt_content_container" class="container-xxl">
+		<form method="POST" novalidate class="form d-flex flex-column flex-lg-row" enctype="multipart/form-data">
+			<div class="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
+				<ul class="nav nav-custom nav-tabs nav-line-tabs nav-line-tabs-2x border-0 fs-4 fw-bold mb-n2">
+					<li class="nav-item"><h2>Entrance Test Prep Category</h2></li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane fade show active" id="kt_ecommerce_add_product_general" role="tab-panel">
+						<div class="d-flex flex-column gap-7 gap-lg-10">
+							{% include 'topteenadmin/includes/base_form.html' %}
+						</div>
+					</div>
+				</div>
+				<div class="d-flex justify-content-end">
+					<a href="{{url('topteenadminmanaged:entrancetestprepcategorylist')}}" class="btn btn-light me-5">Cancel</a>
+					<button type="submit" class="btn btn-primary">{% if object %}Save Changes{% else %}Save{% endif %}</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

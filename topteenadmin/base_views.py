@@ -1,9 +1,11 @@
 import re
+import json
 from urllib import request
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 from django.views.generic.base import ContextMixin,View
 from django.views.generic import TemplateView,ListView,CreateView, UpdateView,DeleteView,DetailView
+from django.template.loader import get_template
 from datetime import datetime
 from .utils import build_admin_breadcrumb
 from django.contrib.messages.views import SuccessMessageMixin
@@ -12,6 +14,16 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
+
+# #region agent log
+_DEBUG_LOG = "/home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0/.cursor/debug-b428b8.log"
+def _agent_log(msg, data, hypothesis_id):
+    try:
+        with open(_DEBUG_LOG, "a") as f:
+            f.write(json.dumps({"sessionId": "b428b8", "message": msg, "data": data, "hypothesisId": hypothesis_id, "timestamp": __import__("time").time() * 1000}) + "\n")
+    except Exception:
+        pass
+# #endregion
 
 PER_PAGE_CHOICES = [
     ('all', 'All'),
@@ -53,6 +65,14 @@ class BaseListView(ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        # #region agent log
+        try:
+            base_tpl = get_template('topteenadmin/base.html')
+            origin_path = getattr(getattr(base_tpl, 'origin', None), 'name', None) or str(getattr(base_tpl, 'origin', ''))
+            _agent_log("BaseListView get_context_data", {"request_path": self.request.path, "template_name": self.template_name, "base_origin": origin_path, "active_tab": self.active_tab}, "H2")
+        except Exception as e:
+            _agent_log("BaseListView get_context_data resolve error", {"request_path": self.request.path, "template_name": self.template_name, "error": str(e)}, "H4")
+        # #endregion
         ctx['now'] = datetime.now()
         title=self.title
         ctx['active_tab']=self.active_tab

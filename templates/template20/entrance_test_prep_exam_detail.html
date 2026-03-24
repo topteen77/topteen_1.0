@@ -1,0 +1,621 @@
+{% extends 'template20/base.html' %}
+{% block title_content %}{{ exam.name }} | Top Teen{% endblock %}
+{% block description_content %}{{ exam.name }}{% endblock %}
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+{% block additionalhead %}
+<style>
+    .four-pillars-hero-section {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%);
+    }
+
+
+    /* Responsive exam category cards (right-side text + left-side illustration) */
+    .exam-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+      .exam-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 992px) {
+      .exam-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .exam-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #fff;
+      border-radius: 14px;
+      padding: 0;
+      box-shadow: 0 6px 22px rgba(16, 24, 40, 0.08);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+      border: 1px solid #BCB8FF;
+      height: 164px;
+      overflow: hidden;
+    }
+
+    .exam-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 36px rgba(16, 24, 40, 0.12);
+    }
+
+    .right-banner {
+	width: 80px;
+	height: 80px;
+	min-width: 80px;
+	min-height: 80px;
+	background: #ffff;
+	border-radius: 50px;
+  padding: 5px;
+  overflow: hidden;
+}
+
+.right-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* keeps full image visible */
+}
+
+
+    .exam-card-img {
+      flex: 0 0 148px;
+      height: 100%;
+      background: #EAE9FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      height: 100%;
+    }
+
+    .exam-card-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      padding: 15px 8px;
+    }
+
+    .exam-card-body .custom-button {
+      width: 118px;
+    }
+
+
+    .exam-card-img img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .exam-card-body h3 {
+      margin: 0 0 .3rem 0;
+      font-size: 1.05rem;
+      line-height: 1.15;
+      color: #3F37C9;
+      font-weight: 600;
+    }
+
+    .exam-card-body p {
+      margin: 0 0 .6rem 0;
+      color: #6b6b7a;
+      font-size: 0.95rem;
+    }
+
+    .exam-card-body .btn {
+      padding: .45rem .85rem;
+      font-size: .9rem;
+    }
+
+    /* hide extra cards by default, reveal when .show-all is added */
+    .exam-grid .extra-card {
+      display: none;
+    }
+
+    .exam-grid.show-all .extra-card {
+      display: flex;
+    }
+
+    /* center the toggle button */
+    .exam-grid-toggle {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .exam-ct-note {
+      text-align: start;
+      background: linear-gradient(90deg, #FFEEDB 0%, #FBE2C1 100%);
+      padding: 13px;
+      border-radius: 5px;
+    }
+
+    /* Accordion & sidebar styles */
+    .quick-links-sidebar {
+      position: sticky;
+  top: 110px;
+  background: #f7f7ff;
+  border-radius: 8px;
+  border: 1px solid #e3e3ff;
+    }
+
+    .custom-faq .accordion-item .accordion-header .accordion-button i {
+  background: #3f37c9;
+  color: #fff;
+  padding: 10px 10px;
+  border-radius: 6px;
+}
+
+    .quick-links-sidebar .quick-links li {
+      border-bottom: 1px solid #4f45db17;
+      padding: 12px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .quick-links-sidebar .quick-links li:last-child {
+      border-bottom: none;
+    }
+
+    .quick-links a {
+      color: #494949;
+      display: block;
+      padding: 6px 0;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      line-height: 18px;
+    }
+
+    .quick-link.toc-h2.active {
+	color: #3F37C9;
+}
+
+.btn.btn-outline-secondary.shortlist-exam {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+    .quick-links-sidebar .quick-links li a i {
+      margin-right: 10px !important;
+    }
+
+    .quick-links a:hover {
+      text-decoration: underline;
+      color: #3F37C9;
+    }
+    
+    
+    /* Mobile quick-jump improved styles */
+    .mobile-quick-jump {
+      width: 100%;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .mobile-quick-jump .select-wrap {
+      position: relative;
+      flex: 1 1 auto;
+    }
+
+    .mobile-quick-jump .select-wrap .form-select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 2.5rem;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #e6e6ff;
+      box-shadow: 0 6px 18px rgba(63,55,201,0.06);
+      height: 48px;
+    }
+
+    .mobile-quick-jump .select-caret {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #6d5ffb;
+      font-size: 1.05rem;
+      opacity: 0.95;
+    }
+
+    .mobile-quick-jump .btn {
+      border-radius: 10px;
+  padding: .45rem .8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 64px;
+  box-shadow: 0 8px 22px rgba(109,95,251,0.12);
+  background: #50B9F9 !important;
+  border: 1px solid #50B9F9 !important;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  height: 46px;
+    }
+
+    .exam-details-section .accordion-button {
+      background: linear-gradient(90deg, #FBFBFF 0%, #F7F4FF 100%);
+      color: #111827;
+      font-weight: 600;
+      border-radius: 8px;
+      gap: .5rem;
+      align-items: center;
+    }
+
+    .exam-details-section .accordion-button .icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      background: linear-gradient(135deg, #3F37C9 0%, #6D5FFB 100%);
+      box-shadow: 0 6px 18px rgba(63, 55, 201, 0.14);
+    }
+
+    .exam-details-section .accordion-body {
+      background: #fbfbfb;
+      color: #444;
+      margin-top: 0px !important;
+      border-radius: 10px;
+      margin: 18px;
+    }
+
+    .exam-details-section .accordion-body ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .exam-details-section .accordion-body  li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 19px;
+  height: 18px;
+  background-image: url('{{ static('images_new/icons/small-blue-tick.png') }}');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+}
+
+.exam-details-section .accordion-body  li {
+  position: relative;
+  padding-left: 25px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.exam-details-section .accordion-body ul li ul{list-style: revert-layer;
+  padding-left: 15px;}
+.exam-details-section .accordion-body ul li ul li:before{display: none;}
+
+.exam-details-section .accordion-body ul li ul li{padding-left:0px;}
+
+   
+
+
+ 
+    .exam-details-section .accordion-item+.accordion-item {
+      margin-top: .5rem;
+    }
+
+    .exam-details-section .accordion-item {
+      border: 0px;
+      box-shadow: none;
+    }
+
+    .exam-details-section .accordion-body h3 {
+      background: #E9E8FF;
+      padding: 12px 8px;
+      border-radius: 6px;
+      font-size: 18px;
+      color: #3f37c9;
+      margin-bottom:17px;
+    }
+
+    .exam-details-section .accordion-body table tr td, .exam-details-section .accordion-body table tr th {
+	border: 1px solid #9b9999;
+	padding: 5px 14px;
+}
+
+.exam-details-section .accordion-body table tr th {
+	background: #f7f7ff;
+	color: #3f37c9;
+}
+
+.exam-details-section .accordion-body table {
+	margin-bottom: 22px;
+  background:#fff;
+}
+
+/* Hide duplicate exam title H1 inside accordion (hero already shows exam name) */
+.exam-details-section .accordion-body h1 {
+  display: none !important;
+}
+
+    @media (max-width: 991px) {
+      .sticky-sidebar {
+        position: relative;
+        top: 0;
+        margin-bottom: .75rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+  </style>
+{% endblock %}
+{% block content %}
+{% if show_freetrail_popup %}<div id="freetrail-content-wrap">{% endif %}
+<main class="py-test-page">
+  <section class="hero-section-inner four-pillars-hero-section pt-md-18 pt-14 pb-5 position-relative">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">{% include 'template20/includes/breadcrumb.html' %}</div>
+        <div class="col-lg-10 col-md-12 career-direction-test-hero mt-md-5" >
+          <!-- <span class="highlighter"><img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Entrance Exam</span> -->
+          <div class="d-flex align-items-center gap-3 flex-row mb-md-4 mb-2" >
+
+            <div class="right-banner d-md-flex justify-content-center align-items-center">
+              {% if exam.image %}<img class="img-fluid" src="{{ exam.image.url }}" alt="{{ exam.name }}" />
+              {% elif exam.category and exam.category.image %}<img class="img-fluid" src="{{ exam.category.image.url }}" alt="{{ exam.name }}" />
+              {% else %}<img class="img-fluid" src="{{ static('images_new/entrance-exam/school-adm-test.png') }}" alt="{{ exam.name }}" />{% endif %}
+            </div>
+
+
+            <h1 class="heading-title  my-0 fs-30 fs-sm-20 lh-sm mb-0">{{ exam.name }}</h1>
+        
+          </div>
+
+        </div>
+        <div class="col-lg-2 col-md-12 d-flex justify-md-content-end justify-content-center align-items-center">
+         
+          {% if request.user.is_authenticated %}
+          <button type="button" class="btn btn-outline-secondary shortlist-exam gap-2 {% if is_exam_bookmarked %}bookmarked{% endif %}" data-exam-id="{{ exam.id }}" title="{% if is_exam_bookmarked %}Remove bookmark{% else %}Bookmark exam{% endif %}">
+            <i class='bx {% if is_exam_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i> {% if is_exam_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="learning-prefernces-section py-4 exam-details-section">
+    <div class="container">
+      <div class="row">
+        {% if sections %}
+        <aside class="col-lg-3 d-none d-lg-block">
+          <div class="sticky-sidebar p-3 quick-links-sidebar">
+            <h6 class="fs-20 fw-700 mb-3">Quick links</h6>
+            <ul class="quick-links list-unstyled mb-0" id="exam-quick-links">
+              {% if toc %}
+              {% for item in toc %}
+              {% if item.level == 2 %}
+              <li><a class="quick-link toc-h2" href="#{{ item.id }}" data-section-id="{{ item.id }}"><i class="bx {{ item.icon|default('bx-info-circle') }} me-1"></i>{{ item.text }}</a></li>
+              {% endif %}
+              {% endfor %}
+              {% else %}
+              {% for section in sections %}
+              <li><a class="quick-link" href="#{{ section.section_id }}" data-section-id="{{ section.section_id }}"><i class="bx {{ section.icon|default('bx-info-circle') }} me-1"></i>{{ section.display_title|default(section.title) }}</a></li>
+              {% endfor %}
+              {% endif %}
+            </ul>
+          </div>
+        </aside>
+        <div class="col-12 d-lg-none mb-3">
+          <div class="mobile-quick-jump">
+            <div class="select-wrap w-100">
+              <select id="exam-quick-jump" class="form-select form-select-sm">
+                <option value="">Jump to section...</option>
+                {% if toc %}
+                {% for item in toc %}
+                {% if item.level == 2 %}<option value="{{ item.id }}">{{ item.text }}</option>{% endif %}
+                {% endfor %}
+                {% else %}
+                {% for section in sections %}
+                <option value="{{ section.section_id }}">{{ section.display_title|default(section.title) }}</option>
+                {% endfor %}
+                {% endif %}
+              </select>
+              <i class="bx bx-chevron-down select-caret"></i>
+            </div>
+            <button type="button" id="exam-jump-go" class="btn btn-sm btn-primary">Go <i class="bx bx-arrow-right-circle"></i></button>
+          </div>
+        </div>
+        <div class="col-lg-9 col-md-12 custom-faq">
+          <div class="accordion custom-accordion" id="examAccordion">
+            {% for section in sections %}
+            <div class="accordion-item" id="{{ section.section_id }}">
+              <h2 class="accordion-header" id="heading-{{ section.section_id }}">
+                <button class="accordion-button {{ 'collapsed' if not loop.first else '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ section.section_id }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse-{{ section.section_id }}">
+                  <span class="section-icon"><i class="bx {{ section.icon|default('bx-info-circle') }} me-2 fs-18"></i></span>
+                  <span class="accordion-title-text">{{ section.display_title|default(section.title) }}</span>
+                </button>
+              </h2>
+              <div id="collapse-{{ section.section_id }}" class="accordion-collapse collapse {{ 'show' if loop.first else '' }}" aria-labelledby="heading-{{ section.section_id }}" data-bs-parent="#examAccordion">
+                <div class="accordion-body">
+                  {{ section.content_html|safe }}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+          <p class="text-gray">Content for this exam is not yet available.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</main>
+{% if sections %}
+<script>
+(function() {
+  var quickLinksUl = document.getElementById('exam-quick-links');
+  var accordion = document.getElementById('examAccordion');
+
+  function setActiveQuickLink(sectionId) {
+    if (!quickLinksUl) return;
+    quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('data-section-id') === sectionId);
+    });
+  }
+
+  if (quickLinksUl) {
+    quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id = a.getAttribute('data-section-id');
+        if (!id) return;
+        var col = document.getElementById('collapse-' + id);
+        if (col && typeof bootstrap !== 'undefined') {
+          var bs = bootstrap.Collapse.getOrCreateInstance(col, { toggle: false });
+          setActiveQuickLink(id);
+          if (col.classList.contains('show')) {
+            col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            bs.show();
+            col.addEventListener('shown.bs.collapse', function once() {
+              col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              col.removeEventListener('shown.bs.collapse', once);
+            });
+          }
+        } else {
+          var el = document.getElementById(id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActiveQuickLink(id);
+          }
+        }
+      });
+    });
+  }
+
+  if (accordion) {
+    accordion.querySelectorAll('.accordion-collapse').forEach(function(col) {
+      col.addEventListener('show.bs.collapse', function() {
+        var id = col.id.replace('collapse-', '');
+        setActiveQuickLink(id);
+      });
+    });
+    var open = accordion.querySelector('.accordion-collapse.show');
+    if (open) setActiveQuickLink(open.id.replace('collapse-', ''));
+  }
+
+  var jumpSelect = document.getElementById('exam-quick-jump');
+  var jumpGo = document.getElementById('exam-jump-go');
+  if (jumpGo && jumpSelect) {
+    jumpGo.onclick = function() {
+      var id = jumpSelect.value;
+      if (!id) return;
+      var col = document.getElementById('collapse-' + id);
+      if (col && typeof bootstrap !== 'undefined') {
+        var bs = bootstrap.Collapse.getOrCreateInstance(col, { toggle: false });
+        setActiveQuickLink(id);
+        if (col.classList.contains('show')) {
+          col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          bs.show();
+          col.addEventListener('shown.bs.collapse', function once() {
+            col.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            col.removeEventListener('shown.bs.collapse', once);
+          });
+        }
+      } else {
+        var el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setActiveQuickLink(id);
+        }
+      }
+    };
+  }
+})();
+</script>
+{% endif %}
+{% if request.user.is_authenticated %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function() {
+  var btn = document.querySelector('.shortlist-exam');
+  if (!btn) return;
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  function fireAlert(title, icon, timer) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({ title: title, icon: icon || 'success', position: 'top-end', showConfirmButton: false, toast: true, timer: timer || 2000 });
+    }
+  }
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    var examId = btn.getAttribute('data-exam-id');
+    var icon = btn.querySelector('i');
+    var label = btn.childNodes && btn.childNodes[2] && btn.childNodes[2].textContent ? btn.childNodes[2] : null;
+    if (!examId) return;
+    btn.disabled = true;
+    var formData = new FormData();
+    formData.append('examid', examId);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken') || '{{ csrf_token }}');
+    fetch('/api/v1/user/shortlistexam', { method: 'POST', body: formData, credentials: 'same-origin', headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          btn.classList.add('bookmarked');
+          if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
+          if (label) label.textContent = ' Bookmarked';
+          btn.title = 'Remove bookmark';
+          fireAlert(data.message || 'Exam bookmarked successfully!', 'success');
+        } else {
+          btn.classList.remove('bookmarked');
+          if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
+          if (label) label.textContent = ' Bookmark';
+          btn.title = 'Bookmark exam';
+          fireAlert(data.message || 'Exam removed from bookmarks', 'success');
+        }
+      })
+      .catch(function() {
+        fireAlert('Error updating bookmark. Please try again.', 'error');
+      })
+      .finally(function() { btn.disabled = false; });
+  });
+})();
+</script>
+{% endif %}
+{% if show_freetrail_popup %}</div>{% include 'template20/includes/freetrail_content_gate.html' %}{% endif %}
+{% endblock %}

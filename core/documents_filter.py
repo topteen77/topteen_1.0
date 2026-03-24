@@ -3,7 +3,6 @@ from careers.documents import CareerDocument
 from courses.documents import CourseDocument
 from skilllab.documents import SkillLabCourseDocument
 from careers.models import Videos
-from entrance_exams.documents import EntranceExamDocument
 from elasticsearch_dsl import Q ,Nested
 from django.core.paginator import Paginator
 from django.urls import reverse_lazy
@@ -19,7 +18,7 @@ class ItemSearch:
     career : list =field(default_factory=list)
     college : list =field(default_factory=list)
     courses : list =field(default_factory=list)
-    entranceexam : list =field(default_factory=list)
+    entrance_test_prep_exams : list =field(default_factory=list)
     videos : list =field(default_factory=list)
     
 
@@ -43,11 +42,11 @@ class ItemSearch:
             all_search['course']=search_courses
         else:
             all_search['course']=[]
-        entranceexams = self.entranceexam
-        if entranceexams:
-            all_search['entranceexam']=entranceexams
+        etp_exams = getattr(self, 'entrance_test_prep_exams', None) or []
+        if etp_exams:
+            all_search['entrance_test_prep_exams'] = etp_exams
         else:
-            all_search['entranceexam']=[]
+            all_search['entrance_test_prep_exams'] = []
         video=self.videos
         if video:
             all_search['videos']=video
@@ -70,7 +69,6 @@ class AllSearch:
     def __init__(self):
         self.searchcollege=CollegeDocument.search()
         self.searchcareer=CareerDocument.search()
-        self.searchexam=EntranceExamDocument.search()
         self.searchcourse=SkillLabCourseDocument.search()
 
     def get_ajax_search_Item_list(self,request,result=None):
@@ -87,8 +85,8 @@ class AllSearch:
         search_courses = self._search_course(value)
         searcheddata.courses = search_courses           
 
-        exam = self._search_entranceexam(value)
-        searcheddata.entranceexam = exam
+        entrance_test_prep_exams = self._search_entrance_test_prep_exams(value)
+        searcheddata.entrance_test_prep_exams = entrance_test_prep_exams
 
         colleges = self._search_college(value)
         searcheddata.college = colleges
@@ -155,15 +153,35 @@ class AllSearch:
         except:
             courses = None
         return courses
-    
-    def _search_entranceexam(self,search):
-        q = Q("match_phrase", name=search) 
+
+    def _search_entrance_test_prep_exams(self, search_term):
+        """Search Entrance Test Prep exams (core.EntranceTestPrepExam) by name. Use raw SQL to avoid modeltranslation rewriting 'name' to 'name_en' (this model has no translated fields)."""
         try:
-            search=self.searchexam.query(q) 
-            entranceexam = search.execute()[0:]
-        except:
-            entranceexam = None
-        return entranceexam
+            from core.models import EntranceTestPrepExam
+            from core import choices
+            from django.db import connection
+            # Raw SQL so modeltranslation cannot rewrite field names
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT id FROM core_entrancetestprepexam
+                    WHERE name LIKE %s AND object_status = %s
+                    ORDER BY name
+                    LIMIT 15
+                    """,
+                    ["%" + search_term + "%", choices.ObjectStatus.ACTIVE],
+                )
+                pks = [row[0] for row in cursor.fetchall()]
+            if not pks:
+                return []
+            # Load by pk only (no name in filter) then sort by search order
+            pk_order = {pk: i for i, pk in enumerate(pks)}
+            exams = list(EntranceTestPrepExam._base_manager.filter(pk__in=pks))
+            exams.sort(key=lambda e: pk_order.get(e.pk, 999))
+            return exams
+        except Exception as e:
+            logger.warning("Error searching entrance test prep exams: %s", e)
+            return []
     
     def _search_videos(self,search):
         try:

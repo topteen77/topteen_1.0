@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { CAREER_CLUSTERS, MAX_STREAM_SELECTION } from '../../utils/constants';
 import './StreamSelection.css';
+import iconSelectTick from '../../assets/images/pruple-select-tick.svg';
+
+
 
 const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, onContinue, onBack, disqualifiedStreams = [], onReset }) => {
   const [selectedStreams, setSelectedStreams] = useState([]);
@@ -42,7 +45,19 @@ const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, o
     <div className="stream-selection-container" role="region" aria-labelledby="stream-selection-title">
       <div className="stream-selection-header">
         <h1 id="stream-selection-title" className="stream-selection-title">
-          {streamPool && streamPool.length ? 'Select Two Streams to Battle' : selectedCluster ? `Select Two Streams from ${selectedCluster}` : 'Select Two Streams'}
+          {streamPool && streamPool.length ? (
+            <>
+              Select <span className="text-purple">Two Streams</span> to Battle
+            </>
+          ) : selectedCluster ? (
+            <>
+              Select <span className="text-purple">Two Streams</span> from {selectedCluster}
+            </>
+          ) : (
+            <>
+              Select <span className="text-purple">Two Streams</span>
+            </>
+          )}
         </h1>
         <p className="stream-selection-subtitle" id="stream-selection-description">
           Choose the streams you want to compare
@@ -73,7 +88,7 @@ const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, o
                 <span className="stream-name" id={`stream-${stream}-desc`}>{stream}</span>
                 {isSelected && (
                   <span className="stream-checkmark" aria-label="Selected" aria-hidden="true">
-                    ✓
+                    <img src={iconSelectTick} alt="" className="stream-checkmark-img" />
                   </span>
                 )}
               </div>
@@ -104,7 +119,7 @@ const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, o
         <div className="stream-selection-footer">
           {onBack && (
             <button type="button" className="back-button" onClick={onBack}>
-              ← Back
+                <i className='back-button-icon bx bx-left-arrow-alt' ></i>  Back
             </button>
           )}
           <button
@@ -113,7 +128,7 @@ const StreamSelection = ({ careerClusters, selectedCluster, streamPool = null, o
             disabled={!canContinue}
             aria-label={canContinue ? 'Continue to parameter selection' : 'Select 2 streams to continue'}
           >
-            Continue
+            Continue <i className='bx bx-right-arrow-alt' ></i>
           </button>
         </div>
       )}

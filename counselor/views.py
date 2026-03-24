@@ -954,6 +954,71 @@ def CounselorCoursepayment(request):
         success_url = request.build_absolute_uri(reverse('counselor:counselor_course_payment_success', kwargs={'enc_id': enc_id_quoted}))
         fail_url = request.build_absolute_uri(reverse('counselor:counselor_course_payment_fail', kwargs={'enc_id': enc_id_quoted}))
     
+    # Dynamic content for Career Counseling Course page (can be moved to DB/CMS later)
+    course_page = {
+        'hero_heading': 'Transform Lives',
+        'hero_subline': 'Career Counselling',
+        'hero_description': "Master the art of guiding individuals to their perfect career paths with our comprehensive certification course",
+        'about_heading': 'About the Course',
+        'about_text': "Step into the world of career counselling with our comprehensive Certification Course. Designed by leading experts, this program equips you with cutting-edge techniques and foundational theories to effectively guide clients towards fulfilling career decisions. Whether you are starting your journey or seeking to deepen your expertise, our course offers a robust curriculum tailored to meet the demands of today's dynamic job market.",
+        'why_choose_heading': "Why Choose Our Program?",
+        'training_journey_heading': "Your 60-Hour Training Journey",
+        'training_hours': 60,
+        'certification_heading': "Certification & Career Advancement",
+        'certification_intro': "Every student has unique emotional strengths and growth areas-our assessment reveals all six and gives clear steps to improve.",
+        'refund_heading': "No Refund Policy",
+        'faq_heading': "Got Questions? We've Got Answers!",
+        'features': [
+            {'title': 'Expert-Designed Curriculum', 'description': 'Created by experienced career counselling professionals using proven, real-world methods that deliver results.', 'icon': 'c-program-icon1.png'},
+            {'title': 'Practical Skills Focus', 'description': 'Gain practical skills in psychometric assessments, career mapping, & real-world counselling.', 'icon': 'c-program-icon2.png'},
+            {'title': 'Prestigious Certification', 'description': 'Earn an industry-recognized certification valued in education & corporate sectors worldwide.', 'icon': 'c-program-icon3.png'},
+            {'title': 'Flexible Learning', 'description': 'Study at your own pace with flexible schedules while maintaining high learning standards.', 'icon': 'c-program-icon4.png'},
+        ],
+        'modules': [
+            {'title': 'Foundation Building', 'description': 'Kick start your training with essential theories and history of career counseling, establishing a solid foundation for your expertise.'},
+            {'title': 'Skill Development', 'description': 'Learn effective communication, ethical practice, and client relationship management through interactive modules and real-world scenarios.'},
+            {'title': 'Advanced Assessment Techniques', 'description': 'Master contemporary assessment methods to help clients make informed career decisions based on scientific evaluation.'},
+            {'title': 'Career Mapping Mastery', 'description': 'Learn to guide clients through comprehensive career mapping, integrating their unique skills, interests, and market opportunities.'},
+            {'title': 'Real-World Applications', 'description': 'Apply your newly acquired skills under expert supervision in authentic counselling scenarios with real clients.'},
+            {'title': 'Certification Preparation', 'description': "Complete comprehensive preparation for your certification exam, ensuring you're fully equipped to excel as a professional career counsellor."},
+        ],
+        'career_roles': [
+            {'label': 'School Career Advisor', 'text': 'Guide students through educational and career decisions'},
+            {'label': 'Corporate Career Coach', 'text': 'Help professionals navigate career transitions and growth'},
+            {'label': 'Private Practice Consultant', 'text': 'Build your own successful counselling practice'},
+            {'label': 'Educational Institution Counsellor', 'text': 'Work with colleges and universities'},
+            {'label': 'HR Career Development Specialist', 'text': 'Support employee career progression'},
+        ],
+        'refund_items': [
+            {'label': 'Refund Eligibility', 'text': 'Our career counselling certification course operates under a strict no refund policy to ensure commitment and resource allocation effectiveness. We understand that plans can change, which is why we offer a conditional refund.'},
+            {'label': 'Conditional Refund', 'text': 'Refunds are only available if a student decides to withdraw from the course more than 7 days before the scheduled start date. To request a refund, students must notify the administration in writing within this time frame.'},
+        ],
+        'refund_non_refundable': 'Once the course has begun, or if the withdrawal request is received less than 7 days before the course start date, no refunds will be issued under any circumstances.',
+    }
+
+    # Watch Video: admin sets COUNSELOR_COURSE_VIDEO_URL in Django Admin > Configuration
+    #   (e.g. YouTube URL or S3 video URL).
+    # Thumbnail: set COUNSELOR_COURSE_VIDEO_THUMBNAIL in Configuration to the thumbnail image URL.
+    #   - For S3 / non-YouTube: no auto-thumbnail; upload a thumbnail to S3 and set this to that image URL.
+    #   - For YouTube: if empty, we use YouTube's default thumbnail; otherwise use this URL.
+    from core.models import Configuration
+    counselor_course_video_url = (Configuration.get('COUNSELOR_COURSE_VIDEO_URL', default='', editable=True) or '').strip()
+    counselor_course_video_embed_url = ''
+    counselor_course_video_thumbnail_url = (Configuration.get('COUNSELOR_COURSE_VIDEO_THUMBNAIL', default='', editable=True) or '').strip()
+    counselor_course_video_yt_id = ''  # for YouTube thumbnail fallback in template
+    if counselor_course_video_url:
+        import re
+        # Convert YouTube watch URL to embed URL if needed
+        yt_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})', counselor_course_video_url)
+        if yt_match:
+            counselor_course_video_yt_id = yt_match.group(1)
+            counselor_course_video_embed_url = 'https://www.youtube.com/embed/' + counselor_course_video_yt_id + '?autoplay=1'
+            if not counselor_course_video_thumbnail_url:
+                # Use YouTube default thumbnail (maxresdefault; fallback hqdefault in template)
+                counselor_course_video_thumbnail_url = 'https://img.youtube.com/vi/' + counselor_course_video_yt_id + '/maxresdefault.jpg'
+        else:
+            counselor_course_video_embed_url = counselor_course_video_url
+
     context = {
         'key': settings.RAZORPAY_API_KEY,
         'payment': razorpay_order,
@@ -965,9 +1030,14 @@ def CounselorCoursepayment(request):
         'question_count': question_count,
         'course': course_with_related_data,
         'user_authenticated': request.user.is_authenticated,
+        'course_page': course_page,
+        'counselor_course_video_url': counselor_course_video_url,
+        'counselor_course_video_embed_url': counselor_course_video_embed_url,
+        'counselor_course_video_thumbnail_url': counselor_course_video_thumbnail_url,
+        'counselor_course_video_yt_id': counselor_course_video_yt_id,
         'breadcrumb': get_breadcrumb([
-            {'text': 'Counsellor Dashboard', 'url': '#'},
-            {'text': 'Career Counselling Course', 'url': ''},
+            {'text': 'Home', 'url': reverse('core:home')},
+            {'text': 'Career Counseling Course', 'url': ''},
         ]),
     }
     return render(request, 'template20/counselor/course_payment.html', context)

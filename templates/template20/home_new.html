@@ -169,13 +169,12 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             </h3>
 
             <p class="text-white fs-16">Master every milestone of your academic journey with expert-led guidance on entrance exams, prestigious Olympiads, and competitive government assessments. Whether you're navigating post-10th decisions, 12th-grade crossroads, or post-graduation opportunities, access cutting-edge resources, real-time eligibility updates, and strategic career insights that transform potential into achievement.</p>
-            <div class="com-btn mt-3 d-none">
-              <button type="button" class="btn custom-button blue-button me-2 mb-md-0  mb-2">After
-                10th</button>
-              <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After
+            <div class="com-btn mt-3 ">
+              <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">Explore More</a>
+              <!-- <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After
                 12th</button>
               <button type="button" class="btn custom-button blue-button me-2 mb-md-0 mb-2">After
-                Graduation</button>
+                Graduation</button> -->
             </div>
           </div>
           <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
@@ -1198,7 +1197,17 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 {% endblock %}
 
 {% block modals %}
-<!-- Video Modal -->
+<!-- Video Modal: thumbnail shown first (HOME_VIDEO_THUMBNAIL); on click, play actual video (HOME_VIDEO_URL) -->
+<style>
+  .home-video-modal-thumbnail { position: relative; cursor: pointer; border-radius: 12px; overflow: hidden; }
+  .home-video-modal-thumbnail img { display: block; width: 100%; height: auto; }
+  .home-video-modal-thumbnail .play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .home-video-modal-thumbnail:hover .play-overlay { background: rgba(0,0,0,0.4); }
+  .home-video-modal-thumbnail .play-overlay .play-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.95); color: #3F37C9; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .home-video-modal-iframe { display: none; }
+  .home-video-modal-iframe.is-playing { display: block; }
+  .home-video-modal-thumbnail.is-hidden { display: none !important; }
+</style>
 <div class="modal fade backthrough" id="staticDemo" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticDemoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content position-relative">
@@ -1206,9 +1215,19 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         <i class="bx bx-x"></i>
       </button>
       <div class="modal-body p-0">
+        {% if home_video_thumbnail_url %}
+        <div class="home-video-modal-thumbnail ratio ratio-16x9" id="homeVideoModalThumbnail" role="button" tabindex="0" aria-label="Click to play video" data-embed-url="{{ home_video_embed_url }}">
+          <img src="{{ home_video_thumbnail_url }}" alt="Video thumbnail" onerror="{% if home_video_yt_id %}this.src='https://img.youtube.com/vi/{{ home_video_yt_id }}/hqdefault.jpg'; this.onerror=null;{% else %}this.style.display='none';{% endif %}">
+          <div class="play-overlay"><span class="play-icon"><i class="bx bx-play" style="font-size: 40px; margin-left: 6px;"></i></span></div>
+        </div>
+        <div class="home-video-modal-iframe ratio ratio-16x9" id="homeVideoModalIframe">
+          <iframe id="staticDemoVideo" src="" title="Demo video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        {% else %}
         <div class="ratio ratio-16x9">
           <iframe id="staticDemoVideo" src="" title="Demo video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
         </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -1229,11 +1248,13 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
 {% block additionaljs %}
 <script>
-  // Video modal handler: stop video on close, restore URL when opening again
+  // Home hero video modal: thumbnail first (if present), then play on click; on close reset
   document.addEventListener('DOMContentLoaded', function() {
-    var staticDemoVideoUrl = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4';
+    var homeVideoEmbedUrl = {{ home_video_embed_url|default('https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4')|tojson }};
     var staticDemoModal = document.getElementById('staticDemo');
     var staticDemoVideo = document.getElementById('staticDemoVideo');
+    var homeThumb = document.getElementById('homeVideoModalThumbnail');
+    var homeIframeWrap = document.getElementById('homeVideoModalIframe');
     if (staticDemoModal && staticDemoVideo) {
       function pauseAndClearVideo(iframe) {
         try {
@@ -1242,14 +1263,33 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         } catch (e) { /* ignore */ }
         iframe.src = 'about:blank';
       }
+      function resetHomeVideoModal() {
+        pauseAndClearVideo(staticDemoVideo);
+        staticDemoVideo.src = 'about:blank';
+        if (homeThumb) { homeThumb.classList.remove('is-hidden'); homeThumb.style.display = ''; }
+        if (homeIframeWrap) homeIframeWrap.classList.remove('is-playing');
+      }
+      if (homeThumb && homeIframeWrap) {
+        homeThumb.addEventListener('click', function() {
+          var url = homeThumb.getAttribute('data-embed-url') || homeVideoEmbedUrl;
+          if (url) {
+            staticDemoVideo.src = url;
+            homeThumb.classList.add('is-hidden');
+            homeIframeWrap.classList.add('is-playing');
+          }
+        });
+        homeThumb.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); homeThumb.click(); }
+        });
+      }
       staticDemoModal.addEventListener('show.bs.modal', function() {
-        staticDemoVideo.src = staticDemoVideoUrl;
+        if (!homeThumb) staticDemoVideo.src = homeVideoEmbedUrl;
       });
       staticDemoModal.addEventListener('hide.bs.modal', function() {
         pauseAndClearVideo(staticDemoVideo);
       });
       staticDemoModal.addEventListener('hidden.bs.modal', function() {
-        staticDemoVideo.src = 'about:blank';
+        resetHomeVideoModal();
       });
     }
 
