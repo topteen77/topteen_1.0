@@ -1,16 +1,44 @@
 from django.contrib.sitemaps import Sitemap
+from django.db.utils import OperationalError, ProgrammingError
 from django.urls import NoReverseMatch, reverse
+from urllib.parse import urlparse
 
 from blog.models import Blog
 from careers.models import Career
 from colleges.models import College
 from core import choices
-from core.models import EntranceTestPrepExam, GeneratedPage, VocationalCourse
+from core.models import EntranceTestPrepExam, GeneratedPage, URLIndexRule, VocationalCourse
 from courses.models import Course
 from entrance_exams.models import EntranceExam
 
 
-class StaticViewSitemap(Sitemap):
+class IndexRuleFilteredSitemap(Sitemap):
+    """
+    Exclude URLs from sitemap when they match active URLIndexRule records that
+    are configured to block indexing/robots.
+    """
+
+    def _get_active_blocking_rules(self):
+        try:
+            return URLIndexRule.get_active_rules().filter(
+                apply_in_robots=True
+            ).only("path_pattern", "match_type")
+        except (ProgrammingError, OperationalError):
+            return []
+
+    def _is_blocked_path(self, location):
+        path = urlparse(location).path or "/"
+        for rule in self._get_active_blocking_rules():
+            if rule.matches(path):
+                return True
+        return False
+
+    def get_urls(self, page=1, site=None, protocol=None):
+        urls = super().get_urls(page=page, site=site, protocol=protocol)
+        return [entry for entry in urls if not self._is_blocked_path(entry.get("location", ""))]
+
+
+class StaticViewSitemap(IndexRuleFilteredSitemap):
     priority = 0.8
     changefreq = "weekly"
 
@@ -55,7 +83,7 @@ class StaticViewSitemap(Sitemap):
         return reverse(item)
 
 
-class BlogSitemap(Sitemap):
+class BlogSitemap(IndexRuleFilteredSitemap):
     changefreq = "weekly"
     priority = 0.8
 
@@ -71,7 +99,7 @@ class BlogSitemap(Sitemap):
         return reverse("blog:blogdetail", args=[obj.slug])
 
 
-class CareerSitemap(Sitemap):
+class CareerSitemap(IndexRuleFilteredSitemap):
     changefreq = "weekly"
     priority = 0.9
 
@@ -87,7 +115,7 @@ class CareerSitemap(Sitemap):
         return reverse("careers:careerdetail", args=[obj.slug, obj.id])
 
 
-class CollegeSitemap(Sitemap):
+class CollegeSitemap(IndexRuleFilteredSitemap):
     changefreq = "weekly"
     priority = 0.8
 
@@ -103,7 +131,7 @@ class CollegeSitemap(Sitemap):
         return reverse("colleges:collegedetail", args=[obj.slug])
 
 
-class CourseSitemap(Sitemap):
+class CourseSitemap(IndexRuleFilteredSitemap):
     changefreq = "weekly"
     priority = 0.7
 
@@ -117,7 +145,7 @@ class CourseSitemap(Sitemap):
         return reverse("courses:coursedetail", args=[obj.slug, obj.id])
 
 
-class EntranceExamSitemap(Sitemap):
+class EntranceExamSitemap(IndexRuleFilteredSitemap):
     changefreq = "monthly"
     priority = 0.7
 
@@ -131,7 +159,7 @@ class EntranceExamSitemap(Sitemap):
         return reverse("entrance_exams:testprepdetail", args=[obj.slug])
 
 
-class EntranceTestPrepExamSitemap(Sitemap):
+class EntranceTestPrepExamSitemap(IndexRuleFilteredSitemap):
     changefreq = "monthly"
     priority = 0.7
 
@@ -145,7 +173,7 @@ class EntranceTestPrepExamSitemap(Sitemap):
         return reverse("core:entrance_test_prep_exam_detail", args=[obj.slug])
 
 
-class VocationalCourseSitemap(Sitemap):
+class VocationalCourseSitemap(IndexRuleFilteredSitemap):
     changefreq = "monthly"
     priority = 0.7
 
@@ -167,7 +195,7 @@ class VocationalCourseSitemap(Sitemap):
         return reverse("core:vocational_courses")
 
 
-class GeneratedPageSitemap(Sitemap):
+class GeneratedPageSitemap(IndexRuleFilteredSitemap):
     changefreq = "monthly"
     priority = 0.6
 
