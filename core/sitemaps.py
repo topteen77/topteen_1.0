@@ -60,7 +60,9 @@ class BlogSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return Blog.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        return Blog.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -74,7 +76,9 @@ class CareerSitemap(Sitemap):
     priority = 0.9
 
     def items(self):
-        return Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        return Career.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -88,7 +92,9 @@ class CollegeSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return College.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        return College.objects.filter(
+            publish_status=choices.PublishStatus.PUBLISHED
+        ).order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -102,7 +108,7 @@ class CourseSitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return Course.objects.all()
+        return Course.objects.all().order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -116,7 +122,7 @@ class EntranceExamSitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return EntranceExam.objects.all()
+        return EntranceExam.objects.all().order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -130,7 +136,7 @@ class EntranceTestPrepExamSitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return EntranceTestPrepExam.objects.all()
+        return EntranceTestPrepExam.objects.all().order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -144,7 +150,7 @@ class VocationalCourseSitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return VocationalCourse.objects.all()
+        return VocationalCourse.objects.all().order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified
@@ -166,7 +172,7 @@ class GeneratedPageSitemap(Sitemap):
     priority = 0.6
 
     def items(self):
-        return GeneratedPage.objects.filter(is_active=True)
+        return GeneratedPage.objects.filter(is_active=True).order_by("-modified", "-id")
 
     def lastmod(self, obj):
         return obj.modified

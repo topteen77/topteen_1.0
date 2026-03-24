@@ -25,5 +25,10 @@ def robots_txt(request):
 
 def sitemap_xml(request, sitemaps):
     _ensure_production()
-    return django_sitemap_view(request, sitemaps=sitemaps)
+    return django_sitemap_view(
+        request,
+        sitemaps=sitemaps,
+        template_name="sitemap.xml",
+        content_type="application/xml",
+    )
 
