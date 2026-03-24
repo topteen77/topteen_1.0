@@ -16,25 +16,25 @@ class StaticViewSitemap(Sitemap):
 
     # Keep this list restricted to public pages without required args.
     url_names = [
-        "home",
-        "aboutus",
-        "contactus",
-        "terms&condition",
-        "privacypolicy",
-        "allfaq",
-        "extracurricular_activities",
-        "vocational_courses",
-        "entrance_test_prep",
-        "career_planning",
-        "career_planning_4_year",
-        "career_planning_class_9",
-        "career_planning_class_10",
-        "career_planning_class_11",
-        "career_planning_class_12",
-        "emotional_intelligences",
-        "multiple_intelligences",
-        "four_pillars",
-        "ebook_list",
+        "core:home",
+        "core:aboutus",
+        "core:contactus",
+        "core:terms&condition",
+        "core:privacypolicy",
+        "core:allfaq",
+        "core:extracurricular_activities",
+        "core:vocational_courses",
+        "core:entrance_test_prep",
+        "core:career_planning",
+        "core:career_planning_4_year",
+        "core:career_planning_class_9",
+        "core:career_planning_class_10",
+        "core:career_planning_class_11",
+        "core:career_planning_class_12",
+        "core:emotional_intelligences",
+        "core:multiple_intelligences",
+        "core:four_pillars",
+        "core:ebook_list",
         "careers:career",
         "colleges:college",
         "entrance_exams:testpreptenth",
@@ -136,7 +136,7 @@ class EntranceTestPrepExamSitemap(Sitemap):
         return obj.modified
 
     def location(self, obj):
-        return reverse("entrance_test_prep_exam_detail", args=[obj.slug])
+        return reverse("core:entrance_test_prep_exam_detail", args=[obj.slug])
 
 
 class VocationalCourseSitemap(Sitemap):
@@ -153,12 +153,12 @@ class VocationalCourseSitemap(Sitemap):
         category = obj.category
         if category and category.parent:
             return reverse(
-                "vocational_courses_level",
+                "core:vocational_courses_level",
                 args=[category.parent.slug],
             ) + f"?category={category.slug}"
         if category:
-            return reverse("vocational_courses_level", args=[category.slug])
-        return reverse("vocational_courses")
+            return reverse("core:vocational_courses_level", args=[category.slug])
+        return reverse("core:vocational_courses")
 
 
 class GeneratedPageSitemap(Sitemap):
@@ -172,5 +172,5 @@ class GeneratedPageSitemap(Sitemap):
         return obj.modified
 
     def location(self, obj):
-        return reverse("generated_page", args=[obj.slug])
+        return reverse("core:generated_page", args=[obj.slug])
 
