@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from core import choices
 from .models import Invoice, InvoiceConfiguration, InvoiceEmailLog
+from communication.models import CommunicationLog
 
 
 def is_institute_free_student_payment(payment):
@@ -186,12 +187,24 @@ def _send_invoice_email_to_customer_with_bcc(invoice, to_email, bcc_list=None, p
         if pdf_bytes:
             email.attach('invoice_{}.pdf'.format(invoice.invoice_number), pdf_bytes, 'application/pdf')
         email.send(fail_silently=False)
+        CommunicationLog.objects.create(
+            to="{},{}".format(to_email, ",".join(bcc_list)) if bcc_list else to_email,
+            body=subject,
+            type=choices.CommunicationTypeChooices.EMAIL,
+            response="success",
+        )
         log_customer.success = True
         log_customer.save(update_fields=['success', 'modified'])
         if log_admin:
             log_admin.success = True
             log_admin.save(update_fields=['success', 'modified'])
     except Exception as e:
+        CommunicationLog.objects.create(
+            to="{},{}".format(to_email, ",".join(bcc_list)) if bcc_list else to_email,
+            body=subject,
+            type=choices.CommunicationTypeChooices.EMAIL,
+            response="failed: {}".format(e),
+        )
         log_customer.error_message = str(e)
         log_customer.save(update_fields=['error_message', 'modified'])
         if log_admin:
@@ -223,9 +236,21 @@ def _send_invoice_email(invoice, to_email, recipient_type, pdf_bytes):
         if pdf_bytes:
             email.attach('invoice_{}.pdf'.format(invoice.invoice_number), pdf_bytes, 'application/pdf')
         email.send(fail_silently=False)
+        CommunicationLog.objects.create(
+            to=to_email,
+            body=subject,
+            type=choices.CommunicationTypeChooices.EMAIL,
+            response="success",
+        )
         log.success = True
         log.save(update_fields=['success', 'modified'])
     except Exception as e:
+        CommunicationLog.objects.create(
+            to=to_email,
+            body=subject,
+            type=choices.CommunicationTypeChooices.EMAIL,
+            response="failed: {}".format(e),
+        )
         log.error_message = str(e)
         log.save(update_fields=['error_message', 'modified'])
 

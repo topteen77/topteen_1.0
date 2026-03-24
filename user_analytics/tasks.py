@@ -12,6 +12,8 @@ from django.db.utils import IntegrityError
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent, GA4Session
+from communication.models import CommunicationLog
+from core import choices
 from user_analytics.utils import (
     parse_user_agent_info,
     get_referrer_source,
@@ -25,15 +27,20 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def send_daily_new_user_report():
+def send_daily_new_user_report(force_send=False, override_recipients=None):
     """
     Send daily new user report (today + this week) to WEBADMINEMAIL.
-    Runs only when ENVIRONMENT=production and WEBADMINEMAIL is configured.
+    Runs only when ENVIRONMENT=production and WEBADMINEMAIL is configured,
+    unless force_send=True (manual testing).
     """
     environment = str(getattr(settings, "ENVIRONMENT", "")).strip().lower()
-    web_admin_email = str(getattr(settings, "WEBADMINEMAIL", "")).strip()
+    web_admin_email = (
+        str(override_recipients).strip()
+        if override_recipients is not None
+        else str(getattr(settings, "WEBADMINEMAIL", "")).strip()
+    )
 
-    if environment != "production":
+    if (not force_send) and environment != "production":
         logger.info("Skipping daily new user report: ENVIRONMENT is not production.")
         return "skipped_non_production"
 
@@ -79,6 +86,12 @@ def send_daily_new_user_report():
         )
         msg.attach_alternative(html_body, "text/html")
         msg.send(fail_silently=False)
+        CommunicationLog.objects.create(
+            to=",".join(recipients),
+            body=subject,
+            type=choices.CommunicationTypeChooices.EMAIL,
+            response="success",
+        )
         logger.info(
             "Daily new user report sent successfully (recipient_count=%s, today=%s, week=%s).",
             len(recipients),
@@ -92,6 +105,12 @@ def send_daily_new_user_report():
             "recipient_count": len(recipients),
         }
     except Exception as exc:
+        CommunicationLog.objects.create(
+            to=web_admin_email or "WEBADMINEMAIL_NOT_SET",
+            body=subject if "subject" in locals() else "Daily new user report",
+            type=choices.CommunicationTypeChooices.EMAIL,
+            response="failed: {}".format(exc),
+        )
         logger.error("Failed to send daily new user report: %s", exc, exc_info=True)
         raise
 

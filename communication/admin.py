@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import CommunicationLog,OTP
+from core import choices
 
 
 # Register your models here.
@@ -21,6 +22,9 @@ class CommunicationLogAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(type=choices.CommunicationTypeChooices.EMAIL)
 
 
 

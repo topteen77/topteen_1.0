@@ -35,14 +35,6 @@ except ImportError:
     HAS_OPENPYXL = False
 
 
-class InvoiceEmailLogInline(admin.TabularInline):
-    model = InvoiceEmailLog
-    extra = 0
-    readonly_fields = ('recipient_type', 'recipient_email', 'success', 'error_message', 'created')
-    can_delete = False
-    max_num = 20
-
-
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     change_list_template = 'admin/invoices/invoice/change_list.html'
@@ -65,7 +57,6 @@ class InvoiceAdmin(admin.ModelAdmin):
         'amount', 'currency', 'gst_rate', 'taxable_value', 'cgst', 'sgst',
         'customer_name', 'customer_email', 'customer_address', 'invoice_pdf', 'created', 'modified',
     )
-    inlines = [InvoiceEmailLogInline]
     ordering = ('-created',)
 
     def amount_display(self, obj):
@@ -236,37 +227,6 @@ class InvoiceConfigurationAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-
-@admin.register(InvoiceEmailLog)
-class InvoiceEmailLogAdmin(admin.ModelAdmin):
-    list_display = (
-        'invoice',
-        'recipient_type',
-        'recipient_email',
-        'status_display',
-        'sent_at_display',
-        'error_message',
-    )
-    list_display_links = ('invoice',)
-    list_filter = ('recipient_type', 'success', 'created')
-    readonly_fields = ('invoice', 'recipient_type', 'recipient_email', 'success', 'error_message', 'created', 'modified')
-    search_fields = ('recipient_email', 'invoice__invoice_number')
-    ordering = ('-created',)
-    list_per_page = 25
-    list_empty_value_display = '-'
-
-    def status_display(self, obj):
-        if obj.success:
-            return format_html('<span style="color: #155724; font-weight: 600;">Sent</span>')
-        return format_html('<span style="color: #721c24; font-weight: 600;">Failed</span>')
-    status_display.short_description = 'Status'
-
-    def sent_at_display(self, obj):
-        if not obj.created:
-            return '-'
-        return obj.created.strftime('%d %b %Y, %H:%M')
-    sent_at_display.short_description = 'Sent date & time'
 
 
 @admin.register(PaymentGatewayHealth)
