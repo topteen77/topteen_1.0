@@ -1775,7 +1775,7 @@
       node.addEventListener('keydown', handleMindmapNodeClick);
     });
 
-    // Convert H4 headings to accordion OR use description_json
+    // Build accordion from description_json, then fallback to description headings.
     const container = document.getElementById('careerAccordionContainer');
     if (container && container.dataset.accordionReady !== 'true') {
       // Step 1: Read JSON first and generate accordions
@@ -1824,8 +1824,8 @@
         // Generate accordions from JSON and create infographics from JSON data
         generateAccordionFromJSON(careerJsonSections, container, careerName, originalDescriptionHTML);
       } else {
-        // Fallback: Use H4 headings (existing method)
-        generateAccordionFromH4(container);
+        // Error case fallback: build from description headings when JSON is blank
+        generateAccordionFromHTMLHeadings(container, originalDescriptionHTML);
       }
     }
     
@@ -1852,13 +1852,22 @@
         'top_institutes': 'bx bx-building-house'
       };
       
-      // Collect ALL sections with content from JSON - NO FILTERING, NO ORDERING
+      function sectionHtmlIsEffectivelyBlank(html) {
+        if (!html || !String(html).trim()) return true;
+        const temp = document.createElement('div');
+        temp.innerHTML = String(html);
+        temp.querySelectorAll('script,style,noscript').forEach(el => el.remove());
+        const text = (temp.textContent || '').replace(/\u00A0/g, ' ').trim();
+        return !text;
+      }
+
+      // Collect ALL non-blank sections from JSON - preserve source ordering
       const sectionsWithContent = [];
       
       // Add ALL sections from JSON - preserve order as they appear in JSON
       Object.keys(sections).forEach(sectionKey => {
         const sectionData = sections[sectionKey];
-        if (sectionData && sectionData.html && sectionData.html.trim()) {
+        if (sectionData && sectionData.html && !sectionHtmlIsEffectivelyBlank(sectionData.html)) {
           sectionsWithContent.push({ key: sectionKey, data: sectionData });
         }
       });
@@ -1882,6 +1891,12 @@
             }
           });
         }
+      }
+
+      // Error case: JSON exists but has no visible content. Rebuild from source HTML.
+      if (!sectionsWithContent.length) {
+        generateAccordionFromHTMLHeadings(container, originalDescriptionHTML);
+        return;
       }
       
       // Generate accordion items
@@ -2714,9 +2729,16 @@
       return div.innerHTML;
     }
     
-    // Generate accordion from H4 headings (fallback method)
-    function generateAccordionFromH4(container) {
-      const headings = Array.from(container.children).filter((child) => child.tagName === 'H4');
+    // Generate accordion from heading-based HTML (H2 preferred, H4 legacy fallback)
+    function generateAccordionFromHTMLHeadings(container, sourceHtml) {
+      const source = document.createElement('div');
+      source.innerHTML = sourceHtml || container.innerHTML || '';
+      let headings = Array.from(source.querySelectorAll('h2'));
+      let stopTagName = 'H2';
+      if (!headings.length) {
+        headings = Array.from(source.querySelectorAll('h4'));
+        stopTagName = 'H4';
+      }
       if (headings.length) {
         const accordion = document.createElement('div');
         accordion.className = 'accordion cat-accordion custom-faq';
@@ -2784,7 +2806,7 @@
           let sibling = heading.nextSibling;
           const bufferedNodes = [];
 
-          while (sibling && !(sibling.nodeType === 1 && sibling.tagName === 'H4')) {
+          while (sibling && !(sibling.nodeType === 1 && sibling.tagName === stopTagName)) {
             const nextSibling = sibling.nextSibling;
             bufferedNodes.push(sibling);
             sibling = nextSibling;

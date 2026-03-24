@@ -6,9 +6,6 @@
 <!-- Content Tools - Add after the form fields -->
 <div class="content-tools-wrapper" style="margin: 20px 0; clear: both; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
     <div class="content-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button type="button" id="convert-to-h2-btn" class="button" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-            Convert Headings to H2
-        </button>
         <button type="button" id="generate-accordion-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
             Generate Accordion from Content
         </button>
@@ -28,6 +25,7 @@
         <!-- Left: Content Editor -->
         <div style="border: 1px solid #ddd; border-radius: 5px; background: #fff; padding: 20px;">
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #417690;">Content Editor</h3>
+            <div id="missing-heading-suggestions" style="display:none; margin: 0 0 12px; padding: 10px 12px; border: 1px dashed #d4a017; background: #fffaf0; color: #6b4e00; border-radius: 8px; font-size: 13px;"></div>
             <div id="content-field-container">
                 <!-- Content field will be moved here by JavaScript -->
                 <p style="color: #666; margin-bottom: 10px;">Loading content field...</p>
@@ -52,6 +50,15 @@
             <button type="button" id="close-json-modal" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Close</button>
         </div>
         <pre id="json-preview-content" style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow: auto; max-height: 60vh;"></pre>
+    </div>
+</div>
+<div id="etp-form-loader" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 10020;">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:min(420px, 90vw); background:#fff; border-radius:10px; padding:16px 18px; box-shadow:0 10px 28px rgba(0,0,0,.2);">
+        <div id="etp-form-loader-title" style="font-weight:700; color:#1f2937; margin-bottom:8px;">Processing...</div>
+        <div style="height:10px; background:#edf2f7; border-radius:999px; overflow:hidden;">
+            <div id="etp-form-loader-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#3f37c9,#6d5ffb); transition:width .18s ease;"></div>
+        </div>
+        <div id="etp-form-loader-text" style="margin-top:8px; font-size:12px; color:#4b5563;">0%</div>
     </div>
 </div>
 
@@ -156,6 +163,35 @@
     padding: 20px 28px 28px;
     background: #fff;
 }
+
+/* Admin preview: collapsed panels hidden (Bootstrap collapse CSS often not loaded in admin) */
+#accordion-preview-container .accordion-collapse.collapse:not(.show) {
+    display: none !important;
+}
+#accordion-preview-container .accordion-collapse.collapse.show {
+    display: block;
+}
+#accordion-preview-container .admin-acc-toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin-right: 4px;
+    border: 2px solid #5046e5;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    color: #5046e5;
+    background: #f4f3ff;
+    user-select: none;
+}
+#accordion-preview-container .accordion-item.accordion-preview-error {
+    border-left: 4px solid #ba2121;
+    background: #fff8f8;
+}
 </style>
 
 <script>
@@ -163,6 +199,31 @@
     var contentTextarea = null;
     var accordionData = {};
     var jsonData = {};
+    var sectionOrder = [];
+    var formLoaderWrap = null;
+    var formLoaderTitle = null;
+    var formLoaderBar = null;
+    var formLoaderText = null;
+    var formLoaderTimer = null;
+    var formLoaderPct = 0;
+    var sectionOrder = [];
+
+    /** Match server _section_html_is_blank: no visible text after tags removed */
+    function sectionHtmlIsEffectivelyBlank(html) {
+        if (!html || !String(html).trim()) return true;
+        var d = document.createElement('div');
+        try {
+            d.innerHTML = html;
+        } catch (e) {
+            return true;
+        }
+        var t = (d.textContent || d.innerText || '')
+            .replace(/\u00a0/g, ' ')
+            .replace(/[\u200b-\u200d\ufeff]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        return !t;
+    }
     
     // Fixed accordion headings for entrance exam prep
     var FIXED_HEADINGS = [
@@ -208,6 +269,10 @@
     }
     
     function initialize() {
+        formLoaderWrap = document.getElementById('etp-form-loader');
+        formLoaderTitle = document.getElementById('etp-form-loader-title');
+        formLoaderBar = document.getElementById('etp-form-loader-bar');
+        formLoaderText = document.getElementById('etp-form-loader-text');
         // Wait for Django admin and CKEditor to fully render
         var checkCKEditor = function() {
             if (typeof CKEDITOR !== 'undefined') {
@@ -269,6 +334,10 @@
                                 editor.on('change', function() {
                                     var content = editor.getData();
                                     contentTextarea.value = content;
+                                    clearTimeout(window.contentInputTimeout);
+                                    window.contentInputTimeout = setTimeout(function() {
+                                        generateAccordionFromContent();
+                                    }, 500);
                                 });
                                 
                                 editor.on('blur', function() {
@@ -421,11 +490,6 @@
     }
     
     function setupButtons() {
-        var convertH2Btn = document.getElementById('convert-to-h2-btn');
-        if (convertH2Btn) {
-            convertH2Btn.addEventListener('click', convertHeadingsToH2);
-        }
-        
         var generateBtn = document.getElementById('generate-accordion-btn');
         if (generateBtn) {
             generateBtn.addEventListener('click', generateAccordionFromContent);
@@ -452,92 +516,6 @@
                 document.getElementById('json-preview-modal').style.display = 'none';
             });
         }
-    }
-    
-    function convertHeadingsToH2() {
-        if (!contentTextarea) {
-            alert('Content field not found');
-            return;
-        }
-        
-        // Get content from CKEditor if available, otherwise from textarea
-        var html = '';
-        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
-            var editor = CKEDITOR.instances.id_content_html;
-            html = editor.getData() || contentTextarea.value || '';
-        } else {
-            html = contentTextarea.value || '';
-        }
-        
-        if (!html.trim()) {
-            alert('No content found to convert');
-            return;
-        }
-        
-        // Parse HTML
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Convert all headings (h1, h3-h6) to h2
-        var headings = tempDiv.querySelectorAll('h1, h3, h4, h5, h6');
-        var convertedCount = 0;
-        
-        headings.forEach(function(heading) {
-            var h2 = document.createElement('h2');
-            h2.innerHTML = heading.innerHTML;
-            h2.className = heading.className;
-            heading.parentNode.replaceChild(h2, heading);
-            convertedCount++;
-        });
-        
-        // Also convert strong tags in paragraphs that look like headings
-        var paragraphs = tempDiv.querySelectorAll('p');
-        paragraphs.forEach(function(p) {
-            var strong = p.querySelector('strong:first-child');
-            if (strong && p.children.length === 1) {
-                // If paragraph only contains strong tag, convert to h2
-                var strongText = strong.textContent.trim();
-                if (strongText.length < 100 && strongText.split(' ').length <= 10) {
-                    var h2 = document.createElement('h2');
-                    h2.textContent = strongText;
-                    p.parentNode.replaceChild(h2, p);
-                    convertedCount++;
-                }
-            } else if (strong && strong === p.firstElementChild) {
-                // If paragraph starts with strong, extract it as h2 and keep rest as content
-                var strongText = strong.textContent.trim();
-                if (strongText.length < 100 && strongText.split(' ').length <= 10) {
-                    var h2 = document.createElement('h2');
-                    h2.textContent = strongText;
-                    strong.remove();
-                    var remainingContent = p.innerHTML.trim();
-                    p.parentNode.insertBefore(h2, p);
-                    if (!remainingContent) {
-                        p.remove();
-                    }
-                    convertedCount++;
-                }
-            }
-        });
-        
-        // Get updated HTML
-        var updatedHtml = tempDiv.innerHTML;
-        
-        // Update content
-        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
-            var editor = CKEDITOR.instances.id_content_html;
-            editor.setData(updatedHtml);
-            contentTextarea.value = updatedHtml;
-        } else {
-            contentTextarea.value = updatedHtml;
-        }
-        
-        // Auto-generate accordion after conversion
-        setTimeout(function() {
-            generateAccordionFromContent();
-        }, 100);
-        
-        alert('Converted ' + convertedCount + ' heading(s) to H2. Accordion preview updated.');
     }
     
     function ensureContentJsonField() {
@@ -586,12 +564,16 @@
                     if (existingData.sections) {
                         accordionData = existingData.sections;
                     }
+                    sectionOrder = Array.isArray(existingData.section_order)
+                        ? existingData.section_order.slice()
+                        : Object.keys(accordionData || {});
                     
                     // Set jsonData with full structure
                     jsonData = {
                         programtitle: existingData.programtitle || '',
                         overview: existingData.overview || '',
-                        sections: existingData.sections || accordionData
+                        sections: existingData.sections || accordionData,
+                        section_order: sectionOrder.slice()
                     };
                     
                     // If programtitle is missing, get it from name field
@@ -614,7 +596,16 @@
                 }
             } catch (e) {
                 console.warn('Error parsing existing JSON:', e);
+                generateAccordionFromContent();
             }
+        } else {
+            // If no stored JSON yet, default preview should still reflect current content_html.
+            generateAccordionFromContent();
+        }
+
+        // Fallback: if JSON exists but has no sections, regenerate preview from content_html.
+        if (!accordionData || Object.keys(accordionData).length === 0) {
+            generateAccordionFromContent();
         }
     }
     
@@ -688,7 +679,24 @@
             });
         }
         
+        // Keep custom headings like "Exam Overview" as independent sections.
+        // Only map to overview for exact intro-style headings.
+        if (bestMatch === 'overview') {
+            var exactOverview = (
+                normalizedHeading === 'overview' ||
+                normalizedHeading === 'about' ||
+                normalizedHeading === 'introduction' ||
+                normalizedHeading === 'intro'
+            );
+            if (!exactOverview) return null;
+        }
+
         return bestMatch;
+    }
+
+    function headingKeyFromText(text) {
+        var key = (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        return key || 'section_' + Math.random().toString(36).slice(2, 8);
     }
     
     // Helper function to check if a heading text is an exact match to a fixed heading
@@ -707,18 +715,9 @@
         current = current.nextSibling;
         
         while (current) {
-            // Stop at next heading (h1-h6) - but only if it matches a fixed heading exactly
+            // Stop at any next heading (h1-h6): each heading should become its own accordion
             if (current.nodeType === 1 && current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                var headingText = current.textContent.trim();
-                // Only stop if this is an exact match to a fixed heading
-                if (isExactFixedHeading(headingText)) {
-                    // This is a new section heading, stop here
-                    break;
-                }
-                // If it doesn't match a fixed heading, it's a sub-heading, include it
-                content += current.outerHTML || '';
-                current = current.nextSibling;
-                continue;
+                break;
             }
             
             // Handle element nodes
@@ -799,7 +798,7 @@
     
     function generateAccordionFromContent() {
         if (!contentTextarea) return;
-        
+
         // Get content from CKEditor if available, otherwise from textarea
         var html = '';
         if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
@@ -809,179 +808,137 @@
         } else {
             html = contentTextarea.value || '';
         }
-        
+
         if (!html.trim()) {
-            var container = document.getElementById('accordion-preview-container');
-            if (container) {
-                container.innerHTML = '<p style="color: #666; font-style: italic;">No content found. Add content to generate accordion.</p>';
+            var emptyContainer = document.getElementById('accordion-preview-container');
+            if (emptyContainer) {
+                emptyContainer.innerHTML = '<p style="color: #666; font-style: italic;">No content found. Add content to generate accordion.</p>';
             }
+            accordionData = {};
+            jsonData = {};
             return;
         }
-        
-        // Parse HTML to extract sections based on headings
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Initialize accordion data with all fixed headings
+
+        // Simple rule: every H2 becomes one accordion panel.
         accordionData = {};
-        FIXED_HEADINGS.forEach(function(heading) {
-            accordionData[heading.toLowerCase().replace(/[^a-z0-9]+/g, '_')] = {
-                title: heading,
-                html: ''
-            };
-        });
-        
-        // Find all headings in content - prioritize H2 headings
-        var headings = [];
-        
-        // First, find all H2 headings (primary method)
-        tempDiv.querySelectorAll('h2').forEach(function(h) {
-            headings.push({ element: h, type: 'h2', priority: 1 });
-        });
-        
-        // Then find other headings (h1, h3-h6) if no H2 found
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('h1, h3, h4, h5, h6').forEach(function(h) {
-                headings.push({ element: h, type: 'heading', priority: 2 });
-            });
+        sectionOrder = [];
+        var openMatches = Array.from(html.matchAll(/<h2\b[^>]*>/gi));
+        var preamble = '';
+        var firstKey = null;
+
+        if (openMatches.length) {
+            preamble = html.slice(0, openMatches[0].index).trim();
         }
-        
-        // Also check for strong tags that might be headings (if no proper headings found)
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('p strong, div strong').forEach(function(strong) {
-                var text = normalizeText(strong.textContent);
-                // If it's short and looks like a heading
-                if (text.length < 100 && text.split(' ').length <= 8) {
-                    var matched = matchHeadingToSection(text);
-                    if (matched) {
-                        headings.push({ element: strong.closest('p') || strong.closest('div'), type: 'strong', priority: 3 });
-                    }
-                }
-            });
-        }
-        
-        // Also check for paragraphs with bold text at the start (common pattern)
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('p').forEach(function(p) {
-                var firstChild = p.firstElementChild;
-                if (firstChild && (firstChild.tagName === 'STRONG' || firstChild.tagName === 'B')) {
-                    var text = normalizeText(firstChild.textContent);
-                    if (text.length < 100 && text.split(' ').length <= 8) {
-                        var matched = matchHeadingToSection(text);
-                        if (matched) {
-                            headings.push({ element: p, type: 'p-strong', priority: 4 });
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Sort headings by their position in DOM
-        headings.sort(function(a, b) {
-            var pos = a.element.compareDocumentPosition(b.element);
-            return pos & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-        });
-        
-        // Process each heading
-        var debugLog = [];
-        headings.forEach(function(headingObj, index) {
-            var heading = headingObj.element;
-            var headingText = heading.textContent.trim();
-            
-            // Match heading to section
-            var matchedKey = matchHeadingToSection(headingText);
-            
-            debugLog.push({
-                index: index,
-                headingText: headingText,
-                matchedKey: matchedKey,
-                tagName: heading.tagName
-            });
-            
-            if (matchedKey) {
-                // Extract content after this heading until next heading
-                var content = extractContentUntilNextHeading(heading);
-                
-                // If we found content, use it (don't overwrite if already has content)
-                if (content.trim()) {
-                    // If this section already has content, append with separator
-                    if (accordionData[matchedKey].html) {
-                        accordionData[matchedKey].html += '<hr style="margin: 20px 0;">' + content;
-                    } else {
-                        accordionData[matchedKey].html = content;
-                    }
-                    
-                    debugLog[debugLog.length - 1].contentLength = content.length;
-                } else {
-                    debugLog[debugLog.length - 1].contentLength = 0;
-                    debugLog[debugLog.length - 1].warning = 'No content extracted';
-                }
-            } else {
-                debugLog[debugLog.length - 1].warning = 'No section match found';
+
+        openMatches.forEach(function(openMatch, idx) {
+            var openTagEnd = openMatch.index + openMatch[0].length;
+            var afterOpen = html.slice(openTagEnd);
+            var closeRel = afterOpen.search(/<\/h2>/i);
+            if (closeRel < 0) return;
+            var closeAbs = openTagEnd + closeRel;
+
+            var titleHtml = html.slice(openTagEnd, closeAbs);
+            var titleDiv = document.createElement('div');
+            titleDiv.innerHTML = titleHtml;
+            var titleText = (titleDiv.textContent || '').trim() || ('Section ' + (idx + 1));
+
+            var bodyStart = closeAbs + 5; // len("</h2>")
+            var bodyEnd = (idx + 1 < openMatches.length) ? openMatches[idx + 1].index : html.length;
+            var bodyHtml = html.slice(bodyStart, bodyEnd).trim();
+
+            var key = headingKeyFromText(titleText);
+            var base = key;
+            var suffix = 1;
+            while (accordionData[key]) {
+                key = base + '_' + suffix;
+                suffix += 1;
             }
+            accordionData[key] = { title: titleText, html: bodyHtml };
+            sectionOrder.push(key);
+            if (!firstKey) firstKey = key;
         });
-        
-        // Store debug log for debugging
-        window.lastDebugLog = debugLog;
-        console.log('Heading matches:', debugLog);
-        
-        // Handle content before first heading (could be Overview or general content)
-        var firstHeading = headings.length > 0 ? headings[0].element : null;
-        if (firstHeading) {
-            var contentBefore = '';
-            var current = tempDiv.firstChild;
-            while (current && current !== firstHeading) {
-                if (current.nodeType === 1) {
-                    if (current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                        break;
-                    }
-                    contentBefore += current.outerHTML || '';
-                } else if (current.nodeType === 3 && current.textContent.trim()) {
-                    contentBefore += '<p>' + current.textContent.trim() + '</p>';
-                }
-                current = current.nextSibling;
-            }
-            
-            if (contentBefore.trim()) {
-                // Add content before first heading to Overview section
-                var overviewKey = 'overview';
-                if (accordionData[overviewKey]) {
-                    accordionData[overviewKey].html = contentBefore.trim();
-                }
-            }
-        } else {
-            // No headings found - put all content in Overview section
-            var allContent = tempDiv.innerHTML;
-            if (allContent.trim()) {
-                var overviewKey = 'overview';
-                if (accordionData[overviewKey]) {
-                    accordionData[overviewKey].html = allContent.trim();
-                }
-            }
+
+        // Keep text before first H2 by prepending it to first H2 section.
+        if (preamble && firstKey && accordionData[firstKey]) {
+            accordionData[firstKey].html = (preamble + accordionData[firstKey].html).trim();
         }
-        
-        // Extract overview content from Overview section if it exists
-        var overviewContent = '';
-        var overviewKey = 'overview';
-        if (accordionData[overviewKey] && accordionData[overviewKey].html) {
-            overviewContent = accordionData[overviewKey].html.trim();
+
+        // If no H2 present, show full content as one section.
+        if (!Object.keys(accordionData).length) {
+            accordionData['content'] = { title: 'Content', html: html };
+            sectionOrder = ['content'];
         }
-        
+
         // Get program title from name field
         var programTitle = '';
         var nameField = document.querySelector('#id_name');
         if (nameField) {
             programTitle = nameField.value || '';
         }
-        
-        // Generate JSON structure with programtitle and overview
+
+        // Keep overview for hero (first section body), but do not hide that section.
+        var firstSectionKey = Object.keys(accordionData)[0];
+        var overviewContent = firstSectionKey ? (accordionData[firstSectionKey].html || '') : '';
+
         jsonData = {
             programtitle: programTitle,
             overview: overviewContent,
-            sections: accordionData
+            sections: accordionData,
+            section_order: sectionOrder.slice()
         };
-        
+
+        window.lastDebugLog = Object.keys(accordionData).map(function(k, i) {
+            return {
+                index: i,
+                headingText: accordionData[k].title,
+                matchedKey: k,
+                contentLength: (accordionData[k].html || '').length
+            };
+        });
         updateAccordionPreview();
+    }
+
+    /** +/- icon + expand/collapse (admin has no Bootstrap collapse CSS/JS reliably) */
+    function setAdminAccordionToggleIcon(btn, open) {
+        var ic = btn.querySelector('.admin-acc-toggle-icon');
+        if (ic) ic.textContent = open ? '\u2212' : '+';
+    }
+
+    function bindAdminAccordionPreviewToggles(accordion) {
+        function closeOthers(openTarget) {
+            accordion.querySelectorAll('.accordion-collapse').forEach(function(c) {
+                if (c === openTarget) return;
+                c.classList.remove('show');
+                var ob = accordion.querySelector('[data-acc-preview-target="#' + c.id + '"]');
+                if (ob) {
+                    ob.classList.add('collapsed');
+                    ob.setAttribute('aria-expanded', 'false');
+                    setAdminAccordionToggleIcon(ob, false);
+                }
+            });
+        }
+        accordion.querySelectorAll('.accordion-button').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var sel = btn.getAttribute('data-acc-preview-target');
+                if (!sel) return;
+                var target = document.querySelector(sel);
+                if (!target) return;
+                var isOpen = target.classList.contains('show');
+                closeOthers(target);
+                if (isOpen) {
+                    target.classList.remove('show');
+                    btn.classList.add('collapsed');
+                    btn.setAttribute('aria-expanded', 'false');
+                    setAdminAccordionToggleIcon(btn, false);
+                } else {
+                    target.classList.add('show');
+                    btn.classList.remove('collapsed');
+                    btn.setAttribute('aria-expanded', 'true');
+                    setAdminAccordionToggleIcon(btn, true);
+                }
+            });
+        });
     }
     
     function updateAccordionPreview() {
@@ -1118,48 +1075,65 @@
         accordion.className = 'accordion cat-accordion';
         accordion.id = 'examAccordionPreview';
         
-        // Display accordions in fixed order (exclude Overview - it's shown in hero section, not in accordion)
-        var accordionIndex = 0;
-        FIXED_HEADINGS.forEach(function(heading, index) {
-            // Skip Overview section - it's displayed in hero section, not in accordion
-            if (heading === 'Overview') {
-                return;
+        // Display sections as-is (all generated H2 panels).
+        var orderedKeys = [];
+        var preferredOrder = (jsonData && Array.isArray(jsonData.section_order)) ? jsonData.section_order : [];
+        preferredOrder.forEach(function(key) {
+            if (sectionsToUse && sectionsToUse[key] && orderedKeys.indexOf(key) === -1) {
+                orderedKeys.push(key);
             }
-            
-            var key = heading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            var sectionData = sectionsToUse[key] || { title: heading, html: '' };
+        });
+        Object.keys(sectionsToUse || {}).forEach(function(key) {
+            if (orderedKeys.indexOf(key) === -1) orderedKeys.push(key);
+        });
+
+        var suggestBox = document.getElementById('missing-heading-suggestions');
+        if (suggestBox) {
+            suggestBox.innerHTML = '';
+            suggestBox.style.display = 'none';
+        }
+
+        var accordionIndex = 0;
+        orderedKeys.forEach(function(key) {
+            var sectionData = sectionsToUse[key] || { title: key.replace(/_/g, ' '), html: '' };
+            var heading = sectionData.title || key.replace(/_/g, ' ');
             var sectionId = 'preview-accordion-' + accordionIndex;
             var iconClass = iconMap[heading] || 'bx bx-layer';
-            var isFirst = accordionIndex === 0;
-            var hasContent = sectionData.html && sectionData.html.trim().length > 0;
+            var hasContent = !sectionHtmlIsEffectivelyBlank(sectionData.html);
             
             // Create accordion item
             var accordionItem = document.createElement('div');
-            accordionItem.className = 'accordion-item';
+            accordionItem.className = 'accordion-item' + (hasContent ? '' : ' accordion-preview-error');
             
             // Create header
             var header = document.createElement('h2');
             header.className = 'accordion-header';
             header.id = sectionId + 'Heading';
             
-            // Create button
+            // Create button (all start collapsed; open via +/− click)
             var button = document.createElement('button');
             button.type = 'button';
-            button.className = 'accordion-button' + (isFirst && hasContent ? '' : ' collapsed');
-            button.setAttribute('data-bs-toggle', 'collapse');
-            button.setAttribute('data-bs-target', '#' + sectionId);
-            button.setAttribute('aria-expanded', (isFirst && hasContent ? 'true' : 'false'));
+            button.className = 'accordion-button collapsed';
+            button.setAttribute('data-acc-preview-target', '#' + sectionId);
+            button.setAttribute('aria-expanded', 'false');
             button.setAttribute('aria-controls', sectionId);
+
+            var toggleIcon = document.createElement('span');
+            toggleIcon.className = 'admin-acc-toggle-icon';
+            toggleIcon.setAttribute('aria-hidden', 'true');
+            toggleIcon.textContent = '+';
             
             // Add icon and text
             var buttonContent = document.createElement('span');
             buttonContent.style.display = 'flex';
             buttonContent.style.alignItems = 'center';
+            buttonContent.style.flex = '1';
             buttonContent.style.gap = '10px';
             buttonContent.innerHTML = '<i class="' + iconClass + '"></i><span>' + sectionData.title + '</span>';
             if (!hasContent) {
-                buttonContent.innerHTML += '<span style="margin-left: auto; color: #999; font-size: 12px;">(Empty)</span>';
+                buttonContent.innerHTML += '<span style="margin-left: auto; color: #ba2121; font-size: 12px; font-weight: 600;" title="No visible body text — this panel is hidden on the public site until you add content.">&#9888; Empty</span>';
             }
+            button.appendChild(toggleIcon);
             button.appendChild(buttonContent);
             
             header.appendChild(button);
@@ -1167,7 +1141,7 @@
             // Create collapse div
             var collapse = document.createElement('div');
             collapse.id = sectionId;
-            collapse.className = 'accordion-collapse collapse' + (isFirst && hasContent ? ' show' : '');
+            collapse.className = 'accordion-collapse collapse';
             collapse.setAttribute('aria-labelledby', header.id);
             collapse.setAttribute('data-bs-parent', '#examAccordionPreview');
             
@@ -1177,7 +1151,7 @@
             if (hasContent) {
                 body.innerHTML = sectionData.html;
             } else {
-                body.innerHTML = '<p class="text-muted" style="font-style: italic;">No content available for this section.</p>';
+                body.innerHTML = '<p style="color: #ba2121; font-weight: 600; margin: 0;">&#9888; No body content — not shown on the public site until you add text here.</p>';
             }
             
             collapse.appendChild(body);
@@ -1195,65 +1169,12 @@
         // Clear and append wrapper
         container.innerHTML = '';
         container.appendChild(previewWrapper);
-        
-        // Initialize Bootstrap collapse functionality
-        // Add click handlers for accordion buttons
-        var accordionButtons = accordion.querySelectorAll('.accordion-button');
-        accordionButtons.forEach(function(button) {
-            button.addEventListener('click', function(e) {
-                var targetId = this.getAttribute('data-bs-target');
-                if (!targetId) return;
-                
-                var target = document.querySelector(targetId);
-                if (!target) return;
-                
-                // Toggle collapse manually if Bootstrap is not available
-                if (typeof bootstrap === 'undefined' && typeof $ === 'undefined') {
-                    e.preventDefault();
-                    var isExpanded = this.getAttribute('aria-expanded') === 'true';
-                    
-                    // Close all other accordions
-                    accordion.querySelectorAll('.accordion-collapse').forEach(function(collapse) {
-                        if (collapse !== target) {
-                            collapse.classList.remove('show');
-                            var otherButton = accordion.querySelector('[data-bs-target="#' + collapse.id + '"]');
-                            if (otherButton) {
-                                otherButton.classList.add('collapsed');
-                                otherButton.setAttribute('aria-expanded', 'false');
-                            }
-                        }
-                    });
-                    
-                    // Toggle current
-                    if (isExpanded) {
-                        target.classList.remove('show');
-                        this.classList.add('collapsed');
-                        this.setAttribute('aria-expanded', 'false');
-                    } else {
-                        target.classList.add('show');
-                        this.classList.remove('collapsed');
-                        this.setAttribute('aria-expanded', 'true');
-                    }
-                }
-            });
-        });
-        
-        // Initialize Bootstrap collapse if available
-        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-            // Bootstrap 5
-            var collapseElements = accordion.querySelectorAll('.collapse');
-            collapseElements.forEach(function(collapseEl) {
-                new bootstrap.Collapse(collapseEl, {
-                    toggle: false
-                });
-            });
-        } else if (typeof $ !== 'undefined' && $.fn.collapse) {
-            // Bootstrap 4/jQuery
-            $(accordion).find('.collapse').collapse();
-        }
+
+        bindAdminAccordionPreviewToggles(accordion);
     }
     
     function showJSONModal() {
+        startFormLoader('Building JSON preview...');
         generateAccordionFromContent();
         
         // Ensure programtitle and overview are included before displaying
@@ -1279,9 +1200,11 @@
             content.textContent = JSON.stringify(jsonData, null, 2);
             modal.style.display = 'block';
         }
+        finishFormLoader();
     }
     
     function saveJSONToModel() {
+        startFormLoader('Saving JSON to form field...');
         generateAccordionFromContent();
         
         // Ensure programtitle and overview are included
@@ -1322,6 +1245,38 @@
         } else {
             alert('Could not create content_json field. Please check the form and try again.');
         }
+        finishFormLoader();
+    }
+
+    function startFormLoader(title) {
+        if (!formLoaderWrap) return;
+        formLoaderPct = 10;
+        if (formLoaderTitle) formLoaderTitle.textContent = title || 'Processing...';
+        if (formLoaderBar) formLoaderBar.style.width = formLoaderPct + '%';
+        if (formLoaderText) formLoaderText.textContent = formLoaderPct + '%';
+        formLoaderWrap.style.display = 'block';
+        if (formLoaderTimer) clearInterval(formLoaderTimer);
+        formLoaderTimer = setInterval(function() {
+            if (formLoaderPct < 92) {
+                formLoaderPct += (formLoaderPct < 60 ? 8 : 3);
+                if (formLoaderPct > 92) formLoaderPct = 92;
+                if (formLoaderBar) formLoaderBar.style.width = formLoaderPct + '%';
+                if (formLoaderText) formLoaderText.textContent = formLoaderPct + '%';
+            }
+        }, 180);
+    }
+
+    function finishFormLoader() {
+        if (!formLoaderWrap) return;
+        if (formLoaderTimer) clearInterval(formLoaderTimer);
+        formLoaderPct = 100;
+        if (formLoaderBar) formLoaderBar.style.width = '100%';
+        if (formLoaderText) formLoaderText.textContent = '100%';
+        setTimeout(function() {
+            formLoaderWrap.style.display = 'none';
+            if (formLoaderBar) formLoaderBar.style.width = '0%';
+            if (formLoaderText) formLoaderText.textContent = '0%';
+        }, 250);
     }
     
     function showNotification(message, type) {

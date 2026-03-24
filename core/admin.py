@@ -2,7 +2,8 @@ from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
 from core.choices import MINDMAP_TYPE_CHOICES
-from django.utils.html import format_html, strip_tags
+from django.utils import timezone
+from django.utils.html import conditional_escape, format_html, strip_tags
 from django.urls import path, reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
@@ -879,14 +880,92 @@ class EntranceTestPrepCategoryWithCountFilter(admin.SimpleListFilter):
         return queryset
 
 
+def _normalize_entrance_exam_sections_admin_fast(raw_sections):
+    """Same merge + blank filter as the public exam detail page (single source of truth)."""
+    from core import views as core_views
+
+    return core_views._normalize_entrance_exam_sections(raw_sections)
+
+
+def _exam_has_db_sections_no_extra_query(exam):
+    """Use prefetch cache when present; avoid per-exam EXISTS() queries."""
+    cache = getattr(exam, "_prefetched_objects_cache", None)
+    if cache is not None and "sections" in cache:
+        return len(cache["sections"]) > 0
+    return exam.sections.exists()
+
+
+class EntranceTestPrepAccordionErrorsFilter(admin.SimpleListFilter):
+    """Filter by stored accordion validation (DB; updated by Validate accordion)."""
+    title = "Accordion"
+    parameter_name = "etp_accordion"
+
+    def lookups(self, request, model_admin):
+        # Do not add ("", "All") — Django's SimpleListFilter already renders "All"
+        # (removes this parameter); a duplicate "All" confuses which link is selected.
+        return (
+            ("1", "With accordion errors"),
+            ("0", "No errors (validated OK)"),
+            ("pending", "Not validated yet"),
+        )
+
+    def queryset(self, request, queryset):
+        v = self.value()
+        if v == "1":
+            return queryset.filter(accordion_validation_has_errors=True)
+        if v == "0":
+            return queryset.filter(
+                accordion_validation_checked_at__isnull=False,
+                accordion_validation_has_errors=False,
+            )
+        if v == "pending":
+            return queryset.filter(accordion_validation_checked_at__isnull=True)
+        return queryset
+
+
+def _entrance_test_prep_exam_accordion_issues(exam):
+    """
+    List human-readable issues: blank section bodies (same rules as public _section_html_is_blank),
+    and exams with content sources but zero visible accordion panels after normalize.
+    Uses the same raw builder and _normalize_entrance_exam_sections as the public page.
+    """
+    from core import views as core_views
+
+    raw = core_views.build_entrance_test_prep_exam_sections_raw(exam)
+    errors = []
+    for s in raw:
+        label = core_views._strip_heading_numbers(s.get("title") or s.get("section_id") or "Section")
+        if core_views._section_html_is_blank(s.get("content_html")):
+            errors.append(f"{label}: blank (hidden on site)")
+    final = _normalize_entrance_exam_sections_admin_fast(raw)
+    cj = getattr(exam, "content_json", None)
+    has_source = bool(
+        (exam.content_html or "").strip()
+        or _exam_has_db_sections_no_extra_query(exam)
+        or (isinstance(cj, dict) and bool(cj))
+    )
+    if not final and has_source:
+        errors.append("No visible accordion sections (all blank or unresolved)")
+    return errors
+
+
 @admin.register(EntranceTestPrepExam)
 class EntranceTestPrepExamAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category_name_safe", "priority", "object_status", "preview_link", "image_safe", "regenerate_image_btn", "remove_image_btn", "hard_delete_exam_link")
-    list_filter = ("object_status", EntranceTestPrepCategoryWithCountFilter)
+    list_display = (
+        "id",
+        "name",
+        "accordion_validation",
+        "category_name_safe",
+        "priority",
+        "object_status",
+        "preview_link",
+        "image_safe",
+        "hard_delete_exam_link",
+    )
+    list_filter = (EntranceTestPrepAccordionErrorsFilter, "object_status", EntranceTestPrepCategoryWithCountFilter)
     search_fields = ("name", "category__name")
     ordering = ("category__name", "priority", "name")
-    readonly_fields = ("created", "modified")
-    actions = ["action_regenerate_image", "action_remove_image", "action_hard_delete_exams"]
+    actions = ["action_hard_delete_exams"]
     fieldsets = (
         ("Basic Information", {"fields": ("category", "name", "slug", "image", "priority", "object_status")}),
         (
@@ -896,7 +975,26 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
                 "description": "Edit content_html to generate accordion structure. Use the Content Editor and 'Generate Accordion from Content' below. The content_json field is auto-saved on form submit.",
             },
         ),
+        (
+            "Accordion validation (cached)",
+            {
+                "fields": (
+                    "accordion_validation_has_errors",
+                    "accordion_validation_checked_at",
+                    "accordion_validation_issues",
+                ),
+                "classes": ("collapse",),
+                "description": "Updated when you run Validate accordion on the exam list. Cleared when content_html / content_json or inline sections change.",
+            },
+        ),
         ("Timestamps", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+    )
+    readonly_fields = (
+        "created",
+        "modified",
+        "accordion_validation_has_errors",
+        "accordion_validation_checked_at",
+        "accordion_validation_issues",
     )
     change_form_template = "admin/core/entrancetestprepexam/change_form.html"
     change_list_template = "admin/core/entrancetestprepexam/change_list.html"
@@ -922,7 +1020,18 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
                 logger.warning("Invalid content_json for exam: %s", e)
                 if not change:
                     obj.content_json = None
+        invalidate = (
+            change
+            and getattr(form, "changed_data", ())
+            and any(f in form.changed_data for f in ("content_html", "content_json"))
+        )
         super().save_model(request, obj, form, change)
+        if invalidate and obj.pk:
+            EntranceTestPrepExam.objects.filter(pk=obj.pk).update(
+                accordion_validation_checked_at=None,
+                accordion_validation_issues=[],
+                accordion_validation_has_errors=False,
+            )
 
     def category_name_safe(self, obj):
         try:
@@ -953,27 +1062,36 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
     preview_link.short_description = "Preview"
     preview_link.admin_order_field = "name"
 
-    def regenerate_image_btn(self, obj):
-        if not obj or not getattr(obj, "pk", None):
-            return "-"
-        url = reverse("admin:core_entrancetestprepexam_regenerate_image", args=[obj.pk])
+    def accordion_validation(self, obj):
+        """Stored DB result; JS refreshes row after Validate accordion."""
+        if not obj or not getattr(obj, "id", None):
+            return "—"
+        checked = obj.accordion_validation_checked_at
+        issues = obj.accordion_validation_issues or []
+        name_esc = conditional_escape((obj.name or "")[:80])
+        if checked is None:
+            return format_html(
+                '<span class="etp-accordion-validation" data-pk="{}" data-name="{}" title="Run Validate accordion to compute and save">—</span>',
+                obj.pk,
+                name_esc,
+            )
+        if issues:
+            title = conditional_escape("\n".join(str(x) for x in issues))
+            return format_html(
+                '<span class="etp-accordion-validation" data-pk="{}" data-name="{}" title="{}">'
+                '<span style="color:#ba2121;cursor:help">&#9888;</span></span>',
+                obj.pk,
+                name_esc,
+                title,
+            )
         return format_html(
-            '<a href="{}" class="button" style="padding: 4px 8px; font-size: 11px;">Regenerate</a>',
-            url,
+            '<span class="etp-accordion-validation" data-pk="{}" data-name="{}" title="OK (saved)">OK</span>',
+            obj.pk,
+            name_esc,
         )
-    regenerate_image_btn.short_description = "Image"
 
-    def remove_image_btn(self, obj):
-        if not obj or not getattr(obj, "pk", None):
-            return "-"
-        if not obj.image:
-            return format_html('<span style="color: #999;">—</span>')
-        url = reverse("admin:core_entrancetestprepexam_remove_image", args=[obj.pk])
-        return format_html(
-            '<a href="{}" class="button" style="padding: 2px 6px; font-size: 12px; color: #ba2121; background: transparent;" title="Remove image">✕</a>',
-            url,
-        )
-    remove_image_btn.short_description = "Remove"
+    accordion_validation.short_description = "Accordion"
+    accordion_validation.admin_order_field = "accordion_validation_has_errors"
 
     def hard_delete_exam_link(self, obj):
         if not obj or not getattr(obj, "pk", None):
@@ -989,19 +1107,14 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path(
-                "generate-all-images/",
-                self.admin_site.admin_view(self.generate_all_images_view),
-                name="core_entrancetestprepexam_generate_all_images",
+                "validate_accordion/",
+                self.admin_site.admin_view(self.validate_accordion_view),
+                name="core_entrancetestprepexam_validate_accordion",
             ),
             path(
-                "<int:pk>/regenerate-image/",
-                self.admin_site.admin_view(self.regenerate_image_view),
-                name="core_entrancetestprepexam_regenerate_image",
-            ),
-            path(
-                "<int:pk>/remove-image/",
-                self.admin_site.admin_view(self.remove_image_view),
-                name="core_entrancetestprepexam_remove_image",
+                "regenerate-all-json/",
+                self.admin_site.admin_view(self.regenerate_all_json_view),
+                name="core_entrancetestprepexam_regenerate_all_json",
             ),
             path(
                 "<int:pk>/hard-delete/",
@@ -1011,6 +1124,46 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
         ]
         return custom + urls
 
+    def validate_accordion_view(self, request):
+        """Run validation, persist per-exam results on the model, return JSON for the list UI."""
+        from django.db.models import Prefetch
+
+        try:
+            base = self.get_queryset(request)
+            pks = list(base.values_list("pk", flat=True))
+            section_qs = EntranceTestPrepExamSection.objects.only(
+                "exam_id", "section_id", "title", "content_html", "order"
+            ).order_by("order", "section_id")
+            prefetch = Prefetch("sections", queryset=section_qs)
+            results = {}
+            now = timezone.now()
+            chunk_size = 250
+            for i in range(0, len(pks), chunk_size):
+                chunk_ids = pks[i : i + chunk_size]
+                chunk = (
+                    EntranceTestPrepExam.objects.filter(pk__in=chunk_ids)
+                    .only("id", "content_html", "content_json")
+                    .prefetch_related(prefetch)
+                )
+                by_id = {e.pk: e for e in chunk}
+                for pk in chunk_ids:
+                    exam = by_id.get(pk)
+                    if not exam:
+                        continue
+                    try:
+                        issues = _entrance_test_prep_exam_accordion_issues(exam)
+                    except Exception as e:
+                        issues = [f"Validation error: {e}"]
+                    results[str(exam.pk)] = issues
+                    EntranceTestPrepExam.objects.filter(pk=exam.pk).update(
+                        accordion_validation_issues=issues,
+                        accordion_validation_has_errors=bool(issues),
+                        accordion_validation_checked_at=now,
+                    )
+            return JsonResponse({"results": results, "saved_count": len(results)})
+        except Exception as e:
+            return JsonResponse({"error": str(e), "results": {}}, status=500)
+
     def hard_delete_exam_view(self, request, pk):
         """Hard delete this exam (and its sections)."""
         exam = get_object_or_404(EntranceTestPrepExam._base_manager, pk=pk)
@@ -1019,49 +1172,90 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
         messages.success(request, f"Hard deleted exam « {name} » (permanent).")
         return redirect("admin:core_entrancetestprepexam_changelist")
 
-    def generate_all_images_view(self, request):
-        """Generate a fresh unique placeholder image for all exams (no category copy)."""
-        from django.core.files.base import ContentFile
-        qs = EntranceTestPrepExam._base_manager.all()
-        updated = 0
-        for exam in qs:
+    def regenerate_all_json_view(self, request):
+        """Delete all content_json and regenerate from content_html for all exams."""
+        import re
+
+        def _heading_key(title):
+            key = re.sub(r"[^a-z0-9]+", "_", (title or "").lower()).strip("_")
+            return key or "section"
+
+        qs = EntranceTestPrepExam._base_manager.all().only("id", "name", "content_html")
+        # Explicitly clear all stored JSON first (requested behavior).
+        EntranceTestPrepExam._base_manager.update(content_json=None)
+
+        regenerated = 0
+        empty = 0
+        failed = 0
+        for exam in qs.iterator(chunk_size=250):
             try:
-                data = _generate_exam_placeholder_image(exam)
-                if data:
-                    if exam.image:
-                        exam.image.delete(save=False)
-                    exam.image.save(f"exam-{exam.pk}-placeholder.png", ContentFile(data), save=True)
-                    updated += 1
+                html = (exam.content_html or "").strip()
+                if not html:
+                    empty += 1
+                    continue
+
+                sections = {}
+                section_order = []
+                open_matches = list(re.finditer(r"<h2\b[^>]*>", html, flags=re.IGNORECASE))
+                preamble = html[: open_matches[0].start()].strip() if open_matches else ""
+
+                if open_matches:
+                    from bs4 import BeautifulSoup
+
+                    first_key = None
+                    for idx, m in enumerate(open_matches):
+                        title_start = m.end()
+                        tail = html[title_start:]
+                        close_m = re.search(r"</h2>", tail, flags=re.IGNORECASE)
+                        if not close_m:
+                            continue
+                        close_pos = title_start + close_m.start()
+                        title_html = html[title_start:close_pos]
+                        title = BeautifulSoup(title_html, "html.parser").get_text(separator=" ", strip=True) or f"Section {idx + 1}"
+                        key = _heading_key(title)
+                        base = key
+                        suffix = 1
+                        while key in sections:
+                            key = f"{base}_{suffix}"
+                            suffix += 1
+
+                        body_start = close_pos + len(close_m.group(0))
+                        body_end = open_matches[idx + 1].start() if idx + 1 < len(open_matches) else len(html)
+                        body_html = html[body_start:body_end].strip()
+                        sections[key] = {"title": title, "html": body_html}
+                        section_order.append(key)
+                        if first_key is None:
+                            first_key = key
+
+                    # Keep preamble content by prepending to first section.
+                    if preamble and first_key and first_key in sections:
+                        sections[first_key]["html"] = (preamble + sections[first_key].get("html", "")).strip()
+                else:
+                    sections["content"] = {"title": "Content", "html": html}
+                    section_order = ["content"]
+
+                first_key = section_order[0] if section_order else None
+                overview_html = sections.get(first_key, {}).get("html", "") if first_key else ""
+                payload = {
+                    "programtitle": exam.name or "",
+                    "overview": overview_html,
+                    "sections": sections,
+                    "section_order": section_order,
+                }
+                EntranceTestPrepExam._base_manager.filter(pk=exam.pk).update(
+                    content_json=payload,
+                    accordion_validation_checked_at=None,
+                    accordion_validation_issues=[],
+                    accordion_validation_has_errors=False,
+                )
+                regenerated += 1
             except Exception:
-                pass
-        messages.success(request, f"Generated unique placeholder images for {updated} exam(s).")
-        return redirect("admin:core_entrancetestprepexam_changelist")
+                failed += 1
 
-    def regenerate_image_view(self, request, pk):
-        """Generate a fresh unique placeholder image for this exam (no category copy)."""
-        from django.core.files.base import ContentFile
-        exam = get_object_or_404(EntranceTestPrepExam, pk=pk)
-        try:
-            data = _generate_exam_placeholder_image(exam)
-            if data:
-                if exam.image:
-                    exam.image.delete(save=False)
-                exam.image.save(f"exam-{exam.pk}-placeholder.png", ContentFile(data), save=True)
-                messages.success(request, f"Generated new placeholder image for « {exam.name} ».")
-            else:
-                messages.error(request, "Could not generate image (PIL may be missing).")
-        except Exception as e:
-            messages.error(request, f"Failed to set image: {e}")
-        return redirect("admin:core_entrancetestprepexam_changelist")
-
-    def remove_image_view(self, request, pk):
-        """Clear exam image."""
-        exam = get_object_or_404(EntranceTestPrepExam, pk=pk)
-        if exam.image:
-            exam.image.delete(save=True)
-            messages.success(request, f"Image removed for « {exam.name} ».")
-        else:
-            messages.info(request, f"Exam « {exam.name} » had no image.")
+        messages.success(
+            request,
+            f"JSON regenerated: {regenerated} exam(s); empty content_html: {empty}; failed: {failed}.",
+        )
         return redirect("admin:core_entrancetestprepexam_changelist")
 
     @admin.action(description="Hard delete selected exams (permanent)")
@@ -1069,33 +1263,6 @@ class EntranceTestPrepExamAdmin(admin.ModelAdmin):
         pks = list(queryset.values_list("pk", flat=True))
         count = EntranceTestPrepExam._base_manager.filter(pk__in=pks).delete()[0]
         messages.success(request, "Hard deleted %s exam(s) (permanent)." % count)
-
-    @admin.action(description="Generate placeholder image")
-    def action_regenerate_image(self, request, queryset):
-        from django.core.files.base import ContentFile
-        updated = 0
-        for exam in queryset:
-            try:
-                data = _generate_exam_placeholder_image(exam)
-                if data:
-                    if exam.image:
-                        exam.image.delete(save=False)
-                    exam.image.save(f"exam-{exam.pk}-placeholder.png", ContentFile(data), save=True)
-                    updated += 1
-            except Exception:
-                pass
-        messages.success(request, f"Generated placeholder images for {updated} exam(s).")
-        return None
-
-    @admin.action(description="Remove image")
-    def action_remove_image(self, request, queryset):
-        removed = 0
-        for exam in queryset:
-            if exam.image:
-                exam.image.delete(save=True)
-                removed += 1
-        messages.success(request, f"Removed image from {removed} exam(s).")
-        return None
 
 
 # Section headings used on vocational course detail accordion (must match template20/vocational_course_detail.html)
@@ -1151,23 +1318,28 @@ def _html_is_effectively_blank(html):
 
 
 class AccordionErrorsFilter(admin.SimpleListFilter):
-    """Filter vocational courses by accordion validation (uses last validation result from session)."""
-    title = 'Accordion'
-    parameter_name = 'accordion'
+    """Filter vocational courses by stored accordion validation (DB; updated by Validate accordion)."""
+    title = "Accordion"
+    parameter_name = "accordion"
 
     def lookups(self, request, model_admin):
         return (
-            ('', 'All'),
-            ('1', 'With accordion errors'),
-            ('0', 'No errors'),
+            ("1", "With accordion errors"),
+            ("0", "No errors (validated OK)"),
+            ("pending", "Not validated yet"),
         )
 
     def queryset(self, request, queryset):
-        error_pks = request.session.get('vocational_accordion_errors') or []
-        if self.value() == '1':
-            return queryset.filter(pk__in=error_pks) if error_pks else queryset.none()
-        if self.value() == '0':
-            return queryset.exclude(pk__in=error_pks)
+        v = self.value()
+        if v == "1":
+            return queryset.filter(accordion_validation_has_errors=True)
+        if v == "0":
+            return queryset.filter(
+                accordion_validation_checked_at__isnull=False,
+                accordion_validation_has_errors=False,
+            )
+        if v == "pending":
+            return queryset.filter(accordion_validation_checked_at__isnull=True)
         return queryset
 
 
@@ -1210,12 +1382,30 @@ class VocationalCourseAdmin(admin.ModelAdmin):
             'fields': ('content_html', 'content_json'),
             'description': 'Edit content_html to generate accordion structure. The content_json field is auto-generated and saved on form submit.'
         }),
+        (
+            "Accordion validation (cached)",
+            {
+                "fields": (
+                    "accordion_validation_has_errors",
+                    "accordion_validation_checked_at",
+                    "accordion_validation_issues",
+                ),
+                "classes": ("collapse",),
+                "description": "Updated when you run Validate accordion on the course list. Cleared when content_html or content_json changes.",
+            },
+        ),
         ('Timestamps', {
             'fields': ('created', 'modified'),
             'classes': ('collapse',)
         }),
     )
-    readonly_fields = ("created", "modified")
+    readonly_fields = (
+        "created",
+        "modified",
+        "accordion_validation_has_errors",
+        "accordion_validation_checked_at",
+        "accordion_validation_issues",
+    )
     change_form_template = "admin/core/vocationalcourse/change_form.html"
     change_list_template = "admin/core/vocationalcourse/change_list.html"
 
@@ -1254,9 +1444,19 @@ class VocationalCourseAdmin(admin.ModelAdmin):
                 if not change:
                     obj.content_json = None
         
-        # Call parent save
+        invalidate = (
+            change
+            and getattr(form, "changed_data", ())
+            and any(f in form.changed_data for f in ("content_html", "content_json"))
+        )
         super().save_model(request, obj, form, change)
-    
+        if invalidate and obj.pk:
+            VocationalCourse.objects.filter(pk=obj.pk).update(
+                accordion_validation_checked_at=None,
+                accordion_validation_issues=[],
+                accordion_validation_has_errors=False,
+            )
+
     def category_name_safe(self, obj):
         """Display category name without raising if category is missing."""
         try:
@@ -1293,15 +1493,35 @@ class VocationalCourseAdmin(admin.ModelAdmin):
     preview_link.admin_order_field = 'name'
 
     def accordion_validation(self, obj):
-        """Placeholder for validation result; filled by JS after 'Validate accordion' is run."""
-        if not obj or not getattr(obj, 'id', None):
-            return '—'
+        """Stored DB result; JS refreshes row after Validate accordion."""
+        if not obj or not getattr(obj, "id", None):
+            return "—"
+        checked = obj.accordion_validation_checked_at
+        issues = obj.accordion_validation_issues or []
+        name_esc = conditional_escape((obj.name or "")[:80])
+        if checked is None:
+            return format_html(
+                '<span class="accordion-validation" data-pk="{}" data-name="{}" title="Run Validate accordion to compute and save">—</span>',
+                obj.pk,
+                name_esc,
+            )
+        if issues:
+            title = conditional_escape("\n".join(str(x) for x in issues))
+            return format_html(
+                '<span class="accordion-validation" data-pk="{}" data-name="{}" title="{}">'
+                '<span style="color:#ba2121;cursor:help">&#9888;</span></span>',
+                obj.pk,
+                name_esc,
+                title,
+            )
         return format_html(
-            '<span class="accordion-validation" data-pk="{}" data-name="{}" title="">—</span>',
+            '<span class="accordion-validation" data-pk="{}" data-name="{}" title="OK (saved)">OK</span>',
             obj.pk,
-            obj.name[:50] if obj.name else '',
+            name_esc,
         )
-    accordion_validation.short_description = 'Accordion'
+
+    accordion_validation.short_description = "Accordion"
+    accordion_validation.admin_order_field = "accordion_validation_has_errors"
 
     def get_urls(self):
         urls = super().get_urls()
@@ -1315,17 +1535,19 @@ class VocationalCourseAdmin(admin.ModelAdmin):
         return custom + urls
 
     def validate_accordion_view(self, request):
-        """Return JSON mapping course pk -> list of blank section error strings; store error PKs in session for sidebar filter."""
+        """Run validation, persist per-course results on the model; return JSON for the list UI."""
         qs = self.get_queryset(request)
         results = {}
-        error_pks = []
+        now = timezone.now()
         for course in qs:
             errors = _vocational_accordion_blank_sections(course)
             results[str(course.pk)] = errors
-            if errors:
-                error_pks.append(course.pk)
-        request.session['vocational_accordion_errors'] = error_pks
-        return JsonResponse({'results': results})
+            VocationalCourse.objects.filter(pk=course.pk).update(
+                accordion_validation_issues=errors,
+                accordion_validation_has_errors=bool(errors),
+                accordion_validation_checked_at=now,
+            )
+        return JsonResponse({"results": results, "saved_count": len(results)})
 
 
 class EbookAdminForm(forms.ModelForm):

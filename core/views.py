@@ -816,64 +816,194 @@ def _strip_heading_numbers(text):
     return re.sub(r"^\s*\d+\.?\s*", "", text.strip()).strip() or text
 
 
+def _is_intro_heading(text):
+    """Overview / About / Introduction — treat as one intro block for entrance exam pages."""
+    if not text or not isinstance(text, str):
+        return False
+    t = _strip_heading_numbers(text).strip().lower()
+    return t in ("overview", "about", "introduction", "intro")
+
+
+def _section_html_is_blank(html):
+    """
+    True if section body has no meaningful text (empty tags, &nbsp;, <br> only,
+    script/style, HTML comments, zero-width chars). Used to hide empty accordions on the public page.
+    """
+    import html as html_module
+
+    from django.utils.html import strip_tags
+
+    if html is None:
+        return True
+    s = str(html).strip()
+    if not s:
+        return True
+
+    def _normalize_visible_text(t):
+        if not t:
+            return ""
+        t = t.replace("\u00a0", " ").replace("\u200b", "").replace("\ufeff", "")
+        t = re.sub(r"[\u200c\u200d\u2060\ufeff]", "", t)
+        t = re.sub(r"\s+", " ", t).strip()
+        return t
+
+    try:
+        from bs4 import BeautifulSoup, Comment
+
+        soup = BeautifulSoup(s, "html.parser")
+        for tag in soup(["script", "style", "noscript"]):
+            tag.decompose()
+        # Comments can contain text that would otherwise count as "content"
+        for c in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            c.extract()
+        text = soup.get_text(separator=" ", strip=True)
+        if _normalize_visible_text(text):
+            return False
+        # strip_tags on cleaned soup only — raw HTML may still contain script text if parsed oddly
+        plain = strip_tags(str(soup))
+        plain = html_module.unescape(plain)
+        return not _normalize_visible_text(plain)
+    except Exception:
+        plain = strip_tags(s)
+        plain = html_module.unescape(plain)
+        return not _normalize_visible_text(plain)
+
+
+def _merge_leading_intro_sections(sections):
+    """
+    Merge consecutive leading sections whose titles are intro-type (Overview/About/Introduction)
+    into one 'Overview' panel with stable section_id 'overview' when possible.
+    """
+    if not sections:
+        return []
+    intro_run = []
+    i = 0
+    while i < len(sections) and _is_intro_heading(sections[i].get("title")):
+        intro_run.append(sections[i])
+        i += 1
+    rest = sections[i:]
+    if not intro_run:
+        return list(sections)
+    merged_html = "".join((s.get("content_html") or "") for s in intro_run)
+    section_id = None
+    for s in intro_run:
+        sid = (s.get("section_id") or "").strip()
+        if sid.lower() == "overview":
+            section_id = "overview"
+            break
+    if section_id is None:
+        for s in intro_run:
+            sid = (s.get("section_id") or "").strip()
+            if sid:
+                section_id = sid
+                break
+    if not section_id:
+        section_id = "overview"
+    merged = {
+        "section_id": section_id if section_id else "overview",
+        "title": "Overview",
+        "content_html": merged_html,
+        "icon": _icon_for_heading("Overview"),
+    }
+    return [merged] + rest
+
+
+def _filter_blank_sections(sections):
+    """Drop accordion rows with no visible body content."""
+    return [s for s in sections if not _section_html_is_blank(s.get("content_html"))]
+
+
+def _normalize_entrance_exam_sections(sections):
+    """Common entrance exam rules: merge intro headings, drop empty panels."""
+    merged = _merge_leading_intro_sections(sections)
+    return _filter_blank_sections(merged)
+
+
+def _count_h2_in_html(html_content):
+    """Count opening <h2> tags (same notion as _sections_from_content_html splitting)."""
+    if not html_content or not str(html_content).strip():
+        return 0
+    return len(re.findall(r"<h2\b", str(html_content), re.IGNORECASE))
+
+
 def _sections_from_content_html(html_content):
-    """Split HTML by H2 headings so accordion is based on H2 only. Content above the first H2 becomes the first 'Overview' accordion."""
+    """
+    Split HTML by every <h2>...</h2> in document order (string positions, not sibling
+    traversal) so nested <h2> inside divs each become their own accordion panel.
+
+    Preamble before the first <h2> becomes a separate Overview panel unless the first
+    heading is intro-type (Overview/About/Introduction/Intro), in which case preamble
+    is prepended to that section's body.
+    """
     if not html_content or not html_content.strip():
         return []
     try:
         from bs4 import BeautifulSoup
-        soup = BeautifulSoup(html_content, "html.parser")
-        h2s = soup.find_all("h2")
-        if not h2s:
+
+        html_content = html_content.strip()
+        h2_opens = list(re.finditer(r"<h2\b[^>]*>", html_content, re.IGNORECASE))
+        if not h2_opens:
             return [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
+
         used = set()
         sections = []
-        first_h2 = h2s[0]
-        first_h2_text = first_h2.get_text(strip=True)
-        first_h2_display = _strip_heading_numbers(first_h2_text).lower()
-        content_before_first_h2 = list(first_h2.previous_siblings)
-        prepend_to_first = ""
-        if content_before_first_h2:
-            prepend_to_first = "".join(str(n) for n in reversed(content_before_first_h2))
-        add_overview_section = prepend_to_first.strip() and first_h2_display != "overview"
-        if add_overview_section:
-            sections.append({
-                "section_id": "overview",
-                "title": "Overview",
-                "content_html": prepend_to_first,
-                "icon": "bx-info-circle",
-            })
-            used.add("overview")
-        for tag in h2s:
-            text = tag.get_text(strip=True)
-            if not text:
+        preamble = html_content[: h2_opens[0].start()].strip()
+
+        for i, m in enumerate(h2_opens):
+            title_start = m.end()
+            tail = html_content[title_start:]
+            close_m = re.search(r"</h2>", tail, re.IGNORECASE)
+            if not close_m:
                 continue
-            existing_id = tag.get("id", "").strip()
+            close_pos = title_start + close_m.start()
+            title_html = html_content[title_start:close_pos]
+            title_text = BeautifulSoup(title_html, "html.parser").get_text(separator=" ", strip=True)
+            if not title_text:
+                title_text = "Section"
+            body_start = close_pos + len(close_m.group(0))
+            body_end = h2_opens[i + 1].start() if i + 1 < len(h2_opens) else len(html_content)
+            body_html = html_content[body_start:body_end].strip()
+
+            if i == 0 and preamble:
+                if not _is_intro_heading(title_text):
+                    sections.append({
+                        "section_id": "overview",
+                        "title": "Overview",
+                        "content_html": preamble,
+                        "icon": "bx-info-circle",
+                    })
+                    used.add("overview")
+                else:
+                    body_html = (preamble + body_html).strip()
+
+            existing_id = None
+            try:
+                frag = html_content[m.start() : close_pos + len(close_m.group(0))]
+                soup_tag = BeautifulSoup(frag, "html.parser")
+                h2tag = soup_tag.find("h2")
+                if h2tag and h2tag.get("id", "").strip():
+                    existing_id = h2tag.get("id", "").strip()
+            except Exception:
+                pass
+
             if existing_id and existing_id not in used:
                 sid = existing_id
             else:
-                sid = re.sub(r"[^a-z0-9]+", "-", text.lower())[:80].strip("-") or "section"
+                sid = re.sub(r"[^a-z0-9]+", "-", title_text.lower())[:80].strip("-") or "section"
                 base, c = sid, 1
                 while sid in used:
                     sid = f"{base}-{c}"
                     c += 1
             used.add(sid)
-            tag["id"] = sid
-            content_parts = []
-            for sib in tag.next_siblings:
-                if getattr(sib, "name", None) == "h2":
-                    break
-                content_parts.append(sib)
-            content_html = "".join(str(n) for n in content_parts)
-            if first_h2_display == "overview" and tag is first_h2 and prepend_to_first.strip():
-                content_html = prepend_to_first + content_html
+
             sections.append({
                 "section_id": sid,
-                "title": text,
-                "content_html": content_html,
-                "icon": _icon_for_heading(text),
+                "title": title_text,
+                "content_html": body_html,
+                "icon": _icon_for_heading(title_text),
             })
-        return sections
+
+        return sections if sections else [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
     except Exception:
         return [{"section_id": "overview", "title": "Overview", "content_html": html_content, "icon": "bx-info-circle"}]
 
@@ -916,6 +1046,53 @@ def _toc_from_content_html(html_content):
         return [], html_content
 
 
+def build_entrance_test_prep_exam_sections_raw(exam):
+    """
+    Build accordion section dicts the same way as the public detail view, *before*
+    intro-merge and blank filtering. Includes blank content_json rows so admin validation
+    can report them.
+    """
+    sections = []
+    if getattr(exam, "content_json", None) and isinstance(exam.content_json, dict):
+        raw_sections = exam.content_json.get("sections") or {}
+        ordered_keys = exam.content_json.get("section_order") if isinstance(exam.content_json.get("section_order"), list) else []
+        iter_keys = []
+        for key in ordered_keys:
+            if key in raw_sections and key not in iter_keys:
+                iter_keys.append(key)
+        for key in raw_sections.keys():
+            if key not in iter_keys:
+                iter_keys.append(key)
+
+        for key in iter_keys:
+            data = raw_sections.get(key)
+            if not isinstance(data, dict):
+                continue
+            title = data.get("title") or key.replace("_", " ").title()
+            html = data.get("html") or data.get("content") or data.get("body") or ""
+            section_id = key.replace(" ", "-").lower()[:80]
+            sections.append({
+                "section_id": section_id,
+                "title": title,
+                "content_html": html,
+                "icon": _icon_for_heading(title),
+            })
+    if not sections:
+        section_objs = list(exam.sections.order_by("order", "section_id"))
+        sections = [
+            {
+                "section_id": getattr(s, "section_id", f"section-{i}"),
+                "title": getattr(s, "title", "Section"),
+                "content_html": getattr(s, "content_html", "") or "",
+                "icon": _icon_for_heading(getattr(s, "title", "")),
+            }
+            for i, s in enumerate(section_objs)
+        ]
+    if not sections and exam.content_html:
+        sections = _sections_from_content_html(exam.content_html)
+    return sections
+
+
 class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
     """Single exam detail: Quick links sidebar + accordion (sections or single Overview from content_html)."""
     template_name = "template20/entrance_test_prep_exam_detail.html"
@@ -932,68 +1109,10 @@ class EntranceTestPrepExamDetailView(FreetrailContentMixin, TemplateView):
         exam = EntranceTestPrepExam.objects.prefetch_related("sections").get(pk=exam.pk)
         category = exam.category
         level = category.parent if category else None
-        sections = []
-        toc = []
-        # Prefer content_json (accordion from admin) when present
-        if getattr(exam, "content_json", None) and isinstance(exam.content_json, dict):
-            raw_sections = exam.content_json.get("sections") or {}
-            # Build sections in consistent order; skip empty if desired (frontend can hide empty)
-            for key, data in raw_sections.items():
-                if not isinstance(data, dict):
-                    continue
-                title = data.get("title") or key.replace("_", " ").title()
-                html = data.get("html") or data.get("content") or data.get("body") or ""
-                if html or key == "overview":
-                    section_id = key.replace(" ", "-").lower()[:80]
-                    sections.append({
-                        "section_id": section_id,
-                        "title": title,
-                        "content_html": html,
-                        "icon": _icon_for_heading(title),
-                    })
-            sections.sort(key=lambda s: (0 if (s.get("section_id") == "overview" or (s.get("title") or "").lower() == "overview") else 1, (s.get("title") or "")))
-            toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
-            # If admin content_json buckets content but real H2s remain inside Overview, prefer H2-based split from content_html.
-            try:
-                from bs4 import BeautifulSoup
-                overview = next(
-                    (
-                        s
-                        for s in sections
-                        if s.get("section_id") == "overview" or (s.get("title") or "").strip().lower() == "overview"
-                    ),
-                    None,
-                )
-                overview_h2_count = 0
-                if overview and (overview.get("content_html") or "").strip():
-                    overview_h2_count = len(
-                        BeautifulSoup(overview.get("content_html") or "", "html.parser").find_all("h2")
-                    )
-                content_html_h2_count = (
-                    len(BeautifulSoup(exam.content_html or "", "html.parser").find_all("h2"))
-                    if (exam.content_html or "").strip()
-                    else 0
-                )
-                if content_html_h2_count >= 2 and overview_h2_count >= 1:
-                    sections = []
-                    toc = []
-            except Exception:
-                pass
-        if not sections:
-            section_objs = list(exam.sections.order_by("order", "section_id"))
-            sections = [
-                {
-                    "section_id": getattr(s, "section_id", f"section-{i}"),
-                    "title": getattr(s, "title", "Section"),
-                    "content_html": getattr(s, "content_html", "") or "",
-                    "icon": _icon_for_heading(getattr(s, "title", "")),
-                }
-                for i, s in enumerate(section_objs)
-            ]
-            toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
-        if not sections and exam.content_html:
-            sections = _sections_from_content_html(exam.content_html)
-            toc = [{"id": s["section_id"], "text": s["title"], "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]
+        sections = build_entrance_test_prep_exam_sections_raw(exam)
+        sections = _normalize_entrance_exam_sections(sections)
+        # Defensive: never render accordion rows with no visible body (merge/edge cases, CKEditor junk)
+        sections = [s for s in sections if not _section_html_is_blank(s.get("content_html"))]
         for s in sections:
             s["display_title"] = _strip_heading_numbers(s.get("title") or "")
         toc = [{"id": s["section_id"], "text": s.get("display_title", s.get("title", "")), "level": 2, "icon": s.get("icon", "bx-info-circle")} for s in sections]

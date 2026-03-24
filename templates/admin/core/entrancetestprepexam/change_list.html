@@ -3,7 +3,177 @@
 
 {% block object-tools-items %}
 <li>
-  <a href="{% url 'admin:core_entrancetestprepexam_generate_all_images' %}" class="addlink" title="Generate a unique placeholder image for each exam">Generate all images</a>
+  <a href="#" id="etp-validate-accordion-btn" class="addlink" title="Check each exam for blank accordion sections (same rules as the public page — blanks are hidden)">Validate accordion</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_entrancetestprepexam_regenerate_all_json' %}" class="addlink" title="Delete all existing content_json and regenerate from content_html for all exams">Regen all JSON</a>
 </li>
 {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 10px;">
+  <p class="help" style="margin: 0 0 8px 0;">
+    <strong>How to validate:</strong> Click <strong>Validate accordion</strong> above to check each exam for blank sections (empty or only &amp;nbsp;), or no visible panels after the same rules as the live site. Results are <strong>saved in the database</strong> (so the list stays fast) and shown in the <strong>Accordion</strong> column; hover the warning icon for details. Use the <strong>Accordion</strong> filter in the sidebar (errors / OK / not yet run). Re-run the button anytime to refresh stored results.
+    If the button fails with a network error, open
+    <a href="{% url 'admin:core_entrancetestprepexam_validate_accordion' %}" target="_blank" rel="noopener">validation JSON in a new tab</a>
+    (same URL the button calls).
+  </p>
+</div>
+{{ block.super }}
+<div id="etp-admin-loader" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 10050;">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:min(440px, 90vw); background:#fff; border-radius:10px; padding:16px 18px; box-shadow:0 10px 28px rgba(0,0,0,.2);">
+    <div id="etp-admin-loader-title" style="font-weight:700; color:#1f2937; margin-bottom:8px;">Processing request...</div>
+    <div style="height:10px; background:#edf2f7; border-radius:999px; overflow:hidden;">
+      <div id="etp-admin-loader-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#3f37c9,#6d5ffb); transition:width .2s ease;"></div>
+    </div>
+    <div id="etp-admin-loader-text" style="margin-top:8px; font-size:12px; color:#4b5563;">0%</div>
+  </div>
+</div>
+<script>
+(function() {
+  var btn = document.getElementById('etp-validate-accordion-btn');
+  if (!btn) return;
+  var path = '{% url "admin:core_entrancetestprepexam_validate_accordion" %}';
+  var loaderWrap = document.getElementById('etp-admin-loader');
+  var loaderTitle = document.getElementById('etp-admin-loader-title');
+  var loaderBar = document.getElementById('etp-admin-loader-bar');
+  var loaderText = document.getElementById('etp-admin-loader-text');
+  var loaderTimer = null;
+  var loaderPct = 0;
+  function startLoader(title) {
+    if (!loaderWrap) return;
+    loaderPct = 8;
+    loaderTitle.textContent = title || 'Processing request...';
+    loaderBar.style.width = loaderPct + '%';
+    loaderText.textContent = loaderPct + '%';
+    loaderWrap.style.display = 'block';
+    if (loaderTimer) clearInterval(loaderTimer);
+    loaderTimer = setInterval(function() {
+      // Slow approach to 90% while request is in-flight.
+      if (loaderPct < 90) {
+        loaderPct += (loaderPct < 50 ? 7 : loaderPct < 75 ? 4 : 2);
+        if (loaderPct > 90) loaderPct = 90;
+        loaderBar.style.width = loaderPct + '%';
+        loaderText.textContent = loaderPct + '%';
+      }
+    }, 300);
+  }
+  function finishLoader() {
+    if (!loaderWrap) return;
+    if (loaderTimer) clearInterval(loaderTimer);
+    loaderPct = 100;
+    loaderBar.style.width = '100%';
+    loaderText.textContent = '100%';
+    setTimeout(function() {
+      loaderWrap.style.display = 'none';
+      loaderBar.style.width = '0%';
+      loaderText.textContent = '0%';
+    }, 250);
+  }
+  function absoluteUrl(p) {
+    if (!p) return '';
+    if (p.indexOf('http://') === 0 || p.indexOf('https://') === 0) return p;
+    try {
+      return new URL(p, window.location.origin).href;
+    } catch (e) {
+      return p;
+    }
+  }
+  function parseJsonResponse(status, contentType, text) {
+    if (status < 200 || status >= 300) {
+      throw new Error('HTTP ' + status + (text ? ': ' + text.slice(0, 200) : ''));
+    }
+    if ((contentType || '').indexOf('application/json') === -1) {
+      throw new Error('Expected JSON but got HTML (status ' + status + '). Sign in again if you see a login page.');
+    }
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error('Invalid JSON from server');
+    }
+  }
+  function applyResults(data) {
+    if (data.error) {
+      alert('Validation error: ' + data.error);
+      return;
+    }
+    var results = data.results || {};
+    document.querySelectorAll('.etp-accordion-validation').forEach(function(span) {
+      var pk = span.getAttribute('data-pk');
+      var errors = results[pk] || [];
+      var title = errors.length ? errors.join('\n') : 'OK';
+      if (errors.length) {
+        span.innerHTML = '<span style="color: #ba2121; cursor: help;">&#9888;</span>';
+        span.title = title;
+      } else {
+        span.innerHTML = 'OK';
+        span.title = 'OK (saved)';
+      }
+    });
+  }
+  function fetchJson(url) {
+    return fetch(url, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      mode: 'same-origin',
+    }).then(function(r) {
+      return r.text().then(function(text) {
+        return parseJsonResponse(r.status, r.headers.get('content-type'), text);
+      });
+    });
+  }
+  function xhrJson(url) {
+    return new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.onload = function() {
+        try {
+          resolve(parseJsonResponse(xhr.status, xhr.getResponseHeader('content-type'), xhr.responseText || ''));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      xhr.onerror = function() {
+        reject(new Error('XHR network error'));
+      };
+      xhr.send();
+    });
+  }
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    var url = absoluteUrl(path);
+    if (!url) {
+      alert('Validate URL is missing.');
+      return;
+    }
+    btn.disabled = true;
+    var prev = btn.textContent;
+    btn.textContent = 'Validating…';
+    startLoader('Validating accordion...');
+    fetchJson(url)
+      .catch(function(err) {
+        var msg = String(err && err.message ? err.message : err);
+        if (/NetworkError|Failed to fetch|Load failed|XHR network|aborted|NS_ERROR_FAILURE/i.test(msg)) {
+          return xhrJson(url);
+        }
+        throw err;
+      })
+      .then(applyResults)
+      .catch(function(err) {
+        alert('Validation request failed: ' + (err && err.message ? err.message : String(err)));
+      })
+      .finally(function() {
+        finishLoader();
+        btn.disabled = false;
+        btn.textContent = prev;
+      });
+  });
+})();
+</script>
 {% endblock %}

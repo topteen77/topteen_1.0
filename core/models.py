@@ -4,7 +4,8 @@ from django.utils import timezone
 from django.db import models
 from django.db.models.query import QuerySet
 from core import choices
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 from ckeditor.fields import RichTextField
 from django.utils.text import slugify
@@ -496,6 +497,22 @@ class VocationalCourse(BaseModel, SlugModel):
     content_html = RichTextField(blank=True, null=True)
     content_json = models.JSONField(null=True, blank=True, help_text="Stored JSON structure parsed from content_html field with fixed accordion sections")
     priority = models.PositiveSmallIntegerField(default=1, help_text="Lower comes first")
+    # Cached accordion QA from admin "Validate accordion"
+    accordion_validation_issues = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Last stored validation messages (blank sections, etc.). Updated by Validate accordion.",
+    )
+    accordion_validation_has_errors = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True if last validation found issues.",
+    )
+    accordion_validation_checked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When accordion validation was last run and saved.",
+    )
 
     class Meta(BaseModel.Meta):
         ordering = ("priority", "name")
@@ -546,6 +563,22 @@ class EntranceTestPrepExam(BaseModel, SlugModel):
         related_name="entrance_test_prep_exam_shortlist",
         blank=True,
         help_text="Users who bookmarked this exam.",
+    )
+    # Cached accordion QA from admin "Validate accordion" (avoids re-parsing on each list view)
+    accordion_validation_issues = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Last stored validation messages (blank sections, etc.). Updated by Validate accordion.",
+    )
+    accordion_validation_has_errors = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True if last validation found issues.",
+    )
+    accordion_validation_checked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When accordion validation was last run and saved.",
     )
 
     class Meta(BaseModel.Meta):
@@ -1206,3 +1239,14 @@ class DashboardStreakConfig(models.Model):
 
     def __str__(self):
         return f"Streak: {self.activity_source}"
+
+
+# --- Invalidate stored accordion validation when inline DB sections change ---
+@receiver(post_save, sender=EntranceTestPrepExamSection)
+@receiver(post_delete, sender=EntranceTestPrepExamSection)
+def _invalidate_etp_exam_accordion_validation_cache(sender, instance, **kwargs):
+    EntranceTestPrepExam.objects.filter(pk=instance.exam_id).update(
+        accordion_validation_checked_at=None,
+        accordion_validation_issues=[],
+        accordion_validation_has_errors=False,
+    )
