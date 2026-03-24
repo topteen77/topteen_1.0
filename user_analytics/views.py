@@ -37,6 +37,7 @@ from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment
 from core import choices
+from core.models import Configuration
 
 
 def is_staff_or_superuser(user):
@@ -3143,7 +3144,36 @@ def chatbot_rules_view(request):
 
     if request.method == 'POST':
         action = (request.POST.get('action') or '').strip()
+        if action == 'toggle_bots':
+            page_chat_enabled = request.POST.get('chat_this_page_engine') == 'on'
+            legacy_chatbot_enabled = request.POST.get('legacy_chatbot_engine') == 'on'
+
+            Configuration.objects.complete().update_or_create(
+                key='chat_this_page_engine',
+                defaults={
+                    'value': 'true' if page_chat_enabled else 'false',
+                    'editable': True,
+                    'object_status': choices.ObjectStatus.ACTIVE,
+                },
+            )
+            Configuration.objects.complete().update_or_create(
+                key='legacy_chatbot_engine',
+                defaults={
+                    'value': 'true' if legacy_chatbot_enabled else 'false',
+                    'editable': True,
+                    'object_status': choices.ObjectStatus.ACTIVE,
+                },
+            )
+            messages.success(request, 'Bot enable/disable settings updated.')
+            return redirect('user_analytics:chatbot_rules')
+
         if action == 'create':
+            chat_this_page_enabled = str(
+                Configuration.get('chat_this_page_engine', 'true', editable=True)
+            ).strip().lower() in ('true', '1', 'yes', 'on')
+            legacy_chatbot_enabled = str(
+                Configuration.get('legacy_chatbot_engine', 'false', editable=True)
+            ).strip().lower() in ('true', '1', 'yes', 'on')
             page_url = (request.POST.get('page_url') or '').strip()
             if not page_url:
                 messages.error(request, 'Page URL is required.')
@@ -3153,6 +3183,12 @@ def chatbot_rules_view(request):
             bot_name = (request.POST.get('bot_name') or '').strip()
             if bot_name not in ('chat_this_page', 'career_counsellor'):
                 messages.error(request, 'Invalid bot name.')
+                return redirect('user_analytics:chatbot_rules')
+            if bot_name == 'chat_this_page' and not chat_this_page_enabled:
+                messages.error(request, '"Chat this page" is globally disabled. Enable it first to add rules.')
+                return redirect('user_analytics:chatbot_rules')
+            if bot_name == 'career_counsellor' and not legacy_chatbot_enabled:
+                messages.error(request, '"Career Counsellor (cb-root)" is globally disabled. Enable it first to add rules.')
                 return redirect('user_analytics:chatbot_rules')
             visibility = (request.POST.get('is_visible') or 'show').strip()
             is_visible = (visibility == 'show')
@@ -3203,8 +3239,16 @@ def chatbot_rules_view(request):
         return redirect('user_analytics:chatbot_rules')
 
     rules = ChatbotPageRule.objects.all().order_by('priority', '-modified')
+    chat_this_page_enabled = str(
+        Configuration.get('chat_this_page_engine', 'true', editable=True)
+    ).strip().lower() in ('true', '1', 'yes', 'on')
+    legacy_chatbot_enabled = str(
+        Configuration.get('legacy_chatbot_engine', 'false', editable=True)
+    ).strip().lower() in ('true', '1', 'yes', 'on')
     context = {
         'rules': rules,
+        'chat_this_page_enabled': chat_this_page_enabled,
+        'legacy_chatbot_enabled': legacy_chatbot_enabled,
         'page_title': 'Chatbot Rules',
         'csrf_input_html': format_html(
             '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',

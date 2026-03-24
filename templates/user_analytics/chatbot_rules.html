@@ -14,6 +14,34 @@
     {% endif %}
 
     <div class="admin-card mb-3">
+        <h5 class="card-title mb-3"><i class="fas fa-toggle-on text-primary"></i> Global Bot Enable/Disable</h5>
+        <form method="post" action="{{ url('user_analytics:chatbot_rules') }}">
+            {{ csrf_input_html|safe }}
+            <input type="hidden" name="action" value="toggle_bots" />
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="chat_this_page_engine" name="chat_this_page_engine" {% if chat_this_page_enabled %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="chat_this_page_engine">Enable "Chat this page"</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="legacy_chatbot_engine" name="legacy_chatbot_engine" {% if legacy_chatbot_enabled %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="legacy_chatbot_engine">Enable "Career Counsellor (cb-root)"</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" type="submit">Save Bot Settings</button>
+                </div>
+                <div class="col-12">
+                    <small class="text-muted">If a bot is disabled here, it will not show on any page and its rules are ignored until re-enabled.</small>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="admin-card mb-3">
         <h5 class="card-title mb-3"><i class="fas fa-plus-circle text-primary"></i> Add Rule</h5>
         <form method="post" action="{{ url('user_analytics:chatbot_rules') }}">
             {{ csrf_input_html|safe }}
@@ -26,9 +54,16 @@
                 <div class="col-md-2">
                     <label class="form-label">Bot Name</label>
                     <select name="bot_name" class="form-select">
+                        {% if chat_this_page_enabled %}
                         <option value="chat_this_page">Chat this page</option>
-                        <option value="career_counsellor">Career counsellor</option>
+                        {% endif %}
+                        {% if legacy_chatbot_enabled %}
+                        <option value="career_counsellor">Career Counsellor (cb-root)</option>
+                        {% endif %}
                     </select>
+                    {% if not chat_this_page_enabled and not legacy_chatbot_enabled %}
+                    <small class="text-danger">Enable at least one bot above to add rules.</small>
+                    {% endif %}
                 </div>
                 <div class="col-md-2">
                     <label class="form-label d-block">Show/Hide</label>
@@ -60,7 +95,7 @@
                     <input type="number" min="1" name="priority" class="form-control" value="1" />
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-primary w-100" type="submit">Add Rule</button>
+                    <button class="btn btn-primary w-100" type="submit" {% if not chat_this_page_enabled and not legacy_chatbot_enabled %}disabled{% endif %}>Add Rule</button>
                 </div>
             </div>
         </form>

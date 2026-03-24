@@ -154,11 +154,6 @@
     }
   </style>
   {% endif %}
-  {% if ai_counsellor_position == 'left' %}
-  <style>
-    .ai-counsel-bot-wrap { right: auto !important; left: 24px !important; }
-  </style>
-  {% endif %}
   {% endblock %}
 
   {% block additionalhead %}
@@ -181,10 +176,6 @@
   {% if show_chatbot %}{% include 'template20/includes/chatbot.html' %}{% endif %}
   {% endblock %}
 
-  {% block ai_counsellor_bot %}
-  {% if show_ai_counsellor_bot %}{% include 'template20/includes/ai_counsellor_bot.html' %}{% endif %}
-  {% endblock %}
-
   {% include 'template20/includes/student_login_popup.html' %}
   {% block modals %}
   {% endblock %}
@@ -204,7 +195,7 @@
   {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}"></script>{% endif %}
 
   {% block chatbot_js %}
-  {% if show_chatbot %}<script src="{{ static('js_new/chatbot.js') }}"></script>{% endif %}
+  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
   {% endblock %}
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 

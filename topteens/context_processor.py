@@ -204,8 +204,6 @@ def _should_show_ai_counsellor_bot(request):
     Excluded: career-counselling (full page), institute, counselor, admin.
     Respects admin configuration counselling_engine: when disabled, bot is hidden on student dashboard.
     """
-    if not _config_bool('counselling_engine', True):
-        return False
     path = (request.path or '/').rstrip('/') or '/'
     excluded = (
         '/career-counselling',
@@ -291,17 +289,36 @@ def _apply_user_analytics_chatbot_rules(
     request,
     show_page_chat_widget,
     show_ai_counsellor_bot,
+    page_chat_enabled=True,
+    ai_counsellor_enabled=True,
     page_chat_position='left',
     ai_counsellor_position='right',
 ):
     """
     Apply per-page chatbot rules managed from User Analytics dashboard.
+
+    Behavior per bot:
+    - disabled: hide everywhere (caller already enforces this too)
+    - enabled + no rules: show everywhere (keep incoming default True)
+    - enabled + has rules: only matched rules control visibility
     """
     matched_any_rule = False
     try:
         from user_analytics.models import ChatbotPageRule
         path = request.path or '/'
-        rules = ChatbotPageRule.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('priority', '-modified', '-id')
+        rules = list(
+            ChatbotPageRule.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('priority', '-modified', '-id')
+        )
+
+        has_page_chat_rules = any(r.bot_name == 'chat_this_page' for r in rules)
+        has_career_rules = any(r.bot_name == 'career_counsellor' for r in rules)
+
+        # If rules exist for an enabled bot, visibility is rule-driven only.
+        if page_chat_enabled and has_page_chat_rules:
+            show_page_chat_widget = False
+        if ai_counsellor_enabled and has_career_rules:
+            show_ai_counsellor_bot = False
+
         for rule in rules:
             if not _match_chatbot_rule(
                 path,
@@ -311,17 +328,15 @@ def _apply_user_analytics_chatbot_rules(
                 continue
             matched_any_rule = True
             if rule.bot_name == 'chat_this_page':
+                if not page_chat_enabled:
+                    continue
                 show_page_chat_widget = bool(rule.is_visible)
                 page_chat_position = rule.position or page_chat_position
-                # If this rule explicitly shows page chat, hide counsellor on matched paths.
-                if rule.is_visible:
-                    show_ai_counsellor_bot = False
             elif rule.bot_name == 'career_counsellor':
+                if not ai_counsellor_enabled:
+                    continue
                 show_ai_counsellor_bot = bool(rule.is_visible)
                 ai_counsellor_position = rule.position or ai_counsellor_position
-                # If this rule explicitly shows counsellor, hide page chat on matched paths.
-                if rule.is_visible:
-                    show_page_chat_widget = False
     except (ProgrammingError, OperationalError):
         # Rule table may not exist before migrations.
         pass
@@ -389,35 +404,38 @@ def globals(request):
     # for p in popular_tags:
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
     # Freetrail: seconds guest can view gated content before login popup (used by ebook/vocational/extracurricular detail and any freetrail-gated page)
-    page_mode = _get_chatbot_page_mode(request)
-    legacy_chatbot = _should_show_chatbot(request)
-    legacy_ai = _should_show_ai_counsellor_bot(request)
-    show_page_chat_widget = True
-    show_ai_counsellor_bot = legacy_ai
+    legacy_chatbot_enabled = _config_bool('legacy_chatbot_engine', False)
+    page_chat_enabled = _config_bool('chat_this_page_engine', True)
+    ai_counsellor_enabled = legacy_chatbot_enabled
+    # Default behavior:
+    # - If bot is globally enabled and there is no matching rule, show everywhere.
+    # - Rules can override visibility on matched paths.
+    # - If bot is globally disabled, hide everywhere.
+    show_page_chat_widget = page_chat_enabled
+    show_ai_counsellor_bot = legacy_chatbot_enabled
     page_chat_position = 'left'
     ai_counsellor_position = 'right'
-    show_chatbot = legacy_chatbot
-    if page_mode == 'none':
-        show_page_chat_widget = False
-        show_ai_counsellor_bot = False
-        show_chatbot = False
-    elif page_mode == 'chat_this_page':
-        show_page_chat_widget = True
-        show_ai_counsellor_bot = False
-        show_chatbot = False
-    elif page_mode == 'career_counsellor':
-        show_page_chat_widget = False
-        show_ai_counsellor_bot = legacy_ai
-        show_chatbot = False
-    elif page_mode == 'both':
-        show_page_chat_widget = True
-        show_ai_counsellor_bot = legacy_ai
-        show_chatbot = False
+    # Legacy chatbot (chatbot.html/chatbot.js) is retired; keep disabled everywhere.
+    show_chatbot = False
+    # NOTE:
+    # Legacy CHATBOT_DEFAULT_MODE / CHATBOT_PAGE_RULES config is intentionally not
+    # used to drive these two bot widgets anymore. User Analytics rules are the
+    # source of truth for per-page behavior.
 
     # Highest-precedence: User Analytics Bot Rules page
     show_page_chat_widget, show_ai_counsellor_bot, page_chat_position, ai_counsellor_position, ua_rule_matched = _apply_user_analytics_chatbot_rules(
-        request, show_page_chat_widget, show_ai_counsellor_bot, page_chat_position, ai_counsellor_position
+        request,
+        show_page_chat_widget,
+        show_ai_counsellor_bot,
+        page_chat_enabled,
+        ai_counsellor_enabled,
+        page_chat_position,
+        ai_counsellor_position,
     )
+    if not page_chat_enabled:
+        show_page_chat_widget = False
+    if not legacy_chatbot_enabled:
+        show_ai_counsellor_bot = False
     if ua_rule_matched:
         # User Analytics per-page rules take precedence over legacy floating chatbot.
         show_chatbot = False
@@ -428,6 +446,7 @@ def globals(request):
         "show_chatbot": show_chatbot,
         "show_ai_counsellor_bot": show_ai_counsellor_bot,
         "show_page_chat_widget": show_page_chat_widget,
+        "legacy_chatbot_enabled": legacy_chatbot_enabled,
         "page_chat_position": page_chat_position,
         "ai_counsellor_position": ai_counsellor_position,
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
