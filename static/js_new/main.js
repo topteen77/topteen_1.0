@@ -303,26 +303,55 @@
 // If URL has ?ref=TOKEN, ping backend on page load to ensure the hit is recorded.
 // Token is stored in sessionStorage so SPA-style navigations in same tab can still attribute.
 (function enquiryRefTrackingInit() {
+  function getCookie(name) {
+    const nameEq = `${name}=`;
+    const parts = document.cookie ? document.cookie.split(";") : [];
+    for (let i = 0; i < parts.length; i += 1) {
+      const c = parts[i].trim();
+      if (c.indexOf(nameEq) === 0) return decodeURIComponent(c.substring(nameEq.length));
+    }
+    return "";
+  }
+
+  function setCookie(name, value) {
+    // 1 day persistence is enough for attribution continuity.
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=86400; samesite=lax`;
+  }
+
+  let ref = "";
   try {
     const url = new URL(window.location.href);
-    const ref = (url.searchParams.get("ref") || "").trim();
-    const key = "tt_ref_token";
-    if (ref) {
-      sessionStorage.setItem(key, ref);
-    }
-    const token = ref || (sessionStorage.getItem(key) || "").trim();
-    if (!token) return;
-
-    const endpoint = `/user-analytics/api/enquiry-ref-hit/?ref=${encodeURIComponent(token)}&path=${encodeURIComponent(window.location.pathname)}&title=${encodeURIComponent(document.title || "")}`;
-    fetch(endpoint, {
-      method: "GET",
-      credentials: "same-origin",
-      keepalive: true,
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    }).catch(() => { /* no-op */ });
+    ref = (url.searchParams.get("ref") || "").trim();
   } catch (e) {
-    // no-op
+    ref = "";
   }
+
+  const key = "tt_ref_token";
+  let token = ref;
+
+  if (ref) {
+    try { sessionStorage.setItem(key, ref); } catch (e) { /* no-op */ }
+    try { localStorage.setItem(key, ref); } catch (e) { /* no-op */ }
+    try { setCookie(key, ref); } catch (e) { /* no-op */ }
+  } else {
+    try { token = (sessionStorage.getItem(key) || "").trim(); } catch (e) { /* no-op */ }
+    if (!token) {
+      try { token = (localStorage.getItem(key) || "").trim(); } catch (e) { /* no-op */ }
+    }
+    if (!token) {
+      try { token = (getCookie(key) || "").trim(); } catch (e) { /* no-op */ }
+    }
+  }
+
+  if (!token) return;
+
+  const endpoint = `/user-analytics/api/enquiry-ref-hit/?ref=${encodeURIComponent(token)}&path=${encodeURIComponent(window.location.pathname)}&title=${encodeURIComponent(document.title || "")}`;
+  fetch(endpoint, {
+    method: "GET",
+    credentials: "same-origin",
+    keepalive: true,
+    headers: { "X-Requested-With": "XMLHttpRequest" },
+  }).catch(() => { /* no-op */ });
 })();
 
 
