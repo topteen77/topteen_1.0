@@ -771,7 +771,7 @@ class ScannedURLDeleteView(LoginRequiredMixin, View):
 
 @method_decorator(seo_user_only, name="dispatch")
 class URLIndexRuleListView(LoginRequiredMixin, TemplateView):
-    """Manage URL indexing rules used by robots.txt and X-Robots-Tag headers."""
+    """Manage URL indexing rules used by robots.txt, sitemap.xml filtering, and X-Robots-Tag headers."""
     template_name = "seo_dashboard/url_index_rule_list.html"
     template_engine = "django"
     login_url = reverse_lazy("seo_dashboard:login")

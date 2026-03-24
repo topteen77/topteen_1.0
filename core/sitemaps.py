@@ -1,5 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.db.utils import OperationalError, ProgrammingError
+from django.db.models import Q
 from django.urls import NoReverseMatch, reverse
 from urllib.parse import urlparse
 
@@ -21,7 +22,7 @@ class IndexRuleFilteredSitemap(Sitemap):
     def _get_active_blocking_rules(self):
         try:
             return URLIndexRule.get_active_rules().filter(
-                apply_in_robots=True
+                Q(apply_in_robots=True) | Q(apply_x_robots_tag=True)
             ).only("path_pattern", "match_type")
         except (ProgrammingError, OperationalError):
             return []
