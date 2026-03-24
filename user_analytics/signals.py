@@ -17,6 +17,55 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _get_user_source_context(user):
+    """
+    Resolve best-effort session/source attribution for business events.
+    Returns (session_id, source_name).
+    """
+    session_id = None
+    source_name = 'Direct'
+    try:
+        from user_analytics.models import UserActivity, UserJourney
+
+        recent_activity = (
+            UserActivity.objects.filter(user=user)
+            .select_related('enquiry_source')
+            .order_by('-created')
+            .first()
+        )
+        if recent_activity:
+            session_id = recent_activity.session_id or session_id
+            if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
+                source_name = recent_activity.enquiry_source.name
+            else:
+                source_name = (
+                    (recent_activity.utm_source and recent_activity.utm_source.strip()) or
+                    (recent_activity.traffic_source_category and recent_activity.traffic_source_category.strip()) or
+                    source_name
+                )
+
+        if not session_id:
+            recent_journey = (
+                UserJourney.objects.filter(user=user)
+                .select_related('enquiry_source')
+                .order_by('-start_time')
+                .first()
+            )
+            if recent_journey:
+                session_id = recent_journey.session_id or session_id
+                if getattr(recent_journey, 'enquiry_source_id', None) and recent_journey.enquiry_source:
+                    source_name = recent_journey.enquiry_source.name
+                else:
+                    source_name = (
+                        (recent_journey.utm_source and recent_journey.utm_source.strip()) or
+                        (recent_journey.traffic_source_category and recent_journey.traffic_source_category.strip()) or
+                        source_name
+                    )
+    except Exception:
+        pass
+    return session_id, source_name
+
+
 @receiver(post_save, sender=User)
 def track_user_registration(sender, instance, created, **kwargs):
     """
@@ -24,18 +73,7 @@ def track_user_registration(sender, instance, created, **kwargs):
     """
     if created:
         try:
-            # Get session ID if available (from request context)
-            session_id = getattr(instance, '_analytics_session_id', None)
-            
-            # Get session_id from user's recent activity if not provided
-            if not session_id:
-                try:
-                    from user_analytics.models import UserActivity
-                    recent_activity = UserActivity.objects.filter(user=instance).order_by('-created').first()
-                    if recent_activity:
-                        session_id = recent_activity.session_id
-                except Exception:
-                    pass
+            session_id, source_name = _get_user_source_context(instance)
             
             track_user_event_async.delay(
                 event_type='registration',
@@ -47,6 +85,7 @@ def track_user_registration(sender, instance, created, **kwargs):
                     'email': instance.email,
                     'name': instance.name,
                     'user_type': instance.get_user_type_display() if hasattr(instance, 'get_user_type_display') else 'Unknown',
+                    'source': source_name,
                 }
             )
             logger.info(f"Tracked user registration for user {instance.id}")
@@ -115,26 +154,8 @@ def track_payment_event(sender, instance, created, **kwargs):
             except Exception:
                 pass
         
-        # Get session_id and traffic acquisition source from user's recent activity
-        session_id = None
-        try:
-            from user_analytics.models import UserActivity
-            recent_activity = UserActivity.objects.filter(user=instance.user).select_related('enquiry_source').order_by('-created').first()
-            if recent_activity:
-                session_id = recent_activity.session_id
-                # Enquiry source (e.g. agent link ?ref=TOKEN) takes precedence so we can filter by agent on payments
-                if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
-                    metadata['source'] = recent_activity.enquiry_source.name
-                else:
-                    metadata['source'] = (
-                        (recent_activity.utm_source and recent_activity.utm_source.strip()) or
-                        (recent_activity.traffic_source_category and recent_activity.traffic_source_category.strip()) or
-                        'Direct'
-                    )
-            else:
-                metadata['source'] = 'Direct'
-        except Exception:
-            metadata['source'] = 'Direct'
+        session_id, source_name = _get_user_source_context(instance.user)
+        metadata['source'] = source_name
         
         track_user_event_async.delay(
             event_type=event_type,
@@ -158,24 +179,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
     Also tracks test started event when payment is successful.
     """
     try:
-        # Get session_id and traffic acquisition source from user's recent activity
-        session_id = None
-        source = 'Direct'
-        try:
-            from user_analytics.models import UserActivity
-            recent_activity = UserActivity.objects.filter(user=instance.user).select_related('enquiry_source').order_by('-created').first()
-            if recent_activity:
-                session_id = recent_activity.session_id
-                if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
-                    source = recent_activity.enquiry_source.name
-                else:
-                    source = (
-                        (recent_activity.utm_source and recent_activity.utm_source.strip()) or
-                        (recent_activity.traffic_source_category and recent_activity.traffic_source_category.strip()) or
-                        'Direct'
-                    )
-        except Exception:
-            pass
+        session_id, source = _get_user_source_context(instance.user)
         
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
@@ -233,15 +237,7 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
         try:
             payment = instance.pyschometric_test_payment
             if payment:
-                # Get session_id from user's recent activity
-                session_id = None
-                try:
-                    from user_analytics.models import UserActivity
-                    recent_activity = UserActivity.objects.filter(user=payment.user).order_by('-created').first()
-                    if recent_activity:
-                        session_id = recent_activity.session_id
-                except Exception:
-                    pass
+                session_id, source_name = _get_user_source_context(payment.user)
                 
                 content_type = ContentType.objects.get_for_model(instance)
                 
@@ -258,6 +254,7 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
                         'test_type': payment.get_test_type_display(),
                         'test_name': payment.get_test_name(),
                         'assessment_id': instance.assessment_id,
+                        'source': source_name,
                     }
                 )
                 
@@ -275,6 +272,7 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
                             'test_type': payment.get_test_type_display(),
                             'test_name': payment.get_test_name(),
                             'assessment_id': instance.assessment_id,
+                            'source': source_name,
                         }
                     )
                 
@@ -292,6 +290,7 @@ def track_skilllab_enrollment(sender, instance, created, **kwargs):
         try:
             content_type = ContentType.objects.get_for_model(instance)
             
+            session_id, source_name = _get_user_source_context(instance.user)
             track_user_event_async.delay(
                 event_type='skilllab_enrolled',
                 event_name='SkillLab Course Enrolled',
@@ -299,9 +298,11 @@ def track_skilllab_enrollment(sender, instance, created, **kwargs):
                 event_value=float(instance.amount) if hasattr(instance, 'amount') else 0,
                 content_type_id=content_type.id,
                 object_id=instance.id,
+                session_id=session_id,
                 metadata={
                     'course_id': instance.skilllab_course.id if instance.skilllab_course else None,
                     'course_name': instance.skilllab_course.title if instance.skilllab_course else 'Unknown',
+                    'source': source_name,
                 }
             )
         except Exception as e:
@@ -315,16 +316,7 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
     """
     if created:
         try:
-            # Get session_id from user's recent activity
-            session_id = None
-            if instance.student:
-                try:
-                    from user_analytics.models import UserActivity
-                    recent_activity = UserActivity.objects.filter(user=instance.student).order_by('-created').first()
-                    if recent_activity:
-                        session_id = recent_activity.session_id
-                except Exception:
-                    pass
+            session_id, source_name = _get_user_source_context(instance.student) if instance.student else (None, 'Direct')
             
             content_type = ContentType.objects.get_for_model(instance)
             
@@ -339,6 +331,7 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
                 metadata={
                     'institute_id': instance.institute.id if hasattr(instance, 'institute') and instance.institute else None,
                     'class_section': str(instance.class_and_section) if hasattr(instance, 'class_and_section') and instance.class_and_section else None,
+                    'source': source_name,
                 }
             )
         except Exception as e:

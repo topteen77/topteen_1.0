@@ -3130,6 +3130,9 @@ def enquiry_ref_hit_api(request):
             import uuid
             session_id = str(uuid.uuid4())
             request.session['analytics_session_id'] = session_id
+        # Persist source in session for attribution across subsequent requests.
+        request.session['enquiry_source_id'] = source.id
+        request.session['enquiry_ref_token'] = source.token
 
         # Deduplicate rapid duplicate hits from retries/reloads.
         recent_exists = UserActivity.objects.filter(

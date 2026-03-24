@@ -66,11 +66,33 @@ class AnalyticsMiddleware(MiddlewareMixin):
                 ).first()
                 if es:
                     enquiry_source_id = es.id
+                    # Persist enquiry source in session for the current browser session.
+                    request.session['enquiry_source_id'] = es.id
+                    request.session['enquiry_ref_token'] = es.token
                     logger.debug("Enquiry ref=%s -> source id=%s", ref_token[:8], enquiry_source_id)
                 else:
                     logger.debug("Enquiry ref=%s -> no matching active source", ref_token[:8])
             except Exception as e:
                 logger.warning("Enquiry source lookup failed for ref=%s: %s", ref_token[:8], e)
+        else:
+            # Fallback: keep attributing page hits to source stored in session.
+            session_enquiry_source_id = request.session.get('enquiry_source_id')
+            if session_enquiry_source_id:
+                try:
+                    from user_analytics.models import EnquirySource
+                    from core import choices
+                    es = EnquirySource.objects.filter(
+                        id=session_enquiry_source_id,
+                        is_active=True,
+                        object_status=choices.ObjectStatus.ACTIVE,
+                    ).first()
+                    if es:
+                        enquiry_source_id = es.id
+                    else:
+                        request.session.pop('enquiry_source_id', None)
+                        request.session.pop('enquiry_ref_token', None)
+                except Exception:
+                    pass
 
         # Store analytics data in request for async processing
         page_url = request.build_absolute_uri(path) if path else ''
