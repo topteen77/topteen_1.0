@@ -22,7 +22,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 from django.contrib.contenttypes.models import ContentType
-from user_analytics.models import UserActivity, Lead, UserEvent, UserJourney, AnalyticsCache, EnquirySource
+from user_analytics.models import (
+    UserActivity,
+    Lead,
+    UserEvent,
+    UserJourney,
+    AnalyticsCache,
+    EnquirySource,
+    ChatbotPageRule,
+)
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
 from users.models import User
@@ -2831,19 +2839,39 @@ def cleanup_analytics_data_view(request):
 
 # ---------- Enquiry Sources (non-readable UTM links: ?ref=TOKEN) ----------
 def _enquiry_source_stats(source):
-    """Return dict of visit count and conversion counts for an EnquirySource."""
-    from django.db.models import Count
-    # Page views: any UserActivity with this enquiry_source (proves ref= is being tracked)
-    page_views = UserActivity.objects.filter(enquiry_source=source).count()
-    sessions = UserJourney.objects.filter(enquiry_source=source)
-    visit_count = sessions.count()
-    session_ids = list(sessions.values_list('session_id', flat=True))
+    """Return dict of visit and conversion counts for an EnquirySource.
+
+    Attribution strategy:
+    - Session-based: events from sessions that touched this enquiry source.
+    - User-based fallback: events by users who visited via this source (covers cases where session_id is absent).
+    """
+    from django.db.models import Q
+
+    # Base activity for this source (most reliable signal for ref tracking).
+    source_activities = UserActivity.objects.filter(enquiry_source=source)
+    page_views = source_activities.count()
+
+    # Sessions can be stored in either UserActivity or UserJourney depending on processing path.
+    activity_session_ids = list(
+        source_activities.exclude(session_id__isnull=True).exclude(session_id='').values_list('session_id', flat=True).distinct()
+    )
+    journey_session_ids = list(
+        UserJourney.objects.filter(enquiry_source=source).exclude(session_id__isnull=True).exclude(session_id='').values_list('session_id', flat=True).distinct()
+    )
+    session_ids = sorted(set(activity_session_ids) | set(journey_session_ids))
+    visit_count = len(session_ids)
+
+    # Users who have activity with this source (fallback attribution when session_id is missing in events).
+    source_user_ids = list(
+        source_activities.exclude(user_id__isnull=True).values_list('user_id', flat=True).distinct()
+    )
+
     # Payments attributed to this source (Traffic source = EnquirySource name on successful payments)
     payments_attributed = UserEvent.objects.filter(
         event_type='payment_success',
         metadata__source=source.name
     ).count()
-    if not session_ids:
+    if not session_ids and not source_user_ids:
         return {
             'page_views': page_views,
             'visit_count': 0,
@@ -2853,13 +2881,21 @@ def _enquiry_source_stats(source):
             'course_enrolled': 0,
             'converted_sessions': 0,
         }
-    reg = UserEvent.objects.filter(session_id__in=session_ids, event_type='registration').count()
-    pay = UserEvent.objects.filter(session_id__in=session_ids, event_type='payment_success').count()
+
+    base_scope = Q()
+    if session_ids:
+        base_scope |= Q(session_id__in=session_ids)
+    if source_user_ids:
+        base_scope |= Q(user_id__in=source_user_ids)
+
+    reg = UserEvent.objects.filter(base_scope, event_type='registration').distinct().count()
+    pay = UserEvent.objects.filter(base_scope, event_type='payment_success').distinct().count()
     course = UserEvent.objects.filter(
-        session_id__in=session_ids,
+        base_scope,
         event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
-    ).count()
-    converted = sessions.filter(converted=True).count()
+    ).distinct().count()
+    converted = UserJourney.objects.filter(session_id__in=session_ids, converted=True).count() if session_ids else 0
+
     return {
         'page_views': page_views,
         'visit_count': visit_count,
@@ -3091,9 +3127,91 @@ def enquiry_source_qr_view(request, pk):
         else:
             response['Content-Disposition'] = 'inline; filename="qr-%s.png"' % source.token
         return response
-    except Exception as e:
+    except Exception:
         logger.exception('QR generation failed')
         return HttpResponseNotFound('QR generation failed.')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def chatbot_rules_view(request):
+    """
+    Manage chatbot visibility rules from User Analytics dashboard.
+    Fields: page_url, bot_name, show/hide, include_subpages, position.
+    """
+    from django.contrib import messages
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+        if action == 'create':
+            page_url = (request.POST.get('page_url') or '').strip()
+            if not page_url:
+                messages.error(request, 'Page URL is required.')
+                return redirect('user_analytics:chatbot_rules')
+            if not page_url.startswith('/'):
+                page_url = '/' + page_url
+            bot_name = (request.POST.get('bot_name') or '').strip()
+            if bot_name not in ('chat_this_page', 'career_counsellor'):
+                messages.error(request, 'Invalid bot name.')
+                return redirect('user_analytics:chatbot_rules')
+            visibility = (request.POST.get('is_visible') or 'show').strip()
+            is_visible = (visibility == 'show')
+            include_subpages = (request.POST.get('include_subpages') == 'yes')
+            position = (request.POST.get('position') or 'right').strip().lower()
+            if position not in ('left', 'right'):
+                position = 'right'
+            try:
+                priority = int(request.POST.get('priority') or 1)
+            except Exception:
+                priority = 1
+            duplicate_qs = ChatbotPageRule.objects.filter(
+                page_url=page_url,
+                bot_name=bot_name,
+                is_visible=is_visible,
+                include_subpages=include_subpages,
+                position=position,
+                object_status=choices.ObjectStatus.ACTIVE,
+            )
+            if duplicate_qs.exists():
+                messages.warning(
+                    request,
+                    'Duplicate rule already exists for same URL, bot, visibility, nesting, and position.',
+                )
+                return redirect('user_analytics:chatbot_rules')
+            ChatbotPageRule.objects.create(
+                page_url=page_url,
+                bot_name=bot_name,
+                is_visible=is_visible,
+                include_subpages=include_subpages,
+                position=position,
+                priority=priority,
+            )
+            messages.success(request, 'Chatbot rule added.')
+            return redirect('user_analytics:chatbot_rules')
+
+        if action == 'delete':
+            ids = request.POST.getlist('ids')
+            if not ids:
+                messages.warning(request, 'No rules selected.')
+                return redirect('user_analytics:chatbot_rules')
+            delete_result = ChatbotPageRule.objects.filter(id__in=ids).delete()
+            deleted = delete_result[0] if isinstance(delete_result, tuple) else int(delete_result or 0)
+            messages.success(request, f'{deleted} rule(s) deleted.')
+            return redirect('user_analytics:chatbot_rules')
+
+        messages.error(request, 'Invalid action.')
+        return redirect('user_analytics:chatbot_rules')
+
+    rules = ChatbotPageRule.objects.all().order_by('priority', '-modified')
+    context = {
+        'rules': rules,
+        'page_title': 'Chatbot Rules',
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/chatbot_rules.html', context)
 
 
 @login_required

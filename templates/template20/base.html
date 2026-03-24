@@ -72,8 +72,8 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}" type="text/css" media="all" />
-  <link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}" type="text/css" media="all" />
-  <link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}" type="text/css" media="all" />
+  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
@@ -145,6 +145,20 @@
   </style>
 
   {% block additionalcss %}
+  {% if page_chat_position == 'right' %}
+  <style>
+    #pc-fab { left: auto !important; right: 28px !important; }
+    #pc-win { left: auto !important; right: 28px !important; }
+    @media (max-width: 768px) {
+      #pc-fab { right: 18px !important; left: auto !important; }
+    }
+  </style>
+  {% endif %}
+  {% if ai_counsellor_position == 'left' %}
+  <style>
+    .ai-counsel-bot-wrap { right: auto !important; left: 24px !important; }
+  </style>
+  {% endif %}
   {% endblock %}
 
   {% block additionalhead %}
@@ -168,6 +182,7 @@
   {% endblock %}
 
   {% block ai_counsellor_bot %}
+  {% if show_ai_counsellor_bot %}{% include 'template20/includes/ai_counsellor_bot.html' %}{% endif %}
   {% endblock %}
 
   {% include 'template20/includes/student_login_popup.html' %}
@@ -185,8 +200,8 @@
   <script src="{{ static('js_new/main.js') }}?v=20251218-1"></script>
   <script src="{{ static('js_new/search.js') }}"></script>
 
-  <script src="{{ static('js_new/chatbot-widget.js') }}"></script>
-  <script src="{{ static('js_new/page-chat-widget.js') }}"></script>
+  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
+  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}"></script>{% endif %}
 
   {% block chatbot_js %}
   {% if show_chatbot %}<script src="{{ static('js_new/chatbot.js') }}"></script>{% endif %}

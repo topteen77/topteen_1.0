@@ -135,6 +135,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'core.slash_middleware.AppendSlashRedirectMiddleware',  # Redirect /path to /path/ when /path/ resolves (before catch-all 404)
     'django.middleware.common.CommonMiddleware',
+    'core.indexing_middleware.URLIndexingMiddleware',  # Add X-Robots-Tag for admin-blocked URL patterns
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -767,6 +768,9 @@ CREDIT_LIMIT=5000
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 # Only allow Google (and other search engines) to index when ENVIRONMENT=production in .env
 ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production')
+WEBADMINEMAIL = config('WEBADMINEMAIL', default='')
+# 24-hour format HH:MM (project timezone) for daily new user report email.
+DAILY_USER_REPORT_TIME = config('DAILY_USER_REPORT_TIME', default='15:00')
 
 # Enquiry source UTM links: base URL is always www.topteen.in or demo.topteen.in (set in .env per environment).
 ENQUIRY_SOURCE_BASE_URL = config('ENQUIRY_SOURCE_BASE_URL', default='https://www.topteen.in').rstrip('/')

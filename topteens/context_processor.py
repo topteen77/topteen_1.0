@@ -18,6 +18,8 @@ from django.conf import settings
 from django.db import connection
 import json
 import logging
+import re
+from django.db.utils import OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +101,29 @@ def _should_show_chatbot(request):
         if path == prefix or path.startswith(prefix + '/'):
             return False
 
+    if visibility == 'home-only':
+        return path == '/'
+
+    if visibility == 'students-parents':
+        return (
+            path == '/' or
+            path.startswith('/student') or path.startswith('/parents') or
+            (path.startswith('/user') and 'dashboard' in path)
+        )
+
+    if visibility == 'institutes':
+        return (
+            path == '/' or
+            path.startswith('/student') or path.startswith('/parents') or
+            path.startswith('/institute') or
+            (path.startswith('/user') and 'dashboard' in path)
+        )
+
+    if visibility == 'counselors':
+        return True  # Show everywhere except excluded (already checked above)
+
+    return False
+
 
 def _student_localstorage_data(request):
     """
@@ -179,8 +204,6 @@ def _should_show_ai_counsellor_bot(request):
     Excluded: career-counselling (full page), institute, counselor, admin.
     Respects admin configuration counselling_engine: when disabled, bot is hidden on student dashboard.
     """
-    if not getattr(request, 'user', None) or not request.user.is_authenticated:
-        return False
     if not _config_bool('counselling_engine', True):
         return False
     path = (request.path or '/').rstrip('/') or '/'
@@ -196,28 +219,121 @@ def _should_show_ai_counsellor_bot(request):
             return False
     return True
 
-    if visibility == 'home-only':
-        return path == '/'
 
-    if visibility == 'students-parents':
-        return (
-            path == '/' or
-            path.startswith('/student') or path.startswith('/parents') or
-            (path.startswith('/user') and 'dashboard' in path)
-        )
+def _get_chatbot_page_mode(request):
+    """
+    Return chatbot mode for current path from admin-managed JSON rules.
+    Modes: default | none | chat_this_page | career_counsellor | both
 
-    if visibility == 'institutes':
-        return (
-            path == '/' or
-            path.startswith('/student') or path.startswith('/parents') or
-            path.startswith('/institute') or
-            (path.startswith('/user') and 'dashboard' in path)
-        )
+    Config key: CHATBOT_PAGE_RULES (JSON array), example:
+    [
+      {"match": "exact", "pattern": "/", "mode": "career_counsellor"},
+      {"match": "prefix", "pattern": "/four-pillars-of-learning/", "mode": "chat_this_page"}
+    ]
+    """
+    valid_modes = {"default", "none", "chat_this_page", "career_counsellor", "both"}
+    path = request.path or "/"
+    default_mode = str(Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default').strip().lower()
+    if default_mode not in valid_modes:
+        default_mode = "default"
+    raw = Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]'
+    try:
+        rules = json.loads(raw)
+    except Exception:
+        return default_mode
+    if not isinstance(rules, list):
+        return default_mode
+    for rule in rules:
+        if not isinstance(rule, dict):
+            continue
+        mode = str(rule.get("mode", "default")).strip().lower()
+        if mode not in valid_modes:
+            continue
+        match = str(rule.get("match", "prefix")).strip().lower()
+        pattern = str(rule.get("pattern", "")).strip()
+        if not pattern:
+            continue
+        hit = False
+        if match == "exact":
+            hit = (path == pattern)
+        elif match == "regex":
+            try:
+                hit = re.search(pattern, path) is not None
+            except re.error:
+                hit = False
+        else:
+            hit = path.startswith(pattern)
+        if hit:
+            return mode
+    return default_mode
 
-    if visibility == 'counselors':
-        return True  # Show everywhere except excluded (already checked above)
 
+def _match_chatbot_rule(path, base_path, include_subpages=False):
+    base = (base_path or '/').strip() or '/'
+    if not base.startswith('/'):
+        base = '/' + base
+    if base != '/' and base.endswith('/'):
+        base = base.rstrip('/')
+    current = (path or '/').strip() or '/'
+    if current != '/' and current.endswith('/'):
+        current = current.rstrip('/')
+
+    if current == base:
+        return True
+    if include_subpages:
+        # include_subpages=True means this rule applies to the listing/base page
+        # (already handled above) and all nested paths beneath it.
+        return current.startswith(base + '/')
     return False
+
+
+def _apply_user_analytics_chatbot_rules(
+    request,
+    show_page_chat_widget,
+    show_ai_counsellor_bot,
+    page_chat_position='left',
+    ai_counsellor_position='right',
+):
+    """
+    Apply per-page chatbot rules managed from User Analytics dashboard.
+    """
+    matched_any_rule = False
+    try:
+        from user_analytics.models import ChatbotPageRule
+        path = request.path or '/'
+        rules = ChatbotPageRule.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('priority', '-modified', '-id')
+        for rule in rules:
+            if not _match_chatbot_rule(
+                path,
+                rule.page_url,
+                include_subpages=bool(rule.include_subpages),
+            ):
+                continue
+            matched_any_rule = True
+            if rule.bot_name == 'chat_this_page':
+                show_page_chat_widget = bool(rule.is_visible)
+                page_chat_position = rule.position or page_chat_position
+                # If this rule explicitly shows page chat, hide counsellor on matched paths.
+                if rule.is_visible:
+                    show_ai_counsellor_bot = False
+            elif rule.bot_name == 'career_counsellor':
+                show_ai_counsellor_bot = bool(rule.is_visible)
+                ai_counsellor_position = rule.position or ai_counsellor_position
+                # If this rule explicitly shows counsellor, hide page chat on matched paths.
+                if rule.is_visible:
+                    show_page_chat_widget = False
+    except (ProgrammingError, OperationalError):
+        # Rule table may not exist before migrations.
+        pass
+    except Exception:
+        pass
+    return (
+        show_page_chat_widget,
+        show_ai_counsellor_bot,
+        page_chat_position,
+        ai_counsellor_position,
+        matched_any_rule,
+    )
 
 
 def globals(request): 
@@ -273,11 +389,47 @@ def globals(request):
     # for p in popular_tags:
         # popular_tag_count=Career.objects.filter(career_tags=p).count()
     # Freetrail: seconds guest can view gated content before login popup (used by ebook/vocational/extracurricular detail and any freetrail-gated page)
+    page_mode = _get_chatbot_page_mode(request)
+    legacy_chatbot = _should_show_chatbot(request)
+    legacy_ai = _should_show_ai_counsellor_bot(request)
+    show_page_chat_widget = True
+    show_ai_counsellor_bot = legacy_ai
+    page_chat_position = 'left'
+    ai_counsellor_position = 'right'
+    show_chatbot = legacy_chatbot
+    if page_mode == 'none':
+        show_page_chat_widget = False
+        show_ai_counsellor_bot = False
+        show_chatbot = False
+    elif page_mode == 'chat_this_page':
+        show_page_chat_widget = True
+        show_ai_counsellor_bot = False
+        show_chatbot = False
+    elif page_mode == 'career_counsellor':
+        show_page_chat_widget = False
+        show_ai_counsellor_bot = legacy_ai
+        show_chatbot = False
+    elif page_mode == 'both':
+        show_page_chat_widget = True
+        show_ai_counsellor_bot = legacy_ai
+        show_chatbot = False
+
+    # Highest-precedence: User Analytics Bot Rules page
+    show_page_chat_widget, show_ai_counsellor_bot, page_chat_position, ai_counsellor_position, ua_rule_matched = _apply_user_analytics_chatbot_rules(
+        request, show_page_chat_widget, show_ai_counsellor_bot, page_chat_position, ai_counsellor_position
+    )
+    if ua_rule_matched:
+        # User Analytics per-page rules take precedence over legacy floating chatbot.
+        show_chatbot = False
+
     kwargs = {
         "allow_search_engine_index": getattr(settings, 'ALLOW_SEARCH_ENGINE_INDEX', False),
         "freetrail_seconds": getattr(settings, 'FREETRAIL_TIME_SECONDS', 5),
-        "show_chatbot": _should_show_chatbot(request),
-        "show_ai_counsellor_bot": _should_show_ai_counsellor_bot(request),
+        "show_chatbot": show_chatbot,
+        "show_ai_counsellor_bot": show_ai_counsellor_bot,
+        "show_page_chat_widget": show_page_chat_widget,
+        "page_chat_position": page_chat_position,
+        "ai_counsellor_position": ai_counsellor_position,
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),

@@ -1,0 +1,151 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Chatbot Rules | Top Teen{% endblock %}
+{% block page_title %}Chatbot Rules{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="admin-card mb-3">
+        <h5 class="card-title mb-3"><i class="fas fa-plus-circle text-primary"></i> Add Rule</h5>
+        <form method="post" action="{{ url('user_analytics:chatbot_rules') }}">
+            {{ csrf_input_html|safe }}
+            <input type="hidden" name="action" value="create" />
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label">Page URL</label>
+                    <input type="text" name="page_url" class="form-control" placeholder="/four-pillars-of-learning/" required />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Bot Name</label>
+                    <select name="bot_name" class="form-select">
+                        <option value="chat_this_page">Chat this page</option>
+                        <option value="career_counsellor">Career counsellor</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label d-block">Show/Hide</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="is_visible" value="show" checked>
+                        <label class="form-check-label">Show</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="is_visible" value="hide">
+                        <label class="form-check-label">Hide</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Include subpages</label>
+                    <select name="include_subpages" class="form-select">
+                        <option value="no" selected>No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Position</label>
+                    <select name="position" class="form-select">
+                        <option value="right" selected>Right</option>
+                        <option value="left">Left</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Priority</label>
+                    <input type="number" min="1" name="priority" class="form-control" value="1" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" type="submit">Add Rule</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="admin-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">Existing Rules ({{ rules|length }})</h5>
+            <button type="button" id="deleteSelectedBtn" class="btn btn-outline-danger btn-sm" disabled>Delete Selected</button>
+        </div>
+        <form method="post" id="deleteForm" action="{{ url('user_analytics:chatbot_rules') }}">
+            {{ csrf_input_html|safe }}
+            <input type="hidden" name="action" value="delete" />
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:40px;"><input type="checkbox" id="checkAll" /></th>
+                            <th>Priority</th>
+                            <th>Page URL</th>
+                            <th>Bot Name</th>
+                            <th>Show/Hide</th>
+                            <th>Include subpages</th>
+                            <th>Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                        <tr>
+                            <td><input type="checkbox" class="row-check" name="ids" value="{{ rule.id }}" /></td>
+                            <td>{{ rule.priority }}</td>
+                            <td><code>{{ rule.page_url }}</code></td>
+                            <td>
+                                {% if rule.bot_name == 'chat_this_page' %}
+                                Chat this page
+                                {% elif rule.bot_name == 'career_counsellor' %}
+                                Career counsellor
+                                {% else %}
+                                {{ rule.bot_name }}
+                                {% endif %}
+                            </td>
+                            <td>{% if rule.is_visible %}<span class="badge bg-success">Show</span>{% else %}<span class="badge bg-danger">Hide</span>{% endif %}</td>
+                            <td>{% if rule.include_subpages %}Yes{% else %}No{% endif %}</td>
+                            <td>{% if rule.position == 'left' %}Left{% else %}Right{% endif %}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7" class="text-muted text-center py-3">No rules configured yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+(function() {
+  var checkAll = document.getElementById('checkAll');
+  var deleteBtn = document.getElementById('deleteSelectedBtn');
+  var deleteForm = document.getElementById('deleteForm');
+
+  function updateDeleteBtn() {
+    var selected = document.querySelectorAll('.row-check:checked').length;
+    deleteBtn.disabled = selected === 0;
+  }
+
+  if (checkAll) {
+    checkAll.addEventListener('change', function() {
+      document.querySelectorAll('.row-check').forEach(function(chk) { chk.checked = checkAll.checked; });
+      updateDeleteBtn();
+    });
+  }
+
+  document.querySelectorAll('.row-check').forEach(function(chk) {
+    chk.addEventListener('change', updateDeleteBtn);
+  });
+
+  deleteBtn.addEventListener('click', function() {
+    var selected = document.querySelectorAll('.row-check:checked').length;
+    if (selected > 0 && confirm('Delete ' + selected + ' selected rule(s)?')) {
+      deleteForm.submit();
+    }
+  });
+})();
+</script>
+{% endblock %}

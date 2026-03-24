@@ -1,5 +1,6 @@
 """SEO dashboard: login, page list, edit content (CMS), edit SEO. Staff can edit content; SEO group can edit SEO only."""
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.db.utils import OperationalError, ProgrammingError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import TemplateView, View
@@ -7,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
-from core.models import StaticPage, PageSEO, STATIC_PAGE_URL_KEYS, GeneratedPage, ScannedURL
+from core.models import StaticPage, PageSEO, STATIC_PAGE_URL_KEYS, GeneratedPage, ScannedURL, URLIndexRule
 from .seo_suggestions import get_seo_suggestions
 from .ai_seo import generate_seo_with_ai, get_page_content_for_seo
 from core.page_import import import_page_from_url
@@ -766,6 +767,77 @@ class ScannedURLDeleteView(LoginRequiredMixin, View):
         deleted, _ = ScannedURL.objects.filter(pk__in=ids).delete()
         messages.success(request, "{} URL(s) removed.".format(deleted))
         return redirect(reverse("seo_dashboard:scanned_url_list"))
+
+
+@method_decorator(seo_user_only, name="dispatch")
+class URLIndexRuleListView(LoginRequiredMixin, TemplateView):
+    """Manage URL indexing rules used by robots.txt and X-Robots-Tag headers."""
+    template_name = "seo_dashboard/url_index_rule_list.html"
+    template_engine = "django"
+    login_url = reverse_lazy("seo_dashboard:login")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["can_edit_seo"] = can_edit_seo(self.request)
+        try:
+            ctx["rules"] = URLIndexRule.objects.all().order_by("path_pattern")
+            ctx["rules_table_ready"] = True
+        except (ProgrammingError, OperationalError):
+            ctx["rules"] = []
+            ctx["rules_table_ready"] = False
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if not can_edit_seo(request):
+            from django.contrib import messages
+            messages.error(request, "You do not have permission.")
+            return redirect(reverse("seo_dashboard:page_list"))
+        return render(request, self.template_name, self.get_context_data(**kwargs), using="django")
+
+    def post(self, request, *args, **kwargs):
+        if not can_edit_seo(request):
+            return redirect(reverse("seo_dashboard:page_list"))
+        from django.contrib import messages
+        action = (request.POST.get("action") or "").strip()
+        try:
+            URLIndexRule.objects.exists()
+        except (ProgrammingError, OperationalError):
+            messages.error(request, "URL index rules table is not ready. Please run: python manage.py migrate")
+            return redirect(reverse("seo_dashboard:url_index_rule_list"))
+
+        if action == "create":
+            path_pattern = (request.POST.get("path_pattern") or "").strip()
+            match_type = (request.POST.get("match_type") or URLIndexRule.MatchType.PREFIX).strip()
+            name = (request.POST.get("name") or "").strip()
+            if not path_pattern:
+                messages.error(request, "Path pattern is required.")
+                return redirect(reverse("seo_dashboard:url_index_rule_list"))
+            valid_types = {c[0] for c in URLIndexRule.MatchType.choices}
+            if match_type not in valid_types:
+                messages.error(request, "Invalid match type.")
+                return redirect(reverse("seo_dashboard:url_index_rule_list"))
+            URLIndexRule.objects.create(
+                name=name,
+                path_pattern=path_pattern,
+                match_type=match_type,
+                apply_in_robots=(request.POST.get("apply_in_robots") == "on"),
+                apply_x_robots_tag=(request.POST.get("apply_x_robots_tag") == "on"),
+                is_active=(request.POST.get("is_active") == "on"),
+            )
+            messages.success(request, "Indexing rule added.")
+            return redirect(reverse("seo_dashboard:url_index_rule_list"))
+
+        if action == "delete":
+            ids = request.POST.getlist("ids")
+            if not ids:
+                messages.warning(request, "No rules selected.")
+                return redirect(reverse("seo_dashboard:url_index_rule_list"))
+            deleted, _ = URLIndexRule.objects.filter(pk__in=ids).delete()
+            messages.success(request, "{} rule(s) removed.".format(deleted))
+            return redirect(reverse("seo_dashboard:url_index_rule_list"))
+
+        messages.error(request, "Invalid action.")
+        return redirect(reverse("seo_dashboard:url_index_rule_list"))
 
 
 @method_decorator(seo_user_only, name="dispatch")

@@ -14,6 +14,7 @@ urlpatterns = [
     path("scanned-urls/", views.ScannedURLListView.as_view(), name="scanned_url_list"),
     path("scanned-urls/scan-ajax/", views.ScannedURLScanAjaxView.as_view(), name="scanned_url_scan_ajax"),
     path("scanned-urls/delete/", views.ScannedURLDeleteView.as_view(), name="scanned_url_delete"),
+    path("index-rules/", views.URLIndexRuleListView.as_view(), name="url_index_rule_list"),
     path("pages/<path:url_key>/content/", views.EditContentView.as_view(), name="edit_content"),
     path("pages/<path:url_key>/edit-raw/", views.EditStaticPageRawView.as_view(), name="edit_static_page_raw"),
     path("pages/<path:url_key>/seo/", views.EditSEOView.as_view(), name="edit_seo"),

@@ -46,6 +46,7 @@ from .models import (
     StaticPage,
     StaticPageSection,
     PageSEO,
+    URLIndexRule,
     ScannedURL,
     GeneratedPage,
 )
@@ -102,6 +103,24 @@ class WebsiteSettingsForm(forms.Form):
         required=True,
         label='Default mindmap type',
         help_text='Default layout when opening the dedicated mindmap page (e.g. Radial, Tree-style, Cards, Flow). Users can change it via the dropdown on the page.',
+    )
+    CHATBOT_DEFAULT_MODE = forms.ChoiceField(
+        choices=[
+            ('default', 'Default behavior'),
+            ('none', 'Hide both bots'),
+            ('chat_this_page', 'Show only "Chat this page"'),
+            ('career_counsellor', 'Show only "Career Counsellor"'),
+            ('both', 'Show both'),
+        ],
+        required=True,
+        label='Default chatbot mode',
+        help_text='Fallback mode used when no page rule matches.',
+    )
+    CHATBOT_PAGE_RULES = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 8, 'style': 'width: 100%; font-family: monospace;'}),
+        label='Chatbot page rules (JSON)',
+        help_text='JSON array of rules. Example: [{"match":"exact","pattern":"/","mode":"career_counsellor"},{"match":"prefix","pattern":"/four-pillars-of-learning/","mode":"chat_this_page"}]',
     )
 
 
@@ -253,6 +272,33 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = str(val)
                 config.save()
+                # CHATBOT_DEFAULT_MODE
+                key = 'CHATBOT_DEFAULT_MODE'
+                val = (form.cleaned_data.get(key) or 'default').strip() or 'default'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = str(val)
+                config.save()
+                # CHATBOT_PAGE_RULES
+                key = 'CHATBOT_PAGE_RULES'
+                val = (form.cleaned_data.get(key) or '[]').strip() or '[]'
+                # Validate JSON so admin cannot save invalid config
+                try:
+                    import json
+                    parsed = json.loads(val)
+                    if not isinstance(parsed, list):
+                        raise ValueError("Rules JSON must be a list")
+                except Exception as e:
+                    form.add_error('CHATBOT_PAGE_RULES', f'Invalid JSON: {e}')
+                    context = {
+                        **self.admin_site.each_context(request),
+                        'title': 'Core website settings',
+                        'form': form,
+                        'opts': self.model._meta,
+                    }
+                    return render(request, 'admin/core/configuration/website_settings.html', context)
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
@@ -260,6 +306,8 @@ class ConfigurationAdmin(admin.ModelAdmin):
             form = WebsiteSettingsForm(initial={
                 'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),
                 'DEFAULT_MINDMAP_TYPE': default_type,
+                'CHATBOT_DEFAULT_MODE': Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default',
+                'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
             })
 
         context = {
@@ -2530,6 +2578,30 @@ class PageSEOAdmin(admin.ModelAdmin):
         (None, {"fields": ("url_key",)}),
         ("Meta", {"fields": ("title", "description", "keywords")}),
         ("Open Graph", {"fields": ("og_image",)}),
+    )
+
+    def has_module_permission(self, request):
+        return request.user.is_staff
+
+
+@admin.register(URLIndexRule)
+class URLIndexRuleAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "path_pattern",
+        "match_type",
+        "apply_in_robots",
+        "apply_x_robots_tag",
+        "is_active",
+        "modified",
+    )
+    list_filter = ("match_type", "apply_in_robots", "apply_x_robots_tag", "is_active")
+    search_fields = ("name", "path_pattern", "notes")
+    ordering = ("path_pattern",)
+    fieldsets = (
+        (None, {"fields": ("name", "path_pattern", "match_type", "is_active")}),
+        ("Apply rule in", {"fields": ("apply_in_robots", "apply_x_robots_tag")}),
+        ("Notes", {"fields": ("notes",)}),
     )
 
     def has_module_permission(self, request):

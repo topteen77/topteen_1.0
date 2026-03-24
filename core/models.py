@@ -1115,6 +1115,65 @@ class PageSEO(models.Model):
         return f"{self.url_key}"
 
 
+class URLIndexRule(models.Model):
+    """Admin-managed rules to control search engine indexing for specific URL paths."""
+
+    class MatchType(models.TextChoices):
+        EXACT = "exact", "Exact path"
+        PREFIX = "prefix", "Path starts with"
+        REGEX = "regex", "Regex pattern"
+
+    name = models.CharField(max_length=120, blank=True, help_text="Optional admin label for this rule")
+    path_pattern = models.CharField(
+        max_length=255,
+        db_index=True,
+        help_text="Examples: /private-page/ (exact), /student/ (prefix), ^/reports/.*/$ (regex)",
+    )
+    match_type = models.CharField(max_length=10, choices=MatchType.choices, default=MatchType.PREFIX)
+    apply_in_robots = models.BooleanField(
+        default=True,
+        help_text="Add this pattern as a Disallow line in robots.txt",
+    )
+    apply_x_robots_tag = models.BooleanField(
+        default=True,
+        help_text="Add X-Robots-Tag: noindex, nofollow on matched responses",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    notes = models.CharField(max_length=255, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["path_pattern"]
+        verbose_name = "URL Index Rule"
+        verbose_name_plural = "URL Index Rules"
+
+    def __str__(self):
+        return self.name or f"{self.match_type}: {self.path_pattern}"
+
+    @staticmethod
+    def _normalize_path(path):
+        if not path:
+            return "/"
+        return path if path.startswith("/") else f"/{path}"
+
+    def matches(self, path):
+        normalized = self._normalize_path(path)
+        pattern = self._normalize_path(self.path_pattern.strip())
+        if self.match_type == self.MatchType.EXACT:
+            return normalized == pattern
+        if self.match_type == self.MatchType.PREFIX:
+            return normalized.startswith(pattern)
+        try:
+            return re.search(self.path_pattern, normalized) is not None
+        except re.error:
+            return False
+
+    @classmethod
+    def get_active_rules(cls):
+        return cls.objects.filter(is_active=True)
+
+
 class ScannedURL(models.Model):
     """URL path collected by the SEO dashboard 'Scan' action. No duplicates; next scan adds only new URLs."""
     url_path = models.CharField(

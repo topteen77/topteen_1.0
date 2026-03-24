@@ -82,6 +82,57 @@ class EnquirySource(BaseModel):
         return self.name
 
 
+class ChatbotPageRule(BaseModel):
+    """
+    Per-page chatbot visibility rules managed from User Analytics dashboard.
+    """
+    BOT_CHOICES = (
+        ('chat_this_page', 'Chat this page'),
+        ('career_counsellor', 'Career Counsellor'),
+    )
+    POSITION_CHOICES = (
+        ('left', 'Left'),
+        ('right', 'Right'),
+    )
+
+    page_url = models.CharField(
+        max_length=500,
+        db_index=True,
+        help_text="URL path, e.g. /, /four-pillars-of-learning/, /career-planning/",
+    )
+    bot_name = models.CharField(max_length=40, choices=BOT_CHOICES, db_index=True)
+    is_visible = models.BooleanField(default=True, db_index=True, help_text="Show or hide this bot on matched pages")
+    include_subpages = models.BooleanField(
+        default=False,
+        help_text="If enabled, apply to direct child paths of page_url",
+    )
+    position = models.CharField(
+        max_length=10,
+        choices=POSITION_CHOICES,
+        default='right',
+        db_index=True,
+        help_text="Widget position for matched page(s)",
+    )
+    priority = models.PositiveSmallIntegerField(
+        default=1,
+        db_index=True,
+        help_text="Lower number = higher priority",
+    )
+
+    class Meta:
+        ordering = ['priority', '-modified', '-id']
+        verbose_name = "Chatbot Page Rule"
+        verbose_name_plural = "Chatbot Page Rules"
+        indexes = [
+            models.Index(fields=['bot_name', 'is_visible', 'priority']),
+            models.Index(fields=['page_url', 'bot_name']),
+        ]
+
+    def __str__(self):
+        state = 'Show' if self.is_visible else 'Hide'
+        return f"{state} {self.bot_name} @ {self.page_url}"
+
+
 class UserActivity(BaseModel):
     """
     Tracks user page views, sessions, and user journey on the website.

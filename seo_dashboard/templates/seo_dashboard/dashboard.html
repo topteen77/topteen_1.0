@@ -25,6 +25,7 @@
             {% if can_edit_seo %}
             <a href="{% url 'seo_dashboard:add_seo_by_url' %}" class="btn btn-outline-primary ms-2">Add SEO for any URL</a>
             <a href="{% url 'seo_dashboard:scanned_url_list' %}" class="btn btn-outline-secondary ms-2">Scanned URLs</a>
+            <a href="{% url 'seo_dashboard:url_index_rule_list' %}" class="btn btn-outline-secondary ms-2">Index Rules</a>
             {% endif %}
             <p class="text-muted mt-2 mb-0">Edit content (staff only) or SEO meta (staff / SEO users). SEO works for all pages: static, blogs, careers, and any future URL.</p>
         </div>
