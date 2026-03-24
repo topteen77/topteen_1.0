@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Sum, Count, Avg, Q, F, OuterRef, Subquery
 from django.db.models.functions import TruncDate
@@ -33,6 +34,7 @@ from user_analytics.models import (
 )
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
+from user_analytics.tasks import track_page_view_sync, update_user_journey_sync
 from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment
@@ -3096,6 +3098,83 @@ def enquiry_source_test_ref_view(request):
             'ref_landing_url': ref_landing_url,
         })
     except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+@require_GET
+def enquiry_ref_hit_api(request):
+    """
+    Public lightweight endpoint to record enquiry-source hit from frontend on page load.
+    Helps when landing pages strip query params after client-side navigation.
+    """
+    ref_token = (request.GET.get('ref') or '').strip()
+    page_path = (request.GET.get('path') or request.path or '/').strip()
+    page_title = (request.GET.get('title') or '').strip()[:500]
+    if not ref_token:
+        return JsonResponse({'ok': False, 'error': 'Missing ref parameter'}, status=400)
+
+    if not page_path.startswith('/'):
+        page_path = '/' + page_path
+
+    try:
+        source = EnquirySource.objects.filter(
+            token=ref_token,
+            is_active=True,
+            object_status=choices.ObjectStatus.ACTIVE,
+        ).first()
+        if not source:
+            return JsonResponse({'ok': False, 'error': 'Invalid or inactive ref token'}, status=404)
+
+        session_id = request.session.get('analytics_session_id')
+        if not session_id:
+            import uuid
+            session_id = str(uuid.uuid4())
+            request.session['analytics_session_id'] = session_id
+
+        # Deduplicate rapid duplicate hits from retries/reloads.
+        recent_exists = UserActivity.objects.filter(
+            session_id=session_id,
+            page_path=page_path,
+            enquiry_source=source,
+            created__gte=timezone.now() - timedelta(seconds=5),
+        ).exists()
+        if recent_exists:
+            return JsonResponse({'ok': True, 'deduped': True})
+
+        ga4_client_id = request.META.get('HTTP_X_GA4_CLIENT_ID') or request.session.get('ga4_client_id')
+        user_id = request.user.id if request.user.is_authenticated else None
+        referrer = request.META.get('HTTP_REFERER', '')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or request.META.get('REMOTE_ADDR')
+
+        track_page_view_sync(
+            session_id=session_id,
+            user_id=user_id,
+            ga4_client_id=ga4_client_id,
+            page_path=page_path,
+            page_url=request.build_absolute_uri(page_path),
+            page_title=page_title,
+            referrer=referrer,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            utm_source='',
+            utm_medium='',
+            utm_campaign='',
+            utm_term='',
+            utm_content='',
+            enquiry_source_id=source.id,
+        )
+        update_user_journey_sync(
+            session_id=session_id,
+            user_id=user_id,
+            ga4_client_id=ga4_client_id,
+            page_path=page_path,
+            referrer=referrer,
+            enquiry_source_id=source.id,
+        )
+        return JsonResponse({'ok': True, 'recorded': True, 'source_id': source.id})
+    except Exception as e:
+        logger.exception('enquiry_ref_hit_api failed')
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 

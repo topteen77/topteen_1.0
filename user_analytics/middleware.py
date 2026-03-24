@@ -36,7 +36,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
             return None
         # Skip tracking for admin, static files, and API endpoints
         path = request.path
-        skip_paths = ['/admin/', '/static/', '/media/', '/api/', '/analytics/api/']
+        skip_paths = ['/admin/', '/static/', '/media/', '/api/', '/analytics/api/', '/user-analytics/api/']
         
         if any(path.startswith(skip) for skip in skip_paths):
             return None

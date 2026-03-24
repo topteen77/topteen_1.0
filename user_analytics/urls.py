@@ -68,5 +68,6 @@ urlpatterns = [
     path('api/pageviews/paths/', views.pageviews_paths_api, name='pageviews_paths_api'),
     path('api/visitors/filter-options/', views.visitors_filter_options_api, name='visitors_filter_options_api'),
     path('api/web-owner/optional-data/', views.web_owner_optional_data_api, name='web_owner_optional_data_api'),
+    path('api/enquiry-ref-hit/', views.enquiry_ref_hit_api, name='enquiry_ref_hit_api'),
 ]
 

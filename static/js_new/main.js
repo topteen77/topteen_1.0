@@ -299,6 +299,32 @@
 
 // Close chatbot when clicking outside of it
 
+// Enquiry source tracking fallback:
+// If URL has ?ref=TOKEN, ping backend on page load to ensure the hit is recorded.
+// Token is stored in sessionStorage so SPA-style navigations in same tab can still attribute.
+(function enquiryRefTrackingInit() {
+  try {
+    const url = new URL(window.location.href);
+    const ref = (url.searchParams.get("ref") || "").trim();
+    const key = "tt_ref_token";
+    if (ref) {
+      sessionStorage.setItem(key, ref);
+    }
+    const token = ref || (sessionStorage.getItem(key) || "").trim();
+    if (!token) return;
+
+    const endpoint = `/user-analytics/api/enquiry-ref-hit/?ref=${encodeURIComponent(token)}&path=${encodeURIComponent(window.location.pathname)}&title=${encodeURIComponent(document.title || "")}`;
+    fetch(endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      keepalive: true,
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    }).catch(() => { /* no-op */ });
+  } catch (e) {
+    // no-op
+  }
+})();
+
 
 // header fixed //
 const header = document.querySelector('.header');

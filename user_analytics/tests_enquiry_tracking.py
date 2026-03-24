@@ -42,3 +42,13 @@ class EnquirySourceTrackingTest(TestCase):
             "UserJourney must have enquiry_source_id set when visiting /ref-landing/?ref=TOKEN. "
             "Check middleware passes enquiry_source_id and update_user_journey_sync saves it.",
         )
+
+    def test_ref_hit_api_records_activity(self):
+        url = "/user-analytics/api/enquiry-ref-hit/?ref={}&path=/skilllabcourse/test/".format(self.token)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload.get("ok"))
+        self.assertTrue(
+            UserActivity.objects.filter(enquiry_source=self.source, page_path="/skilllabcourse/test/").exists()
+        )
