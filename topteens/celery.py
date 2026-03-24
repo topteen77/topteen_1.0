@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 # set the default Django settings module for the 'celery' program.
@@ -27,6 +28,14 @@ app.conf.enable_utc = True
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 
+_daily_report_time = str(getattr(settings, "DAILY_USER_REPORT_TIME", "15:00")).strip()
+try:
+    _daily_report_hour, _daily_report_minute = [int(part) for part in _daily_report_time.split(":", 1)]
+    if not (0 <= _daily_report_hour <= 23 and 0 <= _daily_report_minute <= 59):
+        raise ValueError("Invalid DAILY_USER_REPORT_TIME range")
+except Exception:
+    _daily_report_hour, _daily_report_minute = 15, 0
+
 app.conf.beat_schedule = {
     'psychometric-result-every-2-minutes': {
         'task': 'psychometric_tests.task.central_test_automate',
@@ -35,5 +44,9 @@ app.conf.beat_schedule = {
     'aggregate-daily-analytics': {
         'task': 'user_analytics.tasks.aggregate_daily_analytics',
         'schedule': 86400.0,  # Run daily at midnight
+    },
+    'send-daily-new-user-report': {
+        'task': 'user_analytics.tasks.send_daily_new_user_report',
+        'schedule': crontab(minute=_daily_report_minute, hour=_daily_report_hour),
     },
 }

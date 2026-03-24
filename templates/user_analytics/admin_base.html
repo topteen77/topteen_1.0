@@ -389,6 +389,12 @@
                 </a>
             </div>
             <div class="menu-item">
+                <a href="{{ url('user_analytics:chatbot_rules') }}" class="menu-link {% if request and request.path.startswith('/user-analytics/admin-analytics/chatbot-rules') %}active{% endif %}" title="Per-page chatbot visibility rules">
+                    <i class="fas fa-robot"></i>
+                    <span class="menu-title">Chatbot Rules</span>
+                </a>
+            </div>
+            <div class="menu-item">
                 <a href="{{ url('seo_dashboard:dashboard') }}" class="menu-link {% if request and request.path.startswith('/seo-dashboard') %}active{% endif %}" title="Content &amp; SEO: static pages, meta, OG">
                     <i class="fas fa-search"></i>
                     <span class="menu-title">SEO Dashboard</span>

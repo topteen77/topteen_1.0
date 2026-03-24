@@ -4,10 +4,13 @@ All tracking operations are performed asynchronously to maintain website perform
 Also includes synchronous helper functions for fallback when Celery is unavailable.
 """
 from celery import shared_task
+from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.utils import IntegrityError
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 from user_analytics.models import UserActivity, UserJourney, Lead, UserEvent, GA4Session
 from user_analytics.utils import (
     parse_user_agent_info,
@@ -19,6 +22,78 @@ import logging
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+@shared_task
+def send_daily_new_user_report():
+    """
+    Send daily new user report (today + this week) to WEBADMINEMAIL.
+    Runs only when ENVIRONMENT=production and WEBADMINEMAIL is configured.
+    """
+    environment = str(getattr(settings, "ENVIRONMENT", "")).strip().lower()
+    web_admin_email = str(getattr(settings, "WEBADMINEMAIL", "")).strip()
+
+    if environment != "production":
+        logger.info("Skipping daily new user report: ENVIRONMENT is not production.")
+        return "skipped_non_production"
+
+    if not web_admin_email:
+        logger.info("Skipping daily new user report: WEBADMINEMAIL not configured.")
+        return "skipped_missing_recipient"
+
+    today = timezone.localdate()
+    week_start = today - timedelta(days=today.weekday())  # Monday
+
+    today_new_users = User.objects.filter(created__date=today).count()
+    week_new_users = User.objects.filter(created__date__gte=week_start, created__date__lte=today).count()
+
+    subject = f"[TopTeen] Daily new user report - {today.isoformat()}"
+    text_body = (
+        "TopTeen Daily User Report\n\n"
+        f"Date: {today.isoformat()}\n"
+        f"New users today: {today_new_users}\n"
+        f"Total new users this week (Mon-Today): {week_new_users}\n"
+    )
+    html_body = (
+        "<h3>TopTeen Daily User Report</h3>"
+        f"<p><strong>Date:</strong> {today.isoformat()}</p>"
+        f"<p><strong>New users today:</strong> {today_new_users}</p>"
+        f"<p><strong>Total new users this week (Mon-Today):</strong> {week_new_users}</p>"
+    )
+
+    recipients = [email.strip() for email in web_admin_email.split(",") if email.strip()]
+    if not recipients:
+        logger.info("Skipping daily new user report: WEBADMINEMAIL has no valid recipients.")
+        return "skipped_invalid_recipient"
+
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or getattr(
+        settings, "TOPTEEN_FROM_EMAIL", "noreply@example.com"
+    )
+
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            from_email=from_email,
+            to=recipients,
+        )
+        msg.attach_alternative(html_body, "text/html")
+        msg.send(fail_silently=False)
+        logger.info(
+            "Daily new user report sent successfully (recipient_count=%s, today=%s, week=%s).",
+            len(recipients),
+            today_new_users,
+            week_new_users,
+        )
+        return {
+            "date": today.isoformat(),
+            "today_new_users": today_new_users,
+            "week_new_users": week_new_users,
+            "recipient_count": len(recipients),
+        }
+    except Exception as exc:
+        logger.error("Failed to send daily new user report: %s", exc, exc_info=True)
+        raise
 
 
 # Synchronous helper functions (can be called directly when Celery is unavailable)

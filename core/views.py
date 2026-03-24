@@ -3,9 +3,6 @@ import logging
 import random
 import re
 import os
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
@@ -23,7 +20,7 @@ from blog.models import Blog
 from careers.models import Career, CareerTags,Videos,CareerCluster
 from core import choices
 from django.views.generic import TemplateView
-from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment, MIAssessmentResult, EQAssessmentResult, CareerBattleFight, CounsellingSession, GeneratedPage
+from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPillarsAssessmentResult, FourPillarsAssessment, MIAssessmentResult, EQAssessmentResult, CareerBattleFight, GeneratedPage
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
@@ -38,7 +35,6 @@ from courses.documents import CourseDocument
 from careers.models import Videos,Career
 from colleges.models import College
 from .documents_filter import AllSearch
-from .counselling_utils import get_counselling_context
 from core.models import EntranceTestPrepExam
 from users.models import UserSearchHistory
 from django.shortcuts import HttpResponse,HttpResponseRedirect
@@ -2227,127 +2223,6 @@ def career_battle_fights_api(request):
             result=result,
         )
         return JsonResponse({'id': fight.id, 'title': fight.title})
-
-
-def career_counselling_page(request):
-    """AI Counselling chat page; requires login."""
-    if not request.user.is_authenticated:
-        return redirect(reverse("users:login") + "?next=" + request.get_full_path())
-    ctx = {
-        "html_head": build_html_head(
-            title="AI Career Counselling",
-            description="Get personalized career guidance with AI counselling for students.",
-        ),
-        "body_css_class": "no-scrollbar overflow-x-hidden",
-    }
-    return render(request, "template20/career_counselling.html", ctx)
-
-
-@login_required
-@require_http_methods(["POST"])
-def counsel_chat_api(request):
-    """
-    Proxy to AI Counselling Engine (FastAPI POST /counsel).
-    Accepts JSON: { "message": str, "session_id": str (optional) }.
-    Returns engine response: response_text, career_suggestions, tactical_roadmap,
-    crisis_flag, explanation, etc.
-    Rate limit: 30 requests per minute per user.
-    """
-    from django.core.cache import cache
-    rate_key = f"counsel_ratelimit_{request.user.id}"
-    count = cache.get(rate_key, 0)
-    if count >= 30:
-        return JsonResponse(
-            {"error": "Too many requests. Please wait a minute and try again."},
-            status=429,
-        )
-    cache.set(rate_key, count + 1, timeout=60)
-    try:
-        body = json.loads(request.body) if request.body else {}
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-    message = (body.get("message") or "").strip()
-    if len(message) < 3:
-        return JsonResponse({"error": "Message too short"}, status=400)
-    if len(message) > 2000:
-        return JsonResponse({"error": "Message too long"}, status=400)
-    session_id = (body.get("session_id") or "").strip() or None
-    student_id = str(request.user.id)
-    context = get_counselling_context(request.user)
-    engine_url = getattr(settings, "COUNSELLING_ENGINE_URL", "http://localhost:8000").rstrip("/")
-    api_key = getattr(settings, "TOPTEEN_COUNSELLING_API_KEY", "dev-key")
-    payload = {
-        "student_id": student_id,
-        "message": message,
-        "session_id": session_id,
-        "context": context,
-    }
-    # Use a session with limited retries and configurable timeout to avoid long blocking calls.
-    timeout = getattr(settings, "COUNSELLING_REQUEST_TIMEOUT", 60)
-    retries = getattr(settings, "COUNSELLING_REQUEST_RETRIES", 2)
-    session = requests.Session()
-    retry_strategy = Retry(
-        total=retries,
-        backoff_factor=1,
-        status_forcelist=[429, 500, 502, 503, 504],
-        allowed_methods=["POST"],
-    )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
-    try:
-        logger.debug("Counselling request -> %s (timeout=%s, retries=%s) payload_size=%d", engine_url, timeout, retries, len(json.dumps(payload)))
-        resp = session.post(
-            f"{engine_url}/counsel",
-            json=payload,
-            headers={"Authorization": f"Bearer {api_key}"},
-            timeout=timeout,
-        )
-        # Log response time if available
-        try:
-            logger.debug("Counselling response status=%s elapsed=%s", resp.status_code, getattr(resp.elapsed, "total_seconds", lambda: None)())
-        except Exception:
-            pass
-    except requests.exceptions.ReadTimeout as e:
-        logger.exception("Counselling engine read timeout: %s", e)
-        return JsonResponse({"error": "Counselling service timed out"}, status=504)
-    except requests.RequestException as e:
-        logger.exception("Counselling engine request failed: %s", e)
-        return JsonResponse({"error": "Counselling service unavailable"}, status=503)
-    if resp.status_code == 401:
-        return JsonResponse({"error": "Invalid API key to counselling engine"}, status=502)
-    if resp.status_code != 200:
-        try:
-            err = resp.json()
-            detail = err.get("detail", resp.text)
-        except Exception:
-            detail = resp.text
-        return JsonResponse(
-            {"error": detail or "Counselling engine error"},
-            status=502 if resp.status_code >= 500 else 400,
-        )
-    try:
-        data = resp.json()
-    except Exception:
-        return JsonResponse({"error": "Invalid response from counselling engine"}, status=502)
-    # Optional: record session metadata for analytics
-    sid = data.get("session_id")
-    if sid:
-        try:
-            from django.utils import timezone
-            session_obj, _ = CounsellingSession.objects.get_or_create(
-                user=request.user,
-                session_id=sid,
-                defaults={"first_message_at": timezone.now(), "last_message_at": timezone.now()},
-            )
-            if not _:
-                session_obj.last_message_at = timezone.now()
-            if data.get("crisis_flag"):
-                session_obj.crisis_flagged = True
-            session_obj.save()
-        except Exception:
-            pass
-    return JsonResponse(data)
 
 
 def career_battle_eligibility_profile_api(request):

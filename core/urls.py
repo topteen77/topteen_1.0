@@ -55,7 +55,4 @@ urlpatterns = [
     path("career-battle/api/eligibility-profile/", views.career_battle_eligibility_profile_api, name="career_battle_eligibility_profile_api"),
     path("career-battle/api/stream-sources/", views.career_battle_stream_sources_api, name="career_battle_stream_sources_api"),
     path("career-battle/api/shortlist-career/", views.career_battle_shortlist_career_api, name="career_battle_shortlist_career_api"),
-    # AI Counselling: page + proxy API to FastAPI engine
-    path("career-counselling/", views.career_counselling_page, name="career_counselling"),
-    path("career-counselling/api/", views.counsel_chat_api, name="counsel_chat_api"),
 ]

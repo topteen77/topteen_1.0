@@ -1,0 +1,141 @@
+{% extends "seo_dashboard/base.html" %}
+
+{% block title_content %}Index Rules | Content &amp; SEO | Top Teen{% endblock %}
+
+{% block page_title %}Index Rules{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 100%; overflow-x: hidden; padding-bottom: 30px;">
+    <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+        <a href="{% url 'seo_dashboard:dashboard' %}" class="btn btn-outline-primary btn-sm">← Back to Dashboard</a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not rules_table_ready %}
+    <div class="alert alert-warning">
+        URL index rules table is not created yet. Run <code>python manage.py migrate</code> and reload this page.
+    </div>
+    {% endif %}
+
+    <div class="admin-card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Add URL indexing rule</h5>
+            <p class="text-muted small mb-3">Use this to block specific URLs from indexing via robots.txt and/or X-Robots-Tag header.</p>
+            <form method="post" action="{% url 'seo_dashboard:url_index_rule_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label">Name (optional)</label>
+                        <input type="text" class="form-control" name="name" placeholder="Student dashboards">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Path pattern</label>
+                        <input type="text" class="form-control" name="path_pattern" placeholder="/student/" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Match type</label>
+                        <select class="form-select" name="match_type">
+                            <option value="prefix">Path starts with</option>
+                            <option value="exact">Exact path</option>
+                            <option value="regex">Regex pattern</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" {% if not rules_table_ready %}disabled{% endif %}>Add rule</button>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12 d-flex flex-wrap gap-3">
+                        <label><input type="checkbox" name="apply_in_robots" checked> Add to robots.txt</label>
+                        <label><input type="checkbox" name="apply_x_robots_tag" checked> Add X-Robots-Tag header</label>
+                        <label><input type="checkbox" name="is_active" checked> Active</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="mb-0">Existing rules ({{ rules|length }})</h5>
+            <button type="button" class="btn btn-outline-danger btn-sm" id="btnDeleteSelected" disabled {% if not rules_table_ready %}disabled{% endif %}>Delete selected</button>
+        </div>
+        <div class="card-body">
+            <form id="deleteRulesForm" method="post" action="{% url 'seo_dashboard:url_index_rule_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;"><input type="checkbox" id="selectAll"></th>
+                                <th>Name</th>
+                                <th>Pattern</th>
+                                <th>Type</th>
+                                <th>robots.txt</th>
+                                <th>X-Robots-Tag</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rule in rules %}
+                            <tr>
+                                <td><input type="checkbox" class="row-check" name="ids" value="{{ rule.id }}"></td>
+                                <td>{{ rule.name|default:"-" }}</td>
+                                <td><code>{{ rule.path_pattern }}</code></td>
+                                <td>{{ rule.get_match_type_display }}</td>
+                                <td>{% if rule.apply_in_robots %}Yes{% else %}No{% endif %}</td>
+                                <td>{% if rule.apply_x_robots_tag %}Yes{% else %}No{% endif %}</td>
+                                <td>{% if rule.is_active %}Yes{% else %}No{% endif %}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-muted">No rules configured yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+(function() {
+    var selectAll = document.getElementById('selectAll');
+    var checks = document.querySelectorAll('.row-check');
+    var btnDelete = document.getElementById('btnDeleteSelected');
+    var form = document.getElementById('deleteRulesForm');
+
+    function updateButton() {
+        var selected = document.querySelectorAll('.row-check:checked').length;
+        btnDelete.disabled = selected === 0;
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checks.forEach(function(c) { c.checked = selectAll.checked; });
+            updateButton();
+        });
+    }
+    checks.forEach(function(c) { c.addEventListener('change', updateButton); });
+    btnDelete.addEventListener('click', function() {
+        var selected = document.querySelectorAll('.row-check:checked').length;
+        if (selected > 0 && confirm('Delete ' + selected + ' selected rule(s)?')) {
+            form.submit();
+        }
+    });
+})();
+</script>
+{% endblock %}

@@ -153,13 +153,6 @@ kill port:
 
 pkill -f "manage.py runserver.*8002"
 
---- AI Counselling (Deep-Counselling Engine) ---
-# Separate FastAPI microservice; Django proxies to it for logged-in users.
-# URL (Django): /career-counselling/  (login required). API: POST /career-counselling/api/
-# Engine: counselling_engine/ (see counselling_engine/README.md).
-# Django .env: COUNSELLING_ENGINE_URL (e.g. http://localhost:8000), TOPTEEN_COUNSELLING_API_KEY (same as engine TOPTEEN_API_KEY).
-# Run engine: cd counselling_engine && uvicorn main:app --host 0.0.0.0 --port 8000 (requires Redis; use COUNSELLING_REDIS_DB=0 to avoid clash with Django cache).
-
 ** testing script start ***
 python scripts/run_test_students_manager.py create --limit 1
 

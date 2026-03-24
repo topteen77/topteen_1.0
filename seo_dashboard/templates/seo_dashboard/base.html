@@ -80,6 +80,12 @@
                     <span class="menu-title">Scanned URLs</span>
                 </a>
             </div>
+            <div class="menu-item">
+                <a href="{% url 'seo_dashboard:url_index_rule_list' %}" class="menu-link {% if '/seo-dashboard/index-rules' in request.path %}active{% endif %}">
+                    <i class="fas fa-robot"></i>
+                    <span class="menu-title">Index Rules</span>
+                </a>
+            </div>
             <div class="menu-item" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
                 <a href="{% url 'user_analytics:business_dashboard' %}" class="menu-link">
                     <i class="fas fa-chart-line"></i>
