@@ -129,7 +129,18 @@
                         <td>
                             {% if item.full_url %}
                             <div class="d-flex align-items-center gap-2">
-                                <img src="{{ url('user_analytics:enquiry_source_qr', kwargs={'pk': item.source.id}) }}" alt="QR" width="64" height="64" class="img-thumbnail">
+                                <img
+                                    src="{{ url('user_analytics:enquiry_source_qr', kwargs={'pk': item.source.id}) }}"
+                                    alt="QR"
+                                    width="64"
+                                    height="64"
+                                    class="img-thumbnail qr-thumb"
+                                    role="button"
+                                    tabindex="0"
+                                    data-qr-src="{{ url('user_analytics:enquiry_source_qr', kwargs={'pk': item.source.id}) }}"
+                                    data-qr-title="QR code — {{ item.source.name }}"
+                                    title="Click to enlarge"
+                                >
                                 <a href="{{ url('user_analytics:enquiry_source_qr', kwargs={'pk': item.source.id}) }}?download=1" class="btn btn-sm btn-outline-secondary" download>
                                     <i class="fas fa-download"></i> Download
                                 </a>
@@ -235,6 +246,26 @@
     </div>
 </div>
 
+<div class="modal fade" id="qrPreviewModal" tabindex="-1" aria-labelledby="qrPreviewModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrPreviewModalTitle">QR code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="qrPreviewImg" src="" alt="QR preview" class="img-fluid border rounded" style="max-width: 420px;">
+                <div class="mt-3 d-flex justify-content-center gap-2">
+                    <a id="qrPreviewDownload" href="#" class="btn btn-sm btn-outline-secondary" download>
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="enquiryEventsModal" tabindex="-1" aria-labelledby="enquiryEventsModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -286,6 +317,27 @@ window.addEventListener('load', function() {
     function safeJson(obj) {
         try { return JSON.stringify(obj || {}, null, 2); } catch (e) { return '{}'; }
     }
+    function paymentStatus(ev) {
+        var t = (ev && ev.event_type) ? String(ev.event_type) : '';
+        var meta = (ev && ev.metadata) ? ev.metadata : {};
+        var stage = meta && meta.stage ? String(meta.stage) : '';
+        var eff = (ev && ev.effective_status) ? String(ev.effective_status) : '';
+        // Only 3 statuses: pending / fail / success
+        if (eff === 'success') return { text: 'Success', cls: 'bg-success-subtle text-success border border-success-subtle' };
+        if (eff === 'pending') return { text: 'Pending', cls: 'bg-warning-subtle text-warning border border-warning-subtle' };
+        if (eff === 'fail') return { text: 'Fail', cls: 'bg-danger-subtle text-danger border border-danger-subtle' };
+        if (t === 'payment_success') return { text: 'Success', cls: 'bg-success-subtle text-success border border-success-subtle' };
+        if (t === 'payment_pending') return { text: 'Pending', cls: 'bg-warning-subtle text-warning border border-warning-subtle' };
+        if (t === 'payment_failed') {
+            // cancel/error/failed -> fail
+            return { text: 'Fail', cls: 'bg-danger-subtle text-danger border border-danger-subtle' };
+        }
+        return null;
+    }
+    function badgeHtml(b) {
+        if (!b) return '<span class="text-muted">—</span>';
+        return '<span class="badge rounded-pill ' + escapeHtml(b.cls) + '">' + escapeHtml(b.text) + '</span>';
+    }
     document.querySelectorAll('.enquiry-metric-link').forEach(function(link) {
         link.addEventListener('click', function(e) {
             e.preventDefault();
@@ -314,9 +366,11 @@ window.addEventListener('load', function() {
                         var sess = ev.session_id ? ('<code class="small">' + escapeHtml(ev.session_id) + '</code>') : '<span class="text-muted">—</span>';
                         var eventName = escapeHtml(ev.event_name || '');
                         var when = escapeHtml(ev.created || '');
+                        var statusBadge = badgeHtml(paymentStatus(ev));
                         return ''
                           + '<tr>'
                           +   '<td class="small text-nowrap">' + when + '</td>'
+                          +   '<td class="small">' + statusBadge + '</td>'
                           +   '<td class="small text-break"><span class="fw-semibold">' + eventName + '</span></td>'
                           +   '<td class="small text-break">' + user + '</td>'
                           +   '<td class="small text-break">' + sess + '</td>'
@@ -334,6 +388,7 @@ window.addEventListener('load', function() {
                       +     '<thead class="table-light">'
                       +       '<tr>'
                       +         '<th style="width: 160px;">When</th>'
+                      +         '<th style="width: 130px;">Status</th>'
                       +         '<th>Event</th>'
                       +         '<th style="width: 240px;">User</th>'
                       +         '<th style="width: 220px;">Session</th>'
@@ -352,6 +407,35 @@ window.addEventListener('load', function() {
                 });
         });
     });
+
+    // QR preview modal
+    var qrModalEl = document.getElementById('qrPreviewModal');
+    var qrTitleEl = document.getElementById('qrPreviewModalTitle');
+    var qrImgEl = document.getElementById('qrPreviewImg');
+    var qrDlEl = document.getElementById('qrPreviewDownload');
+    if (qrModalEl && qrImgEl && qrDlEl) {
+        var qrModal = new bootstrap.Modal(qrModalEl);
+        function openQrModal(src, title) {
+            if (!src) return;
+            qrTitleEl.textContent = title || 'QR code';
+            // Cache-bust to avoid stale QR in some browsers
+            var bust = (src.indexOf('?') === -1 ? '?' : '&') + 'v=' + String(Date.now());
+            qrImgEl.src = src + bust;
+            qrDlEl.href = src + '?download=1';
+            qrModal.show();
+        }
+        document.querySelectorAll('.qr-thumb').forEach(function(img) {
+            img.addEventListener('click', function() {
+                openQrModal(this.getAttribute('data-qr-src'), this.getAttribute('data-qr-title'));
+            });
+            img.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openQrModal(this.getAttribute('data-qr-src'), this.getAttribute('data-qr-title'));
+                }
+            });
+        });
+    }
 });
 document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {

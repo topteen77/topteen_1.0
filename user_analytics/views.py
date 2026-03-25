@@ -3145,6 +3145,74 @@ def enquiry_source_events_api(request):
     rows = list(qs.distinct().order_by('-created')[: limit + 1])
     truncated = len(rows) > limit
     rows = rows[:limit]
+    # For payment rows, compute an "effective" status based on the latest payment event for the same payment/order.
+    # This avoids showing "Pending/Cancelled" for checkouts that later became Paid, etc.
+    effective_by_id = {}
+    if kind in {'payment_started', 'payment_success', 'payment_failed'}:
+        payment_rows = [ev for ev in rows if ev.event_type in {'payment_pending', 'payment_failed', 'payment_success'}]
+        if payment_rows:
+            keys = []
+            order_ids = set()
+            for ev in payment_rows:
+                if ev.content_type_id and ev.object_id:
+                    keys.append(('obj', ev.content_type_id, ev.object_id))
+                meta = ev.metadata or {}
+                oid = meta.get('gateway_order_id') or meta.get('order_id')
+                if oid:
+                    order_ids.add(str(oid))
+
+            match_q = Q()
+            # Build safe OR-of-pairs (avoid cross-product from __in lists).
+            for _, ct_id, obj_id in [k for k in keys if k[0] == 'obj']:
+                match_q |= Q(content_type_id=ct_id, object_id=obj_id)
+            if order_ids:
+                match_q |= Q(metadata__gateway_order_id__in=list(order_ids)) | Q(metadata__order_id__in=list(order_ids))
+
+            latest_by_key = {}
+            if match_q:
+                related = UserEvent.objects.filter(
+                    attribution_q,
+                    match_q,
+                    event_type__in=['payment_success', 'payment_failed', 'payment_pending'],
+                ).order_by('-created')
+                for ev in related:
+                    key = None
+                    if ev.content_type_id and ev.object_id:
+                        key = ('obj', ev.content_type_id, ev.object_id)
+                    else:
+                        meta = ev.metadata or {}
+                        oid = meta.get('gateway_order_id') or meta.get('order_id')
+                        if oid:
+                            key = ('order', str(oid))
+                    if key and key not in latest_by_key:
+                        latest_by_key[key] = ev
+
+            def _effective_from_latest(latest_ev):
+                if not latest_ev:
+                    return None
+                if latest_ev.event_type == 'payment_success':
+                    return 'success'
+                if latest_ev.event_type == 'payment_pending':
+                    return 'pending'
+                # payment_failed (cancel/error/other) -> fail
+                return 'fail'
+
+            for ev in payment_rows:
+                k = None
+                if ev.content_type_id and ev.object_id:
+                    k = ('obj', ev.content_type_id, ev.object_id)
+                else:
+                    meta = ev.metadata or {}
+                    oid = meta.get('gateway_order_id') or meta.get('order_id')
+                    if oid:
+                        k = ('order', str(oid))
+                latest = latest_by_key.get(k) if k else None
+                eff = _effective_from_latest(latest)
+                if not eff:
+                    # Fallback to the row itself.
+                    eff = _effective_from_latest(ev)
+                effective_by_id[ev.id] = eff
+
     data_rows = [{
         'id': ev.id,
         'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
@@ -3153,6 +3221,7 @@ def enquiry_source_events_api(request):
         'user_email': ev.user.email if ev.user_id else None,
         'session_id': ev.session_id or '',
         'metadata': ev.metadata or {},
+        'effective_status': effective_by_id.get(ev.id),
     } for ev in rows]
     return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
 
