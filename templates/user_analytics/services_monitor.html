@@ -10,6 +10,14 @@
       <h5 class="mb-0">Required services status</h5>
       <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}">Refresh</a>
     </div>
+    <div class="mt-3 mb-2">
+      <div class="btn-group btn-group-sm" role="group" aria-label="Runtime source filter">
+        <button type="button" class="btn btn-outline-primary source-filter active" data-source="all">All</button>
+        <button type="button" class="btn btn-outline-primary source-filter" data-source="docker">Docker</button>
+        <button type="button" class="btn btn-outline-primary source-filter" data-source="local">Local</button>
+        <button type="button" class="btn btn-outline-primary source-filter" data-source="remote">Remote</button>
+      </div>
+    </div>
     {% if not all_required_ok %}
       <div class="alert alert-warning mt-3 mb-0">
         One or more required services are unhealthy. Open each service card for diagnostics and log-based hints.
@@ -17,7 +25,7 @@
     {% endif %}
     <div class="row g-2 mt-1">
       {% for row in services %}
-      <div class="col-md-3">
+      <div class="col-md-3 service-card-wrap" data-source="{{ row.runtime_source.type if row.runtime_source else 'unknown' }}">
         {% if row.clickable %}
         <a href="#{{ row.anchor }}" class="text-decoration-none">
         {% endif %}
@@ -27,6 +35,13 @@
               <strong class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</strong>
             </div>
             <small class="text-muted d-block mt-1">{{ row.detail }}</small>
+            <small class="d-block mt-1">
+              {% if row.enabled %}
+                <span class="badge bg-success-subtle text-success-emphasis">Enabled</span>
+              {% else %}
+                <span class="badge bg-secondary">Disabled</span>
+              {% endif %}
+            </small>
             {% if row.runtime_source %}
               <small class="d-block mt-1 text-dark">
                 Source: {{ row.runtime_source.label }}
@@ -50,13 +65,14 @@
   {% for row in services %}
     {% if row.clickable %}
     {% set info = logs.get(row.log_key, {}) %}
-    <div class="admin-card mb-3" id="{{ row.anchor }}">
+    <div class="admin-card mb-3 service-detail-card" id="{{ row.anchor }}" data-source="{{ row.runtime_source.type if row.runtime_source else 'unknown' }}">
       <h5 class="mb-2">{{ row.label }} diagnostics</h5>
       <div class="row g-3">
         <div class="col-lg-4">
           <div class="border rounded p-3 h-100">
             <h6 class="mb-2">Runtime details</h6>
             <div><strong>Status:</strong> <span class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</span></div>
+            <div class="mt-1"><strong>Config:</strong> {{ 'Enabled' if row.enabled else 'Disabled' }}</div>
             {% if row.runtime_source %}
               <div class="mt-1"><strong>Runtime source:</strong> {{ row.runtime_source.label }}</div>
               {% if row.runtime_source.via %}
@@ -118,5 +134,31 @@
     {% endif %}
   {% endfor %}
 </div>
+<script>
+  (function () {
+    var buttons = document.querySelectorAll('.source-filter');
+    var cards = document.querySelectorAll('.service-card-wrap');
+    var details = document.querySelectorAll('.service-detail-card');
+
+    function setFilter(source) {
+      cards.forEach(function (el) {
+        var match = source === 'all' || el.getAttribute('data-source') === source;
+        el.style.display = match ? '' : 'none';
+      });
+      details.forEach(function (el) {
+        var match = source === 'all' || el.getAttribute('data-source') === source;
+        el.style.display = match ? '' : 'none';
+      });
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        buttons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        setFilter(btn.getAttribute('data-source'));
+      });
+    });
+  })();
+</script>
 {% endblock %}
 

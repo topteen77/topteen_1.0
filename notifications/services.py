@@ -354,11 +354,11 @@ def get_runtime_service_status():
     celery_diag = _get_celery_runtime_diagnostics()
 
     service_rows = [
-        {'key': 'db', 'label': 'Database', 'ok': True, 'detail': 'Django DB is reachable through request flow.', 'required': True},
-        {'key': 'redis', 'label': 'Redis', 'ok': redis_ok, 'detail': 'Used by Celery broker/cache when enabled.', 'required': bool(getattr(settings, 'ENABLE_REDIS', False))},
-        {'key': 'celery', 'label': 'Celery Worker', 'ok': celery_ok and celery_proc_ok, 'detail': 'Worker heartbeat and process check.', 'required': bool(getattr(settings, 'ENABLE_CELERY', False))},
-        {'key': 'gunicorn', 'label': 'Gunicorn', 'ok': gunicorn_ok, 'detail': 'OS process availability check.', 'required': True},
-        {'key': 'email', 'label': 'Email config', 'ok': email_ok, 'detail': 'SMTP host/from-email present.', 'required': True},
+        {'key': 'db', 'label': 'Database', 'ok': True, 'detail': 'Django DB is reachable through request flow.', 'required': True, 'enabled': True},
+        {'key': 'redis', 'label': 'Redis', 'ok': redis_ok, 'detail': 'Used by Celery broker/cache when enabled.', 'required': bool(getattr(settings, 'ENABLE_REDIS', False)), 'enabled': bool(getattr(settings, 'ENABLE_REDIS', False))},
+        {'key': 'celery', 'label': 'Celery Worker', 'ok': celery_ok and celery_proc_ok, 'detail': 'Worker heartbeat and process check.', 'required': bool(getattr(settings, 'ENABLE_CELERY', False)), 'enabled': bool(getattr(settings, 'ENABLE_CELERY', False))},
+        {'key': 'gunicorn', 'label': 'Gunicorn', 'ok': gunicorn_ok, 'detail': 'OS process availability check.', 'required': True, 'enabled': True},
+        {'key': 'email', 'label': 'Email config', 'ok': email_ok, 'detail': 'SMTP host/from-email present.', 'required': True, 'enabled': True},
     ]
 
     logs = {}
