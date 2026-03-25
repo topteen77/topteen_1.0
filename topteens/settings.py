@@ -721,6 +721,9 @@ _razorpay_api_secret = config('RAZORPAY_API_SECRET', default='')
 RAZORPAY_API_KEY = _razorpay_api_key if _razorpay_api_key else RAZORPAY_KEY
 RAZORPAY_API_SECRET = _razorpay_api_secret if _razorpay_api_secret else RAZORPAY_SECRET
 
+# Razorpay Dashboard → Webhooks → signing secret (not the API secret). Used by /payments/razorpay/webhook/
+RAZORPAY_WEBHOOK_SECRET = config('RAZORPAY_WEBHOOK_SECRET', default='')
+
 # Default password for new users (can be overridden via .env)
 DEFAULT_PASSWORD = config('DEFAULT_PASSWORD', default='12345')
 
@@ -737,6 +740,8 @@ else:  # sandbox/test mode
     ICICI_EAZYPAY_ENCRYPTION_KEY = config('ICICI_EAZYPAY_SANDBOX_ENCRYPTION_KEY', default=config('ICICI_EAZYPAY_ENCRYPTION_KEY', default=''))
 
 ICICI_EAZYPAY_BASE_RETURN_URL = config('ICICI_EAZYPAY_BASE_RETURN_URL', default='https://www.topteen.in/payments/payment-success-v2/')
+# Optional: require this value in header X-Eazypay-Webhook-Secret or ?secret= on /payments/eazypay/webhook/
+ICICI_EAZYPAY_WEBHOOK_SECRET = config('ICICI_EAZYPAY_WEBHOOK_SECRET', default='')
 ICICI_EAZYPAY_PAYMENT_SUCESS_RESPONSE_CODE = config('ICICI_EAZYPAY_PAYMENT_SUCESS_RESPONSE_CODE', default='E000')
 
 # Psychometric Test Amounts

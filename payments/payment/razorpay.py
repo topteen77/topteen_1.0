@@ -1,7 +1,11 @@
+import logging
 import razorpay
 from django.conf import settings 
 from datetime import datetime,timedelta
 import json
+
+logger = logging.getLogger(__name__)
+
 
 class RazorpayService:
 
@@ -41,6 +45,23 @@ class RazorpayService:
         payment_id,amount=order_payment.gateway_payment_id,order_payment.get_gateway_amount()
         payment_detail = self.get_payment_details(payment_id)
         return (payment_detail.get('status') == 'captured' or payment_detail.get('status') ==  'authorized') and int(payment_detail.get('amount')) == amount
+
+    def verify_payment_amount_status_and_order(self, order_payment):
+        """
+        Confirm payment via Razorpay API (amount, status, order_id) without client signature.
+        Used when payment.captured webhook already passed HMAC verification.
+        """
+        try:
+            if not order_payment.gateway_payment_id or not order_payment.gateway_order_id:
+                return False
+            detail = self.get_payment_details(order_payment.gateway_payment_id)
+            amount_ok = int(detail.get('amount')) == order_payment.get_gateway_amount()
+            status_ok = detail.get('status') in ('captured', 'authorized')
+            order_ok = (detail.get('order_id') or '') == (order_payment.gateway_order_id or '')
+            return amount_ok and status_ok and order_ok
+        except Exception:
+            logger.exception('verify_payment_amount_status_and_order failed')
+            return False
 
     def get_payment_details(self,payment_id):
         return self.client.payment.fetch(payment_id)

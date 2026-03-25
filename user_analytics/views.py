@@ -46,6 +46,23 @@ def is_staff_or_superuser(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
 
+def is_superuser_or_accounts_staff(user):
+    """
+    Superuser or staff in Django group 'Accounts' or 'Accounts staff'.
+    Used for per-row 'Update payment' on the business payments report (manual Razorpay completion).
+    Create one of these groups in Django Admin and assign accounts team users.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    if not user.is_staff:
+        return False
+    return user.groups.filter(
+        Q(name__iexact='Accounts') | Q(name__iexact='Accounts staff')
+    ).exists()
+
+
 def get_date_range_from_period(time_period, default_days=30):
     """
     Helper function to calculate date range from time period string.
@@ -104,6 +121,23 @@ def get_date_range_from_request(request, period_param='period', date_from_param=
 def _payment_amount_rupees(payment):
     """Gateway Payment.amount is stored in whole rupees (BaseMoneyModel)."""
     return float(Decimal(payment.amount or 0))
+
+
+def _payment_row_hide_manual_update_resolved_success(gp, gateway_order_id, payment_status_filter):
+    """
+    Stale analytics: UserEvent may still say failed while Payment was completed later (manual reconcile).
+    If the Payment row is successful, hide manual update and show Success in the table.
+    """
+    if payment_status_filter not in ('fail', 'error', 'inprocess'):
+        return False, None
+    if gp and gp.is_success == choices.YesNoChoices.YES:
+        return True, 'Success'
+    oid = (gateway_order_id or '').strip()
+    if oid:
+        p = Payment.objects.filter(gateway_order_id=oid).only('id', 'is_success').first()
+        if p and p.is_success == choices.YesNoChoices.YES:
+            return True, 'Success'
+    return False, None
 
 
 def _resolve_gateway_payments_for_userevents(events):
@@ -1717,6 +1751,7 @@ def successful_payments_detail(request):
             else 'Payments In Process'
         ),
         'payment_type': 'successful',
+        'show_manual_payment_row_action': is_superuser_or_accounts_staff(request.user),
     }
     
     return render(request, 'user_analytics/payments_detail.html', context)
@@ -1854,8 +1889,18 @@ def successful_payments_api(request):
                 gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, f'Gateway {payment.gateway}')
             inv = getattr(payment, 'invoice', None)
             source = (getattr(payment, 'latest_enquiry_source_name', None) or '').strip() or (getattr(payment, 'latest_traffic_source', None) or '').strip() or 'Direct'
+            go = payment.gateway_order_id or ''
+            gp = payment.gateway_payment_id or ''
+            hide_manual_update = (
+                payment_status in ('fail', 'error', 'inprocess')
+                and payment.is_success == choices.YesNoChoices.YES
+            )
+            row_status_label = 'Success' if hide_manual_update else status_label
             payments_data.append({
                 'id': payment.id,
+                'payment_db_id': payment.id,
+                'gateway_order_id': go,
+                'gateway_payment_id': gp,
                 'user_email': payment.user.email if payment.user else 'Anonymous',
                 'invoice_number': getattr(inv, 'invoice_number', None) or 'N/A',
                 'transaction_id': getattr(inv, 'transaction_id', None) or payment.gateway_payment_id or payment.gateway_order_id or 'N/A',
@@ -1865,8 +1910,9 @@ def successful_payments_api(request):
                 'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
                 'source': source,
                 'gateway': gateway_name,
-                'order_id': payment.gateway_order_id or 'N/A',
-                'status_label': status_label,
+                'order_id': go or 'N/A',
+                'status_label': row_status_label,
+                'hide_manual_update': hide_manual_update,
                 'error_detail': '',
             })
     else:
@@ -1887,8 +1933,22 @@ def successful_payments_api(request):
                 order_id = order_id or gp.gateway_order_id or 'N/A'
             else:
                 order_id = order_id or 'N/A'
+            go_row = (gp.gateway_order_id if gp else '') or (meta.get('gateway_order_id') or meta.get('order_id') or '')
+            gp_id = (gp.gateway_payment_id if gp else '') or (meta.get('gateway_payment_id') or '')
+            hide_manual_update, row_st_override = _payment_row_hide_manual_update_resolved_success(
+                gp, go_row, payment_status
+            )
+            payment_db_id = gp.id if gp else None
+            if hide_manual_update and payment_db_id is None and (go_row or '').strip():
+                p_enrich = Payment.objects.filter(gateway_order_id=(go_row or '').strip()).only('id').first()
+                if p_enrich:
+                    payment_db_id = p_enrich.id
+            row_status_label = row_st_override if row_st_override else status_label
             payments_data.append({
                 'id': payment.id,
+                'payment_db_id': payment_db_id,
+                'gateway_order_id': go_row,
+                'gateway_payment_id': gp_id,
                 'user_email': payment.user.email if payment.user else 'Anonymous',
                 'invoice_number': inv_no,
                 'transaction_id': txn,
@@ -1899,7 +1959,8 @@ def successful_payments_api(request):
                 'source': (meta.get('source') or '').strip() or (resolved_enquiry_source.name if resolved_enquiry_source else '') or 'Direct',
                 'gateway': meta.get('gateway', 'N/A'),
                 'order_id': order_id,
-                'status_label': status_label,
+                'status_label': row_status_label,
+                'hide_manual_update': hide_manual_update,
                 'error_detail': _event_error_detail_from_metadata(meta),
             })
 
@@ -2081,6 +2142,189 @@ def successful_payments_export_excel(request):
     return response
 
 
+def _audit_manual_payment_reconciliation(request, payment, staff_note, verify_mode):
+    """Staff audit trail (does not replace Payment/UserEvent success tracking from signals)."""
+    content_type = ContentType.objects.get_for_model(payment)
+    safe_track_user_event(
+        event_type='form_submission',
+        event_name='Staff manual payment completion',
+        user_id=payment.user_id,
+        event_value=float(payment.amount or 0),
+        content_type_id=content_type.id,
+        object_id=payment.id,
+        session_id=getattr(request.session, 'session_key', None) or '',
+        metadata={
+            'reconciliation': 'staff_manual',
+            'verify_mode': verify_mode,
+            'staff_id': request.user.id,
+            'staff_email': getattr(request.user, 'email', '') or '',
+            'payment_db_id': payment.id,
+            'gateway_order_id': payment.gateway_order_id or '',
+            'gateway_payment_id': payment.gateway_payment_id or '',
+            'note': (staff_note or '')[:500],
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def manual_payment_suggest_api(request):
+    """AJAX typeahead for manual payment completion: search Payment by id, email, order id, pay id."""
+    q = (request.GET.get('q') or '').strip()
+    if len(q) < 2:
+        return JsonResponse({'suggestions': []})
+    filt = (
+        Q(user__email__icontains=q)
+        | Q(gateway_order_id__icontains=q)
+        | Q(gateway_payment_id__icontains=q)
+        | Q(gateway_receipt__icontains=q)
+    )
+    if q.isdigit():
+        try:
+            filt |= Q(pk=int(q))
+        except ValueError:
+            pass
+    rows = list(
+        Payment.objects.select_related('user')
+        .filter(filt)
+        .order_by('-created')[:15]
+    )
+    suggestions = []
+    for p in rows:
+        uid = p.user.email if p.user else str(p.user_id)
+        label = '#{} — {} — ₹{} — {}'.format(p.id, uid, p.amount, p.gateway_order_id or '—')
+        suggestions.append(
+            {
+                'payment_db_id': p.id,
+                'gateway_order_id': p.gateway_order_id or '',
+                'gateway_payment_id': p.gateway_payment_id or '',
+                'label': label,
+                'user_email': uid,
+            }
+        )
+    return JsonResponse({'suggestions': suggestions})
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def manual_payment_reconciliation_view(request):
+    """
+    Staff tool: after verifying a captured payment in Razorpay Dashboard, complete our Payment row,
+    allocate course / psychometric access (same as webhook + client success), and log an audit event.
+    """
+    from payments.models import Payment
+    from payments.payment.razorpay import RazorpayService
+    from payments.reconciliation import finalize_side_effects_after_gateway_success
+
+    result_message = None
+    result_level = None
+    payment_preview = None
+
+    if request.method == 'POST':
+        confirm = request.POST.get('confirm_verified') == 'on'
+        staff_note = (request.POST.get('staff_note') or '').strip()[:1000]
+        payment_db_id = (request.POST.get('payment_db_id') or '').strip()
+        gateway_order_id_in = (request.POST.get('gateway_order_id') or '').strip()
+        rz_payment_id = (request.POST.get('razorpay_payment_id') or '').strip()
+        rz_signature = (request.POST.get('razorpay_signature') or '').strip()
+        verify_mode = (request.POST.get('verify_mode') or 'api').strip().lower()
+        force_allocate = request.POST.get('force_allocate') == 'on' and request.user.is_superuser
+
+        if not confirm:
+            result_message = 'Check the confirmation box: you must have verified this payment in Razorpay (or other gateway) before completing here.'
+            result_level = 'error'
+        elif not payment_db_id and not gateway_order_id_in:
+            result_message = 'Enter either internal Payment ID (database id) or Razorpay Order ID stored on the payment row.'
+            result_level = 'error'
+        elif not force_allocate and not rz_payment_id:
+            result_message = 'Enter Razorpay Payment ID from the dashboard, or use superuser-only force completion (no gateway check).'
+            result_level = 'error'
+        else:
+            payment = None
+            if payment_db_id:
+                try:
+                    payment = Payment.objects.select_related('user').filter(pk=int(payment_db_id)).first()
+                except (TypeError, ValueError):
+                    payment = None
+            if not payment and gateway_order_id_in:
+                payment = Payment.objects.select_related('user').filter(gateway_order_id=gateway_order_id_in).first()
+
+            if not payment:
+                result_message = 'No Payment row found for that id or order id.'
+                result_level = 'error'
+            elif payment.is_success == choices.YesNoChoices.YES:
+                result_message = 'This payment is already successful in our database. No changes made.'
+                result_level = 'warning'
+                payment_preview = payment
+            elif force_allocate:
+                if rz_payment_id:
+                    payment.gateway_payment_id = rz_payment_id
+                    payment.save(update_fields=['gateway_payment_id'])
+                payment.is_success = choices.YesNoChoices.YES
+                payment.save(update_fields=['is_success'])
+                finalize_side_effects_after_gateway_success(payment)
+                _audit_manual_payment_reconciliation(request, payment, staff_note, 'force_superuser')
+                result_message = (
+                    'Marked successful without live gateway verification. Side effects (course / test access, emails) were applied. '
+                    'Use only when you have offline proof of payment.'
+                )
+                result_level = 'success'
+                payment_preview = payment
+            elif verify_mode == 'signature':
+                order_for_sig = gateway_order_id_in or (payment.gateway_order_id or '')
+                if not (rz_payment_id and rz_signature and order_for_sig):
+                    result_message = 'Signature mode requires Razorpay Payment ID, Signature, and Order ID (form or already on the payment row).'
+                    result_level = 'error'
+                else:
+                    ok = payment.update_payment(rz_payment_id, order_for_sig, rz_signature)
+                    if ok:
+                        finalize_side_effects_after_gateway_success(payment)
+                        _audit_manual_payment_reconciliation(request, payment, staff_note, 'razorpay_signature')
+                        result_message = 'Signature verified with Razorpay. Payment marked successful and allocation completed.'
+                        result_level = 'success'
+                        payment_preview = payment
+                    else:
+                        result_message = 'Razorpay rejected signature / payment verification. Check pasted values match the dashboard.'
+                        result_level = 'error'
+            else:
+                payment.gateway_payment_id = rz_payment_id
+                payment.save(update_fields=['gateway_payment_id'])
+                rsvc = RazorpayService()
+                if rsvc.verify_payment_amount_status_and_order(payment):
+                    payment.is_success = choices.YesNoChoices.YES
+                    payment.save(update_fields=['is_success'])
+                    finalize_side_effects_after_gateway_success(payment)
+                    _audit_manual_payment_reconciliation(request, payment, staff_note, 'razorpay_api')
+                    result_message = 'Verified via Razorpay API (amount, status, order). Payment marked successful and allocation completed.'
+                    result_level = 'success'
+                    payment_preview = payment
+                else:
+                    result_message = (
+                        'Razorpay API check failed (captured/authorized + amount + order id). '
+                        'Try signature mode with values from the payment success callback in dashboard, or confirm order id on our Payment row.'
+                    )
+                    result_level = 'error'
+
+    prefill = {
+        'payment_db_id': (request.GET.get('payment_db_id') or '').strip(),
+        'gateway_order_id': (request.GET.get('gateway_order_id') or '').strip(),
+        'razorpay_payment_id': (request.GET.get('razorpay_payment_id') or '').strip(),
+    }
+    context = {
+        'result_message': result_message,
+        'result_level': result_level,
+        'payment_preview': payment_preview,
+        'page_title': 'Manual payment completion',
+        'prefill': prefill,
+        'manual_payment_suggest_url': reverse('user_analytics:manual_payment_suggest_api'),
+        'csrf_input_html': format_html(
+            '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
+            get_token(request),
+        ),
+    }
+    return render(request, 'user_analytics/manual_payment_reconciliation.html', context)
+
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def failed_payments_detail(request):
@@ -2158,6 +2402,7 @@ def failed_payments_detail(request):
         'total_count': total_count,
         'page_title': 'Failed Payments',
         'payment_type': 'failed',
+        'show_manual_payment_row_action': False,
     }
     
     return render(request, 'user_analytics/payments_detail.html', context)
@@ -2357,6 +2602,7 @@ def pending_payments_detail(request):
         'total_count': total_count,
         'page_title': 'Pending Payments',
         'payment_type': 'pending',
+        'show_manual_payment_row_action': False,
     }
     
     return render(request, 'user_analytics/payments_detail.html', context)

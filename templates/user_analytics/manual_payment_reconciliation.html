@@ -1,0 +1,212 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Manual payment completion | Top Teen{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header mb-4">
+        <h1 class="page-title h4">
+            <i class="fas fa-hand-holding-usd text-primary"></i> {{ page_title }}
+        </h1>
+        <p class="text-muted mb-0">
+            Use when a customer paid in Razorpay but our app never received the browser callback (tab closed, network error).
+            Confirm the payment is <strong>captured</strong> in the Razorpay dashboard, then complete the row here so course / test access and emails run the same way as automatic success.
+        </p>
+    </div>
+
+    <div class="admin-card mb-4 position-relative" id="payment-suggest-wrap">
+        <label class="form-label fw-semibold" for="payment-suggest-q"><i class="fas fa-search text-primary"></i> Search payment (typeahead)</label>
+        <input type="text" id="payment-suggest-q" class="form-control" placeholder="Type email, payment #, order id, or Razorpay pay_… (min 2 characters)" autocomplete="off">
+        <div class="form-text">Suggestions load from your <code>payments.Payment</code> table. Click a row to fill the form below.</div>
+        <ul class="list-group position-absolute w-100 shadow-sm mt-1" id="payment-suggest-list" style="z-index: 20; max-height: 280px; overflow-y: auto; display: none;"></ul>
+    </div>
+
+    {% if result_message %}
+    <div class="alert {% if result_level == 'success' %}alert-success{% elif result_level == 'warning' %}alert-warning{% else %}alert-danger{% endif %} mb-4" role="alert">
+        {{ result_message }}
+    </div>
+    {% endif %}
+
+    {% if payment_preview %}
+    <div class="admin-card mb-4">
+        <div class="card-header border-0 pb-0">
+            <h2 class="card-title h6 mb-0">Payment row</h2>
+        </div>
+        <div class="table-responsive mt-3">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr><th class="w-25">Internal ID</th><td>{{ payment_preview.id }}</td></tr>
+                    <tr><th>User</th><td>{{ payment_preview.user.email or payment_preview.user_id }}</td></tr>
+                    <tr><th>Amount (₹)</th><td>{{ payment_preview.amount }}</td></tr>
+                    <tr><th>Product type</th><td>{{ payment_preview.get_obj_type_display() }}</td></tr>
+                    <tr><th>Success in DB</th><td>{{ payment_preview.get_is_success_display() }}</td></tr>
+                    <tr><th>Razorpay order id</th><td><code>{{ payment_preview.gateway_order_id|default('—') }}</code></td></tr>
+                    <tr><th>Razorpay payment id</th><td><code>{{ payment_preview.gateway_payment_id|default('—') }}</code></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="admin-card">
+        <form method="post" class="row g-3">
+            {{ csrf_input_html|safe }}
+
+            <div class="col-12">
+                <label class="form-label">Internal Payment ID <span class="text-muted">(preferred)</span></label>
+                <input type="text" name="payment_db_id" id="fld-payment-db-id" class="form-control" placeholder="e.g. 12345 from Successful / In process list" value="{{ prefill.payment_db_id|default('') }}" autocomplete="off">
+                <div class="form-text">From analytics payment tables or Django admin <code>payments.Payment</code>.</div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Razorpay Order ID</label>
+                <input type="text" name="gateway_order_id" id="fld-gateway-order-id" class="form-control" placeholder="order_… (if you do not have internal id)" value="{{ prefill.gateway_order_id|default('') }}" autocomplete="off">
+                <div class="form-text">Must match <code>gateway_order_id</code> on our Payment row. You can fill this alone if it uniquely identifies the checkout.</div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Razorpay Payment ID</label>
+                <input type="text" name="razorpay_payment_id" id="fld-razorpay-payment-id" class="form-control" placeholder="pay_…" value="{{ prefill.razorpay_payment_id|default('') }}" autocomplete="off">
+                <div class="form-text">From Razorpay payment details. Required unless using superuser force below.</div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Verification method</label>
+                <div class="d-flex flex-column gap-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="verify_mode" id="verify-api" value="api" checked>
+                        <label class="form-check-label" for="verify-api">
+                            <strong>Razorpay API</strong> — server fetches payment, checks amount, status (captured/authorized), and order id match.
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="verify_mode" id="verify-sig" value="signature">
+                        <label class="form-check-label" for="verify-sig">
+                            <strong>Signature</strong> — paste payment id, order id, and signature (same as client callback). Use if API path fails but you have a valid signature from logs or Razorpay.
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12" id="signature-field-wrap" style="display: none;">
+                <label class="form-label">Razorpay signature</label>
+                <input type="text" name="razorpay_signature" class="form-control font-monospace" placeholder="signature from payment.razorpay_signature or callback" autocomplete="off">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Staff note <span class="text-muted">(optional, audit)</span></label>
+                <input type="text" name="staff_note" class="form-control" maxlength="1000" placeholder="Ticket id, who called, etc." autocomplete="off">
+            </div>
+
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="confirm_verified" id="confirm-verified" value="on">
+                    <label class="form-check-label" for="confirm-verified">
+                        I have verified in the payment gateway that this payment is successful (captured) and belongs to this user / order.
+                    </label>
+                </div>
+            </div>
+
+            {% if request.user.is_superuser %}
+            <div class="col-12">
+                <div class="alert alert-warning py-2 mb-0">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" name="force_allocate" id="force-allocate" value="on">
+                        <label class="form-check-label" for="force-allocate">
+                            <strong>Superuser:</strong> mark successful without calling Razorpay (offline / dispute resolution only). Still runs course allocation side effects.
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Verify and complete payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+(function () {
+    var suggestUrl = {{ manual_payment_suggest_url|tojson }};
+    function syncSigVisibility() {
+        var sig = document.getElementById('verify-sig');
+        var wrap = document.getElementById('signature-field-wrap');
+        if (!sig || !wrap) return;
+        wrap.style.display = sig.checked ? 'block' : 'none';
+    }
+    document.querySelectorAll('input[name="verify_mode"]').forEach(function (el) {
+        el.addEventListener('change', syncSigVisibility);
+    });
+    syncSigVisibility();
+
+    var qInput = document.getElementById('payment-suggest-q');
+    var listEl = document.getElementById('payment-suggest-list');
+    var wrapEl = document.getElementById('payment-suggest-wrap');
+    var debounceTimer = null;
+
+    function fillFormFromSuggestion(s) {
+        var a = document.getElementById('fld-payment-db-id');
+        var b = document.getElementById('fld-gateway-order-id');
+        var c = document.getElementById('fld-razorpay-payment-id');
+        if (a) a.value = s.payment_db_id != null ? String(s.payment_db_id) : '';
+        if (b) b.value = s.gateway_order_id || '';
+        if (c) c.value = s.gateway_payment_id || '';
+        if (listEl) listEl.style.display = 'none';
+        if (qInput) qInput.value = '';
+    }
+
+    function renderSuggestions(items) {
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        if (!items || !items.length) {
+            listEl.style.display = 'none';
+            return;
+        }
+        items.forEach(function (s) {
+            var li = document.createElement('li');
+            li.className = 'list-group-item list-group-item-action py-2';
+            li.setAttribute('role', 'button');
+            li.textContent = s.label;
+            li.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                fillFormFromSuggestion(s);
+            });
+            listEl.appendChild(li);
+        });
+        listEl.style.display = 'block';
+    }
+
+    function runSuggest() {
+        var q = (qInput && qInput.value) ? qInput.value.trim() : '';
+        if (q.length < 2) {
+            if (listEl) listEl.style.display = 'none';
+            return;
+        }
+        var url = suggestUrl + (suggestUrl.indexOf('?') >= 0 ? '&' : '?') + 'q=' + encodeURIComponent(q);
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderSuggestions(data.suggestions || []); })
+            .catch(function () { if (listEl) listEl.style.display = 'none'; });
+    }
+
+    if (qInput) {
+        qInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runSuggest, 280);
+        });
+        qInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && listEl) listEl.style.display = 'none';
+        });
+    }
+    document.addEventListener('click', function (e) {
+        if (!wrapEl || !listEl) return;
+        if (!wrapEl.contains(e.target)) listEl.style.display = 'none';
+    });
+})();
+</script>
+{% endblock %}

@@ -395,6 +395,12 @@
                 </a>
             </div>
             <div class="menu-item">
+                <a href="{{ url('user_analytics:manual_payment_reconciliation') }}" class="menu-link {% if request and request.path.startswith('/user-analytics/business/payments/manual-reconcile') %}active{% endif %}" title="Verify in Razorpay, then mark payment successful and allocate course">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span class="menu-title">Manual payment complete</span>
+                </a>
+            </div>
+            <div class="menu-item">
                 <a href="{{ url('seo_dashboard:dashboard') }}" class="menu-link {% if request and request.path.startswith('/seo-dashboard') %}active{% endif %}" title="Content &amp; SEO: static pages, meta, OG">
                     <i class="fas fa-search"></i>
                     <span class="menu-title">SEO Dashboard</span>
