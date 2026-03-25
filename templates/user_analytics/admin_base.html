@@ -371,6 +371,12 @@
                 </a>
             </div>
             <div class="menu-item">
+                <a href="{{ url('user_analytics:web_owner_services_monitor') }}" class="menu-link {% if request and request.path == '/user-analytics/web-owner/services/' %}active{% endif %}" title="Runtime service health + recent error logs (celery, gunicorn, django)">
+                    <i class="fas fa-heartbeat"></i>
+                    <span class="menu-title">Service Monitor</span>
+                </a>
+            </div>
+            <div class="menu-item">
                 <a href="{{ url('user_analytics:user_journey') }}" class="menu-link {% if request and request.path.startswith('/user-analytics/user-journey') %}active{% endif %}">
                     <i class="fas fa-route"></i>
                     <span class="menu-title">User Journey</span>
@@ -401,6 +407,12 @@
                 </a>
             </div>
             <div class="menu-item">
+                <a href="{{ url('notifications:admin_settings') }}" class="menu-link {% if request and request.path.startswith('/notifications/admin/settings') %}active{% endif %}" title="Notification types, service health, enable/disable">
+                    <i class="fas fa-bell"></i>
+                    <span class="menu-title">Notification settings</span>
+                </a>
+            </div>
+            <div class="menu-item">
                 <a href="{{ url('seo_dashboard:dashboard') }}" class="menu-link {% if request and request.path.startswith('/seo-dashboard') %}active{% endif %}" title="Content &amp; SEO: static pages, meta, OG">
                     <i class="fas fa-search"></i>
                     <span class="menu-title">SEO Dashboard</span>
@@ -423,6 +435,7 @@
                 {% block page_title %}Analytics Dashboard{% endblock %}
             </div>
             <div class="topbar-actions">
+                {% include "notifications/includes/notification_bell.html" %}
                 <div class="dropdown">
                     <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="user-avatar">

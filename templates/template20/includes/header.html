@@ -91,6 +91,9 @@
         </li>
         
         {% if user.is_authenticated %}
+        <li class="menu-item single-link">
+          {% include "notifications/includes/notification_bell.html" %}
+        </li>
         <li class="menu-item dropdown">
           <span class="dropdown-toggle menu-link float-end">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />

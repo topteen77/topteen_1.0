@@ -22,6 +22,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from notifications.services import get_runtime_service_status
 from django.contrib.contenttypes.models import ContentType
 from user_analytics.models import (
     UserActivity,
@@ -1241,6 +1242,23 @@ def web_owner_dashboard(request):
     }
     
     return render(request, 'user_analytics/web_owner_dashboard.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def web_owner_services_monitor(request):
+    status = get_runtime_service_status()
+    return render(
+        request,
+        'user_analytics/services_monitor.html',
+        {
+            'page_title': 'Service monitor',
+            'status': status,
+            'services': status.get('services', []),
+            'logs': status.get('logs', {}),
+            'all_required_ok': status.get('all_required_ok', False),
+        },
+    )
 
 
 @login_required

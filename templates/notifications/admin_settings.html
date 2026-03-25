@@ -1,0 +1,95 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Notification settings | Top Teen{% endblock %}
+{% block page_title %}Notification settings{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+  <div class="admin-card mb-3">
+    <h5>Required services status</h5>
+    <div class="row g-2 mt-1">
+      {% if services.service_rows %}
+        {% for row in services.service_rows %}
+      <div class="col-md-3">
+        <div class="border rounded p-2 d-flex justify-content-between">
+          <span>{{ row.label }}</span>
+          <strong class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</strong>
+        </div>
+      </div>
+        {% endfor %}
+      {% else %}
+        {% for k, v in services.items() %}
+        <div class="col-md-3">
+          <div class="border rounded p-2 d-flex justify-content-between">
+            <span>{{ k }}</span>
+            <strong class="{% if v %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if v else 'DOWN' }}</strong>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    {% if not services_ok %}
+    <div class="alert alert-warning mt-3 mb-0">
+      Required services are unhealthy. Notification toggles are locked and new notifications are paused.
+    </div>
+    {% endif %}
+  </div>
+  <div class="admin-card">
+    <h5>Notification type enable / disable</h5>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Event type</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in configs %}
+          <tr>
+            <td><code>{{ c.event_type }}</code></td>
+            <td>{{ c.category }}</td>
+            <td>{{ c.description }}</td>
+            <td>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input n-toggle" type="checkbox" data-event="{{ c.event_type }}" {% if c.enabled %}checked{% endif %} {% if not services_ok %}disabled{% endif %}>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  (function(){
+    var toggleUrl = '{{ url("notifications:toggle_type_api") }}';
+    function csrfToken() {
+      var m = document.cookie.match(/csrftoken=([^;]+)/);
+      return m ? m[1] : '';
+    }
+    document.querySelectorAll('.n-toggle').forEach(function (el) {
+      el.addEventListener('change', function () {
+        var fd = new FormData();
+        fd.append('event_type', el.getAttribute('data-event'));
+        fd.append('enabled', el.checked ? '1' : '0');
+        fetch(toggleUrl, {
+          method: 'POST',
+          headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest'},
+          body: fd
+        }).then(function (r) {
+          if (!r.ok) throw new Error('failed');
+          return r.json();
+        }).catch(function () {
+          el.checked = !el.checked;
+          alert('Could not update setting. Required services may be down.');
+        });
+      });
+    });
+  })();
+</script>
+{% endblock %}
+

@@ -27,6 +27,7 @@ urlpatterns = [
     
     # Web Owner Dashboard
     path('web-owner/', views.web_owner_dashboard, name='web_owner_dashboard'),
+    path('web-owner/services/', views.web_owner_services_monitor, name='web_owner_services_monitor'),
     
     # User Journey
     path('user-journey/', views.user_journey_view, name='user_journey'),

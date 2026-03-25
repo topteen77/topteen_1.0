@@ -1,0 +1,60 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Service monitor | Top Teen{% endblock %}
+{% block page_title %}Service monitor{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+  <div class="admin-card mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Required services status</h5>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}">Refresh</a>
+    </div>
+    {% if not all_required_ok %}
+      <div class="alert alert-warning mt-3 mb-0">
+        One or more required services are unhealthy.
+      </div>
+    {% endif %}
+    <div class="row g-2 mt-1">
+      {% for row in services %}
+      <div class="col-md-3">
+        <div class="border rounded p-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>{{ row.label }}</span>
+            <strong class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</strong>
+          </div>
+          <small class="text-muted d-block mt-1">{{ row.detail }}</small>
+          {% if not row.required %}
+            <small class="text-muted d-block">Optional (disabled in env)</small>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <h5 class="mb-2">Recent error logs (tail)</h5>
+    <p class="text-muted mb-3">Shows the last few lines from known log paths. Configure custom paths via `SERVICE_LOG_*` settings if needed.</p>
+
+    <div class="row g-3">
+      {% for service_name, info in logs.items() %}
+      <div class="col-12">
+        <div class="border rounded p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 text-capitalize">{{ service_name }}</h6>
+            {% if info.path %}
+              <small class="text-muted">{{ info.path }}</small>
+            {% else %}
+              <small class="text-muted">No readable log file found</small>
+            {% endif %}
+          </div>
+          <pre class="mt-2 mb-0" style="max-height: 320px; overflow: auto; background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap;">{{ info.tail or 'No log output available.' }}</pre>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+

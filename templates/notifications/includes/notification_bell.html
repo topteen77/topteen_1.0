@@ -1,0 +1,101 @@
+{% if request and request.user and request.user.is_authenticated %}
+<div class="tt-notification-bell-wrap dropdown">
+  <button class="btn btn-sm btn-light tt-notification-bell" id="ttNotificationBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+    {# Inline SVG: template20 base loads Boxicons only, not Font Awesome #}
+    <svg class="tt-notification-bell-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span class="badge bg-danger tt-notification-badge" id="ttNotificationBadge" style="display:none;">0</span>
+  </button>
+  <div class="dropdown-menu dropdown-menu-end tt-notification-dropdown p-0" aria-labelledby="ttNotificationBellBtn">
+    <div class="px-3 py-2 border-bottom fw-semibold">Notifications</div>
+    <div id="ttNotificationLatestList" style="max-height:360px; overflow:auto;"></div>
+    <div class="p-2 border-top text-center">
+      <a href="{{ url('notifications:page') }}" class="btn btn-sm btn-outline-primary">View all</a>
+    </div>
+  </div>
+</div>
+<style>
+  .tt-notification-bell-wrap { position: relative; }
+  .tt-notification-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+  .tt-notification-bell-icon { display: block; flex-shrink: 0; }
+  .tt-notification-badge { position: absolute; top: -6px; right: -6px; font-size: 10px; }
+  .tt-notification-dropdown { min-width: 360px; }
+  .tt-notification-item { cursor: pointer; }
+  .tt-notification-item:hover { background: #f8f9fa; }
+</style>
+<script>
+  (function () {
+    var latestUrl = '{{ url("notifications:latest_api") }}';
+    var markReadUrl = '{{ url("notifications:mark_read_api") }}';
+    var badgeEl = document.getElementById('ttNotificationBadge');
+    var listEl = document.getElementById('ttNotificationLatestList');
+    if (!listEl) return;
+
+    function csrfToken() {
+      var m = document.cookie.match(/csrftoken=([^;]+)/);
+      return m ? m[1] : '';
+    }
+
+    function esc(s) {
+      return String(s || '').replace(/[&<>"]/g, function (c) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];
+      });
+    }
+
+    function markRead(id) {
+      var fd = new FormData();
+      fd.append('id', id);
+      fetch(markReadUrl, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest'},
+        body: fd
+      }).catch(function(){});
+    }
+
+    function render(items) {
+      if (!items.length) {
+        listEl.innerHTML = '<div class="p-3 text-muted small">No notifications yet.</div>';
+        return;
+      }
+      listEl.innerHTML = items.map(function (n) {
+        return '<div class="tt-notification-item border-bottom px-3 py-2 ' + (n.is_read ? '' : 'bg-light') + '" data-id="' + n.id + '">' +
+          '<div class="fw-semibold small">' + esc(n.title) + '</div>' +
+          '<div class="small text-muted">' + esc(n.body || '') + '</div>' +
+          '<div class="small text-secondary mt-1">' + esc(n.created) + '</div>' +
+        '</div>';
+      }).join('');
+      listEl.querySelectorAll('.tt-notification-item').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var nid = el.getAttribute('data-id');
+          markRead(nid);
+          window.location.href = '{{ url("notifications:page") }}';
+        });
+      });
+    }
+
+    function loadLatest() {
+      fetch(latestUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.success) return;
+          var c = data.unread_count || 0;
+          if (badgeEl) {
+            if (c > 0) {
+              badgeEl.style.display = 'inline-block';
+              badgeEl.textContent = c > 99 ? '99+' : String(c);
+            } else {
+              badgeEl.style.display = 'none';
+            }
+          }
+          render(data.notifications || []);
+        })
+        .catch(function () {
+          listEl.innerHTML = '<div class="p-3 text-danger small">Could not load notifications.</div>';
+        });
+    }
+
+    loadLatest();
+    setInterval(loadLatest, 30000);
+  })();
+</script>
+{% endif %}
+

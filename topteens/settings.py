@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'demo_data',
     'invoices',
     'seo_dashboard',
+    'notifications.apps.NotificationsConfig',
 ]
 
 # Optional services: set False in .env when not running (avoids errors, uses fallbacks)

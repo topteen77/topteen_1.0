@@ -96,6 +96,7 @@ urlpatterns = [
     path('entry/attribution/', user_analytics_views.enquiry_ref_hit_api, name='entry_attribution'),
     path('forum/', include('forum.urls', namespace='forum')),
     path('seo-dashboard/', include('seo_dashboard.urls', namespace='seo_dashboard')),
+    path('notifications/', include('notifications.urls', namespace='notifications')),
 
     # old code not in use - start
     # New isolated routes for marketing authentication frontend

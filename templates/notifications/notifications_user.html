@@ -1,0 +1,90 @@
+{% extends "template20/logged-in-base.html" %}
+
+{% block title_content %}Notifications | Top Teen{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3">Notifications</h3>
+  <div class="card mb-3">
+    <div class="card-body">
+      <form class="row g-2" autocomplete="off" onsubmit="event.preventDefault(); return false;">
+        <div class="col-md-3">
+          <label class="form-label">Type</label>
+          <select id="nType" class="form-select" autocomplete="off">
+            <option value="">All</option>
+            {% for t in type_configs %}
+            <option value="{{ t.event_type }}">{{ t.event_type }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="nQ">Search</label>
+          <input id="nQ" name="tt_notifications_search" class="form-control" type="search"
+            placeholder="Search notifications" autocomplete="off" autocorrect="off"
+            autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore>
+        </div>
+        <div class="col-md-3 d-flex align-items-end gap-2">
+          <button type="button" id="nFilter" class="btn btn-primary w-100">Apply</button>
+          <button type="button" id="nMarkAll" class="btn btn-outline-secondary">Mark all read</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div id="nList" class="list-group list-group-flush"></div>
+    <div class="card-body"><ul class="pagination justify-content-center mb-0" id="nPager"></ul></div>
+  </div>
+</div>
+<script>
+  (function () {
+    var listUrl = '{{ url("notifications:list_api") }}';
+    var markReadUrl = '{{ url("notifications:mark_read_api") }}';
+    var markAllUrl = '{{ url("notifications:mark_all_read_api") }}';
+    var page = 1;
+    function csrfToken() {
+      var m = document.cookie.match(/csrftoken=([^;]+)/);
+      return m ? m[1] : '';
+    }
+    function esc(s) { return String(s || '').replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+    function load() {
+      var p = new URLSearchParams();
+      p.set('page', page);
+      if (document.getElementById('nType').value) p.set('type', document.getElementById('nType').value);
+      if (document.getElementById('nQ').value.trim()) p.set('q', document.getElementById('nQ').value.trim());
+      fetch(listUrl + '?' + p.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json();}).then(function(data){
+        var list = document.getElementById('nList');
+        if (!data.notifications || !data.notifications.length) {
+          list.innerHTML = '<div class="text-muted p-3">No notifications found.</div>';
+        } else {
+          list.innerHTML = data.notifications.map(function(n){
+            return '<button class="list-group-item list-group-item-action ' + (n.is_read ? '' : 'bg-light') + '" data-id="'+n.id+'">' +
+              '<div class="d-flex justify-content-between"><strong>' + esc(n.title) + '</strong><small>' + esc(n.created) + '</small></div>' +
+              '<div class="small text-muted">' + esc(n.event_type) + '</div>' +
+              '<div>' + esc(n.body || '') + '</div></button>';
+          }).join('');
+          list.querySelectorAll('[data-id]').forEach(function(el){
+            el.addEventListener('click', function(){
+              var fd = new FormData();
+              fd.append('id', el.getAttribute('data-id'));
+              fetch(markReadUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd}).then(load);
+            });
+          });
+        }
+        var pager = document.getElementById('nPager');
+        pager.innerHTML = '';
+        var pg = data.pagination || {};
+        if (pg.has_previous) pager.innerHTML += '<li class="page-item"><a class="page-link" href="#" data-p="'+pg.previous_page+'">Previous</a></li>';
+        pager.innerHTML += '<li class="page-item disabled"><span class="page-link">'+(pg.current_page || 1)+' / '+(pg.total_pages || 1)+'</span></li>';
+        if (pg.has_next) pager.innerHTML += '<li class="page-item"><a class="page-link" href="#" data-p="'+pg.next_page+'">Next</a></li>';
+        pager.querySelectorAll('a[data-p]').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); page = parseInt(a.getAttribute('data-p')); load(); }); });
+      });
+    }
+    document.getElementById('nFilter').addEventListener('click', function(){ page = 1; load(); });
+    document.getElementById('nMarkAll').addEventListener('click', function(){
+      fetch(markAllUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}}).then(load);
+    });
+    load();
+  })();
+</script>
+{% endblock %}
+
