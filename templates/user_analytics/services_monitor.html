@@ -12,49 +12,111 @@
     </div>
     {% if not all_required_ok %}
       <div class="alert alert-warning mt-3 mb-0">
-        One or more required services are unhealthy.
+        One or more required services are unhealthy. Open each service card for diagnostics and log-based hints.
       </div>
     {% endif %}
     <div class="row g-2 mt-1">
       {% for row in services %}
       <div class="col-md-3">
-        <div class="border rounded p-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <span>{{ row.label }}</span>
-            <strong class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</strong>
-          </div>
-          <small class="text-muted d-block mt-1">{{ row.detail }}</small>
-          {% if not row.required %}
-            <small class="text-muted d-block">Optional (disabled in env)</small>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="admin-card">
-    <h5 class="mb-2">Recent error logs (tail)</h5>
-    <p class="text-muted mb-3">Shows the last few lines from known log paths. Configure custom paths via `SERVICE_LOG_*` settings if needed.</p>
-
-    <div class="row g-3">
-      {% for service_name, info in logs.items() %}
-      <div class="col-12">
-        <div class="border rounded p-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 text-capitalize">{{ service_name }}</h6>
-            {% if info.path %}
-              <small class="text-muted">{{ info.path }}</small>
-            {% else %}
-              <small class="text-muted">No readable log file found</small>
+        {% if row.clickable %}
+        <a href="#{{ row.anchor }}" class="text-decoration-none">
+        {% endif %}
+          <div class="border rounded p-2 {% if row.clickable %}hover-shadow{% endif %}" style="min-height: 118px;">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-dark">{{ row.label }}</span>
+              <strong class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</strong>
+            </div>
+            <small class="text-muted d-block mt-1">{{ row.detail }}</small>
+            {% if row.runtime_source %}
+              <small class="d-block mt-1 text-dark">
+                Source: {{ row.runtime_source.label }}
+              </small>
+            {% endif %}
+            {% if row.key == 'celery' %}
+              <small class="d-block mt-1 text-dark">Open tasks: {{ row.open_tasks or 0 }}</small>
+            {% endif %}
+            {% if not row.required %}
+              <small class="text-muted d-block">Optional (disabled in env)</small>
             {% endif %}
           </div>
-          <pre class="mt-2 mb-0" style="max-height: 320px; overflow: auto; background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap;">{{ info.tail or 'No log output available.' }}</pre>
-        </div>
+        {% if row.clickable %}
+        </a>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
   </div>
+
+  {% for row in services %}
+    {% if row.clickable %}
+    {% set info = logs.get(row.log_key, {}) %}
+    <div class="admin-card mb-3" id="{{ row.anchor }}">
+      <h5 class="mb-2">{{ row.label }} diagnostics</h5>
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="border rounded p-3 h-100">
+            <h6 class="mb-2">Runtime details</h6>
+            <div><strong>Status:</strong> <span class="{% if row.ok %}text-success{% else %}text-danger{% endif %}">{{ 'UP' if row.ok else 'DOWN' }}</span></div>
+            {% if row.runtime_source %}
+              <div class="mt-1"><strong>Runtime source:</strong> {{ row.runtime_source.label }}</div>
+              {% if row.runtime_source.via %}
+                <div class="small text-muted">via: {{ row.runtime_source.via }}</div>
+              {% endif %}
+            {% endif %}
+            {% if row.key == 'celery' %}
+              <div class="mt-1"><strong>Workers up:</strong> {{ row.workers_up or 0 }}</div>
+              <div><strong>Active:</strong> {{ row.active_tasks or 0 }}</div>
+              <div><strong>Reserved:</strong> {{ row.reserved_tasks or 0 }}</div>
+              <div><strong>Scheduled:</strong> {{ row.scheduled_tasks or 0 }}</div>
+              <div><strong>Open tasks:</strong> {{ row.open_tasks or 0 }}</div>
+              {% if not row.inspect_ok and row.inspect_error %}
+                <div class="mt-2 text-danger"><strong>Inspect error:</strong> {{ row.inspect_error }}</div>
+              {% endif %}
+            {% endif %}
+            {% if row.process_details %}
+              <div class="mt-2"><strong>Processes:</strong></div>
+              {% for proc in row.process_details %}
+                <code class="d-block text-break">{{ proc }}</code>
+              {% endfor %}
+            {% else %}
+              <div class="text-muted mt-2">No process snapshot available.</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="border rounded p-3 h-100">
+            <h6 class="mb-2">Detected errors and hints</h6>
+            {% if info.path %}
+              <small class="text-muted d-block mb-2">Log path: {{ info.path }}</small>
+            {% else %}
+              <small class="text-muted d-block mb-2">No readable log file found for this service.</small>
+            {% endif %}
+
+            {% if info.error_highlights %}
+              <div class="mb-2"><strong>Recent error lines</strong></div>
+              {% for line in info.error_highlights %}
+                <div class="small text-danger mb-1">{{ line }}</div>
+              {% endfor %}
+            {% else %}
+              <div class="text-muted mb-2">No recent error keywords found in log tail.</div>
+            {% endif %}
+
+            {% if info.failure_hints %}
+              <div class="mb-1"><strong>Likely issue hints</strong></div>
+              {% for hint in info.failure_hints %}
+                <div class="small mb-1">{{ hint }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <h6 class="mb-2">Log tail</h6>
+        <pre class="mb-0" style="max-height: 320px; overflow: auto; background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap;">{{ info.tail or 'No log output available.' }}</pre>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
 </div>
 {% endblock %}
 

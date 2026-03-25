@@ -7,23 +7,35 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from .models import Notification, NotificationTypeConfig
-from .services import check_notification_dependencies, ensure_default_notification_types
+from .services import check_notification_dependencies, detect_notification_environment, ensure_default_notification_types
 
 
 def _is_staff_or_superuser(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
 
+def _request_notification_environment(request):
+    host = ''
+    try:
+        host = request.get_host()
+    except Exception:
+        host = ''
+    return detect_notification_environment(host)
+
+
 @login_required
 def notifications_page(request):
     ensure_default_notification_types()
     template_name = 'notifications/notifications_admin.html' if request.user.is_staff else 'notifications/notifications_user.html'
+    current_environment = _request_notification_environment(request)
     return render(
         request,
         template_name,
         {
             'page_title': 'Notifications',
             'type_configs': NotificationTypeConfig.objects.all(),
+            'current_environment': current_environment,
+            'environments': Notification.Environment.CHOICES,
         },
     )
 
@@ -31,8 +43,9 @@ def notifications_page(request):
 @login_required
 @require_GET
 def notifications_latest_api(request):
-    rows = Notification.objects.filter(recipient=request.user).order_by('-created')[:10]
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+    current_environment = _request_notification_environment(request)
+    rows = Notification.objects.filter(recipient=request.user, environment=current_environment).order_by('-created')[:10]
+    unread_count = Notification.objects.filter(recipient=request.user, environment=current_environment, is_read=False).count()
     return JsonResponse(
         {
             'success': True,
@@ -44,6 +57,7 @@ def notifications_latest_api(request):
                     'body': (r.body or '')[:180],
                     'event_type': r.event_type,
                     'category': r.category,
+                    'environment': r.environment,
                     'is_read': r.is_read,
                     'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
                 }
@@ -59,7 +73,15 @@ def notifications_list_api(request):
     q = (request.GET.get('q') or '').strip()
     event_type = (request.GET.get('type') or '').strip()
     page = int(request.GET.get('page') or 1)
-    qs = Notification.objects.filter(recipient=request.user).order_by('-created')
+    current_environment = _request_notification_environment(request)
+    if _is_staff_or_superuser(request.user):
+        requested_environment = (request.GET.get('environment') or '').strip().lower()
+        if requested_environment not in dict(Notification.Environment.CHOICES):
+            requested_environment = current_environment
+        qs = Notification.objects.filter(recipient=request.user, environment=requested_environment).order_by('-created')
+    else:
+        requested_environment = current_environment
+        qs = Notification.objects.filter(recipient=request.user, environment=current_environment).order_by('-created')
     if event_type:
         qs = qs.filter(event_type=event_type)
     if q:
@@ -84,11 +106,13 @@ def notifications_list_api(request):
                     'body': r.body,
                     'event_type': r.event_type,
                     'category': r.category,
+                    'environment': r.environment,
                     'is_read': r.is_read,
                     'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
                 }
                 for r in pg.object_list
             ],
+            'environment': requested_environment,
         }
     )
 
@@ -98,8 +122,9 @@ def notifications_list_api(request):
 @require_POST
 def notification_mark_read_api(request):
     nid = request.POST.get('id')
+    current_environment = _request_notification_environment(request)
     if nid:
-        row = Notification.objects.filter(id=nid, recipient=request.user).first()
+        row = Notification.objects.filter(id=nid, recipient=request.user, environment=current_environment).first()
         if row:
             row.mark_read()
     return JsonResponse({'success': True})
@@ -109,7 +134,8 @@ def notification_mark_read_api(request):
 @login_required
 @require_POST
 def notification_mark_all_read_api(request):
-    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    current_environment = _request_notification_environment(request)
+    Notification.objects.filter(recipient=request.user, environment=current_environment, is_read=False).update(is_read=True)
     return JsonResponse({'success': True})
 
 
@@ -147,4 +173,16 @@ def notification_toggle_type_api(request):
     cfg.enabled = enabled
     cfg.save(update_fields=['enabled', 'modified'])
     return JsonResponse({'success': True, 'enabled': cfg.enabled})
+
+
+@csrf_exempt
+@login_required
+@user_passes_test(_is_staff_or_superuser)
+@require_POST
+def notification_admin_delete_all_api(request):
+    requested_environment = (request.POST.get('environment') or '').strip().lower()
+    if requested_environment not in dict(Notification.Environment.CHOICES):
+        return JsonResponse({'success': False, 'error': 'invalid_environment'}, status=400)
+    deleted_count, _ = Notification.objects.filter(environment=requested_environment).delete()
+    return JsonResponse({'success': True, 'deleted': deleted_count, 'environment': requested_environment})
 

@@ -16,13 +16,22 @@
           {% endfor %}
         </select>
       </div>
+      <div class="col-md-3">
+        <label class="form-label">Environment</label>
+        <select id="nEnv" class="form-select">
+          {% for env_value, env_label in environments %}
+          <option value="{{ env_value }}" {% if env_value == current_environment %}selected{% endif %}>{{ env_label }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="col-md-6">
         <label class="form-label">Search</label>
         <input id="nQ" class="form-control" placeholder="Search by notification text">
       </div>
-      <div class="col-md-3 d-flex align-items-end gap-2">
+      <div class="col-md-12 d-flex align-items-end gap-2 justify-content-end">
         <button id="nFilter" class="btn btn-primary w-100">Apply</button>
         <button id="nMarkAll" class="btn btn-outline-secondary">Mark all read</button>
+        <button id="nDeleteAllEnv" class="btn btn-outline-danger">Delete all selected environment</button>
       </div>
     </div>
   </div>
@@ -36,6 +45,7 @@
     var listUrl = '{{ url("notifications:list_api") }}';
     var markReadUrl = '{{ url("notifications:mark_read_api") }}';
     var markAllUrl = '{{ url("notifications:mark_all_read_api") }}';
+    var deleteAllUrl = '{{ url("notifications:delete_all_api") }}';
     var page = 1;
     function csrfToken() {
       var m = document.cookie.match(/csrftoken=([^;]+)/);
@@ -45,6 +55,7 @@
     function load() {
       var p = new URLSearchParams();
       p.set('page', page);
+      if (document.getElementById('nEnv').value) p.set('environment', document.getElementById('nEnv').value);
       if (document.getElementById('nType').value) p.set('type', document.getElementById('nType').value);
       if (document.getElementById('nQ').value.trim()) p.set('q', document.getElementById('nQ').value.trim());
       fetch(listUrl + '?' + p.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json();}).then(function(data){
@@ -55,7 +66,7 @@
           list.innerHTML = data.notifications.map(function(n){
             return '<button class="list-group-item list-group-item-action ' + (n.is_read ? '' : 'list-group-item-light') + '" data-id="'+n.id+'">' +
               '<div class="d-flex justify-content-between"><strong>' + esc(n.title) + '</strong><small>' + esc(n.created) + '</small></div>' +
-              '<div class="small text-muted">' + esc(n.event_type) + '</div>' +
+              '<div class="small text-muted">' + esc(n.event_type) + ' | ' + esc(n.environment || '') + '</div>' +
               '<div>' + esc(n.body || '') + '</div></button>';
           }).join('');
           list.querySelectorAll('[data-id]').forEach(function(el){
@@ -78,6 +89,23 @@
     document.getElementById('nFilter').addEventListener('click', function(){ page = 1; load(); });
     document.getElementById('nMarkAll').addEventListener('click', function(){
       fetch(markAllUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}}).then(load);
+    });
+    document.getElementById('nDeleteAllEnv').addEventListener('click', function(){
+      var env = document.getElementById('nEnv').value;
+      if (!env) return;
+      if (!confirm('Delete all notifications for environment: ' + env + '?')) return;
+      var fd = new FormData();
+      fd.append('environment', env);
+      fetch(deleteAllUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (!data.success) throw new Error('failed');
+          page = 1;
+          load();
+        })
+        .catch(function(){
+          alert('Could not delete notifications for selected environment.');
+        });
     });
     load();
   })();

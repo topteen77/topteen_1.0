@@ -1,8 +1,10 @@
 import glob
 import logging
 import os
+import re
 import subprocess
 from collections import deque
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -22,6 +24,17 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+
+def detect_notification_environment(host=''):
+    h = (host or '').lower().strip()
+    if h:
+        if h.startswith('localhost') or h.startswith('127.0.0.1') or h.startswith('0.0.0.0') or h.endswith('.local'):
+            return Notification.Environment.DEVELOPMENT
+        return Notification.Environment.PRODUCTION
+    if getattr(settings, 'DEBUG', False):
+        return Notification.Environment.DEVELOPMENT
+    return Notification.Environment.PRODUCTION
 
 
 DEFAULT_TYPE_CONFIGS = {
@@ -95,6 +108,118 @@ def _is_process_running(pattern):
         return False
 
 
+def _run_command(cmd, timeout=2):
+    try:
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            text=True,
+            timeout=timeout,
+        )
+        return (result.returncode == 0, (result.stdout or '').strip(), (result.stderr or '').strip())
+    except Exception as exc:
+        return (False, '', str(exc))
+
+
+def _looks_local_host(host):
+    h = (host or '').strip().lower()
+    return h in ('localhost', '127.0.0.1', '0.0.0.0', '::1', '')
+
+
+def _source_from_host(host):
+    if _looks_local_host(host):
+        return ('local', 'Local host')
+    return ('remote', f'Remote ({host})')
+
+
+def _source_from_url(url):
+    if not url:
+        return ('unknown', 'Unknown')
+    parsed = urlparse(url)
+    host = (parsed.hostname or '').strip()
+    if _looks_local_host(host):
+        return ('local', 'Local host')
+    if host:
+        return ('remote', f'Remote ({host})')
+    return ('unknown', 'Unknown')
+
+
+def _running_inside_docker():
+    if os.path.exists('/.dockerenv'):
+        return True
+    try:
+        with open('/proc/1/cgroup', 'r', encoding='utf-8', errors='ignore') as fh:
+            text = fh.read().lower()
+            return ('docker' in text) or ('containerd' in text) or ('kubepods' in text)
+    except Exception:
+        return False
+
+
+def _docker_container_for_pattern(pattern):
+    ok, out, _ = _run_command(['docker', 'ps', '--format', '{{.Names}}'], timeout=2)
+    if not ok or not out:
+        return ''
+    names = [n.strip() for n in out.splitlines() if n.strip()]
+    lowered = pattern.lower()
+    for name in names:
+        if lowered in name.lower():
+            return name
+    return ''
+
+
+def _resolve_runtime_source(service_key):
+    # Prefer explicit config endpoints when available.
+    if service_key == 'redis':
+        redis_url = (getattr(settings, 'CELERY_BROKER_URL', '') or getattr(settings, 'REDIS_URL', '') or '').strip()
+        src, label = _source_from_url(redis_url)
+        if src != 'unknown':
+            return {'type': src, 'label': label, 'via': redis_url}
+    elif service_key == 'email':
+        email_host = (getattr(settings, 'EMAIL_HOST', '') or '').strip()
+        src, label = _source_from_host(email_host)
+        if src != 'unknown':
+            return {'type': src, 'label': label, 'via': email_host}
+    elif service_key == 'db':
+        db_host = (settings.DATABASES.get('default', {}).get('HOST', '') or '').strip() if hasattr(settings, 'DATABASES') else ''
+        src, label = _source_from_host(db_host)
+        return {'type': src, 'label': label, 'via': db_host}
+
+    # For process-based services detect docker host/container first.
+    docker_name = ''
+    if service_key == 'celery':
+        docker_name = _docker_container_for_pattern('celery')
+    elif service_key == 'gunicorn':
+        docker_name = _docker_container_for_pattern('gunicorn')
+
+    if docker_name:
+        return {'type': 'docker', 'label': f'Docker ({docker_name})', 'via': docker_name}
+    if _running_inside_docker():
+        return {'type': 'docker', 'label': 'Docker container', 'via': ''}
+    return {'type': 'local', 'label': 'Local host', 'via': ''}
+
+
+def _get_process_details(pattern, limit=4):
+    ok, out, _err = _run_command(['pgrep', '-f', pattern], timeout=1)
+    if not ok or not out:
+        return []
+    pids = [pid.strip() for pid in out.splitlines() if pid.strip()][:limit]
+    details = []
+    for pid in pids:
+        ps_ok, ps_out, _ = _run_command(
+            ['ps', '-p', pid, '-o', 'pid,ppid,%cpu,%mem,rss,etime,comm,args'],
+            timeout=1,
+        )
+        if not ps_ok or not ps_out:
+            continue
+        lines = [line for line in ps_out.splitlines() if line.strip()]
+        if len(lines) < 2:
+            continue
+        details.append(lines[-1].strip())
+    return details
+
+
 def _tail_file(path, lines=40, max_chars=12000):
     if not path or not os.path.exists(path):
         return ''
@@ -107,6 +232,35 @@ def _tail_file(path, lines=40, max_chars=12000):
         return text
     except Exception:
         return ''
+
+
+def _extract_error_highlights(log_text, max_items=8):
+    if not log_text:
+        return []
+    pattern = re.compile(r'(error|exception|traceback|critical|fatal|oom|out of memory|killed)', re.IGNORECASE)
+    items = []
+    for line in reversed(log_text.splitlines()):
+        if pattern.search(line):
+            cleaned = line.strip()
+            if cleaned:
+                items.append(cleaned[:400])
+            if len(items) >= max_items:
+                break
+    return list(reversed(items))
+
+
+def _detect_failure_hints(log_text):
+    text = (log_text or '').lower()
+    hints = []
+    if 'out of memory' in text or 'oom' in text or 'killed process' in text:
+        hints.append('Possible memory pressure / OOM kill detected in logs.')
+    if 'connection refused' in text or 'temporarily unavailable' in text:
+        hints.append('Dependency connection issue detected (service may be down or blocked).')
+    if 'traceback' in text:
+        hints.append('Python traceback found; inspect the stack trace in log tail.')
+    if 'worker lost' in text or 'worker exited' in text:
+        hints.append('Worker instability detected (unexpected worker exits).')
+    return hints
 
 
 def _service_log_candidates():
@@ -160,12 +314,44 @@ def _existing_paths_with_glob(paths):
     return out
 
 
+def _get_celery_runtime_diagnostics():
+    diag = {
+        'workers_up': 0,
+        'open_tasks': 0,
+        'active_tasks': 0,
+        'reserved_tasks': 0,
+        'scheduled_tasks': 0,
+        'inspect_ok': False,
+        'inspect_error': '',
+    }
+    if not getattr(settings, 'ENABLE_CELERY', False):
+        return diag
+    try:
+        from topteens.celery import app as celery_app
+
+        insp = celery_app.control.inspect(timeout=1)
+        ping = insp.ping() or {}
+        active = insp.active() or {}
+        reserved = insp.reserved() or {}
+        scheduled = insp.scheduled() or {}
+        diag['workers_up'] = len(ping)
+        diag['active_tasks'] = sum(len(v or []) for v in active.values())
+        diag['reserved_tasks'] = sum(len(v or []) for v in reserved.values())
+        diag['scheduled_tasks'] = sum(len(v or []) for v in scheduled.values())
+        diag['open_tasks'] = diag['active_tasks'] + diag['reserved_tasks'] + diag['scheduled_tasks']
+        diag['inspect_ok'] = True
+    except Exception as exc:
+        diag['inspect_error'] = str(exc)
+    return diag
+
+
 def get_runtime_service_status():
     celery_ok = _check_celery_ok()
     redis_ok = _check_redis_ok()
     email_ok = _check_email_ok()
     gunicorn_ok = _is_process_running('gunicorn')
     celery_proc_ok = _is_process_running('celery')
+    celery_diag = _get_celery_runtime_diagnostics()
 
     service_rows = [
         {'key': 'db', 'label': 'Database', 'ok': True, 'detail': 'Django DB is reachable through request flow.', 'required': True},
@@ -179,10 +365,51 @@ def get_runtime_service_status():
     for service_name, paths in _service_log_candidates().items():
         existing = _existing_paths_with_glob(paths)
         selected = existing[0] if existing else ''
+        tail_text = _tail_file(selected)
         logs[service_name] = {
             'path': selected,
-            'tail': _tail_file(selected),
+            'tail': tail_text,
+            'error_highlights': _extract_error_highlights(tail_text),
+            'failure_hints': _detect_failure_hints(tail_text),
         }
+
+    service_map = {row['key']: row for row in service_rows}
+    service_map['redis']['anchor'] = 'service-redis'
+    service_map['redis']['process_details'] = _get_process_details('redis-server')
+    service_map['redis']['clickable'] = True
+    service_map['redis']['log_key'] = 'django'
+    service_map['redis']['runtime_source'] = _resolve_runtime_source('redis')
+
+    service_map['celery']['anchor'] = 'service-celery'
+    service_map['celery']['process_details'] = _get_process_details('celery')
+    service_map['celery']['clickable'] = True
+    service_map['celery']['log_key'] = 'celery'
+    service_map['celery']['runtime_source'] = _resolve_runtime_source('celery')
+    service_map['celery']['open_tasks'] = celery_diag['open_tasks']
+    service_map['celery']['workers_up'] = celery_diag['workers_up']
+    service_map['celery']['active_tasks'] = celery_diag['active_tasks']
+    service_map['celery']['reserved_tasks'] = celery_diag['reserved_tasks']
+    service_map['celery']['scheduled_tasks'] = celery_diag['scheduled_tasks']
+    service_map['celery']['inspect_ok'] = celery_diag['inspect_ok']
+    service_map['celery']['inspect_error'] = celery_diag['inspect_error']
+
+    service_map['gunicorn']['anchor'] = 'service-gunicorn'
+    service_map['gunicorn']['process_details'] = _get_process_details('gunicorn')
+    service_map['gunicorn']['clickable'] = True
+    service_map['gunicorn']['log_key'] = 'gunicorn'
+    service_map['gunicorn']['runtime_source'] = _resolve_runtime_source('gunicorn')
+
+    service_map['email']['anchor'] = 'service-email'
+    service_map['email']['process_details'] = []
+    service_map['email']['clickable'] = True
+    service_map['email']['log_key'] = 'django'
+    service_map['email']['runtime_source'] = _resolve_runtime_source('email')
+
+    service_map['db']['anchor'] = 'service-db'
+    service_map['db']['process_details'] = []
+    service_map['db']['clickable'] = False
+    service_map['db']['log_key'] = 'django'
+    service_map['db']['runtime_source'] = _resolve_runtime_source('db')
 
     all_required_ok = True
     for row in service_rows:
@@ -260,6 +487,7 @@ def emit_notification(
     payload=None,
     source_obj=None,
     dedupe_key='',
+    environment='',
 ):
     enabled, _cfg = _event_enabled(event_type)
     if not enabled:
@@ -284,11 +512,13 @@ def emit_notification(
 
     def _create():
         nonlocal created_rows
+        row_environment = environment or detect_notification_environment()
         for user in recipients:
             row = Notification(
                 recipient=user,
                 role_hint=notification_role_hint_for_user(user),
                 category=category,
+                environment=row_environment,
                 event_type=event_type,
                 title=title[:255],
                 body=body or '',

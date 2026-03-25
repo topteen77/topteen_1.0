@@ -60,9 +60,18 @@ class NotificationTypeConfig(models.Model):
 
 
 class Notification(models.Model):
+    class Environment:
+        PRODUCTION = 'production'
+        DEVELOPMENT = 'development'
+        CHOICES = (
+            (PRODUCTION, 'Production'),
+            (DEVELOPMENT, 'Development'),
+        )
+
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     role_hint = models.CharField(max_length=30, choices=NotificationRoleHint.CHOICES, default=NotificationRoleHint.UNKNOWN)
     category = models.CharField(max_length=30, choices=NotificationCategory.CHOICES, default=NotificationCategory.SYSTEM)
+    environment = models.CharField(max_length=20, choices=Environment.CHOICES, default=Environment.PRODUCTION, db_index=True)
     event_type = models.CharField(max_length=120, db_index=True)
     title = models.CharField(max_length=255)
     body = models.TextField(blank=True, default='')
@@ -82,6 +91,7 @@ class Notification(models.Model):
             models.Index(fields=['recipient', '-created']),
             models.Index(fields=['recipient', 'is_read']),
             models.Index(fields=['recipient', 'event_type']),
+            models.Index(fields=['recipient', 'environment', '-created']),
         ]
         constraints = [
             models.UniqueConstraint(
