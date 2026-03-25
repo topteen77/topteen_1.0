@@ -116,6 +116,7 @@ class EnquirySourceTrackingTest(TestCase):
             "payment_success",
             "payment_started",
             "payment_failed",
+            "payment_in_process",
             "course_enrolled",
             "converted_sessions",
         ]
@@ -125,3 +126,4 @@ class EnquirySourceTrackingTest(TestCase):
             payload = response.json()
             self.assertTrue(payload.get("ok"), "kind=%s should return ok" % kind)
             self.assertGreaterEqual(payload.get("total", 0), 1, "kind=%s should contain rows" % kind)
+

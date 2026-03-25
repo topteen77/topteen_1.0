@@ -136,8 +136,8 @@ def track_payment_event(sender, instance, created, **kwargs):
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
             event_name = f'Payment Success - {instance.get_obj_type_display()}'
-            # Payment.amount is stored in paise, convert to rupees
-            event_value = float(instance.amount / 100) if hasattr(instance, 'amount') and instance.amount else 0
+            # Payment.amount is whole rupees (BaseMoneyModel).get_display_price()
+            event_value = float(instance.amount) if hasattr(instance, 'amount') and instance.amount else 0
             payment_stage = 'paid'
         else:
             # Check if this is a new payment (pending) or failed
@@ -205,8 +205,8 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
             event_name = f'Psychometric Test Payment - {instance.get_test_name()}'
-            # Amount is stored in paise, convert to rupees
-            event_value = float(instance.amount / 100) if hasattr(instance, 'amount') and instance.amount else 0
+            # Same as Payment.amount — whole rupees
+            event_value = float(instance.amount) if hasattr(instance, 'amount') and instance.amount else 0
         else:
             event_type = 'payment_pending' if created else 'payment_failed'
             event_name = f'Psychometric Test Payment - {instance.get_test_name()}'
@@ -215,6 +215,13 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         content_type = ContentType.objects.get_for_model(instance)
         
         # Track payment event (include traffic source for reporting)
+        psych_meta = {
+            'test_type': instance.get_test_type_display(),
+            'test_name': instance.get_test_name(),
+            'source': source,
+        }
+        if event_type == 'payment_failed':
+            psych_meta['payment_stage'] = 'gateway_error'
         safe_track_user_event(
             event_type=event_type,
             event_name=event_name,
@@ -223,11 +230,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
             content_type_id=content_type.id,
             object_id=instance.id,
             session_id=session_id,
-            metadata={
-                'test_type': instance.get_test_type_display(),
-                'test_name': instance.get_test_name(),
-                'source': source,
-            }
+            metadata=psych_meta,
         )
         
         # If payment is successful, also track test started event

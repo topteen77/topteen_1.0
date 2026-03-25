@@ -177,32 +177,58 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            {% if item.stats.payment_success > 0 %}
-                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
-                               data-source-id="{{ item.source.id }}" data-kind="payment_success" data-label="Successful payments (this source)"
-                               title="Show events">{{ item.stats.payment_success }}</a>
-                            {% else %}
-                            0
-                            {% endif %}
-                            <small class="d-block text-muted">start:
+                            <!-- <small class="d-block text-muted">start:
                                 {% if item.stats.payment_started > 0 %}
                                 <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
                                    data-source-id="{{ item.source.id }}" data-kind="payment_started" data-label="Checkout started (server)"
                                    title="Show events">{{ item.stats.payment_started }}</a>
                                 {% else %}0{% endif %}
-                                | fail:
+                            </small>
+                            <small class="d-block text-muted">success:
+                                {% if item.stats.payment_success > 0 %}
+                                <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_success" data-label="Successful payments (this source)"
+                                   title="Show events">{{ item.stats.payment_success }}</a>
+                                {% else %}0{% endif %}
+                            </small>
+                            <small class="d-block text-muted">fail (all):
                                 {% if item.stats.payment_failed > 0 %}
                                 <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
-                                   data-source-id="{{ item.source.id }}" data-kind="payment_failed" data-label="Payment failed / cancelled"
-                                   title="Show events">{{ item.stats.payment_failed }}</a>
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_failed" data-failure-subset="all" data-label="Payment failures — all"
+                                   title="All failures and cancellations">{{ item.stats.payment_failed }}</a>
+                                {% else %}0{% endif %}
+                            </small> -->
+                            <small class="d-block text-muted mt-1"><br/>ERRORS:
+                                {% if item.stats.payment_errors > 0 %}
+                                <a href="#" class="enquiry-metric-link text-danger text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_failed" data-failure-subset="error" data-label="Payment / gateway errors"
+                                   title="Razorpay or server errors (excludes user cancel)">{{ item.stats.payment_errors }}</a>
+                                {% else %}0{% endif %}
+                                <br/>CANCELLED:
+                                {% if item.stats.payment_cancelled > 0 %}
+                                <a href="#" class="enquiry-metric-link text-secondary text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_failed" data-failure-subset="cancel" data-label="Checkout cancelled"
+                                   title="User closed checkout">{{ item.stats.payment_cancelled }}</a>
+                                {% else %}0{% endif %}
+                                <br/>IN PROGRESS:
+                                {% if item.stats.payment_in_process > 0 %}
+                                <a href="#" class="enquiry-metric-link text-warning text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_in_process" data-label="In checkout (no outcome yet)"
+                                   title="Checkout started, no success or fail yet">{{ item.stats.payment_in_process }}</a>
+                                {% else %}0{% endif %}
+                                <br/>PAID:
+                                {% if item.stats.payment_success > 0 %}
+                                <a href="#" class="enquiry-metric-link text-success text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_success" data-label="Successful payments (this source)"
+                                   title="Show events">{{ item.stats.payment_success }}</a>
                                 {% else %}0{% endif %}
                             </small>
                             {% if item.source.name %}
-                            <span class="d-block small">|
+                            <span class="d-block small">
                                 {% if item.stats.payments_attributed > 0 %}
-                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days&amp;source={{ item.source.name|urlencode }}" title="Payments with traffic source = {{ item.source.name }}">View ({{ item.stats.payments_attributed }})</a>
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days&amp;source={{ item.source.name|urlencode }}" title="Payments with traffic source = {{ item.source.name }}">View detail ({{ item.stats.payments_attributed }})</a>
                                 {% else %}
-                                View (0)
+                                View detail (0)
                                 {% endif %}
                             </span>
                             {% endif %}
@@ -317,94 +343,159 @@ window.addEventListener('load', function() {
     function safeJson(obj) {
         try { return JSON.stringify(obj || {}, null, 2); } catch (e) { return '{}'; }
     }
+    var overrideVariantClass = {
+        info: 'bg-info-subtle text-info border border-info-subtle',
+        warning: 'bg-warning-subtle text-warning border border-warning-subtle',
+        secondary: 'bg-secondary-subtle text-secondary border border-secondary-subtle'
+    };
     function paymentStatus(ev) {
+        if (ev && ev.status_override && ev.status_override.text) {
+            var v = ev.status_override.variant || 'info';
+            var cls = overrideVariantClass[v] || overrideVariantClass.info;
+            return { text: ev.status_override.text, cls: cls };
+        }
         var t = (ev && ev.event_type) ? String(ev.event_type) : '';
-        var meta = (ev && ev.metadata) ? ev.metadata : {};
-        var stage = meta && meta.stage ? String(meta.stage) : '';
         var eff = (ev && ev.effective_status) ? String(ev.effective_status) : '';
-        // Only 3 statuses: pending / fail / success
+        if (t === 'payment_failed') {
+            return { text: 'Fail', cls: 'bg-danger-subtle text-danger border border-danger-subtle' };
+        }
         if (eff === 'success') return { text: 'Success', cls: 'bg-success-subtle text-success border border-success-subtle' };
         if (eff === 'pending') return { text: 'Pending', cls: 'bg-warning-subtle text-warning border border-warning-subtle' };
         if (eff === 'fail') return { text: 'Fail', cls: 'bg-danger-subtle text-danger border border-danger-subtle' };
         if (t === 'payment_success') return { text: 'Success', cls: 'bg-success-subtle text-success border border-success-subtle' };
         if (t === 'payment_pending') return { text: 'Pending', cls: 'bg-warning-subtle text-warning border border-warning-subtle' };
-        if (t === 'payment_failed') {
-            // cancel/error/failed -> fail
-            return { text: 'Fail', cls: 'bg-danger-subtle text-danger border border-danger-subtle' };
-        }
         return null;
     }
     function badgeHtml(b) {
         if (!b) return '<span class="text-muted">—</span>';
         return '<span class="badge rounded-pill ' + escapeHtml(b.cls) + '">' + escapeHtml(b.text) + '</span>';
     }
+    var modalState = { sourceId: '', kind: '', label: '', failureSubset: 'all' };
+    function buildEventsUrl() {
+        var u = enquiryEventsApiUrl + '?source_id=' + encodeURIComponent(modalState.sourceId)
+          + '&kind=' + encodeURIComponent(modalState.kind);
+        if (modalState.kind === 'payment_failed' && modalState.failureSubset && modalState.failureSubset !== 'all') {
+            u += '&failure_subset=' + encodeURIComponent(modalState.failureSubset);
+        }
+        return u;
+    }
+    function renderEventsPayload(data) {
+        if (!data.ok) {
+            renderError(data.error || 'Failed to load.');
+            return;
+        }
+        if (data.supports_failure_filter) {
+            var cur = data.failure_subset || modalState.failureSubset || 'all';
+            modalState.failureSubset = cur;
+            var toolbar = ''
+              + '<div class="d-flex flex-wrap align-items-center gap-2 mb-3 enquiry-events-toolbar">'
+              +   '<span class="small text-muted me-1">Show:</span>'
+              +   '<select id="enquiry-failure-subset" class="form-select form-select-sm" style="width: auto; max-width: 220px;">'
+              +     '<option value="all"' + (cur === 'all' ? ' selected' : '') + '>All failures</option>'
+              +     '<option value="error"' + (cur === 'error' ? ' selected' : '') + '>Errors only</option>'
+              +     '<option value="cancel"' + (cur === 'cancel' ? ' selected' : '') + '>Cancelled only</option>'
+              +   '</select>'
+              + '</div>';
+            bodyEl.innerHTML = toolbar;
+            var sel = document.getElementById('enquiry-failure-subset');
+            if (sel) {
+                sel.addEventListener('change', function() {
+                    modalState.failureSubset = this.value;
+                    renderLoading();
+                    fetch(buildEventsUrl(), { credentials: 'same-origin' })
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) { renderEventsPayload(d); })
+                        .catch(function() { renderError('Request failed.'); });
+                });
+            }
+        }
+        if (!data.events || !data.events.length) {
+            if (!data.supports_failure_filter) {
+                renderEmpty();
+            } else {
+                bodyEl.innerHTML += '<div class="alert alert-light border small mb-0">No matching rows for this filter.</div>';
+            }
+            footerEl.textContent = (typeof data.total === 'number') ? ('Total matching: ' + data.total + '.') : '';
+            return;
+        }
+        var showErrorCol = modalState.kind === 'payment_failed' || modalState.kind === 'payment_in_process';
+        var rows = data.events.map(function(ev) {
+            var metaJson = safeJson(ev.metadata);
+            var user = ev.user_email ? escapeHtml(ev.user_email) : '<span class="text-muted">—</span>';
+            var sess = ev.session_id ? ('<code class="small">' + escapeHtml(ev.session_id) + '</code>') : '<span class="text-muted">—</span>';
+            var eventName = escapeHtml(ev.event_name || '');
+            var when = escapeHtml(ev.created || '');
+            var statusBadge = badgeHtml(paymentStatus(ev));
+            var errRaw = (ev.error_detail != null && ev.error_detail !== '') ? String(ev.error_detail) : '';
+            var errCell = showErrorCol
+                ? ('<td class="small text-break">' + (errRaw ? escapeHtml(errRaw) : '<span class="text-muted">—</span>') + '</td>')
+                : '';
+            return ''
+              + '<tr>'
+              +   '<td class="small text-nowrap">' + when + '</td>'
+              +   '<td class="small">' + statusBadge + '</td>'
+              +   '<td class="small text-break"><span class="fw-semibold">' + eventName + '</span></td>'
+              +   errCell
+              +   '<td class="small text-break">' + user + '</td>'
+              +   '<td class="small text-break">' + sess + '</td>'
+              +   '<td class="enquiry-events-meta">'
+              +     '<details>'
+              +       '<summary class="small text-primary">View</summary>'
+              +       '<pre class="small bg-light border rounded p-2 mt-2">' + escapeHtml(metaJson) + '</pre>'
+              +     '</details>'
+              +   '</td>'
+              + '</tr>';
+        }).join('');
+        var errTh = showErrorCol ? '<th style="min-width: 200px;">Error / detail</th>' : '';
+        var tableHtml = ''
+          + '<div class="table-responsive">'
+          +   '<table class="table table-sm table-hover align-middle mb-0 enquiry-events-table">'
+          +     '<thead class="table-light">'
+          +       '<tr>'
+          +         '<th style="width: 160px;">When</th>'
+          +         '<th style="width: 130px;">Status</th>'
+          +         '<th>Event</th>'
+          +         errTh
+          +         '<th style="width: 200px;">User</th>'
+          +         '<th style="width: 200px;">Session</th>'
+          +         '<th style="width: 160px;">Metadata</th>'
+          +       '</tr>'
+          +     '</thead>'
+          +     '<tbody>' + rows + '</tbody>'
+          +   '</table>'
+          + '</div>';
+        if (data.supports_failure_filter) {
+            var tb = bodyEl.querySelector('.enquiry-events-toolbar');
+            if (tb && tb.parentNode) {
+                var wrap = document.createElement('div');
+                wrap.innerHTML = tableHtml;
+                bodyEl.appendChild(wrap.firstElementChild);
+            } else {
+                bodyEl.innerHTML += tableHtml;
+            }
+        } else {
+            bodyEl.innerHTML = tableHtml;
+        }
+        var foot = (typeof data.total === 'number' ? 'Showing ' + data.events.length + ' of ' + data.total + '.' : '');
+        if (data.truncated) foot += (foot ? ' ' : '') + 'List capped at 100 rows (or scan limit).';
+        footerEl.textContent = foot;
+    }
     document.querySelectorAll('.enquiry-metric-link').forEach(function(link) {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            var sid = this.getAttribute('data-source-id');
-            var kind = this.getAttribute('data-kind');
-            var label = this.getAttribute('data-label') || kind;
-            titleEl.textContent = label;
+            modalState.sourceId = this.getAttribute('data-source-id');
+            modalState.kind = this.getAttribute('data-kind');
+            modalState.label = this.getAttribute('data-label') || modalState.kind;
+            var fsub = this.getAttribute('data-failure-subset');
+            modalState.failureSubset = (fsub && fsub.length) ? fsub : 'all';
+            titleEl.textContent = modalState.label;
             footerEl.textContent = '';
             renderLoading();
             modal.show();
-            var u = enquiryEventsApiUrl + '?source_id=' + encodeURIComponent(sid) + '&kind=' + encodeURIComponent(kind);
-            fetch(u, { credentials: 'same-origin' })
+            fetch(buildEventsUrl(), { credentials: 'same-origin' })
                 .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (!data.ok) {
-                        renderError(data.error || 'Failed to load.');
-                        return;
-                    }
-                    if (!data.events || !data.events.length) {
-                        renderEmpty();
-                        return;
-                    }
-                    var rows = data.events.map(function(ev) {
-                        var metaJson = safeJson(ev.metadata);
-                        var user = ev.user_email ? escapeHtml(ev.user_email) : '<span class="text-muted">—</span>';
-                        var sess = ev.session_id ? ('<code class="small">' + escapeHtml(ev.session_id) + '</code>') : '<span class="text-muted">—</span>';
-                        var eventName = escapeHtml(ev.event_name || '');
-                        var when = escapeHtml(ev.created || '');
-                        var statusBadge = badgeHtml(paymentStatus(ev));
-                        return ''
-                          + '<tr>'
-                          +   '<td class="small text-nowrap">' + when + '</td>'
-                          +   '<td class="small">' + statusBadge + '</td>'
-                          +   '<td class="small text-break"><span class="fw-semibold">' + eventName + '</span></td>'
-                          +   '<td class="small text-break">' + user + '</td>'
-                          +   '<td class="small text-break">' + sess + '</td>'
-                          +   '<td class="enquiry-events-meta">'
-                          +     '<details>'
-                          +       '<summary class="small text-primary">View</summary>'
-                          +       '<pre class="small bg-light border rounded p-2 mt-2">' + escapeHtml(metaJson) + '</pre>'
-                          +     '</details>'
-                          +   '</td>'
-                          + '</tr>';
-                    }).join('');
-                    bodyEl.innerHTML = ''
-                      + '<div class="table-responsive">'
-                      +   '<table class="table table-sm table-hover align-middle mb-0 enquiry-events-table">'
-                      +     '<thead class="table-light">'
-                      +       '<tr>'
-                      +         '<th style="width: 160px;">When</th>'
-                      +         '<th style="width: 130px;">Status</th>'
-                      +         '<th>Event</th>'
-                      +         '<th style="width: 240px;">User</th>'
-                      +         '<th style="width: 220px;">Session</th>'
-                      +         '<th style="width: 180px;">Metadata</th>'
-                      +       '</tr>'
-                      +     '</thead>'
-                      +     '<tbody>' + rows + '</tbody>'
-                      +   '</table>'
-                      + '</div>';
-                    var foot = (typeof data.total === 'number' ? 'Showing ' + data.events.length + ' of ' + data.total + '.' : '');
-                    if (data.truncated) foot += (foot ? ' ' : '') + 'List capped at 100 rows.';
-                    footerEl.textContent = foot;
-                })
-                .catch(function() {
-                    renderError('Request failed.');
-                });
+                .then(function(data) { renderEventsPayload(data); })
+                .catch(function() { renderError('Request failed.'); });
         });
     });
 
