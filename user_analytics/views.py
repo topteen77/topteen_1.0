@@ -2,7 +2,7 @@
 Analytics Dashboard Views for Business Owner, Accounts, and Web Owner.
 Provides comprehensive analytics reports and visualizations.
 """
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -16,7 +16,7 @@ from django.middleware.csrf import get_token
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from datetime import datetime, timedelta
 from decimal import Decimal
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode
 import json
 import logging
 
@@ -3215,6 +3215,50 @@ def enquiry_source_qr_view(request, pk):
         return HttpResponseNotFound('QR generation failed.')
 
 
+def _redirect_chatbot_rules(request, q=None):
+    """Preserve ?q= URL search after POST."""
+    if q is None:
+        q = (request.POST.get('redirect_q') or request.GET.get('q') or '').strip()
+    else:
+        q = (q or '').strip()
+    if q:
+        return redirect(f"{reverse('user_analytics:chatbot_rules')}?{urlencode({'q': q})}")
+    return redirect('user_analytics:chatbot_rules')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def chatbot_rules_search_api(request):
+    """JSON list of rules filtered by page_url (instant search on admin page)."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    q = (request.GET.get('q') or '').strip()
+    qs = ChatbotPageRule.objects.all().order_by('priority', '-modified')
+    if q:
+        qs = qs.filter(page_url__icontains=q)
+    rules = []
+    for r in qs:
+        if r.bot_name == 'chat_this_page':
+            bot_label = 'Chat this page'
+        elif r.bot_name == 'career_counsellor':
+            bot_label = 'Career counsellor'
+        else:
+            bot_label = r.bot_name
+        rules.append(
+            {
+                'id': r.id,
+                'page_url': r.page_url,
+                'bot_name': r.bot_name,
+                'bot_label': bot_label,
+                'is_visible': r.is_visible,
+                'include_subpages': r.include_subpages,
+                'position': r.position,
+                'priority': r.priority,
+            }
+        )
+    return JsonResponse({'rules': rules, 'count': len(rules), 'q': q})
+
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def chatbot_rules_view(request):
@@ -3247,7 +3291,69 @@ def chatbot_rules_view(request):
                 },
             )
             messages.success(request, 'Bot enable/disable settings updated.')
-            return redirect('user_analytics:chatbot_rules')
+            return _redirect_chatbot_rules(request)
+
+        if action == 'update':
+            rule_id = request.POST.get('rule_id')
+            if not rule_id:
+                messages.error(request, 'Rule id is required.')
+                return _redirect_chatbot_rules(request)
+            rule = get_object_or_404(ChatbotPageRule, pk=rule_id)
+            chat_this_page_enabled = str(
+                Configuration.get('chat_this_page_engine', 'true', editable=True)
+            ).strip().lower() in ('true', '1', 'yes', 'on')
+            legacy_chatbot_enabled = str(
+                Configuration.get('legacy_chatbot_engine', 'false', editable=True)
+            ).strip().lower() in ('true', '1', 'yes', 'on')
+            page_url = (request.POST.get('page_url') or '').strip()
+            if not page_url:
+                messages.error(request, 'Page URL is required.')
+                return _redirect_chatbot_rules(request)
+            if not page_url.startswith('/'):
+                page_url = '/' + page_url
+            bot_name = (request.POST.get('bot_name') or '').strip()
+            if bot_name not in ('chat_this_page', 'career_counsellor'):
+                messages.error(request, 'Invalid bot name.')
+                return _redirect_chatbot_rules(request)
+            if bot_name == 'chat_this_page' and not chat_this_page_enabled:
+                messages.error(request, '"Chat this page" is globally disabled. Enable it first.')
+                return _redirect_chatbot_rules(request)
+            if bot_name == 'career_counsellor' and not legacy_chatbot_enabled:
+                messages.error(request, '"Career Counsellor (cb-root)" is globally disabled. Enable it first.')
+                return _redirect_chatbot_rules(request)
+            visibility = (request.POST.get('is_visible') or 'show').strip()
+            is_visible = visibility == 'show'
+            include_subpages = request.POST.get('include_subpages') == 'yes'
+            position = (request.POST.get('position') or 'right').strip().lower()
+            if position not in ('left', 'right'):
+                position = 'right'
+            try:
+                priority = int(request.POST.get('priority') or 1)
+            except Exception:
+                priority = 1
+            duplicate_qs = ChatbotPageRule.objects.filter(
+                page_url=page_url,
+                bot_name=bot_name,
+                is_visible=is_visible,
+                include_subpages=include_subpages,
+                position=position,
+                object_status=choices.ObjectStatus.ACTIVE,
+            ).exclude(pk=rule.pk)
+            if duplicate_qs.exists():
+                messages.warning(
+                    request,
+                    'Another rule already exists with the same URL, bot, visibility, nesting, and position.',
+                )
+                return _redirect_chatbot_rules(request)
+            rule.page_url = page_url
+            rule.bot_name = bot_name
+            rule.is_visible = is_visible
+            rule.include_subpages = include_subpages
+            rule.position = position
+            rule.priority = priority
+            rule.save()
+            messages.success(request, 'Chatbot rule updated.')
+            return _redirect_chatbot_rules(request)
 
         if action == 'create':
             chat_this_page_enabled = str(
@@ -3259,19 +3365,19 @@ def chatbot_rules_view(request):
             page_url = (request.POST.get('page_url') or '').strip()
             if not page_url:
                 messages.error(request, 'Page URL is required.')
-                return redirect('user_analytics:chatbot_rules')
+                return _redirect_chatbot_rules(request)
             if not page_url.startswith('/'):
                 page_url = '/' + page_url
             bot_name = (request.POST.get('bot_name') or '').strip()
             if bot_name not in ('chat_this_page', 'career_counsellor'):
                 messages.error(request, 'Invalid bot name.')
-                return redirect('user_analytics:chatbot_rules')
+                return _redirect_chatbot_rules(request)
             if bot_name == 'chat_this_page' and not chat_this_page_enabled:
                 messages.error(request, '"Chat this page" is globally disabled. Enable it first to add rules.')
-                return redirect('user_analytics:chatbot_rules')
+                return _redirect_chatbot_rules(request)
             if bot_name == 'career_counsellor' and not legacy_chatbot_enabled:
                 messages.error(request, '"Career Counsellor (cb-root)" is globally disabled. Enable it first to add rules.')
-                return redirect('user_analytics:chatbot_rules')
+                return _redirect_chatbot_rules(request)
             visibility = (request.POST.get('is_visible') or 'show').strip()
             is_visible = (visibility == 'show')
             include_subpages = (request.POST.get('include_subpages') == 'yes')
@@ -3295,7 +3401,7 @@ def chatbot_rules_view(request):
                     request,
                     'Duplicate rule already exists for same URL, bot, visibility, nesting, and position.',
                 )
-                return redirect('user_analytics:chatbot_rules')
+                return _redirect_chatbot_rules(request)
             ChatbotPageRule.objects.create(
                 page_url=page_url,
                 bot_name=bot_name,
@@ -3305,20 +3411,20 @@ def chatbot_rules_view(request):
                 priority=priority,
             )
             messages.success(request, 'Chatbot rule added.')
-            return redirect('user_analytics:chatbot_rules')
+            return _redirect_chatbot_rules(request)
 
         if action == 'delete':
             ids = request.POST.getlist('ids')
             if not ids:
                 messages.warning(request, 'No rules selected.')
-                return redirect('user_analytics:chatbot_rules')
+                return _redirect_chatbot_rules(request)
             delete_result = ChatbotPageRule.objects.filter(id__in=ids).delete()
             deleted = delete_result[0] if isinstance(delete_result, tuple) else int(delete_result or 0)
             messages.success(request, f'{deleted} rule(s) deleted.')
-            return redirect('user_analytics:chatbot_rules')
+            return _redirect_chatbot_rules(request)
 
         messages.error(request, 'Invalid action.')
-        return redirect('user_analytics:chatbot_rules')
+        return _redirect_chatbot_rules(request)
 
     rules = ChatbotPageRule.objects.all().order_by('priority', '-modified')
     chat_this_page_enabled = str(
@@ -3329,6 +3435,7 @@ def chatbot_rules_view(request):
     ).strip().lower() in ('true', '1', 'yes', 'on')
     context = {
         'rules': rules,
+        'chatbot_rules_search_url': reverse('user_analytics:chatbot_rules_search'),
         'chat_this_page_enabled': chat_this_page_enabled,
         'legacy_chatbot_enabled': legacy_chatbot_enabled,
         'page_title': 'Chatbot Rules',

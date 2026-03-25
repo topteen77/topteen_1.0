@@ -182,7 +182,8 @@
   border-radius: var(--pc-radius-window);
   box-shadow:    var(--pc-shadow-lg);
   border:        1px solid rgba(0,0,0,.06);
-  z-index:       2247483645;
+  /* Below career chat (#cb-window uses 2147483647) so both bots can stack */
+  z-index:       2147483645;
 
   display:        flex;
   flex-direction: column;

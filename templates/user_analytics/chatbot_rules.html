@@ -4,7 +4,7 @@
 {% block page_title %}Chatbot Rules{% endblock %}
 
 {% block content %}
-<div class="admin-content">
+<div class="admin-content" data-chatbot-rules-search="{{ chatbot_rules_search_url }}">
     {% if messages %}
     <div class="mb-3">
         {% for message in messages %}
@@ -18,6 +18,7 @@
         <form method="post" action="{{ url('user_analytics:chatbot_rules') }}">
             {{ csrf_input_html|safe }}
             <input type="hidden" name="action" value="toggle_bots" />
+            <input type="hidden" name="redirect_q" value="" class="js-redirect-q" />
             <div class="row g-3">
                 <div class="col-md-4">
                     <div class="form-check form-switch">
@@ -41,11 +42,21 @@
         </form>
     </div>
 
+    <div class="admin-card mb-3 p-3 rounded border bg-white">
+        <label class="form-label fw-semibold" for="rulesSearchInput"><i class="fas fa-search text-primary"></i> Search rules by page URL</label>
+        <div class="input-group">
+            <input type="search" id="rulesSearchInput" class="form-control" placeholder="Type to filter instantly…" autocomplete="off" />
+            <button class="btn btn-outline-secondary" type="button" id="rulesSearchClear" title="Clear search">Clear</button>
+        </div>
+        <small class="text-muted" id="rulesSearchStatus" aria-live="polite"></small>
+    </div>
+
     <div class="admin-card mb-3">
         <h5 class="card-title mb-3"><i class="fas fa-plus-circle text-primary"></i> Add Rule</h5>
         <form method="post" action="{{ url('user_analytics:chatbot_rules') }}">
             {{ csrf_input_html|safe }}
             <input type="hidden" name="action" value="create" />
+            <input type="hidden" name="redirect_q" value="" class="js-redirect-q" />
             <div class="row g-2">
                 <div class="col-md-4">
                     <label class="form-label">Page URL</label>
@@ -102,13 +113,14 @@
     </div>
 
     <div class="admin-card">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="card-title mb-0">Existing Rules ({{ rules|length }})</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h5 class="card-title mb-0">Existing Rules (<span id="chatbotRulesCount">{{ rules|length }}</span>) <small id="chatbotRulesFilteredHint" class="text-muted fw-normal d-none">filtered</small></h5>
             <button type="button" id="deleteSelectedBtn" class="btn btn-outline-danger btn-sm" disabled>Delete Selected</button>
         </div>
         <form method="post" id="deleteForm" action="{{ url('user_analytics:chatbot_rules') }}">
             {{ csrf_input_html|safe }}
             <input type="hidden" name="action" value="delete" />
+            <input type="hidden" name="redirect_q" value="" class="js-redirect-q" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -120,9 +132,10 @@
                             <th>Show/Hide</th>
                             <th>Include subpages</th>
                             <th>Position</th>
+                            <th style="width:88px;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="chatbotRulesTbody">
                         {% for rule in rules %}
                         <tr>
                             <td><input type="checkbox" class="row-check" name="ids" value="{{ rule.id }}" /></td>
@@ -140,14 +153,89 @@
                             <td>{% if rule.is_visible %}<span class="badge bg-success">Show</span>{% else %}<span class="badge bg-danger">Hide</span>{% endif %}</td>
                             <td>{% if rule.include_subpages %}Yes{% else %}No{% endif %}</td>
                             <td>{% if rule.position == 'left' %}Left{% else %}Right{% endif %}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary btn-edit-rule"
+                                    data-rule-id="{{ rule.id }}"
+                                    data-page-url="{{ rule.page_url|e }}"
+                                    data-bot-name="{{ rule.bot_name|e }}"
+                                    data-is-visible="{{ 'true' if rule.is_visible else 'false' }}"
+                                    data-include-subpages="{{ 'yes' if rule.include_subpages else 'no' }}"
+                                    data-position="{{ rule.position|e }}"
+                                    data-priority="{{ rule.priority }}">Edit</button>
+                            </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="7" class="text-muted text-center py-3">No rules configured yet.</td></tr>
+                        <tr class="chatbot-rules-empty-row"><td colspan="8" class="text-muted text-center py-3">No rules configured yet.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </form>
+    </div>
+
+    <div class="modal fade" id="editRuleModal" tabindex="-1" aria-labelledby="editRuleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRuleModalLabel">Edit rule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{{ url('user_analytics:chatbot_rules') }}" id="editRuleForm">
+                    {{ csrf_input_html|safe }}
+                    <input type="hidden" name="action" value="update" />
+                    <input type="hidden" name="rule_id" id="edit_rule_id" value="" />
+                    <input type="hidden" name="redirect_q" value="" class="js-redirect-q" />
+                    <div class="modal-body">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Page URL</label>
+                                <input type="text" name="page_url" id="edit_page_url" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Bot Name</label>
+                                <select name="bot_name" id="edit_bot_name" class="form-select">
+                                    {% if chat_this_page_enabled %}<option value="chat_this_page">Chat this page</option>{% endif %}
+                                    {% if legacy_chatbot_enabled %}<option value="career_counsellor">Career Counsellor (cb-root)</option>{% endif %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label d-block">Show/Hide</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="is_visible" id="edit_vis_show" value="show" />
+                                    <label class="form-check-label" for="edit_vis_show">Show</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="is_visible" id="edit_vis_hide" value="hide" />
+                                    <label class="form-check-label" for="edit_vis_hide">Hide</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Include subpages</label>
+                                <select name="include_subpages" id="edit_include_subpages" class="form-select">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Position</label>
+                                <select name="position" id="edit_position" class="form-select">
+                                    <option value="right">Right</option>
+                                    <option value="left">Left</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Priority</label>
+                                <input type="number" min="1" name="priority" id="edit_priority" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -155,32 +243,201 @@
 {% block additional_js %}
 <script>
 (function() {
+  var root = document.querySelector('.admin-content[data-chatbot-rules-search]');
+  var searchUrl = root && root.getAttribute('data-chatbot-rules-search');
+  var searchInput = document.getElementById('rulesSearchInput');
+  var searchClear = document.getElementById('rulesSearchClear');
+  var searchStatus = document.getElementById('rulesSearchStatus');
+  var tbody = document.getElementById('chatbotRulesTbody');
+  var countEl = document.getElementById('chatbotRulesCount');
+  var filteredHint = document.getElementById('chatbotRulesFilteredHint');
   var checkAll = document.getElementById('checkAll');
   var deleteBtn = document.getElementById('deleteSelectedBtn');
   var deleteForm = document.getElementById('deleteForm');
+  var editModal = document.getElementById('editRuleModal');
+  var debounceTimer = null;
+  var searchReqId = 0;
+
+  function syncRedirectQ(val) {
+    document.querySelectorAll('input.js-redirect-q').forEach(function(inp) {
+      inp.value = val;
+    });
+  }
 
   function updateDeleteBtn() {
-    var selected = document.querySelectorAll('.row-check:checked').length;
+    if (!deleteBtn) return;
+    var selected = document.querySelectorAll('#chatbotRulesTbody .row-check:checked').length;
     deleteBtn.disabled = selected === 0;
+  }
+
+  function escapeAttr(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function renderRules(rules, q) {
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (checkAll) checkAll.checked = false;
+
+    if (!rules.length) {
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = 8;
+      td.className = 'text-muted text-center py-3';
+      td.textContent = (q && q.length) ? 'No rules match this URL search.' : 'No rules configured yet.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    } else {
+      rules.forEach(function(r) {
+        var tr = document.createElement('tr');
+        var visBadge = r.is_visible
+          ? '<span class="badge bg-success">Show</span>'
+          : '<span class="badge bg-danger">Hide</span>';
+        var sub = r.include_subpages ? 'Yes' : 'No';
+        var pos = (r.position === 'left') ? 'Left' : 'Right';
+        tr.innerHTML =
+          '<td><input type="checkbox" class="row-check" name="ids" value="' + r.id + '" /></td>' +
+          '<td>' + r.priority + '</td>' +
+          '<td><code></code></td>' +
+          '<td></td>' +
+          '<td>' + visBadge + '</td>' +
+          '<td>' + sub + '</td>' +
+          '<td>' + pos + '</td>' +
+          '<td><button type="button" class="btn btn-sm btn-outline-primary btn-edit-rule" ' +
+          'data-rule-id="' + r.id + '" ' +
+          'data-page-url="' + escapeAttr(r.page_url) + '" ' +
+          'data-bot-name="' + escapeAttr(r.bot_name) + '" ' +
+          'data-is-visible="' + (r.is_visible ? 'true' : 'false') + '" ' +
+          'data-include-subpages="' + (r.include_subpages ? 'yes' : 'no') + '" ' +
+          'data-position="' + escapeAttr(r.position) + '" ' +
+          'data-priority="' + r.priority + '">Edit</button></td>';
+        tr.querySelector('code').textContent = r.page_url;
+        tr.cells[3].textContent = r.bot_label;
+        tbody.appendChild(tr);
+      });
+    }
+
+    if (countEl) countEl.textContent = String(rules.length);
+    if (filteredHint) {
+      if (q && q.length) filteredHint.classList.remove('d-none');
+      else filteredHint.classList.add('d-none');
+    }
+    updateDeleteBtn();
+  }
+
+  function fetchRules(q) {
+    if (!searchUrl || !tbody) return;
+    var url = searchUrl + (q ? ('?q=' + encodeURIComponent(q)) : '');
+    var myId = ++searchReqId;
+    if (searchStatus) searchStatus.textContent = q ? 'Searching…' : '';
+    fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Search failed');
+        return res.json();
+      })
+      .then(function(data) {
+        if (myId !== searchReqId) return;
+        if (searchStatus) searchStatus.textContent = '';
+        renderRules(data.rules || [], data.q || '');
+        syncRedirectQ(data.q || '');
+        if (history.replaceState) {
+          var next = window.location.pathname + (data.q ? ('?q=' + encodeURIComponent(data.q)) : '');
+          history.replaceState(null, '', next);
+        }
+      })
+      .catch(function(err) {
+        if (myId !== searchReqId) return;
+        if (searchStatus) searchStatus.textContent = 'Could not load rules. Try refreshing the page.';
+      });
+  }
+
+  function scheduleFetch() {
+    var q = (searchInput && searchInput.value) ? searchInput.value.trim() : '';
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() { fetchRules(q); }, 280);
+    syncRedirectQ(q);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', scheduleFetch);
+    searchInput.addEventListener('keydown', function(ev) {
+      if (ev.key === 'Escape') {
+        searchInput.value = '';
+        fetchRules('');
+        searchInput.blur();
+      }
+    });
+  }
+  if (searchClear) {
+    searchClear.addEventListener('click', function() {
+      if (searchInput) searchInput.value = '';
+      fetchRules('');
+      if (searchInput) searchInput.focus();
+    });
   }
 
   if (checkAll) {
     checkAll.addEventListener('change', function() {
-      document.querySelectorAll('.row-check').forEach(function(chk) { chk.checked = checkAll.checked; });
+      document.querySelectorAll('#chatbotRulesTbody .row-check').forEach(function(chk) {
+        chk.checked = checkAll.checked;
+      });
       updateDeleteBtn();
     });
   }
 
-  document.querySelectorAll('.row-check').forEach(function(chk) {
-    chk.addEventListener('change', updateDeleteBtn);
-  });
+  if (tbody) {
+    tbody.addEventListener('change', function(ev) {
+      if (ev.target && ev.target.classList.contains('row-check')) updateDeleteBtn();
+    });
+    tbody.addEventListener('click', function(ev) {
+      var btn = ev.target.closest && ev.target.closest('.btn-edit-rule');
+      if (!btn) return;
+      document.getElementById('edit_rule_id').value = btn.getAttribute('data-rule-id') || '';
+      document.getElementById('edit_page_url').value = btn.getAttribute('data-page-url') || '';
+      document.getElementById('edit_bot_name').value = btn.getAttribute('data-bot-name') || '';
+      var vis = btn.getAttribute('data-is-visible') === 'true';
+      document.getElementById('edit_vis_show').checked = vis;
+      document.getElementById('edit_vis_hide').checked = !vis;
+      document.getElementById('edit_include_subpages').value = btn.getAttribute('data-include-subpages') || 'no';
+      document.getElementById('edit_position').value = btn.getAttribute('data-position') || 'right';
+      document.getElementById('edit_priority').value = btn.getAttribute('data-priority') || '1';
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        bootstrap.Modal.getOrCreateInstance(editModal).show();
+      } else {
+        editModal.classList.add('show');
+        editModal.style.display = 'block';
+      }
+    });
+  }
 
-  deleteBtn.addEventListener('click', function() {
-    var selected = document.querySelectorAll('.row-check:checked').length;
-    if (selected > 0 && confirm('Delete ' + selected + ' selected rule(s)?')) {
-      deleteForm.submit();
+  if (deleteBtn && deleteForm) {
+    deleteBtn.addEventListener('click', function() {
+      var selected = document.querySelectorAll('#chatbotRulesTbody .row-check:checked').length;
+      if (selected > 0 && confirm('Delete ' + selected + ' selected rule(s)?')) {
+        deleteForm.submit();
+      }
+    });
+  }
+
+  (function initFromUrl() {
+    if (!searchInput || !searchUrl) return;
+    var params = new URLSearchParams(window.location.search);
+    var q = (params.get('q') || '').trim();
+    if (q) {
+      searchInput.value = q;
+      fetchRules(q);
+    } else {
+      syncRedirectQ('');
     }
-  });
+  })();
 })();
 </script>
 {% endblock %}

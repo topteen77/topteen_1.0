@@ -44,6 +44,7 @@ urlpatterns = [
     path('admin-analytics/enquiry-sources/<int:pk>/qr.png', views.enquiry_source_qr_view, name='enquiry_source_qr'),
     path('admin-analytics/enquiry-sources/test-ref/', views.enquiry_source_test_ref_view, name='enquiry_source_test_ref'),
     path('admin-analytics/chatbot-rules/', views.chatbot_rules_view, name='chatbot_rules'),
+    path('admin-analytics/chatbot-rules/search/', views.chatbot_rules_search_api, name='chatbot_rules_search'),
     
     # API Endpoints
     path('api/dashboard-data/', views.api_dashboard_data, name='api_dashboard_data'),

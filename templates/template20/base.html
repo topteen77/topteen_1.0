@@ -72,8 +72,8 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}" type="text/css" media="all" />
-  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}" type="text/css" media="all" />{% endif %}
-  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}" type="text/css" media="all" />{% endif %}
+  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
@@ -154,6 +154,7 @@
     }
   </style>
   {% endif %}
+  {# cb-root position & same-side stack: body classes cb-ai-pos-left / cb-bots-stack + chatbot-widget.css #}
   {% endblock %}
 
   {% block additionalhead %}
@@ -161,7 +162,7 @@
 
 </head>
 
-<body class="{% block bodyclass %} {% endblock %}">
+<body class="{% block bodyclass %} {% endblock %}{% if show_ai_counsellor_bot and (ai_counsellor_position or 'right')|lower == 'left' %} cb-ai-pos-left{% endif %}{% if show_ai_counsellor_bot and show_page_chat_widget and (page_chat_position or 'left')|lower == (ai_counsellor_position or 'right')|lower %} cb-bots-stack{% endif %}">
   {% block header %}
   {% include 'template20/includes/header.html' %}
   {% endblock %}
@@ -191,8 +192,14 @@
   <script src="{{ static('js_new/main.js') }}?v=20260324-2"></script>
   <script src="{{ static('js_new/search.js') }}"></script>
 
+  {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
+  {% if show_page_chat_widget and show_ai_counsellor_bot %}
+  <script src="{{ static('js_new/page-chat-widget.js') }}"></script>
+  <script src="{{ static('js_new/chatbot-widget.js') }}"></script>
+  {% else %}
   {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
   {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}"></script>{% endif %}
+  {% endif %}
 
   {% block chatbot_js %}
   {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
@@ -201,17 +208,12 @@
 
   {% block additionaljs %}
   {% endblock %}
+  <style>
+    /* Force modal/backdrop above any page panels (increase z-index as last resort) */
+    .student-details-panel { z-index: 1000 !important; }
+    .modal-backdrop, .modal-backdrop.fade.show { z-index: 12050 !important; }
+    .modal { z-index: 12100 !important; }
+    .modal-dialog { z-index: 12110 !important; }
+  </style>
 </body>
-<style>
-  /* Force modal/backdrop above any page panels (increase z-index as last resort) */
-  .student-details-panel { z-index: 1000 !important; }
-  .modal-backdrop, .modal-backdrop.fade.show { z-index: 12050 !important; }
-  .modal { z-index: 12100 !important; }
-  .modal-dialog { z-index: 12110 !important; }
-</style>
-
 </html>
-</body>
-
-</html>
-

@@ -107,7 +107,8 @@
   position: fixed;
   bottom: 28px;
   right: 28px;
-  z-index: 2147483646;
+  /* Above #pc-fab/#pc-win so career bot stays visible when both widgets load */
+  z-index: 2147483647;
 }
 
 #cb-fab {
@@ -174,7 +175,7 @@
   border-radius: var(--cb-radius-window);
   box-shadow: var(--cb-shadow-lg);
   border: 1px solid rgba(0, 0, 0, .06);  /* crisp edge — no shadow bleed    */
-  z-index: 2147483645;
+  z-index: 2147483647;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1226,4 +1227,35 @@
   }
 
   #cb-fab-wrap { bottom: 18px; right: 18px; }
+}
+
+/* ------------------------------------------------------------------
+   Server-driven position (body classes from base.html; loads with this file)
+   ------------------------------------------------------------------ */
+body.cb-ai-pos-left #cb-fab-wrap {
+  left: 28px !important;
+  right: auto !important;
+}
+body.cb-ai-pos-left #cb-window {
+  left: 28px !important;
+  right: auto !important;
+  transform-origin: bottom left !important;
+}
+@media (max-width: 480px) {
+  body.cb-ai-pos-left #cb-fab-wrap {
+    left: 18px !important;
+    right: auto !important;
+  }
+}
+/* Both widgets on the same side: lift career counsellor FAB so pills do not overlap */
+body.cb-bots-stack #cb-fab-wrap {
+  bottom: 100px !important;
+}
+body.cb-bots-stack #cb-window {
+  bottom: 180px !important;
+}
+@media (max-width: 480px) {
+  body.cb-bots-stack #cb-fab-wrap {
+    bottom: 90px !important;
+  }
 }

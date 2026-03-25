@@ -281,6 +281,9 @@ def _match_chatbot_rule(path, base_path, include_subpages=False):
     if include_subpages:
         # include_subpages=True means this rule applies to the listing/base page
         # (already handled above) and all nested paths beneath it.
+        if base == '/':
+            # base + '/' would be '//' which never matches — treat "/" as "whole site"
+            return current != '/'
         return current.startswith(base + '/')
     return False
 
@@ -306,8 +309,11 @@ def _apply_user_analytics_chatbot_rules(
     try:
         from user_analytics.models import ChatbotPageRule
         path = request.path or '/'
+        # Apply lower priority numbers last so they win; within same priority, newer modified wins.
         rules = list(
-            ChatbotPageRule.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('priority', '-modified', '-id')
+            ChatbotPageRule.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by(
+                '-priority', 'modified', 'id'
+            )
         )
 
         has_page_chat_rules = any(r.bot_name == 'chat_this_page' for r in rules)
