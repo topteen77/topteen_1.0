@@ -26,6 +26,60 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+def _check_celery_workers_active():
+    """Best-effort check for active Celery workers."""
+    try:
+        from celery import current_app
+        inspect = current_app.control.inspect()
+        active_workers = inspect.active()
+        return bool(active_workers)
+    except Exception:
+        return False
+
+
+def link_analytics_session_to_user(session_id, user):
+    """
+    Link anonymous analytics rows to the authenticated user for attribution continuity.
+    """
+    if not session_id or not user:
+        return {'activities': 0, 'journeys': 0}
+
+    activities_updated = UserActivity.objects.filter(
+        session_id=session_id,
+        user__isnull=True,
+    ).update(user=user)
+    journeys_updated = UserJourney.objects.filter(
+        session_id=session_id,
+        user__isnull=True,
+    ).update(user=user)
+    return {'activities': activities_updated, 'journeys': journeys_updated}
+
+
+def reconcile_recent_user_events(user, session_id, minutes=20):
+    """
+    Backfill missing session_id for recent business events and refresh journey flags.
+    """
+    if not user or not session_id:
+        return 0
+    since = timezone.now() - timedelta(minutes=minutes)
+    events = UserEvent.objects.filter(
+        user=user,
+        created__gte=since,
+        session_id__isnull=True,
+    ) | UserEvent.objects.filter(
+        user=user,
+        created__gte=since,
+        session_id='',
+    )
+    updated_count = 0
+    for event in events.distinct().order_by('-created'):
+        event.session_id = session_id
+        event.save(update_fields=['session_id'])
+        update_journey_from_event(event, session_id=session_id)
+        updated_count += 1
+    return updated_count
+
+
 @shared_task
 def send_daily_new_user_report(force_send=False, override_recipients=None):
     """
@@ -587,6 +641,116 @@ def update_journey_from_event(event, session_id=None):
         logger.error(f"Error updating journey from event: {e}", exc_info=True)
 
 
+def _track_user_event_common(
+    event_type,
+    event_name,
+    user_id=None,
+    event_value=0,
+    content_type_id=None,
+    object_id=None,
+    metadata=None,
+    session_id=None,
+):
+    user = None
+    if user_id:
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            pass
+
+    from django.contrib.contenttypes.models import ContentType
+    content_type = None
+    if content_type_id:
+        try:
+            content_type = ContentType.objects.get(id=content_type_id)
+        except ContentType.DoesNotExist:
+            pass
+
+    with transaction.atomic():
+        event = UserEvent.objects.create(
+            user=user,
+            event_type=event_type,
+            event_name=event_name,
+            event_value=event_value,
+            content_type=content_type,
+            object_id=object_id,
+            metadata=metadata or {},
+            session_id=session_id,
+        )
+
+        if user and event_type in ['payment_success', 'course_enrolled', 'psychometric_test_completed']:
+            leads = Lead.objects.filter(user=user, is_converted=False)
+            for lead in leads:
+                lead.is_converted = True
+                lead.converted_at = timezone.now()
+                lead.conversion_value = float(event_value)
+                lead.save()
+
+        if session_id or event.session_id:
+            update_journey_from_event(event, session_id or event.session_id)
+
+    return event
+
+
+def track_user_event_sync(
+    event_type,
+    event_name,
+    user_id=None,
+    event_value=0,
+    content_type_id=None,
+    object_id=None,
+    metadata=None,
+    session_id=None,
+):
+    """Synchronous event tracking fallback."""
+    try:
+        event = _track_user_event_common(
+            event_type=event_type,
+            event_name=event_name,
+            user_id=user_id,
+            event_value=event_value,
+            content_type_id=content_type_id,
+            object_id=object_id,
+            metadata=metadata,
+            session_id=session_id,
+        )
+        return f"Tracked event: {event.event_name}"
+    except Exception as exc:
+        logger.error(f"Error tracking user event (sync): {exc}", exc_info=True)
+        return None
+
+
+def safe_track_user_event(
+    event_type,
+    event_name,
+    user_id=None,
+    event_value=0,
+    content_type_id=None,
+    object_id=None,
+    metadata=None,
+    session_id=None,
+):
+    """
+    Use Celery when available, otherwise run synchronously.
+    """
+    payload = {
+        'event_type': event_type,
+        'event_name': event_name,
+        'user_id': user_id,
+        'event_value': event_value,
+        'content_type_id': content_type_id,
+        'object_id': object_id,
+        'metadata': metadata,
+        'session_id': session_id,
+    }
+    try:
+        if _check_celery_workers_active():
+            return track_user_event_async.delay(**payload)
+    except Exception:
+        pass
+    return track_user_event_sync(**payload)
+
+
 @shared_task(bind=True, max_retries=3)
 def track_user_event_async(
     self,
@@ -613,49 +777,17 @@ def track_user_event_async(
         session_id: Session ID
     """
     try:
-        user = None
-        if user_id:
-            try:
-                user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                pass
-        
-        from django.contrib.contenttypes.models import ContentType
-        content_type = None
-        if content_type_id:
-            try:
-                content_type = ContentType.objects.get(id=content_type_id)
-            except ContentType.DoesNotExist:
-                pass
-        
-        with transaction.atomic():
-            event = UserEvent.objects.create(
-                user=user,
-                event_type=event_type,
-                event_name=event_name,
-                event_value=event_value,
-                content_type=content_type,
-                object_id=object_id,
-                metadata=metadata or {},
-                session_id=session_id,
-            )
-            
-            # Update lead conversion if applicable
-            if user and event_type in ['payment_success', 'course_enrolled', 'psychometric_test_completed']:
-                # Mark lead as converted
-                leads = Lead.objects.filter(user=user, is_converted=False)
-                for lead in leads:
-                    lead.is_converted = True
-                    lead.converted_at = timezone.now()
-                    lead.conversion_value = float(event_value)
-                    lead.save()
-                
-            # Update user journey from this event (synchronous call since we're already in a task)
-            if session_id or event.session_id:
-                update_journey_from_event(event, session_id or event.session_id)
-        
-        return f"Tracked event: {event_name}"
-    
+        event = _track_user_event_common(
+            event_type=event_type,
+            event_name=event_name,
+            user_id=user_id,
+            event_value=event_value,
+            content_type_id=content_type_id,
+            object_id=object_id,
+            metadata=metadata,
+            session_id=session_id,
+        )
+        return f"Tracked event: {event.event_name}"
     except Exception as exc:
         logger.error(f"Error tracking user event: {exc}", exc_info=True)
         raise self.retry(exc=exc, countdown=60)

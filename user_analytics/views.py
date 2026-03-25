@@ -6,9 +6,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Sum, Count, Avg, Q, F, OuterRef, Subquery
+from django.db.models import Sum, Count, Avg, Q, F, OuterRef, Subquery, Max
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.utils.html import format_html
@@ -34,7 +34,7 @@ from user_analytics.models import (
 )
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
-from user_analytics.tasks import track_page_view_sync, update_user_journey_sync
+from user_analytics.tasks import track_page_view_sync, update_user_journey_sync, safe_track_user_event
 from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment
@@ -1157,6 +1157,7 @@ def user_journey_view(request, user_id=None):
     """
     user_type_filter = request.GET.get('user_type', '')  # 'registered', 'organic', or ''
     goal_filter = request.GET.get('goal', '')  # 'registered', 'payment', 'test_started', 'test_completed', 'result_generated'
+    enquiry_filter = (request.GET.get('enquiry_source') or '').strip()
     time_period = request.GET.get('period', '30days')
     search_query = request.GET.get('search', '')
     page_number = request.GET.get('page', 1)
@@ -1178,7 +1179,7 @@ def user_journey_view(request, user_id=None):
             start_time__gte=start_date,
             start_time__lte=end_date
         )
-    journeys = journeys.select_related('user').order_by('-start_time')
+    journeys = journeys.select_related('user', 'enquiry_source').order_by('-start_time')
     
     # Apply user type filter
     if user_type_filter == 'registered':
@@ -1205,6 +1206,12 @@ def user_journey_view(request, user_id=None):
         elif goal_filter == 'result_generated':
             journeys = journeys.filter(result_generated=True)
             logger.info("Filtering for journeys with result generated goal")
+
+    if enquiry_filter:
+        journeys = journeys.filter(
+            Q(enquiry_source__name__icontains=enquiry_filter) |
+            Q(enquiry_source__token__icontains=enquiry_filter)
+        )
     
     # Apply search filter
     if search_query:
@@ -1240,6 +1247,7 @@ def user_journey_view(request, user_id=None):
         'user_id': user_id,
         'user_type_filter': user_type_filter,
         'goal_filter': goal_filter,
+        'enquiry_filter': enquiry_filter,
         'time_period': time_period,
         'search_query': search_query,
         'total_count': total_journeys,
@@ -2683,6 +2691,7 @@ def admin_user_analytics_view(request):
 
     time_period = request.GET.get('period', '30days')
     source_filter = (request.GET.get('source') or '').strip()
+    enquiry_filter = (request.GET.get('enquiry_source') or '').strip()
     device_filter = (request.GET.get('device') or '').strip()
     country_filter = (request.GET.get('country') or '').strip()
     traffic_category_filter = (request.GET.get('traffic_category') or '').strip()
@@ -2693,12 +2702,14 @@ def admin_user_analytics_view(request):
         country_filter = unquote(country_filter)
     if source_filter:
         source_filter = unquote(source_filter)
+    if enquiry_filter:
+        enquiry_filter = unquote(enquiry_filter)
     if device_filter:
         device_filter = unquote(device_filter)
 
     start_date, end_date = get_date_range_from_period(time_period, default_days=30)
 
-    qs = UserActivity.objects.all().select_related('user')
+    qs = UserActivity.objects.all().select_related('user', 'enquiry_source')
     if start_date is not None:
         qs = qs.filter(created__gte=start_date, created__lte=end_date)
 
@@ -2715,6 +2726,11 @@ def admin_user_analytics_view(request):
             qs = qs.filter(referrer_source_q(source_filter))
         else:
             qs = qs.filter(Q(utm_source__iexact=source_filter) | Q(referrer__icontains=source_filter))
+    if enquiry_filter:
+        qs = qs.filter(
+            Q(enquiry_source__name__icontains=enquiry_filter) |
+            Q(enquiry_source__token__icontains=enquiry_filter)
+        )
 
     if device_filter:
         qs = qs.filter(device_type__iexact=device_filter)
@@ -2729,6 +2745,7 @@ def admin_user_analytics_view(request):
             Q(page_path__icontains=search_query) |
             Q(referrer__icontains=search_query) |
             Q(utm_source__icontains=search_query) |
+            Q(enquiry_source__name__icontains=search_query) |
             Q(user__email__icontains=search_query)
         )
 
@@ -2769,6 +2786,7 @@ def admin_user_analytics_view(request):
         'activities': activities_page,
         'time_period': time_period,
         'source_filter': source_filter,
+        'enquiry_filter': enquiry_filter,
         'device_filter': device_filter,
         'country_filter': country_filter,
         'traffic_category_filter': traffic_category_filter,
@@ -2841,20 +2859,46 @@ def cleanup_analytics_data_view(request):
 
 
 # ---------- Enquiry Sources (non-readable UTM links: ?ref=TOKEN) ----------
+def _enquiry_source_attribution_q(source):
+    """Q object matching UserEvent rows attributable to this enquiry source, or None if no scope."""
+    from django.db.models import Q
+
+    source_activities = UserActivity.objects.filter(enquiry_source=source)
+    activity_session_ids = list(
+        source_activities.exclude(session_id__isnull=True).exclude(session_id='').values_list('session_id', flat=True).distinct()
+    )
+    journey_session_ids = list(
+        UserJourney.objects.filter(enquiry_source=source).exclude(session_id__isnull=True).exclude(session_id='').values_list('session_id', flat=True).distinct()
+    )
+    session_ids = sorted(set(activity_session_ids) | set(journey_session_ids))
+    source_user_ids = list(
+        source_activities.exclude(user_id__isnull=True).values_list('user_id', flat=True).distinct()
+    )
+    if not session_ids and not source_user_ids:
+        return None
+    base_scope = Q()
+    if session_ids:
+        base_scope |= Q(session_id__in=session_ids)
+    if source_user_ids:
+        base_scope |= Q(user_id__in=source_user_ids)
+    source_name_scope = Q(metadata__source=source.name)
+    return base_scope | source_name_scope
+
+
 def _enquiry_source_stats(source):
     """Return dict of visit and conversion counts for an EnquirySource.
 
     Attribution strategy:
     - Session-based: events from sessions that touched this enquiry source.
     - User-based fallback: events by users who visited via this source (covers cases where session_id is absent).
-    """
-    from django.db.models import Q
 
+    Checkout "start" counts only server-side payment_pending (Payment / PsychometricTestPayment create).
+    Client payment-status API used to duplicate with metadata.stage='started'; that row is excluded here.
+    """
     # Base activity for this source (most reliable signal for ref tracking).
     source_activities = UserActivity.objects.filter(enquiry_source=source)
     page_views = source_activities.count()
 
-    # Sessions can be stored in either UserActivity or UserJourney depending on processing path.
     activity_session_ids = list(
         source_activities.exclude(session_id__isnull=True).exclude(session_id='').values_list('session_id', flat=True).distinct()
     )
@@ -2864,17 +2908,16 @@ def _enquiry_source_stats(source):
     session_ids = sorted(set(activity_session_ids) | set(journey_session_ids))
     visit_count = len(session_ids)
 
-    # Users who have activity with this source (fallback attribution when session_id is missing in events).
     source_user_ids = list(
         source_activities.exclude(user_id__isnull=True).values_list('user_id', flat=True).distinct()
     )
 
-    # Payments attributed to this source (Traffic source = EnquirySource name on successful payments)
     payments_attributed = UserEvent.objects.filter(
         event_type='payment_success',
         metadata__source=source.name
     ).count()
-    if not session_ids and not source_user_ids:
+    attribution_q = _enquiry_source_attribution_q(source)
+    if attribution_q is None:
         return {
             'page_views': page_views,
             'visit_count': 0,
@@ -2883,21 +2926,33 @@ def _enquiry_source_stats(source):
             'payments_attributed': payments_attributed,
             'course_enrolled': 0,
             'converted_sessions': 0,
+            'payment_started': 0,
+            'payment_failed': 0,
         }
 
-    base_scope = Q()
-    if session_ids:
-        base_scope |= Q(session_id__in=session_ids)
-    if source_user_ids:
-        base_scope |= Q(user_id__in=source_user_ids)
-
-    reg = UserEvent.objects.filter(base_scope, event_type='registration').distinct().count()
-    pay = UserEvent.objects.filter(base_scope, event_type='payment_success').distinct().count()
+    reg = UserEvent.objects.filter(attribution_q, event_type='registration').distinct().count()
+    pay = UserEvent.objects.filter(attribution_q, event_type='payment_success').distinct().count()
+    payment_started = (
+        UserEvent.objects.filter(attribution_q, event_type='payment_pending')
+        .filter(Q(metadata__stage__isnull=True) | ~Q(metadata__stage='started'))
+        .distinct()
+        .count()
+    )
+    payment_failed = UserEvent.objects.filter(attribution_q, event_type='payment_failed').distinct().count()
     course = UserEvent.objects.filter(
-        base_scope,
+        attribution_q,
         event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered'],
     ).distinct().count()
-    converted = UserJourney.objects.filter(session_id__in=session_ids, converted=True).count() if session_ids else 0
+    converted = (
+        UserJourney.objects.filter(session_id__in=session_ids, converted=True)
+        .exclude(session_id__isnull=True)
+        .exclude(session_id='')
+        .values('session_id')
+        .distinct()
+        .count()
+        if session_ids
+        else 0
+    )
 
     return {
         'page_views': page_views,
@@ -2907,6 +2962,8 @@ def _enquiry_source_stats(source):
         'payments_attributed': payments_attributed,
         'course_enrolled': course,
         'converted_sessions': converted,
+        'payment_started': payment_started,
+        'payment_failed': payment_failed,
     }
 
 
@@ -2946,6 +3003,158 @@ def enquiry_sources_list_view(request):
         ),
     }
     return render(request, 'user_analytics/enquiry_sources_list.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_GET
+def enquiry_source_events_api(request):
+    """JSON list of metric rows for an enquiry source (staff). Used by enquiry sources table modal."""
+    try:
+        source_id = int(request.GET.get('source_id', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'error': 'Invalid source_id'}, status=400)
+    kind = (request.GET.get('kind') or '').strip()
+    if kind not in {
+        'page_views',
+        'sessions',
+        'registration',
+        'payment_success',
+        'payment_started',
+        'payment_failed',
+        'course_enrolled',
+        'converted_sessions',
+    }:
+        return JsonResponse({'ok': False, 'error': 'Invalid kind'}, status=400)
+    source = EnquirySource.objects.filter(pk=source_id, object_status=choices.ObjectStatus.ACTIVE).first()
+    if not source:
+        return JsonResponse({'ok': False, 'error': 'Not found'}, status=404)
+    limit = 100
+    if kind == 'page_views':
+        page_qs = UserActivity.objects.filter(enquiry_source=source).order_by('-created')
+        total = page_qs.count()
+        rows = list(page_qs[: limit + 1])
+        truncated = len(rows) > limit
+        rows = rows[:limit]
+        data_rows = [{
+            'id': r.id,
+            'created': timezone.localtime(r.created).strftime('%Y-%m-%d %H:%M:%S'),
+            'event_type': 'page_view',
+            'event_name': r.page_title or r.page_path or 'Page View',
+            'user_email': r.user.email if r.user_id else None,
+            'session_id': r.session_id or '',
+            'metadata': {
+                'page_path': r.page_path or '',
+                'referrer': r.referrer or '',
+                'utm_source': r.utm_source or '',
+                'utm_medium': r.utm_medium or '',
+            },
+        } for r in rows]
+        return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
+
+    if kind == 'sessions':
+        activity_sessions = list(
+            UserActivity.objects.filter(enquiry_source=source)
+            .exclude(session_id__isnull=True).exclude(session_id='')
+            .values('session_id')
+            .annotate(last_seen=Max('created'))
+        )
+        journey_sessions = list(
+            UserJourney.objects.filter(enquiry_source=source)
+            .exclude(session_id__isnull=True).exclude(session_id='')
+            .values('session_id')
+            .annotate(last_seen=Max('created'))
+        )
+        by_session = {}
+        for row in activity_sessions + journey_sessions:
+            sid = row['session_id']
+            seen = row['last_seen']
+            if sid not in by_session or seen > by_session[sid]:
+                by_session[sid] = seen
+        ordered = sorted(by_session.items(), key=lambda item: item[1], reverse=True)
+        total = len(ordered)
+        truncated = total > limit
+        selected = ordered[:limit]
+        data_rows = [{
+            'id': sid,
+            'created': timezone.localtime(last_seen).strftime('%Y-%m-%d %H:%M:%S'),
+            'event_type': 'session',
+            'event_name': 'Session Visit',
+            'user_email': None,
+            'session_id': sid,
+            'metadata': {},
+        } for sid, last_seen in selected]
+        return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
+
+    attribution_q = _enquiry_source_attribution_q(source)
+    if attribution_q is None:
+        return JsonResponse({'ok': True, 'events': [], 'truncated': False, 'total': 0})
+
+    if kind == 'converted_sessions':
+        session_ids = list(
+            UserActivity.objects.filter(enquiry_source=source)
+            .exclude(session_id__isnull=True).exclude(session_id='')
+            .values_list('session_id', flat=True).distinct()
+        )
+        session_ids += list(
+            UserJourney.objects.filter(enquiry_source=source)
+            .exclude(session_id__isnull=True).exclude(session_id='')
+            .values_list('session_id', flat=True).distinct()
+        )
+        converted_rows = list(
+            UserJourney.objects.filter(session_id__in=list(set(session_ids)), converted=True)
+            .exclude(session_id__isnull=True).exclude(session_id='')
+            .values('session_id')
+            .annotate(last_seen=Max('created'))
+            .order_by('-last_seen')[: limit + 1]
+        )
+        total = (
+            UserJourney.objects.filter(session_id__in=list(set(session_ids)), converted=True)
+            .exclude(session_id__isnull=True).exclude(session_id='')
+            .values('session_id')
+            .distinct()
+            .count()
+        )
+        truncated = len(converted_rows) > limit
+        converted_rows = converted_rows[:limit]
+        data_rows = [{
+            'id': row['session_id'],
+            'created': timezone.localtime(row['last_seen']).strftime('%Y-%m-%d %H:%M:%S'),
+            'event_type': 'converted_session',
+            'event_name': 'Converted Session',
+            'user_email': None,
+            'session_id': row['session_id'],
+            'metadata': {'converted': True},
+        } for row in converted_rows]
+        return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
+
+    qs = UserEvent.objects.filter(attribution_q)
+    if kind == 'registration':
+        qs = qs.filter(event_type='registration')
+    elif kind == 'payment_success':
+        qs = qs.filter(event_type='payment_success')
+    elif kind == 'payment_failed':
+        qs = qs.filter(event_type='payment_failed')
+    elif kind == 'payment_started':
+        qs = qs.filter(event_type='payment_pending').filter(Q(metadata__stage__isnull=True) | ~Q(metadata__stage='started'))
+    else:  # course_enrolled
+        qs = qs.filter(
+            event_type__in=['course_enrolled', 'skilllab_enrolled', 'psychometric_test_completed', 'institute_student_registered']
+        )
+    total = qs.distinct().count()
+    rows = list(qs.distinct().order_by('-created')[: limit + 1])
+    truncated = len(rows) > limit
+    rows = rows[:limit]
+    data_rows = [{
+        'id': ev.id,
+        'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
+        'event_type': ev.event_type,
+        'event_name': ev.event_name,
+        'user_email': ev.user.email if ev.user_id else None,
+        'session_id': ev.session_id or '',
+        'metadata': ev.metadata or {},
+    } for ev in rows]
+    return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
 
 
 @login_required
@@ -3179,6 +3388,66 @@ def enquiry_ref_hit_api(request):
     except Exception as e:
         logger.exception('enquiry_ref_hit_api failed')
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def payment_status_capture_api(request):
+    """
+    Capture client-side payment lifecycle statuses (start/cancel/error).
+    """
+    try:
+        payload = json.loads(request.body or '{}')
+    except Exception:
+        payload = {}
+
+    status_value = (payload.get('status') or '').strip().lower()
+    payment_id = payload.get('payment_id')
+    order_id = (payload.get('order_id') or '').strip()
+    gateway = (payload.get('gateway') or 'razorpay').strip().lower()
+    detail = (payload.get('detail') or '').strip()
+
+    if status_value not in {'started', 'cancel', 'error'}:
+        return JsonResponse({'ok': False, 'error': 'Invalid status'}, status=400)
+
+    payment = None
+    if payment_id:
+        payment = Payment.objects.filter(id=payment_id, user=request.user).first()
+    if not payment and order_id:
+        payment = Payment.objects.filter(gateway_order_id=order_id, user=request.user).first()
+
+    metadata = {
+        'gateway': gateway,
+        'stage': status_value,
+        'order_id': order_id or (payment.gateway_order_id if payment else ''),
+        'detail': detail,
+    }
+    content_type_id = None
+    object_id = None
+    if payment:
+        content_type = ContentType.objects.get_for_model(payment)
+        content_type_id = content_type.id
+        object_id = payment.id
+        metadata['obj_type'] = payment.get_obj_type_display() if hasattr(payment, 'get_obj_type_display') else str(payment.obj_type)
+        metadata['gateway_receipt'] = payment.gateway_receipt or ''
+
+    event_type = 'payment_pending' if status_value == 'started' else 'payment_failed'
+    event_name_map = {
+        'started': 'Payment Checkout Started',
+        'cancel': 'Payment Checkout Cancelled',
+        'error': 'Payment Checkout Error',
+    }
+    safe_track_user_event(
+        event_type=event_type,
+        event_name=event_name_map[status_value],
+        user_id=request.user.id,
+        event_value=0,
+        content_type_id=content_type_id,
+        object_id=object_id,
+        metadata=metadata,
+        session_id=request.session.get('analytics_session_id'),
+    )
+    return JsonResponse({'ok': True})
 
 
 @login_required

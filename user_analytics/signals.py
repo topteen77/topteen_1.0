@@ -3,14 +3,16 @@ Django signals to automatically track business events.
 These signals automatically create UserEvent records when specific actions occur.
 """
 from django.db.models.signals import post_save, post_delete
+from django.db import transaction
 from django.dispatch import receiver
+from django.contrib.auth.signals import user_logged_in
 from django.contrib.contenttypes.models import ContentType
 from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment, CandidateTest
 from skilllab.models import SkilllabCoursePayment
 from institute.models import StudentManagement
-from user_analytics.tasks import track_user_event_async
+from user_analytics.tasks import safe_track_user_event, link_analytics_session_to_user
 from core import choices
 import logging
 
@@ -28,11 +30,18 @@ def _get_user_source_context(user):
         from user_analytics.models import UserActivity, UserJourney
 
         recent_activity = (
-            UserActivity.objects.filter(user=user)
+            UserActivity.objects.filter(user=user, enquiry_source__isnull=False)
             .select_related('enquiry_source')
             .order_by('-created')
             .first()
         )
+        if not recent_activity:
+            recent_activity = (
+                UserActivity.objects.filter(user=user)
+                .select_related('enquiry_source')
+                .order_by('-created')
+                .first()
+            )
         if recent_activity:
             session_id = recent_activity.session_id or session_id
             if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
@@ -46,11 +55,18 @@ def _get_user_source_context(user):
 
         if not session_id:
             recent_journey = (
-                UserJourney.objects.filter(user=user)
+                UserJourney.objects.filter(user=user, enquiry_source__isnull=False)
                 .select_related('enquiry_source')
                 .order_by('-start_time')
                 .first()
             )
+            if not recent_journey:
+                recent_journey = (
+                    UserJourney.objects.filter(user=user)
+                    .select_related('enquiry_source')
+                    .order_by('-start_time')
+                    .first()
+                )
             if recent_journey:
                 session_id = recent_journey.session_id or session_id
                 if getattr(recent_journey, 'enquiry_source_id', None) and recent_journey.enquiry_source:
@@ -73,21 +89,22 @@ def track_user_registration(sender, instance, created, **kwargs):
     """
     if created:
         try:
-            session_id, source_name = _get_user_source_context(instance)
-            
-            track_user_event_async.delay(
-                event_type='registration',
-                event_name='User Registered',
-                user_id=instance.id,
-                event_value=0,
-                session_id=session_id,
-                metadata={
-                    'email': instance.email,
-                    'name': instance.name,
-                    'user_type': instance.get_user_type_display() if hasattr(instance, 'get_user_type_display') else 'Unknown',
-                    'source': source_name,
-                }
-            )
+            def _track_registration():
+                session_id, source_name = _get_user_source_context(instance)
+                safe_track_user_event(
+                    event_type='registration',
+                    event_name='User Registered',
+                    user_id=instance.id,
+                    event_value=0,
+                    session_id=session_id,
+                    metadata={
+                        'email': instance.email,
+                        'name': instance.name,
+                        'user_type': instance.get_user_type_display() if hasattr(instance, 'get_user_type_display') else 'Unknown',
+                        'source': source_name,
+                    }
+                )
+            transaction.on_commit(_track_registration)
             logger.info(f"Tracked user registration for user {instance.id}")
         except Exception as e:
             logger.error(f"Error tracking user registration: {e}", exc_info=True)
@@ -121,14 +138,17 @@ def track_payment_event(sender, instance, created, **kwargs):
             event_name = f'Payment Success - {instance.get_obj_type_display()}'
             # Payment.amount is stored in paise, convert to rupees
             event_value = float(instance.amount / 100) if hasattr(instance, 'amount') and instance.amount else 0
+            payment_stage = 'paid'
         else:
             # Check if this is a new payment (pending) or failed
             if created:
                 event_type = 'payment_pending'
                 event_name = f'Payment Pending - {instance.get_obj_type_display()}'
+                payment_stage = 'checkout_started'
             else:
                 event_type = 'payment_failed'
                 event_name = f'Payment Failed - {instance.get_obj_type_display()}'
+                payment_stage = 'gateway_error'
             event_value = 0
         
         content_type = ContentType.objects.get_for_model(instance)
@@ -139,6 +159,7 @@ def track_payment_event(sender, instance, created, **kwargs):
             'obj_type': instance.get_obj_type_display(),
             'obj_id': instance.obj_id,
             'gateway_order_id': instance.gateway_order_id or '',
+            'payment_stage': payment_stage,
         }
         
         # If this is a psychometric test payment, try to get test type info
@@ -157,7 +178,7 @@ def track_payment_event(sender, instance, created, **kwargs):
         session_id, source_name = _get_user_source_context(instance.user)
         metadata['source'] = source_name
         
-        track_user_event_async.delay(
+        safe_track_user_event(
             event_type=event_type,
             event_name=event_name,
             user_id=instance.user.id,
@@ -194,7 +215,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         content_type = ContentType.objects.get_for_model(instance)
         
         # Track payment event (include traffic source for reporting)
-        track_user_event_async.delay(
+        safe_track_user_event(
             event_type=event_type,
             event_name=event_name,
             user_id=instance.user.id,
@@ -211,7 +232,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         
         # If payment is successful, also track test started event
         if instance.is_success == choices.YesNoChoices.YES:
-            track_user_event_async.delay(
+            safe_track_user_event(
                 event_type='psychometric_test_started',
                 event_name=f'Psychometric Test Started - {instance.get_test_name()}',
                 user_id=instance.user.id,
@@ -242,7 +263,7 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
                 content_type = ContentType.objects.get_for_model(instance)
                 
                 # Track test completion
-                track_user_event_async.delay(
+                safe_track_user_event(
                     event_type='psychometric_test_completed',
                     event_name=f'Psychometric Test Completed - {payment.get_test_name()}',
                     user_id=payment.user.id,
@@ -260,7 +281,7 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
                 
                 # Track result generation (if result exists)
                 if hasattr(instance, 'result') and instance.result:
-                    track_user_event_async.delay(
+                    safe_track_user_event(
                         event_type='result_generated',
                         event_name=f'Psychometric Test Result Generated - {payment.get_test_name()}',
                         user_id=payment.user.id,
@@ -291,7 +312,7 @@ def track_skilllab_enrollment(sender, instance, created, **kwargs):
             content_type = ContentType.objects.get_for_model(instance)
             
             session_id, source_name = _get_user_source_context(instance.user)
-            track_user_event_async.delay(
+            safe_track_user_event(
                 event_type='skilllab_enrolled',
                 event_name='SkillLab Course Enrolled',
                 user_id=instance.user.id,
@@ -320,7 +341,7 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
             
             content_type = ContentType.objects.get_for_model(instance)
             
-            track_user_event_async.delay(
+            safe_track_user_event(
                 event_type='institute_student_registered',
                 event_name='Institute Student Registered',
                 user_id=instance.student.id if instance.student else None,
@@ -336,4 +357,15 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
             )
         except Exception as e:
             logger.error(f"Error tracking institute student registration: {e}", exc_info=True)
+
+
+@receiver(user_logged_in)
+def link_session_on_login(sender, request, user, **kwargs):
+    """Link anonymous analytics rows to the authenticated user on login."""
+    try:
+        session_id = request.session.get('analytics_session_id') if request else None
+        if session_id and user:
+            link_analytics_session_to_user(session_id, user)
+    except Exception:
+        pass
 

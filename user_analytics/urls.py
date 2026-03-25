@@ -70,5 +70,7 @@ urlpatterns = [
     path('api/visitors/filter-options/', views.visitors_filter_options_api, name='visitors_filter_options_api'),
     path('api/web-owner/optional-data/', views.web_owner_optional_data_api, name='web_owner_optional_data_api'),
     path('api/enquiry-ref-hit/', views.enquiry_ref_hit_api, name='enquiry_ref_hit_api'),
+    path('api/payment-status/', views.payment_status_capture_api, name='payment_status_capture_api'),
+    path('api/enquiry-source-events/', views.enquiry_source_events_api, name='enquiry_source_events_api'),
 ]
 

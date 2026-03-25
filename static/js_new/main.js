@@ -345,7 +345,7 @@
 
   if (!token) return;
 
-  const endpoint = `/user-analytics/api/enquiry-ref-hit/?ref=${encodeURIComponent(token)}&path=${encodeURIComponent(window.location.pathname)}&title=${encodeURIComponent(document.title || "")}`;
+  const endpoint = `/entry/attribution/?ref=${encodeURIComponent(token)}&path=${encodeURIComponent(window.location.pathname)}&title=${encodeURIComponent(document.title || "")}`;
   fetch(endpoint, {
     method: "GET",
     credentials: "same-origin",

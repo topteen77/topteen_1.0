@@ -4,8 +4,11 @@ Run: python manage.py test user_analytics.tests_enquiry_tracking -v 2
 """
 from django.test import TestCase, Client
 from django.urls import reverse
-from user_analytics.models import EnquirySource, UserActivity, UserJourney
+from django.utils import timezone
+from user_analytics.models import EnquirySource, UserActivity, UserJourney, UserEvent
+from user_analytics.views import _enquiry_source_stats
 from core import choices
+from users.models import User
 
 
 class EnquirySourceTrackingTest(TestCase):
@@ -44,7 +47,7 @@ class EnquirySourceTrackingTest(TestCase):
         )
 
     def test_ref_hit_api_records_activity(self):
-        url = "/user-analytics/api/enquiry-ref-hit/?ref={}&path=/skilllabcourse/test/".format(self.token)
+        url = "/entry/attribution/?ref={}&path=/skilllabcourse/test/".format(self.token)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         payload = response.json()
@@ -52,3 +55,73 @@ class EnquirySourceTrackingTest(TestCase):
         self.assertTrue(
             UserActivity.objects.filter(enquiry_source=self.source, page_path="/skilllabcourse/test/").exists()
         )
+
+    def test_payment_started_excludes_client_started_duplicates(self):
+        user = User.objects.create_user(email="dup@example.com", name="Dup", password="x12345")
+        UserActivity.objects.create(
+            enquiry_source=self.source,
+            session_id="sess-dup-1",
+            user=user,
+            page_path="/ref-landing/",
+        )
+        UserEvent.objects.create(
+            user=user,
+            event_type="payment_pending",
+            event_name="Client Started",
+            session_id="sess-dup-1",
+            metadata={"stage": "started", "source": self.source.name},
+        )
+        UserEvent.objects.create(
+            user=user,
+            event_type="payment_pending",
+            event_name="Server Started",
+            session_id="sess-dup-1",
+            metadata={"payment_stage": "checkout_started", "source": self.source.name},
+        )
+        stats = _enquiry_source_stats(self.source)
+        self.assertEqual(stats["payment_started"], 1)
+
+    def test_enquiry_source_events_api_supports_all_metric_kinds(self):
+        staff = User.objects.create_user(email="staff@example.com", name="Staff", password="x12345")
+        staff.is_staff = True
+        staff.save(update_fields=["is_staff"])
+        user = User.objects.create_user(email="metric@example.com", name="Metric", password="x12345")
+
+        UserActivity.objects.create(
+            enquiry_source=self.source,
+            session_id="sess-metric-1",
+            user=user,
+            page_path="/landing/",
+            page_title="Landing",
+        )
+        UserJourney.objects.create(
+            enquiry_source=self.source,
+            session_id="sess-metric-1",
+            user=user,
+            start_time=timezone.now(),
+            entry_page="/landing/",
+            converted=True,
+        )
+        UserEvent.objects.create(user=user, event_type="registration", event_name="Registered", session_id="sess-metric-1", metadata={})
+        UserEvent.objects.create(user=user, event_type="payment_success", event_name="Paid", session_id="sess-metric-1", metadata={})
+        UserEvent.objects.create(user=user, event_type="payment_failed", event_name="Fail", session_id="sess-metric-1", metadata={})
+        UserEvent.objects.create(user=user, event_type="payment_pending", event_name="Started", session_id="sess-metric-1", metadata={"payment_stage": "checkout_started"})
+        UserEvent.objects.create(user=user, event_type="course_enrolled", event_name="Enrolled", session_id="sess-metric-1", metadata={})
+
+        self.client.force_login(staff)
+        metric_kinds = [
+            "page_views",
+            "sessions",
+            "registration",
+            "payment_success",
+            "payment_started",
+            "payment_failed",
+            "course_enrolled",
+            "converted_sessions",
+        ]
+        for kind in metric_kinds:
+            response = self.client.get(reverse("user_analytics:enquiry_source_events_api"), {"source_id": self.source.id, "kind": kind})
+            self.assertEqual(response.status_code, 200, "kind=%s should return 200" % kind)
+            payload = response.json()
+            self.assertTrue(payload.get("ok"), "kind=%s should return ok" % kind)
+            self.assertGreaterEqual(payload.get("total", 0), 1, "kind=%s should contain rows" % kind)

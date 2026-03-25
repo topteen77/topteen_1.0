@@ -83,7 +83,7 @@
                 <i class="fas fa-external-link-alt me-1"></i> iapply.io
             </a>
             {% if source_filter %}
-            <a href="?period={{ time_period }}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="btn btn-sm btn-outline-secondary">
+            <a href="?period={{ time_period }}{% if enquiry_filter %}&enquiry_source={{ enquiry_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-times me-1"></i> Clear source
             </a>
             {% endif %}
@@ -141,6 +141,10 @@
                 <label class="form-label">Search</label>
                 <input type="text" name="search" class="form-control" placeholder="Session, email, path..." value="{{ search_query|default('') }}">
             </div>
+            <div class="col-md-2">
+                <label class="form-label">Enquiry source</label>
+                <input type="text" name="enquiry_source" class="form-control" placeholder="Name or token" value="{{ enquiry_filter|default('') }}">
+            </div>
             <div class="col-md-12">
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
@@ -155,10 +159,11 @@
     </div>
 
     <!-- Active filters -->
-    {% if source_filter or device_filter or country_filter or search_query or traffic_category_filter %}
+    {% if source_filter or enquiry_filter or device_filter or country_filter or search_query or traffic_category_filter %}
     <p class="text-muted small mb-2">
         Active:
         {% if source_filter %}<span class="badge bg-info me-1">Source: {{ source_filter }}</span>{% endif %}
+        {% if enquiry_filter %}<span class="badge bg-info me-1">Enquiry: {{ enquiry_filter }}</span>{% endif %}
         {% if device_filter %}<span class="badge bg-info me-1">Device: {{ device_filter }}</span>{% endif %}
         {% if country_filter %}<span class="badge bg-info me-1">Country: {{ country_filter }}</span>{% endif %}
         {% if traffic_category_filter %}<span class="badge bg-info me-1">Category: {{ traffic_category_filter }}</span>{% endif %}
@@ -197,7 +202,13 @@
                         </td>
                         <td><small>{{ activity.session_id[:24] if activity.session_id else 'N/A' }}{% if activity.session_id and activity.session_id|length > 24 %}...{% endif %}</small></td>
                         <td><small title="{{ activity.page_path or '' }}">{{ (activity.page_path or 'N/A')[:50] }}{% if activity.page_path and activity.page_path|length > 50 %}...{% endif %}</small></td>
-                        <td>{{ activity.utm_source or 'Direct' }}</td>
+                        <td>
+                            {% if activity.enquiry_source %}
+                                {{ activity.enquiry_source.name }}
+                            {% else %}
+                                {{ activity.utm_source or 'Direct' }}
+                            {% endif %}
+                        </td>
                         <td>{{ activity.device_type or '—' }}</td>
                         <td>{{ activity.country or '—' }}</td>
                         <td>{{ activity.city or '—' }}</td>
@@ -220,7 +231,7 @@
             <ul class="pagination justify-content-center mb-0">
                 {% if activities.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if traffic_category_filter %}&traffic_category={{ traffic_category_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ activities.previous_page_number }}">Previous</a>
+                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if enquiry_filter %}&enquiry_source={{ enquiry_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if traffic_category_filter %}&traffic_category={{ traffic_category_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ activities.previous_page_number }}">Previous</a>
                 </li>
                 {% endif %}
                 {% for num in activities.paginator.page_range %}
@@ -228,13 +239,13 @@
                     <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                     {% elif num > activities.number - 3 and num < activities.number + 3 %}
                     <li class="page-item">
-                        <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if traffic_category_filter %}&traffic_category={{ traffic_category_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ num }}">{{ num }}</a>
+                        <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if enquiry_filter %}&enquiry_source={{ enquiry_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if traffic_category_filter %}&traffic_category={{ traffic_category_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ num }}">{{ num }}</a>
                     </li>
                     {% endif %}
                 {% endfor %}
                 {% if activities.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if traffic_category_filter %}&traffic_category={{ traffic_category_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ activities.next_page_number }}">Next</a>
+                    <a class="page-link" href="?period={{ time_period }}{% if source_filter %}&source={{ source_filter|urlencode }}{% endif %}{% if enquiry_filter %}&enquiry_source={{ enquiry_filter|urlencode }}{% endif %}{% if device_filter %}&device={{ device_filter|urlencode }}{% endif %}{% if country_filter %}&country={{ country_filter|urlencode }}{% endif %}{% if traffic_category_filter %}&traffic_category={{ traffic_category_filter|urlencode }}{% endif %}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ activities.next_page_number }}">Next</a>
                 </li>
                 {% endif %}
             </ul>

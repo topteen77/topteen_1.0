@@ -326,6 +326,14 @@
   }
   const userAuthenticated = {% if user_authenticated %}true{% else %}false{% endif %};
   const loginUrl = "{{ url('counselor:login') }}?next=" + encodeURIComponent("{{ url('counselor:CounselorCoursepayment') }}");
+  function capturePaymentStatus(payload) {
+    fetch('/user-analytics/api/payment-status/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify(payload),
+      credentials: 'same-origin'
+    }).catch(function() {});
+  }
 
   function handlePaymentClick(e) {
     if (e) e.preventDefault();
@@ -335,7 +343,10 @@
       } else { window.location.href = loginUrl; }
       return false;
     }
-    if (typeof rzp1 !== 'undefined' && rzp1) rzp1.open();
+    if (typeof rzp1 !== 'undefined' && rzp1) {
+      /* checkout start is recorded server-side when Payment is created */
+      rzp1.open();
+    }
   }
 
   var options = null;
@@ -366,6 +377,13 @@
   rzp1.on('payment.failed', function (response) {
     const failUrl = "{{ counselor_course_payment_fail_url|default('') }}";
     const desc = (response.error && response.error.description) || 'Payment could not be processed.';
+    capturePaymentStatus({
+      status: 'error',
+      gateway: 'razorpay',
+      payment_id: {% if payment_record_id %}{{ payment_record_id }}{% else %}null{% endif %},
+      order_id: "{{ payment.id if payment else '' }}",
+      detail: desc,
+    });
     (typeof Swal !== 'undefined' && Swal.fire({ title: 'Payment Failed', text: desc, icon: 'error' }).then(function(r){ if (r.isConfirmed) window.location.href = failUrl || "{{ url('counselor:CounselorCoursepayment') }}"; }));
   });
   {% endif %}

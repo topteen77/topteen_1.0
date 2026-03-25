@@ -110,17 +110,82 @@
                             <span class="text-muted small">Set base URL</span>
                             {% endif %}
                         </td>
-                        <td class="text-end" title="UserActivity with this source">{{ item.stats.page_views }}</td>
-                        <td class="text-end" title="UserJourney (sessions) with this source">{{ item.stats.visit_count }}</td>
-                        <td class="text-end">{{ item.stats.registrations }}</td>
-                        <td class="text-end">
-                            <span title="Payments in sessions from this link">{{ item.stats.payment_success }}</span>
-                            {% if item.source.name %}
-                            | <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days&amp;source={{ item.source.name|urlencode }}" class="small" title="Payments attributed to this source (Traffic source = {{ item.source.name }})">View ({{ item.stats.payments_attributed }})</a>
+                        <td class="text-end" title="UserActivity with this source">
+                            {% if item.stats.page_views > 0 %}
+                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                               data-source-id="{{ item.source.id }}" data-kind="page_views" data-label="Page views ({{ item.source.name }})"
+                               title="Show page views">{{ item.stats.page_views }}</a>
+                            {% else %}
+                            0
                             {% endif %}
                         </td>
-                        <td class="text-end">{{ item.stats.course_enrolled }}</td>
-                        <td class="text-end">{{ item.stats.converted_sessions }}</td>
+                        <td class="text-end" title="UserJourney (sessions) with this source">
+                            {% if item.stats.visit_count > 0 %}
+                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                               data-source-id="{{ item.source.id }}" data-kind="sessions" data-label="Sessions ({{ item.source.name }})"
+                               title="Show sessions">{{ item.stats.visit_count }}</a>
+                            {% else %}
+                            0
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if item.stats.registrations > 0 %}
+                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                               data-source-id="{{ item.source.id }}" data-kind="registration" data-label="Registrations ({{ item.source.name }})"
+                               title="Show registrations">{{ item.stats.registrations }}</a>
+                            {% else %}
+                            0
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if item.stats.payment_success > 0 %}
+                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                               data-source-id="{{ item.source.id }}" data-kind="payment_success" data-label="Successful payments (this source)"
+                               title="Show events">{{ item.stats.payment_success }}</a>
+                            {% else %}
+                            0
+                            {% endif %}
+                            <small class="d-block text-muted">start:
+                                {% if item.stats.payment_started > 0 %}
+                                <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_started" data-label="Checkout started (server)"
+                                   title="Show events">{{ item.stats.payment_started }}</a>
+                                {% else %}0{% endif %}
+                                | fail:
+                                {% if item.stats.payment_failed > 0 %}
+                                <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                                   data-source-id="{{ item.source.id }}" data-kind="payment_failed" data-label="Payment failed / cancelled"
+                                   title="Show events">{{ item.stats.payment_failed }}</a>
+                                {% else %}0{% endif %}
+                            </small>
+                            {% if item.source.name %}
+                            <span class="d-block small">|
+                                {% if item.stats.payments_attributed > 0 %}
+                                <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days&amp;source={{ item.source.name|urlencode }}" title="Payments with traffic source = {{ item.source.name }}">View ({{ item.stats.payments_attributed }})</a>
+                                {% else %}
+                                View (0)
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if item.stats.course_enrolled > 0 %}
+                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                               data-source-id="{{ item.source.id }}" data-kind="course_enrolled" data-label="Enrolled ({{ item.source.name }})"
+                               title="Show enrollments">{{ item.stats.course_enrolled }}</a>
+                            {% else %}
+                            0
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if item.stats.converted_sessions > 0 %}
+                            <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
+                               data-source-id="{{ item.source.id }}" data-kind="converted_sessions" data-label="Converted sessions ({{ item.source.name }})"
+                               title="Show converted sessions">{{ item.stats.converted_sessions }}</a>
+                            {% else %}
+                            0
+                            {% endif %}
+                        </td>
                         <td>
                             <a href="{{ url('user_analytics:enquiry_source_edit', kwargs={'pk': item.source.id}) }}" class="btn btn-sm btn-outline-primary" title="Edit">Edit</a>
                             <form method="post" action="{{ url('user_analytics:enquiry_source_delete', kwargs={'pk': item.source.id}) }}" class="d-inline" onsubmit="return confirm('Deactivate this enquiry source?');">
@@ -142,7 +207,76 @@
     </div>
 </div>
 
+<div class="modal fade" id="enquiryEventsModal" tabindex="-1" aria-labelledby="enquiryEventsModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="enquiryEventsModalTitle">Events</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="enquiryEventsModalBody">
+                <p class="text-muted small mb-0">Loading…</p>
+            </div>
+            <div class="modal-footer">
+                <span class="small text-muted me-auto" id="enquiryEventsModalFooter"></span>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+var enquiryEventsApiUrl = "{{ url('user_analytics:enquiry_source_events_api') }}";
+window.addEventListener('load', function() {
+    var modalEl = document.getElementById('enquiryEventsModal');
+    var bodyEl = document.getElementById('enquiryEventsModalBody');
+    var titleEl = document.getElementById('enquiryEventsModalTitle');
+    var footerEl = document.getElementById('enquiryEventsModalFooter');
+    if (!modalEl || !bodyEl || typeof bootstrap === 'undefined') return;
+    var modal = new bootstrap.Modal(modalEl);
+    function escapeHtml(s) {
+        if (s == null || s === '') return '';
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+    document.querySelectorAll('.enquiry-metric-link').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var sid = this.getAttribute('data-source-id');
+            var kind = this.getAttribute('data-kind');
+            var label = this.getAttribute('data-label') || kind;
+            titleEl.textContent = label;
+            footerEl.textContent = '';
+            bodyEl.innerHTML = '<p class="text-muted small mb-0">Loading…</p>';
+            modal.show();
+            var u = enquiryEventsApiUrl + '?source_id=' + encodeURIComponent(sid) + '&kind=' + encodeURIComponent(kind);
+            fetch(u, { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.ok) {
+                        bodyEl.innerHTML = '<p class="text-danger small mb-0">' + escapeHtml(data.error || 'Failed to load.') + '</p>';
+                        return;
+                    }
+                    if (!data.events || !data.events.length) {
+                        bodyEl.innerHTML = '<p class="text-muted small mb-0">No matching events.</p>';
+                        return;
+                    }
+                    var rows = data.events.map(function(ev) {
+                        var meta = ev.metadata ? JSON.stringify(ev.metadata, null, 2) : '';
+                        return '<tr><td class="small text-nowrap">' + escapeHtml(ev.created) + '</td><td class="small">' + escapeHtml(ev.event_name || '') + '</td><td class="small">' + escapeHtml(ev.user_email || '—') + '</td><td class="small text-break">' + escapeHtml(ev.session_id || '—') + '</td><td><pre class="small mb-0 bg-light p-2 rounded" style="max-height:140px;overflow:auto;white-space:pre-wrap">' + escapeHtml(meta) + '</pre></td></tr>';
+                    }).join('');
+                    bodyEl.innerHTML = '<div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>When</th><th>Event</th><th>User</th><th>Session</th><th>Metadata</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+                    var foot = (typeof data.total === 'number' ? 'Showing ' + data.events.length + ' of ' + data.total + '.' : '');
+                    if (data.truncated) foot += (foot ? ' ' : '') + 'List capped at 100 rows.';
+                    footerEl.textContent = foot;
+                })
+                .catch(function() {
+                    bodyEl.innerHTML = '<p class="text-danger small mb-0">Request failed.</p>';
+                });
+        });
+    });
+});
 document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         var url = this.getAttribute('data-url');

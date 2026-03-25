@@ -69,6 +69,10 @@
                 <label class="form-label">Search</label>
                 <input type="text" name="search" class="form-control" placeholder="Search by user email, session ID, page..." value="{{ search_query|default('') }}">
             </div>
+            <div class="col-md-2">
+                <label class="form-label">Enquiry source</label>
+                <input type="text" name="enquiry_source" class="form-control" placeholder="Name or token" value="{{ enquiry_filter|default('') }}">
+            </div>
             <div class="col-md-3">
                 <label class="form-label">&nbsp;</label>
                 <div class="d-flex gap-2">
@@ -172,7 +176,7 @@
                                 </a>
                             </small>
                         </td>
-                        <td>{{ journey.utm_source or 'Direct' }}</td>
+                        <td>{{ journey.enquiry_source.name if journey.enquiry_source else (journey.utm_source or 'Direct') }}</td>
                         <td>{{ journey.device_type or 'Unknown' }}</td>
                         <td>{{ journey.country or 'Unknown' }}</td>
                         <td>
@@ -274,7 +278,7 @@
             <ul class="pagination justify-content-center">
                 {% if journeys.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ journeys.previous_page_number }}">Previous</a>
+                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&enquiry_source={{ enquiry_filter|urlencode }}&page={{ journeys.previous_page_number }}">Previous</a>
                 </li>
                 {% endif %}
                 
@@ -285,14 +289,14 @@
                     </li>
                     {% elif num > (journeys.number - 3) and num < (journeys.number + 3) %}
                     <li class="page-item">
-                        <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ num }}">{{ num }}</a>
+                        <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&enquiry_source={{ enquiry_filter|urlencode }}&page={{ num }}">{{ num }}</a>
                     </li>
                     {% endif %}
                 {% endfor %}
                 
                 {% if journeys.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&page={{ journeys.next_page_number }}">Next</a>
+                    <a class="page-link" href="?period={{ time_period }}&user_type={{ user_type_filter|urlencode }}&goal={{ goal_filter|urlencode }}&search={{ search_query|urlencode }}&enquiry_source={{ enquiry_filter|urlencode }}&page={{ journeys.next_page_number }}">Next</a>
                 </li>
                 {% endif %}
             </ul>

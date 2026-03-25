@@ -53,6 +53,17 @@ from institute.models import Institute, InstituteGroup, InstituteMarketingGroup,
 from django.middleware.csrf import get_token
 # from .forms import InstituteRegistrationForm
 import re
+from user_analytics.tasks import link_analytics_session_to_user
+
+
+def _link_current_analytics_session(request, user):
+    """Attach pre-login anonymous analytics rows to the newly created/logged-in user."""
+    try:
+        session_id = request.session.get('analytics_session_id')
+        if session_id and user:
+            link_analytics_session_to_user(session_id, user)
+    except Exception:
+        pass
 
 # def create_institute(request):
 #     if request.method == 'POST':      
@@ -1507,6 +1518,7 @@ class SignUpPassword(APIView):
                     # Set password manually since create_user doesn't use the password parameter
                     user.set_password(pwd)
                     user.save()
+                    _link_current_analytics_session(request, user)
                     
                     print(f"✅ User created successfully: {user.email or user.mobile}, ID: {user.id}")
                 except Exception as create_error:
@@ -1541,6 +1553,7 @@ class SignUpPassword(APIView):
                         from django.contrib.auth import login
                         # Specify backend since multiple backends are configured
                         login(request, user, backend='users.backends.CustomUserBackend')
+                        _link_current_analytics_session(request, user)
                     except Exception as login_error:
                         # Log but don't fail - user is already created
                         import traceback

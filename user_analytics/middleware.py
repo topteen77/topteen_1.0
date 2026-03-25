@@ -13,7 +13,9 @@ from user_analytics.tasks import (
     track_page_view_async, 
     update_user_journey_async,
     track_page_view_sync,
-    update_user_journey_sync
+    update_user_journey_sync,
+    link_analytics_session_to_user,
+    reconcile_recent_user_events,
 )
 import logging
 
@@ -36,7 +38,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
             return None
         # Skip tracking for admin, static files, and API endpoints
         path = request.path
-        skip_paths = ['/admin/', '/static/', '/media/', '/api/', '/analytics/api/', '/user-analytics/api/']
+        skip_paths = ['/admin/', '/static/', '/media/', '/api/', '/analytics/api/', '/user-analytics/api/', '/entry/attribution/']
         
         if any(path.startswith(skip) for skip in skip_paths):
             return None
@@ -142,6 +144,11 @@ class AnalyticsMiddleware(MiddlewareMixin):
             return response
 
         try:
+            session_id = request.analytics_data.get('session_id')
+            if request.user.is_authenticated and session_id:
+                link_analytics_session_to_user(session_id, request.user)
+                reconcile_recent_user_events(request.user, session_id)
+
             page_title = getattr(response, 'page_title', '')
 
             # Check if Celery worker is running with a short timeout to avoid blocking (prevents 502)

@@ -19,6 +19,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.conf.urls import handler404
 from users import views as users_views
+from user_analytics import views as user_analytics_views
 from core import views as core_views
 from core.seo_views import robots_txt, sitemap_xml
 from core.sitemaps import (
@@ -92,6 +93,7 @@ urlpatterns = [
     path("counselor/",include('counselor.urls',namespace='counselor')),
     path('analytics/', include('analytics_dashboard.urls')),
     path('user-analytics/', include('user_analytics.urls', namespace='user_analytics')),
+    path('entry/attribution/', user_analytics_views.enquiry_ref_hit_api, name='entry_attribution'),
     path('forum/', include('forum.urls', namespace='forum')),
     path('seo-dashboard/', include('seo_dashboard.urls', namespace='seo_dashboard')),
 

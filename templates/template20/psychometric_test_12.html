@@ -1148,13 +1148,30 @@ Test. Make informed decisions and choose the right career path.
   
   function openRazorpay(data) {
     if (typeof Razorpay === 'undefined') { alert('Razorpay is loading. Please try again.'); return; }
+    function capturePaymentStatus(status, detail) {
+      fetch('/user-analytics/api/payment-status/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({
+          status: status,
+          gateway: 'razorpay',
+          payment_id: data.pay_id,
+          order_id: (data.payment_info && data.payment_info.order_id) || '',
+          detail: detail || '',
+        }),
+        credentials: 'same-origin'
+      }).catch(function() {});
+    }
+
     data.payment_info.handler = function(response) {
       updatePayment(data.test_id, data.pay_id, data.test_type, response, data.success_url, data.fail_url);
     };
-    data.payment_info.modal = { ondismiss: function() { window.location.href = data.fail_url; } };
+    data.payment_info.modal = { ondismiss: function() { capturePaymentStatus('cancel', 'checkout_dismissed'); window.location.href = data.fail_url; } };
     var rzp1 = new Razorpay(data.payment_info);
+    /* checkout start is recorded server-side when Payment / PsychometricTestPayment is created */
     rzp1.open();
     rzp1.on('payment.failed', function(response) {
+      capturePaymentStatus('error', (response.error && (response.error.description || response.error.code)) || 'payment_failed');
       alert('Payment failed: ' + (response.error.description || response.error.code));
       window.location.href = data.fail_url;
     });

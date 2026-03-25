@@ -64,6 +64,23 @@
     if (typeof Razorpay === 'undefined') {
       return;
     }
+    function capturePaymentStatus(status, detail) {
+      fetch('/user-analytics/api/payment-status/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          status: status,
+          gateway: 'razorpay',
+          payment_id: paymentId,
+          order_id: paymentInfo.order_id || '',
+          detail: detail || '',
+        }),
+        credentials: 'same-origin'
+      }).catch(function() {});
+    }
 
     // Create a copy of paymentInfo to avoid modifying the original
     const rzpOptions = Object.assign({}, paymentInfo);
@@ -77,6 +94,7 @@
     // Add modal dismiss handler
     rzpOptions['modal'] = {
       'ondismiss': function() {
+        capturePaymentStatus('cancel', 'checkout_dismissed');
         window.location.href = failUrl;
       }
     };
@@ -86,11 +104,12 @@
       
       // Handle payment failure
       rzp1.on('payment.failed', function (response) {
+        capturePaymentStatus('error', (response.error && (response.error.description || response.error.code)) || 'payment_failed');
         alert('Payment failed: ' + (response.error.description || response.error.code));
         window.location.href = failUrl;
       });
 
-      // Open Razorpay checkout
+      // Open Razorpay checkout (checkout start recorded server-side on Payment create)
       rzp1.open();
     } catch (error) {
       alert('Error opening payment gateway: ' + error.message);
