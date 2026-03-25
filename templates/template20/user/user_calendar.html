@@ -12,35 +12,161 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .user-calendar-page {
-    padding-top: 80px;
+    padding-top: 47px;
   }
+
   #calendar {
     max-width: 1280px;
     margin: 0 auto;
   }
-  .fc-event {
-    background-color: #3f37c9;
-    border-color: #3f37c9;
+
+  /* Modern FullCalendar styling (scoped to this page only) */
+  #calendar {
+    background: #ffffff;
+    border: 1px solid rgba(31, 41, 55, 0.12);
+    border-radius: 14px;
+    padding: 16px 14px;
+    box-shadow: 0 10px 30px rgba(31, 41, 55, 0.06);
   }
-  .fc-button-primary {
-    background-color: #3f37c9;
-    border-color: #3f37c9;
+
+  #calendar .fc {
+    --fc-border-color: rgba(31, 41, 55, 0.12);
+    --fc-today-bg-color: rgba(63, 55, 201, 0.06);
   }
-  .fc-button-primary:hover {
-    background-color: #2e289d;
-    border-color: #2e289d;
+
+  #calendar .fc-toolbar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
   }
+
+  #calendar .fc .fc-button {
+    border-radius: 10px !important;
+    border: 1px solid rgba(31, 41, 55, 0.12) !important;
+    padding: 7px 12px !important;
+    font-weight: 600 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+  }
+
+  #calendar .fc .fc-button:disabled {
+    opacity: 0.5 !important;
+  }
+
+  #calendar .fc .fc-button-primary {
+    background-color: #3f37c9 !important;
+    border-color: #3f37c9 !important;
+    color: #ffffff !important;
+  }
+
+  #calendar .fc .fc-button-primary:hover {
+    background-color: #2e289d !important;
+    border-color: #2e289d !important;
+    color: #ffffff !important;
+  }
+
+  #calendar .fc-col-header-cell-cushion {
+    font-weight: 700 !important;
+    color: rgba(17, 24, 39, 0.85);
+    padding: 10px 0 !important;
+  }
+
+  /* Make events look like clean "pills" inside each day box */
+  #calendar .fc-daygrid-event {
+    border-radius: 10px !important;
+    border: 0 !important;
+    background: linear-gradient(180deg, rgba(63, 55, 201, 0.98), rgba(46, 40, 157, 0.98)) !important;
+    box-shadow: 0 6px 16px rgba(63, 55, 201, 0.22) !important;
+    cursor: pointer;
+  }
+
+  #calendar .fc-timegrid-event {
+    border-radius: 10px !important;
+    border: 0 !important;
+    background: linear-gradient(180deg, rgba(63, 55, 201, 0.98), rgba(46, 40, 157, 0.98)) !important;
+    box-shadow: 0 6px 16px rgba(63, 55, 201, 0.22) !important;
+    cursor: pointer;
+  }
+
+  #calendar .fc-daygrid-event .fc-content {
+    padding: 2px 6px !important;
+  }
+
+  #calendar .fc-timegrid-event .fc-content {
+    padding: 2px 6px !important;
+  }
+
+  #calendar .fc-daygrid-event .fc-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    font-weight: 700;
+    font-size: 12px;
+    color: #ffffff !important;
+    line-height: 16px;
+  }
+
+  #calendar .fc-timegrid-event .fc-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    font-weight: 700;
+    font-size: 12px;
+    color: #ffffff !important;
+    line-height: 16px;
+  }
+
+  /* Improve day cell spacing + ensure event stack doesn't feel cramped */
+  #calendar .fc-daygrid-day-frame {
+    border-color: rgba(31, 41, 55, 0.08) !important;
+  }
+
+  #calendar .fc-daygrid-day-number {
+    color: rgba(17, 24, 39, 0.9) !important;
+    padding: 8px !important;
+    font-weight: 700;
+  }
+
+  #calendar .fc-daygrid-day-events {
+    padding: 0 8px 8px 8px !important;
+  }
+
+  #calendar .fc-daygrid-day-events .fc-event {
+    margin-top: 4px !important;
+  }
+
+  #calendar .fc-daygrid-day-bg .fc-highlight {
+    background: rgba(63, 55, 201, 0.06) !important;
+  }
+
+  #calendar .fc-more-link {
+    border-radius: 10px !important;
+    padding: 4px 10px !important;
+    background: rgba(63, 55, 201, 0.09) !important;
+    border: 1px solid rgba(63, 55, 201, 0.22) !important;
+    color: #3f37c9 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+  }
+
   /* Fix modal z-index to ensure it appears above backdrop */
   .modal {
     z-index: 1055 !important;
   }
+
   .modal-backdrop {
     z-index: 1050 !important;
   }
+
   /* Ensure modal content is clickable */
   .modal.show {
     display: block !important;
   }
+
   .modal-dialog {
     z-index: 1056 !important;
   }
@@ -52,13 +178,13 @@
   <div class="container">
     <div class="row g-4 pt-4">
       <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-4 d-none d-lg-block">
+      <div class="col-lg-3 d-none d-lg-block">
         {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
       <!-- End of Left part Desktop -->
 
       <!-- Right Part - Calendar Content -->
-      <div class="col-lg-8">
+      <div class="col-lg-9">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -71,9 +197,9 @@
 
         <!-- Mobile Header -->
         <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
+          <a href="{{ url('users:userdashboard') }}" class="btn btn-link position-absolute start-0 top-0 text-decoration-none">
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
-          </button>
+          </a>
           <h2 class="fs-16 fw-normal text-center mb-0">Your Calendar</h2>
         </div>
 
@@ -98,32 +224,21 @@
           <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
           <div class="mb-3">
             <label for="eventName" class="form-label">Event Name</label>
-            <input type="text" 
-                   name="event_name" 
-                   id="eventName" 
-                   class="form-control custom-input" 
-                   placeholder="Enter event name" 
-                   required>
+            <input type="text" name="event_name" id="eventName" class="form-control custom-input"
+              placeholder="Enter event name" required>
           </div>
           <div class="mb-3">
             <label for="eventStart" class="form-label">Start Date</label>
-            <input type="date" 
-                   name="event_start" 
-                   id="eventStart" 
-                   class="form-control custom-input startDateIp" 
-                   required>
+            <input type="date" name="event_start" id="eventStart" class="form-control custom-input startDateIp"
+              required>
           </div>
           <div class="mb-3">
             <label for="eventEnd" class="form-label">End Date</label>
-            <input type="date" 
-                   name="event_end" 
-                   id="eventEnd" 
-                   class="form-control custom-input endDateIp" 
-                   required>
+            <input type="date" name="event_end" id="eventEnd" class="form-control custom-input endDateIp" required>
           </div>
           <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn custom-button purple-button">Submit</button>
+            <button type="button" class="btn btn-secondary py-3" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn custom-button purple-button py-3">Submit</button>
           </div>
         </form>
       </div>
@@ -143,8 +258,77 @@
         <p class="mb-0">Are you sure you want to delete this event?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-        <a href="#" id="confirmDeleteEventLink" class="btn custom-button purple-button">Yes, Delete</a>
+        <button type="button" class="btn btn-secondary py-3" data-bs-dismiss="modal">No</button>
+        <a href="#" id="confirmDeleteEventLink" class="btn custom-button purple-button py-3">Yes, Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex flex-column gap-1">
+          <h5 class="modal-title">Event Details</h5>
+          <div class="text-muted fs-12" id="eventDetailsDateRange"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="border rounded-3 p-3">
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <div class="min-w-0">
+              <div class="text-muted fs-12">Title</div>
+              <div class="fw-semibold text-truncate" id="eventDetailsName"></div>
+            </div>
+            <div class="badge rounded-pill" style="background: rgba(63,55,201,.1); color:#3f37c9; font-weight:700;">
+              <span id="eventDetailsIdShort"></span>
+            </div>
+          </div>
+
+          <hr class="my-3" />
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="text-muted fs-12">Start</div>
+              <div class="fw-semibold" id="eventDetailsStart"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted fs-12">End</div>
+              <div class="fw-semibold" id="eventDetailsEnd"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 text-muted fs-12">
+          Tip: Click <strong>Delete</strong> to remove this event.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary py-3" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn custom-button purple-button py-3" id="eventDetailsDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Show all events for a day Modal -->
+<div class="modal fade" id="dayEventsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dayEventsModalTitle">Events</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="dayEventsEmpty" class="text-center text-muted py-4 d-none">
+          No events found for this date.
+        </div>
+        <div id="dayEventsList" class="list-group list-group-flush"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -160,18 +344,17 @@
 
 <script>
   // Calendar events data
-  let calendarEvents = [
-    {% if events %}
-    {% for event in events %}
-    {
-      id: "{{ event.id }}",
-      title: "{{ event.event_name }}",
-      start: "{{ event.start_date }}",
-      end: "{{ event.end_date }}",
-    },
-    {% endfor %}
-    {% endif %}
-  ];
+  let calendarEvents = [];
+  {% if events %}
+  {% for event in events %}
+  calendarEvents.push({
+    id: "{{ event.id }}",
+    title: "{{ event.event_name }}",
+    start: "{{ event.start_date }}",
+    end: "{{ event.end_date }}"
+  });
+  {% endfor %}
+  {% endif %}
 
   // Wait for all dependencies to be loaded
   function initCalendar() {
@@ -181,7 +364,7 @@
       setTimeout(initCalendar, 100);
       return;
     }
-    
+
     if (typeof bootstrap === 'undefined' && typeof $ === 'undefined') {
       console.log('Waiting for Bootstrap...');
       setTimeout(initCalendar, 100);
@@ -198,13 +381,81 @@
     const endDateInput = document.getElementById('eventEnd');
     const addEventModal = document.getElementById('addEventModal');
     const deleteEventModal = document.getElementById('deleteEventModal');
-    
-    if (!startDateInput || !endDateInput || !addEventModal || !deleteEventModal) {
+    const eventDetailsModal = document.getElementById('eventDetailsModal');
+    const dayEventsModal = document.getElementById('dayEventsModal');
+
+    if (!startDateInput || !endDateInput || !addEventModal || !deleteEventModal || !eventDetailsModal || !dayEventsModal) {
       console.error('Required modal elements not found');
       return;
     }
 
     let eventToDelete = null;
+    let dayEventsLoaded = false;
+
+    const eventDetailsName = document.getElementById('eventDetailsName');
+    const eventDetailsStart = document.getElementById('eventDetailsStart');
+    const eventDetailsEnd = document.getElementById('eventDetailsEnd');
+    const eventDetailsIdShort = document.getElementById('eventDetailsIdShort');
+    const eventDetailsDateRange = document.getElementById('eventDetailsDateRange');
+    const eventDetailsDeleteBtn = document.getElementById('eventDetailsDeleteBtn');
+
+    const dayEventsModalTitle = document.getElementById('dayEventsModalTitle');
+    const dayEventsList = document.getElementById('dayEventsList');
+    const dayEventsEmpty = document.getElementById('dayEventsEmpty');
+    const confirmDeleteEventLink = document.getElementById('confirmDeleteEventLink');
+
+    if (!eventDetailsName || !eventDetailsStart || !eventDetailsEnd || !eventDetailsIdShort || !eventDetailsDateRange ||
+      !eventDetailsDeleteBtn || !dayEventsModalTitle || !dayEventsList || !dayEventsEmpty || !confirmDeleteEventLink) {
+      console.error('Required calendar details DOM elements not found');
+      return;
+    }
+
+    function showBsModal(modalEl) {
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+          modal.show();
+          return true;
+        }
+      } catch (e) {
+        console.error('Bootstrap modal show failed:', e);
+      }
+      try {
+        if (typeof $ !== 'undefined' && $.fn.modal) {
+          $(modalEl).modal('show');
+          return true;
+        }
+      } catch (e2) {
+        console.error('jQuery modal show failed:', e2);
+      }
+      return false;
+    }
+
+    function formatDateForLabel(dateStr) {
+      if (!dateStr) return '';
+      // Expected YYYY-MM-DD.
+      const safe = String(dateStr);
+      if (safe.length >= 10) return safe.substring(0, 10);
+      return safe;
+    }
+
+    function openEventDetails(fcEvent) {
+      eventToDelete = fcEvent.id;
+
+      const startText = formatDateForLabel(fcEvent.startStr);
+      const endText = formatDateForLabel(fcEvent.endStr);
+      const endOrFallback = endText || startText;
+
+      eventDetailsName.textContent = fcEvent.title || '-';
+      eventDetailsStart.textContent = startText || '-';
+      eventDetailsEnd.textContent = endOrFallback || '-';
+      eventDetailsIdShort.textContent = (fcEvent.id || '').toString().slice(0, 6);
+      eventDetailsDateRange.textContent = (startText && endText && startText !== endText)
+        ? `${startText} - ${endText}`
+        : `${startText}`;
+
+      showBsModal(eventDetailsModal);
+    }
 
     // Initialize FullCalendar
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -216,8 +467,11 @@
       initialView: 'dayGridMonth',
       events: calendarEvents,
       eventColor: '#3f37c9',
-      displayEventTime: true,
-      dateClick: function(info) {
+      displayEventTime: false,
+      eventDisplay: 'block',
+      dayMaxEvents: 6,
+      dayMaxEventRows: 3,
+      dateClick: function (info) {
         // Check if date is in the past
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -237,7 +491,7 @@
         // Set start date and open modal
         startDateInput.value = info.dateStr;
         endDateInput.value = info.dateStr;
-        
+
         // Try Bootstrap 5 first, then fallback to jQuery/Bootstrap 4
         try {
           if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -248,7 +502,7 @@
             });
             modal.show();
             // Ensure modal is above backdrop
-            setTimeout(function() {
+            setTimeout(function () {
               addEventModal.style.zIndex = '1055';
               const backdrop = document.querySelector('.modal-backdrop');
               if (backdrop) {
@@ -288,30 +542,70 @@
           }
         }
       },
-      eventClick: function(info) {
-        eventToDelete = info.event.id;
-        
-        // Try Bootstrap 5 first, then fallback to jQuery/Bootstrap 4
+      eventClick: function (info) {
+        openEventDetails(info.event);
+      },
+      moreLinkClick: function (info) {
+        // Prevent FullCalendar default popover so we can show a proper modal list.
         try {
-          if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            const modal = new bootstrap.Modal(deleteEventModal);
-            modal.show();
-          } else if (typeof $ !== 'undefined' && $.fn.modal) {
-            $(deleteEventModal).modal('show');
-          } else {
-            console.error('Bootstrap modal not available');
+          if (info && info.jsEvent) {
+            info.jsEvent.preventDefault();
+            info.jsEvent.stopPropagation();
           }
-        } catch (e) {
-          console.error('Error opening delete modal:', e);
-          // Fallback to jQuery/Bootstrap 4
-          if (typeof $ !== 'undefined' && $.fn.modal) {
-            try {
-              $(deleteEventModal).modal('show');
-            } catch (e2) {
-              console.error('Error with jQuery delete modal:', e2);
-            }
-          }
+        } catch (e) { }
+
+        const dateStr = info.dateStr || (info.date && info.dateStr) || '';
+        const dayTitle = dateStr ? `Events on ${formatDateForLabel(dateStr)}` : 'Events';
+        dayEventsModalTitle.textContent = dayTitle;
+
+        // Clear previous list.
+        dayEventsList.innerHTML = '';
+        dayEventsEmpty.classList.add('d-none');
+
+        // Collect all calendar events that overlap this day.
+        const dayStart = new Date(dateStr + 'T00:00:00');
+        const dayEndExclusive = new Date(dayStart);
+        dayEndExclusive.setDate(dayEndExclusive.getDate() + 1);
+
+        const eventsForDay = calendar.getEvents().filter((ev) => {
+          const evStart = ev.start;
+          const evEnd = ev.end || ev.start;
+          // Overlap check (end is treated as exclusive for all-day events)
+          return evStart < dayEndExclusive && evEnd > dayStart;
+        });
+
+        if (!eventsForDay.length) {
+          dayEventsEmpty.classList.remove('d-none');
+          showBsModal(dayEventsModal);
+          return false;
         }
+
+        // Build list items.
+        eventsForDay.forEach((ev) => {
+          const startText = formatDateForLabel(ev.startStr);
+          const endText = formatDateForLabel(ev.endStr) || startText;
+          const rangeLabel = (startText && endText && startText !== endText) ? `${startText} - ${endText}` : startText;
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3';
+          btn.setAttribute('data-event-id', ev.id);
+
+          btn.innerHTML = `
+            <div class="min-w-0">
+              <div class="fw-semibold text-truncate">${(ev.title || '-').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+              <div class="text-muted fs-12">${rangeLabel || '-'}</div>
+            </div>
+            <div class="text-purple fw-semibold flex-shrink-0" style="white-space:nowrap;">
+              View
+            </div>
+          `;
+
+          dayEventsList.appendChild(btn);
+        });
+
+        showBsModal(dayEventsModal);
+        return false;
       }
     });
 
@@ -319,18 +613,71 @@
 
     // Set delete link - will be updated when event is clicked
     let deleteEventUrl = "{{ url('users:eventdelete', args=[0]) }}";
-    
+
     // Update delete link when event is clicked
-    document.getElementById('deleteEventModal').addEventListener('show.bs.modal', function() {
-      if (eventToDelete) {
-        document.getElementById('confirmDeleteEventLink').href = deleteEventUrl.replace('0', eventToDelete);
-      }
+    deleteEventModal.addEventListener('show.bs.modal', function () {
+      if (eventToDelete) confirmDeleteEventLink.href = deleteEventUrl.replace('0', eventToDelete);
+    });
+
+    // Delete from event details modal -> open confirmation modal.
+    eventDetailsDeleteBtn.addEventListener('click', function () {
+      // Ensure the delete modal uses the currently selected event id.
+      if (eventToDelete) confirmDeleteEventLink.href = deleteEventUrl.replace('0', eventToDelete);
+
+      // Hide details first for a clean transition.
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const detailsModal = bootstrap.Modal.getInstance(eventDetailsModal) || new bootstrap.Modal(eventDetailsModal);
+          detailsModal.hide();
+        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+          $(eventDetailsModal).modal('hide');
+        }
+      } catch (e) { }
+
+      showBsModal(deleteEventModal);
+    });
+
+    // "Show all" modal: click list item to open that event.
+    dayEventsList.addEventListener('click', function (e) {
+      const target = e.target && e.target.closest ? e.target.closest('[data-event-id]') : null;
+      if (!target) return;
+      const eventId = target.getAttribute('data-event-id');
+      if (!eventId) return;
+      const fcEvent = calendar.getEventById(eventId);
+      if (!fcEvent) return;
+
+      // Switch to event details.
+      eventToDelete = fcEvent.id;
+
+      const startText = formatDateForLabel(fcEvent.startStr);
+      const endText = formatDateForLabel(fcEvent.endStr);
+      const endOrFallback = endText || startText;
+
+      eventDetailsName.textContent = fcEvent.title || '-';
+      eventDetailsStart.textContent = startText || '-';
+      eventDetailsEnd.textContent = endOrFallback || '-';
+      eventDetailsIdShort.textContent = (fcEvent.id || '').toString().slice(0, 6);
+      eventDetailsDateRange.textContent = (startText && endText && startText !== endText)
+        ? `${startText} - ${endText}`
+        : `${startText}`;
+
+      // Close day list modal and open details.
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const dayModal = bootstrap.Modal.getInstance(dayEventsModal) || new bootstrap.Modal(dayEventsModal);
+          dayModal.hide();
+        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+          $(dayEventsModal).modal('hide');
+        }
+      } catch (e2) { }
+
+      showBsModal(eventDetailsModal);
     });
 
     // Handle form submission
     const eventForm = document.getElementById('eventForm');
     if (eventForm) {
-      eventForm.addEventListener('submit', function(e) {
+      eventForm.addEventListener('submit', function (e) {
         // Form will submit normally to create the event
         // Calendar will refresh on page reload
       });
@@ -346,4 +693,3 @@
   }
 </script>
 {% endblock %}
-

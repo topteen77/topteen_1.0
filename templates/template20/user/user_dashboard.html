@@ -1,7 +1,8 @@
 {% extends 'template20/logged-in-base.html' %}
 
 {% block title_content %}User Dashboard | Top Teen{% endblock %}
-{% block description_content %}Access your personalized dashboard with statistics, quick links, and recent activity.{% endblock %}
+{% block description_content %}Access your personalized dashboard with statistics, quick links, and recent activity.{%
+endblock %}
 
 {% block bodyclass %}logged-in user-dashboard{% endblock %}
 
@@ -9,91 +10,321 @@
 {{ super() }}
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
+  :root {
+    --dash-primary: #3f37c9;
+    --dash-primary-dark: #2e289d;
+    --dash-bg: #f6f7fb;
+    --dash-border: #e6e8f0;
+    --dash-muted: #6c7280;
+  }
+
   .user-dashboard {
     padding-top: 51px;
+    background: #fff;
   }
+
   /* Mobile: minimal top space under fixed header */
   @media (max-width: 991px) {
     .user-dashboard {
       padding-top: 48px;
     }
-    .user-dashboard .container { padding-left: 12px; padding-right: 12px; }
+
+    .user-dashboard .container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
   }
+
   @media (max-width: 480px) {
     .user-dashboard {
-      padding-top:30px;
+      padding-top: 30px;
     }
 
     .shadow-sm.rounded-circle.border-0.d-inline-flex.align-items-center.justify-content-center {
-	position: absolute;
-	z-index: 11;
-	top: 94px;
-}
+      position: absolute;
+      z-index: 11;
+      top: 94px;
+    }
   }
+
   .stat-card {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 15px;
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 14px 16px;
     display: flex;
     gap: 12px;
     align-items: center;
+    min-height: 88px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
   }
-  .quick-link-card {
-    background: #f7f7fa;
+
+  .stat-card>div:first-child {
+    width: 42px;
+    height: 42px;
     border-radius: 10px;
-    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-card .text-gray.fs-10.mb-0 {
+    color: var(--dash-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.2;
+  }
+
+  .stat-card-trophies>div:first-child {
+    background: #F8BD51;
+  }
+
+  .stat-card-points>div:first-child {
+    background: #3F37C9;
+  }
+
+  .stat-card-streak>div:first-child {
+    background: #EA48A9;
+  }
+
+  .stat-card-level>div:first-child {
+    background: #4CC875;
+  }
+
+  .quick-link-card {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 14px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    transition: all 0.3s;
-    margin-bottom: 10px;
+    transition: all 0.25s ease;
+    min-height: 108px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
   }
+
   .quick-link-card:hover {
-    background: #e9ecef;
+    transform: translateY(-2px);
+    border-color: #6860F6;
+    box-shadow: 0 8px 20px rgba(32, 36, 53, 0.11);
+    background: linear-gradient(31.85deg, #EFEEFF 15.96%, #FFF9EF 84.04%);
   }
+
+  .quick-link-card:hover i.bx {
+    color: #6860F6 !important;
+    border-color: #6860F6 !important;
+  }
+
+
+  .quick-link-card .d-flex.align-items-center.gap-3>div:first-child {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--dash-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .quick-link-card .d-flex.align-items-center.gap-3>div:first-child i {
+    font-size: 22px !important;
+  }
+
+  .quick-link-card .text-gray.fs-10.mb-0,
+  .quick-link-card p[class*="text-opacity-70"] {
+    color: var(--dash-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.25;
+  }
+
+  .quick-link-card>i.bx {
+    color: #9aa0b2 !important;
+    font-size: 20px !important;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #d8dceb;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: 26px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .quick-link-card a.btn.btn-sm {
+    border-radius: 999px;
+    font-size: 11px;
+    padding: 4px 10px !important;
+  }
+
+  .dashboard-quicklinks-wrap {
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .dashboard-quicklinks-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-quicklinks-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .dashboard-quicklinks-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 991px) {
+    .dashboard-stat-cards .dashboard-stat-col {
+      width: 50%;
+      flex: 0 0 50%;
+    }
+  }
+
+  @media (max-width: 575px) {
+    .dashboard-stat-cards .dashboard-stat-col {
+      width: 100%;
+      flex: 0 0 100%;
+    }
+
+    .quick-link-card {
+      min-height: auto;
+    }
+  }
+
   /* Fix modal z-index to ensure it appears above backdrop */
   .modal {
     z-index: 1055 !important;
   }
+
   .modal-backdrop {
     z-index: 1050 !important;
   }
+
   .modal-dialog {
     z-index: 1056 !important;
   }
+
   .referFriendsPopup {
     z-index: 1055 !important;
   }
+
   .referFriendsPopup .modal-dialog {
     z-index: 1056 !important;
   }
+
   /* Dashboard stats - Duolingo-style */
-  .dashboard-stat-col { opacity: 0; transform: translateY(12px); animation: dashboardStatIn 0.4s ease-out forwards; }
-  @media (prefers-reduced-motion: reduce) {
-    .dashboard-stat-col { animation: none; opacity: 1; transform: none; }
+  .dashboard-stat-col {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: dashboardStatIn 0.4s ease-out forwards;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-stat-col {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   @keyframes dashboardStatIn {
-    to { opacity: 1; transform: translateY(0); }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-  .streak-flame { display: inline-block; }
-  .stat-card-streak-active .streak-flame { animation: streakGlow 1.5s ease-in-out infinite; }
+
+  .stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .streak-flame {
+    display: inline-block;
+  }
+
+  .stat-card-streak-active .streak-flame {
+    animation: streakGlow 1.5s ease-in-out infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .stat-card-streak-active .streak-flame { animation: none; }
+    .stat-card-streak-active .streak-flame {
+      animation: none;
+    }
   }
+
   @keyframes streakGlow {
-    0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 4px rgba(255, 140, 0, 0.5)); }
-    50% { opacity: 0.9; transform: scale(1.05); filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.7)); }
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 0 4px rgba(255, 140, 0, 0.5));
+    }
+
+    50% {
+      opacity: 0.9;
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.7));
+    }
   }
-  .stat-level-label { animation: levelBadgeIn 0.5s ease-out; }
+
+  .stat-level-label {
+    animation: levelBadgeIn 0.5s ease-out;
+  }
+
   @keyframes levelBadgeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
-  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
-  .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
+
+  .level-progress-wrap {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(76, 201, 240, 0.2);
+    overflow: hidden;
+  }
+
+  .level-progress-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: #4cc9f0;
+    transition: width 0.5s ease;
+  }
+
+  .dashboard-quicklinks-icon {
+    min-width: 47px;
+    min-height: 47px;
+    height: 47px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+  }
 </style>
 {% endblock %}
 
@@ -103,12 +334,14 @@
 <div class="modal fade referFriendsPopup" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content position-relative">
-      <button type="button" class="btn-close position-absolute top-0 end-0 m-3 referPopupClose" data-bs-dismiss="modal" aria-label="Close"></button>
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3 referPopupClose" data-bs-dismiss="modal"
+        aria-label="Close"></button>
       <div class="modal-body p-4 text-center">
         <h5 class="fs-24 fw-semibold mb-4">Refer/Invite friends</h5>
         <form onsubmit="return window.refersubmit ? window.refersubmit() : false;" id="referform">
           <div class="mb-3">
-            <input type="email" id="remail" name="email" placeholder="Enter email" class="form-control custom-input" required>
+            <input type="email" id="remail" name="email" placeholder="Enter email" class="form-control custom-input"
+              required>
           </div>
           <button type="submit" class="btn custom-button purple-button w-100">Submit</button>
         </form>
@@ -130,14 +363,10 @@
 
     <!-- Mobile profile drawer trigger -->
     <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
-      <button
-        class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
+      <button class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
         style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
-        type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#mobileProfileDrawer"
-        aria-controls="mobileProfileDrawer"
-        aria-label="Open profile">
+        type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileProfileDrawer"
+        aria-controls="mobileProfileDrawer" aria-label="Open profile">
         <i class='bx bxs-user-detail fs-22'></i>
       </button>
     </div>
@@ -150,15 +379,18 @@
           <div class="d-flex gap-3">
             <div>
               {% if profile_user and profile_user.image %}
-              <img src="{{ profile_user.image.url }}" class="profile-image" style="width: 71px; height: 71px;" alt="{{ profile_user.name }}" />
+              <img src="{{ profile_user.image.url }}" class="profile-image" style="width: 71px; height: 71px;"
+                alt="{{ profile_user.name }}" />
               {% else %}
-              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image" style="width: 71px; height: 71px;" alt="User" />
+              <img src="{{ static('images_new/icons/user-icon.svg') }}" class="profile-image"
+                style="width: 71px; height: 71px;" alt="User" />
               {% endif %}
             </div>
             <div class="d-flex flex-column">
               <p class="fs-15 fw-semibold mb-1">{{ profile_user.name|default(profile_user.username) }}</p>
               {% if profile_user.user_type == 1 and profile_user.get_display_student_id() %}
-              <p class="fs-11 text-gray mb-1">Student ID: <strong>{{ profile_user.get_display_student_id() }}</strong></p>
+              <p class="fs-11 text-gray mb-1">Student ID: <strong>{{ profile_user.get_display_student_id() }}</strong>
+              </p>
               {% endif %}
               <div class="d-flex flex-column gap-1">
                 <div class="d-flex align-items-center gap-1">
@@ -169,17 +401,18 @@
                   <i class='bx bx-book fs-12 text-gray'></i>
                   <p class="text-gray fs-10 mb-0">
                     {% if profile_user.user_profile %}
-                      {% if profile_user.student_management.last() and profile_user.student_management.last().class_and_section %}
-                        {{ profile_user.student_management.last().class_and_section }}
-                      {% endif %}
-                      {% if profile_user.user_profile.schoolname %}
-                        • {{ profile_user.user_profile.schoolname }}
-                      {% endif %}
-                      {% if user_grade %}
-                      Class {{ user_grade }}
-                      {% endif %}
+                    {% if profile_user.student_management.last() and
+                    profile_user.student_management.last().class_and_section %}
+                    {{ profile_user.student_management.last().class_and_section }}
+                    {% endif %}
+                    {% if profile_user.user_profile.schoolname %}
+                    • {{ profile_user.user_profile.schoolname }}
+                    {% endif %}
+                    {% if user_grade %}
+                    Class {{ user_grade }}
+                    {% endif %}
                     {% else %}
-                      - • -
+                    - • -
                     {% endif %}
                   </p>
                 </div>
@@ -191,7 +424,8 @@
 
         <!-- Complete Profile -->
         <div id="comppro" class="profile-complete-card mb-4 position-relative">
-          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" onclick="document.getElementById('comppro').style.display='none'" aria-label="Dismiss"></button>
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-2"
+            onclick="document.getElementById('comppro').style.display='none'" aria-label="Dismiss"></button>
           <div class="d-flex align-items-center mb-3">
             <div class="me-3">
               <i class='bx bx-check-circle fs-64 text-primary'></i>
@@ -200,7 +434,8 @@
               <p class="fs-15 fw-semibold text-dark mb-1">Complete your profile</p>
               <p class="fs-13 text-gray mb-2">A complete profile helps us cater the best content to you</p>
               <div class="progress-bar-custom" style="width: 100%;">
-                <div class="progress-fill" style="width: {{ (profile_user or request.user).get_profile_completion_percentage() }}%;"></div>
+                <div class="progress-fill"
+                  style="width: {{ (profile_user or request.user).get_profile_completion_percentage() }}%;"></div>
               </div>
             </div>
           </div>
@@ -213,13 +448,13 @@
       <!-- End of left Part Mobile -->
 
       <!-- Left part Desktop -->
-      <div class="col-lg-4 d-none d-lg-block">
+      <div class="col-lg-3 d-none d-lg-block">
         {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
       <!-- End of Left part Desktop -->
 
       <!-- Right Part -->
-      <div class="col-lg-8">
+      <div class="col-lg-9">
         <!-- Statistics (dynamic: trophies, points, streak, level) -->
         <div class="mb-4" id="dashboard-stats-section">
           <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
@@ -227,10 +462,12 @@
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">
               <div class="stat-card stat-card-trophies">
                 <div>
-                  <i class='bx bx-trophy fs-30 text-warning'></i>
+                  <img src="{{ static('images_new/icons/champion-winner-icon.svg') }}" style="max-width:35px;"
+                    alt="Trophies" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-trophies" data-value="{{ trophies_unlocked|default(0) }}">0</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-trophies"
+                    data-value="{{ trophies_unlocked|default(0) }}">0</p>
                   <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
                 </div>
               </div>
@@ -238,32 +475,39 @@
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.2s;">
               <div class="stat-card stat-card-points">
                 <div>
-                  <i class='bx bx-star fs-30 text-primary'></i>
+                  <img src="{{ static('images_new/icons/rewards.svg') }}" style="max-width:35px;" alt="Total Points" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-points" data-value="{{ total_points|default(0) }}">0</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-points"
+                    data-value="{{ total_points|default(0) }}">0</p>
                   <p class="text-gray fs-10 mb-0">Total Points</p>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.3s;">
-              <div class="stat-card stat-card-streak {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}">
+              <div
+                class="stat-card stat-card-streak {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}">
                 <div class="streak-icon-wrap">
-                  <i class='bx bx-fire fs-30 text-warning streak-flame'></i>
+                  <img src="{{ static('images_new/icons/streak-icom.svg') }}" style="max-width:35px;"
+                    alt="Total Points" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-streak" data-value="{{ streak_days|default(0) }}">0</p>
-                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">{% if (streak_days|default(0)) == 1 %}1 day{% else %}{{ streak_days|default(0) }} days{% endif %}</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-streak"
+                    data-value="{{ streak_days|default(0) }}">0</p>
+                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">{% if (streak_days|default(0)) == 1 %}1 day{%
+                    else %}{{ streak_days|default(0) }} days{% endif %}</p>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.4s;">
               <div class="stat-card stat-card-level">
                 <div>
-                  <i class='bx bx-medal fs-30 text-success'></i>
+                  <img src="{{ static('images_new/icons/explore-icon.svg') }}" style="max-width:35px;"
+                    alt="Total Points" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{ current_level|default('Rookie') }}</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{
+                    current_level|default('Rookie') }}</p>
                   <p class="text-gray fs-10 mb-0">Current Level</p>
                   {% if next_level_min_points is not none and level_progress_percent is not none %}
                   <div class="level-progress-wrap mt-1" style="max-width: 80px;">
@@ -280,248 +524,296 @@
         <!-- Quick Links -->
         <div class="mb-4">
           <h2 class="fs-24 fw-semibold mb-3">Quick Links</h2>
-          <div class="border rounded p-3">
-            <!-- Psychometric Test Reports -->
-            {% if has_test_payment and test_dashboard_url %}
-            <div class="quick-link-card" onclick="window.location='{{ test_dashboard_url }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-clipboard fs-32 text-success'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-success mb-1">{{ test_name }} Dashboard</p>
-                  <p class="text-success text-opacity-70 fs-10 mb-0">View your test results and reports</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            {% elif central_test_candidate %}
-            <div class="quick-link-card" {% if central_test_candidate.last_test_is_success() %}onclick="window.location='{{ central_test_candidate.get_test_report_or_test_link() }}'"{% else %}onclick="window.open('{{ central_test_candidate.get_test_report_or_test_link() }}','_blank')"{% endif %}>
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-clipboard fs-32 text-success'></i>
-                </div>
-                <div>
-                  {% if central_test_candidate.last_test_is_success() %}
-                  <p class="fs-13 fw-semibold text-success mb-1">Psychometric Test Reports</p>
-                  <p class="text-success text-opacity-70 fs-10 mb-0">Access past reports</p>
-                  {% else %}
-                  <p class="fs-13 fw-semibold text-purple mb-1">Take a Psychometric Test</p>
-                  <p class="text-purple text-opacity-70 fs-10 mb-0">Click here to take a test</p>
-                  {% endif %}
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            {% elif user_grade == "10" %}
-            <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class10 }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-clipboard fs-32 text-purple'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-purple mb-1">Buy Stream Sorter Test</p>
-                  <p class="text-purple text-opacity-70 fs-10 mb-0">Take the psychometric test for Class 10</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            {% elif user_grade == "12" %}
-            <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class12 }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-clipboard fs-32 text-purple'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-purple mb-1">Buy Career Direction Test</p>
-                  <p class="text-purple text-opacity-70 fs-10 mb-0">Take the psychometric test for Class 12</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            {% else %}
-            <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class10 }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-clipboard fs-32 text-danger'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-danger mb-1">Psychometric Test</p>
-                  <p class="text-danger text-opacity-70 fs-10 mb-0">Take a new Test</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            {% endif %}
-            <!-- End of Psychometric Test Reports -->
+          <div class="dashboard-quicklinks-wrap">
+            <div class="dashboard-quicklinks-grid">
+              <!-- Psychometric Test Reports -->
+              {% if has_test_payment and test_dashboard_url %}
 
-            <!-- My Invoices -->
-            <div class="quick-link-card">
-              <div class="d-flex align-items-center gap-3 flex-grow-1">
-                <div>
-                  <i class='bx bx-receipt fs-35 text-primary'></i>
-                </div>
-                <div class="flex-grow-1">
-                  <p class="fs-13 fw-semibold mb-1">My Invoices</p>
-                  <p class="text-gray fs-10 mb-0">Download GST invoices for your payments</p>
-                  {% if user_invoices %}
-                  <div class="mt-2">
-                    {% for inv in user_invoices %}
-                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
-                      <span class="fs-12">{{ inv.invoice_number }} · ₹{{ inv.amount }}</span>
-                      <div class="d-flex gap-1">
-                        <a href="{{ url('users:invoice_download', args=[inv.id]) }}?view=1" class="btn btn-sm btn-outline-secondary py-0 px-2" target="_blank" rel="noopener">View</a>
-                        <a href="{{ url('users:invoice_download', args=[inv.id]) }}" class="btn btn-sm btn-outline-primary py-0 px-2" target="_blank" rel="noopener">Download</a>
-                      </div>
-                    </div>
-                    {% endfor %}
+              <div class="quick-link-card" onclick="window.location='{{ test_dashboard_url }}'">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/dashboard-screen.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Dashboard" />
                   </div>
-                  {% endif %}
-                </div>
-              </div>
-              <a href="{{ url('users:userhistory') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">Payment History</a>
-            </div>
-            <!-- End of My Invoices -->
-
-            <!-- Your Calendar -->
-            <div class="quick-link-card" onclick="window.location='{{ url('users:usercalender') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-calendar fs-35 text-purple'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold mb-1">Your Calendar</p>
-                  <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            <!-- End of Your Calendar -->
-
-            <!-- Digital Scrapbook -->
-            <div class="quick-link-card" onclick="window.location='{{ url('users:scrapbook') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-book fs-35 text-purple'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold mb-1">Digital Scrapbook</p>
-                  <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
-                </div>
-              </div>
-              <div class="d-flex gap-2">
-                <a href="{{ url('users:mynotepad') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
-                  <i class='bx bx-note fs-12 me-1'></i> <span class="fs-7">My Notepad</span>
-                </a>
-                <a href="{{ url('users:resumebuilderwelcome') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
-                  <i class='bx bx-file fs-12 me-1'></i> <span class="fs-7">Resume</span>
-                </a>
-                <a href="{{ url('users:careerinterest') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
-                  <i class='bx bx-star fs-12 me-1'></i> <span class="fs-7">Interests</span>
-                </a>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            <!-- End of Digital Scrapbook -->
-
-            <!-- Bookmarks -->
-            <a href="{{ url('users:bookmark') }}" class="text-decoration-none">
-              <div class="quick-link-card">
-                <div class="d-flex align-items-center gap-3">
-                  <div>
-                    <i class='bx bx-bookmark fs-35 text-purple'></i>
-                  </div>
-                  <div>
-                    <p class="fs-13 fw-semibold mb-1">Bookmarks</p>
-                    <p class="text-gray fs-10 mb-0">Get your shortlist items</p>
+                  <div class="ms-2">
+                    <p class="fs-16 fw-semibold mb-1">{{ test_name }} Dashboard</p>
+                    <p class="text-success text-opacity-70 fs-10 mb-0">View your test results and reports</p>
                   </div>
                 </div>
                 <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
               </div>
-            </a>
-            <!-- End Bookmarks -->
 
-            <!-- Refer Friends -->
-            <!-- Career Matcher Links -->
-            <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_swipe') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-target-lock fs-32 text-primary'></i>
+              {% elif central_test_candidate %}
+              <div class="quick-link-card" {% if central_test_candidate.last_test_is_success()
+                %}onclick="window.location='{{ central_test_candidate.get_test_report_or_test_link() }}'" {% else
+                %}onclick="window.open('{{ central_test_candidate.get_test_report_or_test_link() }}','_blank')" {% endif
+                %}>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/dashboard-screen.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Dashboard" />
+                  </div>
+                  <div>
+                    {% if central_test_candidate.last_test_is_success() %}
+                    <p class="fs-13 fw-semibold text-success mb-1">Psychometric Test Reports</p>
+                    <p class="text-success text-opacity-70 fs-10 mb-0">Access past reports</p>
+                    {% else %}
+                    <p class="fs-13 fw-semibold text-purple mb-1">Take a Psychometric Test</p>
+                    <p class="text-purple text-opacity-70 fs-10 mb-0">Click here to take a test</p>
+                    {% endif %}
+                  </div>
                 </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-primary mb-1">🎯 Start Swiping Careers</p>
-                  <p class="text-primary text-opacity-70 fs-10 mb-0">Discover careers with Tinder-style swiping</p>
-                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
               </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
+              {% elif user_grade == "10" %}
+              <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class10 }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/invoice-icon.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Inovice" />
+                  </div>
+                  <div>
+                    <p class="fs-13 fw-semibold text-purple mb-1">Buy Stream Sorter Test</p>
+                    <p class="text-purple text-opacity-70 fs-10 mb-0">Take the psychometric test for Class 10</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              {% elif user_grade == "12" %}
+              <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class12 }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/invoice-icon.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Inovice" />
+                  </div>
+                  <div>
+                    <p class="fs-13 fw-semibold text-purple mb-1">Buy Career Direction Test</p>
+                    <p class="text-purple text-opacity-70 fs-10 mb-0">Take the psychometric test for Class 12</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              {% else %}
+              <div class="quick-link-card" onclick="window.location='{{ test_buy_url_class10 }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/invoice-icon.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Inovice" />
+                  </div>
+                  <div>
+                    <p class="fs-13 fw-semibold text-danger mb-1">Psychometric Test</p>
+                    <p class="text-danger text-opacity-70 fs-10 mb-0">Take a new Test</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              {% endif %}
+              <!-- End of Psychometric Test Reports -->
 
-            <div class="quick-link-card" onclick="window.location='{{ url('post_matric:view_matches') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-briefcase fs-32 text-success'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-success mb-1">💼 View My Matches</p>
-                  <p class="text-success text-opacity-70 fs-10 mb-0">See all careers you've liked</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
+              <!-- My Invoices -->
+              <div class="quick-link-card" onclick="window.location='{{ url('users:userhistory') }}'">
+                <div class="d-flex align-items-start gap-3 flex-grow-1">
+                  <div class="dashboard-quicklinks-icon" style="background: #FFD95C;">
+                    <img src="{{ static('images_new/icons/invoice-icon.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Inovice" />
+                  </div>
+                  <div class="ms-2">
+                    <p class="fs-16 fw-semibold mb-1">My Invoices</p>
+                    <p class="text-gray fs-10 mb-0">Download GST invoices for your payments</p>
 
-            <div class="quick-link-card" onclick="window.location='{{ url('post_matric:top_recommendations') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-trophy fs-32 text-warning'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-warning mb-1">🏆 Top Recommendations</p>
-                  <p class="text-warning text-opacity-70 fs-10 mb-0">Top career matches for you</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
+                    <div class="d-none">
+                      {% if user_invoices %}
+                      <div class="mt-2">
+                        {% for inv in user_invoices %}
+                        <div
+                          class="d-flex flex-column justify-content-between align-items-start py-1 border-bottom border-light">
+                          <span class="fs-12">{{ inv.invoice_number }} · ₹{{ inv.amount }}</span>
+                          <div class="d-flex gap-1">
+                            <a href="{{ url('users:invoice_download', args=[inv.id]) }}?view=1"
+                              class="btn btn-sm btn-outline-secondary py-0 px-2" target="_blank" rel="noopener"
+                              onclick="event.stopPropagation()">View</a>
+                            <a href="{{ url('users:invoice_download', args=[inv.id]) }}"
+                              class="btn btn-sm btn-outline-primary py-0 px-2" target="_blank"
+                              rel="noopener" onclick="event.stopPropagation()">Download</a>
+                          </div>
+                        </div>
+                        {% endfor %}
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
 
-            <div class="quick-link-card" onclick="window.location='{{ url('users:profiledetails') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-user fs-32 text-info'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-info mb-1">👤 Create/Update Profile</p>
-                  <p class="text-info text-opacity-70 fs-10 mb-0">Update your profile for better matches</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
 
-            <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_clusters_info') }}'">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-bar-chart-alt-2 fs-32 text-purple'></i>
                 </div>
-                <div>
-                  <p class="fs-13 fw-semibold text-purple mb-1">📊 Career Clusters Info</p>
-                  <p class="text-purple text-opacity-70 fs-10 mb-0">Explore 16 career clusters</p>
-                </div>
-              </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-            </div>
-            <!-- End of Career Matcher Links -->
 
-            <div class="quick-link-card referPopupTrigger">
-              <div class="d-flex align-items-center gap-3">
-                <div>
-                  <i class='bx bx-user-plus fs-35 text-purple'></i>
-                </div>
-                <div>
-                  <p class="fs-13 fw-semibold mb-1">Refer/Invite Friends</p>
-                  <p class="text-gray fs-10 mb-0">Earn points and discounts by inviting friends</p>
-                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+                <!-- <a href="{{ url('users:userhistory') }}" class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">Payment History</a> -->
               </div>
-              <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              <!-- End of My Invoices -->
+
+              <!-- Your Calendar -->
+              <div class="quick-link-card" onclick="window.location='{{ url('users:usercalender') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #F498E6;">
+                    <img src="{{ static('images_new/icons/your-calendar.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Calendar" />
+                  </div>
+                  <div class="ms-2">
+                    <p class="fs-16 fw-semibold mb-1">Your Calendar</p>
+                    <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              <!-- End of Your Calendar -->
+
+              <!-- Digital Scrapbook -->
+              <div class="quick-link-card" onclick="window.location='{{ url('users:scrapbook') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #98F4E3;">
+                    <img src="{{ static('images_new/icons/digital-scrapbook.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+
+                  <div class="d-flex flex-column justify-content-between align-items-start">
+
+                    <div class="ms-2">
+                      <p class="fs-16 fw-semibold mb-1">Digital Scrapbook</p>
+                      <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
+                    </div>
+
+                    <div class="d-none gap-2 ">
+                      <a href="{{ url('users:mynotepad') }}"
+                        class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
+                        <i class='bx bx-note fs-12 me-1'></i> <span class="fs-7">My Notepad</span>
+                      </a>
+                      <a href="{{ url('users:resumebuilderwelcome') }}"
+                        class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
+                        <i class='bx bx-file fs-12 me-1'></i> <span class="fs-7">Resume</span>
+                      </a>
+                      <a href="{{ url('users:careerinterest') }}"
+                        class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
+                        <i class='bx bx-star fs-12 me-1'></i> <span class="fs-7">Interests</span>
+                      </a>
+                    </div>
+                  </div>
+
+
+
+
+
+                </div>
+
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              <!-- End of Digital Scrapbook -->
+
+              <!-- Bookmarks -->
+              <a href="{{ url('users:bookmark') }}" class="text-decoration-none">
+                <div class="quick-link-card">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="dashboard-quicklinks-icon" style="background: #F4C398;">
+                      <img src="{{ static('images_new/icons//bookmark-icon.svg') }}" style="width: 26px; height: 26px;"
+                        alt="Digital Scrapbook" />
+                    </div>
+                    <div>
+                      <p class="fs-16 fw-semibold mb-1">Bookmarks</p>
+                      <p class="text-gray fs-10 mb-0">Get your shortlist items</p>
+                    </div>
+                  </div>
+                  <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+                </div>
+              </a>
+              <!-- End Bookmarks -->
+
+              <!-- Refer Friends -->
+              <!-- Career Matcher Links -->
+              <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_swipe') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #FFC2CC;">
+                    <img src="{{ static('images_new/icons/swipe-career.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+                  <div>
+                    <p class="fs-16 fw-semibold  mb-1">Start Swiping Careers</p>
+                    <p class="text-primary text-opacity-70 fs-10 mb-0">Discover careers with Tinder-style swiping</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+
+              <div class="quick-link-card" onclick="window.location='{{ url('post_matric:view_matches') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #C2E8FF;">
+                    <img src="{{ static('images_new/icons/view-matches.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+                  <div>
+                    <p class="fs-16 fw-semibold mb-1">View My Matches</p>
+                    <p class="text-success text-opacity-70 fs-10 mb-0">See all careers you've liked</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+
+              <div class="quick-link-card" onclick="window.location='{{ url('post_matric:top_recommendations') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #7BBEFD;">
+                    <img src="{{ static('images_new/icons/recommendation.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+                  <div>
+                    <p class="fs-16 fw-semibold  mb-1">Top Recommendations</p>
+                    <p class="text-warning text-opacity-70 fs-10 mb-0">Top career matches for you</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+
+              <div class="quick-link-card" onclick="window.location='{{ url('users:profiledetails') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #98F4E3;">
+                    <img src="{{ static('images_new/icons/profile.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+                  <div>
+                    <p class="fs-16 fw-semibold mb-1">Create/Update Profile</p>
+                    <p class="text-info text-opacity-70 fs-10 mb-0">Update your profile for better matches</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+
+              <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_clusters_info') }}'">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #F4EE98;">
+                    <img src="{{ static('images_new/icons/career-cluster.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+                  <div>
+                    <p class="fs-16 fw-semibold  mb-1">Career Clusters Info</p>
+                    <p class="text-purple text-opacity-70 fs-10 mb-0">Explore 16 career clusters</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              <!-- End of Career Matcher Links -->
+
+              <div class="quick-link-card referPopupTrigger">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #BDF498;">
+                    <img src="{{ static('images_new/icons/digital-scrapbook.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Digital Scrapbook" />
+                  </div>
+                  <div>
+                    <p class="fs-16 fw-semibold mb-1">Refer/Invite Friends</p>
+                    <p class="text-gray fs-10 mb-0">Earn points and discounts by inviting friends</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              <!-- End of Refer Friends -->
             </div>
-            <!-- End of Refer Friends -->
           </div>
         </div>
         <!-- End of Quick Links -->
@@ -564,7 +856,8 @@
                   <ul class="mb-0 ps-3">
                     {% for v in parent_suggested_videos[:3] %}
                     <li class="fs-13">
-                      <a class="text-decoration-none" href="{{ url('careers:videodetail', args=[v.slug]) }}">{{ v.name }}</a>
+                      <a class="text-decoration-none" href="{{ url('careers:videodetail', args=[v.slug]) }}">{{ v.name
+                        }}</a>
                     </li>
                     {% endfor %}
                   </ul>
@@ -582,7 +875,8 @@
                   <ul class="mb-0 ps-3">
                     {% for col in parent_suggested_colleges[:3] %}
                     <li class="fs-13">
-                      <a class="text-decoration-none" href="{{ url('colleges:collegedetail', args=[col.slug]) }}">{{ col.name }}</a>
+                      <a class="text-decoration-none" href="{{ url('colleges:collegedetail', args=[col.slug]) }}">{{
+                        col.name }}</a>
                     </li>
                     {% endfor %}
                   </ul>
@@ -600,7 +894,8 @@
                   <ul class="mb-0 ps-3">
                     {% for b in parent_suggested_blogs[:3] %}
                     <li class="fs-13">
-                      <a class="text-decoration-none" href="{{ url('blog:blogdetail', args=[b.slug]) }}">{{ b.title }}</a>
+                      <a class="text-decoration-none" href="{{ url('blog:blogdetail', args=[b.slug]) }}">{{ b.title
+                        }}</a>
                     </li>
                     {% endfor %}
                   </ul>
@@ -638,8 +933,10 @@
 <!-- End of Main Content -->
 
 <!-- Mobile Settings Drawer (gear opens this on small screens) -->
-<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-none" data-direction="translate-y-full" aria-hidden="true">
-  <div class="drawerContent bg-white w-100 rounded-t-lg position-absolute bottom-0 start-0 end-0" style="max-height: 70vh; overflow-y: auto;">
+<div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-none"
+  data-direction="translate-y-full" aria-hidden="true">
+  <div class="drawerContent bg-white w-100 rounded-t-lg position-absolute bottom-0 start-0 end-0"
+    style="max-height: 70vh; overflow-y: auto;">
     <div class="p-4 pb-5">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="mb-0 fw-semibold">Settings</h5>
@@ -648,15 +945,18 @@
         </button>
       </div>
       <div class="d-flex flex-column gap-2">
-        <a href="{{ url('users:userdashboard') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
+        <a href="{{ url('users:userdashboard') }}"
+          class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
           <i class='bx bx-home fs-22 text-primary'></i>
           <span>Dashboard</span>
         </a>
-        <a href="{{ url('users:profiledetails') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
+        <a href="{{ url('users:profiledetails') }}"
+          class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-dark hover-bg-light">
           <i class='bx bx-cog fs-22 text-primary'></i>
           <span>Profile &amp; Settings</span>
         </a>
-        <a href="{{ url('users:logout') }}" class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-danger hover-bg-light">
+        <a href="{{ url('users:logout') }}"
+          class="d-flex align-items-center gap-3 p-3 rounded text-decoration-none text-danger hover-bg-light">
           <i class='bx bx-log-out fs-22'></i>
           <span>Sign Out</span>
         </a>
@@ -669,7 +969,7 @@
 {% block additionaljs %}
 {{ super() }}
 <script>
-  (function() {
+  (function () {
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function countUp(el, end, duration) {
       if (!el || reduceMotion) { if (el) el.textContent = end; return; }
@@ -718,7 +1018,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Mobile settings drawer: open/close
-  (function() {
+  (function () {
     var drawerTrigger = document.querySelector('.drawerTrigger');
     var drawerModal = document.querySelector('.drawerModal');
     var drawerClose = document.querySelector('.drawerModal .drawerClose');
@@ -735,13 +1035,13 @@
       }
     }
     if (drawerTrigger && drawerModal) {
-      drawerTrigger.addEventListener('click', function() { openDrawer(); });
-      drawerModal.addEventListener('click', function(e) {
+      drawerTrigger.addEventListener('click', function () { openDrawer(); });
+      drawerModal.addEventListener('click', function (e) {
         if (e.target === drawerModal) closeDrawer();
       });
     }
     if (drawerClose && drawerModal) {
-      drawerClose.addEventListener('click', function() { closeDrawer(); });
+      drawerClose.addEventListener('click', function () { closeDrawer(); });
     }
   })();
 
@@ -751,7 +1051,7 @@
   const referClose = document.querySelector('.referPopupClose');
 
   referTriggers.forEach(elem => {
-    elem.addEventListener('click', function() {
+    elem.addEventListener('click', function () {
       if (referPopup) {
         const modal = new bootstrap.Modal(referPopup, {
           backdrop: true,
@@ -760,7 +1060,7 @@
         });
         modal.show();
         // Ensure modal is above backdrop
-        setTimeout(function() {
+        setTimeout(function () {
           referPopup.style.zIndex = '1055';
           const backdrop = document.querySelector('.modal-backdrop');
           if (backdrop) {
@@ -772,23 +1072,23 @@
   });
 
   if (referClose && referPopup) {
-    referClose.addEventListener('click', function(e) {
+    referClose.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Get or create modal instance
       let modal = bootstrap.Modal.getInstance(referPopup);
       if (!modal) {
         modal = new bootstrap.Modal(referPopup);
       }
-      
+
       // Hide the modal
       if (modal) {
         modal.hide();
       }
-      
+
       // Fallback: manually close if Bootstrap doesn't handle it
-      setTimeout(function() {
+      setTimeout(function () {
         if (referPopup.classList.contains('show')) {
           referPopup.classList.remove('show');
           referPopup.style.display = 'none';
@@ -805,13 +1105,13 @@
   }
 
   // Refer form submission - make it globally accessible
-  window.refersubmit = function() {
+  window.refersubmit = function () {
     const emailInput = document.getElementById('remail');
     if (!emailInput) {
       console.error('Email input not found');
       return false;
     }
-    
+
     const email = emailInput.value.trim();
     if (!email) {
       if (typeof Swal !== 'undefined') {
@@ -859,7 +1159,7 @@
         "email": email,
         "csrfmiddlewaretoken": "{{ csrf_token }}"
       },
-      success: function(response) {
+      success: function (response) {
         if (response.success === "true" || response.success === true) {
           if (typeof Swal !== 'undefined') {
             Swal.fire({
@@ -903,7 +1203,7 @@
           submitBtn.textContent = 'Submit';
         }
       },
-      error: function(xhr, status, error) {
+      error: function (xhr, status, error) {
         console.error('Error:', error);
         if (typeof Swal !== 'undefined') {
           Swal.fire({
@@ -936,16 +1236,19 @@
         <h5 class="modal-title">Add Mobile Number</h5>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">To continue, please verify your mobile number (required for institute students after test completion).</p>
+        <p class="text-muted mb-3">To continue, please verify your mobile number (required for institute students after
+          test completion).</p>
         <div id="mobileGateError" class="text-danger fs-12 mb-2" style="display:none;"></div>
 
         <div class="mb-3">
           <label class="form-label fw-600">Mobile Number</label>
-          <input type="text" class="form-control" id="mobileGateMobile" placeholder="Enter 10 digit mobile number" maxlength="10" inputmode="numeric" pattern="[0-9]*" />
+          <input type="text" class="form-control" id="mobileGateMobile" placeholder="Enter 10 digit mobile number"
+            maxlength="10" inputmode="numeric" pattern="[0-9]*" />
         </div>
 
         <div class="d-flex gap-2 mb-3">
-          <button type="button" class="btn custom-button purple-button fw-600" id="mobileGateSendOtpBtn">Send OTP</button>
+          <button type="button" class="btn custom-button purple-button fw-600" id="mobileGateSendOtpBtn">Send
+            OTP</button>
         </div>
 
         <div id="mobileGateOtpBlock" style="display:none;">
@@ -958,7 +1261,8 @@
             <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg5" />
             <input class="form-control text-center" maxlength="1" inputmode="numeric" id="mg6" />
           </div>
-          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="mobileGateVerifyBtn">Verify & Continue</button>
+          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="mobileGateVerifyBtn">Verify &
+            Continue</button>
         </div>
       </div>
     </div>
@@ -978,13 +1282,15 @@
         <div id="parentLinkError" class="text-danger fs-12 mb-2" style="display:none;"></div>
         <div class="mb-3">
           <label class="form-label fw-600">Parent Mobile</label>
-          <input type="text" class="form-control" id="parentMobile" placeholder="Enter 10 digit mobile number" maxlength="10" inputmode="numeric" pattern="[0-9]*" />
+          <input type="text" class="form-control" id="parentMobile" placeholder="Enter 10 digit mobile number"
+            maxlength="10" inputmode="numeric" pattern="[0-9]*" />
         </div>
         <div class="mb-3">
           <label class="form-label fw-600">Parent Name (optional)</label>
           <input type="text" class="form-control" id="parentName" placeholder="Parent" />
         </div>
-        <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="sendParentOtpBtn">Send OTP</button>
+        <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="sendParentOtpBtn">Send
+          OTP</button>
 
         <div id="parentOtpBlockDash" style="display:none;">
           <label class="form-label fw-600">Enter OTP</label>
@@ -996,7 +1302,8 @@
             <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd5" />
             <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pd6" />
           </div>
-          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="verifyParentOtpBtn">Verify & Link</button>
+          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="verifyParentOtpBtn">Verify &
+            Link</button>
         </div>
       </div>
     </div>
@@ -1005,11 +1312,11 @@
 
 <script>
   // Link parent modal open
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     // Enforce 10 digits only for mobile inputs on dashboard
     function enforceTenDigits(inputEl) {
       if (!inputEl) return;
-      inputEl.addEventListener('input', function() {
+      inputEl.addEventListener('input', function () {
         const digits = (inputEl.value || '').replace(/\D+/g, '').slice(0, 10);
         inputEl.value = digits;
       });
@@ -1018,8 +1325,8 @@
     enforceTenDigits(document.getElementById('parentMobile'));
     enforceTenDigits(document.getElementById('mobileGateMobile'));
 
-    document.querySelectorAll('.dashBoardParent').forEach(function(el) {
-      el.addEventListener('click', function() {
+    document.querySelectorAll('.dashBoardParent').forEach(function (el) {
+      el.addEventListener('click', function () {
         const m = new bootstrap.Modal(document.getElementById('linkParentModal'));
         m.show();
       });
@@ -1034,23 +1341,23 @@
     const sendBtn = document.getElementById('sendParentOtpBtn');
     const verifyBtn = document.getElementById('verifyParentOtpBtn');
     const otpBlock = document.getElementById('parentOtpBlockDash');
-    const otpIds = ['pd1','pd2','pd3','pd4','pd5','pd6'];
+    const otpIds = ['pd1', 'pd2', 'pd3', 'pd4', 'pd5', 'pd6'];
     const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
 
     function setOtpFromString(str) {
       const digits = (str || '').replace(/\D+/g, '').slice(0, 6);
       for (let i = 0; i < otpInputs.length; i++) otpInputs[i].value = digits[i] || '';
-      (otpInputs.find(i => !i.value) || otpInputs[otpInputs.length-1])?.focus();
+      (otpInputs.find(i => !i.value) || otpInputs[otpInputs.length - 1])?.focus();
     }
     otpInputs.forEach((inp, idx) => {
       inp.addEventListener('input', () => {
         inp.value = (inp.value || '').replace(/\D+/g, '').slice(0, 1);
-        if (inp.value && idx < otpInputs.length-1) otpInputs[idx+1].focus();
+        if (inp.value && idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
       });
       inp.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace') {
-          if (inp.value) { inp.value=''; e.preventDefault(); return; }
-          if (idx>0) { otpInputs[idx-1].focus(); otpInputs[idx-1].value=''; e.preventDefault(); }
+          if (inp.value) { inp.value = ''; e.preventDefault(); return; }
+          if (idx > 0) { otpInputs[idx - 1].focus(); otpInputs[idx - 1].value = ''; e.preventDefault(); }
         }
       });
       inp.addEventListener('paste', (e) => {
@@ -1060,7 +1367,7 @@
     });
 
     if (sendBtn) {
-      sendBtn.addEventListener('click', function() {
+      sendBtn.addEventListener('click', function () {
         const mobile = (document.getElementById('parentMobile').value || '').trim();
         if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
         setErr('');
@@ -1073,7 +1380,7 @@
         }).then(r => r.json()).then(data => {
           if (data.success) {
             otpBlock.style.display = 'block';
-            otpInputs.forEach(i => i.value='');
+            otpInputs.forEach(i => i.value = '');
             otpInputs[0]?.focus();
           } else {
             setErr(data.message || 'Unable to send OTP');
@@ -1083,7 +1390,7 @@
     }
 
     if (verifyBtn) {
-      verifyBtn.addEventListener('click', function() {
+      verifyBtn.addEventListener('click', function () {
         const mobile = (document.getElementById('parentMobile').value || '').trim();
         const name = (document.getElementById('parentName').value || '').trim();
         const otp = otpInputs.map(i => (i.value || '').trim()).join('');
@@ -1111,7 +1418,8 @@
 </script>
 
 <!-- Mobile profile drawer (reuses desktop sidebar content) -->
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer"
+  aria-labelledby="mobileProfileDrawerLabel">
   <div class="offcanvas-header">
     <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -1123,7 +1431,7 @@
 
 {% if request.session.get('force_mobile_popup') %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const modalEl = document.getElementById('mobileGateModal');
     if (!modalEl) return;
     const modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
@@ -1138,7 +1446,7 @@
       err.style.display = msg ? 'block' : 'none';
     }
 
-    document.getElementById('mobileGateSendOtpBtn').addEventListener('click', function() {
+    document.getElementById('mobileGateSendOtpBtn').addEventListener('click', function () {
       const mobile = (mobileInput.value || '').trim();
       if (!/^[6-9]\d{9}$/.test(mobile)) {
         setError('Please enter a valid 10-digit mobile number');
@@ -1161,7 +1469,7 @@
       }).catch(() => setError('Unable to send OTP'));
     });
 
-    document.getElementById('mobileGateVerifyBtn').addEventListener('click', function() {
+    document.getElementById('mobileGateVerifyBtn').addEventListener('click', function () {
       const mobile = (mobileInput.value || '').trim();
       const otp = [
         document.getElementById('mg1').value,
@@ -1197,7 +1505,7 @@
     });
 
     // OTP inputs: auto-advance + backspace support + paste 6-digit OTP
-    const otpIds = ['mg1','mg2','mg3','mg4','mg5','mg6'];
+    const otpIds = ['mg1', 'mg2', 'mg3', 'mg4', 'mg5', 'mg6'];
     const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
 
     function setOtpFromString(str) {
@@ -1245,4 +1553,3 @@
 </script>
 {% endif %}
 {% endblock %}
-

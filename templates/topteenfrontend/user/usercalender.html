@@ -2,6 +2,78 @@
 {% block main %}
 
 <main class="calenderMain lg:max-w-[1280px] mx-auto">
+    <style>
+      /* Modern event cards in FullCalendar */
+      #calendar.fc-modern .fc-daygrid-event,
+      #calendar.fc-modern .fc-timegrid-event {
+        border-radius: 10px !important;
+        border: 0 !important;
+        background: linear-gradient(180deg, rgba(63, 55, 201, 0.98), rgba(46, 40, 157, 0.98)) !important;
+        box-shadow: 0 6px 16px rgba(63, 55, 201, 0.22) !important;
+      }
+      #calendar.fc-modern .fc-daygrid-event .fc-content,
+      #calendar.fc-modern .fc-timegrid-event .fc-content {
+        padding: 2px 6px !important;
+      }
+      #calendar.fc-modern .fc-daygrid-event .fc-title,
+      #calendar.fc-modern .fc-timegrid-event .fc-title {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-weight: 700 !important;
+        font-size: 12px !important;
+        color: #ffffff !important;
+      }
+
+      /* Custom modals (same overlay style as eventDelPop/eventAddPop) */
+      .eventDetailsPop,
+      .dayEventsPop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 800;
+        opacity: 1;
+      }
+      .eventDetailsPop::before,
+      .dayEventsPop::before {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        content: "";
+        pointer-events: none;
+        z-index: 500;
+        opacity: 0.75;
+      }
+      .eventDetailsPopContent {
+        width: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #ffffff;
+        z-index: 810;
+        opacity: 1;
+        border-radius: 12px;
+        max-width: 520px;
+      }
+      .dayEventsPopContent {
+        width: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #ffffff;
+        z-index: 810;
+        opacity: 1;
+        border-radius: 12px;
+        max-width: 520px;
+      }
+    </style>
     {% if breadcrumb  %}
     <!-- BreadCrumb -->
     <section class="px-[20px] lg:px-[100px] gap-[16px] hidden lg:flex mt-10">
@@ -109,9 +181,70 @@
    </div>
 </div>
 
+<!-- Event Details Pop -->
+<div class="eventDetailsPop hidden" id="eventDetailsPop">
+  <div class="h-full w-full relative">
+    <div class="eventDetailsPopContent absolute py-[22px] px-[20px] inline-block mx-auto">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 class="text-[18px] leading-[24px] semibold text-[#0f0f0f]">Event Details</h2>
+          <p class="text-[12px] leading-[18px] mediumFont text-[#828282]" id="eventDetailsDateRange"></p>
+        </div>
+        <button class="eventDetailsCloseBtn" type="button" aria-label="Close">
+          <i class="fa fa-xmark text-[#828282]"></i>
+        </button>
+      </div>
+
+      <div class="mt-[18px] border border-[#DEDEDE] rounded-[10px] p-[14px]">
+        <p class="text-[12px] mediumFont text-[#828282]">Title</p>
+        <p class="text-[16px] leading-[21px] semibold text-[#0f0f0f] break-words" id="eventDetailsName"></p>
+
+        <div class="flex gap-[16px] mt-[14px]">
+          <div class="flex-1">
+            <p class="text-[12px] mediumFont text-[#828282]">Start</p>
+            <p class="text-[14px] leading-[19px] semibold text-[#0f0f0f]" id="eventDetailsStart"></p>
+          </div>
+          <div class="flex-1">
+            <p class="text-[12px] mediumFont text-[#828282]">End</p>
+            <p class="text-[14px] leading-[19px] semibold text-[#0f0f0f]" id="eventDetailsEnd"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex mt-[22px] gap-[14px] justify-end">
+        <button type="button" class="eventDetailsCloseBtn2 inline-block boldFont text-[#3f37c9] text-[16px] px-[14px] py-[10px] rounded-[10px] border border-[#DCDCDC] bg-[#F7F7FA]">
+          Close
+        </button>
+        <button type="button" class="eventDetailsDeleteBtn inline-block boldFont text-[#ffffff] text-[16px] px-[14px] py-[10px] rounded-[10px] bg-[#3f37c9]">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Show all events for a day Pop -->
+<div class="dayEventsPop hidden" id="dayEventsPop">
+  <div class="h-full w-full relative">
+    <div class="dayEventsPopContent absolute py-[18px] px-[20px] inline-block mx-auto">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-[18px] leading-[24px] semibold text-[#0f0f0f]" id="dayEventsModalTitle">Events</h2>
+        <button class="dayEventsCloseBtn" type="button" aria-label="Close">
+          <i class="fa fa-xmark text-[#828282]"></i>
+        </button>
+      </div>
+
+      <div class="mt-[14px] max-h-[360px] overflow-y-auto pr-[6px]">
+        <div id="dayEventsEmpty" class="text-center text-[14px] mediumFont text-[#828282] py-[26px] d-none">No events found for this date.</div>
+        <div id="dayEventsList" class="flex flex-col gap-[10px]"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
  <div
    id="calendar"
-   class="lg:px-[100px] lg:py-[50px] pt-[49px] lg:pt-0 lg:max-w-[1280px] mx-auto mt-10"
+   class="fc-modern lg:px-[100px] lg:py-[50px] pt-[49px] lg:pt-0 lg:max-w-[1280px] mx-auto mt-10"
  ></div>
 
 <div></div>
@@ -135,6 +268,19 @@
 
   const eventAddPop = document.querySelector(".eventAddPop");
   const eventDelPop = document.querySelector(".eventDelPop");
+  const eventDetailsPop = document.getElementById("eventDetailsPop");
+  const dayEventsPop = document.getElementById("dayEventsPop");
+  const eventDetailsCloseBtn = document.querySelector(".eventDetailsCloseBtn");
+  const eventDetailsCloseBtn2 = document.querySelector(".eventDetailsCloseBtn2");
+  const eventDetailsDeleteBtn = document.querySelector(".eventDetailsDeleteBtn");
+  const dayEventsCloseBtn = document.querySelector(".dayEventsCloseBtn");
+  const eventDetailsName = document.getElementById("eventDetailsName");
+  const eventDetailsStart = document.getElementById("eventDetailsStart");
+  const eventDetailsEnd = document.getElementById("eventDetailsEnd");
+  const eventDetailsDateRange = document.getElementById("eventDetailsDateRange");
+  const dayEventsModalTitle = document.getElementById("dayEventsModalTitle");
+  const dayEventsList = document.getElementById("dayEventsList");
+  const dayEventsEmpty = document.getElementById("dayEventsEmpty");
   const startDate = document.querySelector(".startDateIp");
   const endDate = document.querySelector(".endDateIp");
   const name = document.querySelector(".eventName");
@@ -146,11 +292,70 @@
   const allDaySelect = document.querySelector(".allDaySelect");
   const dateIps = document.querySelectorAll(".dateIp");
 
-  console.log(eventDelPop)
+  let selectedEventId = null;
 
   eventAddClose.addEventListener("click", function () {
     eventAddPop.classList.add("hidden");
   });
+
+  if (eventDetailsCloseBtn) {
+    eventDetailsCloseBtn.addEventListener("click", function () {
+      eventDetailsPop.classList.add("hidden");
+    });
+  }
+  if (eventDetailsCloseBtn2) {
+    eventDetailsCloseBtn2.addEventListener("click", function () {
+      eventDetailsPop.classList.add("hidden");
+    });
+  }
+  if (dayEventsCloseBtn) {
+    dayEventsCloseBtn.addEventListener("click", function () {
+      dayEventsPop.classList.add("hidden");
+    });
+  }
+
+  if (eventDetailsDeleteBtn) {
+    eventDetailsDeleteBtn.addEventListener("click", function () {
+      eventDetailsPop.classList.add("hidden");
+      eventDelPop.classList.remove("hidden");
+    });
+  }
+
+  if (noDelBtn) {
+    noDelBtn.addEventListener("click", function () {
+      eventDelPop.classList.add("hidden");
+    });
+  }
+
+  if (yesDelBtn) {
+    yesDelBtn.addEventListener("click", function () {
+      if (!selectedEventId) return;
+      window.location.href = "event-delete/" + selectedEventId;
+    });
+  }
+
+  function formatDateForLabel(dateStr) {
+    if (!dateStr) return "";
+    const safe = String(dateStr);
+    if (safe.length >= 10) return safe.substring(0, 10);
+    return safe;
+  }
+
+  function openEventDetails(fcEvent) {
+    selectedEventId = fcEvent.id;
+    eventDetailsName.textContent = fcEvent.title || "-";
+
+    const startText = formatDateForLabel(fcEvent.startStr);
+    const endText = formatDateForLabel(fcEvent.endStr);
+    const endOrFallback = endText || startText;
+
+    eventDetailsStart.textContent = startText || "-";
+    eventDetailsEnd.textContent = endOrFallback || "-";
+    eventDetailsDateRange.textContent =
+      startText && endText && startText !== endText ? `${startText} - ${endText}` : startText;
+
+    eventDetailsPop.classList.remove("hidden");
+  }
 
   document.addEventListener("DOMContentLoaded", function () {
     var calendarEl = document.getElementById("calendar");
@@ -167,7 +372,10 @@
         },
       ],  
       eventColor: "#3f37c9",
-      displayEventTime: true,
+      displayEventTime: false,
+      eventDisplay: "block",
+      dayMaxEvents: 6,
+      dayMaxEventRows: 3,
       dateClick: function (info) {
         const todayPrev = new Date();
         const today = todayPrev.getFullYear() + '-' + ((todayPrev.getMonth() < 9? '0': '') + (todayPrev.getMonth()+1)) + '-' + ((todayPrev.getDate() < 9? '0': '') + (todayPrev.getDate()));
@@ -183,12 +391,65 @@
 
         
       },
-      eventClick: function (el) {
+      eventClick: function (arg) {
+        openEventDetails(arg.event);
+      },
+      moreLinkClick: function (info) {
+        // Prevent FullCalendar default popover; show our own list modal.
+        try {
+          if (info && info.jsEvent) {
+            info.jsEvent.preventDefault();
+            info.jsEvent.stopPropagation();
+          }
+        } catch (e) {}
 
-        const parameter = el.event.id;
-        eventDelPop.classList.remove("hidden");
-        customEventClick(parameter);
+        const dateStr = info.dateStr || "";
+        dayEventsModalTitle.textContent = dateStr ? `Events on ${formatDateForLabel(dateStr)}` : "Events";
+        dayEventsList.innerHTML = "";
+        dayEventsEmpty.classList.add("d-none");
 
+        if (!dateStr) {
+          dayEventsEmpty.classList.remove("d-none");
+          dayEventsPop.classList.remove("hidden");
+          return false;
+        }
+
+        const dayStart = new Date(dateStr + "T00:00:00");
+        const dayEndExclusive = new Date(dayStart);
+        dayEndExclusive.setDate(dayEndExclusive.getDate() + 1);
+
+        const eventsForDay = calendar.getEvents().filter((ev) => {
+          const evStart = ev.start;
+          const evEnd = ev.end || ev.start;
+          return evStart < dayEndExclusive && evEnd > dayStart;
+        });
+
+        if (!eventsForDay.length) {
+          dayEventsEmpty.classList.remove("d-none");
+          dayEventsPop.classList.remove("hidden");
+          return false;
+        }
+
+        eventsForDay.forEach((ev) => {
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = "w-full text-left px-[14px] py-[12px] bg-[#F7F7FA] border border-[#DEDEDE] rounded-[10px]";
+          item.setAttribute("data-event-id", ev.id);
+
+          const startText = formatDateForLabel(ev.startStr);
+          const endText = formatDateForLabel(ev.endStr) || startText;
+          const rangeLabel =
+            startText && endText && startText !== endText ? `${startText} - ${endText}` : startText;
+
+          item.innerHTML = `
+            <div class="font-semibold text-[14px] leading-[19px] text-[#0f0f0f]">${(ev.title || "-").toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+            <div class="text-[12px] leading-[16px] mediumFont text-[#828282] mt-[3px]">${rangeLabel || "-"}</div>
+          `;
+          dayEventsList.appendChild(item);
+        });
+
+        dayEventsPop.classList.remove("hidden");
+        return false;
       },
       initialView: "dayGridMonth",
     });
@@ -209,24 +470,18 @@
       eventAddPop.classList.add("hidden");
     });
 
-    // Event Deleting
+    // Day events list click -> open that event details.
+    dayEventsList.addEventListener("click", function (e) {
+      const target = e.target && e.target.closest ? e.target.closest("[data-event-id]") : null;
+      if (!target) return;
 
-    function customEventClick(elem){
+      const eventId = target.getAttribute("data-event-id");
+      const fcEvent = calendar.getEventById(eventId);
+      if (!fcEvent) return;
 
-      noDelBtn.addEventListener("click", function(){
-        eventDelPop.classList.add("hidden");
-        })
-
-        yesDelBtn.addEventListener("click", function(){
-        const toDel = calendar.getEventById(elem);
-        console.log(elem)
-        window.location.href = "event-delete/"+elem;
-          toDel.remove();
-          data = calendar.getEvents();
-          console.log(data);
-          eventDelPop.classList.add("hidden")
-        })
-    }
+      openEventDetails(fcEvent);
+      dayEventsPop.classList.add("hidden");
+    });
 
     
   // allDaySelect.addEventListener("change", function(){

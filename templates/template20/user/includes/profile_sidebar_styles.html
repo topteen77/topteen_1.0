@@ -2,11 +2,11 @@
   .profile-sidebar {
     border: 1px solid #dedede;
     border-radius: 10px;
-    padding: 24px;
+    padding: 12px;
   }
   .profile-image {
-    width: 104px;
-    height: 104px;
+    width: 78px;
+    height: 75px;
     border-radius: 50%;
     object-fit: cover;
   }
@@ -24,13 +24,13 @@
     line-height: 1;
   }
   .profile-complete-card {
-    background: #f7f7fa;
+    background: #FFF2D9;
     border-radius: 10px;
     padding: 18px;
     margin-top: 18px;
   }
   .progress-bar-custom {
-    height: 10px;
+    height: 7px;
     background: rgba(76, 201, 240, 0.15);
     border-radius: 100px;
     overflow: hidden;
@@ -62,6 +62,38 @@
   }
   .certified-badge i {
     color: #fff;
+  }
+
+  /* Mobile: tighten spacing so class/school rows don't overflow */
+  @media (max-width: 576px) {
+    .profile-sidebar {
+      padding: 10px !important;
+    }
+
+    .profile-image {
+      width: 64px !important;
+      height: 62px !important;
+    }
+
+    .profile-image-initials {
+      width: 86px !important;
+      height: 86px !important;
+      font-size: 2rem !important;
+    }
+
+    /* These sizes are utility classes with `!important`, so we must override with `!important` too. */
+    .profile-sidebar .fs-16 {
+      font-size: 14px !important;
+    }
+
+    .profile-sidebar .fs-18 {
+      font-size: 16px !important;
+    }
+
+    .profile-sidebar p {
+      word-break: break-word;
+      line-height: 1.25;
+    }
   }
 </style>
 

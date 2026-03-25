@@ -1,50 +1,88 @@
 <div class="profile-sidebar">
   <!-- User -->
   <div class="text-center border-bottom pb-4 mb-4">
-    <div class="mb-3 position-relative d-inline-block">
+    <div class="mb-3 position-relative d-inline-block w-100">
+
+      <div class="profile-image-wrapper d-flex align-items-center justify-content-start">
       {% if request.user.image %}
-      <img src="{{ request.user.image.url }}" class="profile-image mx-auto" alt="{{ request.user.name }}" onerror="this.style.display='none'; var f=this.nextElementSibling; if(f){ f.style.display='flex'; }" />
-      <div class="profile-image profile-image-initials mx-auto" style="display:none;" aria-label="User avatar">{{ (request.user.name or request.user.email or "?")[0]|upper }}</div>
+      <img src="{{ request.user.image.url }}" class="profile-image me-2" alt="{{ request.user.name }}"
+        onerror="this.style.display='none'; var f=this.nextElementSibling; if(f){ f.style.display='flex'; }" />
+      <div class="profile-image profile-image-initials me-2 " style="display:none;" aria-label="User avatar">{{
+        (request.user.name or request.user.email or "?")[0]|upper }}</div>
       {% else %}
-      <div class="profile-image profile-image-initials mx-auto" aria-label="User avatar">{{ (request.user.name or request.user.email or "?")[0]|upper }}</div>
+      <div class="profile-image profile-image-initials me-2" aria-label="User avatar">{{ (request.user.name or
+        request.user.email or "?")[0]|upper }}</div>
       {% endif %}
       {# Certified Badge #}
       {% if request.user.user_type == 4 %}
-        {% set counselor_cert = request.user.counselorcertification_set.first() if request.user.counselorcertification_set.exists() else None %}
-        {% if counselor_cert %}
-        <div class="certified-badge" title="Certified Counselor - Grade: {{ counselor_cert.grade }}">
-          <i class='bx bx-check-circle fs-24'></i>
-        </div>
-        {% endif %}
-      {% endif %}
-    </div>
-    <p class="fs-16 fw-semibold mb-1">{{ request.user.name|default(request.user.username) }}</p>
-    {% if request.user.user_type == 1 and request.user.get_display_student_id() %}
-    <p class="fs-12 text-gray mb-2">Student ID: <strong>{{ request.user.get_display_student_id() }}</strong></p>
-    {% endif %}
-    <div class="d-flex flex-column gap-2">
-      <div class="d-flex align-items-center justify-content-center gap-2">
-        <i class='bx bx-time-five fs-18 text-gray'></i>
-        <p class="text-gray fs-16 mb-0">Joined {{ date_format(request.user.created) }}</p>
+      {% set counselor_cert = request.user.counselorcertification_set.first() if
+      request.user.counselorcertification_set.exists() else None %}
+      {% if counselor_cert %}
+      <div class="certified-badge" title="Certified Counselor - Grade: {{ counselor_cert.grade }}">
+        <i class='bx bx-check-circle fs-24'></i>
       </div>
-      <div class="d-flex align-items-center justify-content-center gap-2">
-        <i class='bx bx-book fs-18 text-gray'></i>
-        <p class="text-gray fs-16 mb-0">
-          {% if request.user.user_profile %}
-            {% if request.user.student_management.last() and request.user.student_management.last().class_and_section %}
-              {{ request.user.student_management.last().class_and_section }}
-            {% endif %}
-            {% if request.user.user_profile.schoolname %}
-              • {{ request.user.user_profile.schoolname }}
-            {% endif %}
-            {% if request.user.user_profile.grade %}
-            • Class {{ request.user.user_profile.grade }}
-            {% endif %}
-          {% else %}
-            - • -
+      {% endif %}
+      {% endif %}
+
+      <div class="profile-info d-flex flex-column align-items-start justify-content-center ">  
+    <p class="fs-16 fw-semibold mb-0 text-truncate text-start col-12 text-purple">{{ request.user.name|default(request.user.username) }}</p>
+    {% if request.user.user_type == 1 and request.user.get_display_student_id() %}
+    <p class="fs-12 text-gray mb-0 ">Student ID: <strong>{{ request.user.get_display_student_id() }}</strong></p>
+    {% endif %}
+    </div>
+  </div>
+    </div>
+    <div class="d-flex flex-column gap-2">
+      <div class="d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-time-five fs-18 text-purple'></i>
+        <p class="text-gray fs-14 mb-0">Joined {{ date_format(request.user.created) }}</p>
+      </div>
+      {% if request.user.user_profile %}
+      {% set last_student = request.user.student_management.last() %}
+      {% if last_student and last_student.class_and_section %}
+      <div class="d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple'></i>
+        <p class="text-gray fs-14 mb-0">
+          {{ last_student.class_and_section }}
+          {% if request.user.user_profile.grade %}
+          • Class {{ request.user.user_profile.grade }}
           {% endif %}
         </p>
       </div>
+      {% else %}
+      {% if request.user.user_profile.grade %}
+      <div class="d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple'></i>
+        <p class="text-gray fs-14 mb-0">Class {{ request.user.user_profile.grade }}</p>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      {% if request.user.user_profile.schoolname %}
+      <div class="d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-buildings fs-18 text-purple'></i>
+        <p class="text-gray fs-14 mb-0 lh-sm text-start">{{ request.user.user_profile.schoolname }}</p>
+      </div>
+      {% endif %}
+
+      {% if request.user.user_profile.schoolname %}
+      {# show school row above #}
+      {% elif request.user.user_profile.grade %}
+      {# show class row above #}
+      {% elif last_student and last_student.class_and_section %}
+      {# show class row above #}
+      {% else %}
+      <div class="d-flex align-items-start justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple'></i>
+        <p class="text-gray fs-16 mb-0">- • -</p>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="d-flex align-items-start justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple'></i>
+        <p class="text-gray fs-16 mb-0">- • -</p>
+      </div>
+      {% endif %}
     </div>
   </div>
   <!-- End of User -->
@@ -53,11 +91,12 @@
   <div class="profile-complete-card">
     <div class="d-flex">
       <div class="me-3">
-        <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;" alt="Verified" />
+        <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;"
+          alt="Verified" />
       </div>
       <div class="flex-grow-1">
-        <p class="fs-12 fw-semibold text-dark mb-1">Complete your profile</p>
-        <p class="fs-10 text-gray mb-2">A complete profile helps us cater the best content to you</p>
+        <p class="fs-14 fw-semibold text-dark mb-1">Complete your profile</p>
+        <p class="fs-10 text-gray mb-2 lh-sm">A complete profile helps us cater the best content to you</p>
         <div class="progress-bar-custom" style="width: 100%;">
           <div class="progress-fill" style="width: {{ request.user.get_profile_completion_percentage() }}%;"></div>
         </div>
@@ -72,161 +111,160 @@
   <!-- Settings Links -->
   <div class="mt-4">
     {% if request.user.user_type == 5 %}
-      {# Marketing Group Admin #}
-      <a href="{{ url_('institute:marketinggroupdashboard') }}" class="d-block text-decoration-none mb-3">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-          <div>
-            <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-            <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-          </div>
-          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+    {# Marketing Group Admin #}
+    <a href="{{ url_('institute:marketinggroupdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize'></i> Dashboard</p>
+        
         </div>
-      </a>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
     {% elif request.user.user_type == 3 %}
-      {# Institute Group Admin #}
-      <a href="{{ url_('institute:institutegroupdashboard') }}" class="d-block text-decoration-none mb-3">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-          <div>
-            <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-            <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-          </div>
-          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-        </div>
-      </a>
+    {# Institute Group Admin #}
+    <a href="{{ url_('institute:institutegroupdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+                </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
     {% elif request.user.user_type == 2 %}
-      {# Institute #}
-      {% set institute_obj = request.user.institute_created.last() %}
-      {% if institute_obj and institute_obj.slug %}
-        <a href="{{ url_('institute:institutedashboard', args=[institute_obj.slug]) }}" class="d-block text-decoration-none mb-3">
-          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-            <div>
-              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-            </div>
-            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-          </div>
-        </a>
-      {% else %}
-        <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-            <div>
-              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-            </div>
-            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-          </div>
-        </a>
-      {% endif %}
-    {% elif request.user.user_type == 4 %}
-      {# Counselor #}
-      {% set counselor_list = request.user.counselor.all() %}
-      {% if counselor_list|length > 0 %}
-        {% set counselor_obj = counselor_list[0] %}
-        <a href="{{ url_('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" class="d-block text-decoration-none mb-3">
-          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-            <div>
-              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-            </div>
-            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-          </div>
-        </a>
-      {% else %}
-        <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-            <div>
-              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-            </div>
-            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-          </div>
-        </a>
-      {% endif %}
-    {% elif request.user.user_type == 1 %}
-      {# Student - Check if class 11/12 for post_matric dashboard, else user dashboard #}
-      {% set student_management = request.user.student_management.all() %}
-      {% if student_management|length > 0 %}
-        {% set sm = student_management[0] %}
-        {% if sm.class_and_section %}
-          {% set class_name = sm.class_and_section.class_and_section %}
-          {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
-            <a href="{{ url_('post_matric:tests') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-                  <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-          {% else %}
-            <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-              <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-                <div>
-                  <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-                  <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-                </div>
-                <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-              </div>
-            </a>
-          {% endif %}
-        {% else %}
-          <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-              <div>
-                <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-                <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-              </div>
-              <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-            </div>
-          </a>
-        {% endif %}
-      {% else %}
-        <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-            <div>
-              <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-              <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-            </div>
-            <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
-          </div>
-        </a>
-      {% endif %}
+    {# Institute #}
+    {% set institute_obj = request.user.institute_created.last() %}
+    {% if institute_obj and institute_obj.slug %}
+    <a href="{{ url_('institute:institutedashboard', args=[institute_obj.slug]) }}"
+      class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+                 </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
     {% else %}
-      {# Default - Student or other #}
-      <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-3">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
-          <div>
-            <p class="fs-14 fw-semibold mb-1">Dashboard</p>
-            <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
-          </div>
-          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+    <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+         
         </div>
-      </a>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
     {% endif %}
-    <a href="{{ url_('users:viewprofile') }}" class="d-block text-decoration-none mb-3">
+    {% elif request.user.user_type == 4 %}
+    {# Counselor #}
+    {% set counselor_list = request.user.counselor.all() %}
+    {% if counselor_list|length > 0 %}
+    {% set counselor_obj = counselor_list[0] %}
+    <a href="{{ url_('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}"
+      class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1">View Profile</p>
-          <p class="text-gray fs-12 mb-0">View your profile information</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+         
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
     </a>
-    <a href="{{ url_('users:profiledetails') }}" class="d-block text-decoration-none mb-3">
+    {% else %}
+    <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1">Edit Profile</p>
-          <p class="text-gray fs-12 mb-0">Update your profile information</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+         
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
     </a>
-    <a href="{{ url_('users:userhistory') }}" class="d-block text-decoration-none mb-3">
+    {% endif %}
+    {% elif request.user.user_type == 1 %}
+    {# Student - Check if class 11/12 for post_matric dashboard, else user dashboard #}
+    {% set student_management = request.user.student_management.all() %}
+    {% if student_management|length > 0 %}
+    {% set sm = student_management[0] %}
+    {% if sm.class_and_section %}
+    {% set class_name = sm.class_and_section.class_and_section %}
+    {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
+    <a href="{{ url_('post_matric:tests') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1">Manage payment history</p>
-          <p class="text-gray fs-12 mb-0">View and manage your payments</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+                 </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    {% else %}
+    <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+         
+        </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    {% endif %}
+    {% else %}
+    <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+         
+        </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    {% endif %}
+    {% else %}
+    <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+        
+        </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    {% endif %}
+    {% else %}
+    {# Default - Student or other #}
+    <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"> <i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
+        </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    {% endif %}
+    <a href="{{ url_('users:viewprofile') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-user me-2 fs-18' ></i> View Profile</p>
+        
+        </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    <a href="{{ url_('users:profiledetails') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bxs-user-plus me-2 fs-18' ></i>Edit Profile</p>
+        
+        </div>
+        <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+      </div>
+    </a>
+    <a href="{{ url_('users:userhistory') }}" class="d-block text-decoration-none mb-2">
+      <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-credit-card-front me-2 fs-18' ></i> Manage payment history</p>
+        
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
@@ -234,8 +272,8 @@
     <a href="{{ url_('users:logout') }}" class="d-block text-decoration-none">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 text-danger">Sign Out</p>
-          <p class="text-danger text-opacity-60 fs-12 mb-0">Logout from your account</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center text-danger"><i class='bx bx-log-out-circle me-2 fs-18' ></i> Sign Out</p>
+        
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
@@ -243,4 +281,3 @@
   </div>
   <!-- End of Settings Links -->
 </div>
-
