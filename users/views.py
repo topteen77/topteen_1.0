@@ -53,7 +53,7 @@ from institute.models import Institute, InstituteGroup, InstituteMarketingGroup,
 from django.middleware.csrf import get_token
 # from .forms import InstituteRegistrationForm
 import re
-from user_analytics.tasks import link_analytics_session_to_user
+from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
 
 
 def _link_current_analytics_session(request, user):
@@ -62,6 +62,8 @@ def _link_current_analytics_session(request, user):
         session_id = request.session.get('analytics_session_id')
         if session_id and user:
             link_analytics_session_to_user(session_id, user)
+            # Backfill session_id on any events created during AJAX auth flow.
+            reconcile_recent_user_events(user, session_id=session_id, minutes=30)
     except Exception:
         pass
 
@@ -1395,6 +1397,7 @@ class SignUpVerifyOTP(APIView):
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
                     login(request, user, backend='users.backends.CustomUserBackend')
+                    _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
@@ -1655,6 +1658,7 @@ class LoginOTP(APIView):
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
                     login(request, user, backend='users.backends.CustomUserBackend')
+                    _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["success"]=True
 
@@ -1745,6 +1749,7 @@ class LoginPassword(APIView):
                         request.session.set_expiry(0)
                     
                     login(request, user, backend='users.backends.CustomUserBackend')
+                    _link_current_analytics_session(request, user)
                     data['success'] = True
                     data['message'] = "Login successful"
                     # Check if user needs to set password (has default password)
@@ -1779,6 +1784,7 @@ class LoginPassword(APIView):
                     
                     # Use CustomUserBackend for login
                     login(request, user, backend='users.backends.CustomUserBackend')
+                    _link_current_analytics_session(request, user)
                     data['success'] = True
                 # If master password was used, data['success'] is already set above
 

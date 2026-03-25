@@ -5,6 +5,34 @@
 {% block page_title %}Enquiry Sources (UTM Links){% endblock %}
 
 {% block content %}
+<style>
+  /* Enquiry sources table polish */
+  .enquiry-metric-link {
+    font-weight: 600;
+  }
+  .enquiry-metric-link:hover {
+    text-decoration: underline !important;
+  }
+  .enquiry-events-meta {
+    max-width: 520px;
+  }
+  .enquiry-events-meta details > summary {
+    cursor: pointer;
+    user-select: none;
+  }
+  .enquiry-events-meta pre {
+    max-height: 180px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 0;
+  }
+  .enquiry-events-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+</style>
 <div class="admin-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -215,7 +243,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="enquiryEventsModalBody">
-                <p class="text-muted small mb-0">Loading…</p>
+                <div class="d-flex align-items-center gap-2 text-muted small">
+                    <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                    <span>Loading…</span>
+                </div>
             </div>
             <div class="modal-footer">
                 <span class="small text-muted me-auto" id="enquiryEventsModalFooter"></span>
@@ -240,6 +271,21 @@ window.addEventListener('load', function() {
         d.textContent = s;
         return d.innerHTML;
     }
+    function renderLoading() {
+        bodyEl.innerHTML = '<div class="d-flex align-items-center gap-2 text-muted small">'
+          + '<div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>'
+          + '<span>Loading…</span>'
+          + '</div>';
+    }
+    function renderEmpty() {
+        bodyEl.innerHTML = '<div class="alert alert-light border small mb-0">No matching rows.</div>';
+    }
+    function renderError(msg) {
+        bodyEl.innerHTML = '<div class="alert alert-danger small mb-0">' + escapeHtml(msg || 'Request failed.') + '</div>';
+    }
+    function safeJson(obj) {
+        try { return JSON.stringify(obj || {}, null, 2); } catch (e) { return '{}'; }
+    }
     document.querySelectorAll('.enquiry-metric-link').forEach(function(link) {
         link.addEventListener('click', function(e) {
             e.preventDefault();
@@ -248,31 +294,61 @@ window.addEventListener('load', function() {
             var label = this.getAttribute('data-label') || kind;
             titleEl.textContent = label;
             footerEl.textContent = '';
-            bodyEl.innerHTML = '<p class="text-muted small mb-0">Loading…</p>';
+            renderLoading();
             modal.show();
             var u = enquiryEventsApiUrl + '?source_id=' + encodeURIComponent(sid) + '&kind=' + encodeURIComponent(kind);
             fetch(u, { credentials: 'same-origin' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (!data.ok) {
-                        bodyEl.innerHTML = '<p class="text-danger small mb-0">' + escapeHtml(data.error || 'Failed to load.') + '</p>';
+                        renderError(data.error || 'Failed to load.');
                         return;
                     }
                     if (!data.events || !data.events.length) {
-                        bodyEl.innerHTML = '<p class="text-muted small mb-0">No matching events.</p>';
+                        renderEmpty();
                         return;
                     }
                     var rows = data.events.map(function(ev) {
-                        var meta = ev.metadata ? JSON.stringify(ev.metadata, null, 2) : '';
-                        return '<tr><td class="small text-nowrap">' + escapeHtml(ev.created) + '</td><td class="small">' + escapeHtml(ev.event_name || '') + '</td><td class="small">' + escapeHtml(ev.user_email || '—') + '</td><td class="small text-break">' + escapeHtml(ev.session_id || '—') + '</td><td><pre class="small mb-0 bg-light p-2 rounded" style="max-height:140px;overflow:auto;white-space:pre-wrap">' + escapeHtml(meta) + '</pre></td></tr>';
+                        var metaJson = safeJson(ev.metadata);
+                        var user = ev.user_email ? escapeHtml(ev.user_email) : '<span class="text-muted">—</span>';
+                        var sess = ev.session_id ? ('<code class="small">' + escapeHtml(ev.session_id) + '</code>') : '<span class="text-muted">—</span>';
+                        var eventName = escapeHtml(ev.event_name || '');
+                        var when = escapeHtml(ev.created || '');
+                        return ''
+                          + '<tr>'
+                          +   '<td class="small text-nowrap">' + when + '</td>'
+                          +   '<td class="small text-break"><span class="fw-semibold">' + eventName + '</span></td>'
+                          +   '<td class="small text-break">' + user + '</td>'
+                          +   '<td class="small text-break">' + sess + '</td>'
+                          +   '<td class="enquiry-events-meta">'
+                          +     '<details>'
+                          +       '<summary class="small text-primary">View</summary>'
+                          +       '<pre class="small bg-light border rounded p-2 mt-2">' + escapeHtml(metaJson) + '</pre>'
+                          +     '</details>'
+                          +   '</td>'
+                          + '</tr>';
                     }).join('');
-                    bodyEl.innerHTML = '<div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>When</th><th>Event</th><th>User</th><th>Session</th><th>Metadata</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+                    bodyEl.innerHTML = ''
+                      + '<div class="table-responsive">'
+                      +   '<table class="table table-sm table-hover align-middle mb-0 enquiry-events-table">'
+                      +     '<thead class="table-light">'
+                      +       '<tr>'
+                      +         '<th style="width: 160px;">When</th>'
+                      +         '<th>Event</th>'
+                      +         '<th style="width: 240px;">User</th>'
+                      +         '<th style="width: 220px;">Session</th>'
+                      +         '<th style="width: 180px;">Metadata</th>'
+                      +       '</tr>'
+                      +     '</thead>'
+                      +     '<tbody>' + rows + '</tbody>'
+                      +   '</table>'
+                      + '</div>';
                     var foot = (typeof data.total === 'number' ? 'Showing ' + data.events.length + ' of ' + data.total + '.' : '');
                     if (data.truncated) foot += (foot ? ' ' : '') + 'List capped at 100 rows.';
                     footerEl.textContent = foot;
                 })
                 .catch(function() {
-                    bodyEl.innerHTML = '<p class="text-danger small mb-0">Request failed.</p>';
+                    renderError('Request failed.');
                 });
         });
     });
