@@ -460,29 +460,35 @@ window.addEventListener("resize", () => {
 });
 
 // scrolling js //
+function initScrollerAnimation() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-const scrollers = document.querySelectorAll(".scroller");
+  const scrollers = document.querySelectorAll(".scroller");
+  if (!scrollers.length) return;
 
-if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  addAnimation();
-}
+  scrollers.forEach((scroller) => {
+    // Prevent duplicate clones if this initializer runs again.
+    if (scroller.getAttribute("data-animated") === "true") return;
 
-function addAnimation() {
-  scrollers.forEach(scroller => {
-    scroller.setAttribute("data-animated", true);
-
-    const scrollerInner = scroller.querySelector('.scroller__inner');
+    const scrollerInner = scroller.querySelector(".scroller__inner");
     if (!scrollerInner) return;
+
+    scroller.setAttribute("data-animated", "true");
     const scrollerContent = Array.from(scrollerInner.children);
 
-    scrollerContent.forEach(item => {
+    scrollerContent.forEach((item) => {
       const duplicatedItem = item.cloneNode(true);
-      duplicatedItem.setAttribute('aria-hidden', true);
+      duplicatedItem.setAttribute("aria-hidden", "true");
       scrollerInner.appendChild(duplicatedItem);
     });
   });
 }
 
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initScrollerAnimation);
+} else {
+  initScrollerAnimation();
+}
 // scrolling js //
 
 

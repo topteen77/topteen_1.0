@@ -111,6 +111,25 @@ class UserNoteSave(APIView):
 
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST)  
 
+class UserNoteDelete(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.SessionAuthentication, authentication.TokenAuthentication]
+
+    def post(self, request):
+        try:
+            id = request.data.get('obj_id', None)
+            if id:
+                note = get_object_or_404(UserNote, id=id, user=request.user)
+                note.delete()
+                return Response("note deleted successfully", status=status.HTTP_200_OK)
+            return Response("Something went wrong.try again", status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+            print("aslkahsdf", e)
+
+        return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST)
+
 class DeleteUserHobbie(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [authentication.SessionAuthentication, authentication.TokenAuthentication]

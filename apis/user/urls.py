@@ -6,6 +6,7 @@ urlpatterns = [
     path("shortlistcollege",views.ShortlistCollegeAPI.as_view(),name="shortlistcollege"),
     path("shortlistexam",views.ShortlistExamAPI.as_view(),name="shortlistexam"),
     path("user-note-save",views.UserNoteSave.as_view(),name="usernotesave"),
+    path("user-note-delete",views.UserNoteDelete.as_view(),name="usernotedelete"),
     path("remove-hobbie",views.DeleteUserHobbie.as_view(),name="deletehobbie"),
     path("resume-about",views.UserResumeAbout.as_view(),name="resumeabout"),
     path("resume-skill",views.UserResumeSkillAdd.as_view(),name="resumeskill"),

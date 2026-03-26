@@ -12,6 +12,7 @@
   .notepad-page {
     padding-top: 47px;
   }
+
   .note-card {
     background: white;
     border-radius: 10px;
@@ -23,22 +24,96 @@
     display: flex;
     flex-direction: column;
   }
+
+  .note-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    flex: 1;
+  }
+
   .note-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
+
   .note-pin {
     width: 24px;
     height: 34px;
     margin-bottom: 10px;
   }
+
   .note-content {
     max-height: 82px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 4;
+    line-clamp: 4;
     -webkit-box-orient: vertical;
+  }
+
+  .note-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+  }
+
+  .note-menu-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: #f8f9fa;
+    border-radius: 50%;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .note-menu-btn:hover {
+    background: #eceef1;
+    color: #212529;
+  }
+
+  .note-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 36px;
+    min-width: 130px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: none;
+  }
+
+  .note-menu-dropdown.show {
+    display: block;
+  }
+
+  .note-menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #495057;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    text-align: left;
+  }
+
+  .note-menu-item:hover {
+    background: #f8f9fa;
+  }
+
+  .note-menu-item.delete-note {
+    color: #dc3545;
   }
 </style>
 {% endblock %}
@@ -61,63 +136,82 @@
         {% endif %}
 
         <!-- Notepad Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4 border-bottom pb-3">
           <h1 class="fs-24 fw-semibold mb-0">My Notepad</h1>
           <div class="d-none d-lg-block">
-            <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
-              <i class='bx bx-plus me-2'></i> New Note
+            <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button d-flex align-items-center gap-2">
+              <i class='bx bx-message-alt-add fs-21 me-1'></i>Add New Note
             </a>
           </div>
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-          <h2 class="fs-16 fw-normal text-center mb-0">My Notepad</h2>
-          <button type="button" class="btn btn-link position-absolute end-0 top-0" onclick="window.location='{{ url('users:scrapbook') }}'">
-            <i class='bx bx-x fs-24 text-gray'></i>
+        <div class="d-lg-none d-flex align-items-center justify-content-between border-bottom pb-3 mb-4 position-relative mt-5">
+
+          <button type="button" class="btn btn-outline-secondary d-flex align-items-center" data-scrapbook-url="{{ url('users:scrapbook') }}">
+            <i class='bx bx-arrow-back fs-20 me-1'></i> Back
           </button>
+
+
+          <h2 class="fs-20 fw-normal text-center mb-0 fw-bold">My Notepad</h2>
+      
         </div>
 
         <!-- Notes Grid -->
         {% if notes %}
         <div class="row g-3 g-lg-4">
-      {% for note in notes %}
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:updatenote', args=[note.id]) }}" class="text-decoration-none">
-          <div class="note-card">
-            <img src="{{ static('topteenfrontend/assets/images/pin.svg') }}" class="note-pin" alt="Pin" />
-            <h3 class="fs-16 fw-semibold text-dark mb-2">
-              {{ note.title|default('Untitled Note') }}
-            </h3>
-            <p class="text-gray fs-12 mb-3">{{ date_format(note.modified) }}</p>
-            <div class="note-content">
-              {% if note.content %}
-              <p class="fs-12 text-gray mb-0">{{ note.content|striptags|truncate(150) }}</p>
-              {% else %}
-              <p class="fs-12 text-gray mb-0">No content</p>
-              {% endif %}
-            </div>
+          {% for note in notes %}
+          <div class="col-12 col-md-6 col-lg-4" data-note-col>
+              <div class="note-card" data-note-card>
+                <div class="note-actions">
+                  <button type="button" class="note-menu-btn" data-note-menu-toggle aria-label="Note actions">
+                    <i class='bx bx-dots-vertical-rounded fs-20'></i>
+                  </button>
+                  <div class="note-menu-dropdown" data-note-menu>
+                    <a href="{{ url('users:updatenote', args=[note.id]) }}" class="note-menu-item">
+                      <i class='bx bx-edit-alt me-2'></i> Edit
+                    </a>
+                    <button type="button" class="note-menu-item delete-note" data-note-delete data-note-id="{{ note.id }}">
+                      <i class='bx bx-trash me-2'></i> Delete
+                    </button>
+                  </div>
+                </div>
+                <a href="{{ url('users:updatenote', args=[note.id]) }}" class="note-card-link">
+                <img src="{{ static('topteenfrontend/assets/images/pin.svg') }}" class="note-pin" alt="Pin" />
+                <h3 class="fs-16 fw-semibold text-dark mb-2">
+                  {{ note.title|default('Untitled Note') }}
+                </h3>
+                <p class="text-gray fs-12 mb-3">{{ date_format(note.modified) }}</p>
+                <div class="note-content">
+                  {% if note.content %}
+                  <p class="fs-12 text-gray mb-0">{{ note.content|striptags|truncate(150) }}</p>
+                  {% else %}
+                  <p class="fs-12 text-gray mb-0">No content</p>
+                  {% endif %}
+                </div>
+                </a>
+              </div>
           </div>
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-5">
-      <i class='bx bx-note fs-64 text-gray mb-3'></i>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No notes yet</h3>
-      <p class="text-gray fs-14 mb-4">Start creating your first note to keep track of your thoughts and reminders.</p>
-      <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
-        <i class='bx bx-plus me-2'></i> Create Your First Note
-      </a>
-    </div>
-    {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center pt-5">
+          <div class="d-flex justify-content-center align-items-center"> <i class='bx bx-note fs-40 text-purple mb-3 bg-secondary-subtle rounded p-2'></i> </div>
+          
+          <h3 class="fs-20 fw-semibold text-dark mb-2">No notes yet</h3>
+          <p class="text-gray fs-14 mb-4">Start creating your first note to keep track of your thoughts and reminders.
+          </p>
+          <!-- <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
+            <i class='bx bx-plus me-2'></i> Create Your First Note
+          </a> -->
+        </div>
+        {% endif %}
 
         <!-- Mobile New Note Button -->
-        <div class="d-lg-none fixed-bottom text-center p-3" style="bottom: 80px;">
+        <div class="d-lg-none d-flex justify-content-center text-center py-3" style="bottom: 80px;">
           <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
-            <i class='bx bx-plus me-2'></i> New Note
+            <i class='bx bx-plus me-2'></i> Add New Note
           </a>
         </div>
       </div>
@@ -130,7 +224,94 @@
 {% block additionaljs %}
 {{ super() }}
 <script>
-  // Any notepad-specific JavaScript can be added here
+  (function () {
+    var csrfToken = "{{ csrf_token }}";
+    var activeMenu = null;
+    var scrapbookCloseButton = document.querySelector("[data-scrapbook-url]");
+
+    if (scrapbookCloseButton) {
+      scrapbookCloseButton.addEventListener("click", function () {
+        window.location = scrapbookCloseButton.getAttribute("data-scrapbook-url");
+      });
+    }
+
+    function closeAllMenus() {
+      document.querySelectorAll("[data-note-menu].show").forEach(function (menu) {
+        menu.classList.remove("show");
+      });
+      activeMenu = null;
+    }
+
+    document.addEventListener("click", function (event) {
+      var toggleBtn = event.target.closest("[data-note-menu-toggle]");
+      var insideMenu = event.target.closest("[data-note-menu]");
+
+      if (toggleBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        var card = toggleBtn.closest("[data-note-card]");
+        var menu = card ? card.querySelector("[data-note-menu]") : null;
+        if (!menu) {
+          return;
+        }
+        if (activeMenu && activeMenu !== menu) {
+          activeMenu.classList.remove("show");
+        }
+        menu.classList.toggle("show");
+        activeMenu = menu.classList.contains("show") ? menu : null;
+        return;
+      }
+
+      if (!insideMenu) {
+        closeAllMenus();
+      }
+    });
+
+    document.addEventListener("click", function (event) {
+      var deleteBtn = event.target.closest("[data-note-delete]");
+      if (!deleteBtn) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      closeAllMenus();
+
+      var noteId = deleteBtn.getAttribute("data-note-id");
+      if (!noteId) {
+        return;
+      }
+
+      var canDelete = window.confirm("Delete this note?");
+      if (!canDelete) {
+        return;
+      }
+
+      fetch("/api/v1/user/user-note-delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ obj_id: noteId })
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Unable to delete note");
+          }
+          var noteCardColumn = deleteBtn.closest("[data-note-col]");
+          if (noteCardColumn) {
+            noteCardColumn.remove();
+          }
+          if (document.querySelectorAll("[data-note-col]").length === 0) {
+            window.location.reload();
+          }
+        })
+        .catch(function () {
+          window.alert("Something went wrong while deleting the note.");
+        });
+    });
+  })();
 </script>
 {% endblock %}
-

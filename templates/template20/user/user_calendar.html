@@ -11,9 +11,83 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet" />
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-prev-button.fc-button.fc-button-primary {
+    background: #3f37c9;
+    border: 0px;
+    border-radius: 62px;
+    display: flex;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    align-items: center;
+  }
+
+
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-next-button.fc-button.fc-button-primary {
+    background: #3f37c9;
+    border: 0px;
+    border-radius: 62px;
+    display: flex;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    align-items: center;
+  }
+
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-toolbar-chunk .fc-button-group {
+    gap: 10px
+  }
+
+
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-toolbar-chunk .fc-toolbar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+
+  .fc-col-header {
+    background: #EFF3FF;
+  }
+
+
   .user-calendar-page {
     padding-top: 47px;
   }
+
+
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr .fc-toolbar-chunk:nth-child(3) .fc-button-group {
+    background: #efeeff;
+    padding: 6px 6px;
+    gap: 17px;
+    border-radius: 8px;
+  }
+
+
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr .fc-toolbar-chunk:nth-child(3) .fc-button-group .fc-button-active {
+    background: #3f37c9;
+    border-radius: 7px;
+    color: #fff;
+  }
+
+
+  .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr .fc-toolbar-chunk:nth-child(3) .fc-button-group button {
+    background: none;
+    border: none;
+    color: #3f37c9;
+    text-transform: capitalize;
+    font-weight: 600;
+  }
+
+  .fc-today-button.fc-button.fc-button-primary {
+    background: #efeeff;
+    border: 0;
+    color: #3f37c9;
+    font-weight: 600;
+    opacity: 100;
+    text-transform: capitalize;
+  }
+
 
   #calendar {
     max-width: 1280px;
@@ -170,6 +244,120 @@
   .modal-dialog {
     z-index: 1056 !important;
   }
+
+  /* Mobile-only calendar layout and text fixes */
+  @media (max-width: 767.98px) {
+    .user-calendar-page {
+      padding-top: 24px;
+    }
+
+    .user-calendar-page .container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    .user-calendar-page .row.g-4.pt-4 {
+      padding-top: 0 !important;
+      --bs-gutter-x: 0.75rem;
+    }
+
+    #calendar {
+      border-radius: 12px;
+      padding: 10px 8px;
+      overflow: hidden;
+    }
+
+    #calendar .fc .fc-toolbar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    #calendar .fc .fc-toolbar-chunk {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    #calendar .fc .fc-toolbar-title {
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    #calendar .fc .fc-button {
+      padding: 6px 10px !important;
+      font-size: 12px !important;
+      border-radius: 8px !important;
+      min-height: 34px;
+    }
+
+    #calendar .fc .fc-button-group {
+      gap: 6px !important;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #calendar .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-prev-button.fc-button.fc-button-primary,
+    #calendar .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-next-button.fc-button.fc-button-primary {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0 !important;
+    }
+
+    #calendar .fc .fc-col-header-cell-cushion {
+      font-size: 11px;
+      padding: 8px 0 !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+    }
+
+    #calendar .fc-daygrid-day-number {
+      font-size: 12px;
+      padding: 6px !important;
+    }
+
+    #calendar .fc-daygrid-day-events {
+      padding: 0 4px 6px 4px !important;
+    }
+
+    #calendar .fc-daygrid-event .fc-title {
+      font-size: 11px;
+      line-height: 14px;
+    }
+
+    #calendar .fc .fc-daygrid-day-frame {
+      min-height: 86px;
+    }
+
+    #calendar .fc .fc-more-link {
+      font-size: 11px !important;
+      padding: 3px 6px !important;
+    }
+
+    #dayEventsList .list-group-item {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    .fc-today-button.fc-button.fc-button-primary {
+  margin-top: 5px;
+  font-size: 16px;
+}
+
+.fc-header-toolbar.fc-toolbar.fc-toolbar-ltr .fc-toolbar-chunk:nth-child(3) .fc-button-group {
+	border-radius: 8px;
+	font-size: 13px;
+  gap: 5px;
+}
+
+
+  }
 </style>
 {% endblock %}
 
@@ -197,7 +385,8 @@
 
         <!-- Mobile Header -->
         <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-          <a href="{{ url('users:userdashboard') }}" class="btn btn-link position-absolute start-0 top-0 text-decoration-none">
+          <a href="{{ url('users:userdashboard') }}"
+            class="btn btn-link position-absolute start-0 top-0 text-decoration-none">
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </a>
           <h2 class="fs-16 fw-normal text-center mb-0">Your Calendar</h2>
@@ -281,7 +470,7 @@
           <div class="d-flex justify-content-between align-items-center gap-2">
             <div class="min-w-0">
               <div class="text-muted fs-12">Title</div>
-              <div class="fw-semibold text-truncate" id="eventDetailsName"></div>
+              <div class="fw-semibold " id="eventDetailsName"></div>
             </div>
             <div class="badge rounded-pill" style="background: rgba(63,55,201,.1); color:#3f37c9; font-weight:700;">
               <span id="eventDetailsIdShort"></span>
@@ -593,7 +782,7 @@
 
           btn.innerHTML = `
             <div class="min-w-0">
-              <div class="fw-semibold text-truncate">${(ev.title || '-').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+              <div class="fw-semibold text-truncate">${(ev.title || '-').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
               <div class="text-muted fs-12">${rangeLabel || '-'}</div>
             </div>
             <div class="text-purple fw-semibold flex-shrink-0" style="white-space:nowrap;">

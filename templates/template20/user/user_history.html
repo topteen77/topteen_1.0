@@ -9,14 +9,16 @@
 {{ super() }}
 <style>
   .user-history-page {
-    padding-top: 80px;
+    padding-top: 47px;
   }
   .history-card {
-    border: 1px solid #efefee;
+    border: 1px solid #6860F64F;
     border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 16px;
-    transition: box-shadow 0.3s;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.3s;
+  border-top: 7px solid #6860F6;
+  background: linear-gradient(31.85deg, #FBFBFF 15.96%, #FDFCFA 84.04%);
   }
   .history-card:hover {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -52,7 +54,7 @@
 
     <!-- History Heading -->
     <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0">Payment History</h1>
+      <h1 class="fs-24 fw-semibold mb-0 d-flex align-items-center" ><i class='bx bx-spreadsheet text-purple me-2 fs-26'></i> Payment History</h1>
       <div class="d-none d-lg-block">
         <select id="filterStatus" class="form-select" style="max-width: 200px;">
           <option value="">All Payments</option>
@@ -84,7 +86,7 @@
       <div class="history-card" data-status="{% if payment.is_success == 1 %}success{% elif payment.is_success == 0 %}pending{% else %}failed{% endif %}">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
-            <h5 class="fs-18 fw-semibold text-dark mb-1">
+            <h5 class="fs-24 fw-semibold text-purple mb-1">
               {% if payment.obj_type == 10 %}Psychometric Test
               {% elif payment.obj_type == 20 %}SkillLab Course
               {% elif payment.obj_type == 30 %}Career Counsellor
@@ -104,18 +106,18 @@
         
         <div class="row g-3">
           <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1">Amount</p>
+            <p class="fs-14 text-gray mb-1"><i class='bx bx-money me-1' ></i>Amount</p>
             <p class="fs-16 fw-semibold text-dark mb-0">₹{{ payment.amount }}</p>
           </div>
           {% if payment.gateway_order_id %}
           <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1">Order ID</p>
+            <p class="fs-14 text-gray mb-1"><i class='bx bx-receipt me-1'></i> Order ID</p>
             <p class="fs-14 text-dark mb-0">{{ payment.gateway_order_id }}</p>
           </div>
           {% endif %}
           {% if payment.gateway_payment_id %}
           <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1">Payment ID</p>
+            <p class="fs-14 text-gray mb-1"><i class='bx bx-credit-card-front me-1'></i>Payment ID</p>
             <p class="fs-14 text-dark mb-0">{{ payment.gateway_payment_id }}</p>
           </div>
           {% endif %}
