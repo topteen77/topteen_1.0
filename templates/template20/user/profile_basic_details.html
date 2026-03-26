@@ -352,6 +352,19 @@ label.hobbiesTab img {
           </div>
         </div>
 
+        <!-- Email Address -->
+        <div class="w-100 d-flex justify-content-center mb-3">
+          <div class="icon-input position-relative has-label" style="width: 344px;">
+            <label for="useremail" class="form-label fs-14 fw-semibold mb-2">Email Address</label>
+            <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Email" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
+            <input name="useremail" id="useremail" type="email"
+                   value="{{ profile_user.email|default('', true) }}"
+                   class="form-control custom-input w-100"
+                   style="height: 48px; padding-left: 45px;"
+                   placeholder="Enter email address (optional)" />
+          </div>
+        </div>
+
         <!-- Parent Accounts (optional) -->
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 344px;">
@@ -798,6 +811,14 @@ label.hobbiesTab img {
     if (!validatePhone(phoneVal)) {
       showValidationError("Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9", $('input[name="userphone"]'));
       return false;
+    }
+    const emailVal = ($('input[name="useremail"]').val() || "").trim();
+    if (emailVal !== "") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailVal)) {
+        showValidationError("Please enter a valid email address", $('input[name="useremail"]'));
+        return false;
+      }
     }
     if ($('input[name="userschool"]').val() == "" || $('input[name="userschool"]').val().trim() == "") {
       showValidationError("Please enter your school name", $('input[name="userschool"]'));

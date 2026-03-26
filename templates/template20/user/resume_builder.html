@@ -495,7 +495,7 @@
       </div>
       <div class="modal-body">
         <form id="aboutform">
-          {% csrf_token %}
+          {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <textarea name="about" 
                       id="aboutid" 
@@ -528,7 +528,7 @@
       </div>
       <div class="modal-body">
         <form id="skillform">
-          {% csrf_token %}
+          {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="skilltitle" 
@@ -581,7 +581,7 @@
       </div>
       <div class="modal-body">
         <form id="certificateform">
-          {% csrf_token %}
+          {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="certificatetitle" 
@@ -632,7 +632,7 @@
       </div>
       <div class="modal-body">
         <form id="internshipform">
-          {% csrf_token %}
+          {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="provider" 
@@ -699,7 +699,7 @@
       </div>
       <div class="modal-body">
         <form id="activityform">
-          {% csrf_token %}
+          {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="activity" 
@@ -747,7 +747,7 @@
       </div>
       <div class="modal-body">
         <form id="volunteerform">
-          {% csrf_token %}
+          {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="volunteertitle" 

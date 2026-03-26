@@ -382,6 +382,15 @@
         <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
           <h1 class="fs-24 fw-semibold mb-0">Your Calendar</h1>
         </div>
+        {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+          <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} mb-2" role="alert">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- Mobile Header -->
         <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
@@ -414,7 +423,7 @@
           <div class="mb-3">
             <label for="eventName" class="form-label">Event Name</label>
             <input type="text" name="event_name" id="eventName" class="form-control custom-input"
-              placeholder="Enter event name" required>
+              placeholder="Enter event name" maxlength="50" required>
           </div>
           <div class="mb-3">
             <label for="eventStart" class="form-label">Start Date</label>

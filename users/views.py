@@ -64,6 +64,46 @@ def _link_current_analytics_session(request, user):
             link_analytics_session_to_user(session_id, user)
             # Backfill session_id on any events created during AJAX auth flow.
             reconcile_recent_user_events(user, session_id=session_id, minutes=30)
+            # Registration can be tracked before link completes; refresh source/session on recent rows.
+            try:
+                from datetime import timedelta
+                from user_analytics.models import UserActivity, UserEvent
+
+                source_name = None
+                recent_activity = (
+                    UserActivity.objects.filter(
+                        session_id=session_id,
+                        enquiry_source__isnull=False,
+                    )
+                    .select_related('enquiry_source')
+                    .order_by('-created')
+                    .first()
+                )
+                if recent_activity and getattr(recent_activity, 'enquiry_source', None):
+                    source_name = recent_activity.enquiry_source.name
+
+                reg_events = UserEvent.objects.filter(
+                    user=user,
+                    event_type='registration',
+                    created__gte=timezone.now() - timedelta(minutes=30),
+                ).order_by('-created')[:5]
+
+                for ev in reg_events:
+                    changed = False
+                    if not ev.session_id:
+                        ev.session_id = session_id
+                        changed = True
+                    if source_name:
+                        meta = ev.metadata or {}
+                        current_source = str(meta.get('source') or '').strip().lower()
+                        if current_source in ('', 'direct', 'unknown', 'enquiry'):
+                            meta['source'] = source_name
+                            ev.metadata = meta
+                            changed = True
+                    if changed:
+                        ev.save(update_fields=['session_id', 'metadata'])
+            except Exception:
+                pass
     except Exception:
         pass
 
@@ -2463,6 +2503,7 @@ class ProfileBasicDetails(TemplateView):
     def post(self,request,*args,**kwargs):
         name=request.POST.get("username",False)
         mobile=request.POST.get("userphone",False)
+        user_email=(request.POST.get("useremail","") or "").strip().lower()
         image= request.FILES.get('image',False)
         birthdate=request.POST.get('userbirthdaydate',False)
         gender=request.POST.get('gender',False)
@@ -2491,9 +2532,18 @@ class ProfileBasicDetails(TemplateView):
             if request.user.user_type == choices.UserType.STUDENT and _mobile_conflicts_student_parent(mobile, current_user=request.user, intended_user_type=choices.UserType.STUDENT):
                 messages.error(request, "This mobile number is already used by a parent account.")
                 return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
+            if user_email:
+                if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", user_email):
+                    messages.error(request, "Please enter a valid email address.")
+                    return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
+                if User.objects.filter(email__iexact=user_email).exclude(id=request.user.id).exists():
+                    messages.error(request, "This email is already used by another account.")
+                    return render(request, self.template_name, self.get_context(request, profile_user=request.user, is_parent_view=False))
             # Use POST values when provided; otherwise keep existing profile values
             user.name = name
             user.mobile = mobile
+            if user_email:
+                user.email = user_email
             if image:
                 user.image = image
             user.save()
@@ -3244,6 +3294,9 @@ class UserCalenderView(TemplateView):
         event_end=request.POST.get("event_end")
 
         if event_name and event_start and event_end:
+            if len(event_name) > 50:
+                messages.error(request, "Event name must be 50 characters or fewer.")
+                return render(request, self.template_name, self.get_context(request,*args, **kwargs))
             data=UserCalender(user=request.user,event_name=event_name,start_date=event_start,end_date=event_end)
             data.save()
         return render(request, self.template_name, self.get_context(request,*args, **kwargs))
