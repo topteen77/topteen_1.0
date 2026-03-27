@@ -194,10 +194,6 @@ endblock %}
   }
 
   @media (max-width: 575px) {
-    .dashboard-stat-cards .dashboard-stat-col {
-      width: 100%;
-      flex: 0 0 100%;
-    }
 
     .quick-link-card {
       min-height: auto;
@@ -784,7 +780,7 @@ endblock %}
                 <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
               </div>
 
-              <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_clusters_info') }}'">
+              <div class="quick-link-card d-none"  onclick="window.location='{{ url('post_matric:career_clusters_info') }}'">
                 <div class="d-flex align-items-center gap-3">
                   <div class="dashboard-quicklinks-icon" style="background: #F4EE98;">
                     <img src="{{ static('images_new/icons/career-cluster.svg') }}" style="width: 26px; height: 26px;"

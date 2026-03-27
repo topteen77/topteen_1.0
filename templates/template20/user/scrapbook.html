@@ -120,21 +120,19 @@
         {% endif %}
 
         <!-- Scrapbook Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3 mb-4">
           <h1 class="fs-24 fw-semibold mb-0">My Scrapbook</h1>
-          <div class="d-none d-lg-block">
             <button type="button" class="btn custom-button purple-button addFolderPopBtn">
-              <i class='bx bx-plus me-2'></i> New Folder
-            </button>
-          </div>
+            <i class='bx bx-plus me-2'></i> New Folder
+          </button>
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-          <h2 class="fs-16 fw-normal text-center mb-0">My Scrapbook</h2>
-          <a href="{{ url('users:userdashboard') }}" class="btn btn-link position-absolute end-0 top-0">
-            <i class='bx bx-x fs-24 text-gray'></i>
-          </a>
+        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
+            <i class='bx bx-arrow-back fs-18 text-gray'></i>
+          </button>
+          <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">My Scrapbook</h2>
         </div>
 
         <!-- Content Grid -->
@@ -159,7 +157,7 @@
       </div>
 
       <!-- Resume Builder -->
-      <div class="col-12 col-md-6 col-lg-4">
+      <div class="col-12 col-md-6 col-lg-4 d-none">
         <a href="{{ url('users:resumebuilderwelcome') }}" class="text-decoration-none">
           <div class="scrapbook-card">
             <div class="scrapbook-card-top">

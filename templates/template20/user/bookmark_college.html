@@ -14,7 +14,7 @@
   }
   .college-card {
     position: relative;
-    width: 240px;
+    width: 31.4%;
     flex-shrink: 0;
     transition: transform 0.2s ease;
   }
@@ -22,8 +22,6 @@
     transform: translateY(-4px);
   }
   .college-image {
-    width: 240px;
-    height: 240px;
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 18px;
@@ -84,6 +82,12 @@
     font-size: 13px;
     line-height: 1.5;
   }
+
+  @media (max-width: 768px) {
+    .college-card {
+      width: 100%;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -92,20 +96,20 @@
   <div class="container">
     <div class="row g-4 pt-4">
       <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-4 d-none d-lg-block">
+      <div class="col-lg-3 d-none d-lg-block">
         {% include 'template20/user/includes/profile_sidebar.html' %}
       </div>
       <!-- End of Left part Desktop -->
 
       <!-- Right Part - Colleges Content -->
-      <div class="col-lg-8">
+      <div class="col-lg-9">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}
 
         <!-- College Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3 mb-4">
           <h1 class="fs-24 fw-semibold mb-0">Colleges</h1>
           {% if colleges %}
           <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button">
@@ -115,11 +119,11 @@
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
-            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
+            <i class='bx bx-arrow-back fs-18 text-gray'></i>
           </button>
-          <h2 class="fs-16 fw-normal text-center mb-0">Colleges</h2>
+          <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">Colleges</h2>
         </div>
 
         <!-- Colleges Content -->
@@ -141,7 +145,7 @@
                 <i class='bx bx-building' style="font-size: 48px; color: #ccc;"></i>
               {% endif %}
               </div>
-              <figcaption>
+              <figcaption class="p-3 pt-0">
                 <a href="{{ url('colleges:collegedetail', args=[college.slug]) }}" class="text-decoration-none">
                   <h5 class="mb-2">{{ college.name }}</h5>
                 </a>

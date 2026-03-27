@@ -63,6 +63,30 @@
     overflow: hidden;
     margin-bottom: 12px;
   }
+
+  .icon-mobile {
+	min-width: 70px;
+	min-height: 70px;
+	border: 1px solid #dadada;
+	height: 70px;
+	border-radius: 50px;
+	width: 70px;
+}
+
+.icon-mobile img {
+	width: 100%;
+}
+
+.exam-card {
+  width: 31.4%;
+}
+
+@media (max-width: 768px) {
+  .exam-card {
+    width: 100%;
+  }
+}
+
 </style>
 {% endblock %}
 
@@ -84,21 +108,22 @@
         {% endif %}
 
         <!-- Exam Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3 mb-4">
           <h1 class="fs-24 fw-semibold mb-0">Exams & Tests</h1>
           {% if exams %}
-          <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button d-none d-md-inline-flex">
-            <i class='bx bx-search me-2'></i>Browse Exams
+          <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button d-none d-md-inline-flex align-items-center">
+            <i class='bx bx-search me-2 '></i>
+            <span>Browse Exams</span>
           </a>
           {% endif %}
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-5 mb-4 position-relative">
           <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </button>
-          <h2 class="fs-16 fw-normal text-center mb-0">Exams & Tests</h2>
+          <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">Exams & Tests</h2>
           {% if exams %}
           <a href="{{ url('core:entrance_test_prep') }}" class="btn btn-sm custom-button purple-button position-absolute end-0 top-0">
             <i class='bx bx-search me-1'></i>Browse
@@ -110,7 +135,7 @@
         {% if exams %}
         <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
           {% for exam in exams %}
-          <div class="exam-card" style="width: 248px;">
+          <div class="exam-card" >
             <div id="exam_{{ exam.id }}" 
                  class="bookmark-btn active" 
                  onclick="examshortlist('{{ exam.id }}')"
@@ -118,8 +143,8 @@
               <i class='bx bx-x'></i>
             </div>
             <div class="d-flex align-items-center gap-2 mb-3">
-              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="d-flex align-items-center gap-2 text-decoration-none">
-                <div style="width: 57px; height: 63px; flex-shrink: 0;">
+              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="d-flex align-items-center flex-column gap-2 text-decoration-none">
+                <div class="icon-mobile" style="flex-shrink: 0;">
                   {% if exam.image %}<img src="{{ exam.image.url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />{% else %}<img src="{{ static('images_new/general/visinory-goal.svg') }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />{% endif %}
                 </div>
                 <div class="flex-grow-1">
@@ -132,7 +157,7 @@
               {{ (exam.content_html|striptags|trim)|truncate(120) }}
             </div>
             {% endif %}
-            <div class="border-top border-bottom py-2 mb-3"></div>
+           
             <div class="text-center">
               <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="btn btn-outline-secondary btn-sm">
                 View Details
@@ -144,7 +169,9 @@
         {% else %}
         <!-- Empty State -->
         <div class="text-center py-5">
-          <i class='bx bx-clipboard fs-64 text-gray mb-3'></i>
+
+          
+          <i class='bx bx-clipboard fs-40 text-purple mb-3 bg-secondary-subtle rounded p-2'></i>
           <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Exams</h3>
           <p class="text-gray fs-14 mb-4">You haven't bookmarked any exams yet.</p>
           <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button">
