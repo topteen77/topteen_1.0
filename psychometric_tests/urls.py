@@ -11,6 +11,8 @@ urlpatterns = [
     path("create-demo-psychometric-test-payment-eazypay/",views.CreateDemoPsychometricTestPaymentWithEazyPay.as_view(),name="createdemopsychomerticttestpaymenteazypay"),
     path("delete-demo-psychometric-test-payment-eazypay/",views.DeleteDemoPsychometricTestPaymentWithEazyPay.as_view(),name="deletedemopsychomerticttestpaymenteazypay"),
     path("update-psychometric-test-payment/",views.UpdatePsychometricTestPayment.as_view(),name="psychomerticttestpaymentupdate"),
+    # Backward-compatible alias for cached clients posting without trailing slash.
+    path("update-psychometric-test-payment",views.UpdatePsychometricTestPayment.as_view(),name="psychomerticttestpaymentupdate_noslash"),
     path("update-psychometric-test-payment-eazypay/",views.UpdatePsychometricTestPaymentWithEazyPay.as_view(),name="updatepsychomerticttestpaymenteazypay"),
     path("create-central-test-candidate/",views.CreateCentralTestCandidate.as_view(),name="createcentraltestcandidate"),
     path('pychometrictest-payment-success/<str:enc_id>/',views.UserPyschometricTestPaymentSuccess.as_view(),name="pyschometrictestpaymentsuccess"),

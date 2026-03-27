@@ -118,9 +118,9 @@
                 </div>
                 <div>
                   <p class="text-lg semibold text-[#131415] font-semibold">
-                    Transaction ID:
+                    Order ID:
                   </p>
-                  <p class="text-sm mediumFont">0522266RBC45</p>
+                  <p class="text-sm mediumFont">{{ order_id }}</p>
                 </div>
               </li>
             </ul>
@@ -286,7 +286,7 @@
       test_type: test_type
     };
 
-    fetch('/psychometrictest/update-psychometric-test-payment', {
+    fetch('/psychometrictest/update-psychometric-test-payment/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -295,9 +295,23 @@
       body: JSON.stringify(data),
       credentials: 'same-origin'
     })
-    .then(response => response.json())
-    .then(data => {
-      window.location.href = success_url;
+    .then(function(response) {
+      return response.text().then(function(txt) {
+        var payload = {};
+        if (txt) {
+          try { payload = JSON.parse(txt); } catch (e) { payload = { message: txt }; }
+        }
+        return { ok: response.ok, payload: payload };
+      });
+    })
+    .then(function(result) {
+      if (result.ok && (result.payload.success !== false)) {
+        window.location.href = success_url;
+        return;
+      }
+      var msg = (result.payload && (result.payload.message || result.payload.error)) || 'Payment verification failed.';
+      console.error('Payment update failed:', msg);
+      window.location.href = fail_url;
     })
     .catch(error => {
       console.error('Error:', error);

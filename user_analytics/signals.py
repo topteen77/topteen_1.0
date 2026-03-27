@@ -22,10 +22,12 @@ logger = logging.getLogger(__name__)
 def _get_user_source_context(user):
     """
     Resolve best-effort session/source attribution for business events.
-    Returns (session_id, source_name).
+    Returns (session_id, source_name, enquiry_source_id).
+    enquiry_source_id is set when attribution came from a ?ref= EnquirySource row.
     """
     session_id = None
     source_name = 'Direct'
+    enquiry_source_id = None
     try:
         from user_analytics.models import UserActivity, UserJourney
 
@@ -46,6 +48,7 @@ def _get_user_source_context(user):
             session_id = recent_activity.session_id or session_id
             if getattr(recent_activity, 'enquiry_source_id', None) and recent_activity.enquiry_source:
                 source_name = recent_activity.enquiry_source.name
+                enquiry_source_id = recent_activity.enquiry_source_id
             else:
                 source_name = (
                     (recent_activity.utm_source and recent_activity.utm_source.strip()) or
@@ -71,6 +74,7 @@ def _get_user_source_context(user):
                 session_id = recent_journey.session_id or session_id
                 if getattr(recent_journey, 'enquiry_source_id', None) and recent_journey.enquiry_source:
                     source_name = recent_journey.enquiry_source.name
+                    enquiry_source_id = recent_journey.enquiry_source_id
                 else:
                     source_name = (
                         (recent_journey.utm_source and recent_journey.utm_source.strip()) or
@@ -79,7 +83,7 @@ def _get_user_source_context(user):
                     )
     except Exception:
         pass
-    return session_id, source_name
+    return session_id, source_name, enquiry_source_id
 
 
 @receiver(post_save, sender=User)
@@ -90,19 +94,22 @@ def track_user_registration(sender, instance, created, **kwargs):
     if created:
         try:
             def _track_registration():
-                session_id, source_name = _get_user_source_context(instance)
+                session_id, source_name, enq_id = _get_user_source_context(instance)
+                meta = {
+                    'email': instance.email,
+                    'name': instance.name,
+                    'user_type': instance.get_user_type_display() if hasattr(instance, 'get_user_type_display') else 'Unknown',
+                    'source': source_name,
+                }
+                if enq_id:
+                    meta['enquiry_source_id'] = enq_id
                 safe_track_user_event(
                     event_type='registration',
                     event_name='User Registered',
                     user_id=instance.id,
                     event_value=0,
                     session_id=session_id,
-                    metadata={
-                        'email': instance.email,
-                        'name': instance.name,
-                        'user_type': instance.get_user_type_display() if hasattr(instance, 'get_user_type_display') else 'Unknown',
-                        'source': source_name,
-                    }
+                    metadata=meta,
                 )
             transaction.on_commit(_track_registration)
             logger.info(f"Tracked user registration for user {instance.id}")
@@ -175,7 +182,7 @@ def track_payment_event(sender, instance, created, **kwargs):
             except Exception:
                 pass
         
-        session_id, source_name = _get_user_source_context(instance.user)
+        session_id, source_name, _enq = _get_user_source_context(instance.user)
         metadata['source'] = source_name
         
         safe_track_user_event(
@@ -200,7 +207,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
     Also tracks test started event when payment is successful.
     """
     try:
-        session_id, source = _get_user_source_context(instance.user)
+        session_id, source, _enq = _get_user_source_context(instance.user)
         
         if instance.is_success == choices.YesNoChoices.YES:
             event_type = 'payment_success'
@@ -220,6 +227,9 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
             'test_name': instance.get_test_name(),
             'source': source,
         }
+        if event_type == 'payment_pending':
+            psych_meta['payment_stage'] = 'checkout_started'
+            psych_meta['stage'] = 'started'
         if event_type == 'payment_failed':
             psych_meta['payment_stage'] = 'gateway_error'
         safe_track_user_event(
@@ -261,7 +271,7 @@ def track_psychometric_test_completion(sender, instance, created, **kwargs):
         try:
             payment = instance.pyschometric_test_payment
             if payment:
-                session_id, source_name = _get_user_source_context(payment.user)
+                session_id, source_name, _enq = _get_user_source_context(payment.user)
                 
                 content_type = ContentType.objects.get_for_model(instance)
                 
@@ -314,7 +324,7 @@ def track_skilllab_enrollment(sender, instance, created, **kwargs):
         try:
             content_type = ContentType.objects.get_for_model(instance)
             
-            session_id, source_name = _get_user_source_context(instance.user)
+            session_id, source_name, _enq = _get_user_source_context(instance.user)
             safe_track_user_event(
                 event_type='skilllab_enrolled',
                 event_name='SkillLab Course Enrolled',
@@ -340,7 +350,11 @@ def track_institute_student_registration(sender, instance, created, **kwargs):
     """
     if created:
         try:
-            session_id, source_name = _get_user_source_context(instance.student) if instance.student else (None, 'Direct')
+            session_id, source_name, _enq = (
+                _get_user_source_context(instance.student)
+                if instance.student
+                else (None, 'Direct', None)
+            )
             
             content_type = ContentType.objects.get_for_model(instance)
             

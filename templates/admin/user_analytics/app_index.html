@@ -1,0 +1,123 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+{% load custom_filters %}
+
+{% translate "Check the confirmation box first." as purge_js_alert_check %}
+{% translate "Permanently delete ALL user activity, user events, and user journeys? This cannot be undone." as purge_js_confirm %}
+{% translate "Permanently delete all matching analytics rows for: " as purge_js_confirm_domain_prefix %}
+{% translate "? This cannot be undone." as purge_js_confirm_domain_suffix %}
+
+{# User Analytics app list: destructive purge + standard model list #}
+{% block content %}
+<div id="content-main">
+    <div class="module" style="border: 2px solid #e0b4b4; background: #fffafa; margin-bottom: 1rem; padding: 1rem;">
+        <h2 style="margin-top: 0;">{% translate "Danger zone — purge analytics" %}</h2>
+        <p class="help" style="margin-bottom: 1rem;">
+            {% translate "Permanently removes every row in User Activity, User Events, and User Journeys (same as management command cleanup_analytics_data --purge-all)." %}
+        </p>
+        <form
+            method="post"
+            action="{% url 'user_analytics:cleanup_analytics_data' %}"
+            onsubmit="var c=document.getElementById('confirm_purge_admin_app'); if(!c||!c.checked){alert('{{ purge_js_alert_check|escapejs }}'); return false;} return confirm('{{ purge_js_confirm|escapejs }}');"
+        >
+            {% csrf_token %}
+            <input type="hidden" name="purge_all" value="1">
+            <input type="hidden" name="return_to" value="admin_app">
+            <div style="margin-bottom: 0.75rem;">
+                <label>
+                    <input type="checkbox" name="dry_run" value="on">
+                    {% translate "Dry run (show counts only; no delete)" %}
+                </label>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <label>
+                    <input type="checkbox" name="confirm" id="confirm_purge_admin_app" value="on">
+                    {% translate "I understand this will permanently delete data" %}
+                </label>
+            </div>
+            <div>
+                <input
+                    type="submit"
+                    value="{% translate 'Purge all activity, events & journeys' %}"
+                    style="background: #ba2121; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;"
+                >
+            </div>
+        </form>
+    </div>
+
+    <div class="module" style="border: 2px solid #c4c4e0; background: #f8f8ff; margin-bottom: 1rem; padding: 1rem;">
+        <h2 style="margin-top: 0;">{% translate "Delete by domain / environment" %}</h2>
+        <p class="help" style="margin-bottom: 1rem;">
+            {% translate "Removes User Activity, User Events, and User Journeys that match only the selected URL host, path, or client IP pattern (one option at a time)." %}
+        </p>
+        {% get_domain_cleanup_choices as domain_cleanup_choices %}
+        <form
+            method="post"
+            action="{% url 'user_analytics:cleanup_analytics_data' %}"
+            onsubmit="var c=document.getElementById('confirm_domain_admin'); if(!c||!c.checked){alert('{{ purge_js_alert_check|escapejs }}'); return false;} var sel=document.getElementById('id_domain_cleanup'); var txt=sel.options[sel.selectedIndex].text; return confirm('{{ purge_js_confirm_domain_prefix|escapejs }}' + txt + '{{ purge_js_confirm_domain_suffix|escapejs }}');"
+        >
+            {% csrf_token %}
+            <input type="hidden" name="domain_cleanup" value="1">
+            <input type="hidden" name="return_to" value="admin_app">
+            <div style="margin-bottom: 0.75rem;">
+                <label for="id_domain_cleanup" style="display: block; font-weight: bold; margin-bottom: 0.35rem;">{% translate "Domain" %}</label>
+                <select name="domain" id="id_domain_cleanup" required style="min-width: 28rem; max-width: 100%; padding: 0.35rem;">
+                    {% for value, label in domain_cleanup_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <label>
+                    <input type="checkbox" name="dry_run" value="on">
+                    {% translate "Dry run (show counts only; no delete)" %}
+                </label>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <label>
+                    <input type="checkbox" name="confirm" id="confirm_domain_admin" value="on">
+                    {% translate "I understand this will permanently delete data" %}
+                </label>
+            </div>
+            <div>
+                <input
+                    type="submit"
+                    value="{% translate 'Delete matching records' %}"
+                    style="background: #417690; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;"
+                >
+            </div>
+        </form>
+    </div>
+
+    <div class="module" style="border: 2px solid #b9d8ea; background: #f5fbff; margin-bottom: 1rem; padding: 1rem;">
+        <h2 style="margin-top: 0;">{% translate "Quick domain filter" %}</h2>
+        <p class="help" style="margin-bottom: 1rem;">
+            {% translate "Open analytics model lists filtered by domain/host." %}
+        </p>
+        <div style="display:flex; gap: 1rem; flex-wrap: wrap;">
+            <form method="get" action="{% url 'admin:user_analytics_useractivity_changelist' %}" style="display:flex; gap:.5rem; align-items:center;">
+                <label for="id_activity_domain" style="font-weight: bold;">{% translate "User Activity" %}</label>
+                <select id="id_activity_domain" name="q" style="min-width: 16rem; padding: 0.35rem;">
+                    <option value="localhost">{% translate "localhost" %}</option>
+                    <option value="demo.topteen.in">{% translate "demo.topteen.in" %}</option>
+                    <option value="www.topteen.in">{% translate "www.topteen.in" %}</option>
+                    <option value="topteen.in">{% translate "topteen.in (any)" %}</option>
+                </select>
+                <input type="submit" value="{% translate 'Open' %}" class="button">
+            </form>
+
+            <form method="get" action="{% url 'admin:user_analytics_userjourney_changelist' %}" style="display:flex; gap:.5rem; align-items:center;">
+                <label for="id_journey_domain" style="font-weight: bold;">{% translate "User Journey" %}</label>
+                <select id="id_journey_domain" name="q" style="min-width: 16rem; padding: 0.35rem;">
+                    <option value="localhost">{% translate "localhost" %}</option>
+                    <option value="demo.topteen.in">{% translate "demo.topteen.in" %}</option>
+                    <option value="www.topteen.in">{% translate "www.topteen.in" %}</option>
+                    <option value="topteen.in">{% translate "topteen.in (any)" %}</option>
+                </select>
+                <input type="submit" value="{% translate 'Open' %}" class="button">
+            </form>
+        </div>
+    </div>
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+{% endblock %}

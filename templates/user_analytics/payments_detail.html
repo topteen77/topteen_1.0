@@ -124,7 +124,6 @@
                             <th>Amount</th>
                             <th>Date</th>
                             <th>Status</th>
-                            <th>Error detail</th>
                             <th>Traffic source</th>
                             <th>Gateway</th>
                             <th>Order ID</th>
@@ -212,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         : '{{ url("user_analytics:successful_payments_api") }}';
     const manualReconcileBaseUrl = '{{ url("user_analytics:manual_payment_reconciliation") }}';
     const showManualPaymentRowAction = {% if show_manual_payment_row_action %}true{% else %}false{% endif %};
-    const tableColspan = (paymentType === 'successful' && showManualPaymentRowAction) ? 14 : 13;
+    const tableColspan = (paymentType === 'successful' && showManualPaymentRowAction) ? 13 : 12;
     
     let currentPage = 1;
     let currentPeriod = '{{ time_period|default("30days") }}';
@@ -221,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDateFrom = '{{ date_from|default("") }}';
     let currentDateTo = '{{ date_to|default("") }}';
     let currentPaymentStatus = '{{ payment_status_filter|default("success") }}';
-    
+
     function toggleCustomDateInputs() {
         const fromWrap = document.getElementById('date-from-wrap');
         const toWrap = document.getElementById('date-to-wrap');
@@ -424,11 +423,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             statusBadge = '<span class="badge bg-success">Success</span>';
                         }
                         
-                        const errorDetail = (payment.error_detail && String(payment.error_detail).trim() !== '')
-                            ? String(payment.error_detail)
-                            : '<span class="text-muted">—</span>';
                         const invoiceNo = (payment.invoice_number && payment.invoice_number !== 'N/A') ? payment.invoice_number : '<span class="text-muted">N/A</span>';
-                        const txnId = (payment.transaction_id && payment.transaction_id !== 'N/A') ? '<code>' + payment.transaction_id + '</code>' : '<span class="text-muted">N/A</span>';
+                        const txnRaw = (payment.transaction_id != null && String(payment.transaction_id).trim() !== '') ? String(payment.transaction_id).trim() : '';
+                        const txnId = txnRaw ? '<code>' + txnRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code>' : '';
                         const studentId = (payment.student_id !== undefined && payment.student_id !== '' && payment.student_id !== null) ? payment.student_id : '<span class="text-muted">—</span>';
                         const statusLbl = payment.status_label || '';
                         const hideManual = payment.hide_manual_update === true;
@@ -457,7 +454,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td><strong>₹${payment.amount.toFixed(2)}</strong></td>
                                 <td>${payment.date}</td>
                                 <td>${statusBadge}</td>
-                                <td class="small text-break">${errorDetail}</td>
                                 <td>${payment.source && payment.source !== 'Unknown' ? payment.source : '<span class="text-muted">Unknown</span>'}</td>
                                 <td>${payment.gateway && payment.gateway !== 'Unknown' ? payment.gateway : '<span class="text-muted">N/A</span>'}</td>
                                 <td>${payment.order_id && payment.order_id !== 'N/A' ? '<code>' + payment.order_id + '</code>' : '<span class="text-muted">N/A</span>'}</td>
@@ -476,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </tr>
                     `;
                 }
-                
+
                 // Render pagination
                 renderPagination(data.pagination);
                 

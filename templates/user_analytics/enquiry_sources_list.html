@@ -115,7 +115,7 @@
                         <th class="text-end">Sessions</th>
                         <th class="text-end">Registrations</th>
                         <th class="text-end">Payments</th>
-                        <th class="text-end">Enrolled</th>
+                        <th class="text-end">Course Enrolled</th>
                         <th class="text-end">Converted</th>
                         <th>Actions</th>
                     </tr>
@@ -234,18 +234,14 @@
                             </small>
                             {% if item.source.name %}
                             <span class="d-block small">
-                                {% if item.stats.payments_attributed > 0 %}
                                 <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days&amp;source={{ item.source.name|urlencode }}" title="Payments with traffic source = {{ item.source.name }}">View detail ({{ item.stats.payments_attributed }})</a>
-                                {% else %}
-                                View detail (0)
-                                {% endif %}
                             </span>
                             {% endif %}
                         </td>
                         <td class="text-end">
                             {% if item.stats.course_enrolled > 0 %}
                             <a href="#" class="enquiry-metric-link text-primary text-decoration-none" role="button"
-                               data-source-id="{{ item.source.id }}" data-kind="course_enrolled" data-label="Enrolled ({{ item.source.name }})"
+                               data-source-id="{{ item.source.id }}" data-kind="course_enrolled" data-label="Course Enrolled ({{ item.source.name }})"
                                title="Show enrollments">{{ item.stats.course_enrolled }}</a>
                             {% else %}
                             0

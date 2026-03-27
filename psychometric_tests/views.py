@@ -511,6 +511,10 @@ class UpdatePsychometricTestPayment(APIView):
             test_id = request.data.get('test_id',False)
             payment_id=request.data.get('payment_id',False)
             psychometric_test_type = request.data.get('test_type',False)
+            try:
+                psychometric_test_type = int(psychometric_test_type)
+            except (TypeError, ValueError):
+                pass
             gateway_order_id = request.data.get('gateway_order_id',False)
             gateway_payment_id = request.data.get('gateway_payment_id',False)
             gateway_signature = request.data.get('gateway_signature',False)
@@ -521,7 +525,7 @@ class UpdatePsychometricTestPayment(APIView):
                 test_type=choices.PsychometricTestType.ADVANCED
                 gateway_receipt="A_psy_test_receipt_{}".format(request.user.id)
             else:
-                return Response("Payment Failed.", status=status.HTTP_400_BAD_REQUEST) 
+                return Response({"success": False, "message": "Payment Failed."}, status=status.HTTP_400_BAD_REQUEST)
             
             test = PsychometricTestPayment.objects.filter(id=test_id,user=request.user,gateway_receipt=gateway_receipt,test_type=test_type,is_success=choices.YesNoChoices.NO,currency=choices.Currency.IND).last()
 
@@ -562,20 +566,23 @@ class UpdatePsychometricTestPayment(APIView):
                             print(traceback.format_exc())
                             print("Error sending payment success email:", e)
                         
-                        return Response("Pyschometric test payment successfull, Please wait.", status=status.HTTP_200_OK)
+                        return Response(
+                            {"success": True, "message": "Psychometric test payment successful."},
+                            status=status.HTTP_200_OK,
+                        )
                     else:
                         print(f"[Payment Update] Payment verification FAILED for payment ID: {payment.id}")
-                        return Response("Payment Failed.", status=status.HTTP_400_BAD_REQUEST) 
+                        return Response({"success": False, "message": "Payment Failed."}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response("Payment Failed.", status=status.HTTP_400_BAD_REQUEST) 
+                    return Response({"success": False, "message": "Payment Failed."}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response("Payment Failed.", status=status.HTTP_400_BAD_REQUEST)      
+                return Response({"success": False, "message": "Payment Failed."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             import traceback
             print(traceback.format_exc())
             print("aslkahsdf",e)
 
-        return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST)  
+        return Response({"success": False, "message": "Request rejected."}, status=status.HTTP_400_BAD_REQUEST)
 
 class CreateCentralTestCandidate(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -660,9 +667,21 @@ class UserPyschometricTestPaymentFail(TemplateView):
         signobj=sign.unsign_object(enc_id)
         id=signobj.get('enc_id')
         ctx={}
-        ctx['test_payment']=get_object_or_404(PsychometricTestPayment,id=id)
+        test_payment = get_object_or_404(PsychometricTestPayment,id=id)
+        ctx['test_payment'] = test_payment
+        payment = Payment.objects.filter(
+            user=request.user,
+            obj_id=test_payment.id,
+            obj_type=choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL,
+        ).order_by('-created').first()
+        ctx['payment'] = payment
+        ctx['order_id'] = (
+            (payment.gateway_order_id if payment else None)
+            or (payment.gateway_receipt if payment else None)
+            or 'N/A'
+        )
         ctx["test_type"]={"basic_test_type":choices.PsychometricTestType.BASIC,"advanced_test_type":choices.PsychometricTestType.ADVANCED}
-        ctx["test_name"] = ctx['test_payment'].get_test_name()
+        ctx["test_name"] = test_payment.get_test_name()
         ctx["payment_api_url"] = reverse('psychometrictests:createpsychomerticttestpayment')
         ctx["html_head"] = self.html_head()
         return ctx

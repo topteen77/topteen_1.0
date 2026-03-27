@@ -89,6 +89,10 @@ ENABLE_CELERY = config('ENABLE_CELERY', default=True, cast=bool)
 
 # User analytics: set False in .env to disable all tracking (debugging / manual data clean)
 ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', default=True, cast=bool)
+# Optional comma-separated URL path prefixes to skip for page/journey tracking (middleware), e.g. "/internal/,/status/"
+USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES = tuple(
+    p.strip() for p in config('USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES', default='').split(',') if p.strip()
+)
 
 # Add django_elasticsearch_dsl conditionally based on environment
 ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)

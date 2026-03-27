@@ -53,7 +53,7 @@ class EnquirySourceTrackingTest(TestCase):
         payload = response.json()
         self.assertTrue(payload.get("ok"))
         self.assertTrue(
-            UserActivity.objects.filter(enquiry_source=self.source, page_path="/skilllabcourse/test/").exists()
+            UserActivity.objects.filter(enquiry_source=self.source, page_path="/skilllabcourse/test").exists()
         )
 
     def test_payment_started_excludes_client_started_duplicates(self):

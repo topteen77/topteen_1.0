@@ -1,4 +1,5 @@
 {% extends "user_analytics/admin_base.html" %}
+{% load custom_filters %}
 
 {% block title_content %}Admin User Analytics | Top Teen{% endblock %}
 
@@ -260,6 +261,88 @@
         <pre class="bg-light p-3 rounded small mb-0" style="max-height: 200px; overflow: auto;">{{ cleanup_output }}</pre>
     </div>
     {% endif %}
+
+    <!-- Purge all (activity, events, journeys) -->
+    <div class="admin-card mt-4 border-danger border-opacity-50">
+        <h5 class="card-title text-danger"><i class="fas fa-exclamation-triangle"></i> Purge all activity, events &amp; journeys</h5>
+        <p class="text-muted small mb-3">
+            Permanently removes <strong>every</strong> row in User Activity, User Events, and User Journeys (same as
+            <code>python manage.py cleanup_analytics_data --purge-all</code>). Does not delete Leads, enquiry sources, or cache unless you use the CLI with extra flags.
+        </p>
+        <form
+            method="post"
+            action="{{ cleanup_url }}"
+            class="purge-all-form"
+            onsubmit="var cb=document.getElementById('confirm_purge_all'); if(!cb||!cb.checked){alert('Check the confirmation box first.'); return false;} return confirm('Permanently delete ALL user activity, user events, and user journeys? This cannot be undone.');"
+        >
+            {{ csrf_input_html|safe }}
+            <input type="hidden" name="purge_all" value="1">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input type="checkbox" name="dry_run" id="purge_all_dry_run" class="form-check-input" value="on">
+                        <label for="purge_all_dry_run" class="form-check-label">Dry run (show counts only; no delete)</label>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-check">
+                        <input type="checkbox" name="confirm" id="confirm_purge_all" class="form-check-input" value="on">
+                        <label for="confirm_purge_all" class="form-check-label">I understand this will permanently delete data</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Purge all
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete by domain / environment -->
+    <div class="admin-card mt-4 border-primary border-opacity-25">
+        <h5 class="card-title text-primary"><i class="fas fa-globe"></i> Delete by domain / environment</h5>
+        <p class="text-muted small mb-3">
+            Removes <strong>only</strong> rows matching the selected host, URL pattern, or client IP (one bucket at a time).
+            CLI: <code>python manage.py cleanup_analytics_data --domain localhost --dry-run</code>
+        </p>
+        {% get_domain_cleanup_choices as domain_cleanup_choices %}
+        <form
+            method="post"
+            action="{{ cleanup_url }}"
+            onsubmit="var c=document.getElementById('confirm_domain_analytics'); if(!c||!c.checked){alert('Check the confirmation box first.'); return false;} var sel=document.getElementById('id_domain_cleanup_analytics'); var txt=sel.options[sel.selectedIndex].text; return confirm('Permanently delete all matching analytics rows for: ' + txt + '? This cannot be undone.');"
+        >
+            {{ csrf_input_html|safe }}
+            <input type="hidden" name="domain_cleanup" value="1">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label" for="id_domain_cleanup_analytics">Domain / pattern</label>
+                    <select name="domain" id="id_domain_cleanup_analytics" class="form-select" required>
+                        {% for value, label in domain_cleanup_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input type="checkbox" name="dry_run" id="domain_cleanup_dry_run" class="form-check-input" value="on">
+                        <label for="domain_cleanup_dry_run" class="form-check-label">Dry run (show counts only; no delete)</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input type="checkbox" name="confirm" id="confirm_domain_analytics" class="form-check-input" value="on">
+                        <label for="confirm_domain_analytics" class="form-check-label">I understand this will permanently delete data</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Delete matching
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 
     <!-- Clean up old data -->
     <div class="admin-card mt-4">

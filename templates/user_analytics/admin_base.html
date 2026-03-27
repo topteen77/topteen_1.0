@@ -365,6 +365,12 @@
                 </a>
             </div>
             <div class="menu-item">
+                <a href="{{ url('user_analytics:successful_payments_detail') }}?period=30days" class="menu-link {% if request and request.path.startswith('/user-analytics/business/payments/successful/') %}active{% endif %}">
+                    <i class="fas fa-credit-card"></i>
+                    <span class="menu-title">Payments</span>
+                </a>
+            </div>
+            <div class="menu-item">
                 <a href="{{ url('user_analytics:web_owner_dashboard') }}" class="menu-link {% if request and request.path == '/user-analytics/web-owner/' %}active{% endif %}">
                     <i class="fas fa-globe"></i>
                     <span class="menu-title">Web Owner Dashboard</span>

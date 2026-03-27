@@ -7,6 +7,7 @@ Falls back to synchronous execution if Celery is unavailable.
 import uuid
 import re
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from urllib.parse import urlparse
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
 from user_analytics.tasks import (
@@ -23,6 +24,68 @@ logger = logging.getLogger(__name__)
 
 # Short timeout for Celery worker check to avoid blocking the request (prevents 502 when broker is slow)
 CELERY_INSPECT_TIMEOUT_SECONDS = 2
+DEDUP_WINDOW_SECONDS = 8
+DIRECT_LOGIN_PATH_PREFIXES = (
+    '/student/login/',
+    '/parents/login/',
+    '/login/',
+    '/user/login/',
+)
+
+# Paths that never get page/journey tracking (Django admin, staff dashboards, static, attribution ping, etc.).
+# Nested JSON endpoints under app mounts (e.g. /forum/api/, /notifications/api/) are skipped when
+# the path contains the substring /api/ (see _should_skip_analytics_path).
+_BASE_ANALYTICS_SKIP_PATH_PREFIXES = (
+    '/admin/',
+    '/topteenadmin/',
+    '/user-analytics/',
+    '/seo-dashboard/',
+    '/notifications/',
+    '/analytics/',
+    '/static/',
+    '/media/',
+    '/entry/attribution/',
+    '/api-auth/',
+    '/__debug__/',
+    '/ws/',
+    '/socket.io/',
+    '/health/',
+    '/metrics/',
+    '/.well-known/',
+)
+
+_BASE_ANALYTICS_SKIP_EXACT_PATHS = (
+    '/favicon.ico',
+    '/robots.txt',
+    '/manifest.json',
+    '/service-worker.js',
+    '/sw.js',
+    '/sitemap.xml',
+)
+
+
+def _get_analytics_skip_path_prefixes():
+    from django.conf import settings
+    extra = getattr(settings, 'USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES', None) or ()
+    return _BASE_ANALYTICS_SKIP_PATH_PREFIXES + tuple(extra)
+
+
+def _should_skip_analytics_path(path):
+    """
+    Skip page view / journey tracking for admin areas, internal tools, static/media,
+    notification polling, nested * /api/* routes, and REST mounts under /api/.
+    """
+    if not path:
+        return False
+    if path in _BASE_ANALYTICS_SKIP_EXACT_PATHS:
+        return True
+    # REST and nested app APIs (e.g. /api/v1/, /forum/api/queries/, /careers/api/...)
+    if path.startswith('/api/') or path == '/api' or '/api/' in path:
+        return True
+    for prefix in _get_analytics_skip_path_prefixes():
+        if path.startswith(prefix):
+            return True
+    return False
 
 
 class AnalyticsMiddleware(MiddlewareMixin):
@@ -31,21 +94,140 @@ class AnalyticsMiddleware(MiddlewareMixin):
     Captures page views, sessions, referrers, and UTM parameters.
     """
     
+    @staticmethod
+    def _normalize_path(path):
+        if not path:
+            return '/'
+        if path != '/' and path.endswith('/'):
+            return path[:-1]
+        return path
+
+    @staticmethod
+    def _is_private_or_local_host(host):
+        h = (host or '').strip().lower()
+        if not h:
+            return False
+        if h in ('localhost', '127.0.0.1', '0.0.0.0', '::1'):
+            return True
+        if h.startswith('localhost:') or h.startswith('127.0.0.1:') or h.startswith('0.0.0.0:'):
+            return True
+        if h.startswith('192.168.') or h.startswith('10.'):
+            return True
+        if h.startswith('172.'):
+            # best-effort private range check for 172.16-31.*
+            try:
+                second = int(h.split('.')[1])
+                if 16 <= second <= 31:
+                    return True
+            except Exception:
+                pass
+        return False
+
+    @staticmethod
+    def _is_internal_host(host):
+        h = (host or '').strip().lower()
+        return ('topteen.in' in h) or AnalyticsMiddleware._is_private_or_local_host(h)
+
+    def _acquisition_signature(self, request, path):
+        """
+        Build a stable acquisition signature to decide when to start a new analytics session.
+        New session starts when signature changes for:
+        - ref token
+        - utm params
+        - external referrer (non topteen / non local)
+        - direct login entry
+        """
+        ref_token = (request.GET.get('ref') or '').strip()
+        if ref_token:
+            return 'ref:%s' % ref_token
+
+        utm_items = []
+        for key in ('utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'):
+            val = (request.GET.get(key) or '').strip()
+            if val:
+                utm_items.append('%s=%s' % (key, val))
+        if utm_items:
+            return 'utm:' + '&'.join(utm_items)
+
+        referrer = (request.META.get('HTTP_REFERER') or '').strip()
+        ref_host = ''
+        if referrer:
+            try:
+                ref_host = (urlparse(referrer).hostname or '').strip().lower()
+            except Exception:
+                ref_host = ''
+        if ref_host and not self._is_internal_host(ref_host):
+            return 'external_ref:%s' % ref_host
+
+        # Explicitly treat direct login landings as a fresh session boundary.
+        if not referrer and any(path.startswith(p) for p in DIRECT_LOGIN_PATH_PREFIXES):
+            return 'direct_login'
+        return ''
+
+    def _ensure_session_for_request(self, request, path):
+        """
+        Ensure analytics_session_id exists, and rotate when a new acquisition signal arrives.
+        """
+        current_sid = request.session.get('analytics_session_id')
+        previous_sig = request.session.get('analytics_acquisition_sig') or ''
+        current_sig = self._acquisition_signature(request, path)
+
+        rotate = False
+        if not current_sid:
+            rotate = True
+        elif current_sig and current_sig != previous_sig:
+            rotate = True
+
+        if rotate:
+            request.session['analytics_session_id'] = str(uuid.uuid4())
+            request.session['analytics_acquisition_sig'] = current_sig
+        elif current_sig and not previous_sig:
+            # Keep existing session but persist discovered signature for consistency.
+            request.session['analytics_acquisition_sig'] = current_sig
+
+    def _is_recent_duplicate_page_hit(self, request):
+        """
+        Prevent multiple rows on rapid refresh/reload for same session+path+device.
+        """
+        try:
+            from datetime import timedelta
+            from user_analytics.models import UserActivity
+            from user_analytics.utils import parse_user_agent_info
+
+            a = request.analytics_data
+            session_id = a.get('session_id')
+            if not session_id:
+                return False
+
+            norm_path = self._normalize_path(a.get('path') or '/')
+            device_type = parse_user_agent_info(a.get('user_agent') or '').get('device_type')
+            cutoff = timezone.now() - timedelta(seconds=DEDUP_WINDOW_SECONDS)
+
+            qs = UserActivity.objects.filter(
+                session_id=session_id,
+                created__gte=cutoff,
+                page_path__in=[norm_path, (a.get('path') or '/')],
+            )
+            if device_type:
+                qs = qs.filter(device_type=device_type)
+            if a.get('user_id'):
+                qs = qs.filter(user_id=a['user_id'])
+            return qs.exists()
+        except Exception:
+            return False
+
     def process_request(self, request):
         """Process request and extract analytics data"""
         from django.conf import settings
         if not getattr(settings, 'ENABLE_USER_ANALYTICS_TRACKING', True):
             return None
-        # Skip tracking for admin, static files, and API endpoints
+        # Skip tracking for admin, staff dashboards, notifications, static/media, all API traffic, etc.
         path = request.path
-        skip_paths = ['/admin/', '/static/', '/media/', '/api/', '/analytics/api/', '/user-analytics/api/', '/entry/attribution/']
-        
-        if any(path.startswith(skip) for skip in skip_paths):
+        if _should_skip_analytics_path(path):
             return None
         
-        # Generate or get session ID
-        if 'analytics_session_id' not in request.session:
-            request.session['analytics_session_id'] = str(uuid.uuid4())
+        # Generate/get session ID, rotating for new acquisition signals.
+        self._ensure_session_for_request(request, path)
         
         # Extract GA4 client ID from cookies
         ga4_client_id = self.extract_ga4_client_id(request)
@@ -102,7 +284,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
             'session_id': request.session.get('analytics_session_id'),
             'user_id': request.user.id if request.user.is_authenticated else None,
             'ga4_client_id': ga4_client_id,
-            'path': path,
+            'path': self._normalize_path(path),
             'page_url': page_url,
             'referrer': request.META.get('HTTP_REFERER', ''),
             'user_agent': request.META.get('HTTP_USER_AGENT', ''),
@@ -141,6 +323,8 @@ class AnalyticsMiddleware(MiddlewareMixin):
             status in (301, 302, 303, 307, 308) and request.analytics_data.get('enquiry_source_id')
         )
         if not allow_track:
+            return response
+        if self._is_recent_duplicate_page_hit(request):
             return response
 
         try:

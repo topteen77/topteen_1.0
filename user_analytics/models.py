@@ -192,6 +192,9 @@ class UserActivity(BaseModel):
         indexes = [
             models.Index(fields=['-created', 'user']),
             models.Index(fields=['session_id', '-created']),
+            models.Index(fields=['enquiry_source', '-created']),
+            models.Index(fields=['enquiry_source', 'session_id']),
+            models.Index(fields=['object_status', 'enquiry_source', '-created']),
             models.Index(fields=['utm_source', 'utm_medium']),
             models.Index(fields=['device_type', '-created']),
             models.Index(fields=['traffic_source_category', '-created']),
@@ -308,6 +311,7 @@ class UserEvent(BaseModel):
             models.Index(fields=['user', '-created']),
             models.Index(fields=['event_type', 'event_name']),
             models.Index(fields=['session_id', '-created']),
+            models.Index(fields=['content_type', 'object_id']),
         ]
     
     def __str__(self):
@@ -457,6 +461,9 @@ class UserJourney(BaseModel):
         indexes = [
             models.Index(fields=['-start_time', 'user']),
             models.Index(fields=['session_id']),
+            models.Index(fields=['enquiry_source', '-start_time']),
+            models.Index(fields=['enquiry_source', 'session_id']),
+            models.Index(fields=['object_status', 'enquiry_source', '-start_time']),
             models.Index(fields=['converted', '-start_time']),
         ]
     

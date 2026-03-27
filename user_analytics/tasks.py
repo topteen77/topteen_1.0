@@ -25,6 +25,57 @@ import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
+ACTIVITY_DUPLICATE_WINDOW_SECONDS = 60
+EVENT_DUPLICATE_WINDOW_SECONDS = 120
+JOURNEY_DUPLICATE_PAGE_WINDOW_SECONDS = 60
+
+
+def _normalize_path(path):
+    p = (path or '').strip()
+    if not p:
+        return '/'
+    if p != '/' and p.endswith('/'):
+        return p[:-1]
+    return p
+
+
+def _resolve_source_for_session(session_id, explicit_utm_source, referrer, enquiry_source_id):
+    """
+    Keep source attribution stable for the same session.
+    """
+    if enquiry_source_id:
+        return 'enquiry'
+    if explicit_utm_source:
+        return explicit_utm_source
+
+    recent = (
+        UserActivity.objects.filter(session_id=session_id)
+        .exclude(utm_source__isnull=True)
+        .exclude(utm_source='')
+        .order_by('-created')
+        .values_list('utm_source', flat=True)
+        .first()
+    )
+    if recent and recent not in ('direct', 'internal'):
+        return recent
+    return get_referrer_source(referrer)
+
+
+def _find_recent_activity_duplicate(session_id, page_path, user, device_type):
+    if not session_id or not page_path:
+        return None
+    cutoff = timezone.now() - timedelta(seconds=ACTIVITY_DUPLICATE_WINDOW_SECONDS)
+    qs = UserActivity.objects.filter(
+        session_id=session_id,
+        page_path=page_path,
+        created__gte=cutoff,
+    )
+    if user:
+        qs = qs.filter(user=user)
+    if device_type:
+        qs = qs.filter(device_type=device_type)
+    return qs.order_by('-created').first()
+
 
 def _check_celery_workers_active():
     """Best-effort check for active Celery workers."""
@@ -202,10 +253,9 @@ def track_page_view_sync(
         # Parse user agent
         ua_info = parse_user_agent_info(user_agent)
         
-        # Determine source if UTM not provided (ref= token is non-readable; we store enquiry_source_id only)
-        source = utm_source or get_referrer_source(referrer)
-        if enquiry_source_id:
-            source = 'enquiry'  # Don't expose token in lead source
+        page_path = _normalize_path(page_path)
+        # Determine source if UTM not provided; keep stable within session.
+        source = _resolve_source_for_session(session_id, utm_source, referrer, enquiry_source_id)
         traffic_category = get_traffic_source_category(utm_source or source, referrer)
         
         # Resolve country/city from IP (short timeout to avoid blocking)
@@ -213,6 +263,20 @@ def track_page_view_sync(
         
         # Create or update user activity
         with transaction.atomic():
+            duplicate_activity = _find_recent_activity_duplicate(
+                session_id=session_id,
+                page_path=page_path,
+                user=user,
+                device_type=ua_info.get('device_type'),
+            )
+            if duplicate_activity:
+                if duplicate_activity and enquiry_source_id and not duplicate_activity.enquiry_source_id:
+                    duplicate_activity.enquiry_source_id = enquiry_source_id
+                    if duplicate_activity.utm_source in (None, '', 'direct', 'internal'):
+                        duplicate_activity.utm_source = 'enquiry'
+                    duplicate_activity.save(update_fields=['enquiry_source', 'utm_source'])
+                return f"Skipped duplicate page view: {page_path}"
+
             activity_kw = {
                 'user': user,
                 'session_id': session_id,
@@ -331,8 +395,17 @@ def update_user_journey_sync(
                 created = False
             
             if not created:
+                now = timezone.now()
+                if (
+                    page_path
+                    and journey.exit_page == page_path
+                    and journey.end_time
+                    and (now - journey.end_time).total_seconds() <= JOURNEY_DUPLICATE_PAGE_WINDOW_SECONDS
+                ):
+                    return f"Skipped duplicate journey update: {session_id}"
+
                 # Update existing journey
-                journey.end_time = timezone.now()
+                journey.end_time = now
                 journey.total_pages += 1
                 journey.exit_page = page_path
                 
@@ -413,10 +486,9 @@ def track_page_view_async(
         # Parse user agent
         ua_info = parse_user_agent_info(user_agent)
         
-        # Determine source if UTM not provided (ref= token: store enquiry_source_id only, non-readable)
-        source = utm_source or get_referrer_source(referrer)
-        if enquiry_source_id:
-            source = 'enquiry'
+        page_path = _normalize_path(page_path)
+        # Determine source if UTM not provided; keep stable within session.
+        source = _resolve_source_for_session(session_id, utm_source, referrer, enquiry_source_id)
         traffic_category = get_traffic_source_category(utm_source or source, referrer)
         
         # Resolve country/city from IP
@@ -424,6 +496,20 @@ def track_page_view_async(
         
         # Create or update user activity
         with transaction.atomic():
+            duplicate_activity = _find_recent_activity_duplicate(
+                session_id=session_id,
+                page_path=page_path,
+                user=user,
+                device_type=ua_info.get('device_type'),
+            )
+            if duplicate_activity:
+                if enquiry_source_id and not duplicate_activity.enquiry_source_id:
+                    duplicate_activity.enquiry_source_id = enquiry_source_id
+                    if duplicate_activity.utm_source in (None, '', 'direct', 'internal'):
+                        duplicate_activity.utm_source = 'enquiry'
+                    duplicate_activity.save(update_fields=['enquiry_source', 'utm_source'])
+                return f"Skipped duplicate page view: {page_path}"
+
             activity_kw = {
                 'user': user,
                 'session_id': session_id,
@@ -554,8 +640,17 @@ def update_user_journey_async(
                 created = False
             
             if not created:
+                now = timezone.now()
+                if (
+                    page_path
+                    and journey.exit_page == page_path
+                    and journey.end_time
+                    and (now - journey.end_time).total_seconds() <= JOURNEY_DUPLICATE_PAGE_WINDOW_SECONDS
+                ):
+                    return f"Skipped duplicate journey update: {session_id}"
+
                 # Update existing journey
-                journey.end_time = timezone.now()
+                journey.end_time = now
                 journey.total_pages += 1
                 journey.exit_page = page_path
                 
@@ -667,6 +762,24 @@ def _track_user_event_common(
             pass
 
     with transaction.atomic():
+        cutoff = timezone.now() - timedelta(seconds=EVENT_DUPLICATE_WINDOW_SECONDS)
+        duplicate_qs = UserEvent.objects.filter(
+            event_type=event_type,
+            event_name=event_name,
+            created__gte=cutoff,
+        )
+        if session_id:
+            duplicate_qs = duplicate_qs.filter(session_id=session_id)
+        elif user:
+            duplicate_qs = duplicate_qs.filter(user=user)
+        if content_type_id and object_id:
+            duplicate_qs = duplicate_qs.filter(content_type_id=content_type_id, object_id=object_id)
+        if metadata:
+            duplicate_qs = duplicate_qs.filter(metadata=metadata)
+        duplicate_event = duplicate_qs.order_by('-created').first()
+        if duplicate_event:
+            return duplicate_event
+
         event = UserEvent.objects.create(
             user=user,
             event_type=event_type,

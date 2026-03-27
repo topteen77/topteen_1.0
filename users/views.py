@@ -40,6 +40,7 @@ from skilllab.models import SkillLabCourse
 from entrance_exams.document_filters import EntranceExamDocumentFilter
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import transaction
 from io import BytesIO
 import logging
 
@@ -94,9 +95,12 @@ def _link_current_analytics_session(request, user):
                         ev.session_id = session_id
                         changed = True
                     if source_name:
-                        meta = ev.metadata or {}
-                        current_source = str(meta.get('source') or '').strip().lower()
-                        if current_source in ('', 'direct', 'unknown', 'enquiry'):
+                        meta = dict(ev.metadata or {})
+                        old = str(meta.get('source') or '').strip()
+                        # Align with Enquiry Sources stats: _enquiry_source_attribution_q uses
+                        # metadata__source=source.name (exact). Always set the named source when we
+                        # know it from ?ref= activity, not only placeholder values.
+                        if old != source_name:
                             meta['source'] = source_name
                             ev.metadata = meta
                             changed = True
@@ -1541,28 +1545,33 @@ class SignUpPassword(APIView):
                         return Response(data, status=status.HTTP_400_BAD_REQUEST)
                 
                 try:
-                    # Create user - Note: create_user method ignores password, so we set it manually
-                    # The User model's save() method will set default name="Student" if not provided
-                    if mobile and email is None:
-                        user = User.objects.create(
-                            mobile=mobile, 
-                            referral=refer_user_id, 
-                            user_type=choices.UserType.STUDENT,
-                            name="Student"  # Set default name
-                        )
-                    else:
-                        user = User.objects.create(
-                            email=email, 
-                            referral=refer_user_id, 
-                            user_type=choices.UserType.STUDENT,
-                            name="Student"  # Set default name
-                        )
-                    
-                    # Set password manually since create_user doesn't use the password parameter
-                    user.set_password(pwd)
-                    user.save()
-                    _link_current_analytics_session(request, user)
-                    
+                    # Single transaction so anonymous ?ref= UserActivity rows are linked to the new user
+                    # *before* registration on_commit runs (see user_analytics.signals.track_user_registration).
+                    # Otherwise session_id / enquiry attribution on UserEvent is wrong and enquiry source
+                    # registration counts stay at 0.
+                    with transaction.atomic():
+                        # Create user - Note: create_user method ignores password, so we set it manually
+                        # The User model's save() method will set default name="Student" if not provided
+                        if mobile and email is None:
+                            user = User.objects.create(
+                                mobile=mobile,
+                                referral=refer_user_id,
+                                user_type=choices.UserType.STUDENT,
+                                name="Student",  # Set default name
+                            )
+                        else:
+                            user = User.objects.create(
+                                email=email,
+                                referral=refer_user_id,
+                                user_type=choices.UserType.STUDENT,
+                                name="Student",  # Set default name
+                            )
+
+                        # Set password manually since create_user doesn't use the password parameter
+                        user.set_password(pwd)
+                        user.save()
+                        _link_current_analytics_session(request, user)
+
                     print(f"✅ User created successfully: {user.email or user.mobile}, ID: {user.id}")
                 except Exception as create_error:
                     # Handle duplicate email/mobile or other creation errors

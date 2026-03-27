@@ -39,6 +39,7 @@ from user_analytics.tasks import track_page_view_sync, update_user_journey_sync,
 from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment
+from skilllab.models import SkillLabCourse
 from core import choices
 from core.models import Configuration
 
@@ -1703,8 +1704,14 @@ def successful_payments_detail(request):
             )
         if source_filter:
             payments = _apply_traffic_source_to_userevent_qs(payments, source_filter)
-        total_count = payments.count()
-        total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+        if payment_status_filter in ('fail', 'error'):
+            failed_candidates = list(payments.select_related('user').order_by('-created')[:2500])
+            payments = [ev for ev in failed_candidates if not _payment_has_success_after(Q(), ev)]
+            total_count = len(payments)
+            total_revenue = sum(Decimal(str(ev.event_value or 0)) for ev in payments)
+        else:
+            total_count = payments.count()
+            total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
     
     if total_count == 0:
         try:
@@ -1775,6 +1782,50 @@ def successful_payments_detail(request):
     return render(request, 'user_analytics/payments_detail.html', context)
 
 
+def _inprocess_explanation_from_metadata(meta, service_name):
+    """
+    Clarify ambiguous 'In process' rows: psychometric (no gateway) vs SkillLab/Razorpay (gateway pending).
+    Uses metadata and service name when explicit error text is absent.
+    """
+    meta = meta or {}
+    detail = _event_error_detail_from_metadata(meta)
+    if detail:
+        return detail
+    test_name = (meta.get('test_name') or '').strip()
+    if test_name or (service_name and 'Psychometric' in service_name):
+        return (
+            'Abandoned checkout — user cancelled or closed payment before completion; '
+            'no gateway capture on our side yet.'
+        )
+    gw = (meta.get('gateway') or '').strip()
+    if gw and gw.upper() != 'N/A':
+        return (
+            'Gateway return / verification pending — order may exist at Razorpay; '
+            'confirm capture in the dashboard or use Manual complete after verification.'
+        )
+    return 'Checkout started but not completed (no success/fail recorded yet).'
+
+
+def _payment_transaction_id_for_display(inv, gateway_payment, meta):
+    """
+    Invoice transaction id or gateway payment (capture) id only.
+    Never use order id / gateway_order_id as a surrogate for transaction id.
+    """
+    meta = meta or {}
+    if inv is not None:
+        v = getattr(inv, 'transaction_id', None)
+        if v is not None and str(v).strip():
+            return str(v).strip()
+    if gateway_payment is not None:
+        v = getattr(gateway_payment, 'gateway_payment_id', None)
+        if v is not None and str(v).strip():
+            return str(v).strip()
+    v = meta.get('gateway_payment_id')
+    if v is not None and str(v).strip():
+        return str(v).strip()
+    return ''
+
+
 @csrf_exempt
 @login_required
 @user_passes_test(is_staff_or_superuser)
@@ -1832,6 +1883,9 @@ def successful_payments_api(request):
             )
         if source_filter:
             payments = _apply_traffic_source_to_userevent_qs(payments, source_filter)
+        if payment_status in ('fail', 'error'):
+            failed_candidates = list(payments.select_related('user', 'content_type').order_by('-created')[:2500])
+            payments = [ev for ev in failed_candidates if not _payment_has_success_after(Q(), ev)]
 
     use_payment_model = False
     if not isinstance(payments, list) and payments.count() == 0:
@@ -1899,9 +1953,7 @@ def successful_payments_api(request):
     payments_data = []
     if use_payment_model:
         for payment in payments_page:
-            obj_type_name = 'Payment'
-            if hasattr(choices, 'PaymentObjectType') and payment.obj_type:
-                obj_type_name = dict(choices.PaymentObjectType.CHOICES).get(payment.obj_type, f'Type {payment.obj_type}')
+            obj_type_name = _payment_service_name_from_payment(payment) if payment else 'Payment'
             gateway_name = 'N/A'
             if hasattr(choices, 'GatewayChoices') and payment.gateway:
                 gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, f'Gateway {payment.gateway}')
@@ -1921,7 +1973,7 @@ def successful_payments_api(request):
                 'gateway_payment_id': gp,
                 'user_email': payment.user.email if payment.user else 'Anonymous',
                 'invoice_number': getattr(inv, 'invoice_number', None) or 'N/A',
-                'transaction_id': getattr(inv, 'transaction_id', None) or payment.gateway_payment_id or payment.gateway_order_id or 'N/A',
+                'transaction_id': _payment_transaction_id_for_display(inv, payment, {}) or '',
                 'student_id': payment.user_id or '',
                 'event_name': obj_type_name,
                 'amount': _payment_amount_rupees(payment),
@@ -1932,6 +1984,7 @@ def successful_payments_api(request):
                 'status_label': row_status_label,
                 'hide_manual_update': hide_manual_update,
                 'error_detail': '',
+                'error_value': '',
             })
     else:
         gp_page = _resolve_gateway_payments_for_userevents(list(payments_page))
@@ -1939,11 +1992,7 @@ def successful_payments_api(request):
             meta = payment.metadata or {}
             gp = gp_page.get(payment.id)
             inv = getattr(gp, 'invoice', None) if gp else None
-            txn = (inv.transaction_id if inv else None) or meta.get('gateway_payment_id') or meta.get('order_id') or meta.get('gateway_order_id')
-            if gp:
-                txn = txn or gp.gateway_payment_id or gp.gateway_order_id
-            if not txn:
-                txn = 'N/A'
+            txn = _payment_transaction_id_for_display(inv, gp, meta)
             inv_no = inv.invoice_number if inv else 'N/A'
             amt = _payment_amount_rupees(gp) if gp else float(payment.event_value or 0)
             order_id = meta.get('order_id') or meta.get('gateway_order_id')
@@ -1962,6 +2011,13 @@ def successful_payments_api(request):
                 if p_enrich:
                     payment_db_id = p_enrich.id
             row_status_label = row_st_override if row_st_override else status_label
+            service_name = _payment_service_name_from_event(payment, gp)
+            err_line = (
+                _inprocess_explanation_from_metadata(meta, service_name)
+                if payment_status == 'inprocess'
+                else _event_error_detail_from_metadata(meta)
+            )
+            err_value = _event_error_detail_from_metadata(meta) or ''
             payments_data.append({
                 'id': payment.id,
                 'payment_db_id': payment_db_id,
@@ -1971,7 +2027,7 @@ def successful_payments_api(request):
                 'invoice_number': inv_no,
                 'transaction_id': txn,
                 'student_id': payment.user_id or '',
-                'event_name': payment.event_name or 'N/A',
+                'event_name': service_name,
                 'amount': amt,
                 'date': payment.created.strftime('%b %d, %Y %H:%M') if payment.created else 'N/A',
                 'source': (meta.get('source') or '').strip() or (resolved_enquiry_source.name if resolved_enquiry_source else '') or 'Direct',
@@ -1979,7 +2035,8 @@ def successful_payments_api(request):
                 'order_id': order_id,
                 'status_label': row_status_label,
                 'hide_manual_update': hide_manual_update,
-                'error_detail': _event_error_detail_from_metadata(meta),
+                'error_detail': err_line,
+                'error_value': err_value,
             })
 
     return JsonResponse({
@@ -2057,6 +2114,9 @@ def successful_payments_export_excel(request):
             )
         if source_filter:
             payments = _apply_traffic_source_to_userevent_qs(payments, source_filter)
+        if payment_status in ('fail', 'error'):
+            failed_candidates = list(payments.select_related('user', 'content_type').order_by('-created')[:2500])
+            payments = [ev for ev in failed_candidates if not _payment_has_success_after(Q(), ev)]
     use_payment_model = False
     if not isinstance(payments, list) and payments.count() == 0:
         try:
@@ -2108,13 +2168,13 @@ def successful_payments_export_excel(request):
     for row_idx, payment in enumerate(payments, 2):
         if use_payment_model:
             inv = getattr(payment, 'invoice', None)
-            obj_type_name = dict(choices.PaymentObjectType.CHOICES).get(payment.obj_type, f'Type {payment.obj_type}') if hasattr(choices, 'PaymentObjectType') and payment.obj_type else 'Payment'
+            obj_type_name = _payment_service_name_from_payment(payment) if payment else 'Payment'
             gateway_name = dict(choices.GatewayChoices.CHOICES).get(payment.gateway, str(payment.gateway)) if hasattr(choices, 'GatewayChoices') and payment.gateway else 'N/A'
             source = (getattr(payment, 'latest_enquiry_source_name', None) or '').strip() or (getattr(payment, 'latest_traffic_source', None) or '').strip() or 'Direct'
             ws.cell(row=row_idx, column=1, value=row_idx - 1)
             ws.cell(row=row_idx, column=2, value=payment.user.email if payment.user else 'Anonymous')
             ws.cell(row=row_idx, column=3, value=getattr(inv, 'invoice_number', None) or 'N/A')
-            ws.cell(row=row_idx, column=4, value=getattr(inv, 'transaction_id', None) or payment.gateway_payment_id or payment.gateway_order_id or 'N/A')
+            ws.cell(row=row_idx, column=4, value=_payment_transaction_id_for_display(inv, payment, {}) or None)
             ws.cell(row=row_idx, column=5, value=payment.user_id or '')
             ws.cell(row=row_idx, column=6, value=obj_type_name)
             ws.cell(row=row_idx, column=7, value=_payment_amount_rupees(payment))
@@ -2127,11 +2187,7 @@ def successful_payments_export_excel(request):
             gp = gp_excel.get(payment.id)
             inv = getattr(gp, 'invoice', None) if gp else None
             meta = payment.metadata or {}
-            txn = (inv.transaction_id if inv else None) or meta.get('gateway_payment_id') or meta.get('order_id') or meta.get('gateway_order_id')
-            if gp:
-                txn = txn or gp.gateway_payment_id or gp.gateway_order_id
-            if not txn:
-                txn = 'N/A'
+            txn = _payment_transaction_id_for_display(inv, gp, meta) or None
             inv_no = inv.invoice_number if inv else 'N/A'
             amt = _payment_amount_rupees(gp) if gp else float(payment.event_value or 0)
             order_id = meta.get('order_id') or meta.get('gateway_order_id')
@@ -2144,7 +2200,7 @@ def successful_payments_export_excel(request):
             ws.cell(row=row_idx, column=3, value=inv_no)
             ws.cell(row=row_idx, column=4, value=txn)
             ws.cell(row=row_idx, column=5, value=payment.user_id or '')
-            ws.cell(row=row_idx, column=6, value=payment.event_name or 'N/A')
+            ws.cell(row=row_idx, column=6, value=_payment_service_name_from_event(payment, gp))
             ws.cell(row=row_idx, column=7, value=amt)
             ws.cell(row=row_idx, column=8, value=payment.created.strftime('%Y-%m-%d %H:%M') if payment.created else 'N/A')
             ws.cell(row=row_idx, column=9, value=status_label)
@@ -3242,32 +3298,112 @@ def admin_user_analytics_view(request):
     return render(request, 'user_analytics/admin_user_analytics.html', context)
 
 
+def _cleanup_analytics_redirect(request):
+    """After cleanup POST: stay on User Analytics page or return to Django admin app list."""
+    return_to = (request.POST.get('return_to') or '').strip()
+    if return_to == 'admin_app':
+        return redirect('admin:app_list', app_label='user_analytics')
+    return redirect('user_analytics:admin_user_analytics')
+
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def cleanup_analytics_data_view(request):
     """
     POST-only: run analytics data cleanup (same logic as management command).
     Expects: days (int), dry_run (optional), confirm (required when not dry_run).
+    For purge_all=1: deletes all UserActivity, UserJourney, UserEvent (optional dry_run).
     """
     from django.core.management import call_command
     from io import StringIO
     from django.contrib import messages
-    from django.shortcuts import redirect
 
     if request.method != 'POST':
         return redirect('user_analytics:admin_user_analytics')
+
+    dry_run = request.POST.get('dry_run') == 'on'
+    confirm = request.POST.get('confirm') == 'on'
+    purge_all = request.POST.get('purge_all') == '1'
+    domain_cleanup = request.POST.get('domain_cleanup') == '1'
+    domain = (request.POST.get('domain') or '').strip()
+
+    if domain_cleanup:
+        from user_analytics.domain_cleanup import run_domain_cleanup, VALID_DOMAINS
+
+        if not confirm:
+            messages.warning(
+                request,
+                'Check "I understand this will permanently delete data" to run domain cleanup.',
+            )
+            return _cleanup_analytics_redirect(request)
+        if domain not in VALID_DOMAINS:
+            messages.error(request, 'Invalid domain selection.')
+            return _cleanup_analytics_redirect(request)
+        out = StringIO()
+        try:
+            text, _ = run_domain_cleanup(domain, dry_run=dry_run)
+            out.write(text)
+            request.session['cleanup_output'] = out.getvalue()
+            if dry_run:
+                messages.info(request, 'Domain cleanup dry run completed. No data was deleted.')
+            else:
+                messages.success(request, 'Domain cleanup completed.')
+            if request.POST.get('return_to') == 'admin_app':
+                messages.info(
+                    request,
+                    format_html(
+                        '<a href="{}">Open Admin User Analytics</a> to see the full command output.',
+                        reverse('user_analytics:admin_user_analytics'),
+                    ),
+                )
+        except Exception as e:
+            logger.exception('Domain cleanup failed')
+            messages.error(request, 'Domain cleanup failed: %s' % str(e))
+        return _cleanup_analytics_redirect(request)
+
+    if purge_all:
+        if not confirm:
+            messages.warning(
+                request,
+                'Check "I understand this will permanently delete data" to purge all activity, events, and journeys.',
+            )
+            return _cleanup_analytics_redirect(request)
+        out = StringIO()
+        try:
+            call_command(
+                'cleanup_analytics_data',
+                purge_all=True,
+                dry_run=dry_run,
+                stdout=out,
+            )
+            output = out.getvalue()
+            if dry_run:
+                messages.info(request, 'Purge dry run completed. No data was deleted.')
+            else:
+                messages.success(request, 'Purge completed. All user activity, events, and journeys were removed.')
+            request.session['cleanup_output'] = output
+            if request.POST.get('return_to') == 'admin_app':
+                messages.info(
+                    request,
+                    format_html(
+                        '<a href="{}">Open Admin User Analytics</a> to see the full command output.',
+                        reverse('user_analytics:admin_user_analytics'),
+                    ),
+                )
+        except Exception as e:
+            logger.exception('Purge analytics failed')
+            messages.error(request, 'Purge failed: %s' % str(e))
+        return _cleanup_analytics_redirect(request)
 
     days = request.POST.get('days')
     try:
         days = int(days) if days else 365
     except ValueError:
         days = 365
-    dry_run = request.POST.get('dry_run') == 'on'
-    confirm = request.POST.get('confirm') == 'on'
 
     if not dry_run and not confirm:
         messages.warning(request, 'Check "I understand this will permanently delete data" to run cleanup.')
-        return redirect('user_analytics:admin_user_analytics')
+        return _cleanup_analytics_redirect(request)
 
     out = StringIO()
     try:
@@ -3286,7 +3422,7 @@ def cleanup_analytics_data_view(request):
     except Exception as e:
         logger.exception('Cleanup failed')
         messages.error(request, 'Cleanup failed: %s' % str(e))
-    return redirect('user_analytics:admin_user_analytics')
+    return _cleanup_analytics_redirect(request)
 
 
 # ---------- Enquiry Sources (non-readable UTM links: ?ref=TOKEN) ----------
@@ -3346,6 +3482,81 @@ def _payment_has_terminal_outcome_after(attribution_q, ev):
     return False
 
 
+def _payment_has_success_after(attribution_q, ev):
+    """Later payment_success for the same payment row/order/session."""
+    q = UserEvent.objects.filter(attribution_q, created__gt=ev.created, event_type='payment_success')
+    if ev.content_type_id and ev.object_id:
+        if q.filter(content_type_id=ev.content_type_id, object_id=ev.object_id).exists():
+            return True
+    meta = getattr(ev, 'metadata', None) or {}
+    oid = meta.get('gateway_order_id') or meta.get('order_id')
+    if oid:
+        oid = str(oid).strip()
+        if oid and q.filter(Q(metadata__gateway_order_id=oid) | Q(metadata__order_id=oid)).exists():
+            return True
+    # Retry payments often create a new gateway order/payment row for the same logical purchase.
+    # Reconcile by domain identifiers (obj_id/test_name) and user before treating failure as unresolved.
+    obj_id = meta.get('obj_id')
+    obj_type = (meta.get('obj_type') or '').strip()
+    if obj_id not in (None, ''):
+        domain_q = Q(metadata__obj_id=obj_id)
+        if obj_type:
+            domain_q &= Q(metadata__obj_type=obj_type)
+        if ev.user_id:
+            domain_q &= Q(user_id=ev.user_id)
+        if q.filter(domain_q).exists():
+            return True
+    test_name = (meta.get('test_name') or '').strip()
+    if test_name:
+        t_q = Q(metadata__test_name=test_name)
+        if ev.user_id:
+            t_q &= Q(user_id=ev.user_id)
+        if q.filter(t_q).exists():
+            return True
+    if ev.session_id and ev.user_id and (test_name or 'psychometric' in obj_type.lower()):
+        if q.filter(session_id=ev.session_id, user_id=ev.user_id).exists():
+            return True
+    if ev.session_id and not (ev.content_type_id and ev.object_id) and not oid:
+        return q.filter(session_id=ev.session_id).exists()
+    return False
+
+
+def _payment_service_name_from_payment(payment_obj):
+    obj_type = getattr(payment_obj, 'obj_type', None)
+    obj_id = getattr(payment_obj, 'obj_id', None)
+    try:
+        if obj_type == choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL and obj_id:
+            ptest = PsychometricTestPayment.objects.filter(id=obj_id).only('test_type').first()
+            if ptest:
+                return f"Psychometric Test - {ptest.get_test_name()}"
+        if obj_type == choices.PaymentObjectType.SKILLLABCOURSE and obj_id:
+            course = SkillLabCourse.objects.filter(id=obj_id).only('name').first()
+            if course and course.name:
+                return f"SkillLab Course - {course.name}"
+    except Exception:
+        pass
+    return dict(choices.PaymentObjectType.CHOICES).get(obj_type, f"Type {obj_type}")
+
+
+def _payment_service_name_from_event(ev, gateway_payment=None):
+    meta = (getattr(ev, 'metadata', None) or {})
+    test_name = (meta.get('test_name') or '').strip()
+    if test_name:
+        return f"Psychometric Test - {test_name}"
+    obj_type_text = (meta.get('obj_type') or '').strip()
+    obj_id = meta.get('obj_id')
+    try:
+        if obj_id not in (None, '') and 'skilllab' in obj_type_text.lower():
+            course = SkillLabCourse.objects.filter(id=obj_id).only('name').first()
+            if course and course.name:
+                return f"SkillLab Course - {course.name}"
+    except Exception:
+        pass
+    if gateway_payment:
+        return _payment_service_name_from_payment(gateway_payment)
+    return ev.event_name or 'N/A'
+
+
 def _enquiry_source_payment_in_process_count(attribution_q):
     """Checkout started (server or client) with no recorded success/fail yet (bounded scan)."""
     candidates = list(
@@ -3355,7 +3566,9 @@ def _enquiry_source_payment_in_process_count(attribution_q):
         )
         .order_by('-created')[:2500]
     )
-    return sum(1 for ev in candidates if not _payment_has_terminal_outcome_after(attribution_q, ev))
+    # Terminal confirmation can be recorded without the same attribution payload;
+    # remove those rows from "in process" as soon as success/fail exists anywhere.
+    return sum(1 for ev in candidates if not _payment_has_terminal_outcome_after(Q(), ev))
 
 
 def _enquiry_source_attribution_q(source):
@@ -3462,6 +3675,27 @@ def _enquiry_source_stats(source):
         metadata__source=source.name
     ).count()
     attribution_q = _enquiry_source_attribution_q(source)
+    strict_payment_scope_q = Q(metadata__source__iexact=source.name)
+    if session_ids:
+        strict_payment_scope_q |= Q(session_id__in=session_ids)
+    recent_source_user_ids = list(
+        source_activities.filter(created__gte=timezone.now() - timedelta(days=2))
+        .exclude(user_id__isnull=True)
+        .values_list('user_id', flat=True)
+        .distinct()
+    )
+    unattributed_recent_user_fallback_q = Q()
+    if recent_source_user_ids:
+        unattributed_recent_user_fallback_q = (
+            Q(user_id__in=recent_source_user_ids)
+            & (Q(session_id__isnull=True) | Q(session_id=''))
+            & (
+                Q(metadata__source__isnull=True)
+                | Q(metadata__source='')
+                | Q(metadata__source__iexact='direct')
+                | Q(metadata__source__iexact='internal')
+            )
+        )
     if attribution_q is None:
         return {
             'page_views': page_views,
@@ -3479,22 +3713,26 @@ def _enquiry_source_stats(source):
         }
 
     reg = UserEvent.objects.filter(attribution_q, event_type='registration').distinct().count()
-    pay = UserEvent.objects.filter(attribution_q, event_type='payment_success').distinct().count()
+    pay_qs = UserEvent.objects.filter(
+        (strict_payment_scope_q | unattributed_recent_user_fallback_q),
+        event_type='payment_success'
+    )
+    pay = pay_qs.distinct().count()
     payment_started = (
-        UserEvent.objects.filter(attribution_q, event_type='payment_pending')
+        UserEvent.objects.filter(strict_payment_scope_q, event_type='payment_pending')
         .filter(Q(metadata__stage__isnull=True) | ~Q(metadata__stage='started'))
         .distinct()
         .count()
     )
-    payment_failed = UserEvent.objects.filter(attribution_q, event_type='payment_failed').distinct().count()
-    failed_base = UserEvent.objects.filter(attribution_q, event_type='payment_failed')
+    payment_failed = UserEvent.objects.filter(strict_payment_scope_q, event_type='payment_failed').distinct().count()
+    failed_base = UserEvent.objects.filter(strict_payment_scope_q, event_type='payment_failed')
     payment_cancelled = failed_base.filter(
         Q(metadata__stage='cancel') | Q(event_name__icontains='Cancelled')
     ).distinct().count()
     payment_errors = failed_base.exclude(
         Q(metadata__stage='cancel') | Q(event_name__icontains='Cancelled')
     ).distinct().count()
-    payment_in_process = _enquiry_source_payment_in_process_count(attribution_q)
+    payment_in_process = _enquiry_source_payment_in_process_count(strict_payment_scope_q)
     # "Enrolled" = purchased course access. Primary signal is successful payment for course-like objects.
     # This keeps Enrolled aligned with "student bought" even if an explicit enrollment event is missing.
     payment_type_map = dict(choices.PaymentObjectType.CHOICES)
@@ -3503,13 +3741,13 @@ def _enquiry_source_stats(source):
         payment_type_map.get(choices.PaymentObjectType.COUNSELOR),
     ]
     enrolled_by_payment = UserEvent.objects.filter(
-        attribution_q,
+        (strict_payment_scope_q | unattributed_recent_user_fallback_q),
         event_type='payment_success',
         metadata__obj_type__in=[x for x in enrolled_obj_types if x],
     ).distinct().count()
     # Fallback: explicit enrollment events (kept for legacy flows).
     enrolled_by_event = UserEvent.objects.filter(
-        attribution_q,
+        (strict_payment_scope_q | unattributed_recent_user_fallback_q),
         event_type__in=['course_enrolled', 'skilllab_enrolled', 'counselor_course_enrolled'],
     ).distinct().count()
     course = max(enrolled_by_payment, enrolled_by_event)
@@ -3604,6 +3842,39 @@ def enquiry_source_events_api(request):
     if not source:
         return JsonResponse({'ok': False, 'error': 'Not found'}, status=404)
     limit = 100
+    session_user_cache = {}
+
+    def _resolve_user_email(session_id='', explicit_user_email=None):
+        if explicit_user_email:
+            return explicit_user_email
+        sid = (session_id or '').strip()
+        if not sid:
+            return None
+        if sid in session_user_cache:
+            return session_user_cache[sid]
+        email = (
+            UserActivity.objects.filter(session_id=sid, user_id__isnull=False)
+            .order_by('-created')
+            .values_list('user__email', flat=True)
+            .first()
+        )
+        if not email:
+            email = (
+                UserJourney.objects.filter(session_id=sid, user_id__isnull=False)
+                .order_by('-created')
+                .values_list('user__email', flat=True)
+                .first()
+            )
+        if not email:
+            email = (
+                UserEvent.objects.filter(session_id=sid, user_id__isnull=False)
+                .order_by('-created')
+                .values_list('user__email', flat=True)
+                .first()
+            )
+        session_user_cache[sid] = email or None
+        return session_user_cache[sid]
+
     if kind == 'page_views':
         page_qs = UserActivity.objects.filter(enquiry_source=source).order_by('-created')
         total = page_qs.count()
@@ -3615,7 +3886,7 @@ def enquiry_source_events_api(request):
             'created': timezone.localtime(r.created).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': 'page_view',
             'event_name': r.page_title or r.page_path or 'Page View',
-            'user_email': r.user.email if r.user_id else None,
+            'user_email': _resolve_user_email(r.session_id or '', r.user.email if r.user_id else None),
             'session_id': r.session_id or '',
             'metadata': {
                 'page_path': r.page_path or '',
@@ -3623,6 +3894,7 @@ def enquiry_source_events_api(request):
                 'utm_source': r.utm_source or '',
                 'utm_medium': r.utm_medium or '',
             },
+            'status_override': {'text': 'Viewed', 'variant': 'secondary'},
         } for r in rows]
         return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
 
@@ -3654,9 +3926,10 @@ def enquiry_source_events_api(request):
             'created': timezone.localtime(last_seen).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': 'session',
             'event_name': 'Session Visit',
-            'user_email': None,
+            'user_email': _resolve_user_email(sid, None),
             'session_id': sid,
             'metadata': {},
+            'status_override': {'text': 'Visited', 'variant': 'info'},
         } for sid, last_seen in selected]
         return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
 
@@ -3672,7 +3945,7 @@ def enquiry_source_events_api(request):
             )
             .order_by('-created')[:2500]
         )
-        filtered = [ev for ev in candidates if not _payment_has_terminal_outcome_after(attribution_q, ev)]
+        filtered = [ev for ev in candidates if not _payment_has_terminal_outcome_after(Q(), ev)]
         total = len(filtered)
         scan_capped = len(candidates) >= 2500
         rows = filtered[: limit + 1]
@@ -3683,7 +3956,7 @@ def enquiry_source_events_api(request):
             'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': ev.event_type,
             'event_name': ev.event_name,
-            'user_email': ev.user.email if ev.user_id else None,
+            'user_email': _resolve_user_email(ev.session_id or '', ev.user.email if ev.user_id else None),
             'session_id': ev.session_id or '',
             'metadata': ev.metadata or {},
             'effective_status': None,
@@ -3731,9 +4004,10 @@ def enquiry_source_events_api(request):
             'created': timezone.localtime(row['last_seen']).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': 'converted_session',
             'event_name': 'Converted Session',
-            'user_email': None,
+            'user_email': _resolve_user_email(row['session_id'], None),
             'session_id': row['session_id'],
             'metadata': {'converted': True},
+            'status_override': {'text': 'Converted', 'variant': 'secondary'},
         } for row in converted_rows]
         return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
 
@@ -3861,13 +4135,17 @@ def enquiry_source_events_api(request):
             'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': ev.event_type,
             'event_name': ev.event_name,
-            'user_email': ev.user.email if ev.user_id else None,
+            'user_email': _resolve_user_email(ev.session_id or '', ev.user.email if ev.user_id else None),
             'session_id': ev.session_id or '',
             'metadata': meta,
             'effective_status': effective_by_id.get(ev.id),
             'error_detail': err_detail,
             'status_override': None,
         }
+        if kind == 'registration':
+            row['status_override'] = {'text': 'Registered', 'variant': 'info'}
+        elif kind == 'course_enrolled':
+            row['status_override'] = {'text': 'Enrolled', 'variant': 'info'}
         data_rows.append(row)
 
     payload = {'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated}
