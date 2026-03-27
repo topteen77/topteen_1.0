@@ -496,6 +496,50 @@ Migrations for 'institute':
 .
 
 ========================================================
+Dummy Enquiry Source Testing Script (seed + cleanup)
+========================================================
+Script:
+  scripts/dummy_enquiry_source_test.sh
+
+Purpose:
+  Create and remove dummy analytics data for Enquiry Source dashboard validation,
+  including page views, sessions, registrations, paid, enrolled, converted, and
+  Payment-model fallback paths.
+
+Make executable (one-time):
+  chmod +x scripts/dummy_enquiry_source_test.sh
+
+Usage:
+  1) Seed dummy data for a source (optionally pick user by email):
+     scripts/dummy_enquiry_source_test.sh seed "laply marketing" admin@topteen.careers
+
+  2) Cleanup by exact session id (printed by seed command):
+     scripts/dummy_enquiry_source_test.sh cleanup "dummy-enq-20260327-123000-ab12cd"
+
+  3) Cleanup all dummy data created for one source:
+     scripts/dummy_enquiry_source_test.sh cleanup-source "laply marketing"
+
+What seed creates:
+  - UserActivity row with enquiry_source
+  - UserJourney row for same session
+  - UserEvent rows:
+      registration, payment_pending, payment_failed, payment_success, course_enrolled
+  - Payment rows:
+      one success + one failed row (for fallback counters)
+  - Journey converted=true for Converted column testing
+
+Seed output includes:
+  - session_id
+  - dummy_tag
+  - stats_preview
+  - exact cleanup command
+
+Notes:
+  - Script uses hard delete in cleanup modes where supported.
+  - Dummy rows are tagged (`dummy_test` / `dummy_tag`) and isolated by session/source.
+  - Run from project root (same folder as manage.py).
+
+========================================================
 
 ### 1. Seed Forum Data
 

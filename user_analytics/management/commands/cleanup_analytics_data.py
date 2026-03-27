@@ -8,7 +8,9 @@ Also supports --purge-all (full wipe of selected models) and --domain local|demo
 """
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
+from django.conf import settings
 from datetime import timedelta
+import os
 
 
 class Command(BaseCommand):
@@ -68,6 +70,19 @@ class Command(BaseCommand):
                 obj.delete(hard_delete=True)
             else:
                 obj.delete()
+
+    @staticmethod
+    def _destructive_cleanup_enabled():
+        """
+        Safety lock for production: destructive cleanup must be explicitly enabled.
+        Enable via Django setting ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=True
+        or env var ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=1/true/yes/on.
+        """
+        flag = getattr(settings, 'ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE', False)
+        if flag:
+            return True
+        env_val = (os.getenv('ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE') or '').strip().lower()
+        return env_val in {'1', 'true', 'yes', 'on'}
 
     def _handle_purge_all(self, options, models_filter, dry_run):
         """Delete every row for selected models; order respects FKs (journey before event)."""
@@ -155,6 +170,19 @@ class Command(BaseCommand):
         expired_cache_only = options['expired_cache_only']
         purge_all = options['purge_all']
         domain = options.get('domain')
+        core_models = {'user_activity', 'user_journey', 'user_event'}
+        effective_models = set(models_filter) if models_filter else {
+            'user_activity', 'user_journey', 'user_event', 'lead', 'analytics_cache', 'ga4_session'
+        }
+        touches_core_models = bool(effective_models & core_models)
+        destructive = (not dry_run) and (purge_all or domain or touches_core_models)
+
+        if destructive and not self._destructive_cleanup_enabled():
+            raise CommandError(
+                'Destructive analytics cleanup is disabled. '
+                'Set ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=True in settings or '
+                'env ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=1 to proceed.'
+            )
 
         if purge_all and domain:
             raise CommandError('Use either --purge-all or --domain, not both.')

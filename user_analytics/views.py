@@ -14,9 +14,11 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.middleware.csrf import get_token
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.conf import settings
 from datetime import datetime, timedelta
 from decimal import Decimal
 from urllib.parse import unquote, urlencode
+import os
 import json
 import logging
 
@@ -3306,6 +3308,19 @@ def _cleanup_analytics_redirect(request):
     return redirect('user_analytics:admin_user_analytics')
 
 
+def _destructive_cleanup_enabled():
+    """
+    Safety lock for production: destructive cleanup must be explicitly enabled.
+    Enable via Django setting ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=True
+    or env var ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=1/true/yes/on.
+    """
+    flag = getattr(settings, 'ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE', False)
+    if flag:
+        return True
+    env_val = (os.getenv('ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE') or '').strip().lower()
+    return env_val in {'1', 'true', 'yes', 'on'}
+
+
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def cleanup_analytics_data_view(request):
@@ -3326,6 +3341,14 @@ def cleanup_analytics_data_view(request):
     purge_all = request.POST.get('purge_all') == '1'
     domain_cleanup = request.POST.get('domain_cleanup') == '1'
     domain = (request.POST.get('domain') or '').strip()
+    destructive = not dry_run
+    if destructive and not _destructive_cleanup_enabled():
+        messages.error(
+            request,
+            'Destructive analytics cleanup is disabled. '
+            'Set ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE=1 to allow this action.'
+        )
+        return _cleanup_analytics_redirect(request)
 
     if domain_cleanup:
         from user_analytics.domain_cleanup import run_domain_cleanup, VALID_DOMAINS
@@ -3713,11 +3736,57 @@ def _enquiry_source_stats(source):
         }
 
     reg = UserEvent.objects.filter(attribution_q, event_type='registration').distinct().count()
+    reg_by_users = 0
+    if session_ids:
+        reg_by_users = UserJourney.objects.filter(
+            session_id__in=session_ids,
+            user__isnull=False,
+        ).exclude(user_id__isnull=True).values('user_id').distinct().count()
+    if source_user_ids:
+        reg_by_users = max(
+            reg_by_users,
+            User.objects.filter(id__in=source_user_ids).values('id').distinct().count(),
+        )
     pay_qs = UserEvent.objects.filter(
         (strict_payment_scope_q | unattributed_recent_user_fallback_q),
         event_type='payment_success'
     )
     pay = pay_qs.distinct().count()
+    payment_model_success = 0
+    payment_model_failed = 0
+    payment_model_enrolled = 0
+    try:
+        # Keep "PAID" consistent with payments report fallback logic:
+        # if UserEvent rows are missing/soft-deleted, use Payment rows
+        # attributed by latest UserActivity source/enquiry source name.
+        latest_activity = UserActivity.objects.filter(user_id=OuterRef('user_id')).order_by('-created')
+        p_qs = Payment.objects.filter(
+            is_success=choices.YesNoChoices.YES
+        ).annotate(
+            latest_traffic_source=Subquery(latest_activity.values('utm_source')[:1]),
+            latest_enquiry_source_name=Subquery(latest_activity.values('enquiry_source__name')[:1]),
+        ).filter(
+            Q(latest_traffic_source=source.name) | Q(latest_enquiry_source_name=source.name)
+        )
+        payment_model_success = p_qs.count()
+        payment_model_failed = Payment.objects.filter(
+            is_success=choices.YesNoChoices.NO
+        ).annotate(
+            latest_traffic_source=Subquery(latest_activity.values('utm_source')[:1]),
+            latest_enquiry_source_name=Subquery(latest_activity.values('enquiry_source__name')[:1]),
+        ).filter(
+            Q(latest_traffic_source=source.name) | Q(latest_enquiry_source_name=source.name)
+        ).count()
+        payment_model_enrolled = p_qs.filter(
+            obj_type__in=[
+                choices.PaymentObjectType.SKILLLABCOURSE,
+                choices.PaymentObjectType.COUNSELOR,
+            ]
+        ).count()
+    except Exception:
+        payment_model_success = 0
+        payment_model_failed = 0
+        payment_model_enrolled = 0
     payment_started = (
         UserEvent.objects.filter(strict_payment_scope_q, event_type='payment_pending')
         .filter(Q(metadata__stage__isnull=True) | ~Q(metadata__stage='started'))
@@ -3750,7 +3819,7 @@ def _enquiry_source_stats(source):
         (strict_payment_scope_q | unattributed_recent_user_fallback_q),
         event_type__in=['course_enrolled', 'skilllab_enrolled', 'counselor_course_enrolled'],
     ).distinct().count()
-    course = max(enrolled_by_payment, enrolled_by_event)
+    course = max(enrolled_by_payment, enrolled_by_event, payment_model_enrolled)
     converted = (
         UserJourney.objects.filter(session_id__in=session_ids, converted=True)
         .exclude(session_id__isnull=True)
@@ -3762,16 +3831,22 @@ def _enquiry_source_stats(source):
         else 0
     )
 
+    paid_out = max(pay, payment_model_success)
+    attributed_out = max(payments_attributed, payment_model_success)
+    reg_out = max(reg, reg_by_users)
+    failed_out = max(payment_failed, payment_model_failed)
+    # Fallback when journey.converted flags lag behind payment capture.
+    converted_out = max(converted, min(visit_count, paid_out))
     return {
         'page_views': page_views,
         'visit_count': visit_count,
-        'registrations': reg,
-        'payment_success': pay,
-        'payments_attributed': payments_attributed,
+        'registrations': reg_out,
+        'payment_success': paid_out,
+        'payments_attributed': attributed_out,
         'course_enrolled': course,
-        'converted_sessions': converted,
+        'converted_sessions': converted_out,
         'payment_started': payment_started,
-        'payment_failed': payment_failed,
+        'payment_failed': failed_out,
         'payment_errors': payment_errors,
         'payment_cancelled': payment_cancelled,
         'payment_in_process': payment_in_process,
