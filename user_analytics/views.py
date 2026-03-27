@@ -3737,16 +3737,17 @@ def _enquiry_source_stats(source):
 
     reg = UserEvent.objects.filter(attribution_q, event_type='registration').distinct().count()
     reg_by_users = 0
-    if session_ids:
-        reg_by_users = UserJourney.objects.filter(
-            session_id__in=session_ids,
-            user__isnull=False,
-        ).exclude(user_id__isnull=True).values('user_id').distinct().count()
-    if source_user_ids:
-        reg_by_users = max(
-            reg_by_users,
-            User.objects.filter(id__in=source_user_ids).values('id').distinct().count(),
-        )
+    if reg == 0:
+        if session_ids:
+            reg_by_users = UserJourney.objects.filter(
+                session_id__in=session_ids,
+                user__isnull=False,
+            ).exclude(user_id__isnull=True).values('user_id').distinct().count()
+        if source_user_ids:
+            reg_by_users = max(
+                reg_by_users,
+                User.objects.filter(id__in=source_user_ids).values('id').distinct().count(),
+            )
     pay_qs = UserEvent.objects.filter(
         (strict_payment_scope_q | unattributed_recent_user_fallback_q),
         event_type='payment_success'
@@ -3755,38 +3756,6 @@ def _enquiry_source_stats(source):
     payment_model_success = 0
     payment_model_failed = 0
     payment_model_enrolled = 0
-    try:
-        # Keep "PAID" consistent with payments report fallback logic:
-        # if UserEvent rows are missing/soft-deleted, use Payment rows
-        # attributed by latest UserActivity source/enquiry source name.
-        latest_activity = UserActivity.objects.filter(user_id=OuterRef('user_id')).order_by('-created')
-        p_qs = Payment.objects.filter(
-            is_success=choices.YesNoChoices.YES
-        ).annotate(
-            latest_traffic_source=Subquery(latest_activity.values('utm_source')[:1]),
-            latest_enquiry_source_name=Subquery(latest_activity.values('enquiry_source__name')[:1]),
-        ).filter(
-            Q(latest_traffic_source=source.name) | Q(latest_enquiry_source_name=source.name)
-        )
-        payment_model_success = p_qs.count()
-        payment_model_failed = Payment.objects.filter(
-            is_success=choices.YesNoChoices.NO
-        ).annotate(
-            latest_traffic_source=Subquery(latest_activity.values('utm_source')[:1]),
-            latest_enquiry_source_name=Subquery(latest_activity.values('enquiry_source__name')[:1]),
-        ).filter(
-            Q(latest_traffic_source=source.name) | Q(latest_enquiry_source_name=source.name)
-        ).count()
-        payment_model_enrolled = p_qs.filter(
-            obj_type__in=[
-                choices.PaymentObjectType.SKILLLABCOURSE,
-                choices.PaymentObjectType.COUNSELOR,
-            ]
-        ).count()
-    except Exception:
-        payment_model_success = 0
-        payment_model_failed = 0
-        payment_model_enrolled = 0
     payment_started = (
         UserEvent.objects.filter(strict_payment_scope_q, event_type='payment_pending')
         .filter(Q(metadata__stage__isnull=True) | ~Q(metadata__stage='started'))
@@ -3820,6 +3789,31 @@ def _enquiry_source_stats(source):
         event_type__in=['course_enrolled', 'skilllab_enrolled', 'counselor_course_enrolled'],
     ).distinct().count()
     course = max(enrolled_by_payment, enrolled_by_event, payment_model_enrolled)
+    need_payment_fallback = (pay == 0 or payment_failed == 0 or course == 0)
+    if need_payment_fallback:
+        try:
+            # Fast fallback: use users who touched this enquiry source.
+            # Avoid heavy per-row subqueries that can make the list page time out.
+            p_base = Payment.objects.none()
+            if source_user_ids:
+                p_base = Payment.objects.filter(user_id__in=source_user_ids)
+            if pay == 0:
+                payment_model_success = p_base.filter(is_success=choices.YesNoChoices.YES).count()
+            if payment_failed == 0:
+                payment_model_failed = p_base.filter(is_success=choices.YesNoChoices.NO).count()
+            if course == 0:
+                payment_model_enrolled = p_base.filter(
+                    is_success=choices.YesNoChoices.YES,
+                    obj_type__in=[
+                        choices.PaymentObjectType.SKILLLABCOURSE,
+                        choices.PaymentObjectType.COUNSELOR,
+                    ],
+                ).count()
+        except Exception:
+            payment_model_success = 0
+            payment_model_failed = 0
+            payment_model_enrolled = 0
+    course = max(course, payment_model_enrolled)
     converted = (
         UserJourney.objects.filter(session_id__in=session_ids, converted=True)
         .exclude(session_id__isnull=True)
