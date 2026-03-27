@@ -33,8 +33,7 @@
   .career-card-icon {
     width: 69px;
     height: 69px;
-    margin: 0 auto 14px;
-    border-radius: 10px;
+       border-radius: 10px;
     overflow: hidden;
     background: #fff;
     display: flex;
@@ -54,15 +53,11 @@
   }
   .career-card-mobile {
     min-height: 84px;
-    padding: 20px;
+    padding: 10px;
   }
-  .career-card-mobile .icon-mobile {
-    position: absolute;
-    left: -6px;
-    top: 50%;
-    transform: translateY(-50%) rotate(31.19deg);
-    width: 57px;
-    height: 57px;
+  .career-card-mobile .icon-mobile {   
+    width: 70px;
+    height: 70px;
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
@@ -81,8 +76,8 @@
   }
   .delete-career-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top:5px;
+    right: 5px;
     background: rgba(255, 255, 255, 0.9);
     border: none;
     border-radius: 50%;
@@ -102,6 +97,16 @@
     color: #dc3545;
     transform: scale(1.1);
   }
+
+  @media (max-width: 768px) {
+
+    .top-80 {
+  top: 80%;
+}
+
+  }
+
+
 </style>
 {% endblock %}
 
@@ -123,7 +128,7 @@
         {% endif %}
 
         <!-- Career Interests Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4">
           <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
           {% if career_interests %}
           <div class="d-none d-lg-block">
@@ -135,11 +140,11 @@
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 position-relative">
           <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </button>
-          <h2 class="fs-16 fw-normal text-center mb-0">Career Interests</h2>
+          <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">Career Interests</h2>
           {% if career_interests %}
           <a href="{{ url('careers:career') }}" class="btn btn-link position-absolute end-0 top-0">
             <i class='bx bx-search fs-18 text-gray'></i>
@@ -153,7 +158,7 @@
           {% for career_interest in career_interests %}
             {% if career_interest and career_interest.career %}
             <div class="col-12 col-md-6 col-lg-4">
-              <div class="career-card career-card-mobile d-lg-block d-flex align-items-center position-relative">
+              <div class="career-card career-card-mobile  d-flex align-items-center position-relative">
                 <button type="button" 
                         class="delete-career-btn deleteCareer" 
                         data-id="{{ career_interest.career.slug }}"
@@ -174,13 +179,13 @@
                   {% endif %}
                 </div>
                 
-                <div class="flex-grow-1 text-center text-lg-center">
+                <div class="ms-3 pe-3">
                   <a href="{{ career_interest.career.url() }}" class="text-decoration-none text-dark">
                     <h3 class="fs-16 fw-semibold text-dark mb-0">{{ career_interest.career.name }}</h3>
                   </a>
                 </div>
                 
-                <div class="d-lg-none position-absolute end-0 top-50 translate-middle-y me-3">
+                <div class="d-lg-none position-absolute end-0 top-80 translate-middle-y me-3">
                   <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
                 </div>
               </div>

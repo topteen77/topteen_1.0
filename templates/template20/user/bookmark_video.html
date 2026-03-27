@@ -86,16 +86,16 @@
         {% endif %}
 
         <!-- Video Heading -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4">
           <h1 class="fs-24 fw-semibold mb-0">My Videos</h1>
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
-            <i class='bx bx-arrow-left fs-18 text-gray'></i>
+        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 position-relative">
+          <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
+            <i class='bx bx-arrow-back fs-18 text-gray'></i>
           </button>
-          <h2 class="fs-16 fw-normal text-center mb-0">My Videos</h2>
+          <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">My Videos</h2>
         </div>
 
         <!-- Videos Content -->
@@ -159,7 +159,7 @@
                 <i class='bx bx-bookmark'></i>
               </div>
             </div>
-            <p class="fs-12 text-gray mb-2">
+            <p class="fs-12 text-gray mb-2 d-none">
               <i class='bx bx-calendar me-1'></i>{{ date_format(video.created) }}
             </p>
             {% if video.description %}
