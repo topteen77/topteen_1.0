@@ -12,7 +12,11 @@ from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment, CandidateTest
 from skilllab.models import SkilllabCoursePayment
 from institute.models import StudentManagement
-from user_analytics.tasks import safe_track_user_event, link_analytics_session_to_user
+from user_analytics.tasks import (
+    safe_track_user_event,
+    track_user_event_sync,
+    link_analytics_session_to_user,
+)
 from core import choices
 import logging
 
@@ -103,7 +107,9 @@ def track_user_registration(sender, instance, created, **kwargs):
                 }
                 if enq_id:
                     meta['enquiry_source_id'] = enq_id
-                safe_track_user_event(
+                # Keep registration tracking synchronous so analytics is reliable
+                # even when Celery workers are stale/unavailable.
+                out = track_user_event_sync(
                     event_type='registration',
                     event_name='User Registered',
                     user_id=instance.id,
@@ -111,8 +117,14 @@ def track_user_registration(sender, instance, created, **kwargs):
                     session_id=session_id,
                     metadata=meta,
                 )
+                if out:
+                    logger.info(f"Tracked user registration for user {instance.id}")
+                else:
+                    logger.error(
+                        "Registration event tracking returned no result for user %s",
+                        instance.id,
+                    )
             transaction.on_commit(_track_registration)
-            logger.info(f"Tracked user registration for user {instance.id}")
         except Exception as e:
             logger.error(f"Error tracking user registration: {e}", exc_info=True)
 
