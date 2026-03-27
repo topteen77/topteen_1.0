@@ -379,13 +379,14 @@ def update_user_journey_sync(
                 defaults['enquiry_source_id'] = enquiry_source_id
             
             try:
-                journey, created = UserJourney.objects.get_or_create(
+                # Use base manager to include soft-deleted rows; session_id is globally unique.
+                journey, created = UserJourney._base_manager.get_or_create(
                     session_id=session_id,
                     defaults=defaults
                 )
             except IntegrityError:
                 # Race: another request may have created this session_id; fetch if exists
-                journey = UserJourney.objects.filter(session_id=session_id).first()
+                journey = UserJourney._base_manager.filter(session_id=session_id).first()
                 if journey is None:
                     logger.warning(
                         "IntegrityError on UserJourney get_or_create but no record found for session_id=%s",
@@ -393,6 +394,10 @@ def update_user_journey_sync(
                     )
                     return f"Updated journey: {session_id}"
                 created = False
+
+            if journey.object_status != choices.ObjectStatus.ACTIVE:
+                journey.object_status = choices.ObjectStatus.ACTIVE
+                journey.save(update_fields=['object_status', 'modified'])
             
             if not created:
                 now = timezone.now()
@@ -625,12 +630,13 @@ def update_user_journey_async(
                 defaults['enquiry_source_id'] = enquiry_source_id
             
             try:
-                journey, created = UserJourney.objects.get_or_create(
+                # Use base manager to include soft-deleted rows; session_id is globally unique.
+                journey, created = UserJourney._base_manager.get_or_create(
                     session_id=session_id,
                     defaults=defaults
                 )
             except IntegrityError:
-                journey = UserJourney.objects.filter(session_id=session_id).first()
+                journey = UserJourney._base_manager.filter(session_id=session_id).first()
                 if journey is None:
                     logger.warning(
                         "IntegrityError on UserJourney get_or_create but no record found for session_id=%s",
@@ -638,6 +644,10 @@ def update_user_journey_async(
                     )
                     return f"Updated journey: {session_id}"
                 created = False
+
+            if journey.object_status != choices.ObjectStatus.ACTIVE:
+                journey.object_status = choices.ObjectStatus.ACTIVE
+                journey.save(update_fields=['object_status', 'modified'])
             
             if not created:
                 now = timezone.now()
@@ -698,8 +708,8 @@ def update_journey_from_event(event, session_id=None):
         if not session_id:
             return
         
-        # Find journeys with this session_id
-        journeys = UserJourney.objects.filter(session_id=session_id)
+        # Find journeys with this session_id (include soft-deleted rows due unique session_id)
+        journeys = UserJourney._base_manager.filter(session_id=session_id)
         
         for journey in journeys:
             updated = False
@@ -729,6 +739,8 @@ def update_journey_from_event(event, session_id=None):
                 updated = True
             
             if updated:
+                if journey.object_status != choices.ObjectStatus.ACTIVE:
+                    journey.object_status = choices.ObjectStatus.ACTIVE
                 journey.save()
                 logger.debug(f"Updated journey {journey.id} from event {event.id} ({event.event_type})")
     
