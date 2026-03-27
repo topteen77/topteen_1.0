@@ -4005,6 +4005,12 @@ def enquiry_source_events_api(request):
     attribution_q = _enquiry_source_attribution_q(source)
     if attribution_q is None:
         return JsonResponse({'ok': True, 'events': [], 'truncated': False, 'total': 0})
+    source_user_ids = list(
+        UserActivity.objects.filter(enquiry_source=source)
+        .exclude(user_id__isnull=True)
+        .values_list('user_id', flat=True)
+        .distinct()
+    )
 
     if kind == 'payment_in_process':
         candidates = list(
@@ -4115,6 +4121,38 @@ def enquiry_source_events_api(request):
     rows = list(qs.distinct().order_by('-created')[: limit + 1])
     truncated = len(rows) > limit
     rows = rows[:limit]
+    if kind == 'payment_success' and total == 0 and source_user_ids:
+        # Keep modal aligned with paid counter fallback when event rows are absent/soft-deleted.
+        p_qs = Payment.objects.filter(
+            user_id__in=source_user_ids,
+            is_success=choices.YesNoChoices.YES,
+        ).select_related('user').order_by('-created')
+        p_total = p_qs.count()
+        p_rows = list(p_qs[: limit + 1])
+        p_truncated = len(p_rows) > limit
+        p_rows = p_rows[:limit]
+        data_rows = []
+        for p in p_rows:
+            data_rows.append({
+                'id': f'payment-{p.id}',
+                'created': timezone.localtime(p.created).strftime('%Y-%m-%d %H:%M:%S') if p.created else '',
+                'event_type': 'payment_success',
+                'event_name': _payment_service_name_from_payment(p),
+                'user_email': p.user.email if p.user_id and p.user else None,
+                'session_id': '',
+                'metadata': {
+                    'source': source.name,
+                    'gateway_order_id': p.gateway_order_id or '',
+                    'gateway_payment_id': p.gateway_payment_id or '',
+                    'obj_type': dict(choices.PaymentObjectType.CHOICES).get(p.obj_type, str(p.obj_type)),
+                    'obj_id': p.obj_id,
+                    'fallback': 'payment_model',
+                },
+                'effective_status': 'success',
+                'error_detail': '',
+                'status_override': {'text': 'Success', 'variant': 'secondary'},
+            })
+        return JsonResponse({'ok': True, 'events': data_rows, 'total': p_total, 'truncated': p_truncated})
     # For payment rows, compute an "effective" status based on the latest payment event for the same payment/order.
     # This avoids showing "Pending/Cancelled" for checkouts that later became Paid, etc.
     # Do not apply this when listing payment_failed: each row is an explicit failure and must stay "Fail"
