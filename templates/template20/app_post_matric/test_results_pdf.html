@@ -190,7 +190,7 @@
         <p><strong>Student Name:</strong> {{ user.username }} ({{ user.email }})</p>
         {% if student_name %}<p><strong>Name:</strong> {{ student_name }}</p>{% endif %}
         {% if grade %}<p><strong>Grade:</strong> {{ grade }}</p>{% endif %}
-        <p><strong>School:</strong> {{ schoolname|default:"-" }}</p>
+        <p><strong>School:</strong> {{ schoolname|default('-') }}</p>
     </div>
 
     {% if test_type == 'Personality Assessment' %}

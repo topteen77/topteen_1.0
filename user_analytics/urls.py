@@ -28,6 +28,23 @@ urlpatterns = [
     # Web Owner Dashboard
     path('web-owner/', views.web_owner_dashboard, name='web_owner_dashboard'),
     path('web-owner/services/', views.web_owner_services_monitor, name='web_owner_services_monitor'),
+    path('web-owner/services/test-email/', views.web_owner_service_test_email, name='web_owner_service_test_email'),
+    path(
+        'web-owner/services/send-daily-new-user-report/',
+        views.web_owner_send_daily_new_user_report,
+        name='web_owner_send_daily_new_user_report',
+    ),
+    path(
+        'web-owner/services/daily-report-schedule/',
+        views.web_owner_daily_report_schedule,
+        name='web_owner_daily_report_schedule',
+    ),
+    path(
+        'web-owner/services/clear-logs/',
+        views.web_owner_clear_service_logs,
+        name='web_owner_clear_service_logs',
+    ),
+    path('web-owner/email-logs/', views.web_owner_email_logs, name='web_owner_email_logs'),
     
     # User Journey
     path('user-journey/', views.user_journey_view, name='user_journey'),

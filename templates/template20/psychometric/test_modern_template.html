@@ -480,25 +480,25 @@
   <div class="container-xxl">
     <div class="test-hero-card">
       <div class="test-hero-meta">
-        <span class="hero-pill">{{ test_meta.pill|default:"Preview Mode" }}</span>
-        <h1>{{ test_meta.title|default:"Psychometric Test Template" }}</h1>
-        <p class="text-muted mb-0">{{ test_meta.subtitle|default:"All core features remain intact—only the visual experience is refreshed." }}</p>
+        <span class="hero-pill">{{ test_meta.pill|default('Preview Mode') }}</span>
+        <h1>{{ test_meta.title|default('Psychometric Test Template') }}</h1>
+        <p class="text-muted mb-0">{{ test_meta.subtitle|default('All core features remain intact—only the visual experience is refreshed.') }}</p>
         <div class="hero-meta-grid">
           <div class="hero-stat-chip">
             <p class="hero-stat-label">Class</p>
-            <p class="hero-stat-value">{{ test_meta.class_label|default:"Class 10" }}</p>
+            <p class="hero-stat-value">{{ test_meta.class_label|default('Class 10') }}</p>
           </div>
           <div class="hero-stat-chip">
             <p class="hero-stat-label">Total Questions</p>
-            <p class="hero-stat-value">{{ total_questions|default:questions|length }}</p>
+            <p class="hero-stat-value">{{ total_questions|default(questions)|length }}</p>
           </div>
           <div class="hero-stat-chip">
             <p class="hero-stat-label">Time Limit</p>
-            <p class="hero-stat-value">{{ test_meta.estimated_time|default:"20 min" }}</p>
+            <p class="hero-stat-value">{{ test_meta.estimated_time|default('20 min') }}</p>
           </div>
           <div class="hero-stat-chip">
             <p class="hero-stat-label">Attempts</p>
-            <p class="hero-stat-value">{{ test_meta.attempts_allowed|default:"01" }}</p>
+            <p class="hero-stat-value">{{ test_meta.attempts_allowed|default('01') }}</p>
           </div>
         </div>
       </div>
@@ -538,16 +538,16 @@
           </div>
         </div>
 
-        <form id="modernTestForm" action="{{ submit_url|default:'#' }}" method="post">
+        <form id="modernTestForm" action="{{ submit_url|default('#') }}" method="post">
           {% csrf_token %}
           {% for question in questions %}
-          <div class="question-card {% if loop.first %}active{% endif %}" id="question{{ loop.index }}" data-question-number="{{ loop.index }}" data-question-type="{{ question.input_type|default:'radio' }}">
+          <div class="question-card {% if loop.first %}active{% endif %}" id="question{{ loop.index }}" data-question-number="{{ loop.index }}" data-question-type="{{ question.input_type|default('radio') }}">
             <div class="question-meta">
-              <span class="question-pill">{{ question.category|default:"Core Skill" }}</span>
-              <span class="text-muted fw-semibold">{{ question.difficulty|default:"Medium" }} • {{ question.estimated_time|default:"45 sec" }}</span>
+              <span class="question-pill">{{ question.category|default('Core Skill') }}</span>
+              <span class="text-muted fw-semibold">{{ question.difficulty|default('Medium') }} • {{ question.estimated_time|default('45 sec') }}</span>
             </div>
-            <div class="question-title">Q{{ loop.index }}. {{ question.title|default:question.text|default:"Question title" }}</div>
-            <p class="question-text">{{ question.description|default:question.text|default:"Question description comes here." }}</p>
+            <div class="question-title">Q{{ loop.index }}. {{ question.title|default(question.text)|default('Question title') }}</div>
+            <p class="question-text">{{ question.description|default(question.text)|default('Question description comes here.') }}</p>
 
             {% if question.image %}
             <div class="question-image">
@@ -555,10 +555,10 @@
             </div>
             {% endif %}
 
-            <div class="options-grid" data-layout="{{ question.option_layout|default:'two-column' }}">
+            <div class="options-grid" data-layout="{{ question.option_layout|default('two-column') }}">
               {% for option in question.options %}
               <label class="option-chip {% if option.image %}option-with-image{% endif %}">
-                <input type="{{ question.input_type|default:'radio' }}" class="option-input" name="question_{{ question.id }}" value="{{ option.value }}">
+                <input type="{{ question.input_type|default('radio') }}" class="option-input" name="question_{{ question.id }}" value="{{ option.value }}">
                 <span class="chip-indicator">✓</span>
                 <div class="chip-content">
                   <span class="chip-label">{{ option.label }}</span>
@@ -618,12 +618,12 @@
           <div class="progress-wrapper">
             <div class="progress-label">
               <span>Question Progress</span>
-              <span id="questionProgress">{{ total_questions|default:questions|length }} Questions</span>
+              <span id="questionProgress">{{ total_questions|default(questions)|length }} Questions</span>
             </div>
             <div class="progress-bar">
               <div class="progress-bar-fill" id="questionProgressBar"></div>
             </div>
-            <p class="mb-0 mt-2 text-muted" id="questionProgressHelper">Question 1 of {{ total_questions|default:questions|length }}</p>
+            <p class="mb-0 mt-2 text-muted" id="questionProgressHelper">Question 1 of {{ total_questions|default(questions)|length }}</p>
           </div>
 
           <div class="progress-wrapper mb-3">
@@ -676,7 +676,7 @@
     let questionStartTimes = {};
     let answerTimes = [];
     const MIN_TIME_PER_QUESTION = 3;
-    const totalSeconds = {{ time_limit_seconds|default:1200 }};
+    const totalSeconds = {{ time_limit_seconds|default(1200) }};
     let timerInterval = null;
     let timerStart = null;
 

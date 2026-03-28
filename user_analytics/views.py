@@ -19,12 +19,15 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from urllib.parse import unquote, urlencode
 import os
+import re
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 
-from notifications.services import get_runtime_service_status
+from notifications.services import clear_service_monitor_tail_logs, get_runtime_service_status
+from topteens.email_logging import format_ts_for_display, get_email_send_log_path, load_email_log_entries_newest_first
+
 from django.contrib.contenttypes.models import ContentType
 from user_analytics.models import (
     UserActivity,
@@ -37,13 +40,61 @@ from user_analytics.models import (
 )
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
-from user_analytics.tasks import track_page_view_sync, update_user_journey_sync, safe_track_user_event
+from django.contrib import messages
+from django.core.mail import EmailMultiAlternatives
+
+from user_analytics.tasks import (
+    track_page_view_sync,
+    update_user_journey_sync,
+    safe_track_user_event,
+    send_daily_new_user_report,
+)
 from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment
 from skilllab.models import SkillLabCourse, SkilllabCoursePayment
 from core import choices
 from core.models import Configuration
+
+
+def _normalize_daily_report_hhmm(value):
+    """Return 'HH:MM' (24h) from Configuration string."""
+    try:
+        s = (value or '').strip()
+        h_s, m_s = s.split(':', 1)
+        h, m = int(h_s), int(m_s)
+        if 0 <= h <= 23 and 0 <= m <= 59:
+            return f'{h:02d}:{m:02d}'
+    except Exception:
+        pass
+    return '15:00'
+
+
+def _email_log_rows_for_template(raw_entries, max_rows=10, subject_max=120, error_max=300):
+    """Build table rows for email JSONL audit (service monitor preview vs full page)."""
+    if max_rows is not None:
+        slice_list = raw_entries[:max_rows]
+    else:
+        slice_list = list(raw_entries)
+    rows = []
+    for e in slice_list:
+        err = e.get('error') or ''
+        rows.append(
+            {
+                'subject': (e.get('subject') or '')[:subject_max],
+                'from_display': (e.get('from_email') or '').strip() or '—',
+                'to_display': ', '.join(e.get('to') or []) or '—',
+                'when_display': format_ts_for_display(e.get('ts')),
+                'status': e.get('status') or '',
+                'error': (
+                    (err[:error_max] + ('…' if len(err) > error_max else ''))
+                    if err
+                    else '—'
+                ),
+            }
+        )
+    return rows
+
 
 def is_staff_or_superuser(user):
     """Check if user is staff or superuser"""
@@ -1312,6 +1363,15 @@ def web_owner_dashboard(request):
 @user_passes_test(is_staff_or_superuser)
 def web_owner_services_monitor(request):
     status = get_runtime_service_status()
+    log_entries = load_email_log_entries_newest_first()
+    email_log_preview = _email_log_rows_for_template(log_entries, max_rows=10)
+    daily_report_time = _normalize_daily_report_hhmm(
+        Configuration.get('DAILY_USER_REPORT_TIME', default='15:00', editable=True)
+    )
+    try:
+        admin_configuration_url = reverse('admin:core_configuration_changelist')
+    except Exception:
+        admin_configuration_url = '/admin/core/configuration/'
     return render(
         request,
         'user_analytics/services_monitor.html',
@@ -1321,6 +1381,185 @@ def web_owner_services_monitor(request):
             'services': status.get('services', []),
             'logs': status.get('logs', {}),
             'all_required_ok': status.get('all_required_ok', False),
+            'email_log_preview': email_log_preview,
+            'email_send_log_path': get_email_send_log_path(),
+            'email_backend': getattr(settings, 'EMAIL_BACKEND', ''),
+            'daily_report_time': daily_report_time,
+            'admin_configuration_url': admin_configuration_url,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_service_test_email(request):
+    """Send a deliverability test to WEBADMINEMAIL, From TOPTEEN_FROM_EMAIL (same as other admin mail)."""
+    web_admin = (getattr(settings, 'WEBADMINEMAIL', '') or '').strip()
+    recipients = [e.strip() for e in web_admin.split(',') if e.strip()]
+    if not recipients:
+        messages.error(
+            request,
+            'WEBADMINEMAIL is not set or has no addresses. Set it in .env / settings to receive the test.',
+        )
+        return redirect('user_analytics:web_owner_services_monitor')
+
+    from_email = (getattr(settings, 'TOPTEEN_FROM_EMAIL', '') or '').strip()
+    if not from_email:
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or 'noreply@example.com'
+    subject = '[TopTeen] Test email – deliverability check'
+    text_body = (
+        'This is a test email from TopTeen (Service monitor).\n\n'
+        'If you receive this in your inbox, SMTP is working.\n'
+        'If it lands in spam, check SPF/DKIM/DMARC for your sending domain.'
+    )
+    html_body = (
+        '<p>This is a test email from <strong>TopTeen</strong> (Service monitor).</p>'
+        '<p>If you receive this in your <strong>inbox</strong>, SMTP is working.</p>'
+        '<p>If it lands in <strong>spam</strong>, check SPF/DKIM/DMARC for your sending domain.</p>'
+    )
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            from_email=from_email,
+            to=recipients,
+        )
+        msg.attach_alternative(html_body, 'text/html')
+        msg.send(fail_silently=False)
+        messages.success(
+            request,
+            f'Test email sent to {", ".join(recipients)} (From: {from_email}). Check inbox and spam.',
+        )
+    except Exception as exc:
+        logger.exception('Service monitor test email failed')
+        messages.error(request, f'Failed to send test email: {exc}')
+    return redirect('user_analytics:web_owner_services_monitor')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_send_daily_new_user_report(request):
+    """
+    Run the same logic as the scheduled daily new user report (force_send=True).
+    Recipients come from WEBADMINEMAIL unless skipped.
+    """
+    try:
+        result = send_daily_new_user_report(force_send=True, override_recipients=None)
+    except Exception as exc:
+        logger.exception('Manual daily new user report failed')
+        messages.error(request, f'Daily new user report failed: {exc}')
+        return redirect('user_analytics:web_owner_services_monitor')
+
+    if result == 'skipped_missing_recipient':
+        messages.warning(
+            request,
+            'WEBADMINEMAIL is not configured in settings/env. Set it to receive the daily report.',
+        )
+    elif result == 'skipped_invalid_recipient':
+        messages.warning(
+            request,
+            'WEBADMINEMAIL has no valid recipient addresses after parsing.',
+        )
+    elif result == 'skipped_non_production':
+        messages.info(request, 'Report skipped (non-production). This should not occur when forcing send.')
+    elif isinstance(result, dict):
+        messages.success(
+            request,
+            'Daily new user report sent. '
+            f"Today: {result.get('today_new_users', '—')} new users; "
+            f"week (Mon–today): {result.get('week_new_users', '—')}; "
+            f"recipients: {result.get('recipient_count', '—')}.",
+        )
+    else:
+        messages.info(request, f'Daily new user report result: {result!r}')
+    return redirect('user_analytics:web_owner_services_monitor')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_daily_report_schedule(request):
+    """Persist DAILY_USER_REPORT_TIME in core.Configuration (Celery beat reads at worker/beat startup)."""
+    raw = (request.POST.get('daily_report_time') or '').strip()
+    if not re.match(r'^\d{1,2}:\d{2}$', raw):
+        messages.error(request, 'Use 24-hour time as HH:MM (e.g. 09:30 or 18:00).')
+        return redirect('user_analytics:web_owner_services_monitor')
+    try:
+        parts = raw.split(':')
+        h, m = int(parts[0]), int(parts[1])
+    except ValueError:
+        messages.error(request, 'Invalid time.')
+        return redirect('user_analytics:web_owner_services_monitor')
+    if not (0 <= h <= 23 and 0 <= m <= 59):
+        messages.error(request, 'Hour must be 0–23 and minute 0–59.')
+        return redirect('user_analytics:web_owner_services_monitor')
+    normalized = f'{h:02d}:{m:02d}'
+    obj, _ = Configuration.objects.get_or_create(
+        key='DAILY_USER_REPORT_TIME',
+        defaults={'value': normalized, 'editable': True},
+    )
+    obj.value = normalized
+    obj.editable = True
+    obj.save()
+    messages.success(
+        request,
+        f'Daily new user report schedule saved as {normalized} IST (Asia/Kolkata). '
+        'Restart the Celery beat process for the change to apply.',
+    )
+    return redirect('user_analytics:web_owner_services_monitor')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_clear_service_logs(request):
+    """Truncate django/celery/gunicorn log files shown in Service monitor (paths under LOG_DIR or BASE_DIR/logs only)."""
+    result = clear_service_monitor_tail_logs()
+    cleared = result.get('cleared') or []
+    errs = result.get('errors') or []
+    skipped = result.get('skipped') or []
+    if cleared:
+        preview = ', '.join(cleared[:4])
+        if len(cleared) > 4:
+            preview += f' (+{len(cleared) - 4} more)'
+        messages.success(
+            request,
+            f'Cleared {len(cleared)} service log file(s): {preview}',
+        )
+    elif not errs:
+        messages.info(
+            request,
+            'No matching log files found under LOG_DIR, or paths point outside the project (e.g. /var/log). '
+            + (skipped[0] if skipped else ''),
+        )
+    for err in errs[:8]:
+        messages.warning(request, err)
+    return redirect('user_analytics:web_owner_services_monitor')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+def web_owner_email_logs(request):
+    """JSONL audit log from logging mail backends (logs/email_send.jsonl)."""
+    entries = load_email_log_entries_newest_first()
+    paginator = Paginator(entries, 50)
+    page_obj = paginator.get_page(request.GET.get('page') or 1)
+    rows = _email_log_rows_for_template(
+        page_obj.object_list,
+        max_rows=None,
+        subject_max=2000,
+        error_max=2000,
+    )
+    return render(
+        request,
+        'user_analytics/email_logs.html',
+        {
+            'page_title': 'Email logs',
+            'page_obj': page_obj,
+            'rows': rows,
+            'log_path': get_email_send_log_path(),
         },
     )
 

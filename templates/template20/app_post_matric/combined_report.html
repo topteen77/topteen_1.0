@@ -241,7 +241,7 @@
           <i class="fas fa-file-alt"></i>
         </div>
         <h3>No Results Found</h3>
-        <p>{{ error|default:"You need to complete all tests to generate a combined report." }}</p>
+        <p>{{ error|default('You need to complete all tests to generate a combined report.') }}</p>
         <a href="{{ url('post_matric:tests') }}" class="btn-primary mt-4">
           <i class="fas fa-arrow-right"></i>
           Take Tests

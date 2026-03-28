@@ -1,0 +1,89 @@
+{% extends "user_analytics/admin_base.html" %}
+
+{% block title_content %}Email logs | Top Teen{% endblock %}
+{% block page_title %}Email logs{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <p class="text-muted small mb-1">
+        Rows are appended when mail is sent through Django’s configured backend (<code>topteens.mail_backends.Logging*</code> by default).
+        If <code>EMAIL_BACKEND</code> in <code>.env</code> overrides to a plain Django backend, sends are not logged here.
+      </p>
+      <p class="text-muted small mb-0"><strong>File:</strong> <code>{{ log_path }}</code></p>
+    </div>
+    <a href="{{ url('user_analytics:web_owner_services_monitor') }}" class="btn btn-sm btn-outline-secondary">Service monitor</a>
+  </div>
+
+  <div class="admin-card">
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Subject</th>
+            <th scope="col">From</th>
+            <th scope="col">To</th>
+            <th scope="col">Date &amp; time</th>
+            <th scope="col">Status</th>
+            <th scope="col">Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if rows %}
+            {% for row in rows %}
+            <tr>
+              <td class="small">{{ row.subject or '—' }}</td>
+              <td class="small text-break">{{ row.from_display }}</td>
+              <td class="small text-break">{{ row.to_display }}</td>
+              <td class="small text-nowrap">{{ row.when_display }}</td>
+              <td class="small">
+                {% set st = (row.status or '')|lower %}
+                {% if st in ('sent', 'console') %}
+                  <span class="badge bg-success-subtle text-success-emphasis">{{ row.status }}</span>
+                {% elif st == 'failed' %}
+                  <span class="badge bg-danger-subtle text-danger-emphasis">{{ row.status }}</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ row.status or '—' }}</span>
+                {% endif %}
+              </td>
+              <td class="small text-danger text-break">{{ row.error or '—' }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">No log rows yet. Send mail or use Service monitor → Send test email after the logging backend is active.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav aria-label="Email log pagination" class="mt-3">
+      <ul class="pagination justify-content-center mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number - 3 and num < page_obj.number + 3 %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          </li>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

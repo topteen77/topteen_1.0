@@ -5,10 +5,25 @@
 
 {% block content %}
 <div class="admin-content">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'debug' %}secondary{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
   <div class="admin-card mb-3">
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <h5 class="mb-0">Required services status</h5>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}">Refresh</a>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}">Refresh</a>
+        <form method="post" action="{{ url('user_analytics:web_owner_clear_service_logs') }}" class="d-inline"
+              onsubmit="return confirm('Truncate django / celery / gunicorn log files under the project log directory (LOG_DIR)? This cannot be undone.');">
+          {{ csrf_input_tag()|safe }}
+          <button type="submit" class="btn btn-sm btn-outline-warning">Clear log tails</button>
+        </form>
+      </div>
     </div>
     <div class="mt-3 mb-2">
       <div class="btn-group btn-group-sm" role="group" aria-label="Runtime source filter">
@@ -79,6 +94,31 @@
                 <div class="small text-muted">via: {{ row.runtime_source.via }}</div>
               {% endif %}
             {% endif %}
+            {% if row.key == 'email' %}
+            <div class="mt-3 pt-3 border-top">
+              <h6 class="mb-2">Actions</h6>
+              <p class="small text-muted mb-2">Both actions email <code>WEBADMINEMAIL</code>. From address: <code>TOPTEEN_FROM_EMAIL</code> (fallback: <code>DEFAULT_FROM_EMAIL</code>).</p>
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <form method="post" action="{{ url('user_analytics:web_owner_service_test_email') }}" class="d-inline">
+                  {{ csrf_input_tag()|safe }}
+                  <button type="submit" class="btn btn-sm btn-primary">Send test email</button>
+                </form>
+                <form method="post" action="{{ url('user_analytics:web_owner_send_daily_new_user_report') }}" class="d-inline" onsubmit="return confirm('Send the daily new user summary to WEBADMINEMAIL now?');">
+                  {{ csrf_input_tag()|safe }}
+                  <button type="submit" class="btn btn-sm btn-outline-primary">Send daily new user report</button>
+                </form>
+                <a href="{{ url('user_analytics:web_owner_email_logs') }}" class="btn btn-sm btn-outline-secondary">Email logs</a>
+              </div>
+              <div class="mt-3 pt-3 border-top">
+                <h6 class="mb-2">Daily new user report (beat)</h6>
+                <p class="small text-muted mb-2">
+                  Scheduled at <strong>{{ daily_report_time|default('15:00') }} IST</strong> (India / Asia/Kolkata). Key <code>DAILY_USER_REPORT_TIME</code> in
+                  <a href="{{ admin_configuration_url }}">Configuration</a>.
+                </p>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#dailyReportScheduleModal">Set daily email report schedule</button>
+              </div>
+            </div>
+            {% endif %}
             {% if row.key == 'celery' %}
               <div class="mt-1"><strong>Workers up:</strong> {{ row.workers_up or 0 }}</div>
               <div><strong>Active:</strong> {{ row.active_tasks or 0 }}</div>
@@ -125,6 +165,58 @@
             {% endif %}
           </div>
         </div>
+        {% if row.key == 'email' %}
+        <div class="col-12 mt-2">
+          <div class="border rounded p-3 bg-light">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <h6 class="mb-0">Recent outbound mail (last 10)</h6>
+              <a href="{{ url('user_analytics:web_owner_email_logs') }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-list me-1"></i> Full email logs
+              </a>
+            </div>
+            <p class="small text-muted mb-2 mb-lg-3">Written to <code>{{ email_send_log_path }}</code>. Active backend: <code>{{ email_backend }}</code></p>
+            {% if email_log_preview %}
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">
+                <thead class="table-light">
+                  <tr>
+                    <th>Subject</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Date &amp; time</th>
+                    <th>Status</th>
+                    <th>Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for er in email_log_preview %}
+                  <tr>
+                    <td class="text-break">{{ er.subject or '—' }}</td>
+                    <td class="text-break">{{ er.from_display }}</td>
+                    <td class="text-break">{{ er.to_display }}</td>
+                    <td class="text-nowrap">{{ er.when_display }}</td>
+                    <td>
+                      {% set st = (er.status or '')|lower %}
+                      {% if st in ('sent', 'console') %}
+                        <span class="badge bg-success-subtle text-success-emphasis">{{ er.status }}</span>
+                      {% elif st == 'failed' %}
+                        <span class="badge bg-danger-subtle text-danger-emphasis">{{ er.status }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary-subtle">{{ er.status or '—' }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-danger text-break">{{ er.error }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No rows in the audit file yet. Send a test email above, then refresh. If it stays empty: restart runserver so settings load, and ensure <code>EMAIL_BACKEND</code> is not a custom class that skips <code>topteens.mail_backends</code> (stock <code>django.core.mail.backends.smtp</code> / <code>console</code> in <code>.env</code> are remapped to logging backends).</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
       </div>
       <div class="mt-3">
         <h6 class="mb-2">Log tail</h6>
@@ -133,6 +225,29 @@
     </div>
     {% endif %}
   {% endfor %}
+
+  <div class="modal fade" id="dailyReportScheduleModal" tabindex="-1" aria-labelledby="dailyReportScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" action="{{ url('user_analytics:web_owner_daily_report_schedule') }}">
+          {{ csrf_input_tag()|safe }}
+          <div class="modal-header">
+            <h5 class="modal-title" id="dailyReportScheduleModalLabel">Daily report time (IST)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="small text-muted">Use <strong>India Standard Time (IST, UTC+5:30)</strong>. Celery Beat is configured with timezone <code>Asia/Kolkata</code>.</p>
+            <label class="form-label" for="id_daily_report_time">Time (24h)</label>
+            <input type="time" class="form-control" name="daily_report_time" id="id_daily_report_time" value="{{ daily_report_time|default('15:00') }}" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
   (function () {

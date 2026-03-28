@@ -382,6 +382,12 @@
                     <span class="menu-title">Service Monitor</span>
                 </a>
             </div>
+            <div class="menu-item ps-4">
+                <a href="{{ url('user_analytics:web_owner_email_logs') }}" class="menu-link {% if request and request.path.startswith('/user-analytics/web-owner/email-logs') %}active{% endif %}" title="Outbound mail audit (JSONL): subject, from, to, time, status">
+                    <i class="fas fa-envelope-open-text"></i>
+                    <span class="menu-title">Email logs</span>
+                </a>
+            </div>
             <div class="menu-item">
                 <a href="{{ url('user_analytics:user_journey') }}" class="menu-link {% if request and request.path.startswith('/user-analytics/user-journey') %}active{% endif %}">
                     <i class="fas fa-route"></i>

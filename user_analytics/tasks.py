@@ -178,9 +178,9 @@ def send_daily_new_user_report(force_send=False, override_recipients=None):
         logger.info("Skipping daily new user report: WEBADMINEMAIL has no valid recipients.")
         return "skipped_invalid_recipient"
 
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or getattr(
-        settings, "TOPTEEN_FROM_EMAIL", "noreply@example.com"
-    )
+    from_email = (getattr(settings, "TOPTEEN_FROM_EMAIL", "") or "").strip() or getattr(
+        settings, "DEFAULT_FROM_EMAIL", None
+    ) or "noreply@example.com"
 
     try:
         msg = EmailMultiAlternatives(

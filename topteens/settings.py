@@ -555,6 +555,10 @@ if ENABLE_CELERY and ENABLE_REDIS:
 else:
     CELERY_BROKER_URL = 'memory://localhost'
 
+# Celery Beat: crontab hour/minute for scheduled tasks use this timezone (IST).
+CELERY_TIMEZONE = config('CELERY_TIMEZONE', default='Asia/Kolkata')
+CELERY_ENABLE_UTC = True
+
 QUEUE_DEFAULT = 'default'
 
 _TOPTEEN_FROM_EMAIL = config('TOPTEEN_FROM_EMAIL', default='support@topteen.careers')
@@ -580,13 +584,18 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 _DEFAULT_FROM_RAW = config('DEFAULT_FROM_EMAIL', default='')
 DEFAULT_FROM_EMAIL = _DEFAULT_FROM_RAW if _DEFAULT_FROM_RAW else f'Topteen <{_TOPTEEN_FROM_EMAIL}>'
 
-_env_backend = config('EMAIL_BACKEND', default='')
+_env_backend = (config('EMAIL_BACKEND', default='') or '').strip()
 if _env_backend:
     EMAIL_BACKEND = _env_backend
+    # If .env sets stock Django backends, swap to our subclasses so logs/email_send.jsonl is written.
+    if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+        EMAIL_BACKEND = 'topteens.mail_backends.LoggingSMTPEmailBackend'
+    elif EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
+        EMAIL_BACKEND = 'topteens.mail_backends.LoggingConsoleEmailBackend'
 elif EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_BACKEND = 'topteens.mail_backends.LoggingSMTPEmailBackend'
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = 'topteens.mail_backends.LoggingConsoleEmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / "mail/password_reset_email.html"
 
@@ -674,6 +683,13 @@ LOGGING = {
         'user_analytics': {
             'handlers': ['console', 'file_app'],
             'level': config('LOG_LEVEL_USER_ANALYTICS', default='WARNING'),
+            'propagate': False,
+        },
+        # Celery logs a DEBUG line per registered task (stub "def task(...): return 1") from head_from_fun().
+        # Root DEBUG would spam the console; keep this at INFO or higher.
+        'celery.utils.functional': {
+            'handlers': ['console', 'file_app'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
@@ -779,8 +795,8 @@ ENVIRONMENT = config('ENVIRONMENT', default='production')
 # Only allow Google (and other search engines) to index when ENVIRONMENT=production in .env
 ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production')
 WEBADMINEMAIL = config('WEBADMINEMAIL', default='')
-# 24-hour format HH:MM (project timezone) for daily new user report email.
-DAILY_USER_REPORT_TIME = config('DAILY_USER_REPORT_TIME', default='15:00')
+# Daily new user report schedule: core.Configuration key DAILY_USER_REPORT_TIME (HH:MM, 24h, IST).
+# Celery Beat uses CELERY_TIMEZONE (default Asia/Kolkata). Edit in Service monitor or Admin → Configuration.
 
 # Enquiry source UTM links: base URL is always www.topteen.in or demo.topteen.in (set in .env per environment).
 ENQUIRY_SOURCE_BASE_URL = config('ENQUIRY_SOURCE_BASE_URL', default='https://www.topteen.in').rstrip('/')

@@ -430,6 +430,70 @@ def get_runtime_service_status():
     }
 
 
+def _realpath_safe_prefix(path):
+    try:
+        return os.path.realpath(path)
+    except Exception:
+        return ''
+
+
+def clear_service_monitor_tail_logs():
+    """
+    Truncate log files used for Service monitor tails (django / celery / gunicorn candidates).
+    Only files under LOG_DIR or under BASE_DIR/logs are cleared (never /var/log/...).
+    Returns {'cleared': [paths], 'errors': [str], 'skipped': [str]}.
+    """
+    cleared = []
+    errors = []
+    skipped = []
+    log_dir = getattr(settings, 'LOG_DIR', '') or ''
+    base_dir = getattr(settings, 'BASE_DIR', '') or ''
+    allowed_roots = []
+    for root in (log_dir, os.path.join(base_dir, 'logs') if base_dir else ''):
+        root = (root or '').strip()
+        if not root:
+            continue
+        try:
+            if os.path.isdir(root):
+                allowed_roots.append(_realpath_safe_prefix(root))
+        except Exception:
+            pass
+    if not allowed_roots:
+        skipped.append('No LOG_DIR or BASE_DIR/logs directory')
+        return {'cleared': cleared, 'errors': errors, 'skipped': skipped}
+
+    to_clear = set()
+    for _service_name, paths in _service_log_candidates().items():
+        existing = _existing_paths_with_glob(paths)
+        if not existing:
+            continue
+        path = existing[0]
+        try:
+            rp = _realpath_safe_prefix(path)
+        except Exception:
+            skipped.append(path)
+            continue
+        if not os.path.isfile(path):
+            continue
+        allowed = any(
+            rp == root or rp.startswith(root + os.sep)
+            for root in allowed_roots
+        )
+        if not allowed:
+            skipped.append(path)
+            continue
+        to_clear.add(path)
+
+    for path in sorted(to_clear):
+        try:
+            with open(path, 'w', encoding='utf-8'):
+                pass
+            cleared.append(path)
+        except Exception as exc:
+            errors.append(f'{path}: {exc}')
+    return {'cleared': cleared, 'errors': errors, 'skipped': skipped}
+
+
 def check_notification_dependencies():
     runtime_status = get_runtime_service_status()
     statuses = {
