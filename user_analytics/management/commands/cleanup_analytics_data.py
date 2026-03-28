@@ -64,8 +64,13 @@ class Command(BaseCommand):
     def _hard_delete_queryset(qs):
         """
         Permanently delete records for models inheriting BaseModel soft delete.
+
+        Uses PK order and a modest chunk size so MySQL does not apply default
+        Meta.ordering (e.g. UserJourney -start_time) over the whole table, which
+        can trigger "Out of sort memory" on large JSON/wide rows.
         """
-        for obj in qs.iterator():
+        qs = qs.order_by('pk')
+        for obj in qs.iterator(chunk_size=500):
             if hasattr(obj, 'delete') and callable(getattr(obj, 'delete')):
                 obj.delete(hard_delete=True)
             else:

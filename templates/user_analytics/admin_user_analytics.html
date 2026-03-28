@@ -305,7 +305,6 @@
             Removes <strong>only</strong> rows matching the selected host, URL pattern, or client IP (one bucket at a time).
             CLI: <code>python manage.py cleanup_analytics_data --domain localhost --dry-run</code>
         </p>
-        {% get_domain_cleanup_choices as domain_cleanup_choices %}
         <form
             method="post"
             action="{{ cleanup_url }}"

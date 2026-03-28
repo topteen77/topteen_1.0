@@ -40,6 +40,7 @@ from user_analytics.models import (
 )
 # GA4Session imported conditionally in functions that need it
 from user_analytics.ga4_service import GA4Service
+from user_analytics.pagination import KnownCountPaginator
 from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
 
@@ -55,6 +56,17 @@ from psychometric_tests.models import PsychometricTestPayment
 from skilllab.models import SkillLabCourse, SkilllabCoursePayment
 from core import choices
 from core.models import Configuration
+
+# user_journey list template does not read these columns; deferring keeps ORDER BY lean.
+USER_JOURNEY_LIST_DEFER_FIELDS = (
+    'journey_path',
+    'referrer',
+    'utm_medium',
+    'utm_campaign',
+    'traffic_source_category',
+    'end_time',
+)
+USER_JOURNEY_LIST_PER_PAGE = 25
 
 
 def _normalize_daily_report_hhmm(value):
@@ -1579,9 +1591,6 @@ def user_journey_view(request, user_id=None):
     search_query = request.GET.get('search', '')
     page_number = request.GET.get('page', 1)
     
-    logger.info("=" * 80)
-    logger.info(f"USER JOURNEY VIEW - User ID: {user_id}, User Type Filter: {user_type_filter}")
-    
     # Calculate date range
     start_date, end_date = get_date_range_from_period(time_period, default_days=30)
     
@@ -1596,33 +1605,25 @@ def user_journey_view(request, user_id=None):
             start_time__gte=start_date,
             start_time__lte=end_date
         )
-    journeys = journeys.select_related('user', 'enquiry_source').order_by('-start_time')
     
     # Apply user type filter
     if user_type_filter == 'registered':
         journeys = journeys.filter(user__isnull=False)
-        logger.info("Filtering for registered users only")
     elif user_type_filter == 'organic':
         journeys = journeys.filter(user__isnull=True)
-        logger.info("Filtering for organic/anonymous users only")
     
     # Apply goal filter
     if goal_filter:
         if goal_filter == 'registered':
             journeys = journeys.filter(is_registered=True)
-            logger.info("Filtering for journeys with registration goal")
         elif goal_filter == 'payment':
             journeys = journeys.filter(has_payment=True)
-            logger.info("Filtering for journeys with payment goal")
         elif goal_filter == 'test_started':
             journeys = journeys.filter(has_psychometric_test=True)
-            logger.info("Filtering for journeys with psychometric test started goal")
         elif goal_filter == 'test_completed':
             journeys = journeys.filter(test_completed=True)
-            logger.info("Filtering for journeys with test completed goal")
         elif goal_filter == 'result_generated':
             journeys = journeys.filter(result_generated=True)
-            logger.info("Filtering for journeys with result generated goal")
 
     if enquiry_filter:
         journeys = journeys.filter(
@@ -1638,26 +1639,33 @@ def user_journey_view(request, user_id=None):
             Q(entry_page__icontains=search_query) |
             Q(exit_page__icontains=search_query)
         )
-        logger.info(f"Applied search filter: {search_query}")
+    # List page: defer unused / heavy columns so ORDER BY uses less sort memory.
+    journeys = (
+        journeys.select_related('user', 'enquiry_source')
+        .defer(*USER_JOURNEY_LIST_DEFER_FIELDS)
+        .order_by('-start_time')
+    )
     
-    # Calculate statistics
-    total_journeys = journeys.count()
-    registered_count = journeys.filter(user__isnull=False).count()
-    organic_count = journeys.filter(user__isnull=True).count()
+    # Single aggregate instead of three separate count() queries on large filtered sets.
+    stats = journeys.aggregate(
+        total=Count('pk'),
+        registered=Count('pk', filter=Q(user__isnull=False)),
+        organic=Count('pk', filter=Q(user__isnull=True)),
+    )
+    total_journeys = stats['total'] or 0
+    registered_count = stats['registered'] or 0
+    organic_count = stats['organic'] or 0
     
-    logger.info(f"Journey Statistics:")
-    logger.info(f"  - Total: {total_journeys}")
-    logger.info(f"  - Registered Users: {registered_count}")
-    logger.info(f"  - Organic Users: {organic_count}")
+    logger.debug(
+        'user_journey_view total=%s registered=%s organic=%s user_id=%s period=%s',
+        total_journeys, registered_count, organic_count, user_id, time_period,
+    )
     
-    # Pagination
-    paginator = Paginator(journeys, 25)
-    try:
-        journeys_page = paginator.page(page_number)
-    except PageNotAnInteger:
-        journeys_page = paginator.page(1)
-    except EmptyPage:
-        journeys_page = paginator.page(paginator.num_pages)
+    # Reuse aggregate total so Paginator does not run a second COUNT(*).
+    paginator = KnownCountPaginator(
+        journeys, USER_JOURNEY_LIST_PER_PAGE, total_count=total_journeys,
+    )
+    journeys_page = paginator.get_page(page_number)
     
     context = {
         'journeys': journeys_page,
@@ -1673,8 +1681,6 @@ def user_journey_view(request, user_id=None):
         'start_date': start_date,
         'end_date': end_date,
     }
-    
-    logger.info("=" * 80)
     
     return render(request, 'user_analytics/user_journey.html', context)
 
@@ -3485,6 +3491,7 @@ def admin_user_analytics_view(request):
     Admin User Analytics - User activities with filters, shown in the analytics dashboard.
     Filters: period, referrer source (Google, Facebook, iapply.io), device, country, search.
     """
+    from user_analytics.domain_cleanup import DOMAIN_CLEANUP_CHOICES
     from user_analytics.utils import referrer_source_q
     from django.db.models import Count
 
@@ -3601,6 +3608,7 @@ def admin_user_analytics_view(request):
         'end_date': end_date,
         'page_title': 'Admin User Analytics',
         'cleanup_output': cleanup_output,
+        'domain_cleanup_choices': DOMAIN_CLEANUP_CHOICES,
         'cleanup_url': reverse('user_analytics:cleanup_analytics_data'),
         'csrf_input_html': format_html(
             '<input type="hidden" name="csrfmiddlewaretoken" value="{}">',
@@ -4832,17 +4840,17 @@ def enquiry_source_edit_view(request, pk):
 @login_required
 @user_passes_test(is_staff_or_superuser)
 def enquiry_source_delete_view(request, pk):
-    """Soft-delete an enquiry source."""
+    """Permanently delete an enquiry source row. Related UserActivity/UserJourney FKs use SET_NULL."""
     from django.contrib import messages
     from django.http import HttpResponseNotFound
     if request.method != 'POST':
         return redirect('user_analytics:enquiry_sources_list')
     try:
-        source = EnquirySource.objects.get(pk=pk)
+        source = EnquirySource.objects.get(pk=pk, object_status=choices.ObjectStatus.ACTIVE)
     except EnquirySource.DoesNotExist:
         return HttpResponseNotFound('Enquiry source not found.')
-    source.delete(hard_delete=False)
-    messages.success(request, 'Enquiry source deactivated.')
+    source.delete(hard_delete=True)
+    messages.success(request, 'Enquiry source deleted permanently.')
     return redirect('user_analytics:enquiry_sources_list')
 
 

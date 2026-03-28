@@ -93,6 +93,8 @@ ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', defaul
 USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES = tuple(
     p.strip() for p in config('USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES', default='').split(',') if p.strip()
 )
+# Allow destructive analytics cleanup (purge-all / domain delete / admin POST). Keep False in production unless needed.
+ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE = config('ANALYTICS_CLEANUP_ALLOW_DESTRUCTIVE', default=False, cast=bool)
 
 # Add django_elasticsearch_dsl conditionally based on environment
 ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)

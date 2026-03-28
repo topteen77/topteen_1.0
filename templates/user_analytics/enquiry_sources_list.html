@@ -258,9 +258,9 @@
                         </td>
                         <td>
                             <a href="{{ url('user_analytics:enquiry_source_edit', kwargs={'pk': item.source.id}) }}" class="btn btn-sm btn-outline-primary" title="Edit">Edit</a>
-                            <form method="post" action="{{ url('user_analytics:enquiry_source_delete', kwargs={'pk': item.source.id}) }}" class="d-inline" onsubmit="return confirm('Deactivate this enquiry source?');">
+                            <form method="post" action="{{ url('user_analytics:enquiry_source_delete', kwargs={'pk': item.source.id}) }}" class="d-inline" onsubmit="return confirm('Delete this enquiry source permanently? The tracking link will stop working.');">
                                 {{ csrf_input_html|safe }}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">Delete</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Permanently delete this enquiry source">Delete</button>
                             </form>
                         </td>
                     </tr>
