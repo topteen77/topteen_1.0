@@ -41,7 +41,7 @@ from user_analytics.tasks import track_page_view_sync, update_user_journey_sync,
 from users.models import User
 from payments.models import Payment
 from psychometric_tests.models import PsychometricTestPayment
-from skilllab.models import SkillLabCourse
+from skilllab.models import SkillLabCourse, SkilllabCoursePayment
 from core import choices
 from core.models import Configuration
 
@@ -125,6 +125,37 @@ def get_date_range_from_request(request, period_param='period', date_from_param=
 def _payment_amount_rupees(payment):
     """Gateway Payment.amount is stored in whole rupees (BaseMoneyModel)."""
     return float(Decimal(payment.amount or 0))
+
+
+def _payment_amount_rupees_from_event(ev, gateway_payment=None):
+    """
+    INR amount for display: prefer Payment row when resolved; else load the
+    UserEvent's related purchase (PsychometricTestPayment / SkilllabCoursePayment / Payment).
+    UserEvent.event_value can be stale or wrong (e.g. async task stored paise/decimal incorrectly);
+    domain models use integer whole rupees (BaseMoneyModel).
+    """
+    if gateway_payment is not None:
+        return _payment_amount_rupees(gateway_payment)
+    oid = getattr(ev, 'object_id', None)
+    ct = getattr(ev, 'content_type', None)
+    if oid and ct:
+        try:
+            model = ct.model_class()
+            if model is PsychometricTestPayment:
+                row = PsychometricTestPayment.objects.filter(pk=oid).only('amount').first()
+                if row is not None and row.amount is not None:
+                    return float(row.amount)
+            elif model is SkilllabCoursePayment:
+                row = SkilllabCoursePayment.objects.filter(pk=oid).only('amount').first()
+                if row is not None and row.amount is not None:
+                    return float(row.amount)
+            elif model is Payment:
+                row = Payment.objects.filter(pk=oid).only('amount').first()
+                if row is not None and row.amount is not None:
+                    return float(row.amount)
+        except Exception:
+            pass
+    return float(ev.event_value or 0)
 
 
 def _payment_row_hide_manual_update_resolved_success(gp, gateway_order_id, payment_status_filter):
@@ -1686,10 +1717,14 @@ def successful_payments_detail(request):
         if source_filter:
             pay_q = _apply_traffic_source_to_userevent_qs(pay_q, source_filter)
         term_q = _attribution_q_for_terminal_check(source_filter)
-        candidates = list(pay_q.select_related('user').order_by('-created')[:2500])
+        candidates = list(pay_q.select_related('user', 'content_type').order_by('-created')[:2500])
         payments = [ev for ev in candidates if not _payment_has_terminal_outcome_after(term_q, ev)]
         total_count = len(payments)
-        total_revenue = sum(Decimal(str(ev.event_value or 0)) for ev in payments)
+        _gp_inproc = _resolve_gateway_payments_for_userevents(payments)
+        total_revenue = sum(
+            Decimal(str(_payment_amount_rupees_from_event(ev, _gp_inproc.get(ev.id))))
+            for ev in payments
+        )
     else:
         event_type = 'payment_failed' if payment_status_filter in ('fail', 'error') else 'payment_success'
         payments = UserEvent.objects.filter(event_type=event_type)
@@ -1697,7 +1732,7 @@ def successful_payments_detail(request):
             payments = payments.exclude(Q(metadata__stage='cancel') | Q(event_name__icontains='cancel'))
         if start_date is not None:
             payments = payments.filter(created__gte=start_date, created__lte=end_date)
-        payments = payments.select_related('user').order_by('-created')
+        payments = payments.select_related('user', 'content_type').order_by('-created')
         if search_query:
             payments = payments.filter(
                 Q(user__email__icontains=search_query) |
@@ -1707,13 +1742,22 @@ def successful_payments_detail(request):
         if source_filter:
             payments = _apply_traffic_source_to_userevent_qs(payments, source_filter)
         if payment_status_filter in ('fail', 'error'):
-            failed_candidates = list(payments.select_related('user').order_by('-created')[:2500])
+            failed_candidates = list(payments.select_related('user', 'content_type').order_by('-created')[:2500])
             payments = [ev for ev in failed_candidates if not _payment_has_success_after(Q(), ev)]
             total_count = len(payments)
-            total_revenue = sum(Decimal(str(ev.event_value or 0)) for ev in payments)
+            _gp_fail = _resolve_gateway_payments_for_userevents(payments)
+            total_revenue = sum(
+                Decimal(str(_payment_amount_rupees_from_event(ev, _gp_fail.get(ev.id))))
+                for ev in payments
+            )
         else:
-            total_count = payments.count()
-            total_revenue = payments.aggregate(total=Sum('event_value'))['total'] or Decimal('0')
+            ev_list = list(payments)
+            _gp_succ = _resolve_gateway_payments_for_userevents(ev_list)
+            total_count = len(ev_list)
+            total_revenue = sum(
+                Decimal(str(_payment_amount_rupees_from_event(ev, _gp_succ.get(ev.id))))
+                for ev in ev_list
+            )
     
     if total_count == 0:
         try:
@@ -1946,10 +1990,7 @@ def successful_payments_api(request):
         total_revenue = Decimal('0')
         for ev in ev_list:
             gp = gp_map.get(ev.id)
-            if gp:
-                total_revenue += Decimal(gp.amount or 0)
-            else:
-                total_revenue += Decimal(str(ev.event_value or 0))
+            total_revenue += Decimal(str(_payment_amount_rupees_from_event(ev, gp)))
         total_count = len(ev_list)
 
     payments_data = []
@@ -1996,7 +2037,7 @@ def successful_payments_api(request):
             inv = getattr(gp, 'invoice', None) if gp else None
             txn = _payment_transaction_id_for_display(inv, gp, meta)
             inv_no = inv.invoice_number if inv else 'N/A'
-            amt = _payment_amount_rupees(gp) if gp else float(payment.event_value or 0)
+            amt = _payment_amount_rupees_from_event(payment, gp)
             order_id = meta.get('order_id') or meta.get('gateway_order_id')
             if gp:
                 order_id = order_id or gp.gateway_order_id or 'N/A'
@@ -2191,7 +2232,7 @@ def successful_payments_export_excel(request):
             meta = payment.metadata or {}
             txn = _payment_transaction_id_for_display(inv, gp, meta) or None
             inv_no = inv.invoice_number if inv else 'N/A'
-            amt = _payment_amount_rupees(gp) if gp else float(payment.event_value or 0)
+            amt = _payment_amount_rupees_from_event(payment, gp)
             order_id = meta.get('order_id') or meta.get('gateway_order_id')
             if gp:
                 order_id = order_id or gp.gateway_order_id or 'N/A'
@@ -3620,6 +3661,35 @@ def _enquiry_source_attribution_q(source):
     return base_scope | source_name_scope
 
 
+def _enquiry_source_linked_session_id(source, user_id, event_session_id):
+    """
+    Prefer session_id on the event; else latest UserActivity/UserJourney for this user
+    tied to this enquiry source (for modal links when analytics session was missing).
+    """
+    s = (event_session_id or '').strip()
+    if s:
+        return s
+    if not user_id:
+        return ''
+    latest = (
+        UserActivity.objects.filter(enquiry_source=source, user_id=user_id)
+        .exclude(session_id__isnull=True).exclude(session_id='')
+        .order_by('-created')
+        .values_list('session_id', flat=True)
+        .first()
+    )
+    if latest:
+        return latest
+    latest = (
+        UserJourney.objects.filter(enquiry_source=source, user_id=user_id)
+        .exclude(session_id__isnull=True).exclude(session_id='')
+        .order_by('-created')
+        .values_list('session_id', flat=True)
+        .first()
+    )
+    return latest or ''
+
+
 def _active_enquiry_source_by_name(name):
     """Active EnquirySource whose name matches (case-insensitive), or None."""
     n = (name or '').strip()
@@ -3814,6 +3884,8 @@ def _enquiry_source_stats(source):
             payment_model_failed = 0
             payment_model_enrolled = 0
     course = max(course, payment_model_enrolled)
+
+    paid_out = max(pay, payment_model_success)
     converted = (
         UserJourney.objects.filter(session_id__in=session_ids, converted=True)
         .exclude(session_id__isnull=True)
@@ -3824,13 +3896,11 @@ def _enquiry_source_stats(source):
         if session_ids
         else 0
     )
-
-    paid_out = max(pay, payment_model_success)
+    # Same heuristic as before: when journey.converted lags payment capture, cap by visits vs paid.
+    converted_out = max(converted, min(visit_count, paid_out))
     attributed_out = max(payments_attributed, payment_model_success)
     reg_out = max(reg, reg_by_users)
     failed_out = max(payment_failed, payment_model_failed)
-    # Fallback when journey.converted flags lag behind payment capture.
-    converted_out = max(converted, min(visit_count, paid_out))
     return {
         'page_views': page_views,
         'visit_count': visit_count,
@@ -4018,6 +4088,7 @@ def enquiry_source_events_api(request):
             .filter(
                 Q(metadata__payment_stage='checkout_started') | Q(metadata__stage='started')
             )
+            .select_related('user', 'content_type')
             .order_by('-created')[:2500]
         )
         filtered = [ev for ev in candidates if not _payment_has_terminal_outcome_after(Q(), ev)]
@@ -4026,18 +4097,23 @@ def enquiry_source_events_api(request):
         rows = filtered[: limit + 1]
         truncated = len(rows) > limit or scan_capped
         rows = rows[:limit]
-        data_rows = [{
-            'id': ev.id,
-            'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
-            'event_type': ev.event_type,
-            'event_name': ev.event_name,
-            'user_email': _resolve_user_email(ev.session_id or '', ev.user.email if ev.user_id else None),
-            'session_id': ev.session_id or '',
-            'metadata': ev.metadata or {},
-            'effective_status': None,
-            'error_detail': '',
-            'status_override': {'text': 'In process', 'variant': 'info'},
-        } for ev in rows]
+        gp_inproc = _resolve_gateway_payments_for_userevents(rows)
+        data_rows = []
+        for ev in rows:
+            sid = _enquiry_source_linked_session_id(source, ev.user_id, ev.session_id or '')
+            data_rows.append({
+                'id': ev.id,
+                'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
+                'event_type': ev.event_type,
+                'event_name': ev.event_name,
+                'user_email': _resolve_user_email(sid, ev.user.email if ev.user_id else None),
+                'session_id': sid,
+                'metadata': ev.metadata or {},
+                'effective_status': None,
+                'error_detail': '',
+                'amount_rupees': round(_payment_amount_rupees_from_event(ev, gp_inproc.get(ev.id)), 2),
+                'status_override': {'text': 'In process', 'variant': 'info'},
+            })
         return JsonResponse({
             'ok': True,
             'events': data_rows,
@@ -4048,42 +4124,111 @@ def enquiry_source_events_api(request):
         })
 
     if kind == 'converted_sessions':
-        session_ids = list(
+        # Total must match Enquiry Sources column: max(converted, min(visit_count, paid_out)).
+        # Rows list concrete sessions: journey.converted OR payment_success in attributed session
+        # (so the popup is not empty when the heuristic count is from paid vs visits).
+        stats = _enquiry_source_stats(source)
+        total = int(stats.get('converted_sessions') or 0)
+        activity_session_ids = list(
             UserActivity.objects.filter(enquiry_source=source)
             .exclude(session_id__isnull=True).exclude(session_id='')
             .values_list('session_id', flat=True).distinct()
         )
-        session_ids += list(
+        journey_session_ids = list(
             UserJourney.objects.filter(enquiry_source=source)
             .exclude(session_id__isnull=True).exclude(session_id='')
             .values_list('session_id', flat=True).distinct()
         )
-        converted_rows = list(
-            UserJourney.objects.filter(session_id__in=list(set(session_ids)), converted=True)
-            .exclude(session_id__isnull=True).exclude(session_id='')
-            .values('session_id')
-            .annotate(last_seen=Max('created'))
-            .order_by('-last_seen')[: limit + 1]
-        )
-        total = (
-            UserJourney.objects.filter(session_id__in=list(set(session_ids)), converted=True)
-            .exclude(session_id__isnull=True).exclude(session_id='')
-            .values('session_id')
-            .distinct()
-            .count()
-        )
-        truncated = len(converted_rows) > limit
-        converted_rows = converted_rows[:limit]
+        session_ids = sorted(set(activity_session_ids) | set(journey_session_ids))
+        attribution_q = _enquiry_source_attribution_q(source)
+        if attribution_q is None:
+            return JsonResponse({'ok': True, 'events': [], 'total': total, 'truncated': False})
+        by_sid = {}
+        if session_ids:
+            for row in (
+                UserJourney.objects.filter(session_id__in=session_ids, converted=True)
+                .exclude(session_id__isnull=True).exclude(session_id='')
+                .values('session_id')
+                .annotate(last_seen=Max('created'))
+            ):
+                sid = row['session_id']
+                ls = row['last_seen']
+                by_sid[sid] = max(by_sid.get(sid, ls), ls)
+            for row in (
+                UserEvent.objects.filter(attribution_q, event_type='payment_success')
+                .exclude(session_id__isnull=True).exclude(session_id='')
+                .filter(session_id__in=session_ids)
+                .values('session_id')
+                .annotate(last_seen=Max('created'))
+            ):
+                sid = row['session_id']
+                ls = row['last_seen']
+                if sid not in by_sid or ls > by_sid[sid]:
+                    by_sid[sid] = ls
+        ordered = sorted(by_sid.items(), key=lambda item: item[1], reverse=True)
+        n_listed = len(ordered)
+        truncated = n_listed > limit
+        selected = ordered[:limit]
         data_rows = [{
-            'id': row['session_id'],
-            'created': timezone.localtime(row['last_seen']).strftime('%Y-%m-%d %H:%M:%S'),
+            'id': sid,
+            'created': timezone.localtime(last_seen).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': 'converted_session',
             'event_name': 'Converted Session',
-            'user_email': _resolve_user_email(row['session_id'], None),
-            'session_id': row['session_id'],
+            'user_email': _resolve_user_email(sid, None),
+            'session_id': sid,
             'metadata': {'converted': True},
+            'amount_rupees': None,
             'status_override': {'text': 'Converted', 'variant': 'secondary'},
-        } for row in converted_rows]
+        } for sid, last_seen in selected]
+        if not data_rows and total > 0:
+            fb = list(
+                UserEvent.objects.filter(attribution_q, event_type='payment_success')
+                .select_related('user', 'content_type')
+                .order_by('-created')[: limit + 1]
+            )
+            truncated = len(fb) > limit or truncated
+            fb = fb[:limit]
+            gp_fb = _resolve_gateway_payments_for_userevents(fb)
+            data_rows = []
+            for ev in fb:
+                sid = _enquiry_source_linked_session_id(source, ev.user_id, ev.session_id or '')
+                data_rows.append({
+                    'id': ev.id,
+                    'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
+                    'event_type': 'converted_session',
+                    'event_name': 'Converted (payment success)',
+                    'user_email': _resolve_user_email(sid, ev.user.email if ev.user_id else None),
+                    'session_id': sid,
+                    'metadata': {'converted': True, 'fallback': 'payment_success_attributed'},
+                    'amount_rupees': round(_payment_amount_rupees_from_event(ev, gp_fb.get(ev.id)), 2),
+                    'status_override': {'text': 'Converted', 'variant': 'secondary'},
+                })
+        # Stats paid_out can come from Payment rows when UserEvents are missing; same as PAID modal fallback.
+        if not data_rows and total > 0 and source_user_ids:
+            p_qs = (
+                Payment.objects.filter(
+                    user_id__in=source_user_ids,
+                    is_success=choices.YesNoChoices.YES,
+                )
+                .select_related('user')
+                .order_by('-created')
+            )
+            p_list = list(p_qs[: limit + 1])
+            truncated = len(p_list) > limit or truncated
+            p_list = p_list[:limit]
+            for p in p_list:
+                psid = _enquiry_source_linked_session_id(source, p.user_id, '')
+                data_rows.append({
+                    'id': f'payment-{p.id}',
+                    'created': timezone.localtime(p.created).strftime('%Y-%m-%d %H:%M:%S') if p.created else '',
+                    'event_type': 'converted_session',
+                    'event_name': 'Converted (payment record)',
+                    'user_email': p.user.email if p.user_id and p.user else None,
+                    'session_id': psid,
+                    'metadata': {'converted': True, 'fallback': 'payment_model'},
+                    'amount_rupees': round(_payment_amount_rupees(p), 2),
+                    'status_override': {'text': 'Converted', 'variant': 'secondary'},
+                })
         return JsonResponse({'ok': True, 'events': data_rows, 'total': total, 'truncated': truncated})
 
     qs = UserEvent.objects.filter(attribution_q)
@@ -4114,13 +4259,22 @@ def enquiry_source_events_api(request):
             attribution_q,
             event_type='payment_success',
             metadata__obj_type__in=[x for x in enrolled_obj_types if x],
-        )
-        qs_event = qs.filter(event_type__in=['course_enrolled', 'skilllab_enrolled', 'counselor_course_enrolled'])
+        ).select_related('user', 'content_type')
+        qs_event = qs.filter(event_type__in=['course_enrolled', 'skilllab_enrolled', 'counselor_course_enrolled']).select_related('user', 'content_type')
         qs = (qs_payment | qs_event)
+    if kind != 'course_enrolled':
+        qs = qs.select_related('user', 'content_type')
     total = qs.distinct().count()
     rows = list(qs.distinct().order_by('-created')[: limit + 1])
     truncated = len(rows) > limit
     rows = rows[:limit]
+    gp_modal = {}
+    if kind in ('payment_success', 'payment_failed', 'payment_started'):
+        gp_modal = _resolve_gateway_payments_for_userevents(rows)
+    elif kind == 'course_enrolled':
+        gp_modal = _resolve_gateway_payments_for_userevents(
+            [ev for ev in rows if getattr(ev, 'event_type', None) == 'payment_success']
+        )
     if kind == 'payment_success' and total == 0 and source_user_ids:
         # Keep modal aligned with paid counter fallback when event rows are absent/soft-deleted.
         p_qs = Payment.objects.filter(
@@ -4133,13 +4287,14 @@ def enquiry_source_events_api(request):
         p_rows = p_rows[:limit]
         data_rows = []
         for p in p_rows:
+            psid = _enquiry_source_linked_session_id(source, p.user_id, '')
             data_rows.append({
                 'id': f'payment-{p.id}',
                 'created': timezone.localtime(p.created).strftime('%Y-%m-%d %H:%M:%S') if p.created else '',
                 'event_type': 'payment_success',
                 'event_name': _payment_service_name_from_payment(p),
                 'user_email': p.user.email if p.user_id and p.user else None,
-                'session_id': '',
+                'session_id': psid,
                 'metadata': {
                     'source': source.name,
                     'gateway_order_id': p.gateway_order_id or '',
@@ -4150,7 +4305,46 @@ def enquiry_source_events_api(request):
                 },
                 'effective_status': 'success',
                 'error_detail': '',
+                'amount_rupees': round(_payment_amount_rupees(p), 2),
                 'status_override': {'text': 'Success', 'variant': 'secondary'},
+            })
+        return JsonResponse({'ok': True, 'events': data_rows, 'total': p_total, 'truncated': p_truncated})
+    if kind == 'course_enrolled' and total == 0 and source_user_ids:
+        # Same Payment fallback as Enrolled column in _enquiry_source_stats (course-like success rows).
+        p_qs = Payment.objects.filter(
+            user_id__in=source_user_ids,
+            is_success=choices.YesNoChoices.YES,
+            obj_type__in=[
+                choices.PaymentObjectType.SKILLLABCOURSE,
+                choices.PaymentObjectType.COUNSELOR,
+            ],
+        ).select_related('user').order_by('-created')
+        p_total = p_qs.count()
+        p_rows = list(p_qs[: limit + 1])
+        p_truncated = len(p_rows) > limit
+        p_rows = p_rows[:limit]
+        data_rows = []
+        for p in p_rows:
+            psid = _enquiry_source_linked_session_id(source, p.user_id, '')
+            data_rows.append({
+                'id': f'payment-{p.id}',
+                'created': timezone.localtime(p.created).strftime('%Y-%m-%d %H:%M:%S') if p.created else '',
+                'event_type': 'payment_success',
+                'event_name': _payment_service_name_from_payment(p),
+                'user_email': p.user.email if p.user_id and p.user else None,
+                'session_id': psid,
+                'metadata': {
+                    'source': source.name,
+                    'gateway_order_id': p.gateway_order_id or '',
+                    'gateway_payment_id': p.gateway_payment_id or '',
+                    'obj_type': dict(choices.PaymentObjectType.CHOICES).get(p.obj_type, str(p.obj_type)),
+                    'obj_id': p.obj_id,
+                    'fallback': 'payment_model_course_enrolled',
+                },
+                'effective_status': 'success',
+                'error_detail': '',
+                'amount_rupees': round(_payment_amount_rupees(p), 2),
+                'status_override': {'text': 'Enrolled', 'variant': 'info'},
             })
         return JsonResponse({'ok': True, 'events': data_rows, 'total': p_total, 'truncated': p_truncated})
     # For payment rows, compute an "effective" status based on the latest payment event for the same payment/order.
@@ -4237,18 +4431,29 @@ def enquiry_source_events_api(request):
             ps = (meta.get('payment_stage') or '').strip().lower()
             if ps == 'gateway_error':
                 err_detail = 'Gateway verification failed'
+        sid = _enquiry_source_linked_session_id(source, ev.user_id, ev.session_id or '')
         row = {
             'id': ev.id,
             'created': timezone.localtime(ev.created).strftime('%Y-%m-%d %H:%M:%S'),
             'event_type': ev.event_type,
             'event_name': ev.event_name,
-            'user_email': _resolve_user_email(ev.session_id or '', ev.user.email if ev.user_id else None),
-            'session_id': ev.session_id or '',
+            'user_email': _resolve_user_email(sid, ev.user.email if ev.user_id else None),
+            'session_id': sid,
             'metadata': meta,
             'effective_status': effective_by_id.get(ev.id),
             'error_detail': err_detail,
             'status_override': None,
+            'amount_rupees': None,
         }
+        if kind in ('payment_success', 'payment_failed', 'payment_started'):
+            gp = gp_modal.get(ev.id)
+            row['amount_rupees'] = round(_payment_amount_rupees_from_event(ev, gp), 2)
+        elif kind == 'course_enrolled':
+            if ev.event_type == 'payment_success':
+                gp = gp_modal.get(ev.id)
+                row['amount_rupees'] = round(_payment_amount_rupees_from_event(ev, gp), 2)
+            else:
+                row['amount_rupees'] = round(float(ev.event_value or 0), 2)
         if kind == 'registration':
             row['status_override'] = {'text': 'Registered', 'variant': 'info'}
         elif kind == 'course_enrolled':

@@ -168,7 +168,8 @@ def track_payment_event(sender, instance, created, **kwargs):
                 event_type = 'payment_failed'
                 event_name = f'Payment Failed - {instance.get_obj_type_display()}'
                 payment_stage = 'gateway_error'
-            event_value = 0
+            # Keep attempted amount for analytics display (same unit as success: whole rupees).
+            event_value = float(instance.amount) if hasattr(instance, 'amount') and instance.amount else 0
         
         content_type = ContentType.objects.get_for_model(instance)
         
@@ -229,7 +230,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
         else:
             event_type = 'payment_pending' if created else 'payment_failed'
             event_name = f'Psychometric Test Payment - {instance.get_test_name()}'
-            event_value = 0
+            event_value = float(instance.amount) if hasattr(instance, 'amount') and instance.amount else 0
         
         content_type = ContentType.objects.get_for_model(instance)
         

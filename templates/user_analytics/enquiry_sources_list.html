@@ -436,6 +436,7 @@ window.addEventListener('load', function() {
             return;
         }
         var showErrorCol = modalState.kind === 'payment_failed' || modalState.kind === 'payment_in_process';
+        var showAmountCol = ['payment_success', 'payment_failed', 'payment_started', 'payment_in_process', 'course_enrolled', 'converted_sessions'].indexOf(modalState.kind) !== -1;
         var rows = data.events.map(function(ev) {
             var metaJson = safeJson(ev.metadata);
             var user = ev.user_email ? escapeHtml(ev.user_email) : '<span class="text-muted">—</span>';
@@ -447,11 +448,18 @@ window.addEventListener('load', function() {
             var errCell = showErrorCol
                 ? ('<td class="small text-break">' + (errRaw ? escapeHtml(errRaw) : '<span class="text-muted">—</span>') + '</td>')
                 : '';
+            var amtCell = '';
+            if (showAmountCol) {
+                var ar = ev.amount_rupees;
+                var amtShow = (ar != null && ar !== '' && !isNaN(Number(ar))) ? ('₹' + Number(ar).toFixed(2)) : '<span class="text-muted">—</span>';
+                amtCell = '<td class="small text-end text-nowrap">' + amtShow + '</td>';
+            }
             return ''
               + '<tr>'
               +   '<td class="small text-nowrap">' + when + '</td>'
               +   '<td class="small">' + statusBadge + '</td>'
               +   '<td class="small text-break"><span class="fw-semibold">' + eventName + '</span></td>'
+              +   amtCell
               +   errCell
               +   '<td class="small text-break">' + user + '</td>'
               +   '<td class="small text-break">' + sess + '</td>'
@@ -464,6 +472,7 @@ window.addEventListener('load', function() {
               + '</tr>';
         }).join('');
         var errTh = showErrorCol ? '<th style="min-width: 200px;">Error / detail</th>' : '';
+        var amtTh = showAmountCol ? '<th style="width: 100px;" class="text-end">Amount</th>' : '';
         var tableHtml = ''
           + '<div class="table-responsive">'
           +   '<table class="table table-sm table-hover align-middle mb-0 enquiry-events-table">'
@@ -472,6 +481,7 @@ window.addEventListener('load', function() {
           +         '<th style="width: 160px;">When</th>'
           +         '<th style="width: 130px;">Status</th>'
           +         '<th>Event</th>'
+          +         amtTh
           +         errTh
           +         '<th style="width: 200px;">User</th>'
           +         '<th style="width: 200px;">Session</th>'
