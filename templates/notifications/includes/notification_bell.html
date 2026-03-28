@@ -44,11 +44,22 @@
     function markRead(id) {
       var fd = new FormData();
       fd.append('id', id);
-      fetch(markReadUrl, {
+      return fetch(markReadUrl, {
         method: 'POST',
         headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest'},
         body: fd
-      }).catch(function(){});
+      }).then(function (r) { return r.json(); });
+    }
+
+    function setBadgeCount(c) {
+      if (!badgeEl) return;
+      if (c > 0) {
+        badgeEl.style.display = 'inline-block';
+        badgeEl.textContent = c > 99 ? '99+' : String(c);
+      } else {
+        badgeEl.style.display = 'none';
+        badgeEl.textContent = '0';
+      }
     }
 
     function render(items) {
@@ -75,16 +86,28 @@
           if (e.target && e.target.closest && e.target.closest('a.tt-notification-retry')) {
             return;
           }
+          e.preventDefault();
           var nid = el.getAttribute('data-id');
-          markRead(nid);
-          window.location.href = '{{ url("notifications:page") }}';
+          markRead(nid).then(function () {
+            return fetch(latestUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            if (data.success) setBadgeCount(data.unread_count || 0);
+            window.location.href = '{{ url("notifications:page") }}';
+          }).catch(function () {
+            window.location.href = '{{ url("notifications:page") }}';
+          });
         });
       });
       listEl.querySelectorAll('a.tt-notification-retry').forEach(function (a) {
         a.addEventListener('click', function (e) {
           e.stopPropagation();
           var row = a.closest('.tt-notification-item');
-          if (row) markRead(row.getAttribute('data-id'));
+          if (!row) return;
+          markRead(row.getAttribute('data-id')).then(function () {
+            return fetch(latestUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+          }).then(function (r) { return r.json(); }).then(function (data) {
+            if (data.success) setBadgeCount(data.unread_count || 0);
+          }).catch(function () {});
         });
       });
     }
@@ -94,15 +117,7 @@
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.success) return;
-          var c = data.unread_count || 0;
-          if (badgeEl) {
-            if (c > 0) {
-              badgeEl.style.display = 'inline-block';
-              badgeEl.textContent = c > 99 ? '99+' : String(c);
-            } else {
-              badgeEl.style.display = 'none';
-            }
-          }
+          setBadgeCount(data.unread_count || 0);
           render(data.notifications || []);
         })
         .catch(function () {
@@ -111,8 +126,14 @@
     }
 
     loadLatest();
-    // Poll interval (ms); larger gap reduces API load vs real-time freshness
     setInterval(loadLatest, 60000);
+
+    var bellBtn = document.getElementById('ttNotificationBellBtn');
+    if (bellBtn && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+      bellBtn.addEventListener('shown.bs.dropdown', function () {
+        loadLatest();
+      });
+    }
   })();
 </script>
 {% endif %}
