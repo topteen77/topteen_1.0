@@ -94,7 +94,8 @@
     }
 
     loadLatest();
-    setInterval(loadLatest, 30000);
+    // Poll interval (ms); larger gap reduces API load vs real-time freshness
+    setInterval(loadLatest, 60000);
   })();
 </script>
 {% endif %}

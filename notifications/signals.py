@@ -8,58 +8,60 @@ from user_analytics.models import UserEvent
 from user_analytics.models import Lead
 
 from .models import NotificationCategory
+from .payment_notifications import (
+    format_currency_amount,
+    notify_payment_transition,
+    payment_amount_display,
+    payment_currency_code,
+    payment_purchase_label,
+)
 from .services import (
     emit_notification,
-    get_admin_and_accounts_users,
     get_parent_users_for_student,
 )
 
 
+def _user_event_payment_label_and_amount(ev):
+    """Item label + amount string + currency code for UserEvent(payment_failed) when Payment row may be missing."""
+    meta = ev.metadata or {}
+    amt_raw = meta.get('order_amount_rupees')
+    if amt_raw is None and getattr(ev, 'event_value', None):
+        amt_raw = ev.event_value
+    amt_str = (
+        format_currency_amount(amt_raw, 'INR')
+        if amt_raw not in (None, '', 0, '0', 0.0)
+        else ''
+    )
+
+    item = (meta.get('test_name') or meta.get('course_name') or '').strip()
+    if not item:
+        item = (meta.get('obj_type') or '').strip()
+
+    p = None
+    currency_code = ''
+    pid = meta.get('payment_id') or ev.object_id
+    if pid:
+        p = Payment.objects.filter(pk=pid).only('obj_type', 'obj_id', 'amount', 'currency').first()
+    if p is None:
+        oid = (meta.get('gateway_order_id') or meta.get('order_id') or '').strip()
+        if oid:
+            p = Payment.objects.filter(gateway_order_id=oid).only('obj_type', 'obj_id', 'amount', 'currency').first()
+    if p is not None:
+        item = payment_purchase_label(p)
+        if not amt_str:
+            amt_str = payment_amount_display(p)
+        currency_code = payment_currency_code(p)
+    elif amt_str:
+        currency_code = 'INR'
+    if not item:
+        item = 'your purchase'
+    return item, amt_str, currency_code
+
+
 @receiver(post_save, sender=Payment)
 def payment_notifications(sender, instance, created, **kwargs):
-    if not instance.user_id:
-        return
-
-    recipients = [instance.user]
-    recipients.extend(list(get_parent_users_for_student(instance.user_id)))
-    staff = list(get_admin_and_accounts_users())
-
     previous_is_success = getattr(instance, '_previous_is_success', None)
-    became_success = instance.is_success == choices.YesNoChoices.YES and (created or previous_is_success != choices.YesNoChoices.YES)
-    became_failed = instance.is_success != choices.YesNoChoices.YES and (created or previous_is_success == choices.YesNoChoices.YES)
-
-    if became_success:
-        emit_notification(
-            event_type='payment.success',
-            title='Payment successful',
-            body='Your payment was received successfully.',
-            recipients=recipients,
-            category=NotificationCategory.PAYMENT,
-            source_obj=instance,
-            payload={'payment_id': instance.id, 'gateway_order_id': instance.gateway_order_id or ''},
-            dedupe_key='payment_success_{}'.format(instance.id),
-        )
-        emit_notification(
-            event_type='payment.status_updated',
-            title='Payment status updated',
-            body='Payment {} is marked successful.'.format(instance.id),
-            recipients=staff,
-            category=NotificationCategory.PAYMENT,
-            source_obj=instance,
-            payload={'payment_id': instance.id, 'status': 'success'},
-            dedupe_key='payment_status_updated_success_{}'.format(instance.id),
-        )
-    elif became_failed:
-        emit_notification(
-            event_type='payment.failed',
-            title='Payment failed',
-            body='We could not confirm your payment. Please retry or contact support.',
-            recipients=recipients,
-            category=NotificationCategory.PAYMENT,
-            source_obj=instance,
-            payload={'payment_id': instance.id, 'gateway_order_id': instance.gateway_order_id or ''},
-            dedupe_key='payment_failed_{}'.format(instance.id),
-        )
+    notify_payment_transition(instance, previous_is_success=previous_is_success, created=created)
 
 
 @receiver(pre_save, sender=Payment)
@@ -136,7 +138,11 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
     payment_id = metadata.get('payment_id') or instance.object_id
     gateway_order_id = metadata.get('gateway_order_id') or ''
     reason = (metadata.get('payment_stage') or metadata.get('error_message') or '').strip()
-    body = 'We could not confirm your payment. Please retry or contact support.'
+    item, amt, currency_code = _user_event_payment_label_and_amount(instance)
+    if amt:
+        body = 'We could not confirm your payment of {} for {}. Please retry or contact support.'.format(amt, item)
+    else:
+        body = 'We could not confirm your payment for {}. Please retry or contact support.'.format(item)
     if reason:
         body = '{} Reason: {}.'.format(body, reason)
 
@@ -158,6 +164,9 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
             'payment_id': payment_id or '',
             'gateway_order_id': gateway_order_id,
             'event_id': instance.id,
+            'item': item,
+            'currency_code': currency_code or '',
+            'amount_display': amt,
         },
         dedupe_key=dedupe_key,
     )

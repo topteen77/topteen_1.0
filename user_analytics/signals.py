@@ -180,6 +180,7 @@ def track_payment_event(sender, instance, created, **kwargs):
             'obj_id': instance.obj_id,
             'gateway_order_id': instance.gateway_order_id or '',
             'payment_stage': payment_stage,
+            'order_amount_rupees': float(instance.amount) if getattr(instance, 'amount', None) else 0.0,
         }
         
         # If this is a psychometric test payment, try to get test type info
@@ -239,6 +240,7 @@ def track_psychometric_payment(sender, instance, created, **kwargs):
             'test_type': instance.get_test_type_display(),
             'test_name': instance.get_test_name(),
             'source': source,
+            'order_amount_rupees': float(instance.amount) if getattr(instance, 'amount', None) else 0.0,
         }
         if event_type == 'payment_pending':
             psych_meta['payment_stage'] = 'checkout_started'

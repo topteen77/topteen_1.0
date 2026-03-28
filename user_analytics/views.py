@@ -158,6 +158,36 @@ def _payment_amount_rupees_from_event(ev, gateway_payment=None):
     return float(ev.event_value or 0)
 
 
+def _order_amount_rupees_for_checkout_event(ev, gateway_payment=None):
+    """
+    Order/checkout amount (INR) for pending, failed, or cancelled flows.
+    Tries linked models first, then metadata, then Payment lookup by gateway order id.
+    """
+    meta = getattr(ev, 'metadata', None) or {}
+    v = _payment_amount_rupees_from_event(ev, gateway_payment)
+    if v and float(v) > 0:
+        return float(v)
+    for key in ('order_amount_rupees', 'amount_rupees'):
+        x = meta.get(key)
+        if x is not None and str(x).strip() != '':
+            try:
+                return float(x)
+            except (TypeError, ValueError):
+                pass
+    ap = meta.get('amount_paise')
+    if ap is not None:
+        try:
+            return float(ap) / 100.0
+        except (TypeError, ValueError):
+            pass
+    oid = (meta.get('gateway_order_id') or meta.get('order_id') or '').strip()
+    if oid:
+        p = Payment.objects.filter(gateway_order_id=oid).only('amount').first()
+        if p is not None and p.amount is not None:
+            return float(p.amount)
+    return float(ev.event_value or 0)
+
+
 def _payment_row_hide_manual_update_resolved_success(gp, gateway_order_id, payment_status_filter):
     """
     Stale analytics: UserEvent may still say failed while Payment was completed later (manual reconcile).
@@ -4111,7 +4141,7 @@ def enquiry_source_events_api(request):
                 'metadata': ev.metadata or {},
                 'effective_status': None,
                 'error_detail': '',
-                'amount_rupees': round(_payment_amount_rupees_from_event(ev, gp_inproc.get(ev.id)), 2),
+                'amount_rupees': round(_order_amount_rupees_for_checkout_event(ev, gp_inproc.get(ev.id)), 2),
                 'status_override': {'text': 'In process', 'variant': 'info'},
             })
         return JsonResponse({
@@ -4447,7 +4477,10 @@ def enquiry_source_events_api(request):
         }
         if kind in ('payment_success', 'payment_failed', 'payment_started'):
             gp = gp_modal.get(ev.id)
-            row['amount_rupees'] = round(_payment_amount_rupees_from_event(ev, gp), 2)
+            if kind == 'payment_failed':
+                row['amount_rupees'] = round(_order_amount_rupees_for_checkout_event(ev, gp), 2)
+            else:
+                row['amount_rupees'] = round(_payment_amount_rupees_from_event(ev, gp), 2)
         elif kind == 'course_enrolled':
             if ev.event_type == 'payment_success':
                 gp = gp_modal.get(ev.id)

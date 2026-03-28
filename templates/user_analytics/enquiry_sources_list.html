@@ -472,7 +472,8 @@ window.addEventListener('load', function() {
               + '</tr>';
         }).join('');
         var errTh = showErrorCol ? '<th style="min-width: 200px;">Error / detail</th>' : '';
-        var amtTh = showAmountCol ? '<th style="width: 100px;" class="text-end">Amount</th>' : '';
+        var amtHeader = (modalState.kind === 'payment_failed' || modalState.kind === 'payment_in_process') ? 'Order amount' : 'Amount';
+        var amtTh = showAmountCol ? '<th style="width: 110px;" class="text-end">' + escapeHtml(amtHeader) + '</th>' : '';
         var tableHtml = ''
           + '<div class="table-responsive">'
           +   '<table class="table table-sm table-hover align-middle mb-0 enquiry-events-table">'

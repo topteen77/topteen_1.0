@@ -39,6 +39,12 @@ def detect_notification_environment(host=''):
 
 DEFAULT_TYPE_CONFIGS = {
     'payment.success': dict(category=NotificationCategory.PAYMENT, description='Payment successful', requires_celery=False, requires_email=False),
+    'payment.resolved': dict(
+        category=NotificationCategory.PAYMENT,
+        description='Payment succeeded after prior non-success (callback or reconciliation)',
+        requires_celery=False,
+        requires_email=False,
+    ),
     'payment.failed': dict(category=NotificationCategory.PAYMENT, description='Payment failed', requires_celery=False, requires_email=False),
     'payment.status_updated': dict(category=NotificationCategory.PAYMENT, description='Payment status updated', requires_celery=False, requires_email=False),
     'course.allocated': dict(category=NotificationCategory.COURSE, description='Course allocated', requires_celery=False, requires_email=False),
