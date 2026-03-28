@@ -14,5 +14,7 @@ urlpatterns = [
     path('api/delete/', views.notification_delete_api, name='delete_api'),
     path('api/admin/toggle-type/', views.notification_toggle_type_api, name='toggle_type_api'),
     path('api/admin/delete-all/', views.notification_admin_delete_all_api, name='delete_all_api'),
+    path('api/admin/delete-for-user/', views.notification_admin_delete_for_user_api, name='delete_for_user_api'),
+    path('api/admin/purge-old/', views.notification_admin_purge_old_api, name='purge_old_api'),
 ]
 

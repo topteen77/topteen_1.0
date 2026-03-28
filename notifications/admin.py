@@ -20,9 +20,10 @@ class NotificationMessageTemplateAdmin(admin.ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'recipient', 'event_type', 'category', 'is_read', 'created')
-    list_filter = ('is_read', 'category', 'event_type', 'role_hint')
+    list_display = ('id', 'recipient', 'environment', 'event_type', 'category', 'is_read', 'created')
+    list_filter = ('environment', 'is_read', 'category', 'event_type', 'role_hint')
     search_fields = ('recipient__email', 'title', 'body', 'event_type')
+    date_hierarchy = 'created'
     autocomplete_fields = ('recipient',)
 
     def delete_model(self, request, obj):

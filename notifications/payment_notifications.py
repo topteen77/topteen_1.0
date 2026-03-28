@@ -174,6 +174,10 @@ def notify_payment_transition(payment, previous_is_success, created):
     Emit user/parent/staff notifications when Payment status changes.
 
     ``previous_is_success`` is the value before this save (from pre_save cache), or None for new rows.
+
+    Normal checkout (pending → success) uses ``payment.success``. Set ``payment._notify_payment_resolved =
+    True`` on the instance before ``save()`` only for rare recovery cases (e.g. staff reconciliation after
+    a failed or stuck payment) so users get the ``payment.resolved`` copy instead.
     """
     if not payment.user_id:
         return
@@ -203,7 +207,12 @@ def notify_payment_transition(payment, previous_is_success, created):
     retry_path = retry_payment_path_for_payment(payment) if became_failed else ''
 
     if became_success:
-        transitioned_from_non_success = not created and previous_is_success != choices.YesNoChoices.YES
+        # Do not treat "was pending (NO) → success" as "resolved"; that is the normal gateway path.
+        transitioned_from_non_success = (
+            not created
+            and previous_is_success != choices.YesNoChoices.YES
+            and bool(getattr(payment, '_notify_payment_resolved', False))
+        )
 
         if transitioned_from_non_success:
             if amt:
@@ -343,10 +352,13 @@ def notify_payment_transition(payment, previous_is_success, created):
         )
 
 
-def notify_payment_now_successful(payment, previous_is_success):
+def notify_payment_now_successful(payment, previous_is_success, notify_resolved=False):
     """
     Call after saving a Payment as successful when signals did not run (e.g. ``QuerySet.update``).
 
     Pass ``previous_is_success`` from the row state *before* the update (typically ``YesNoChoices.NO``).
+    Set ``notify_resolved=True`` only for recovery-after-failure style updates.
     """
+    if notify_resolved:
+        payment._notify_payment_resolved = True
     notify_payment_transition(payment, previous_is_success=previous_is_success, created=False)

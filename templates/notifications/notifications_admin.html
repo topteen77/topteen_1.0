@@ -20,7 +20,7 @@
         <label class="form-label">Environment</label>
         <select id="nEnv" class="form-select">
           {% for env_value, env_label in environments %}
-          <option value="{{ env_value }}" {% if env_value == current_environment %}selected{% endif %}>{{ env_label }}</option>
+          <option value="{{ env_value }}" {% if env_value == list_environment_default %}selected{% endif %}>{{ env_label }}</option>
           {% endfor %}
         </select>
       </div>
@@ -28,10 +28,29 @@
         <label class="form-label">Search</label>
         <input id="nQ" class="form-control" placeholder="Search by notification text">
       </div>
-      <div class="col-md-12 d-flex align-items-end gap-2 justify-content-end">
+      <div class="col-md-12 d-flex align-items-end gap-2 justify-content-end flex-wrap">
         <button id="nFilter" class="btn btn-primary w-100">Apply</button>
         <button id="nMarkAll" class="btn btn-outline-secondary">Clear all</button>
-        <button id="nDeleteAllEnv" class="btn btn-outline-danger">Delete all selected environment</button>
+        <button id="nDeleteAllEnv" class="btn btn-outline-danger">Delete (env / all)</button>
+      </div>
+      <div class="col-12 mt-3 border-top pt-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label">Delete all for user ID</label>
+            <input id="nAdminUserId" class="form-control" type="number" min="1" placeholder="User id">
+          </div>
+          <div class="col-md-3">
+            <button type="button" id="nDeleteForUser" class="btn btn-outline-danger w-100">Delete for user</button>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Purge older than (days)</label>
+            <input id="nPurgeDays" class="form-control" type="number" min="1" value="90">
+          </div>
+          <div class="col-md-4">
+            <button type="button" id="nPurgeOld" class="btn btn-outline-danger w-100">Purge old notifications</button>
+          </div>
+        </div>
+        <p class="small text-muted mb-0 mt-2">Delete for user respects the Environment filter above (use &quot;All environments&quot; to remove every notification for that user). Purge removes rows older than the given age across all users unless you fill a user ID above.</p>
       </div>
     </div>
   </div>
@@ -46,6 +65,8 @@
     var markReadUrl = '{{ url("notifications:mark_read_api") }}';
     var markAllUrl = '{{ url("notifications:mark_all_read_api") }}';
     var deleteAllUrl = '{{ url("notifications:delete_all_api") }}';
+    var deleteForUserUrl = '{{ url("notifications:delete_for_user_api") }}';
+    var purgeOldUrl = '{{ url("notifications:purge_old_api") }}';
     var page = 1;
     function csrfToken() {
       var m = document.cookie.match(/csrftoken=([^;]+)/);
@@ -55,7 +76,8 @@
     function load() {
       var p = new URLSearchParams();
       p.set('page', page);
-      if (document.getElementById('nEnv').value) p.set('environment', document.getElementById('nEnv').value);
+      var envVal = document.getElementById('nEnv').value;
+      if (envVal && envVal !== 'all') p.set('environment', envVal);
       if (document.getElementById('nType').value) p.set('type', document.getElementById('nType').value);
       if (document.getElementById('nQ').value.trim()) p.set('q', document.getElementById('nQ').value.trim());
       fetch(listUrl + '?' + p.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json();}).then(function(data){
@@ -99,7 +121,10 @@
     document.getElementById('nDeleteAllEnv').addEventListener('click', function(){
       var env = document.getElementById('nEnv').value;
       if (!env) return;
-      if (!confirm('Delete all notifications for environment: ' + env + '?')) return;
+      var msg = env === 'all'
+        ? 'Delete ALL notifications for ALL users in the database?'
+        : ('Delete all notifications stored as environment: ' + env + '?');
+      if (!confirm(msg)) return;
       var fd = new FormData();
       fd.append('environment', env);
       fetch(deleteAllUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd})
@@ -110,7 +135,52 @@
           load();
         })
         .catch(function(){
-          alert('Could not delete notifications for selected environment.');
+          alert('Could not delete notifications.');
+        });
+    });
+    document.getElementById('nDeleteForUser').addEventListener('click', function(){
+      var uid = (document.getElementById('nAdminUserId').value || '').trim();
+      if (!uid) {
+        alert('Enter a user id.');
+        return;
+      }
+      var env = document.getElementById('nEnv').value;
+      if (!confirm('Delete all notifications for user id ' + uid + (env === 'all' ? ' (all environments)?' : (' (environment: ' + env + ')?')))) return;
+      var fd = new FormData();
+      fd.append('user_id', uid);
+      if (env && env !== 'all') fd.append('environment', env);
+      fetch(deleteForUserUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (!data.success) throw new Error(data.error || 'failed');
+          page = 1;
+          load();
+        })
+        .catch(function(){
+          alert('Could not delete notifications for that user.');
+        });
+    });
+    document.getElementById('nPurgeOld').addEventListener('click', function(){
+      var days = parseInt(document.getElementById('nPurgeDays').value, 10);
+      if (!days || days < 1) {
+        alert('Enter a valid number of days.');
+        return;
+      }
+      var uid = (document.getElementById('nAdminUserId').value || '').trim();
+      var scope = uid ? ('user id ' + uid) : 'all users';
+      if (!confirm('Permanently delete notifications older than ' + days + ' days for ' + scope + '?')) return;
+      var fd = new FormData();
+      fd.append('days', String(days));
+      if (uid) fd.append('user_id', uid);
+      fetch(purgeOldUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (!data.success) throw new Error('failed');
+          page = 1;
+          load();
+        })
+        .catch(function(){
+          alert('Could not purge old notifications.');
         });
     });
     load();
