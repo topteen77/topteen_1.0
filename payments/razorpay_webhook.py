@@ -93,15 +93,13 @@ class RazorpayWebhookView(APIView):
             return HttpResponse(status=200)
 
         payment.gateway_payment_id = rz_payment_id
-        payment.save(update_fields=['gateway_payment_id'])
-
         rsvc = RazorpayService()
         if not rsvc.verify_payment_amount_status_and_order(payment):
             logger.warning('Razorpay API verify failed after webhook for payment %s', payment.id)
             return HttpResponse(status=200)
 
         payment.is_success = choices.YesNoChoices.YES
-        payment.save(update_fields=['is_success'])
+        payment.save(update_fields=['gateway_payment_id', 'is_success'])
         finalize_side_effects_after_gateway_success(payment)
 
         try:

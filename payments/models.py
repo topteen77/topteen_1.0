@@ -71,14 +71,19 @@ class Payment(BaseModel,BaseMoneyModel):
         return d
 
     def update_payment(self,gateway_payment_id,gateway_order_id,gateway_signature):
-        self.gateway_order_id=gateway_order_id
-        self.gateway_payment_id=gateway_payment_id
-        self.gateway_signature=gateway_signature
-        self.save()
-        status= self.verify_payment()
+        """
+        Verify against Razorpay using in-memory fields, then persist once.
+
+        A single ``save()`` avoids an extra post_save where gateway ids are set but
+        ``is_success`` is still NO (which looked like a failure to notifications/analytics).
+        """
+        self.gateway_order_id = gateway_order_id
+        self.gateway_payment_id = gateway_payment_id
+        self.gateway_signature = gateway_signature
+        status = self.verify_payment()
         if status:
-            self.is_success=choices.YesNoChoices.YES
-            self.save()
+            self.is_success = choices.YesNoChoices.YES
+        self.save()
         return status
 
     def verify_payment(self):

@@ -2649,11 +2649,12 @@ def manual_payment_reconciliation_view(request):
                 result_level = 'warning'
                 payment_preview = payment
             elif force_allocate:
+                u_fields = ['is_success']
                 if rz_payment_id:
                     payment.gateway_payment_id = rz_payment_id
-                    payment.save(update_fields=['gateway_payment_id'])
+                    u_fields = ['gateway_payment_id', 'is_success']
                 payment.is_success = choices.YesNoChoices.YES
-                payment.save(update_fields=['is_success'])
+                payment.save(update_fields=u_fields)
                 finalize_side_effects_after_gateway_success(payment)
                 _audit_manual_payment_reconciliation(request, payment, staff_note, 'force_superuser')
                 result_message = (
@@ -2680,17 +2681,17 @@ def manual_payment_reconciliation_view(request):
                         result_level = 'error'
             else:
                 payment.gateway_payment_id = rz_payment_id
-                payment.save(update_fields=['gateway_payment_id'])
                 rsvc = RazorpayService()
                 if rsvc.verify_payment_amount_status_and_order(payment):
                     payment.is_success = choices.YesNoChoices.YES
-                    payment.save(update_fields=['is_success'])
+                    payment.save(update_fields=['gateway_payment_id', 'is_success'])
                     finalize_side_effects_after_gateway_success(payment)
                     _audit_manual_payment_reconciliation(request, payment, staff_note, 'razorpay_api')
                     result_message = 'Verified via Razorpay API (amount, status, order). Payment marked successful and allocation completed.'
                     result_level = 'success'
                     payment_preview = payment
                 else:
+                    payment.save(update_fields=['gateway_payment_id'])
                     result_message = (
                         'Razorpay API check failed (captured/authorized + amount + order id). '
                         'Try signature mode with values from the payment success callback in dashboard, or confirm order id on our Payment row.'

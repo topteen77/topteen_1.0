@@ -142,6 +142,16 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
     gateway_order_id = metadata.get('gateway_order_id') or ''
     reason = (metadata.get('payment_stage') or metadata.get('error_message') or '').strip()
     item, amt, currency_code = _user_event_payment_label_and_amount(instance)
+
+    # Do not notify if a Payment row already succeeded (stale payment_failed / order-check events).
+    if payment_id:
+        pay_row = Payment.objects.filter(pk=payment_id).only('is_success').first()
+        if pay_row and pay_row.is_success == choices.YesNoChoices.YES:
+            return
+    if gateway_order_id:
+        pay_row = Payment.objects.filter(gateway_order_id=gateway_order_id).only('is_success').first()
+        if pay_row and pay_row.is_success == choices.YesNoChoices.YES:
+            return
     retry_path = ''
     p_obj = None
     if payment_id:
