@@ -18,6 +18,7 @@ from users.models import ParentStudentLink
 from .models import (
     Notification,
     NotificationCategory,
+    NotificationMessageTemplate,
     NotificationRoleHint,
     NotificationTypeConfig,
 )
@@ -66,6 +67,83 @@ def ensure_default_notification_types():
                 'requires_redis': cfg.get('requires_redis', False),
             },
         )
+
+
+class _SafeFormatDict(dict):
+    def __missing__(self, key):
+        return ''
+
+
+DEFAULT_NOTIFICATION_MESSAGE_TEMPLATES = {
+    'payment.success': {
+        'title': 'Payment successful',
+        'body': 'Your payment of {amount_display} for {item} was received successfully.',
+    },
+    'payment.resolved': {
+        'title': 'Payment issue resolved',
+        'body': (
+            'Your payment of {amount_display} for {item} is now successful. '
+            'If you saw an error or pending status earlier, that issue is resolved.'
+        ),
+    },
+    'payment.failed': {
+        'title': 'Payment failed',
+        'body': (
+            'We could not confirm your payment of {amount_display} for {item}. '
+            '{retry_payment_hint}'
+        ),
+    },
+    'payment.status_updated': {
+        'title': 'Payment status updated',
+        'body': 'Payment {payment_id} for {item} ({amount_display}) marked {status}. {extra}',
+    },
+}
+
+
+def ensure_default_notification_message_templates():
+    """Seed DB rows so Django admin can edit copy; empty template fields mean built-in defaults apply."""
+    ensure_default_notification_types()
+    for event_type, defaults in DEFAULT_NOTIFICATION_MESSAGE_TEMPLATES.items():
+        NotificationMessageTemplate.objects.get_or_create(
+            event_type=event_type,
+            defaults={
+                'title_template': '',
+                'body_template': '',
+                'is_active': True,
+            },
+        )
+
+
+def format_notification_message(event_type, context, default_title, default_body):
+    """
+    Apply optional admin ``NotificationMessageTemplate`` overrides.
+
+    ``default_title`` / ``default_body`` may contain ``{placeholders}``; ``context`` supplies values.
+    """
+    ensure_default_notification_message_templates()
+    ctx = _SafeFormatDict(context or {})
+    try:
+        title = (default_title or '').format_map(ctx)[:255]
+    except Exception:
+        title = (default_title or '')[:255]
+    try:
+        body = (default_body or '').format_map(ctx)
+    except Exception:
+        body = default_body or ''
+
+    tpl = NotificationMessageTemplate.objects.filter(event_type=event_type, is_active=True).first()
+    if tpl:
+        if (tpl.title_template or '').strip():
+            try:
+                title = (tpl.title_template or '').strip().format_map(ctx)[:255]
+            except Exception:
+                pass
+        if (tpl.body_template or '').strip():
+            try:
+                body = (tpl.body_template or '').strip().format_map(ctx)
+            except Exception:
+                pass
+    return title, body
 
 
 def _check_celery_ok():

@@ -7,7 +7,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from .models import Notification, NotificationTypeConfig
-from .services import check_notification_dependencies, detect_notification_environment, ensure_default_notification_types
+from .services import (
+    check_notification_dependencies,
+    detect_notification_environment,
+    ensure_default_notification_message_templates,
+    ensure_default_notification_types,
+)
 
 
 def _is_staff_or_superuser(user):
@@ -23,9 +28,29 @@ def _request_notification_environment(request):
     return detect_notification_environment(host)
 
 
+def _api_payload_for_notification(row):
+    """Expose safe JSON for the bell / list UI (retry link, amount summary)."""
+    p = row.payload or {}
+    if not isinstance(p, dict):
+        return {}
+    out = {}
+    if p.get('retry_payment_path'):
+        out['retry_payment_path'] = p['retry_payment_path']
+    if p.get('retry_payment_label'):
+        out['retry_payment_label'] = p['retry_payment_label']
+    if p.get('show_retry_payment'):
+        out['show_retry_payment'] = True
+    if p.get('amount_display'):
+        out['amount_display'] = p['amount_display']
+    if p.get('currency_code'):
+        out['currency_code'] = p['currency_code']
+    return out
+
+
 @login_required
 def notifications_page(request):
     ensure_default_notification_types()
+    ensure_default_notification_message_templates()
     template_name = 'notifications/notifications_admin.html' if request.user.is_staff else 'notifications/notifications_user.html'
     current_environment = _request_notification_environment(request)
     return render(
@@ -45,7 +70,8 @@ def notifications_page(request):
 def notifications_latest_api(request):
     current_environment = _request_notification_environment(request)
     rows = Notification.objects.filter(recipient=request.user, environment=current_environment).order_by('-created')[:10]
-    unread_count = Notification.objects.filter(recipient=request.user, environment=current_environment, is_read=False).count()
+    # Remaining rows are undismissed; reading one deletes it, so count = unread badge.
+    unread_count = Notification.objects.filter(recipient=request.user, environment=current_environment).count()
     return JsonResponse(
         {
             'success': True,
@@ -60,6 +86,7 @@ def notifications_latest_api(request):
                     'environment': r.environment,
                     'is_read': r.is_read,
                     'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
+                    'payload': _api_payload_for_notification(r),
                 }
                 for r in rows
             ],
@@ -109,6 +136,7 @@ def notifications_list_api(request):
                     'environment': r.environment,
                     'is_read': r.is_read,
                     'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
+                    'payload': _api_payload_for_notification(r),
                 }
                 for r in pg.object_list
             ],
@@ -135,14 +163,34 @@ def notification_mark_read_api(request):
 @require_POST
 def notification_mark_all_read_api(request):
     current_environment = _request_notification_environment(request)
-    Notification.objects.filter(recipient=request.user, environment=current_environment, is_read=False).update(is_read=True)
+    Notification.objects.filter(recipient=request.user, environment=current_environment).delete()
     return JsonResponse({'success': True})
+
+
+@csrf_exempt
+@login_required
+@require_POST
+def notification_delete_api(request):
+    """Hard-delete one notification row for the current user (SQL DELETE)."""
+    nid = (request.POST.get('id') or '').strip()
+    current_environment = _request_notification_environment(request)
+    if not nid:
+        return JsonResponse({'success': False, 'error': 'missing_id'}, status=400)
+    deleted, _ = Notification.objects.filter(
+        id=nid,
+        recipient=request.user,
+        environment=current_environment,
+    ).delete()
+    if not deleted:
+        return JsonResponse({'success': False, 'error': 'not_found'}, status=404)
+    return JsonResponse({'success': True, 'deleted': int(deleted)})
 
 
 @login_required
 @user_passes_test(_is_staff_or_superuser)
 def notification_admin_settings(request):
     ensure_default_notification_types()
+    ensure_default_notification_message_templates()
     health = check_notification_dependencies()
     configs = NotificationTypeConfig.objects.all().order_by('event_type')
     return render(
@@ -183,6 +231,7 @@ def notification_admin_delete_all_api(request):
     requested_environment = (request.POST.get('environment') or '').strip().lower()
     if requested_environment not in dict(Notification.Environment.CHOICES):
         return JsonResponse({'success': False, 'error': 'invalid_environment'}, status=400)
+    # Hard delete: ORM .delete() issues SQL DELETE (no soft-delete on this model).
     deleted_count, _ = Notification.objects.filter(environment=requested_environment).delete()
     return JsonResponse({'success': True, 'deleted': deleted_count, 'environment': requested_environment})
 

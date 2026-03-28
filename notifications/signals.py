@@ -13,10 +13,13 @@ from .payment_notifications import (
     notify_payment_transition,
     payment_amount_display,
     payment_currency_code,
+    payment_order_amount_decimal,
     payment_purchase_label,
+    retry_payment_path_for_payment,
 )
 from .services import (
     emit_notification,
+    format_notification_message,
     get_parent_users_for_student,
 )
 
@@ -139,12 +142,48 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
     gateway_order_id = metadata.get('gateway_order_id') or ''
     reason = (metadata.get('payment_stage') or metadata.get('error_message') or '').strip()
     item, amt, currency_code = _user_event_payment_label_and_amount(instance)
+    retry_path = ''
+    p_obj = None
+    if payment_id:
+        p_obj = Payment.objects.filter(pk=payment_id).first()
+    if p_obj is None and gateway_order_id:
+        p_obj = Payment.objects.filter(gateway_order_id=gateway_order_id).first()
+    if p_obj is not None:
+        retry_path = retry_payment_path_for_payment(p_obj)
+
+    retry_hint = (
+        'You can use Retry payment below or open the checkout again from the product page.'
+        if retry_path
+        else 'Please try again from the purchase page or contact support.'
+    )
+    amt_num = ''
+    if p_obj is not None:
+        amt_num = '{:.2f}'.format(payment_order_amount_decimal(p_obj))
+    ctx = {
+        'amount_display': amt,
+        'amount': amt_num,
+        'currency_code': currency_code or 'INR',
+        'item': item,
+        'payment_id': payment_id or '',
+        'gateway_order_id': gateway_order_id,
+        'retry_payment_path': retry_path,
+        'retry_payment_label': 'Retry payment' if retry_path else '',
+        'retry_payment_hint': retry_hint,
+        'reason': reason,
+    }
     if amt:
-        body = 'We could not confirm your payment of {} for {}. Please retry or contact support.'.format(amt, item)
+        default_title = 'Payment failed'
+        default_body = (
+            'We could not confirm your payment of {amount_display} for {item}. {retry_payment_hint}'
+            + (' Reason: {reason}.' if reason else '')
+        )
     else:
-        body = 'We could not confirm your payment for {}. Please retry or contact support.'.format(item)
-    if reason:
-        body = '{} Reason: {}.'.format(body, reason)
+        default_title = 'Payment failed'
+        default_body = (
+            'We could not confirm your payment for {item}. {retry_payment_hint}'
+            + (' Reason: {reason}.' if reason else '')
+        )
+    title, body = format_notification_message('payment.failed', ctx, default_title, default_body)
 
     dedupe_key = 'payment_failed_event_{}'.format(instance.id)
     if payment_id:
@@ -155,7 +194,7 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
 
     emit_notification(
         event_type='payment.failed',
-        title='Payment failed',
+        title=title,
         body=body,
         recipients=recipients,
         category=NotificationCategory.PAYMENT,
@@ -167,6 +206,9 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
             'item': item,
             'currency_code': currency_code or '',
             'amount_display': amt,
+            'retry_payment_path': retry_path,
+            'retry_payment_label': ctx['retry_payment_label'],
+            'show_retry_payment': bool(retry_path),
         },
         dedupe_key=dedupe_key,
     )

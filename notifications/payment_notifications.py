@@ -5,17 +5,46 @@ Called from ``post_save`` on ``Payment``; may also be invoked explicitly if a co
 bypasses signals (e.g. ``QuerySet.update``).
 """
 
+from django.urls import NoReverseMatch, reverse
+
 from core import choices
 
 from .models import NotificationCategory
-from .services import emit_notification, get_admin_and_accounts_users, get_parent_users_for_student
+from .services import (
+    emit_notification,
+    format_notification_message,
+    get_admin_and_accounts_users,
+    get_parent_users_for_student,
+)
 
 
 def payment_currency_code(payment):
-    """ISO-style code for display (Payment.currency is a small int)."""
-    if getattr(payment, 'currency', None) == choices.Currency.USD:
+    """ISO-style code for display (Payment.currency is a small int). Defaults to INR."""
+    cur = getattr(payment, 'currency', None)
+    if cur is None:
+        return 'INR'
+    if cur == choices.Currency.USD:
         return 'USD'
     return 'INR'
+
+
+def payment_order_amount_decimal(payment):
+    """
+    Amount for display: prefer gateway-settled fields (order / callback),
+    then ``Payment.amount`` (in major units for INR/USD in this app).
+    """
+    for attr in ('transaction_amount', 'total_amount'):
+        raw = getattr(payment, attr, None)
+        if raw in (None, ''):
+            continue
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            continue
+    try:
+        return float(payment.amount or 0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def format_currency_amount(amount, currency_code='INR'):
@@ -23,11 +52,14 @@ def format_currency_amount(amount, currency_code='INR'):
     Amount with symbol and ISO currency label, e.g. ``₹500.00 INR`` or ``$10.00 USD``.
     ``amount`` may be int/float/str from DB or metadata.
     """
+    code = (currency_code or 'INR').upper()
+    if code not in ('USD', 'INR'):
+        code = 'INR'
     try:
         if amount is None or amount == '':
             return ''
         val = float(amount)
-        if currency_code == 'USD':
+        if code == 'USD':
             return '${:.2f} USD'.format(val)
         return '₹{:.2f} INR'.format(val)
     except (TypeError, ValueError):
@@ -35,8 +67,10 @@ def format_currency_amount(amount, currency_code='INR'):
 
 
 def payment_amount_display(payment):
-    """Formatted money line for a Payment row (uses ``payment.currency`` + ``payment.amount``)."""
-    return format_currency_amount(getattr(payment, 'amount', None), payment_currency_code(payment))
+    """Formatted money line using order/callback amount and payment currency."""
+    amt = payment_order_amount_decimal(payment)
+    cur = payment_currency_code(payment)
+    return format_currency_amount(amt, cur)
 
 
 def payment_purchase_label(payment):
@@ -54,11 +88,11 @@ def payment_purchase_label(payment):
             if p:
                 return p.get_test_name()
         elif ot == choices.PaymentObjectType.SKILLLABCOURSE:
-            from skilllab.models import SkillLabCourse
+            from skilllab.models import SkilllabCoursePayment
 
-            c = SkillLabCourse.objects.filter(pk=oid).only('name').first()
-            if c and c.name:
-                return (c.name or '').strip() or fallback
+            sp = SkilllabCoursePayment.objects.filter(pk=oid).select_related('skilllab_course').first()
+            if sp and sp.skilllab_course and sp.skilllab_course.name:
+                return (sp.skilllab_course.name or '').strip() or fallback
         elif ot == choices.PaymentObjectType.COUNSELOR:
             from counselor.models import CounselorCourse
 
@@ -68,6 +102,71 @@ def payment_purchase_label(payment):
     except Exception:
         pass
     return fallback
+
+
+def retry_payment_path_for_payment(payment):
+    """Relative URL path to restart checkout for this payment's product, or '' if unknown."""
+    ot = getattr(payment, 'obj_type', None)
+    oid = getattr(payment, 'obj_id', None)
+    if not oid:
+        return ''
+    try:
+        if ot == choices.PaymentObjectType.SKILLLABCOURSE:
+            from skilllab.models import SkilllabCoursePayment
+
+            sp = SkilllabCoursePayment.objects.filter(pk=oid).select_related('skilllab_course').first()
+            if sp and getattr(sp, 'skilllab_course', None) and sp.skilllab_course.slug:
+                return reverse(
+                    'skilllabcourse:createskilllabcoursepayment',
+                    kwargs={'slug': sp.skilllab_course.slug},
+                )
+        elif ot == choices.PaymentObjectType.PYSCHOMETRICTESTDETAIL:
+            from psychometric_tests.models import PsychometricTestPayment
+
+            tp = PsychometricTestPayment.objects.filter(pk=oid).only('test_type').first()
+            if tp:
+                if tp.test_type == choices.PsychometricTestType.BASIC:
+                    return reverse('psychometrictests:psychometrictest')
+                if tp.test_type == choices.PsychometricTestType.ADVANCED:
+                    return reverse('psychometrictests:PsychometricTest12')
+            return reverse('psychometrictests:psychometrictest')
+        elif ot == choices.PaymentObjectType.COUNSELOR:
+            return reverse('counselor:CounselorCoursepayment')
+    except NoReverseMatch:
+        return ''
+    return ''
+
+
+def _payment_indicates_completed_gateway_attempt(payment):
+    """
+    True after a gateway callback / verification attempt (not merely a Razorpay order created).
+
+    Avoids treating a newly created unpaid ``Payment`` row as a failed payment.
+    """
+    if (getattr(payment, 'gateway_payment_id', None) or '').strip():
+        return True
+    if (getattr(payment, 'response_code', None) or '').strip():
+        return True
+    return False
+
+
+def _payment_context_base(payment, label, amt_display, cur_code, retry_path=''):
+    retry_hint = (
+        'You can use Retry payment below or open the checkout again from the product page.'
+        if retry_path
+        else 'Please try again from the purchase page or contact support.'
+    )
+    return {
+        'amount_display': amt_display,
+        'amount': '{:.2f}'.format(payment_order_amount_decimal(payment)),
+        'currency_code': cur_code,
+        'item': label,
+        'payment_id': payment.id,
+        'gateway_order_id': (payment.gateway_order_id or '') or '',
+        'retry_payment_path': retry_path,
+        'retry_payment_label': 'Retry payment' if retry_path else '',
+        'retry_payment_hint': retry_hint,
+    }
 
 
 def notify_payment_transition(payment, previous_is_success, created):
@@ -86,78 +185,116 @@ def notify_payment_transition(payment, previous_is_success, created):
     became_success = payment.is_success == choices.YesNoChoices.YES and (
         created or previous_is_success != choices.YesNoChoices.YES
     )
-    became_failed = payment.is_success != choices.YesNoChoices.YES and (
-        created or previous_is_success == choices.YesNoChoices.YES
+    became_failed = (
+        payment.is_success != choices.YesNoChoices.YES
+        and not created
+        and (
+            previous_is_success == choices.YesNoChoices.YES
+            or (
+                previous_is_success != choices.YesNoChoices.YES
+                and _payment_indicates_completed_gateway_attempt(payment)
+            )
+        )
     )
 
+    label = payment_purchase_label(payment)
+    amt = payment_amount_display(payment)
+    cur_code = payment_currency_code(payment)
+    retry_path = retry_payment_path_for_payment(payment) if became_failed else ''
+
     if became_success:
-        label = payment_purchase_label(payment)
-        amt = payment_amount_display(payment)
-        cur_code = payment_currency_code(payment)
         transitioned_from_non_success = not created and previous_is_success != choices.YesNoChoices.YES
 
         if transitioned_from_non_success:
             if amt:
-                body_ok = (
-                    'Your payment of {} for {} is now successful. '
+                default_title = 'Payment issue resolved'
+                default_body = (
+                    'Your payment of {amount_display} for {item} is now successful. '
                     'If you saw an error or pending status earlier, that issue is resolved.'
-                ).format(amt, label)
+                )
             else:
-                body_ok = (
-                    'Your payment for {} is now successful. '
+                default_title = 'Payment issue resolved'
+                default_body = (
+                    'Your payment for {item} is now successful. '
                     'If you saw an error or pending status earlier, that issue is resolved.'
-                ).format(label)
+                )
+            title, body = format_notification_message(
+                'payment.resolved',
+                _payment_context_base(payment, label, amt, cur_code),
+                default_title,
+                default_body,
+            )
             emit_notification(
                 event_type='payment.resolved',
-                title='Payment issue resolved',
-                body=body_ok,
+                title=title,
+                body=body,
                 recipients=recipients,
                 category=NotificationCategory.PAYMENT,
                 source_obj=payment,
                 payload={
-                    'payment_id': payment.id,
-                    'gateway_order_id': payment.gateway_order_id or '',
-                    'item': label,
-                    'currency_code': cur_code,
-                    'amount_rupees': float(payment.amount or 0),
-                    'amount_display': amt,
+                    **_payment_context_base(payment, label, amt, cur_code),
                     'recovered_from_non_success': True,
                 },
                 dedupe_key='payment_resolved_{}'.format(payment.id),
             )
         else:
             if amt:
-                body_ok = 'Your payment of {} for {} was received successfully.'.format(amt, label)
+                default_title = 'Payment successful'
+                default_body = 'Your payment of {amount_display} for {item} was received successfully.'
             else:
-                body_ok = 'Your payment for {} was received successfully.'.format(label)
+                default_title = 'Payment successful'
+                default_body = 'Your payment for {item} was received successfully.'
+            title, body = format_notification_message(
+                'payment.success',
+                _payment_context_base(payment, label, amt, cur_code),
+                default_title,
+                default_body,
+            )
             emit_notification(
                 event_type='payment.success',
-                title='Payment successful',
-                body=body_ok,
+                title=title,
+                body=body,
                 recipients=recipients,
                 category=NotificationCategory.PAYMENT,
                 source_obj=payment,
-                payload={
-                    'payment_id': payment.id,
-                    'gateway_order_id': payment.gateway_order_id or '',
-                    'item': label,
-                    'currency_code': cur_code,
-                    'amount_rupees': float(payment.amount or 0),
-                    'amount_display': amt,
-                },
+                payload=_payment_context_base(payment, label, amt, cur_code),
                 dedupe_key='payment_success_{}'.format(payment.id),
             )
 
         if transitioned_from_non_success:
-            staff_body = 'Payment {} for {} ({}) marked successful (was not successful before; e.g. gateway callback or manual reconciliation).'.format(
-                payment.id, label, amt or '—'
+            staff_extra = (
+                '(was not successful before; e.g. gateway callback or manual reconciliation).'
+            )
+            default_title = 'Payment status updated'
+            default_body = (
+                'Payment {payment_id} for {item} ({amount_display}) marked successful. {extra}'
+            )
+            ctx = _payment_context_base(payment, label, amt, cur_code)
+            ctx['status'] = 'success'
+            ctx['extra'] = staff_extra
+            title, body = format_notification_message(
+                'payment.status_updated',
+                ctx,
+                default_title,
+                default_body,
             )
         else:
-            staff_body = 'Payment {} for {} ({}) marked successful.'.format(payment.id, label, amt or '—')
+            staff_extra = ''
+            default_title = 'Payment status updated'
+            default_body = 'Payment {payment_id} for {item} ({amount_display}) marked successful. {extra}'
+            ctx = _payment_context_base(payment, label, amt, cur_code)
+            ctx['status'] = 'success'
+            ctx['extra'] = staff_extra
+            title, body = format_notification_message(
+                'payment.status_updated',
+                ctx,
+                default_title,
+                default_body,
+            )
         emit_notification(
             event_type='payment.status_updated',
-            title='Payment status updated',
-            body=staff_body,
+            title=title,
+            body=body,
             recipients=staff,
             category=NotificationCategory.PAYMENT,
             source_obj=payment,
@@ -165,35 +302,42 @@ def notify_payment_transition(payment, previous_is_success, created):
                 'payment_id': payment.id,
                 'status': 'success',
                 'item': label,
-                'amount_rupees': float(payment.amount or 0),
+                'amount_display': amt,
+                'currency_code': cur_code,
+                'amount': '{:.2f}'.format(payment_order_amount_decimal(payment)),
                 'recovered_from_non_success': transitioned_from_non_success,
             },
             dedupe_key='payment_status_updated_success_{}'.format(payment.id),
         )
     elif became_failed:
-        label = payment_purchase_label(payment)
-        amt = payment_amount_display(payment)
-        cur_code = payment_currency_code(payment)
+        ctx = _payment_context_base(payment, label, amt, cur_code, retry_path=retry_path)
         if amt:
-            body_fail = 'We could not confirm your payment of {} for {}. Please retry or contact support.'.format(
-                amt, label
+            default_title = 'Payment failed'
+            default_body = (
+                'We could not confirm your payment of {amount_display} for {item}. '
+                '{retry_payment_hint}'
             )
         else:
-            body_fail = 'We could not confirm your payment for {}. Please retry or contact support.'.format(label)
+            default_title = 'Payment failed'
+            default_body = (
+                'We could not confirm your payment for {item}. {retry_payment_hint}'
+            )
+        title, body = format_notification_message(
+            'payment.failed',
+            ctx,
+            default_title,
+            default_body,
+        )
         emit_notification(
             event_type='payment.failed',
-            title='Payment failed',
-            body=body_fail,
+            title=title,
+            body=body,
             recipients=recipients,
             category=NotificationCategory.PAYMENT,
             source_obj=payment,
             payload={
-                'payment_id': payment.id,
-                'gateway_order_id': payment.gateway_order_id or '',
-                'item': label,
-                'currency_code': cur_code,
-                'amount_rupees': float(payment.amount or 0),
-                'amount_display': amt,
+                **ctx,
+                'show_retry_payment': bool(retry_path),
             },
             dedupe_key='payment_failed_{}'.format(payment.id),
         )

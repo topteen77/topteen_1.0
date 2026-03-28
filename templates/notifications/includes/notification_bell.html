@@ -57,17 +57,34 @@
         return;
       }
       listEl.innerHTML = items.map(function (n) {
+        var pay = n.payload || {};
+        var retry = '';
+        if (pay.retry_payment_path && pay.show_retry_payment) {
+          var rl = esc(pay.retry_payment_label || 'Retry payment');
+          retry = '<div class="mt-2"><a class="btn btn-sm btn-primary tt-notification-retry" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a></div>';
+        }
         return '<div class="tt-notification-item border-bottom px-3 py-2 ' + (n.is_read ? '' : 'bg-light') + '" data-id="' + n.id + '">' +
           '<div class="fw-semibold small">' + esc(n.title) + '</div>' +
           '<div class="small text-muted">' + esc(n.body || '') + '</div>' +
+          retry +
           '<div class="small text-secondary mt-1">' + esc(n.created) + '</div>' +
         '</div>';
       }).join('');
       listEl.querySelectorAll('.tt-notification-item').forEach(function (el) {
-        el.addEventListener('click', function () {
+        el.addEventListener('click', function (e) {
+          if (e.target && e.target.closest && e.target.closest('a.tt-notification-retry')) {
+            return;
+          }
           var nid = el.getAttribute('data-id');
           markRead(nid);
           window.location.href = '{{ url("notifications:page") }}';
+        });
+      });
+      listEl.querySelectorAll('a.tt-notification-retry').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var row = a.closest('.tt-notification-item');
+          if (row) markRead(row.getAttribute('data-id'));
         });
       });
     }

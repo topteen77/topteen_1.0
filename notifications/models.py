@@ -59,7 +59,46 @@ class NotificationTypeConfig(models.Model):
         return '{} [{}]'.format(self.event_type, 'on' if self.enabled else 'off')
 
 
+class NotificationMessageTemplate(models.Model):
+    """
+    Admin-editable title/body templates for in-app notifications.
+
+    Use Python ``str.format`` placeholders, e.g. ``{amount_display}``, ``{item}``, ``{currency_code}``,
+    ``{payment_id}``, ``{gateway_order_id}``, ``{retry_payment_label}``, ``{reason}``.
+    Leave empty to use the built-in default strings from code.
+    """
+
+    event_type = models.CharField(max_length=120, unique=True, db_index=True)
+    title_template = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text='Optional. Empty = use built-in default title. Placeholders: see model docstring.',
+    )
+    body_template = models.TextField(
+        blank=True,
+        default='',
+        help_text='Optional. Empty = use built-in default body. Placeholders: see model docstring.',
+    )
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('event_type',)
+        verbose_name = 'Notification message template'
+        verbose_name_plural = 'Notification message templates'
+
+    def __str__(self):
+        return self.event_type
+
+
 class Notification(models.Model):
+    """
+    In-app notification row. Deletion is always a hard delete (SQL ``DELETE``) — there is no
+    soft-delete or archive flag. Marking as read (``mark_read()``) removes the row from the database.
+    """
+
     class Environment:
         PRODUCTION = 'production'
         DEVELOPMENT = 'development'
@@ -102,9 +141,10 @@ class Notification(models.Model):
         ]
 
     def mark_read(self):
-        if self.is_read:
-            return
-        self.is_read = True
-        self.read_at = timezone.now()
-        self.save(update_fields=['is_read', 'read_at', 'modified'])
+        """Dismiss this notification: hard-delete the row (no separate read/archive state)."""
+        self.delete()
+
+    def delete(self, using=None, keep_parents=False):
+        """Remove this row from the database (hard delete)."""
+        return super().delete(using=using, keep_parents=keep_parents)
 

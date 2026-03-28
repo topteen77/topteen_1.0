@@ -30,7 +30,7 @@
       </div>
       <div class="col-md-12 d-flex align-items-end gap-2 justify-content-end">
         <button id="nFilter" class="btn btn-primary w-100">Apply</button>
-        <button id="nMarkAll" class="btn btn-outline-secondary">Mark all read</button>
+        <button id="nMarkAll" class="btn btn-outline-secondary">Clear all</button>
         <button id="nDeleteAllEnv" class="btn btn-outline-danger">Delete all selected environment</button>
       </div>
     </div>
@@ -64,10 +64,16 @@
           list.innerHTML = '<div class="text-muted p-3">No notifications found.</div>';
         } else {
           list.innerHTML = data.notifications.map(function(n){
+            var pay = n.payload || {};
+            var retry = '';
+            if (pay.retry_payment_path && pay.show_retry_payment) {
+              var rl = esc(pay.retry_payment_label || 'Retry payment');
+              retry = '<div class="mt-2"><a class="btn btn-sm btn-primary" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a></div>';
+            }
             return '<button class="list-group-item list-group-item-action ' + (n.is_read ? '' : 'list-group-item-light') + '" data-id="'+n.id+'">' +
               '<div class="d-flex justify-content-between"><strong>' + esc(n.title) + '</strong><small>' + esc(n.created) + '</small></div>' +
               '<div class="small text-muted">' + esc(n.event_type) + ' | ' + esc(n.environment || '') + '</div>' +
-              '<div>' + esc(n.body || '') + '</div></button>';
+              '<div>' + esc(n.body || '') + '</div>' + retry + '</button>';
           }).join('');
           list.querySelectorAll('[data-id]').forEach(function(el){
             el.addEventListener('click', function(){
