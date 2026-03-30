@@ -361,6 +361,38 @@
     border: 0;
     display: block;
   }
+  /* View-only embed: browser PDF UI (download/print) hidden where #toolbar=0 is honored (e.g. Chrome). */
+  .lesson-pdf-iframe-wrap--viewonly {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* PDF.js canvas: no text layer — blocks select/copy of text (images only; screenshots still possible). */
+  .lesson-pdf-secure-viewer {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .lesson-pdf-secure-pages {
+    max-height: min(70vh, 640px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 12px;
+    background: #525659;
+  }
+  .lesson-pdf-page-wrap {
+    display: block;
+    text-align: center;
+    padding: 8px 0;
+    line-height: 0;
+  }
+  .lesson-pdf-page-wrap canvas {
+    max-width: 100%;
+    height: auto !important;
+    vertical-align: middle;
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: auto;
+  }
   .lesson-empty-hint {
     color: #6b7280;
     font-size: 0.95rem;
@@ -485,13 +517,19 @@
                   <div class="tab-pane fade {% if not has_video and has_pdf %}show active{% endif %}" id="lesson-pdf-pane" role="tabpanel" aria-labelledby="lesson-pdf-tab">
                     <div class="lesson-tab-pane-inner">
                       {% if has_pdf %}
-                      <div class="d-flex flex-wrap gap-2 mb-2 justify-content-end">
-                        <a href="{{ current_part.pdf_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
-                          <i class='bx bx-link-external me-1'></i>Open in new tab
-                        </a>
-                      </div>
-                      <div class="lesson-pdf-iframe-wrap">
-                        <iframe src="{{ current_part.pdf_url }}" title="Lesson PDF"></iframe>
+                      {# Strip existing fragment; Chrome/Edge PDF viewer: #toolbar=0 navpanes=0 hides download/print toolbar (view-only where supported). #}
+                      {% set pdf_url_base = current_part.pdf_url.split('#')[0] %}
+                      {% set pdf_embed_src = pdf_url_base ~ '#toolbar=0&navpanes=0' %}
+                      <p class="text-gray fs-12 mb-2 mb-0"><i class='bx bx-info-circle me-1'></i>View only — copying lesson text is disabled.</p>
+                      <div class="lesson-pdf-iframe-wrap lesson-pdf-iframe-wrap--viewonly lesson-pdf-secure-viewer"
+                           id="lessonPdfSecureViewer"
+                           data-pdf-url="{{ pdf_url_base }}"
+                           data-pdf-fallback-src="{{ pdf_embed_src }}">
+                        <div class="lesson-pdf-secure-pages" id="lessonPdfPages" aria-label="Lesson PDF pages"></div>
+                        <div class="lesson-pdf-secure-fallback d-none" id="lessonPdfFallback">
+                          <iframe src="{{ pdf_embed_src }}" title="Lesson PDF"></iframe>
+                          <p class="text-warning fs-12 mb-0 mt-2">Standard preview (limited copy protection). If the PDF is on another domain, allow CORS on the file host for the secure viewer.</p>
+                        </div>
                       </div>
                       {% else %}
                       <div class="lesson-empty-hint">
@@ -720,6 +758,7 @@
 {{ super() }}
 <!-- SweetAlert2 for notifications -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   // Hide any profile sidebars that might appear
   (function() {
@@ -1297,6 +1336,103 @@
           if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Could not save note' });
           else alert('Could not save note.');
         });
+    });
+  });
+
+  /**
+   * Lesson PDF: PDF.js canvas only (no text layer) + block copy/cut/paste/selection in the viewer area.
+   * Falls back to iframe if PDF.js fails (e.g. CORS on external PDF host).
+   */
+  document.addEventListener('DOMContentLoaded', function () {
+    var root = document.getElementById('lessonPdfSecureViewer');
+    var pagesEl = document.getElementById('lessonPdfPages');
+    var fallbackEl = document.getElementById('lessonPdfFallback');
+    if (!root || !pagesEl) return;
+
+    var pdfUrl = root.getAttribute('data-pdf-url');
+    if (!pdfUrl) return;
+
+    function inViewer(el) {
+      return el && root.contains(el);
+    }
+
+    root.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    root.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+    document.addEventListener('selectstart', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
+      if (inViewer(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('copy', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
+      if (inViewer(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('cut', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
+      if (inViewer(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('paste', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
+      if (inViewer(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
+      var mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      var k = e.key;
+      if (k !== 'c' && k !== 'C' && k !== 'x' && k !== 'X' && k !== 'v' && k !== 'V' && k !== 'a' && k !== 'A') return;
+      var t = e.target;
+      if (inViewer(t) || inViewer(document.activeElement)) e.preventDefault();
+    }, true);
+
+    if (typeof pdfjsLib === 'undefined') {
+      if (fallbackEl) fallbackEl.classList.remove('d-none');
+      return;
+    }
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    requestAnimationFrame(function () {
+    pdfjsLib.getDocument({ url: pdfUrl, verbosity: 0 }).promise
+      .then(function (pdf) {
+        pagesEl.innerHTML = '';
+        var containerW = Math.max(320, pagesEl.clientWidth || root.clientWidth || 800);
+
+        function renderPage(num) {
+          return pdf.getPage(num).then(function (page) {
+            var wrap = document.createElement('div');
+            wrap.className = 'lesson-pdf-page-wrap';
+            var canvas = document.createElement('canvas');
+            canvas.setAttribute('draggable', 'false');
+            var ctx = canvas.getContext('2d', { alpha: false });
+            var base = page.getViewport({ scale: 1 });
+            var scale = containerW / base.width;
+            var viewport = page.getViewport({ scale: scale });
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+            return page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
+              wrap.appendChild(canvas);
+              pagesEl.appendChild(wrap);
+            });
+          });
+        }
+
+        var chain = Promise.resolve();
+        for (var n = 1; n <= pdf.numPages; n++) {
+          (function (pageNum) {
+            chain = chain.then(function () { return renderPage(pageNum); });
+          })(n);
+        }
+        return chain;
+      })
+      .catch(function (err) {
+        console.warn('Lesson PDF secure viewer failed:', err);
+        if (fallbackEl) fallbackEl.classList.remove('d-none');
+      });
     });
   });
 </script>

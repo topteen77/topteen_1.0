@@ -119,6 +119,9 @@ def _counselor_course_detail_cta(request, course):
             except (QuizResults.DoesNotExist, ValueError, TypeError):
                 pass
 
+    if _is_course_fully_completed(user):
+        cta_label = "Complete"
+
     return (cta_label, learn_url, True)
 
 
@@ -1806,6 +1809,9 @@ def CounselorDashboard(request, coun_id=None):
                             break
                     except (QuizResults.DoesNotExist, ValueError, TypeError):
                         pass
+
+        if any(_is_course_fully_completed(u) for u in _dashboard_course_users):
+            counselor_course_cta = "Complete"
 
     # Initialize lightweight context for initial page load
     context = {
