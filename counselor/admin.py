@@ -1,10 +1,12 @@
 from django import forms
 from django.contrib import admin
+from django.db.models import Count
+from django.urls import reverse
+from django.utils.html import format_html
 from counselor.models import Counselor
 from institute.models import StudentManagement
 from .models import FollowUpStatus
 
-from django.contrib import admin
 import nested_admin
 from .models import CounselorCourse, Chapter, Part, Quiz, Question, QuizAnswers, QuizResults ,VideoProgress , Notes ,CounselorCertification
 
@@ -58,42 +60,119 @@ class ChapterInline(nested_admin.NestedStackedInline):
     verbose_name_plural = "Chapters"
 
 # ============================================================================
-# MAIN COURSE ADMIN - NESTED ADMIN
+# COURSE ADMIN — list edits, linked counts, change form = course + pricing only
 # ============================================================================
 
+class CounselorCourseAdminForm(forms.ModelForm):
+    class Meta:
+        model = CounselorCourse
+        fields = '__all__'
+
+
 @admin.register(CounselorCourse)
-class CourseAdmin(nested_admin.NestedModelAdmin):
-    """Main admin for CounselorCourse with nested editing"""
-    list_display = ('title', 'get_chapter_count', 'get_part_count', 'created_at', 'updated_at')
+class CourseAdmin(admin.ModelAdmin):
+    form = CounselorCourseAdminForm
+    class Media:
+        js = ('counselor/js/admin_counselor_course_pricing.js',)
+
+    list_display = (
+        'id',
+        'title',
+        'currency',
+        'actual_price',
+        'discount_percent',
+        'get_discounted_price_list',
+        'get_chapter_count_link',
+        'get_part_count_link',
+        'created_at',
+        'updated_at',
+    )
+    list_display_links = ('title',)
     search_fields = ('title',)
     list_filter = ('created_at', 'updated_at')
     ordering = ('-created_at',)
-    inlines = [ChapterInline]
-    
+    inlines = []
+
     fieldsets = (
-        ('Course Information', {
-            'fields': ('title',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
+        ('Course', {'fields': ('title',)}),
+        (
+            'Pricing',
+            {
+                'fields': (
+                    'currency',
+                    'actual_price',
+                    'discount_percent',
+                    'amount',
+                    'dynamic_price',
+                    'checkout_price_help',
+                ),
+                'description': 'Discount defaults to 0; price is calculated from MRP. Increase discount % to lower price. Dynamic price is optional.',
+            },
+        ),
+        (
+            'Timestamps',
+            {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)},
+        ),
     )
-    readonly_fields = ('created_at', 'updated_at')
-    
-    def get_chapter_count(self, obj):
-        """Display number of chapters"""
-        return obj.chapters.count()
-    get_chapter_count.short_description = 'Chapters'
-    get_chapter_count.admin_order_field = 'chapters__count'
-    
-    def get_part_count(self, obj):
-        """Display total number of parts across all chapters"""
-        total = 0
-        for chapter in obj.chapters.all():
-            total += chapter.parts.count()
-        return total
-    get_part_count.short_description = 'Total Parts'
+    readonly_fields = ('created_at', 'updated_at', 'checkout_price_help')
+
+    def get_readonly_fields(self, request, obj=None):
+        ro = list(super().get_readonly_fields(request, obj))
+        ro.append('amount')
+        return ro
+
+    @admin.display(description='Price (calculated)', ordering='amount')
+    def get_discounted_price_list(self, obj):
+        return obj.amount
+
+    @admin.display(description='Checkout')
+    def checkout_price_help(self, obj):
+        # Spans updated live by static/counselor/js/admin_counselor_course_pricing.js
+        if obj.pk:
+            sym = obj.get_currency_symbol()
+            amt = obj.get_charge_amount_rupees()
+        else:
+            sym = '₹'
+            amt = '—'
+        return format_html(
+            '<p class="counselor-checkout-preview">'
+            '<strong>Charged at checkout:</strong> '
+            '<span id="counselor-checkout-symbol">{}</span> '
+            '<span id="counselor-checkout-value">{}</span> '
+            '(dynamic price if set, otherwise calculated price).'
+            '</p>',
+            sym,
+            amt,
+        )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(
+            _chapter_count=Count('chapters', distinct=True),
+            _part_count=Count('chapters__parts', distinct=True),
+        )
+
+    @admin.display(description='Chapters', ordering='_chapter_count')
+    def get_chapter_count_link(self, obj):
+        n = getattr(obj, '_chapter_count', None)
+        if n is None:
+            n = obj.chapters.count()
+        url = '{}?course__id__exact={}'.format(
+            reverse('admin:counselor_chapter_changelist'),
+            obj.pk,
+        )
+        return format_html('<a href="{}">{}</a>', url, n)
+
+    @admin.display(description='Total parts', ordering='_part_count')
+    def get_part_count_link(self, obj):
+        n = getattr(obj, '_part_count', None)
+        if n is None:
+            n = sum(ch.parts.count() for ch in obj.chapters.all())
+        url = '{}?chapter__course__id__exact={}'.format(
+            reverse('admin:counselor_part_changelist'),
+            obj.pk,
+        )
+        return format_html('<a href="{}">{}</a>', url, n)
 
 # ============================================================================
 # INDIVIDUAL MODEL ADMINS (for standalone editing)

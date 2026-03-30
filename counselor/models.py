@@ -4,6 +4,8 @@ from psychometric_tests.models import PsychometricTestPayment
 from psychometric_tests.task import create_central_test_candidate
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.timezone import localtime
 
 from users.models import User
@@ -11,15 +13,96 @@ from core import choices
 from core.models import BaseModel, BaseMoneyModel, Configuration,SlugModel
 
 class CounselorCourse(models.Model):
-    title = models.CharField(max_length=200,blank=True, null=True)  # Name of the course
-    created_at = models.DateTimeField(auto_now_add=True)  # Course creation date
-    updated_at = models.DateTimeField(auto_now=True)  # Course last update time
+    title = models.CharField(max_length=200, blank=True, null=True)
+    currency = models.PositiveSmallIntegerField(
+        choices=choices.Currency.CHOICES,
+        default=choices.Currency.IND,
+        verbose_name='Currency',
+        help_text='Default is INR (same as other payments in this app).',
+    )
+    actual_price = models.PositiveIntegerField(
+        default=19999,
+        verbose_name='MRP',
+        help_text='Maximum retail price (list price) in the selected currency.',
+    )
+    discount_percent = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name='Discount (%)',
+        help_text='Price is calculated from MRP. Use 0 for no discount (price equals MRP).',
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    amount = models.PositiveIntegerField(
+        default=19999,
+        verbose_name='Price',
+        help_text='Always calculated from MRP and discount %. Charged at checkout unless dynamic price is set.',
+    )
+    dynamic_price = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Dynamic price',
+        help_text='Optional. If set, this amount is charged at checkout instead of the calculated price.',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "Courses"
 
-    def __str__(self):  
-        return self.title
+    def __str__(self):
+        return self.title or ''
+
+    def get_charge_amount_rupees(self):
+        """Major currency units (INR, USD, …) stored on Payment and sent to the gateway."""
+        if self.dynamic_price is not None:
+            return int(self.dynamic_price)
+        return int(self.amount)
+
+    def apply_discount_from_percent(self):
+        """Set ``amount`` from MRP and ``discount_percent`` (0 = pay full MRP)."""
+        if self.actual_price is None:
+            return
+        p = int(self.discount_percent)
+        mrp = int(self.actual_price)
+        self.amount = max(0, int(round(mrp * (100 - p) / 100.0)))
+
+    def has_active_discount(self):
+        """True when a promotional discount % is applied (shows discount UI on site)."""
+        return int(self.discount_percent) > 0
+
+    def get_currency_code(self):
+        """ISO code for payment gateways (matches project default mapping)."""
+        return 'USD' if int(self.currency) == choices.Currency.USD else 'INR'
+
+    def get_currency_symbol(self):
+        return '$' if int(self.currency) == choices.Currency.USD else '₹'
+
+    def clean(self):
+        self.apply_discount_from_percent()
+        super().clean()
+        mrp = self.actual_price
+        if mrp is None:
+            return
+        mrp = int(mrp)
+        if self.amount is not None:
+            amt = int(self.amount)
+            if amt > mrp:
+                raise ValidationError({'amount': 'Price cannot be greater than MRP.'})
+            if amt >= mrp and int(self.discount_percent) != 0:
+                raise ValidationError(
+                    {'amount': 'Price must be less than MRP unless discount is 0% (full MRP).'}
+                )
+        if self.dynamic_price is not None:
+            d = int(self.dynamic_price)
+            if d > mrp:
+                raise ValidationError({'dynamic_price': 'Dynamic price cannot be greater than MRP.'})
+            if d >= mrp and int(self.discount_percent) != 0:
+                raise ValidationError(
+                    {'dynamic_price': 'Dynamic price must be less than MRP unless discount is 0%.'}
+                )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class Chapter(models.Model):
     course = models.ForeignKey(CounselorCourse, on_delete=models.CASCADE, related_name="chapters",blank=True, null=True)

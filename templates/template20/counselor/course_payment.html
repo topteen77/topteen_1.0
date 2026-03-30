@@ -205,9 +205,11 @@
                 <p class="payment-validity">Career guidance • 1 year validity</p>
                
                 <div class="price-row">
-                  <span class="price-current">₹ 999/-</span>
-                  <span class="price-strike">₹ 2,999/-</span>
-                  <span class="payment-badge">80% OFF</span>
+                  <span class="price-current">{{ course_currency_symbol|default('₹') }} {{ course_price_charge_fmt|default('19,999') }}/-</span>
+                  {% if course_has_discount %}
+                  <span class="price-strike">{{ course_currency_symbol|default('₹') }} {{ course_price_actual_fmt }}/-</span>
+                  <span class="payment-badge">{{ course_discount_percent }}% OFF</span>
+                  {% endif %}
                 </div>
                 <p class="payment-onetime">One-time payment</p>
                 <ul class="payment-features">
@@ -355,7 +357,7 @@
   options = {
     "key": "{{ key }}",
     "amount": "{{ payment.amount }}",
-    "currency": "INR",
+    "currency": "{{ razorpay_currency|default('INR') }}",
     "name": "Top Teen",
     "description": "Career Counseling Course",
     "image": "{% if request %}{{ request.build_absolute_uri(static('images_new/logos/logo.svg')) }}{% endif %}",

@@ -865,7 +865,23 @@ def CounselorCoursepayment(request):
     course_with_related_data = CounselorCourse.objects.prefetch_related(
         'chapters__parts__quizzes__questions'
     ).first()
-    
+
+    _currency_symbol = (
+        course_with_related_data.get_currency_symbol()
+        if course_with_related_data
+        else '₹'
+    )
+    _razorpay_currency = (
+        course_with_related_data.get_currency_code()
+        if course_with_related_data
+        else 'INR'
+    )
+    _payment_currency = (
+        int(course_with_related_data.currency)
+        if course_with_related_data
+        else choices.Currency.IND
+    )
+
     chapter_count = 0
     part_count = 0
     question_count = 0
@@ -893,8 +909,33 @@ def CounselorCoursepayment(request):
     # Only create payment record and Razorpay order if user is authenticated
     payment_record_id = None
     razorpay_order = None
-    amount = 500  # Course amount in INR
-    
+    amount = (
+        course_with_related_data.get_charge_amount_rupees()
+        if course_with_related_data
+        else 19999
+    )
+
+    def _inr_commas(n):
+        try:
+            return '{:,}'.format(int(n))
+        except (TypeError, ValueError):
+            return str(n)
+
+    _charge = amount
+    _actual = (
+        int(course_with_related_data.actual_price)
+        if course_with_related_data
+        else 19999
+    )
+    _has_discount = bool(
+        course_with_related_data
+        and int(course_with_related_data.discount_percent) > 0
+    )
+    if _has_discount:
+        _pct = int(course_with_related_data.discount_percent)
+    else:
+        _pct = None
+
     if request.user.is_authenticated:
         # Check for existing unpaid payment order
         existing_payment = Payment.objects.filter(
@@ -922,6 +963,7 @@ def CounselorCoursepayment(request):
             payment_record = Payment.objects.create(
                 user=request.user,
                 amount=amount,
+                currency=_payment_currency,
                 gateway_receipt=gateway_receipt,
                 obj_type=choices.PaymentObjectType.COUNSELOR,
                 obj_id=course_with_related_data.id if course_with_related_data else 0,
@@ -931,8 +973,8 @@ def CounselorCoursepayment(request):
             # Create Razorpay order
             client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
             data = { 
-                "amount": amount * 100,  # Convert to paise
-                "currency": "INR", 
+                "amount": amount * 100,  # minor units (paise for INR)
+                "currency": _razorpay_currency,
                 "receipt": gateway_receipt
             }
             razorpay_order = client.order.create(data=data)
@@ -1029,6 +1071,13 @@ def CounselorCoursepayment(request):
         'part_count': part_count,
         'question_count': question_count,
         'course': course_with_related_data,
+        'course_price_charge': _charge,
+        'course_price_charge_fmt': _inr_commas(_charge),
+        'course_price_actual_fmt': _inr_commas(_actual),
+        'course_has_discount': _has_discount,
+        'course_discount_percent': _pct,
+        'course_currency_symbol': _currency_symbol,
+        'razorpay_currency': _razorpay_currency,
         'user_authenticated': request.user.is_authenticated,
         'course_page': course_page,
         'counselor_course_video_url': counselor_course_video_url,
