@@ -132,7 +132,12 @@ class Notes(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name="notes")
     content = models.TextField()
-    video_timestamp = models.CharField(max_length=8, null=True, blank=True)  # New field to store HH:MM:SS format
+    video_timestamp = models.CharField(
+        max_length=8, null=True, blank=True, help_text="Clip start in video (e.g. 0:12 or 1:02:30)"
+    )
+    video_end_timestamp = models.CharField(
+        max_length=8, null=True, blank=True, help_text="Clip end in video (e.g. 0:45 or 1:05:00)"
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -206,6 +211,37 @@ class CounselorCertification(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.certificate_code}"
+
+
+class CounselorCourseAttemptBackup(models.Model):
+    """
+    Snapshot of counselor course progress before a soft reset (audit / optional recovery).
+    Hard resets do not create a row here.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="counselor_course_attempt_backups",
+    )
+    snapshot = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="counselor_course_backups_created",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Counselor course attempt backup"
+        verbose_name_plural = "Counselor course attempt backups"
+
+    def __str__(self):
+        return f"Backup for {self.user_id} @ {self.created_at}"
+
 
 # class Notes(models.Model):
 #     user = models.ForeignKey(

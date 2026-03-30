@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin.decorators import action
 from .models import User,UserProfile,UserCalender, UserNote, UserResume, UserFolder, UserSearchHistory
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -219,7 +220,11 @@ class UserAdmin(admin.ModelAdmin):
     list_editable = ['is_demo_account']
     list_filter = ('is_active','is_demo_account','is_system_demo','last_login','user_type','object_status')
     search_fields=['id','name','email','mobile']
-    actions = ['hard_delete_selected']
+    actions = [
+        'hard_delete_selected',
+        'reset_counselor_course_soft',
+        'reset_counselor_course_hard',
+    ]
     change_list_template = 'admin/users/user/change_list.html'
 
     def get_urls(self):
@@ -309,6 +314,70 @@ class UserAdmin(admin.ModelAdmin):
         return qs
     
     
+    def _reset_counselor_course_for_users(self, request, queryset, mode):
+        from counselor.course_reset import reset_counselor_course_data_for_user
+
+        if not request.user.is_superuser and not request.user.has_perm('users.change_user'):
+            self.message_user(
+                request,
+                'You do not have permission to reset counselor course data.',
+                messages.ERROR,
+            )
+            return
+        ok_n = 0
+        err_n = 0
+        lines = []
+        for user in queryset:
+            try:
+                result = reset_counselor_course_data_for_user(
+                    user, mode=mode, actor=request.user
+                )
+                if result.get('ok'):
+                    ok_n += 1
+                    c = result.get('counts') or {}
+                    extra = ''
+                    if mode == 'soft' and result.get('backup_id'):
+                        extra = f" backup#{result.get('backup_id')}"
+                    lines.append(
+                        f'{user.email or user.pk}: removed video={c.get("video_progress", 0)} '
+                        f'notes={c.get("notes", 0)} quiz={c.get("quiz_results", 0)} '
+                        f'cert={c.get("certifications", 0)}{extra}'
+                    )
+                else:
+                    err_n += 1
+                    lines.append(f'{user.email or user.pk}: {result.get("message", "Failed")}')
+            except Exception as ex:
+                err_n += 1
+                lines.append(f'{user.email or user.pk}: {ex}')
+        label = 'Soft reset (backup + clear)' if mode == 'soft' else 'Hard reset (no backup)'
+        if ok_n:
+            self.message_user(
+                request,
+                f'{label}: counselor course reset for {ok_n} user(s). Payment records were not removed. '
+                + (
+                    ' | '.join(lines[:20])
+                    if len(lines) <= 20
+                    else ' | '.join(lines[:20]) + ' …'
+                ),
+                messages.SUCCESS if not err_n else messages.WARNING,
+            )
+        elif err_n:
+            self.message_user(request, ' | '.join(lines), messages.ERROR)
+
+    @action(
+        description='Soft reset counselor course (backup snapshot, then clear; keeps payment)',
+        permissions=['change'],
+    )
+    def reset_counselor_course_soft(self, request, queryset):
+        self._reset_counselor_course_for_users(request, queryset, 'soft')
+
+    @action(
+        description='Hard reset counselor course (delete attempt data, no backup; keeps payment)',
+        permissions=['change'],
+    )
+    def reset_counselor_course_hard(self, request, queryset):
+        self._reset_counselor_course_for_users(request, queryset, 'hard')
+
     def save_model(self, request, obj, form, change):
         # Override this to set the password to the value in the field if it's
         # changed.

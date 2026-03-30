@@ -12,6 +12,11 @@
 
 {% block additionalhead %}
 {{ super() }}
+{# Early connection to video host (CDN/S3) helps TLS + first-byte latency for progressive MP4 streaming #}
+{% if video_preconnect_href %}
+<link rel="preconnect" href="{{ video_preconnect_href }}" crossorigin>
+<link rel="dns-prefetch" href="{{ video_preconnect_href }}">
+{% endif %}
 <style>
   .course-learning-page {
     padding-top: 80px;
@@ -150,10 +155,9 @@
     height: auto;
     max-height: 600px;
   }
-  /* Hide video progress bar/seek bar */
-  .video-container video::-webkit-media-controls-timeline,
-  .video-container video::-webkit-media-controls-current-time-display,
-  .video-container video::-webkit-media-controls-time-remaining-display {
+  {% if is_restricted_view %}
+  /* Restricted view: hide only the seek scrubber; keep current time / duration visible */
+  .video-container video::-webkit-media-controls-timeline {
     display: none !important;
   }
   .video-container video::-webkit-media-controls-timeline-container {
@@ -167,10 +171,7 @@
   .video-container video::-webkit-media-controls-panel {
     display: flex !important;
   }
-  /* Hide the progress bar track */
-  .video-container video::-webkit-media-controls-timeline {
-    display: none !important;
-  }
+  {% endif %}
   .quiz-container {
     background: #fff;
     border-radius: 8px;
@@ -423,6 +424,21 @@
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
   }
+  .lesson-note-item .lesson-note-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .lesson-note-item .lesson-note-meta {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+  .lesson-note-item .lesson-note-meta strong {
+    color: #374151;
+    font-weight: 600;
+  }
   .lesson-note-add textarea {
     min-height: 72px;
     resize: vertical;
@@ -452,6 +468,7 @@
       <div class="col-lg-9">
           <div class="px-4">
             <!-- Progress Bar -->
+            {% if not is_restricted_view %}
             <div class="progress-bar-container">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="fs-16 fw-semibold">Course Progress</span>
@@ -461,6 +478,12 @@
                 <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
               </div>
             </div>
+            {% else %}
+            <div class="alert alert-warning mb-3">
+              <i class='bx bx-lock me-2'></i>
+              Restricted view. Full course navigation and progress features are available for demo counselors.
+            </div>
+            {% endif %}
 
             <!-- Content Display -->
             {% if content_type == 'part' and current_part %}
@@ -493,8 +516,10 @@
                     <div class="lesson-tab-pane-inner">
                       {% if has_video %}
                       <div class="video-container">
+                        {# Demo: preload=auto buffers sooner; restricted: metadata only. Speed also depends on file size, CDN, and Range (HTTP 206) support on the host. #}
                         <video id="video-{{ current_part.id }}"
-                               preload="metadata"
+                               preload="{% if is_demo_account %}auto{% else %}metadata{% endif %}"
+                               playsinline
                                controls
                                data-part-id="{{ current_part.id }}">
                           <source src="{{ current_part.video_url }}" type="video/mp4">
@@ -546,20 +571,54 @@
                 <h4 class="d-flex align-items-center gap-2 mb-2">
                   <i class='bx bx-notepad text-primary'></i> Notes
                 </h4>
+                <div id="lessonNotesList" class="lesson-notes-list" data-delete-url-template="{{ url('counselor:delete_note', args=[0]) }}">
                 {% if part_notes %}
                   {% for n in part_notes %}
-                  <div class="lesson-note-item">{{ n.content }}</div>
+                  <div class="lesson-note-item" data-note-id="{{ n.id }}">
+                    <div class="lesson-note-head">
+                      {% if n.video_timestamp or n.video_end_timestamp %}
+                      <div class="lesson-note-meta mb-0">
+                        <i class='bx bx-time-five align-middle'></i>
+                        Start <strong>{{ n.video_timestamp or '—' }}</strong>
+                        <span class="text-muted">·</span>
+                        End <strong>{{ n.video_end_timestamp or '—' }}</strong>
+                      </div>
+                      {% else %}
+                      <div class="flex-grow-1"></div>
+                      {% endif %}
+                      <button type="button" class="btn btn-sm btn-outline-danger lesson-note-delete flex-shrink-0" data-note-id="{{ n.id }}" data-delete-url="{{ url('counselor:delete_note', args=[n.id]) }}" title="Delete note">Delete</button>
+                    </div>
+                    <div class="lesson-note-body">{{ n.content }}</div>
+                  </div>
                   {% endfor %}
                 {% else %}
-                  <p class="text-gray fs-14 mb-3 mb-0">No notes for this lesson yet.</p>
+                  <p class="text-gray fs-14 mb-3 mb-0 lesson-notes-empty-msg" id="lessonNotesEmptyMsg">No notes for this lesson yet.</p>
                 {% endif %}
+                </div>
+                <form class="lesson-note-add-form" autocomplete="off" novalidate onsubmit="return false;">
                 <div class="lesson-note-add mt-3">
+                  <p class="text-muted fs-12 mb-2 mb-0">Start time is taken from the video when you first click into the note box. End time is set when you save if you leave it blank. You can edit both fields anytime.</p>
+                  <div class="row g-2 align-items-end mb-2">
+                    <div class="col-sm-4">
+                      <label class="form-label fs-12 text-muted mb-0" for="lessonNoteTimeStart">Start</label>
+                      <input type="text" class="form-control form-control-sm" id="lessonNoteTimeStart" name="counselor_note_clip_start" maxlength="8" value="" placeholder="From video" readonly autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" />
+                    </div>
+                    <div class="col-sm-4">
+                      <label class="form-label fs-12 text-muted mb-0" for="lessonNoteTimeEnd">End</label>
+                      <input type="text" class="form-control form-control-sm" id="lessonNoteTimeEnd" name="counselor_note_clip_end" maxlength="8" value="" placeholder="On save if empty" readonly autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" />
+                    </div>
+                    <div class="col-sm-4 d-flex flex-wrap gap-1">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" id="lessonNoteSetStartBtn" title="Set start from current playback time">Set start</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" id="lessonNoteSetEndBtn" title="Set end from current playback time">Set end</button>
+                    </div>
+                  </div>
                   <label class="form-label fs-13 fw-semibold text-gray mb-1">Add a note</label>
-                  <textarea class="form-control" id="lessonNoteContent" rows="3" placeholder="Write your note…"></textarea>
-                  <button type="button" class="btn custom-button purple-button mt-2" id="lessonNoteSubmitBtn" data-note-url="{{ url('counselor:add_note', args=[current_part.id]) }}">
+                  <textarea class="form-control" id="lessonNoteContent" rows="3" placeholder="Click here to begin — start time is captured from the video"></textarea>
+                  <button type="button" class="btn custom-button purple-button mt-2" id="lessonNoteSubmitBtn" data-note-url="{{ url('counselor:add_note', args=[current_part.id]) }}" data-delete-url-template="{{ url('counselor:delete_note', args=[0]) }}">
                     <i class='bx bx-plus-circle me-1'></i>Save note
                   </button>
                 </div>
+                </form>
               </div>
 
             {% elif content_type == 'quiz' and current_quiz and quiz_questions %}
@@ -641,13 +700,21 @@
                     {% endif %}
                     
                     <div class="text-center mt-4">
+                      {% if not is_restricted_view %}
                       <button onclick="navigateToNextPart()" class="btn custom-button purple-button">
                         Continue to Next Part <i class='bx bx-chevron-right ms-2'></i>
                       </button>
+                      {% endif %}
                     </div>
                   </div>
                 {% else %}
                   <!-- Quiz Not Completed - Show Questions One by One -->
+                  {% if is_restricted_view %}
+                    <div class="alert alert-warning mb-0">
+                      <i class='bx bx-lock me-2'></i>
+                      Quiz is restricted for this account.
+                    </div>
+                  {% else %}
                   <form id="quizForm" method="POST" action="{{ url('counselor:submit_full_quiz', args=[counselor.id, current_quiz.id]) }}">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     
@@ -728,6 +795,7 @@
                       {% endif %}
                     </div>
                   </form>
+                  {% endif %}
                 {% endif %}
               </div>
 
@@ -1182,7 +1250,10 @@
     }
   });
 
-  // Video progress tracking and prevent seeking
+  // False for demo counselors and non-counselors: scrubber works. True only for paid/non-demo counselors (preview lock).
+  var restrictVideoSeek = {{ restrict_video_seek|tojson }};
+
+  // Video progress tracking; forward-seek prevention applies only when restrictVideoSeek is true
   document.querySelectorAll('video').forEach(video => {
     const partId = video.getAttribute('data-part-id');
     let lastTime = 0;
@@ -1209,59 +1280,56 @@
           console.debug('No saved progress found for video-' + partId);
         });
       
-      // Prevent seeking forward - only allow backward seeking within small range
       video.addEventListener('timeupdate', function() {
-        if (this.duration) {
-          // If user tried to seek forward, reset to last valid position
+        if (!this.duration) return;
+        if (restrictVideoSeek) {
           if (!isUserSeeking && this.currentTime > lastTime + 2) {
-            // Allow small forward jumps (2 seconds) for buffering, but prevent large skips
             this.currentTime = lastTime;
           } else {
             lastTime = this.currentTime;
           }
-          
-          const progress = (this.currentTime / this.duration) * 100;
-          updateVideoProgress('video-' + partId, progress, this.duration);
         }
+        const progress = (this.currentTime / this.duration) * 100;
+        updateVideoProgress('video-' + partId, progress, this.duration, false);
       });
-      
-      // Track when user tries to seek
-      video.addEventListener('seeking', function() {
-        isUserSeeking = true;
-        // If seeking forward more than 2 seconds, prevent it
-        if (this.currentTime > lastTime + 2) {
-          this.currentTime = lastTime;
-        }
-      });
-      
-      video.addEventListener('seeked', function() {
-        isUserSeeking = false;
-        // Ensure we don't go forward
-        if (this.currentTime > lastTime + 2) {
-          this.currentTime = lastTime;
-        } else {
-          lastTime = this.currentTime;
-        }
-      });
-      
-      // Prevent right-click context menu on video (which might allow seeking)
-      video.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-      });
-      
-      // Prevent keyboard seeking (arrow keys, etc.)
-      video.addEventListener('keydown', function(e) {
-        // Prevent arrow keys from seeking
-        if ([37, 38, 39, 40].includes(e.keyCode)) {
+
+      if (restrictVideoSeek) {
+        video.addEventListener('seeking', function() {
+          isUserSeeking = true;
+          if (this.currentTime > lastTime + 2) {
+            this.currentTime = lastTime;
+          }
+        });
+        video.addEventListener('seeked', function() {
+          isUserSeeking = false;
+          if (this.currentTime > lastTime + 2) {
+            this.currentTime = lastTime;
+          } else {
+            lastTime = this.currentTime;
+          }
+        });
+        video.addEventListener('contextmenu', function(e) {
           e.preventDefault();
           return false;
+        });
+        video.addEventListener('keydown', function(e) {
+          if ([37, 38, 39, 40].includes(e.keyCode)) {
+            e.preventDefault();
+            return false;
+          }
+        });
+      }
+      
+      video.addEventListener('pause', function() {
+        if (this.duration) {
+          var p = (this.currentTime / this.duration) * 100;
+          updateVideoProgress('video-' + partId, p, this.duration, true);
         }
       });
-      
+
       video.addEventListener('ended', function() {
         if (this.duration) {
-          updateVideoProgress('video-' + partId, 100, this.duration);
+          updateVideoProgress('video-' + partId, 100, this.duration, true);
           // Reload to update sidebar status
           setTimeout(() => {
             window.location.reload();
@@ -1271,7 +1339,17 @@
     }
   });
 
-  function updateVideoProgress(videoId, progress, duration) {
+  // timeupdate can fire ~4+ times per second; throttle periodic saves to avoid hammering the server.
+  var _videoProgressLastSent = {};
+  var VIDEO_PROGRESS_THROTTLE_MS = 30000;
+
+  function updateVideoProgress(videoId, progress, duration, force) {
+    if (!force) {
+      var now = Date.now();
+      var last = _videoProgressLastSent[videoId] || 0;
+      if (now - last < VIDEO_PROGRESS_THROTTLE_MS) return;
+      _videoProgressLastSent[videoId] = now;
+    }
     fetch('{{ url("counselor:update_progress") }}', {
       method: 'POST',
       headers: {
@@ -1301,22 +1379,179 @@
     return cookieValue;
   }
 
+  function getLessonVideoEl() {
+    return document.querySelector('#lesson-video-pane video');
+  }
+
+  function formatNoteTime(seconds) {
+    if (!isFinite(seconds) || seconds < 0) return '';
+    var h = Math.floor(seconds / 3600);
+    var m = Math.floor((seconds % 3600) / 60);
+    var s = Math.floor(seconds % 60);
+    if (h > 0) {
+      return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
+    var setStartBtn = document.getElementById('lessonNoteSetStartBtn');
+    var setEndBtn = document.getElementById('lessonNoteSetEndBtn');
+    var inpStart = document.getElementById('lessonNoteTimeStart');
+    var inpEnd = document.getElementById('lessonNoteTimeEnd');
+    var ta = document.getElementById('lessonNoteContent');
+    var lessonNoteStartCaptured = false;
+
+    function unlockClipTimeInput(el) {
+      if (el) el.removeAttribute('readonly');
+    }
+    if (inpStart) {
+      ['focus', 'pointerdown'].forEach(function (ev) {
+        inpStart.addEventListener(ev, function () { unlockClipTimeInput(inpStart); }, { passive: true });
+      });
+    }
+    if (inpEnd) {
+      ['focus', 'pointerdown'].forEach(function (ev) {
+        inpEnd.addEventListener(ev, function () { unlockClipTimeInput(inpEnd); }, { passive: true });
+      });
+    }
+
+    function captureStartFromVideoIfNeeded() {
+      if (lessonNoteStartCaptured) return;
+      if (inpStart && (inpStart.value || '').trim()) {
+        lessonNoteStartCaptured = true;
+        return;
+      }
+      var v = getLessonVideoEl();
+      if (!v || !isFinite(v.currentTime)) return;
+      if (inpStart) {
+        inpStart.value = formatNoteTime(v.currentTime);
+        unlockClipTimeInput(inpStart);
+      }
+      lessonNoteStartCaptured = true;
+    }
+
+    if (inpStart) {
+      inpStart.addEventListener('input', function () {
+        if (!(inpStart.value || '').trim()) lessonNoteStartCaptured = false;
+      });
+    }
+
+    if (ta) {
+      ta.addEventListener('focus', function () {
+        captureStartFromVideoIfNeeded();
+      });
+      ta.addEventListener('pointerdown', function () {
+        captureStartFromVideoIfNeeded();
+      });
+    }
+
+    if (setStartBtn && inpStart) {
+      setStartBtn.addEventListener('click', function() {
+        var v = getLessonVideoEl();
+        if (!v || !isFinite(v.currentTime)) {
+          if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'Play the video first' });
+          else alert('Play the video first to capture time.');
+          return;
+        }
+        unlockClipTimeInput(inpStart);
+        inpStart.value = formatNoteTime(v.currentTime);
+        lessonNoteStartCaptured = true;
+      });
+    }
+    if (setEndBtn && inpEnd) {
+      setEndBtn.addEventListener('click', function() {
+        var v = getLessonVideoEl();
+        if (!v || !isFinite(v.currentTime)) {
+          if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'Play the video first' });
+          else alert('Play the video first to capture time.');
+          return;
+        }
+        unlockClipTimeInput(inpEnd);
+        inpEnd.value = formatNoteTime(v.currentTime);
+      });
+    }
+
     var noteBtn = document.getElementById('lessonNoteSubmitBtn');
-    if (!noteBtn) return;
-    noteBtn.addEventListener('click', function() {
-      var ta = document.getElementById('lessonNoteContent');
+
+    function escapeHtml(str) {
+      if (str == null) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function buildNoteDeleteUrl(noteId) {
+      var tpl = (noteBtn && noteBtn.getAttribute('data-delete-url-template')) || '';
+      if (!tpl) {
+        var listEl = document.getElementById('lessonNotesList');
+        tpl = listEl ? listEl.getAttribute('data-delete-url-template') || '' : '';
+      }
+      if (!tpl) return '';
+      return tpl.replace(/\/0(\/|$)/, '/' + noteId + '$1');
+    }
+
+    function appendLessonNoteRow(data) {
+      var list = document.getElementById('lessonNotesList');
+      if (!list || !data || !data.id) return;
+      var empty = document.getElementById('lessonNotesEmptyMsg');
+      if (empty) empty.remove();
+      var t0 = data.time || '';
+      var t1 = data.time_end || '';
+      var hasTimes = !!(t0 || t1);
+      var delUrl = buildNoteDeleteUrl(data.id);
+      var delBtn = '';
+      if (delUrl) {
+        delBtn = '<button type="button" class="btn btn-sm btn-outline-danger lesson-note-delete flex-shrink-0" data-note-id="' + data.id + '" data-delete-url="' + escapeHtml(delUrl) + '" title="Delete note">Delete</button>';
+      }
+      var meta = hasTimes
+        ? '<div class="lesson-note-meta mb-0"><i class=\'bx bx-time-five align-middle\'></i> Start <strong>' + escapeHtml(t0 || '—') + '</strong> <span class="text-muted">·</span> End <strong>' + escapeHtml(t1 || '—') + '</strong></div>'
+        : '<div class="flex-grow-1"></div>';
+      var html = '<div class="lesson-note-item" data-note-id="' + data.id + '"><div class="lesson-note-head">' + meta + delBtn + '</div><div class="lesson-note-body">' + escapeHtml(data.content || '') + '</div></div>';
+      list.insertAdjacentHTML('beforeend', html);
+    }
+
+    function resetLessonNoteForm() {
+      var taEl = document.getElementById('lessonNoteContent');
+      if (taEl) taEl.value = '';
+      if (inpStart) {
+        inpStart.value = '';
+        inpStart.setAttribute('readonly', 'readonly');
+      }
+      if (inpEnd) {
+        inpEnd.value = '';
+        inpEnd.setAttribute('readonly', 'readonly');
+      }
+      lessonNoteStartCaptured = false;
+    }
+
+    if (noteBtn) noteBtn.addEventListener('click', function() {
+      var taEl = document.getElementById('lessonNoteContent');
       var url = noteBtn.getAttribute('data-note-url');
-      if (!ta || !url) return;
-      var text = (ta.value || '').trim();
+      if (!taEl || !url) return;
+      var text = (taEl.value || '').trim();
       if (!text) {
         if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'Enter a note' });
         else alert('Please enter a note.');
         return;
       }
+      var t0 = inpStart ? (inpStart.value || '').trim() : '';
+      var t1 = inpEnd ? (inpEnd.value || '').trim() : '';
+      if (!t1) {
+        var vSave = getLessonVideoEl();
+        if (vSave && isFinite(vSave.currentTime)) {
+          t1 = formatNoteTime(vSave.currentTime);
+          if (inpEnd) {
+            unlockClipTimeInput(inpEnd);
+            inpEnd.value = t1;
+          }
+        }
+      }
       var body = new URLSearchParams();
       body.append('content', text);
-      body.append('time', '');
+      body.append('time', t0);
+      body.append('time_end', t1);
+      noteBtn.disabled = true;
       fetch(url, {
         method: 'POST',
         headers: {
@@ -1326,16 +1561,96 @@
         body: body.toString(),
         credentials: 'same-origin',
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error((j && (j.error || j.detail)) || 'Save failed');
+            return j;
+          }, function () {
+            throw new Error('Save failed');
+          });
+        })
         .then(function (data) {
-          if (data && data.id) window.location.reload();
-          else if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Could not save note' });
+          if (data && data.id) {
+            appendLessonNoteRow({
+              id: data.id,
+              content: data.content,
+              time: data.time,
+              time_end: data.time_end,
+            });
+            resetLessonNoteForm();
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({ icon: 'success', title: 'Note saved', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+            }
+          } else {
+            throw new Error('Invalid response');
+          }
+        })
+        .catch(function (err) {
+          if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Could not save note', text: err && err.message ? String(err.message) : '' });
           else alert('Could not save note.');
         })
-        .catch(function () {
-          if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Could not save note' });
-          else alert('Could not save note.');
+        .finally(function () {
+          noteBtn.disabled = false;
         });
+    });
+
+    function performDeleteNote(delBtn, delUrl) {
+      fetch(delUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken') || '',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        credentials: 'same-origin',
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            var row = delBtn.closest('.lesson-note-item');
+            if (row) row.remove();
+            else window.location.reload();
+          } else if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Could not delete note' });
+          } else {
+            alert('Could not delete note.');
+          }
+        })
+        .catch(function () {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'Could not delete note' });
+          } else {
+            alert('Could not delete note.');
+          }
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+      var del = e.target && e.target.closest && e.target.closest('.lesson-note-delete');
+      if (!del) return;
+      e.preventDefault();
+      var delUrl = del.getAttribute('data-delete-url');
+      if (!delUrl) return;
+
+      function confirmed() {
+        performDeleteNote(del, delUrl);
+      }
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Delete this note?',
+          text: 'This cannot be undone.',
+          showCancelButton: true,
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel',
+          confirmButtonColor: '#dc3545',
+          focusCancel: true,
+        }).then(function (result) {
+          if (result.isConfirmed) confirmed();
+        });
+      } else if (window.confirm('Delete this note? This cannot be undone.')) {
+        confirmed();
+      }
     });
   });
 

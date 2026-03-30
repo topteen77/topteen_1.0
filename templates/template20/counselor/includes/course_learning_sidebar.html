@@ -15,7 +15,7 @@
         {% set is_current_chapter = current_chapter and current_chapter.id == chapter.id %}
         {% set is_chapter_locked = chapter_locked_status.get(chapter.id, False) %}
         <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %}" data-chapter-id="{{ chapter.id }}">
-          <div class="chapter-header" {% if not is_chapter_locked %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
+          <div class="chapter-header" {% if not is_chapter_locked and not is_restricted_view %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center flex-grow-1">
                 <div class="chapter-number me-3">
@@ -65,7 +65,7 @@
             
             <div class="part-item {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
                  data-part-id="{{ part_id }}"
-                 {% if not is_part_locked %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
+                 {% if not is_part_locked and not is_restricted_view %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
               <div class="d-flex align-items-center justify-content-between mb-1">
                 <div class="d-flex align-items-center flex-grow-1">
                   <i class='bx bx-play-circle me-2 fs-16 {% if is_current_part %}text-primary{% else %}text-primary{% endif %}'></i>
@@ -86,7 +86,7 @@
                 {% set is_quiz_locked = not is_video_completed %}
                 <div class="quiz-item {% if is_video_completed and not is_part_locked %}enabled{% else %}disabled{% endif %} {% if is_quiz_completed %}completed{% endif %} {% if is_current_quiz %}active{% endif %} {% if is_quiz_locked or is_part_locked %}locked{% endif %}"
                      data-quiz-id="{{ quiz.id }}"
-                     {% if is_video_completed and not is_part_locked %}onclick="event.stopPropagation(); navigateToQuiz({{ quiz.id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative;"{% endif %}>
+                     {% if is_video_completed and not is_part_locked and not is_restricted_view %}onclick="event.stopPropagation(); navigateToQuiz({{ quiz.id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative;"{% endif %}>
                   {% if is_current_quiz %}
                   <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 75%; background: {% if is_current_part %}linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%){% else %}linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%){% endif %}; border-radius: 0 6px 6px 0; box-shadow: 0 0 8px {% if is_current_part %}rgba(255, 255, 255, 0.4){% else %}rgba(255, 107, 107, 0.5){% endif %};"></div>
                   {% endif %}

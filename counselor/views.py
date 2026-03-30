@@ -2484,28 +2484,34 @@ def update_progress(request):
 def add_note(request, part_id):
     if request.method == "POST":
         part = get_object_or_404(Part, id=part_id)
-        content = request.POST.get('content')
-        video_timestamp = request.POST.get('time')
+        content = (request.POST.get('content') or '').strip()
+        video_timestamp = (request.POST.get('time') or '').strip() or None
+        video_end_timestamp = (request.POST.get('time_end') or '').strip() or None
 
         note = Notes.objects.create(
             user=request.user,
             part=part,
             content=content,
-            video_timestamp=video_timestamp
+            video_timestamp=video_timestamp,
+            video_end_timestamp=video_end_timestamp,
         )
         # Return the note details in the response
         return JsonResponse({
             "id": note.id,
             "content": note.content,
-            "time": note.video_timestamp
+            "time": note.video_timestamp,
+            "time_end": note.video_end_timestamp,
         })
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
+
+@login_required(login_url=reverse_lazy('users:login'))
 def edit_note(request, note_id, part_id):
     if request.method == "POST":
         note = get_object_or_404(Notes, id=note_id, user=request.user)
         note.content = request.POST.get('content')
-        note.video_timestamp = request.POST.get('time')
+        note.video_timestamp = (request.POST.get('time') or '').strip() or None
+        note.video_end_timestamp = (request.POST.get('time_end') or '').strip() or None
 
         note.save()
         # Return updated note details
@@ -2513,14 +2519,19 @@ def edit_note(request, note_id, part_id):
             "id": note.id,
             "content": note.content,
             "time": note.video_timestamp,
+            "time_end": note.video_end_timestamp,
             "updated_at": note.updated_at if hasattr(note, 'updated_at') else None
         })
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
+
+@login_required(login_url=reverse_lazy('users:login'))
 def delete_note(request, note_id):
     if request.method == "POST":
         note = get_object_or_404(Notes, id=note_id, user=request.user)
         note.delete()
         return JsonResponse({"success": True, "id": note_id})
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 
 def TestVttVideo(request):
@@ -2552,6 +2563,10 @@ class CourseLearningView(View):
                 raise Http404("You don't have permission to access this counselor's course.")
         
         user = request.user
+        is_demo_account = bool(getattr(user, "is_demo_account", False))
+        is_restricted_view = (
+            request.user.user_type == choices.UserType.COUNSELOR and not is_demo_account
+        )
         course_with_related_data = CounselorCourse.objects.prefetch_related(
             'chapters__parts__quizzes__questions__answers'
         ).first()
@@ -2586,8 +2601,12 @@ class CourseLearningView(View):
             scores = []
         
         # Determine what content to show based on URL parameters
-        content_type = request.GET.get('type', None)  # chapter, part, quiz
-        content_id = request.GET.get('id', None)
+        # Restricted counselors: always show only the first lesson (view-only).
+        content_type = None
+        content_id = None
+        if not is_restricted_view:
+            content_type = request.GET.get('type', None)  # chapter, part, quiz
+            content_id = request.GET.get('id', None)
         
         current_chapter = None
         current_part = None
@@ -2595,6 +2614,16 @@ class CourseLearningView(View):
         current_question_index = 0
         
         chapters_list = list(course_with_related_data.chapters.all())
+
+        if is_restricted_view and chapters_list:
+            # Force the restricted view to the very first part in the course.
+            first_chapter = chapters_list[0]
+            first_part = first_chapter.parts.first()
+            if first_part:
+                current_chapter = first_chapter
+                current_part = first_part
+                content_type = "part"
+                content_id = str(first_part.id)
         
         # If no specific content requested, find the next pending part
         if not content_type and not content_id:
@@ -2893,6 +2922,13 @@ class CourseLearningView(View):
         for chapter_idx, chapter in enumerate(chapters_list):
             # Check if previous chapter is completed
             is_chapter_locked = False
+            if is_restricted_view:
+                # In restricted mode, lock everything except the first chapter.
+                is_chapter_locked = chapter_idx != 0
+                chapter_locked_status[chapter.id] = is_chapter_locked
+                for part_idx, part in enumerate(list(chapter.parts.all())):
+                    part_locked_status[part.id] = not (chapter_idx == 0 and part_idx == 0)
+                continue
             if chapter_idx > 0:
                 prev_chapter = chapters_list[chapter_idx - 1]
                 prev_chapter_complete = True
@@ -3027,6 +3063,22 @@ class CourseLearningView(View):
                 Notes.objects.filter(user=user, part=current_part).order_by("-updated_at")
             )
 
+        video_preconnect_href = None
+        if current_part and getattr(current_part, "video_url", None):
+            from urllib.parse import urlparse
+
+            try:
+                p = urlparse(current_part.video_url)
+                if p.scheme and p.netloc:
+                    video_preconnect_href = f"{p.scheme}://{p.netloc}"
+            except Exception:
+                pass
+
+        # True only for non-demo counselors: lock forward seek in JS + restricted UI.
+        restrict_video_seek = bool(
+            request.user.user_type == choices.UserType.COUNSELOR and not is_demo_account
+        )
+
         context = {
             'counselor': counselor,
             'course': course_with_related_data,
@@ -3046,6 +3098,10 @@ class CourseLearningView(View):
             'chapter_locked_status': chapter_locked_status,  # Locked status for chapters
             'part_locked_status': part_locked_status,  # Locked status for parts
             'part_notes': part_notes,
+            'is_demo_account': is_demo_account,
+            'is_restricted_view': is_restricted_view,
+            'video_preconnect_href': video_preconnect_href,
+            'restrict_video_seek': restrict_video_seek,
         }
         
         return render(request, self.template_name, context)

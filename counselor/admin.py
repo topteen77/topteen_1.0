@@ -1,5 +1,6 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.contrib.admin.decorators import action
 from django.db.models import Count
 from django.urls import reverse
 from django.utils.html import format_html
@@ -8,7 +9,19 @@ from institute.models import StudentManagement
 from .models import FollowUpStatus
 
 import nested_admin
-from .models import CounselorCourse, Chapter, Part, Quiz, Question, QuizAnswers, QuizResults ,VideoProgress , Notes ,CounselorCertification
+from .models import (
+    CounselorCourse,
+    Chapter,
+    Part,
+    Quiz,
+    Question,
+    QuizAnswers,
+    QuizResults,
+    VideoProgress,
+    Notes,
+    CounselorCertification,
+    CounselorCourseAttemptBackup,
+)
 
 # ============================================================================
 # NESTED INLINE ADMIN FOR COURSE STRUCTURE
@@ -341,7 +354,7 @@ class VideoProgressAdmin(admin.ModelAdmin):
 
 @admin.register(Notes)
 class NotesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'part','video_timestamp', 'updated_at')
+    list_display = ('id', 'user', 'part', 'video_timestamp', 'video_end_timestamp', 'updated_at')
     list_filter = ('video_timestamp', 'updated_at')
 
 class CounselorCertificationAdmin(admin.ModelAdmin):
@@ -362,6 +375,84 @@ class CounselorCertificationAdmin(admin.ModelAdmin):
 
 # Register the model and its admin customization
 admin.site.register(CounselorCertification, CounselorCertificationAdmin)
+
+
+@admin.register(CounselorCourseAttemptBackup)
+class CounselorCourseAttemptBackupAdmin(admin.ModelAdmin):
+    """Audit trail for soft counselor course resets; restore reapplies snapshot to the user."""
+
+    list_display = ("id", "user", "created_at", "created_by", "snapshot_preview")
+    list_filter = ("created_at",)
+    search_fields = ("user__email", "user__name", "user__id")
+    readonly_fields = ("user", "snapshot", "created_at", "created_by")
+    actions = ("restore_counselor_course_from_backup_action",)
+
+    @action(
+        description="Restore counselor course data from this backup (replaces current progress for that user)",
+        permissions=["view"],
+    )
+    def restore_counselor_course_from_backup_action(self, request, queryset):
+        from counselor.course_reset import restore_counselor_course_from_backup
+
+        if not request.user.is_superuser:
+            self.message_user(
+                request,
+                "Only superusers can restore backups.",
+                messages.ERROR,
+            )
+            return
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                "Select exactly one backup to restore.",
+                messages.ERROR,
+            )
+            return
+        backup = queryset.first()
+        try:
+            result = restore_counselor_course_from_backup(backup, actor=request.user)
+            if result.get("ok"):
+                c = result.get("counts") or {}
+                self.message_user(
+                    request,
+                    result.get("message", "Restored.")
+                    + f" video={c.get('video_progress', 0)} notes={c.get('notes', 0)} "
+                    f"quiz={c.get('quiz_results', 0)} cert={c.get('certifications', 0)}",
+                    messages.SUCCESS,
+                )
+            else:
+                self.message_user(
+                    request,
+                    result.get("message", "Restore failed."),
+                    messages.ERROR,
+                )
+        except Exception as ex:
+            self.message_user(request, str(ex), messages.ERROR)
+
+    def snapshot_preview(self, obj):
+        snap = obj.snapshot or {}
+        vp = len(snap.get("video_progress") or [])
+        n = len(snap.get("notes") or [])
+        q = 1 if snap.get("quiz_results") else 0
+        c = len(snap.get("certifications") or [])
+        return format_html(
+            "video rows: {} · notes: {} · quiz: {} · certs: {}",
+            vp,
+            n,
+            q,
+            c,
+        )
+
+    snapshot_preview.short_description = "Snapshot summary"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 # Note: Chapter, Part, Quiz, Question, and QuizAnswers are already registered 
 # using @admin.register decorators above
@@ -393,6 +484,73 @@ class CounselorAdmin(admin.ModelAdmin):
     search_fields = ('counselor_name', 'counselor_email', 'counselor_admin__username')
     list_filter = ('counselor_gender',)
     ordering = ('counselor_name',)
+    actions = (
+        'reset_counselor_course_soft_for_linked_user',
+        'reset_counselor_course_hard_for_linked_user',
+    )
+
+    def _reset_counselors_linked_users(self, request, queryset, mode):
+        from counselor.course_reset import reset_counselor_course_data_for_user
+
+        if not request.user.is_superuser and not request.user.has_perm(
+            'counselor.change_counselor'
+        ):
+            self.message_user(
+                request,
+                'You do not have permission to reset counselor course data.',
+                messages.ERROR,
+            )
+            return
+        lines = []
+        ok_n = 0
+        for c in queryset:
+            if not c.coun_user:
+                lines.append(f'{c.counselor_name}: no linked user')
+                continue
+            try:
+                result = reset_counselor_course_data_for_user(
+                    c.coun_user, mode=mode, actor=request.user
+                )
+                if result.get('ok'):
+                    ok_n += 1
+                    ct = result.get('counts') or {}
+                    extra = ''
+                    if mode == 'soft' and result.get('backup_id'):
+                        extra = f" backup#{result.get('backup_id')}"
+                    lines.append(
+                        f'{c.counselor_name} ({c.coun_user.email}): '
+                        f'video={ct.get("video_progress", 0)} notes={ct.get("notes", 0)} '
+                        f'quiz={ct.get("quiz_results", 0)} cert={ct.get("certifications", 0)}'
+                        f'{extra}'
+                    )
+                else:
+                    lines.append(f'{c.counselor_name}: {result.get("message", "Failed")}')
+            except Exception as ex:
+                lines.append(f'{c.counselor_name}: {ex}')
+        label = 'Soft reset (backup + clear)' if mode == 'soft' else 'Hard reset (no backup)'
+        if ok_n:
+            self.message_user(
+                request,
+                f'{label}: counselor course reset for {ok_n} linked user(s). '
+                + (' | '.join(lines[:25]) if lines else ''),
+                messages.SUCCESS,
+            )
+        elif lines:
+            self.message_user(request, ' | '.join(lines), messages.WARNING)
+
+    @action(
+        description='Soft reset counselor course (backup snapshot, then clear; keeps payment)',
+        permissions=['change'],
+    )
+    def reset_counselor_course_soft_for_linked_user(self, request, queryset):
+        self._reset_counselors_linked_users(request, queryset, 'soft')
+
+    @action(
+        description='Hard reset counselor course (delete attempt data, no backup; keeps payment)',
+        permissions=['change'],
+    )
+    def reset_counselor_course_hard_for_linked_user(self, request, queryset):
+        self._reset_counselors_linked_users(request, queryset, 'hard')
 
 
 # admin.py
