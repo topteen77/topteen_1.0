@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from app.models import Answer, Results
 from institute.filters import StudentFilter
 from institute.models import ClassAndSection, Institute, StudentManagement
-from .models import Counselor, Quiz, Chapter, Part, QuizAnswers, QuizResults , VideoProgress ,CounselorCourse ,Notes, CounselorCertification
+from .models import Counselor, Quiz, Chapter, Part, QuizAnswers, QuizResults, VideoProgress, CounselorCourse, Notes, CounselorCertification, Question
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count
 from django.utils import timezone
@@ -27,7 +27,222 @@ from django.utils.decorators import method_decorator
 
 User = get_user_model()
 
+
+def _counselor_course_access_for_user(user, counselor_course):
+    """
+    True if this user should be treated as having access to the counselor course:
+    successful Payment (same as course detail), matching Invoice, certification,
+    or existing video/quiz progress on the course.
+    """
+    from core import choices
+    from payments.models import Payment
+    from invoices.models import Invoice
+
+    if not user:
+        return False
+    if Payment.objects.filter(
+        user=user,
+        obj_type=choices.PaymentObjectType.COUNSELOR,
+        is_success=choices.YesNoChoices.YES,
+    ).exists():
+        return True
+    if Invoice.objects.filter(
+        payment__user=user,
+        payment__obj_type=choices.PaymentObjectType.COUNSELOR,
+    ).exists():
+        return True
+    if CounselorCertification.objects.filter(user=user).exists():
+        return True
+    if counselor_course:
+        part_ids = list(
+            Part.objects.filter(chapter__course=counselor_course).values_list("id", flat=True)
+        )
+        if part_ids:
+            video_keys = [f"video-{pid}" for pid in part_ids]
+            if VideoProgress.objects.filter(user=user, video_id__in=video_keys).exists():
+                return True
+        try:
+            qr = QuizResults.objects.get(user=user)
+            scores = qr.scores
+            if isinstance(scores, str):
+                scores = json.loads(scores) if (scores and scores.strip()) else []
+            elif not isinstance(scores, list):
+                scores = []
+            if scores:
+                return True
+        except (QuizResults.DoesNotExist, ValueError, TypeError):
+            pass
+    return False
+
+
+def _counselor_course_detail_cta(request, course):
+    """
+    Enroll vs Start/Resume for course detail, aligned with counselor dashboard.
+    Returns (cta_label, cta_url, counselor_course_enrolled).
+    """
+    user = getattr(request, "user", None)
+    enroll_url = reverse("counselor:CounselorCoursepayment") + "?auto_pay=1"
+    if not user or not user.is_authenticated:
+        return ("Enroll", enroll_url, False)
+
+    counselor_course_enrolled = bool(course) and _counselor_course_access_for_user(user, course)
+    if not counselor_course_enrolled:
+        return ("Enroll", enroll_url, False)
+
+    c = Counselor.objects.filter(coun_user=user).first()
+    if not c:
+        c = Counselor.objects.order_by("id").first()
+    if c:
+        learn_url = reverse("counselor:course_learning", args=[c.id])
+    else:
+        learn_url = reverse("counselor:counselor_enrolled_course")
+
+    cta_label = "Start"
+    if course:
+        part_ids = list(
+            Part.objects.filter(chapter__course=course).values_list("id", flat=True)
+        )
+        if part_ids:
+            video_keys = [f"video-{pid}" for pid in part_ids]
+            if VideoProgress.objects.filter(user=user, video_id__in=video_keys).exists():
+                cta_label = "Resume"
+        if cta_label == "Start":
+            try:
+                qr = QuizResults.objects.get(user=user)
+                scores = qr.scores
+                if isinstance(scores, str):
+                    scores = json.loads(scores) if (scores and scores.strip()) else []
+                elif not isinstance(scores, list):
+                    scores = []
+                if scores:
+                    cta_label = "Resume"
+            except (QuizResults.DoesNotExist, ValueError, TypeError):
+                pass
+
+    return (cta_label, learn_url, True)
+
+
 # Create your views here.
+
+
+class CounselorCourseCurriculumView(TemplateView):
+    template_name = "template20/counselor/course_curriculum.html"
+
+    def get_context_data(self, **kwargs):
+        from core import choices
+        from payments.models import Payment
+
+        context = super().get_context_data(**kwargs)
+        course = (
+            CounselorCourse.objects.prefetch_related("chapters__parts")
+            .order_by("id")
+            .first()
+        )
+        chapters = []
+        if course:
+            chapters = list(course.chapters.all().order_by("id"))
+            for ch in chapters:
+                ch._parts = list(ch.parts.all().order_by("id"))
+
+        context.update(
+            {
+                "course": course,
+                "chapters": chapters,
+            }
+        )
+
+        user_authenticated = bool(getattr(self.request, "user", None) and self.request.user.is_authenticated)
+        has_successful_payment = False
+        if user_authenticated:
+            has_successful_payment = Payment.objects.filter(
+                user=self.request.user,
+                obj_type=choices.PaymentObjectType.COUNSELOR,
+                is_success=choices.YesNoChoices.YES,
+            ).exists()
+
+        if has_successful_payment:
+            context["curriculum_cta_label"] = "Start Now"
+            context["curriculum_cta_url"] = reverse("counselor:counselor_enrolled_course")
+        else:
+            context["curriculum_cta_label"] = "Book Now"
+            context["curriculum_cta_url"] = reverse("counselor:CounselorCoursepayment") + "?auto_pay=1"
+
+        context["user_authenticated"] = user_authenticated
+        return context
+
+
+class CounselorCourseDetailView(TemplateView):
+    """
+    SkillLab-style course landing page (tabs + index accordion + sticky CTA),
+    backed by CounselorCourse/Chapter/Part data and Payment state.
+    """
+
+    template_name = "template20/counselor/course_detail.html"
+
+    def get_context_data(self, **kwargs):
+        from core import choices
+        from core.models import Configuration
+        from payments.models import Payment
+
+        ctx = super().get_context_data(**kwargs)
+
+        course = (
+            CounselorCourse.objects.prefetch_related("chapters__parts")
+            .order_by("id")
+            .first()
+        )
+
+        chapters = []
+        part_count = 0
+        if course:
+            chapters = list(course.chapters.all().order_by("id"))
+            for ch in chapters:
+                ch._parts = list(ch.parts.all().order_by("id"))
+                part_count += len(ch._parts)
+
+        user_authenticated = bool(
+            getattr(self.request, "user", None) and self.request.user.is_authenticated
+        )
+        has_successful_payment = False
+        if user_authenticated:
+            has_successful_payment = Payment.objects.filter(
+                user=self.request.user,
+                obj_type=choices.PaymentObjectType.COUNSELOR,
+                is_success=choices.YesNoChoices.YES,
+            ).exists()
+
+        cta_label, cta_url, counselor_course_enrolled = _counselor_course_detail_cta(
+            self.request, course
+        )
+
+        # Optional: show intro content from Configuration (keeps data in career_counselor app)
+        # Admin can paste HTML into Configuration key: COUNSELOR_COURSE_INTRO_HTML
+        course_intro_html = (Configuration.get("COUNSELOR_COURSE_INTRO_HTML", default="", editable=True) or "").strip()
+
+        ctx.update(
+            {
+                "course": course,
+                "chapters": chapters,
+                "chapter_count": len(chapters),
+                "part_count": part_count,
+                "user_authenticated": user_authenticated,
+                "has_successful_payment": has_successful_payment,
+                "counselor_course_enrolled": counselor_course_enrolled,
+                "cta_label": cta_label,
+                "cta_url": cta_url,
+                "course_intro_html": course_intro_html,
+                "breadcrumb": get_breadcrumb(
+                    [
+                        {
+                            "text": "Career Counseling Course",
+                            "url": reverse("counselor:CounselorCoursepayment"),
+                        },
+                        {"text": "Course Detail", "url": ""},
+                    ]
+                ),
+            }
+        )
+        return ctx
 
 # def CounselorMainDashboard(request):
     
@@ -892,21 +1107,23 @@ def CounselorCoursepayment(request):
             part_count += chapter.parts.count()
             for part in chapter.parts.all():
                 question_count += part.quizzes.values('questions').count()
-    
-    # Check if user already has a successful payment
-    if request.user.is_authenticated:
-        existing_successful_payment = Payment.objects.filter(
-            user=request.user,
-            obj_type=choices.PaymentObjectType.COUNSELOR,
-            is_success=choices.YesNoChoices.YES
-        ).first()
-        
-        if existing_successful_payment:
-            # User already paid, redirect to course page
-            from django.shortcuts import redirect
-            return redirect('counselor:counselor_enrolled_course')
-    
-    # Only create payment record and Razorpay order if user is authenticated
+
+    counselor_course_enrolled = False
+    counselor_payment_cta_label = "Book Now"
+    counselor_payment_cta_url = ""
+    if request.user.is_authenticated and course_with_related_data:
+        counselor_course_enrolled = _counselor_course_access_for_user(
+            request.user, course_with_related_data
+        )
+        if counselor_course_enrolled:
+            _lbl, counselor_payment_cta_url, _ = _counselor_course_detail_cta(
+                request, course_with_related_data
+            )
+            counselor_payment_cta_label = (
+                "Start Now" if _lbl == "Start" else "Resume"
+            )
+
+    # Only create payment record and Razorpay order if user is authenticated and not already enrolled
     payment_record_id = None
     razorpay_order = None
     amount = (
@@ -936,7 +1153,7 @@ def CounselorCoursepayment(request):
     else:
         _pct = None
 
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not counselor_course_enrolled:
         # Check for existing unpaid payment order
         existing_payment = Payment.objects.filter(
             user=request.user,
@@ -1079,6 +1296,9 @@ def CounselorCoursepayment(request):
         'course_currency_symbol': _currency_symbol,
         'razorpay_currency': _razorpay_currency,
         'user_authenticated': request.user.is_authenticated,
+        'counselor_course_enrolled': counselor_course_enrolled,
+        'counselor_payment_cta_label': counselor_payment_cta_label,
+        'counselor_payment_cta_url': counselor_payment_cta_url,
         'course_page': course_page,
         'counselor_course_video_url': counselor_course_video_url,
         'counselor_course_video_embed_url': counselor_course_video_embed_url,
@@ -1530,7 +1750,63 @@ def CounselorDashboard(request, coun_id=None):
     # For initial load, only get minimal data needed for filters
     # Heavy processing (results_data, merged_data) will be done via AJAX
     per_page = request.GET.get('per_page', '10')
-    
+
+    counselor_course = CounselorCourse.objects.only("title").first()
+    counselor_course_title = (
+        (counselor_course.title or "").strip() or "Career Counseling Course"
+        if counselor_course
+        else "Career Counseling Course"
+    )
+    counselor_user = counselor.coun_user
+    # Same users as course detail / payment (request.user) and counselor profile (coun_user)
+    _dashboard_course_users = []
+    _seen_uid = set()
+    for u in (
+        request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
+        counselor_user,
+    ):
+        if u and u.pk not in _seen_uid:
+            _seen_uid.add(u.pk)
+            _dashboard_course_users.append(u)
+
+    counselor_course_enrolled = False
+    for u in _dashboard_course_users:
+        if _counselor_course_access_for_user(u, counselor_course):
+            counselor_course_enrolled = True
+            break
+
+    counselor_course_start_url = reverse("counselor:course_learning", args=[coun_id])
+    counselor_course_enroll_url = reverse("counselor:CounselorCoursepayment")
+    counselor_course_curriculum_url = reverse("counselor:counselor_course_curriculum")
+    show_counselor_course_on_dashboard = bool(counselor_course)
+
+    counselor_course_cta = "Enroll"
+    if counselor_course_enrolled and counselor_course:
+        counselor_course_cta = "Start"
+        part_ids = list(
+            Part.objects.filter(chapter__course=counselor_course).values_list("id", flat=True)
+        )
+        if part_ids:
+            video_keys = [f"video-{pid}" for pid in part_ids]
+            for u in _dashboard_course_users:
+                if VideoProgress.objects.filter(user=u, video_id__in=video_keys).exists():
+                    counselor_course_cta = "Resume"
+                    break
+            if counselor_course_cta == "Start":
+                for u in _dashboard_course_users:
+                    try:
+                        qr = QuizResults.objects.get(user=u)
+                        scores = qr.scores
+                        if isinstance(scores, str):
+                            scores = json.loads(scores) if (scores and scores.strip()) else []
+                        elif not isinstance(scores, list):
+                            scores = []
+                        if scores:
+                            counselor_course_cta = "Resume"
+                            break
+                    except (QuizResults.DoesNotExist, ValueError, TypeError):
+                        pass
+
     # Initialize lightweight context for initial page load
     context = {
         'counselors': counselor,
@@ -1544,6 +1820,13 @@ def CounselorDashboard(request, coun_id=None):
         'students_count': students_to_display.count() if hasattr(students_to_display, 'count') else len(students_to_display),
         'key': settings.RAZORPAY_API_KEY,
         'secrit': settings.RAZORPAY_API_SECRET,
+        'counselor_course_enrolled': counselor_course_enrolled,
+        'counselor_course_title': counselor_course_title,
+        'counselor_course_start_url': counselor_course_start_url,
+        'counselor_course_enroll_url': counselor_course_enroll_url,
+        'counselor_course_curriculum_url': counselor_course_curriculum_url,
+        'show_counselor_course_on_dashboard': show_counselor_course_on_dashboard,
+        'counselor_course_cta': counselor_course_cta,
     }
     
     # Only load student table data if explicitly requested (not on initial page load)
@@ -2191,6 +2474,7 @@ def update_progress(request):
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=400)
 
 
+@login_required(login_url=reverse_lazy('users:login'))
 def add_note(request, part_id):
     if request.method == "POST":
         part = get_object_or_404(Part, id=part_id)
@@ -2209,6 +2493,7 @@ def add_note(request, part_id):
             "content": note.content,
             "time": note.video_timestamp
         })
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 def edit_note(request, note_id, part_id):
     if request.method == "POST":
@@ -2729,7 +3014,13 @@ class CourseLearningView(View):
                     print(f"Error getting quiz score data: {e}")
                     print(traceback.format_exc())
                     quiz_score_data = None
-        
+
+        part_notes = []
+        if current_part:
+            part_notes = list(
+                Notes.objects.filter(user=user, part=current_part).order_by("-updated_at")
+            )
+
         context = {
             'counselor': counselor,
             'course': course_with_related_data,
@@ -2748,6 +3039,7 @@ class CourseLearningView(View):
             'certification': certification,
             'chapter_locked_status': chapter_locked_status,  # Locked status for chapters
             'part_locked_status': part_locked_status,  # Locked status for parts
+            'part_notes': part_notes,
         }
         
         return render(request, self.template_name, context)

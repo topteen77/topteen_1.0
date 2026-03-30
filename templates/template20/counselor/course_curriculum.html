@@ -1,0 +1,90 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}Course Curriculum | Top Teen{% endblock %}
+
+{% block bodyclass %}course-curriculum-page{% endblock %}
+
+{% block additionalhead %}
+<style>
+  .course-curriculum-page { padding-top: 100px; }
+  .course-curriculum-hero { background: linear-gradient(180deg, #FFFFFF 0%, #F5F5FF 100%); padding: 60px 0 30px; }
+  .course-curriculum-card { border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,0.08); background: #fff; overflow: hidden; }
+  .course-curriculum-card .accordion-button { font-weight: 700; }
+  .course-curriculum-card .accordion-button:not(.collapsed) { background: rgba(63, 55, 201, 0.08); color: #1a1a1a; }
+  .course-curriculum-card .part-row { padding: 12px 0; border-bottom: 1px solid #eef2ff; }
+  .course-curriculum-card .part-row:last-child { border-bottom: none; }
+  .course-curriculum-card .part-title { font-weight: 600; color: #111827; margin-bottom: 2px; }
+  .course-curriculum-card .part-desc { color: #6b7280; font-size: 0.92rem; margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="py-test-page">
+  <section class="course-curriculum-hero">
+    <div class="container">
+      <div class="row align-items-end">
+        <div class="col-lg-8">
+          <span class="highlighter">
+            <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Course Overview
+          </span>
+          <h1 class="heading-title mb-2">{{ course.title if course else 'Course Curriculum' }}</h1>
+          <p class="text-gray mb-0">Browse the course index below.</p>
+        </div>
+        <div class="col-lg-4 mt-3 mt-lg-0 d-flex justify-content-lg-end">
+          <a class="btn custom-button blue-button"
+             href="{{ curriculum_cta_url }}">{{ curriculum_cta_label }}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mi-framework-section py-6">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 mx-auto">
+          <div class="course-curriculum-card p-3 p-md-4">
+            {% if not course %}
+              <p class="text-gray mb-0">No course found. Please create a course and chapters in admin.</p>
+            {% elif chapters|length == 0 %}
+              <p class="text-gray mb-0">No chapters found for this course yet.</p>
+            {% else %}
+              <div class="accordion" id="courseCurriculumAccordion">
+                {% for ch in chapters %}
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="heading{{ loop.index }}">
+                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
+                            aria-expanded="{% if loop.first %}true{% else %}false{% endif %}"
+                            aria-controls="collapse{{ loop.index }}">
+                      {{ ch.title }}
+                    </button>
+                  </h2>
+                  <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                       aria-labelledby="heading{{ loop.index }}" data-bs-parent="#courseCurriculumAccordion">
+                    <div class="accordion-body">
+                      {% if ch._parts and ch._parts|length > 0 %}
+                        {% for part in ch._parts %}
+                          <div class="part-row">
+                            <div class="part-title">{{ part.title }}</div>
+                            {% if part.description %}
+                              <p class="part-desc">{{ part.description }}</p>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      {% else %}
+                        <p class="text-gray mb-0">No lessons in this chapter yet.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+

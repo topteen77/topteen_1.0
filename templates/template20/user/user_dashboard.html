@@ -517,6 +517,36 @@ endblock %}
         </div>
         <!-- End of Statistics -->
 
+        {% if dashboard_enrolled_items %}
+        <div class="mb-4" id="dashboard-enrolled-section">
+          <h2 class="fs-24 fw-semibold mb-3">My courses &amp; tests</h2>
+          <div class="row g-3">
+            {% for item in dashboard_enrolled_items %}
+            <div class="col-12 col-md-6 col-xl-4">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 border rounded-3 p-3 h-100"
+                style="background:#fff;border-color:#e6e8f0;box-shadow:0 2px 10px rgba(32,36,53,0.06);">
+                <div class="d-flex align-items-center gap-3 min-w-0">
+                  <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                    style="width:44px;height:44px;background:{% if item.kind == 'psychometric' %}#eef6ff{% else %}#f0fff4{% endif %};">
+                    {% if item.kind == 'psychometric' %}
+                    <i class='bx bx-brain fs-24' style="color:#3f37c9;"></i>
+                    {% else %}
+                    <i class='bx bx-book-reader fs-24' style="color:#198754;"></i>
+                    {% endif %}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="fs-15 fw-semibold mb-0 text-truncate" title="{{ item.title }}">{{ item.title }}</p>
+                    <p class="text-gray fs-11 mb-0">{{ item.subtitle }}</p>
+                  </div>
+                </div>
+                <a href="{{ item.start_url }}" class="btn btn-sm custom-button purple-button flex-shrink-0">Start</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Quick Links -->
         <div class="mb-4">
           <h2 class="fs-24 fw-semibold mb-3">Quick Links</h2>

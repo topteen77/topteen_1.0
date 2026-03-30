@@ -3,45 +3,52 @@
 
 {% block object-tools-items %}
 <li>
-  <a href="{% url 'admin:demo_data_setup' %}" class="historylink">Setup demo data</a>
+  <a href="{% url 'admin:demo_data_setup' %}" class="historylink">Setup student demo data</a>
 </li>
 <li>
-  <a href="{% url 'admin:demo_data_reset' %}?confirm=1" class="historylink" onclick="return confirm('Reset demo data? Only system-generated demo data will be deleted and recreated. No actual user data is affected.');">Reset demo data</a>
+  <a href="{% url 'admin:demo_data_reset' %}?confirm=1" class="historylink" onclick="return confirm('Reset student demo data? Only system-generated student/institute demo will be deleted and recreated. Demo counselor is not affected.');">Reset student demo data</a>
 </li>
 <li>
-  <a href="{% url 'admin:demo_data_remove' %}?confirm=1" class="deletelink" onclick="return confirm('Remove demo data? Only system-generated demo data will be deleted (not recreated). No actual user data is affected.');">Remove demo data</a>
+  <a href="{% url 'admin:demo_data_remove' %}?confirm=1" class="deletelink" onclick="return confirm('Remove student demo data? Demo counselor is not affected.');">Remove student demo data</a>
+</li>
+<li>
+  <a href="{% url 'admin:demo_data_setup_counselor' %}" class="historylink">Setup demo counselor</a>
+</li>
+<li>
+  <a href="{% url 'admin:demo_data_reset_counselor' %}?confirm=1" class="historylink" onclick="return confirm('Reset demo counselor only? Student demo data is not affected.');">Reset demo counselor</a>
+</li>
+<li>
+  <a href="{% url 'admin:demo_data_remove_counselor' %}?confirm=1" class="deletelink" onclick="return confirm('Remove demo counselor only? Student demo data is not affected.');">Remove demo counselor</a>
 </li>
 {{ block.super }}
 {% endblock %}
 
 {% block content %}
 <div class="module" style="margin-bottom: 1.5em;">
-  <p style="margin-bottom: 0;">Only data marked with the <em>system demo</em> flag is touched; <strong>no actual user data is affected</strong>.</p>
+  <p style="margin-bottom: 0;">Only data marked with the <em>system demo</em> flag is touched for <strong>student</strong> demo; <strong>demo counselor</strong> is managed separately and is not removed by student setup/reset/remove.</p>
 </div>
 
-{# Actions: three buttons visible on the page #}
+{# Student demo: actions #}
 <div class="module" style="margin-bottom: 1.5em;">
-  <h2 style="margin-top: 0;">Actions</h2>
-  <p style="margin-bottom: 0.75em;">After editing configuration below, use one of:</p>
+  <h2 style="margin-top: 0;">Student / institute demo</h2>
+  <p style="margin-bottom: 0.75em;">Institute, parent, students, psychometric — not mixed with counselor course demo.</p>
   <ul style="list-style: none; padding-left: 0; margin: 0;">
     <li style="margin-bottom: 0.5em;">
-      <a href="{% url 'admin:demo_data_setup' %}" class="button">Setup demo data</a>
-      <span style="color: #666; margin-left: 0.5em;">— Create demo dataset from current config.</span>
+      <a href="{% url 'admin:demo_data_setup' %}" class="button">Setup student demo data</a>
+      <span style="color: #666; margin-left: 0.5em;">— Create from current config below.</span>
     </li>
     <li style="margin-bottom: 0.5em;">
-      <a href="{% url 'admin:demo_data_reset' %}?confirm=1" class="button" onclick="return confirm('Reset demo data? Only system-generated demo data will be deleted and recreated.');">Reset demo data</a>
-      <span style="color: #666; margin-left: 0.5em;">— Delete and recreate demo data.</span>
+      <a href="{% url 'admin:demo_data_reset' %}?confirm=1" class="button" onclick="return confirm('Reset student demo data? Demo counselor is not affected.');">Reset student demo data</a>
     </li>
     <li style="margin-bottom: 0.5em;">
-      <a href="{% url 'admin:demo_data_remove' %}?confirm=1" class="button deletelink" onclick="return confirm('Remove demo data? Only system-generated demo data will be deleted (not recreated).');">Remove demo data</a>
-      <span style="color: #666; margin-left: 0.5em;">— Delete demo data only (no recreate).</span>
+      <a href="{% url 'admin:demo_data_remove' %}?confirm=1" class="button deletelink" onclick="return confirm('Remove student demo data? Demo counselor is not affected.');">Remove student demo data</a>
     </li>
   </ul>
 </div>
 
-{# Configuration table: User | Total students | Psychometric completed student | Result type #}
+{# Student demo: configuration #}
 <div class="module" style="margin-bottom: 1.5em;">
-  <h2 style="margin-top: 0;">Configuration</h2>
+  <h2 style="margin-top: 0;">Student demo configuration</h2>
   <form method="post" action="{% url 'admin:demo_data_config_save' %}" id="demo-config-form">
     {% csrf_token %}
     <table style="width: 100%; max-width: 720px;" class="table">
@@ -87,14 +94,47 @@
       </tbody>
     </table>
     <p style="margin: 1em 0 0 0;">
-      <input type="submit" value="Save configuration" class="default">
+      <input type="submit" value="Save student demo configuration" class="default">
     </p>
   </form>
 </div>
 
-{# Demo users list #}
+{# Demo counselor: separate #}
+<div class="module" style="margin-bottom: 1.5em;">
+  <h2 style="margin-top: 0;">Demo counselor (career counselor course)</h2>
+  <p style="color: #555; font-size: 13px; max-width: 720px;">Separate from student demo. Creates <code>demo_counselor@topteen.demo</code> (password <strong>demo123</strong>), <code>is_system_demo=False</code> so <strong>student reset does not delete</strong> this account. Links to demo institute if it exists. Requires a <code>CounselorCourse</code> in the database.</p>
+  <ul style="list-style: none; padding-left: 0; margin: 0 0 1em 0;">
+    <li style="margin-bottom: 0.5em;">
+      <a href="{% url 'admin:demo_data_setup_counselor' %}" class="button">Setup demo counselor</a>
+      <span style="color: #666; margin-left: 0.5em;">— Create / replace demo counselor from options below.</span>
+    </li>
+    <li style="margin-bottom: 0.5em;">
+      <a href="{% url 'admin:demo_data_reset_counselor' %}?confirm=1" class="button" onclick="return confirm('Reset demo counselor only?');">Reset demo counselor</a>
+    </li>
+    <li style="margin-bottom: 0.5em;">
+      <a href="{% url 'admin:demo_data_remove_counselor' %}?confirm=1" class="button deletelink" onclick="return confirm('Remove demo counselor only?');">Remove demo counselor</a>
+    </li>
+  </ul>
+  <form method="post" action="{% url 'admin:demo_data_counselor_config_save' %}" id="demo-counselor-config-form" style="max-width: 720px; padding: 1em; background: #f8f9fa; border-radius: 8px;">
+    {% csrf_token %}
+    <label for="id_demo_counselor_course_state" style="display: block; font-weight: 600; margin-bottom: 0.35em;">Course state (used on Setup / Reset)</label>
+    <select name="demo_counselor_course_state" id="id_demo_counselor_course_state" style="min-width: 280px;">
+      {% for value, label in demo_counselor_state_choices %}
+      <option value="{{ value }}" {% if demo_counselor_course_state == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <p style="margin: 0.75em 0 0 0;">
+      <input type="submit" value="Save counselor options" class="default">
+    </p>
+  </form>
+  {% if demo_counselor_user %}
+  <p style="margin-top: 1em;"><strong>Last setup:</strong> user ID {{ demo_counselor_user.id }} — <a href="{% url 'admin:users_user_change' demo_counselor_user.id %}">View user</a> — state: {{ demo_counselor_state_label }}</p>
+  {% endif %}
+</div>
+
+{# Demo users list (student demo only) #}
 <div class="module">
-  <h2 style="margin-top: 0;">Demo users</h2>
+  <h2 style="margin-top: 0;">Demo users (student / institute)</h2>
   {% if demo_users %}
   <table style="width: 100%; max-width: 720px;" class="table">
     <thead>
@@ -119,7 +159,7 @@
     </tbody>
   </table>
   {% else %}
-  <p style="margin: 0;">No demo data created yet. Run <strong>Setup demo data</strong> above to create the demo institute, parent, and students.</p>
+  <p style="margin: 0;">No student demo data yet. Run <strong>Setup student demo data</strong> above.</p>
   {% endif %}
 </div>
 {% endblock %}

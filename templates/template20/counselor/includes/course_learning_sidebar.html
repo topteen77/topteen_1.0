@@ -1,7 +1,13 @@
-<div class="course-sidebar">
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="fs-18 fw-semibold mb-3">Course Content</h5>
+<div class="course-sidebar course-sidebar-pro">
+  <div class="card course-sidebar-card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+      <div class="course-sidebar-head mb-3 pb-3 border-bottom">
+        <span class="d-block text-uppercase fs-11 fw-bold letter-spacing-1" style="color:#5249DF;">Course content</span>
+        <h2 class="fs-16 fw-bold mb-0 mt-1 text-dark lh-sm">{% if course and course.title %}{{ course.title }}{% else %}Course{% endif %}</h2>
+        {% if course %}
+        <p class="fs-12 text-muted mb-0 mt-1">Navigate chapters and lessons below</p>
+        {% endif %}
+      </div>
       
       {% if course and chapters_list %}
       <div class="chapter-list">
@@ -60,18 +66,15 @@
             <div class="part-item {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
                  data-part-id="{{ part_id }}"
                  {% if not is_part_locked %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
-              {% if is_current_part %}
-              <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 65%; background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%); border-radius: 0 6px 6px 0; box-shadow: 0 0 8px rgba(255, 107, 107, 0.5);"></div>
-              {% endif %}
               <div class="d-flex align-items-center justify-content-between mb-1">
                 <div class="d-flex align-items-center flex-grow-1">
-                  <i class='bx bx-play-circle me-2 fs-16 {% if is_current_part %}text-danger{% else %}text-primary{% endif %}' style="{% if is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                  <i class='bx bx-play-circle me-2 fs-16 {% if is_current_part %}text-primary{% else %}text-primary{% endif %}'></i>
                   <span class="fs-13 fw-semibold">{{ part.title }}</span>
                 </div>
                 {% if is_video_completed %}
-                  <i class='bx bx-check-circle {% if is_current_part %}text-danger{% else %}text-success{% endif %} fs-16' style="{% if is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                  <i class='bx bx-check-circle {% if is_current_part %}text-primary{% else %}text-success{% endif %} fs-16'></i>
                 {% else %}
-                  <i class='bx bx-time-five {% if is_current_part %}text-danger{% else %}text-warning{% endif %} fs-16' style="{% if is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                  <i class='bx bx-time-five {% if is_current_part %}text-warning{% else %}text-warning{% endif %} fs-16'></i>
                 {% endif %}
               </div>
               
@@ -137,31 +140,37 @@
 </div>
 
 <style>
-  .course-sidebar {
+  .course-sidebar-pro {
     position: sticky;
     top: 100px;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
   }
+  .course-sidebar-card {
+    border-radius: 16px !important;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(82, 73, 223, 0.08) !important;
+  }
+  .course-sidebar-head .letter-spacing-1 { letter-spacing: 0.06em; }
   
-  /* Chapter Item Styles */
+  /* Chapter Item Styles — professional purple accent */
   .chapter-item {
     margin-bottom: 10px;
     border-radius: 12px;
-    border: 2px solid #e9ecef;
+    border: 1px solid #e8e8f0;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     background: #fff;
   }
   .chapter-item:hover {
-    border-color: #ffd89b;
-    box-shadow: 0 2px 8px rgba(255, 184, 0, 0.15);
+    border-color: #c4c2f5;
+    box-shadow: 0 2px 12px rgba(82, 73, 223, 0.1);
   }
   .chapter-item.active {
-    border-color: transparent;
+    border-color: #5249DF;
     border-width: 2px;
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3), 0 0 0 2px rgba(255, 107, 107, 0.1);
-    background: center;
+    box-shadow: 0 8px 28px rgba(82, 73, 223, 0.22);
+    background: linear-gradient(145deg, #5249DF 0%, #6b5fd8 55%, #7c6fe0 100%);
     position: relative;
   }
   .chapter-item.active::before {
@@ -231,7 +240,7 @@
     color: rgba(255, 255, 255, 0.95) !important;
   }
   .chapter-header:hover {
-    background: rgba(255, 107, 107, 0.08);
+    background: rgba(82, 73, 223, 0.06);
   }
   .chapter-item.active .chapter-header:hover {
     background: rgba(255, 255, 255, 0.12);
@@ -244,10 +253,10 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+    background: linear-gradient(135deg, #f5f4ff 0%, #ebe9ff 100%);
     font-weight: 700;
     font-size: 15px;
-    color: #ff6b6b;
+    color: #5249DF;
     transition: all 0.3s ease;
     flex-shrink: 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -266,36 +275,36 @@
   /* Parts List Styles */
   .parts-list {
     padding: 12px 16px 16px 16px;
-    background: rgba(247, 247, 250, 0.5);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
   }
   .chapter-item.active .parts-list {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.14);
   }
   
   .part-item {
     padding: 12px 14px;
     margin-bottom: 8px;
     background: #fff;
-    border-radius: 8px;
-    border-left: 4px solid #e9ecef;
+    border-radius: 10px;
+    border-left: 4px solid #e5e7eb;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
   .part-item:hover {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
-    border-left-color: #ff6b6b;
+    background: #f8f7ff;
+    border-left-color: #5249DF;
     transform: translateX(2px);
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
+    box-shadow: 0 4px 12px rgba(82, 73, 223, 0.12);
   }
   .part-item.active {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.95) 100%);
-    color: #ff6b6b;
+    background: #fff;
+    color: #5249DF;
     border-left-width: 5px;
-    border-left-color: #ff6b6b;
-    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.25), inset 0 0 0 2px rgba(255, 107, 107, 0.1);
-    transform: translateX(5px);
+    border-left-color: #5249DF;
+    box-shadow: 0 6px 18px rgba(82, 73, 223, 0.18);
+    transform: translateX(4px);
     font-weight: 600;
     position: relative;
   }
@@ -306,15 +315,15 @@
     top: 0;
     bottom: 0;
     width: 5px;
-    background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%);
-    border-radius: 8px 0 0 8px;
-    box-shadow: 0 0 10px rgba(255, 107, 107, 0.4);
+    background: linear-gradient(180deg, #5249DF 0%, #8b7cf8 100%);
+    border-radius: 10px 0 0 10px;
+    box-shadow: 0 0 12px rgba(82, 73, 223, 0.35);
   }
   .part-item.active .text-primary {
-    color: #ff6b6b !important;
+    color: #5249DF !important;
   }
   .part-item.active i {
-    color: #ff6b6b !important;
+    color: #5249DF !important;
   }
   .part-item.locked {
     opacity: 0.7;

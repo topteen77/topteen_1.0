@@ -36,7 +36,7 @@ from .models import UserProfile,UserNote,UserFolder,UserCalender
 from psychometric_tests.models import CentralTestCandidate
 from .task import send_otp_mail,send_referral_mail
 from careers.models import CareerCluster,CareerShortlist,Videos
-from skilllab.models import SkillLabCourse
+from skilllab.models import SkillLabCourse, SkilllabCoursePayment
 from entrance_exams.document_filters import EntranceExamDocumentFilter
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -2899,6 +2899,43 @@ class UserDashboard(TemplateView):
                 )
         except Exception:
             pass
+
+        # Dashboard: enrolled Skill Lab courses + psychometric test (start links)
+        ctx["dashboard_enrolled_items"] = []
+        try:
+            payments_sl = SkilllabCoursePayment.objects.filter(
+                user=profile_user,
+                is_success=choices.YesNoChoices.YES,
+                skilllab_course__isnull=False,
+            ).select_related("skilllab_course").order_by("-created")
+            seen_slugs = set()
+            for p in payments_sl:
+                c = p.skilllab_course
+                if not c or not getattr(c, "slug", None) or c.slug in seen_slugs:
+                    continue
+                seen_slugs.add(c.slug)
+                ctx["dashboard_enrolled_items"].append(
+                    {
+                        "kind": "skilllab",
+                        "title": c.name,
+                        "subtitle": "Skill Lab",
+                        "start_url": reverse(
+                            "skilllabcourse:course_learning", args=[c.slug]
+                        ),
+                    }
+                )
+        except Exception:
+            pass
+        if ctx.get("has_test_payment") and ctx.get("test_dashboard_url"):
+            ctx["dashboard_enrolled_items"].insert(
+                0,
+                {
+                    "kind": "psychometric",
+                    "title": ctx.get("test_name") or "Psychometric test",
+                    "subtitle": "Assessment",
+                    "start_url": ctx["test_dashboard_url"],
+                },
+            )
         return ctx
 
     def post(self, request, *args, **kwargs):

@@ -15,11 +15,24 @@ from app_post_matric.models import (
     SectionSession,
     UserResponse,
 )
-from demo_data.models import DemoDatasetConfig, ResultType
+from demo_data.models import DemoCounselorCourseState, DemoDatasetConfig, ResultType
+from counselor.models import (
+    Counselor,
+    CounselorCertification,
+    CounselorCourse,
+    QuizResults,
+    VideoProgress,
+)
+from counselor.demo_course_state import (
+    apply_demo_counselor_course_state,
+    create_counselor_course_payment,
+)
+from payments.models import Payment
 
 DEMO_PASSWORD = "demo123"
 DEMO_EMAIL_DOMAIN = "topteen.demo"
 INSTITUTE_SLUG = "demo-institute"
+DEMO_COUNSELOR_EMAIL = f"demo_counselor@{DEMO_EMAIL_DOMAIN}"
 
 # RIASEC order used by report views and gernate_graph for test1/test2
 RIASEC = ["Realistic", "Investigative", "Artistic", "Social", "Enterprising", "Conventional"]
@@ -216,6 +229,8 @@ def create_demo_dataset(config=None):
         for stu in student_users:
             ParentStudentLink.objects.get_or_create(parent=parent, student=stu)
 
+        # Demo counselor is created only via setup_demo_counselor_data() (separate admin action).
+
         # 6. Psychometric: first n10_psych Class 10 students, then n12_psych Class 12 students
         def gets_psychometric(idx):
             if idx < n10:
@@ -292,7 +307,15 @@ def create_demo_dataset(config=None):
         config.institute_user_id = inst_user.id
         config.parent_user_id = parent.id
         config.student_user_ids = [u.id for u in student_users]
-        config.save(update_fields=["institute_id", "institute_user_id", "parent_user_id", "student_user_ids", "updated_at"])
+        config.save(
+            update_fields=[
+                "institute_id",
+                "institute_user_id",
+                "parent_user_id",
+                "student_user_ids",
+                "updated_at",
+            ]
+        )
 
         return {
             "institute_id": institute.id,
@@ -315,6 +338,14 @@ def _delete_system_demo_data():
 
     if not demo_user_ids and not demo_institute_ids:
         return
+
+    # Counselor course: payments (soft-delete model — hard_delete), progress, profile
+    for pay in Payment.objects.complete().filter(user_id__in=demo_user_ids):
+        pay.delete(hard_delete=True)
+    VideoProgress.objects.filter(user_id__in=demo_user_ids).delete()
+    QuizResults.objects.filter(user_id__in=demo_user_ids).delete()
+    CounselorCertification.objects.filter(user_id__in=demo_user_ids).delete()
+    Counselor.objects.filter(coun_user_id__in=demo_user_ids).delete()
 
     # Post-matric: TestResult -> TestSession; SectionSession -> TestSession; UserResponse -> section_session/session
     TestResult.objects.filter(session__user_id__in=demo_user_ids).delete()
@@ -350,6 +381,88 @@ def reset_demo_data():
     return create_demo_dataset()
 
 
+def _delete_demo_counselor_only():
+    """
+    Remove only the demo counselor account (by email). Does not touch student/institute demo.
+    Uses is_demo_account + counselor email; not is_system_demo so student reset does not delete this user.
+    """
+    u = User.objects.complete().filter(email=DEMO_COUNSELOR_EMAIL).first()
+    if not u:
+        return
+    uid = u.id
+    for pay in Payment.objects.complete().filter(user_id=uid):
+        pay.delete(hard_delete=True)
+    VideoProgress.objects.filter(user_id=uid).delete()
+    QuizResults.objects.filter(user_id=uid).delete()
+    CounselorCertification.objects.filter(user_id=uid).delete()
+    Counselor.objects.filter(coun_user_id=uid).delete()
+    u.delete(hard_delete=True)
+
+
+def setup_demo_counselor_data(config=None):
+    """
+    Create demo counselor user + Counselor profile + successful payment + course progress.
+    Separate from student demo data. Links to demo institute if it exists (slug demo-institute).
+    """
+    if config is None:
+        config = DemoDatasetConfig.get_singleton()
+
+    course_c = CounselorCourse.objects.first()
+    if not course_c:
+        raise ValueError(
+            "No CounselorCourse found. Create a course in admin before setting up demo counselor."
+        )
+
+    institute = Institute.objects.complete().filter(slug=INSTITUTE_SLUG).first()
+
+    with transaction.atomic():
+        _delete_demo_counselor_only()
+
+        cw = User.objects.create_user(
+            email=DEMO_COUNSELOR_EMAIL,
+            name="Demo Counselor",
+            password=DEMO_PASSWORD,
+        )
+        cw.user_type = choices.UserType.COUNSELOR
+        cw.is_demo_account = True
+        cw.is_system_demo = False
+        cw.save()
+
+        counselor_obj = Counselor.objects.create(
+            counselor_name="Demo Counselor",
+            coun_user=cw,
+            counselor_admin=institute,
+        )
+        create_counselor_course_payment(cw, course_c)
+        state = getattr(config, "demo_counselor_course_state", None) or DemoCounselorCourseState.PASSED
+        apply_demo_counselor_course_state(cw, state)
+
+        config.counselor_user_id = cw.id
+        config.counselor_id = counselor_obj.id
+        config.save(
+            update_fields=["counselor_user_id", "counselor_id", "updated_at"]
+        )
+
+    return {
+        "counselor_user_id": cw.id,
+        "counselor_id": counselor_obj.id,
+    }
+
+
+def remove_demo_counselor_data():
+    """Remove demo counselor only; clear counselor IDs in config."""
+    _delete_demo_counselor_only()
+    config = DemoDatasetConfig.get_singleton()
+    config.counselor_user_id = None
+    config.counselor_id = None
+    config.save(update_fields=["counselor_user_id", "counselor_id", "updated_at"])
+
+
+def reset_demo_counselor_data():
+    """Delete and recreate demo counselor from current config."""
+    return setup_demo_counselor_data()
+
+
 def remove_demo_data():
     """
     Delete only system-flagged demo data (no recreate). Clears the config's
@@ -361,4 +474,13 @@ def remove_demo_data():
     config.institute_user_id = None
     config.parent_user_id = None
     config.student_user_ids = []
-    config.save(update_fields=["institute_id", "institute_user_id", "parent_user_id", "student_user_ids", "updated_at"])
+    # Demo counselor is managed separately; do not clear counselor_user_id / counselor_id here.
+    config.save(
+        update_fields=[
+            "institute_id",
+            "institute_user_id",
+            "parent_user_id",
+            "student_user_ids",
+            "updated_at",
+        ]
+    )

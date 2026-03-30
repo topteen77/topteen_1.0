@@ -2,6 +2,18 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 
+class DemoCounselorCourseState:
+    """Career counselor course progress for the demo counselor account."""
+    PASSED = "passed"
+    FAILED = "failed"
+    NOT_COMPLETED = "not_completed"
+    CHOICES = (
+        (PASSED, "Passed (full completion + certificate if eligible)"),
+        (FAILED, "Failed (videos done; quizzes still to pass)"),
+        (NOT_COMPLETED, "Not completed (paid; no lesson/quiz progress)"),
+    )
+
+
 class ResultType:
     """How to generate psychometric scores for demo students."""
     VARIED = "varied"
@@ -60,6 +72,12 @@ class DemoDatasetConfig(models.Model):
         default=ResultType.HIGH,
         help_text="Result type for Class 12 students with psychometric data.",
     )
+    demo_counselor_course_state = models.CharField(
+        max_length=20,
+        choices=DemoCounselorCourseState.CHOICES,
+        default=DemoCounselorCourseState.PASSED,
+        help_text="Course progress for the demo counselor: passed, failed (stuck after videos), or not completed (paid only).",
+    )
 
     # --- Last run output (system-written, read-only in admin) ---
     institute_id = models.PositiveIntegerField(null=True, blank=True)
@@ -68,6 +86,16 @@ class DemoDatasetConfig(models.Model):
     student_user_ids = models.JSONField(
         default=list,
         help_text="List of user IDs for demo students (from last setup/reset).",
+    )
+    counselor_user_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Demo counselor user ID (from last setup/reset).",
+    )
+    counselor_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Demo Counselor profile ID (from last setup/reset).",
     )
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 

@@ -296,12 +296,18 @@
   <div class="container">
     <div class="certificate-wrapper">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 certificate-page-header">
           <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>
-          <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" 
-             class="btn btn-outline-secondary">
-            <i class='bx bx-home me-2'></i>My Dashboard
-          </a>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}"
+               class="btn btn-outline-secondary">
+              <i class='bx bx-arrow-back me-1'></i>Back
+            </a>
+            <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}"
+               class="btn btn-outline-secondary">
+              <i class='bx bx-home me-1'></i>My Dashboard
+            </a>
+          </div>
         </div>
 
       <!-- Certificate with Background Image -->

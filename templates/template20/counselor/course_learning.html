@@ -313,6 +313,88 @@
     right: 20px;
     z-index: 1000;
   }
+  /* Lesson area: Video / PDF Notes tabs (reference UI) */
+  .lesson-content-card {
+    border: 1px solid #e8e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(82, 73, 223, 0.06);
+  }
+  .lesson-content-tabs.nav-tabs {
+    border-bottom: 2px solid #eef0f6;
+    padding: 0 1rem;
+    gap: 0;
+    background: #fafbff;
+  }
+  .lesson-content-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6b7280;
+    font-weight: 600;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0;
+    background: transparent;
+  }
+  .lesson-content-tabs .nav-link:hover {
+    color: #5249DF;
+    border-color: transparent;
+  }
+  .lesson-content-tabs .nav-link.active {
+    color: #5249DF;
+    border-bottom-color: #5249DF;
+    background: transparent;
+  }
+  .lesson-tab-pane-inner {
+    min-height: 200px;
+    padding: 1.25rem;
+  }
+  .lesson-pdf-iframe-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    min-height: 420px;
+  }
+  .lesson-pdf-iframe-wrap iframe {
+    width: 100%;
+    height: min(70vh, 640px);
+    border: 0;
+    display: block;
+  }
+  .lesson-empty-hint {
+    color: #6b7280;
+    font-size: 0.95rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px dashed #e5e7eb;
+  }
+  .lesson-notes-section {
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    background: #fafbff;
+    border: 1px solid #eef0f6;
+    border-radius: 12px;
+  }
+  .lesson-notes-section h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+  }
+  .lesson-note-item {
+    padding: 0.65rem 0.75rem;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .lesson-note-add textarea {
+    min-height: 72px;
+    resize: vertical;
+  }
 </style>
 {% endblock %}
 
@@ -350,34 +432,95 @@
 
             <!-- Content Display -->
             {% if content_type == 'part' and current_part %}
-              <!-- Video Content -->
-              <div class="card">
-                <div class="card-body">
-                  <h3 class="fs-24 fw-semibold mb-3">{{ current_part.title }}</h3>
-                  {% if current_part.description %}
-                  <p class="text-gray mb-4">{{ current_part.description }}</p>
-                  {% endif %}
+              {% set part_id = current_part.id %}
+              {% set is_completed = video_progress.get(part_id, False) %}
+              {% set has_video = current_part.video_url %}
+              {% set has_pdf = current_part.pdf_url %}
+              <div class="mb-3">
+                <h3 class="fs-24 fw-semibold mb-2">{{ current_part.title }}</h3>
+                {% if current_part.description %}
+                <p class="text-gray mb-0">{{ current_part.description }}</p>
+                {% endif %}
+              </div>
 
-                  {% if current_part.video_url %}
-                  <div class="video-container">
-                    <video id="video-{{ current_part.id }}" 
-                           preload="metadata" 
-                           controls
-                           data-part-id="{{ current_part.id }}">
-                      <source src="{{ current_part.video_url }}" type="video/mp4">
-                      Your browser does not support the video tag.
-                    </video>
+              <div class="card lesson-content-card">
+                <ul class="nav nav-tabs lesson-content-tabs" id="lessonPartTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if has_video or not has_pdf %}active{% endif %}" id="lesson-video-tab" data-bs-toggle="tab" data-bs-target="#lesson-video-pane" type="button" role="tab" aria-controls="lesson-video-pane" aria-selected="true">
+                      <i class='bx bx-play-circle me-1 align-middle'></i> Video
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if not has_video and has_pdf %}active{% endif %}" id="lesson-pdf-tab" data-bs-toggle="tab" data-bs-target="#lesson-pdf-pane" type="button" role="tab" aria-controls="lesson-pdf-pane" aria-selected="false">
+                      <i class='bx bx-file-blank me-1 align-middle'></i> PDF Notes
+                    </button>
+                  </li>
+                </ul>
+                <div class="tab-content" id="lessonPartTabContent">
+                  <div class="tab-pane fade {% if has_video or not has_pdf %}show active{% endif %}" id="lesson-video-pane" role="tabpanel" aria-labelledby="lesson-video-tab">
+                    <div class="lesson-tab-pane-inner">
+                      {% if has_video %}
+                      <div class="video-container">
+                        <video id="video-{{ current_part.id }}"
+                               preload="metadata"
+                               controls
+                               data-part-id="{{ current_part.id }}">
+                          <source src="{{ current_part.video_url }}" type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                      {% else %}
+                      <div class="lesson-empty-hint">
+                        <i class='bx bx-video-off fs-2 text-muted d-block mb-2'></i>
+                        No video is attached to this lesson. Add a video URL in Admin → Parts.
+                      </div>
+                      {% endif %}
+                      {% if is_completed %}
+                      <div class="alert alert-success mt-3 mb-0">
+                        <i class='bx bx-check-circle me-2'></i>Video completed!
+                      </div>
+                      {% endif %}
+                    </div>
                   </div>
-                  {% endif %}
+                  <div class="tab-pane fade {% if not has_video and has_pdf %}show active{% endif %}" id="lesson-pdf-pane" role="tabpanel" aria-labelledby="lesson-pdf-tab">
+                    <div class="lesson-tab-pane-inner">
+                      {% if has_pdf %}
+                      <div class="d-flex flex-wrap gap-2 mb-2 justify-content-end">
+                        <a href="{{ current_part.pdf_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                          <i class='bx bx-link-external me-1'></i>Open in new tab
+                        </a>
+                      </div>
+                      <div class="lesson-pdf-iframe-wrap">
+                        <iframe src="{{ current_part.pdf_url }}" title="Lesson PDF"></iframe>
+                      </div>
+                      {% else %}
+                      <div class="lesson-empty-hint">
+                        <i class='bx bx-file-blank fs-2 text-muted d-block mb-2'></i>
+                        No PDF is attached to this lesson. Add a PDF URL in Admin → Parts.
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                  <!-- Video completion status -->
-                  {% set part_id = current_part.id %}
-                  {% set is_completed = video_progress.get(part_id, False) %}
-                  {% if is_completed %}
-                  <div class="alert alert-success mt-3">
-                    <i class='bx bx-check-circle me-2'></i>Video completed!
-                  </div>
-                  {% endif %}
+              <div class="lesson-notes-section">
+                <h4 class="d-flex align-items-center gap-2 mb-2">
+                  <i class='bx bx-notepad text-primary'></i> Notes
+                </h4>
+                {% if part_notes %}
+                  {% for n in part_notes %}
+                  <div class="lesson-note-item">{{ n.content }}</div>
+                  {% endfor %}
+                {% else %}
+                  <p class="text-gray fs-14 mb-3 mb-0">No notes for this lesson yet.</p>
+                {% endif %}
+                <div class="lesson-note-add mt-3">
+                  <label class="form-label fs-13 fw-semibold text-gray mb-1">Add a note</label>
+                  <textarea class="form-control" id="lessonNoteContent" rows="3" placeholder="Write your note…"></textarea>
+                  <button type="button" class="btn custom-button purple-button mt-2" id="lessonNoteSubmitBtn" data-note-url="{{ url('counselor:add_note', args=[current_part.id]) }}">
+                    <i class='bx bx-plus-circle me-1'></i>Save note
+                  </button>
                 </div>
               </div>
 
@@ -1118,6 +1261,44 @@
     }
     return cookieValue;
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var noteBtn = document.getElementById('lessonNoteSubmitBtn');
+    if (!noteBtn) return;
+    noteBtn.addEventListener('click', function() {
+      var ta = document.getElementById('lessonNoteContent');
+      var url = noteBtn.getAttribute('data-note-url');
+      if (!ta || !url) return;
+      var text = (ta.value || '').trim();
+      if (!text) {
+        if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'Enter a note' });
+        else alert('Please enter a note.');
+        return;
+      }
+      var body = new URLSearchParams();
+      body.append('content', text);
+      body.append('time', '');
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken') || '',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+        credentials: 'same-origin',
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.id) window.location.reload();
+          else if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Could not save note' });
+          else alert('Could not save note.');
+        })
+        .catch(function () {
+          if (typeof Swal !== 'undefined') Swal.fire({ icon: 'error', title: 'Could not save note' });
+          else alert('Could not save note.');
+        });
+    });
+  });
 </script>
 {% endblock %}
 

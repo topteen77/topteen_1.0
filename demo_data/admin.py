@@ -4,8 +4,15 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from core.choices import UserType
-from .models import DemoDatasetConfig, ResultType
-from .demo_dataset import create_demo_dataset, reset_demo_data, remove_demo_data
+from .models import DemoDatasetConfig, DemoCounselorCourseState, ResultType
+from .demo_dataset import (
+    create_demo_dataset,
+    remove_demo_counselor_data,
+    remove_demo_data,
+    reset_demo_counselor_data,
+    reset_demo_data,
+    setup_demo_counselor_data,
+)
 
 User = get_user_model()
 
@@ -18,10 +25,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         "num_students_class_12",
         "num_students_with_psychometric",
         "psychometric_tests_complete",
+        "demo_counselor_course_state",
         "result_type_class_10",
         "result_type_class_12",
         "student_count",
         "institute_id",
+        "counselor_id",
         "updated_at",
     ]
     list_editable = [
@@ -37,6 +46,8 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         "institute_user_id",
         "parent_user_id",
         "student_user_ids",
+        "counselor_user_id",
+        "counselor_id",
         "updated_at",
     ]
     fieldsets = (
@@ -51,7 +62,7 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                     "result_type_class_10",
                     "result_type_class_12",
                 ),
-                "description": "Class 10/12 counts; how many have psychometric (e.g. 1 Class 10 + 2 Class 12 = 3). Result type per class: Class 10 (e.g. varied = high/medium/low/mixed), Class 12 (e.g. high). 1 parent, 1 institute (fixed).",
+                "description": "Class 10/12 counts; psychometric counts; result types. Student/demo institute data only. Use the separate Demo counselor section below for counselor course demo.",
             },
         ),
         (
@@ -62,6 +73,8 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                     "institute_user_id",
                     "parent_user_id",
                     "student_user_ids",
+                    "counselor_user_id",
+                    "counselor_id",
                     "updated_at",
                 ),
             },
@@ -82,12 +95,18 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         result_labels = dict(ResultType.CHOICES)
         extra_context["config"] = config
         extra_context["result_type_choices"] = ResultType.CHOICES
+        counselor_state_labels = dict(DemoCounselorCourseState.CHOICES)
         extra_context["config_table"] = [
             {"user": "Class 10", "total_students": n10, "psych_completed": n10_psych, "result_type_value": config.result_type_class_10, "result_type_label": result_labels.get(config.result_type_class_10, config.result_type_class_10), "editable": True},
             {"user": "Class 12", "total_students": n12, "psych_completed": n12_psych, "result_type_value": config.result_type_class_12, "result_type_label": result_labels.get(config.result_type_class_12, config.result_type_class_12), "editable": True},
             {"user": "Parent", "total_students": 1, "psych_completed": None, "result_type_value": "", "result_type_label": "—", "editable": False},
             {"user": "Institute", "total_students": 1, "psych_completed": None, "result_type_value": "", "result_type_label": "—", "editable": False},
         ]
+        extra_context["demo_counselor_course_state"] = getattr(config, "demo_counselor_course_state", DemoCounselorCourseState.PASSED)
+        extra_context["demo_counselor_state_choices"] = DemoCounselorCourseState.CHOICES
+        extra_context["demo_counselor_state_label"] = counselor_state_labels.get(
+            getattr(config, "demo_counselor_course_state", DemoCounselorCourseState.PASSED), "—"
+        )
         demo_users = []
         ids = []
         if config.institute_user_id:
@@ -97,7 +116,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         if config.student_user_ids:
             ids.extend(config.student_user_ids)
         if ids:
-            type_order = {UserType.INSTITUTE: 0, UserType.PARENT: 1, UserType.STUDENT: 2}
+            type_order = {
+                UserType.INSTITUTE: 0,
+                UserType.PARENT: 1,
+                UserType.STUDENT: 2,
+                UserType.COUNSELOR: 3,
+            }
             role_labels = dict(UserType.CHOICES)
             for u in User.objects.filter(id__in=ids):
                 demo_users.append({
@@ -109,6 +133,11 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 })
             demo_users.sort(key=lambda x: (type_order.get(x["user_type"], 99), x["id"]))
         extra_context["demo_users"] = demo_users
+        demo_counselor_user = None
+        cid = getattr(config, "counselor_user_id", None)
+        if cid:
+            demo_counselor_user = User.objects.filter(id=cid).first()
+        extra_context["demo_counselor_user"] = demo_counselor_user
         return super().changelist_view(request, extra_context)
 
     def student_count(self, obj):
@@ -146,6 +175,26 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "remove/",
                 self.admin_site.admin_view(self.remove_demo_data_view),
                 name="demo_data_remove",
+            ),
+            path(
+                "counselor_config_save/",
+                self.admin_site.admin_view(self.counselor_config_save_view),
+                name="demo_data_counselor_config_save",
+            ),
+            path(
+                "setup_counselor/",
+                self.admin_site.admin_view(self.setup_demo_counselor_view),
+                name="demo_data_setup_counselor",
+            ),
+            path(
+                "reset_counselor/",
+                self.admin_site.admin_view(self.reset_demo_counselor_view),
+                name="demo_data_reset_counselor",
+            ),
+            path(
+                "remove_counselor/",
+                self.admin_site.admin_view(self.remove_demo_counselor_view),
+                name="demo_data_remove_counselor",
             ),
         ]
         return custom + urls
@@ -191,11 +240,81 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "result_type_class_10", "result_type_class_12",
                 "num_students_with_psychometric",
             ])
-            messages.success(request, "Configuration saved.")
+            messages.success(request, "Student demo configuration saved.")
         except ValueError as e:
             messages.error(request, f"Invalid number: {e}")
         except Exception as e:
             messages.error(request, f"Could not save: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def counselor_config_save_view(self, request):
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        config = DemoDatasetConfig.get_singleton()
+        try:
+            dc_state = request.POST.get("demo_counselor_course_state") or getattr(
+                config, "demo_counselor_course_state", DemoCounselorCourseState.PASSED
+            )
+            valid_states = {c[0] for c in DemoCounselorCourseState.CHOICES}
+            if dc_state in valid_states:
+                config.demo_counselor_course_state = dc_state
+                config.save(update_fields=["demo_counselor_course_state"])
+            messages.success(request, "Demo counselor options saved.")
+        except Exception as e:
+            messages.error(request, f"Could not save: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def setup_demo_counselor_view(self, request):
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        try:
+            setup_demo_counselor_data()
+            messages.success(
+                request,
+                "Demo counselor created (demo_counselor@topteen.demo / demo123). Separate from student demo data.",
+            )
+        except Exception as e:
+            messages.error(request, f"Demo counselor setup failed: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def reset_demo_counselor_view(self, request):
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        confirm = request.GET.get("confirm") == "1"
+        if not confirm:
+            messages.warning(
+                request,
+                "Add ?confirm=1 to confirm reset demo counselor only (student demo data is not touched).",
+            )
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        try:
+            reset_demo_counselor_data()
+            messages.success(request, "Demo counselor reset complete.")
+        except Exception as e:
+            messages.error(request, f"Reset failed: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def remove_demo_counselor_view(self, request):
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        confirm = request.GET.get("confirm") == "1"
+        if not confirm:
+            messages.warning(
+                request,
+                "Add ?confirm=1 to confirm remove demo counselor only (student demo data is not touched).",
+            )
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        try:
+            remove_demo_counselor_data()
+            messages.success(request, "Demo counselor removed.")
+        except Exception as e:
+            messages.error(request, f"Remove failed: {e}")
         return redirect("admin:demo_data_demodatasetconfig_changelist")
 
     def setup_demo_data_view(self, request):
@@ -204,7 +323,10 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
             raise PermissionDenied
         try:
             create_demo_dataset()
-            messages.success(request, "Demo dataset created successfully. Only system-flagged data was created.")
+            messages.success(
+                request,
+                "Student / institute demo dataset created. Demo counselor is unchanged — use Setup demo counselor separately.",
+            )
         except Exception as e:
             messages.error(request, f"Setup failed: {e}")
         return redirect("admin:demo_data_demodatasetconfig_changelist")
@@ -224,7 +346,7 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
             reset_demo_data()
             messages.success(
                 request,
-                "Demo data reset complete. Only system-flagged data was removed and recreated; no actual user data was affected.",
+                "Student / institute demo reset complete. Demo counselor was not modified — use Reset demo counselor if needed.",
             )
         except Exception as e:
             messages.error(request, f"Reset failed: {e}")
@@ -245,7 +367,7 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
             remove_demo_data()
             messages.success(
                 request,
-                "Demo data removed. Only system-flagged data was deleted; no actual user data was affected.",
+                "Student / institute demo removed. Demo counselor account was not removed — use Remove demo counselor if needed.",
             )
         except Exception as e:
             messages.error(request, f"Remove failed: {e}")

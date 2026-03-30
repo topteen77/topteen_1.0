@@ -135,6 +135,12 @@
             </div>
             {% endfor %}
           </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn custom-button blue-button d-flex align-items-center"
+               href="{{ url('counselor:counselor_course_detail') }}">
+              View Curriculum
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -220,9 +226,15 @@
                 </ul>
 
                 <div class="payment-button-container">
+                {% if counselor_course_enrolled and counselor_payment_cta_url %}
+                <a href="{{ counselor_payment_cta_url }}" class="btn btn-book-now text-decoration-none d-inline-flex align-items-center justify-content-center">
+                  {% if counselor_payment_cta_label == 'Resume' %}<i class='bx bx-play-circle me-2'></i>{% else %}<i class='bx bx-right-arrow-alt me-2'></i>{% endif %}{{ counselor_payment_cta_label }}
+                </a>
+                {% else %}
                 <button type="button" class="btn btn-book-now" id="rzp-button-payment-card">
-                  {% if user_authenticated %}<i class='bx bx-credit-card me-2'></i> Start Now{% else %}<i class='bx bx-calendar-check me-2'></i> Book Now{% endif %}
+                  <i class='bx bx-calendar-check me-2'></i> Book Now
                 </button>
+                {% endif %}
                 </div>
               </div>
             </div>
@@ -327,7 +339,8 @@
     return cookieValue;
   }
   const userAuthenticated = {% if user_authenticated %}true{% else %}false{% endif %};
-  const loginUrl = "{{ url('counselor:login') }}?next=" + encodeURIComponent("{{ url('counselor:CounselorCoursepayment') }}");
+  const counselorCourseEnrolled = {% if counselor_course_enrolled %}true{% else %}false{% endif %};
+  const loginUrl = "{{ url('counselor:login') }}?next=" + encodeURIComponent("{{ (request.get_full_path() if request else url('counselor:CounselorCoursepayment')) }}");
   function capturePaymentStatus(payload) {
     fetch('/user-analytics/api/payment-status/', {
       method: 'POST',
@@ -353,7 +366,7 @@
 
   var options = null;
   var rzp1 = null;
-  {% if user_authenticated and payment %}
+  {% if user_authenticated and payment and not counselor_course_enrolled %}
   options = {
     "key": "{{ key }}",
     "amount": "{{ payment.amount }}",
@@ -391,7 +404,16 @@
   {% endif %}
 
   var payBtn = document.getElementById('rzp-button-payment-card');
-  if (payBtn) payBtn.onclick = handlePaymentClick;
+  if (payBtn && !counselorCourseEnrolled) payBtn.onclick = handlePaymentClick;
+
+  (function() {
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      if (params.get('auto_pay') === '1' && !counselorCourseEnrolled) {
+        setTimeout(function() { handlePaymentClick(); }, 300);
+      }
+    } catch (e) {}
+  })();
 
   (function() {
     var thumb = document.getElementById('videoModalThumbnail');
