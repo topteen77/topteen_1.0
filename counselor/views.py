@@ -132,9 +132,6 @@ class CounselorCourseCurriculumView(TemplateView):
     template_name = "template20/counselor/course_curriculum.html"
 
     def get_context_data(self, **kwargs):
-        from core import choices
-        from payments.models import Payment
-
         context = super().get_context_data(**kwargs)
         course = (
             CounselorCourse.objects.prefetch_related("chapters__parts")
@@ -147,30 +144,23 @@ class CounselorCourseCurriculumView(TemplateView):
             for ch in chapters:
                 ch._parts = list(ch.parts.all().order_by("id"))
 
+        cta_label, cta_url, counselor_course_enrolled = _counselor_course_detail_cta(
+            self.request, course
+        )
+
         context.update(
             {
                 "course": course,
                 "chapters": chapters,
+                "curriculum_cta_label": cta_label,
+                "curriculum_cta_url": cta_url,
+                "counselor_course_enrolled": counselor_course_enrolled,
             }
         )
 
-        user_authenticated = bool(getattr(self.request, "user", None) and self.request.user.is_authenticated)
-        has_successful_payment = False
-        if user_authenticated:
-            has_successful_payment = Payment.objects.filter(
-                user=self.request.user,
-                obj_type=choices.PaymentObjectType.COUNSELOR,
-                is_success=choices.YesNoChoices.YES,
-            ).exists()
-
-        if has_successful_payment:
-            context["curriculum_cta_label"] = "Start Now"
-            context["curriculum_cta_url"] = reverse("counselor:counselor_enrolled_course")
-        else:
-            context["curriculum_cta_label"] = "Book Now"
-            context["curriculum_cta_url"] = reverse("counselor:CounselorCoursepayment") + "?auto_pay=1"
-
-        context["user_authenticated"] = user_authenticated
+        context["user_authenticated"] = bool(
+            getattr(self.request, "user", None) and self.request.user.is_authenticated
+        )
         return context
 
 
@@ -2360,8 +2350,14 @@ class CounselorEnrolledCourseView(View):
             incorrect_answers = []
             correct_selected = []
             correct_ans_selected =[]
-        
-        
+
+        resume_course_url = None
+        if request.user.is_authenticated:
+            _resume_counselor = Counselor.objects.filter(coun_user=request.user).first()
+            if _resume_counselor:
+                resume_course_url = reverse(
+                    "counselor:course_learning", args=[_resume_counselor.id]
+                )
 
         context = {
             'user': '336',
@@ -2378,6 +2374,7 @@ class CounselorEnrolledCourseView(View):
             'incorrect_answers':incorrect_answers,
             'correct_selected':correct_selected,
             'correct_ans_selected':correct_ans_selected,
+            'resume_course_url': resume_course_url,
         }
 
         return render(request, self.template_name, context)

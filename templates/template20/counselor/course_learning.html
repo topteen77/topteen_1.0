@@ -314,6 +314,17 @@
     right: 20px;
     z-index: 1000;
   }
+  .dashboard-btn .btn-resume-course {
+    border: 2px solid #5249df;
+    color: #5249df;
+    background: #fff;
+    font-weight: 600;
+  }
+  .dashboard-btn .btn-resume-course:hover {
+    background: #f5f4ff;
+    color: #4338ca;
+    border-color: #4338ca;
+  }
   /* Lesson area: Video / PDF Notes tabs (reference UI) */
   .lesson-content-card {
     border: 1px solid #e8e8f0;
@@ -449,8 +460,11 @@
 {% block content %}
 <section class="course-learning-page pb-5">
   <div class="container-fluid">
-    <!-- My Dashboard Button -->
-    <div class="dashboard-btn">
+    <!-- Resume (latest progress) + Dashboard -->
+    <div class="dashboard-btn d-flex flex-wrap gap-2 justify-content-end align-items-center">
+      <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-resume-course" title="Open your next incomplete lesson">
+        <i class='bx bx-play-circle me-1'></i>Resume
+      </a>
       <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="btn custom-button purple-button">
         <i class='bx bx-home me-2'></i>My Dashboard
       </a>
@@ -953,6 +967,9 @@
   }
 
   // Quiz navigation
+  var quizLastQuestionSubmitTimer = null;
+  var quizSubmitLocked = false;
+
   function nextQuestion() {
     // Validate answer before proceeding
     if (!validateAnswerBeforeNext()) {
@@ -1000,12 +1017,17 @@
     const prevQuestion = currentQuestion.previousElementSibling;
     
     if (prevQuestion && prevQuestion.classList.contains('question-container')) {
+      const totalQuestions = {{ total_questions }};
+      const wasLast = parseInt(currentQuestion.dataset.questionIndex) >= totalQuestions - 1;
+      if (wasLast && quizLastQuestionSubmitTimer) {
+        clearTimeout(quizLastQuestionSubmitTimer);
+        quizLastQuestionSubmitTimer = null;
+      }
       currentQuestion.classList.remove('active');
       prevQuestion.classList.add('active');
       
       // Update navigation buttons
       const questionIndex = parseInt(prevQuestion.dataset.questionIndex);
-      const totalQuestions = {{ total_questions }};
       
       if (questionIndex === 0) {
         document.getElementById('prevBtn').disabled = true;
@@ -1066,8 +1088,13 @@
     
     // Check if this is the last question
     if (currentQuestionIndex >= totalQuestions - 1) {
-      // Last question - show submit popup after delay
-      setTimeout(function() {
+      if (quizLastQuestionSubmitTimer) {
+        clearTimeout(quizLastQuestionSubmitTimer);
+        quizLastQuestionSubmitTimer = null;
+      }
+      // Last question - show submit popup after delay (single timer; re-answer clears previous)
+      quizLastQuestionSubmitTimer = setTimeout(function() {
+        quizLastQuestionSubmitTimer = null;
         showSubmitQuizPopup();
       }, 1200); // 1200ms delay to let user see their selection and feedback
     } else if (nextQuestionElement && nextQuestionElement.classList.contains('question-container')) {
@@ -1129,6 +1156,9 @@
   
   // Show submit quiz popup
   function showSubmitQuizPopup() {
+    if (quizSubmitLocked) return;
+    const existing = document.querySelector('.submit-quiz-popup-overlay');
+    if (existing) return;
     // Create popup modal
     const popup = document.createElement('div');
     popup.className = 'submit-quiz-popup-overlay';
@@ -1174,6 +1204,7 @@
   
   // Submit quiz immediately
   function submitQuizNow() {
+    if (quizSubmitLocked) return;
     // Validate all questions before submitting
     const allQuestions = document.querySelectorAll('.question-container');
     let allAnswered = true;
@@ -1207,6 +1238,12 @@
     
     const form = document.getElementById('quizForm');
     if (form) {
+      quizSubmitLocked = true;
+      var btn = document.getElementById('submitBtn');
+      if (btn) {
+        btn.disabled = true;
+      }
+      closeSubmitQuizPopup();
       form.submit();
     }
   }
@@ -1216,6 +1253,10 @@
     const quizForm = document.getElementById('quizForm');
     if (quizForm) {
       quizForm.addEventListener('submit', function(e) {
+        if (quizSubmitLocked) {
+          e.preventDefault();
+          return false;
+        }
         // Validate all questions before submitting
         const allQuestions = document.querySelectorAll('.question-container');
         let allAnswered = true;
@@ -1245,6 +1286,11 @@
             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
           return false;
+        }
+        quizSubmitLocked = true;
+        var submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
         }
       });
     }

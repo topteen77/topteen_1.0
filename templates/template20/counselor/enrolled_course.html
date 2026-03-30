@@ -82,7 +82,14 @@
 
       <!-- Main Content -->
       <div class="col-lg-8">
-        <h2 class="fs-24 fw-semibold mb-4">Enrolled Course</h2>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+          <h2 class="fs-24 fw-semibold mb-0">Enrolled Course</h2>
+          {% if resume_course_url %}
+          <a href="{{ resume_course_url }}" class="btn custom-button purple-button flex-shrink-0">
+            <i class='bx bx-play-circle me-1'></i> Resume
+          </a>
+          {% endif %}
+        </div>
         
         {% if course %}
         <!-- Chapter Tabs -->

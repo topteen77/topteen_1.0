@@ -7,6 +7,9 @@
         {% if course %}
         <p class="fs-12 text-muted mb-0 mt-1">Navigate chapters and lessons below</p>
         {% endif %}
+        <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-sm w-100 mt-2 fw-semibold course-sidebar-resume-btn" title="Jump to your latest progress">
+          <i class='bx bx-play-circle me-1'></i> Resume latest
+        </a>
       </div>
       
       {% if course and chapters_list %}
@@ -45,7 +48,7 @@
               </div>
               <div class="d-flex align-items-center">
                 {% if is_current_chapter %}
-                <i class='bx bx-chevron-down fs-18 me-2' style="color: rgba(255, 255, 255, 0.95); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);"></i>
+                <i class='bx bx-chevron-down fs-18 me-2 chapter-active-chevron'></i>
                 {% else %}
                 <i class='bx bx-chevron-right text-gray fs-18 me-2'></i>
                 {% endif %}
@@ -88,18 +91,18 @@
                      data-quiz-id="{{ quiz.id }}"
                      {% if is_video_completed and not is_part_locked and not is_restricted_view %}onclick="event.stopPropagation(); navigateToQuiz({{ quiz.id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative;"{% endif %}>
                   {% if is_current_quiz %}
-                  <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 75%; background: {% if is_current_part %}linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%){% else %}linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%){% endif %}; border-radius: 0 6px 6px 0; box-shadow: 0 0 8px {% if is_current_part %}rgba(255, 255, 255, 0.4){% else %}rgba(255, 107, 107, 0.5){% endif %};"></div>
+                  <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 75%; background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%); border-radius: 0 6px 6px 0; box-shadow: 0 0 8px rgba(255, 107, 107, 0.45);"></div>
                   {% endif %}
                   <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center flex-grow-1">
-                      <i class='bx bx-file-blank me-2 fs-14 {% if is_current_quiz and is_current_part %}text-white{% elif is_current_quiz %}text-danger{% else %}text-gray{% endif %}' style="{% if is_current_quiz and not is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                      <i class='bx bx-file-blank me-2 fs-14 {% if is_current_quiz %}text-danger{% else %}text-gray{% endif %}' style="{% if is_current_quiz %}color: #e03131 !important;{% endif %}"></i>
                       <span class="fs-12 {% if is_current_quiz %}fw-semibold{% endif %}">Quiz: {{ quiz.title|default('Quiz ' ~ loop.index) }}</span>
                       {% if is_quiz_completed %}
-                      <span class="badge {% if is_current_quiz and is_current_part %}bg-white text-danger{% elif is_current_quiz %}bg-danger text-white{% else %}bg-success{% endif %} ms-2 fs-10" style="{% if is_current_quiz and not is_current_part %}background: #ff6b6b !important; color: #fff !important;{% endif %}">Done</span>
+                      <span class="badge {% if is_current_quiz %}bg-danger text-white{% else %}bg-success{% endif %} ms-2 fs-10">Done</span>
                       {% endif %}
                     </div>
                     {% if is_quiz_completed %}
-                      <i class='bx bx-check-circle {% if is_current_quiz and is_current_part %}text-white{% elif is_current_quiz %}text-danger{% else %}text-success{% endif %} fs-14' style="{% if is_current_quiz and not is_current_part %}color: #ff6b6b !important;{% endif %}"></i>
+                      <i class='bx bx-check-circle {% if is_current_quiz %}text-danger{% else %}text-success{% endif %} fs-14' style="{% if is_current_quiz %}color: #e03131 !important;{% endif %}"></i>
                     {% elif is_video_completed and not is_part_locked %}
                       <i class='bx bx-time-five {% if is_current_quiz %}text-danger{% else %}text-primary{% endif %} fs-14' style="{% if is_current_quiz %}color: #ff6b6b !important;{% endif %}"></i>
                     {% else %}
@@ -141,10 +144,20 @@
 
 <style>
   .course-sidebar-pro {
-    position: sticky;
-    top: 100px;
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
+    /* Parent .course-sidebar-container handles sticky + scroll */
+    position: relative;
+    max-height: none;
+    overflow: visible;
+  }
+  .course-sidebar-resume-btn {
+    border: 1px solid #5249df;
+    color: #5249df;
+    background: #fff;
+  }
+  .course-sidebar-resume-btn:hover {
+    background: #f5f4ff;
+    color: #4338ca;
+    border-color: #4338ca;
   }
   .course-sidebar-card {
     border-radius: 16px !important;
@@ -169,19 +182,15 @@
   .chapter-item.active {
     border-color: #5249DF;
     border-width: 2px;
-    box-shadow: 0 8px 28px rgba(82, 73, 223, 0.22);
-    background: linear-gradient(145deg, #5249DF 0%, #6b5fd8 55%, #7c6fe0 100%);
+    box-shadow: 0 2px 14px rgba(82, 73, 223, 0.12);
+    background: #fff;
     position: relative;
   }
   .chapter-item.active::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
-    pointer-events: none;
+    display: none;
+  }
+  .chapter-item.active .chapter-active-chevron {
+    color: #5249DF;
   }
   .chapter-item.locked {
     opacity: 0.7;
@@ -223,7 +232,8 @@
     z-index: 1;
   }
   .chapter-item.active .chapter-header {
-    color: #fff;
+    color: #1f2937;
+    background: linear-gradient(90deg, rgba(82, 73, 223, 0.08) 0%, rgba(255, 255, 255, 0) 65%);
   }
   .chapter-item.active .chapter-header::after {
     content: '';
@@ -231,19 +241,18 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 5px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 0 6px 6px 0;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    width: 4px;
+    background: #5249DF;
+    border-radius: 0 4px 4px 0;
   }
   .chapter-item.active .chapter-header .text-gray {
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: #6b7280 !important;
   }
   .chapter-header:hover {
     background: rgba(82, 73, 223, 0.06);
   }
   .chapter-item.active .chapter-header:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: linear-gradient(90deg, rgba(82, 73, 223, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
   }
   
   .chapter-number {
@@ -262,24 +271,24 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   .chapter-item.active .chapter-number {
-    background: rgba(255, 255, 255, 0.3);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 0 0 2px rgba(255, 255, 255, 0.3);
-    transform: scale(1.08);
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #5249DF;
+    border: 2px solid #5249DF;
+    box-shadow: 0 2px 8px rgba(82, 73, 223, 0.15);
+    transform: none;
   }
   .chapter-index {
     font-size: 15px;
   }
   
-  /* Parts List Styles */
+  /* Parts List Styles — neutral panel so last items stay readable */
   .parts-list {
-    padding: 12px 16px 16px 16px;
-    background: rgba(255, 255, 255, 0.12);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 12px 16px 12px;
+    background: #f3f4f6;
+    border-top: 1px solid #e5e7eb;
   }
   .chapter-item.active .parts-list {
-    background: rgba(255, 255, 255, 0.14);
+    background: #f3f4f6;
   }
   
   .part-item {
@@ -419,13 +428,13 @@
     font-weight: bold;
   }
   .part-item.active .quiz-item.active {
-    background: rgba(255, 255, 255, 0.3);
-    color: #fff;
-    border-left-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    color: #c53030;
+    border-left-color: #ff6b6b;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2), inset 0 0 0 1px rgba(255, 107, 107, 0.15);
   }
   .part-item.active .quiz-item.active::before {
-    color: #fff;
+    color: #ff6b6b;
   }
   
   /* Certificate Badge */
