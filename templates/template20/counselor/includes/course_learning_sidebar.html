@@ -56,10 +56,12 @@ Quiz: {{ t }}
                 </div> -->
                 <div class="flex-grow-1 min-w-0">
                   <div class="d-flex align-items-start gap-2 flex-wrap">
-                    <p class="fs-14 fw-semibold mb-0 chapter-title-text">{{ chapter.title }}</p>
                     {% if ns_ch.chapter_done %}
-                    <span class="chapter-badge-completed">Done</span>
+                    <span class="chapter-title-check" title="Completed" aria-label="Completed">
+                      <i class='bx bx-check'></i>
+                    </span>
                     {% endif %}
+                    <p class="fs-14 fw-semibold mb-0 chapter-title-text">{{ chapter.title }}</p>
                   </div>
                   {% if chapter.parts.exists() %}
                   <small class="text-gray fs-12">{{ chapter.parts.count() }} lessons</small>
@@ -103,7 +105,9 @@ Quiz: {{ t }}
                 </div>
                 <div class="part-row-status flex-shrink-0 text-end">
                 {% if part_fully_complete %}
-                  <span class="sidebar-status-badge sidebar-status-badge--done">Done</span>
+                  <span class="sidebar-status-badge sidebar-status-badge--done" title="Completed" aria-label="Completed">
+                    <i class='bx bx-check'></i>
+                  </span>
                 {% elif not is_video_completed %}
                   <span class="sidebar-status-badge sidebar-status-badge--pending" title="Video not completed">Video</span>
                 {% elif part.quizzes.exists() and not is_quiz_completed %}
@@ -123,16 +127,18 @@ Quiz: {{ t }}
                   {% if is_current_quiz %}
                   <div class="quiz-active-marker" aria-hidden="true"></div>
                   {% endif %}
-                  <div class="d-flex align-items-start justify-content-between gap-2">
+                  <div class="d-flex align-items-center justify-content-between gap-2">
                     <div class="d-flex align-items-start flex-grow-1 min-w-0">
                       <span class="sidebar-bullet sidebar-bullet--quiz" aria-hidden="true"></span>
                       <span class="sidebar-row-title sidebar-row-title--quiz {% if is_current_quiz %}fw-semibold{% endif %}">{{ quiz_short_title(quiz.title) }}</span>
                     </div>
                     <div class="part-row-status flex-shrink-0 text-end">
                     {% if is_this_quiz_done %}
-                      <span class="sidebar-status-badge sidebar-status-badge--done">Done</span>
+                      <span class="sidebar-status-badge sidebar-status-badge--done" title="Completed" aria-label="Completed">
+                        <i class='bx bx-check'></i>
+                      </span>
                     {% elif not is_video_completed or is_part_locked %}
-                      <i class='bx bx-lock text-gray fs-14' title="Locked"></i>
+                      <i class='bx bx-lock text-gray fs-18' title="Locked"></i>
                     {% else %}
                       <span class="sidebar-status-badge sidebar-status-badge--pending">Quiz</span>
                     {% endif %}
@@ -156,9 +162,9 @@ Quiz: {{ t }}
   <div class="card">
     <div class="card-body text-center">
       <div class="certificate-badge-sidebar">
-        <i class='bx bx-award fs-48 text-warning mb-2'></i>
+        <i class='bx bx-award fs-35 text-warning mb-2'></i>
         <h6 class="fs-16 fw-bold mb-1">Certificate Earned!</h6>
-        <p class="fs-14 mb-1">Grade: <strong>{{ certification.grade }}</strong></p>
+        <p class="fs-14 mb-1 text-warning">Grade: <strong>{{ certification.grade }}</strong></p>
         <p class="fs-12 mb-2 text-gray">Code: {{ certification.certificate_code }}</p>
         <a href="{{ url('counselor:view_certificate', args=[counselor.id]) }}" 
            class="btn btn-sm btn-light mt-2">
@@ -229,12 +235,17 @@ Quiz: {{ t }}
     position: relative;
   }
   .chapter-item.locked .chapter-header::after {
-    content: '🔒';
+    content: '';
     position: absolute;
-    right: 12px;
+    right: 7px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 16px;
+    width: 19px;
+    height: 19px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABgUlEQVRIS92VMUoEMRSGk2H2BCIigiAK2noFEbWzEe8gmDjINrKNooUig0yyegcrO2EFr2BhY+WiIGIhnmCc+GeZlcHN5jkzLIhpdkhe/i/538tbzkY8+Ij12a8AQoiNgLEtxvmSPZBh7BY/50qpK+qAJEBKeYqgpksIoH1ADnwQLwDimwi4zE99mKbphf0Ow3Ab8y37nRmzqrW+GQbxA4S445wvsizbTdrts6II4C1sPmLGdBKt1yoBdqT8xMYgbDTG4zh+L4pEUTRpsuwVcx+JUmNVAbCZMQg4b4oDeNftXq9FlAC17gTA23X4egzvF6gS/LH+gOs0UVXXxfmBG+BULwiYKineD+/CzlkKQPrqgg+zy3WDfwooJN+4klnbIgi8wfuJ3P+BZNYGSCG6KN2ZXl8y5lFpPVdMdm0AWvZKwHknb3zLqHfbsr9HbYBV8r3cvwNAtTzjcUxXfMlPeMm9PPXHwEOz5YjJEwTMl4Tco3z3yF5UUpQMJ/+TSQUi4AsGwMwZyIezeQAAAABJRU5ErkJggg==");
     opacity: 0.8;
     z-index: 2;
   }
@@ -325,17 +336,39 @@ Quiz: {{ t }}
     color: #047857;
   }
   .chapter-badge-completed {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: #047857;
     background: #d1fae5;
     border: 1px solid #6ee7b7;
-    padding: 0.15rem 0.5rem;
-    border-radius: 999px;
+    border-radius: 50%;
     flex-shrink: 0;
-    line-height: 1.2;
+    line-height: 1;
+  }
+  .chapter-badge-completed i {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+  .chapter-title-check {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #24ad7b 0%, #16b37f 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.28);
+    flex-shrink: 0;
+    position:absolute;
+  }
+  .chapter-title-check i {
+    font-size: 0.92rem;
+    font-weight: 700;
   }
   .chapter-item.chapter-item--completed:not(.active) {
     border-color: #bbf7d0;
@@ -381,9 +414,10 @@ Quiz: {{ t }}
     overflow-wrap: break-word;
     word-break: break-word;
     hyphens: auto;
-    line-height: 1.4;
+    line-height: 1.2;
     flex: 1;
     min-width: 0;
+    text-transform: capitalize;
   }
   .sidebar-row-title--quiz {
     font-weight: 500;
@@ -406,6 +440,17 @@ Quiz: {{ t }}
     color: #047857;
     background: #d1fae5;
     border: 1px solid #6ee7b7;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .sidebar-status-badge--done i {
+    font-size: 0.9rem;
+    font-weight: 700;
   }
   .sidebar-status-badge--pending {
     color: #b45309;
@@ -468,8 +513,8 @@ Quiz: {{ t }}
     left: 0;
     top: 0;
     bottom: 0;
-    width: 5px;
-    background: linear-gradient(180deg, #5249DF 0%, #8b7cf8 100%);
+    /* width: 5px;
+    background: linear-gradient(180deg, #5249DF 0%, #8b7cf8 100%); */
     border-radius: 10px 0 0 10px;
     box-shadow: 0 0 12px rgba(82, 73, 223, 0.35);
   }
@@ -493,7 +538,7 @@ Quiz: {{ t }}
     transform: translateX(2px) !important;
   }
   .part-item.locked::after {
-    content: '🔒';
+    /* content: '🔒'; */
     position: absolute;
     right: 12px;
     top: 50%;

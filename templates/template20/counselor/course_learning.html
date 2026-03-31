@@ -18,8 +18,36 @@
 <link rel="dns-prefetch" href="{{ video_preconnect_href }}">
 {% endif %}
 <style>
+.chapter-item--completed .chapter-title-text {
+  padding-left: 27px;
+}
+
+
+.notes-section-inner {
+  border: 1px solid #cdcaff;
+  background: #fff;
+  padding: 7px 6px;
+  border-radius: 10px;
+}
+
+.part-item, .quiz-item.quiz-sidebar-row {
+  padding: 12px 7px !important;
+}
+
+.course-sidebar {
+	position: sticky;
+	top: 0px;
+	background: #FCFCFF;
+	border: 1px solid #C8C5FF;
+	border-radius: 15px;
+	padding: 0;
+}
+
+.logged-in.course-learning-page header, .logged-in.course-learning-page footer{
+  display: none !important;
+}
   .course-learning-page {
-    padding-top: 80px;
+    padding-top:49px;
   }
   /* Hide any profile sidebar that might be included */
   .course-learning-page .profile-sidebar,
@@ -40,10 +68,224 @@
     display: none !important;
   }
   .course-sidebar-container {
-    position: sticky;
-    top: 100px;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 130px);
     overflow-y: auto;
+  }
+  .learning-top-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    background: #ffffff;
+    border-bottom: 1px solid #e9ecf6;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  }
+  .learning-top-header-inner {
+    min-height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+  }
+  .learning-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #111827;
+    min-width: 0;
+  }
+  .learning-brand img {
+    width: 134px;
+        object-fit: contain;
+    border-radius: 8px;
+  }
+  .learning-brand-label {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .learning-top-progress {
+    flex: 1;
+    max-width: 380px;
+    min-width: 190px;
+  }
+  .learning-top-progress .progress-bar-container {
+    margin-bottom: 0;
+  }
+  .learning-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .mobile-course-toolbar {
+    display: none;
+  }
+  .course-drawer-toggle {
+    display: none;
+  }
+  .course-layout-row {
+    position: relative;
+  }
+  .course-sidebar-col {
+    position: relative;
+  }
+  .course-main-col {
+    min-height: calc(100vh - 130px);
+  }
+  .course-sidebar-overlay {
+    display: none;
+  }
+  @media (min-width: 992px) {
+    .course-layout-row {
+      display: block;
+    }
+    .course-sidebar-col {
+      position: fixed;
+      top:67px;
+      left: 12px;
+      width: 330px;
+      max-width: calc(100vw - 24px);
+      z-index: 1002;
+      height: calc(100vh - 102px);
+      overflow: hidden;
+    }
+    .course-sidebar-container {
+      height: 100%;
+      max-height: none;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .course-main-col {
+      margin-left: 342px;
+      width: calc(100% - 342px);
+    }
+  }
+  @media (max-width: 991.98px) {
+    body.drawer-open {
+      overflow: hidden;
+    }
+    .course-learning-page {
+      padding-top: 126px;
+      overflow-x: hidden;
+    }
+    .learning-top-header-inner {
+      min-height: 62px;
+      gap: 10px;
+      padding: 8px 0;
+    }
+    .learning-brand img {
+      width: 112px;
+    }
+    .learning-brand-label {
+      display: none;
+    }
+    .learning-top-progress {
+      display: none;
+    }
+    .learning-top-actions .btn-resume-course,
+    .learning-top-actions .purple-button {
+      padding: 0.4rem 0.55rem !important;
+      font-size: 0.75rem;
+      line-height: 1.1;
+    }
+    .learning-top-actions .purple-button i,
+    .learning-top-actions .btn-resume-course i {
+      margin-right: 0 !important;
+    }
+    .mobile-course-toolbar {
+      display: block;
+      position: fixed;
+      top: 62px;
+      left: 0;
+      right: 0;
+      z-index: 1095;
+      background: #ffffff;
+      border-bottom: 1px solid #e8eaf5;
+      padding: 8px 12px;
+    }
+    .course-drawer-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #5249df;
+      color: #5249df;
+      font-weight: 600;
+      background: #fff;
+      border-radius: 8px;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.82rem;
+    }
+    .course-sidebar-col {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(86vw, 360px);
+      background: #fff;
+      z-index: 1200;
+      transform: translateX(-102%);
+      transition: transform 0.26s ease;
+      border-right: 1px solid #e9ecf6;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.2);
+      padding: 0 12px 12px;
+    }
+    .course-drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e8eaf5;
+      padding: 12px 2px;
+      margin-bottom: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fff;
+    }
+    .course-drawer-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid #d5d9ec;
+      background: #fff;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .course-sidebar-col.is-open {
+      transform: translateX(0);
+    }
+    .course-sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 1190;
+      display: none;
+    }
+    .course-sidebar-overlay.is-open {
+      display: block;
+    }
+    .course-sidebar-container {
+      height: 100%;
+      max-height: 100%;
+      overflow-y: auto;
+    }
+    .course-main-col {
+      margin-left: 0;
+      width: 100%;
+      min-height: auto;
+    }
+    .course-main-inner {
+      padding-left: 0.65rem !important;
+      padding-right: 0.65rem !important;
+    }
   }
   /* Sidebar styles are now in course_learning_sidebar.html */
   .quiz-completed-view {
@@ -343,10 +585,8 @@
     transition: width 0.3s;
   }
   .dashboard-btn {
-    position: fixed;
-    top: 100px;
-    right: 20px;
-    z-index: 1000;
+    position: static;
+    z-index: auto;
   }
   .dashboard-btn .btn-resume-course {
     border: 2px solid #5249df;
@@ -450,51 +690,175 @@
   }
   .lesson-notes-section {
     margin-top: 1.25rem;
-    padding: 1.25rem;
-    background: #fafbff;
-    border: 1px solid #eef0f6;
-    border-radius: 12px;
+    padding: 1.1rem;
+    background: linear-gradient(135deg, #f7f5ff 0%, #eef5ff 55%, #eefdf6 100%);
+    border: 1px solid #d8ddf7;
+    border-radius: 14px;
+    box-shadow: 0 10px 26px rgba(82, 73, 223, 0.08);
   }
   .lesson-notes-section h4 {
     font-size: 1rem;
     font-weight: 700;
-    color: #111827;
-    margin-bottom: 0.75rem;
+    color: #2d2a6d;
+    margin-bottom: 0.5rem;
+  }
+  .lesson-notes-title-icon {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #5249df 0%, #7c72ff 100%);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(82, 73, 223, 0.25);
+  }
+  .notes-section-inner {
+    padding: 0.35rem 0.35rem 0.95rem;
+    border-bottom: 1px dashed #cdd4f6;
+    margin-bottom: 0.8rem;
+  }
+  .notes-section-inner-content {
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #eef2ff 0%, #ecf8ff 100%);
+    color: #334155;
+    border: 1px solid #d9e3ff;
+  }
+  .notes-section-inner-content p {
+    margin: 0;
+    font-size: 0.83rem;
+    line-height: 1.35;
+  }
+  .lesson-notes-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
   }
   .lesson-note-item {
-    padding: 0.65rem 0.75rem;
-    background: #fff;
-    border-radius: 8px;
+    padding: 0.8rem 0.9rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    border-radius: 10px;
     border: 1px solid #e5e7eb;
-    margin-bottom: 0.5rem;
+    border-left: 4px solid #8b83ff;
+    margin-bottom: 0.65rem;
     font-size: 0.9rem;
   }
   .lesson-note-item.lesson-note-item--seekable {
     cursor: pointer;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    margin-top: 6px;
   }
   .lesson-note-item.lesson-note-item--seekable:hover {
     border-color: #5046e5;
-    box-shadow: 0 2px 8px rgba(80, 70, 229, 0.12);
+    border-left-color: #5046e5;
+    box-shadow: 0 8px 18px rgba(80, 70, 229, 0.14);
+    transform: translateY(-1px);
   }
   .lesson-note-item .lesson-note-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 0.5rem;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.45rem;
   }
   .lesson-note-item .lesson-note-meta {
-    font-size: 0.8rem;
-    color: #6b7280;
+    font-size: 0.78rem;
+    color: #4b5563;
+    background: #f8f9ff;
+    border: 1px solid #e5e7f5;
+    border-radius: 999px;
+    padding: 0.22rem 0.6rem;
   }
   .lesson-note-item .lesson-note-meta strong {
-    color: #374151;
+    color: #1f2937;
     font-weight: 600;
   }
+  .lesson-note-body {
+    color: #111827;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .lesson-note-delete {
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    line-height: 1.2;
+  }
+  .lesson-note-add {
+    margin-top: 1rem !important;
+    padding: 0.9rem;
+    border: 1px solid #d7dcf4;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  .lesson-note-add .form-control {
+    border-color: #d6dbe8;
+  }
+  .lesson-note-add .form-control:focus {
+    border-color: #5249df;
+    box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.12);
+  }
   .lesson-note-add textarea {
-    min-height: 72px;
+    min-height: 96px;
     resize: vertical;
+  }
+  .lesson-notes-empty-msg {
+    text-align: center;
+    margin-top: 0.75rem !important;
+    background: #fff;
+    border: 1px dashed #d1d5db;
+    border-radius: 10px;
+    padding: 1rem 0.75rem;
+  }
+  .lesson-notes-list::-webkit-scrollbar {
+    width: 7px;
+  }
+  .lesson-notes-list::-webkit-scrollbar-thumb {
+    background: #c8cde4;
+    border-radius: 999px;
+  }
+  @media (max-width: 576px) {
+    .lesson-notes-section {
+      padding: 0.85rem;
+    }
+    .lesson-note-add {
+      padding: 0.75rem;
+    }
+    .lesson-notes-list {
+      max-height: 280px;
+    }
+
+    .course-learning-page {
+    padding-top: 64px;
+    }
+
+    .course-main-inner{padding:0px !important;}
+
+    .lesson-tab-pane-inner {
+  padding:0px !important;
+      }
+
+      .course-learning-video-shell {
+
+        border-radius:0px !important;
+        padding:0px !important;
+      }
+
+
+      .quiz-container {
+	padding: 14px 0 0 0;
+}
+
+.question-title {
+	font-size: 17px;
+	font-weight: 500;
+	color: #333;
+	line-height: 23px;
+}
+
+
   }
 </style>
 {% endblock %}
@@ -502,38 +866,62 @@
 {% block content %}
 <section class="course-learning-page pb-5">
   <div class="container-fluid">
-    <!-- Resume (latest progress) + Dashboard -->
-    <div class="dashboard-btn d-flex flex-wrap gap-2 justify-content-end align-items-center">
-      <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-resume-course" title="Open your next incomplete lesson">
-        <i class='bx bx-play-circle me-1'></i>Resume
-      </a>
-      <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="btn custom-button purple-button">
-        <i class='bx bx-home me-2'></i>My Dashboard
-      </a>
+    <div class="learning-top-header">
+      <div class="container-fluid">
+        <div class="learning-top-header-inner">
+          <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="learning-brand" aria-label="Go to dashboard">
+            <img src="{{ static('images_new/logos/logo.svg') }}" alt="Top Teen" onerror="this.style.display='none'">
+          
+          </a>
+
+          <div class="learning-top-progress">
+            <div class="progress-bar-container">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-12 fw-semibold text-uppercase text-muted">Course Progress</span>
+                <span class="fs-14 fw-semibold text-primary">{{ progress_percentage }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="learning-top-actions dashboard-btn">
+            <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-resume-course py-2" title="Open your next incomplete lesson">
+              <i class='bx bx-play-circle me-1'></i>Resume
+            </a>
+            <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="btn custom-button purple-button py-2">
+              <i class='bx bx-home me-2'></i>My Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mobile-course-toolbar d-lg-none">
+      <button type="button" class="btn course-drawer-toggle" id="courseSidebarToggle" aria-controls="courseSidebarCol" aria-expanded="false">
+        <i class='bx bx-menu fs-18'></i>Course Content
+      </button>
     </div>
 
-    <div class="row g-4">
+    <div class="course-sidebar-overlay" id="courseSidebarOverlay"></div>
+
+    <div class="row g-4 course-layout-row">
       <!-- Course Sidebar -->
-      <div class="col-lg-3">
+      <div class="col-lg-3 course-sidebar-col" id="courseSidebarCol">
+        <div class="course-drawer-head d-lg-none">
+          <span class="fw-semibold text-dark">Course Content</span>
+          <button type="button" class="course-drawer-close" id="courseSidebarClose" aria-label="Close menu">
+            <i class='bx bx-x'></i>
+          </button>
+        </div>
         <div class="course-sidebar-container">
           {% include 'template20/counselor/includes/course_learning_sidebar.html' %}
         </div>
       </div>
 
       <!-- Main Content Area -->
-      <div class="col-lg-9">
-          <div class="px-4">
-            <!-- Progress Bar -->
-            <div class="progress-bar-container">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="fs-16 fw-semibold">Course Progress</span>
-                <span class="fs-16 fw-semibold text-primary">{{ progress_percentage }}%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
-              </div>
-            </div>
-
+      <div class="col-lg-9 course-main-col">
+          <div class="px-md-4 px-0 course-main-inner">
             <!-- Content Display -->
             {% if content_type == 'part' and current_part %}
               {% set part_id = current_part.id %}
@@ -625,13 +1013,25 @@
               </div>
 
               <div class="lesson-notes-section">
+
+                <div class="notes-section-inner">
                 <h4 class="d-flex align-items-center gap-2 mb-2">
-                  <i class='bx bx-notepad text-primary'></i> Notes
+                  <span class="lesson-notes-title-icon"><i class='bx bx-notepad fs-18'></i></span> Lesson Notes
                 </h4>
-                <p class="text-muted fs-12 mb-2 mb-0 lesson-notes-seek-hint">
-                  <i class='bx bx-info-circle align-middle me-1'></i>
-                  Click a saved note to move the video to that note&apos;s start time.
-                </p>
+
+                <div class="notes-section-inner-content d-flex align-items-start gap-2">
+
+                  <i class='bx bx-info-circle fs-18 align-middle me-1'></i>
+                  <p class="text-muted fs-14 mb-0 lh-sm">Start time is captured from the video when you first click in the note box. End time is set on save if left blank. You can edit both fields anytime.</p>
+              
+
+                </div>
+                      
+              
+              
+                </div>
+
+
                 <div id="lessonNotesList" class="lesson-notes-list" data-delete-url-template="{{ url('counselor:delete_note', args=[0]) }}">
                 {% if part_notes %}
                   {% for n in part_notes %}
@@ -639,8 +1039,8 @@
                     <div class="lesson-note-head">
                       {% if n.video_timestamp or n.video_end_timestamp %}
                       <div class="lesson-note-meta mb-0">
-                        <i class='bx bx-time-five align-middle'></i>
-                        {% if n.video_timestamp %}<i class='bx bx-play-circle text-primary align-middle me-1' title="Play from start"></i>{% endif %}
+                        <i class='bx bx-time-five align-middle fs-18 d-none'></i>
+                        {% if n.video_timestamp %}<i class='bx bx-play-circle text-primary align-middle me-1 fs-20' title="Play from start"></i>{% endif %}
                         Start <strong>{{ n.video_timestamp or '—' }}</strong>
                         <span class="text-muted">·</span>
                         End <strong>{{ n.video_end_timestamp or '—' }}</strong>
@@ -654,12 +1054,12 @@
                   </div>
                   {% endfor %}
                 {% else %}
-                  <p class="text-gray fs-14 mb-3 mb-0 lesson-notes-empty-msg" id="lessonNotesEmptyMsg">No notes for this lesson yet.</p>
+                  <p class="text-gray fs-14 mb-3 mb-0 lesson-notes-empty-msg mt-5" id="lessonNotesEmptyMsg"><i class='bx bx-notepad fs-20' style='color:#6f6e6e' ></i> No notes for this lesson yet.</p>
                 {% endif %}
                 </div>
                 <form class="lesson-note-add-form" autocomplete="off" novalidate onsubmit="return false;">
                 <div class="lesson-note-add mt-3">
-                  <p class="text-muted fs-12 mb-2 mb-0">Start time is taken from the video when you first click into the note box. End time is set when you save if you leave it blank. You can edit both fields anytime.</p>
+                 
                   <div class="row g-2 align-items-end mb-2">
                     <div class="col-sm-4">
                       <label class="form-label fs-12 text-muted mb-0" for="lessonNoteTimeStart">Start</label>
@@ -676,7 +1076,7 @@
                   </div>
                   <label class="form-label fs-13 fw-semibold text-gray mb-1">Add a note</label>
                   <textarea class="form-control" id="lessonNoteContent" rows="3" placeholder="Click here to begin — start time is captured from the video"></textarea>
-                  <button type="button" class="btn custom-button purple-button mt-2" id="lessonNoteSubmitBtn" data-note-url="{{ url('counselor:add_note', args=[current_part.id]) }}" data-delete-url-template="{{ url('counselor:delete_note', args=[0]) }}">
+                  <button type="button" class="btn custom-button purple-button mt-2 px-4 py-2" id="lessonNoteSubmitBtn" data-note-url="{{ url('counselor:add_note', args=[current_part.id]) }}" data-delete-url-template="{{ url('counselor:delete_note', args=[0]) }}">
                     <i class='bx bx-plus-circle me-1'></i>Save note
                   </button>
                 </div>
@@ -686,7 +1086,7 @@
             {% elif content_type == 'quiz' and current_quiz and quiz_questions %}
               <!-- Quiz Content - One by One or Completed Score -->
               <div class="quiz-container">
-                <h3 class="fs-24 fw-semibold mb-4">Quiz: {{ current_quiz.title|default('Quiz') }}</h3>
+                <h3 class="fs-24 fs-sm-18 fw-semibold mb-4">Quiz: {{ current_quiz.title|default('Quiz') }}</h3>
                 
                 {% if quiz_score_data %}
                   <!-- Quiz Already Completed - Show Score -->
@@ -814,7 +1214,7 @@
                         <i class='bx bx-chevron-left me-1'></i>Previous
                       </button>
                       
-                      <span class="d-flex align-items-center">
+                      <span class="d-flex align-items-center fs-14 fs-sm-12">
                         Question {{ current_question_index + 1 }} of {{ total_questions }}
                       </span>
                       
@@ -953,6 +1353,48 @@
   } else {
     setTimeout(scrollSidebarToActive, 300);
   }
+
+  // Mobile course-content drawer
+  (function initCourseDrawer() {
+    function setupDrawer() {
+      var toggleBtn = document.getElementById('courseSidebarToggle');
+      var sidebar = document.getElementById('courseSidebarCol');
+      var overlay = document.getElementById('courseSidebarOverlay');
+      var closeBtn = document.getElementById('courseSidebarClose');
+      if (!toggleBtn || !sidebar || !overlay) return;
+
+      function setDrawer(open) {
+        sidebar.classList.toggle('is-open', open);
+        overlay.classList.toggle('is-open', open);
+        toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.body.classList.toggle('drawer-open', open);
+      }
+
+      toggleBtn.addEventListener('click', function () {
+        setDrawer(!sidebar.classList.contains('is-open'));
+      });
+      overlay.addEventListener('click', function () {
+        setDrawer(false);
+      });
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          setDrawer(false);
+        });
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setDrawer(false);
+      });
+      window.addEventListener('resize', function () {
+        if (window.innerWidth >= 992) setDrawer(false);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupDrawer);
+    } else {
+      setupDrawer();
+    }
+  })();
 
   // Navigation functions with validation
   function navigateToChapter(chapterId) {
@@ -1208,8 +1650,8 @@
           <button type="button" class="btn-close" onclick="closeSubmitQuizPopup()"></button>
         </div>
         <div class="popup-body">
-          <i class='bx bx-check-circle fs-48 text-success mb-3'></i>
-          <p class="fs-16 mb-3">You have answered all questions. Ready to submit your quiz?</p>
+          <i class='bx bx-check-circle fs-38 text-success mb-3'></i>
+          <p class="fs-20 mb-3 fw-semibold">You have answered all questions. <br> Ready to submit your quiz?</p>
           <p class="fs-14 text-gray mb-4">You can review your answers before submitting.</p>
         </div>
         <div class="popup-footer">
