@@ -25,9 +25,9 @@ Quiz: {{ t }}
         {% if course %}
         <p class="fs-12 text-muted mb-0 mt-1">Chapters &amp; lessons</p>
         {% endif %}
-        <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-sm w-100 mt-2 fw-semibold course-sidebar-resume-btn" title="Jump to your latest progress">
+        <!-- <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-sm w-100 mt-2 fw-semibold course-sidebar-resume-btn" title="Jump to your latest progress">
           <i class='bx bx-play-circle me-1'></i> Resume
-        </a>
+        </a> -->
       </div>
       
       {% if course and chapters_list %}
