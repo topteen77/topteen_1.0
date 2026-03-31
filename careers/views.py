@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404,redirect
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Q
 from careers.document_filters import CareerDocumentFilter
 from .models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTags, Profession,CareerCluster,Videos,VideoCategory,CareerShortlist,CareerRating
@@ -1978,6 +1978,10 @@ class VideoDetail(TemplateView):
         
         ctx['related_videos'] = related_videos
         ctx['related_video_thumbnails'] = related_video_thumbnails
+        # Same-origin WebVTT proxy URL when a .vtt exists beside the video (see Videos.get_caption_vtt_url)
+        ctx["caption_track_proxy_url"] = None
+        if video.get_caption_vtt_url():
+            ctx["caption_track_proxy_url"] = reverse("careers:video_caption_vtt", args=[video.id])
         return ctx
 
     def _breadcrumb(self, video):
@@ -1989,6 +1993,37 @@ class VideoDetail(TemplateView):
         
     def get(self, request,video_slug, *args, **kwargs):     
         return render(request, self.template_name, self.get_context(request,video_slug,args, kwargs))
+
+
+def career_video_caption_vtt(request, video_id):
+    """
+    Public proxy for career video WebVTT files (same path as MP4 with .vtt on CDN/S3).
+    Avoids crossorigin on <video>, which often breaks MP4 playback when CORS is not set on the bucket.
+    """
+    import urllib.error
+    import urllib.request
+
+    video = get_object_or_404(Videos, pk=video_id, object_status=choices.ObjectStatus.ACTIVE)
+    vtt_url = video.get_caption_vtt_url()
+    if not vtt_url:
+        raise Http404("No captions for this video.")
+    try:
+        req = urllib.request.Request(
+            vtt_url,
+            headers={"User-Agent": "TopTeen-career-video-caption/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            # Support HEAD requests so the client can check availability without downloading.
+            if request.method == "HEAD":
+                data = b""
+            else:
+                data = resp.read()
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError):
+        raise Http404("Captions unavailable.")
+    r = HttpResponse(data, content_type="text/vtt; charset=utf-8")
+    r["Cache-Control"] = "public, max-age=3600"
+    return r
+
 
 class CareerMindmapView(TemplateView):
     """

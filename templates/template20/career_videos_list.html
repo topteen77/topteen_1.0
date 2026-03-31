@@ -211,6 +211,7 @@
                 <div class="col-md-4 col-sm-12 mb-3 mb-md-0">
                   <div class="video-thumbnail position-relative js-video-open career-video-thumbnail"
                        data-video="{{ video.get_video_or_url() }}"
+                       data-video-id="{{ video.id }}"
                        data-title="{{ video.name|e }}"
                        role="button"
                        tabindex="0"
@@ -260,6 +261,7 @@
                               data-bs-toggle="modal"
                               data-bs-target="#videoModal"
                               data-video="{{ video.get_video_or_url() }}"
+                              data-video-id="{{ video.id }}"
                               data-title="{{ video.name|e }}"
                               aria-label="Play video: {{ video.name|e }}">
                         <i class='bx bx-play-circle' style="font-size: 53px; text-shadow: 0 2px 6px rgba(0,0,0,0.6);"></i>
@@ -287,9 +289,6 @@
                       <a href="{{ url('careers:videodetail', args=[video.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" class="text-decoration-none">{{ video.name }}</a>
                     </h3>
                     <div class="video-meta mb-2">
-                      <span class="text-gray fs-14 lh-sm d-md-block d-none">
-                        <i class='bx bx-calendar'></i> {{ date_format(video.created) }}
-                      </span>
                       {% if video.category.all() %}
                       <span class="text-gray fs-14 ms-3 lh-sm">
                         <i class='bx bx-category'></i>
@@ -420,7 +419,8 @@
       <div class="modal-body p-0 position-relative" style="z-index: 1;">
         <div class="ratio ratio-16x9">
           <iframe id="videoFrame" src="" allowfullscreen style="display:none;"></iframe>
-          <video id="videoPlayer" controls playsinline style="width: 100%; height: 100%; display:none; background:#000;">
+          <video id="videoPlayer" controls playsinline controlsList="nodownload" oncontextmenu="return false;"
+                 style="width: 100%; height: 100%; display:none; background:#000;">
             <source id="videoPlayerSource" src="" type="video/mp4">
           </video>
         </div>
@@ -729,9 +729,11 @@ document.addEventListener('DOMContentLoaded', function() {
       function open() {
         const url = el.getAttribute('data-video');
         const title = el.getAttribute('data-title');
+        const vid = el.getAttribute('data-video-id');
         // store on modal for programmatic open (no relatedTarget)
         videoModal.dataset.video = url || '';
         videoModal.dataset.title = title || '';
+        videoModal.dataset.videoId = vid || '';
         const bsModal = bootstrap.Modal.getOrCreateInstance(videoModal);
         bsModal.show();
       }
@@ -758,8 +760,19 @@ document.addEventListener('DOMContentLoaded', function() {
       const title = (trigger && trigger.getAttribute)
         ? trigger.getAttribute('data-title')
         : (videoModal.dataset.title || '');
+      const videoId = (trigger && trigger.getAttribute)
+        ? trigger.getAttribute('data-video-id')
+        : (videoModal.dataset.videoId || '');
 
       setModalTitle(title);
+
+      // Remove any previous track
+      if (videoPlayer) {
+        try {
+          const old = videoPlayer.querySelector('track[data-modal-track="1"]');
+          if (old && old.parentNode) old.parentNode.removeChild(old);
+        } catch (e) {}
+      }
 
       // Decide player
       if (isYouTube(videoUrl)) {
@@ -784,6 +797,34 @@ document.addEventListener('DOMContentLoaded', function() {
           // Autoplay if allowed by browser (will be ignored if blocked)
           try { videoPlayer.play(); } catch (e) {}
         }
+
+        // Captions: auto-load only if caption proxy exists (HEAD 200)
+        if (videoId && videoPlayer) {
+          const trackUrl = '/careers/career-videos/caption/' + encodeURIComponent(String(videoId)) + '.vtt';
+          fetch(trackUrl, { method: 'HEAD', cache: 'no-store' })
+            .then(function(res) {
+              if (!res || !res.ok) throw new Error('no vtt');
+              // Add track and show toolbar
+              const t = document.createElement('track');
+              t.setAttribute('data-modal-track', '1');
+              t.kind = 'captions';
+              t.srclang = 'en';
+              t.label = 'English';
+              t.default = true;
+              t.src = trackUrl;
+              videoPlayer.appendChild(t);
+              // Prefer showing captions by default (browser may still require user enablement).
+              videoPlayer.addEventListener('loadedmetadata', function() {
+                try {
+                  const tracks = videoPlayer.textTracks;
+                  if (tracks && tracks.length) tracks[0].mode = 'showing';
+                } catch (e) {}
+              }, { once: true });
+            })
+            .catch(function() {
+              // No captions
+            });
+        }
       } else {
         // Fallback: try iframe
         if (videoPlayer) {
@@ -804,6 +845,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (videoPlayer) {
         try { videoPlayer.pause(); } catch (e) {}
         if (videoPlayerSource) videoPlayerSource.src = '';
+        try {
+          const old = videoPlayer.querySelector('track[data-modal-track="1"]');
+          if (old && old.parentNode) old.parentNode.removeChild(old);
+        } catch (e) {}
         try { videoPlayer.load(); } catch (e) {}
       }
     });

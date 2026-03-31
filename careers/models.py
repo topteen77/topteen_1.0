@@ -740,6 +740,33 @@ class Videos(BaseModel,SlugModel):
             return self.upload_video.url
             
         raise Exception('No video found')
+
+    def get_caption_vtt_url(self):
+        """
+        WebVTT URL for captions: same path as the video file with .vtt (e.g. clip.mp4 → clip.vtt).
+        Skips YouTube/Vimeo embed URLs. Returns '' if not applicable.
+        """
+        import re
+        from urllib.parse import urlparse, urlunparse
+
+        try:
+            raw = self.get_video_or_url()
+        except Exception:
+            return ""
+        url = (raw or "").strip()
+        if not url:
+            return ""
+        low = url.lower()
+        if "youtube.com" in low or "youtu.be" in low or "vimeo.com" in low:
+            return ""
+        parsed = urlparse(url)
+        path = parsed.path or ""
+        if not path:
+            return ""
+        new_path = re.sub(r"\.[^./\\]+$", ".vtt", path, count=1, flags=re.IGNORECASE)
+        if new_path == path:
+            new_path = path.rstrip("/") + ".vtt"
+        return urlunparse(parsed._replace(path=new_path))
     
     def get_thumbnail_url(self):
         """Get video thumbnail URL - prefer video_image, fallback to YouTube thumbnail"""

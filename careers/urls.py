@@ -1,4 +1,4 @@
-from django.urls import path,include
+from django.urls import path, include, re_path
 from careers import views
 from . import api_views
 
@@ -16,6 +16,11 @@ urlpatterns = [
     
     path("career-videos/",views.CareerVideosView.as_view(),name="careervideos"),
     path("career-videos/category/<slug:category_slug>/",views.CategoryCareerVideosView.as_view(),name="category"),
+    re_path(
+        r"^career-videos/caption/(?P<video_id>\d+)\.vtt$",
+        views.career_video_caption_vtt,
+        name="video_caption_vtt",
+    ),
     path("career-videos/<video_slug>/",views.VideoDetail.as_view(),name="videodetail"),
     path("career_rating/",views.CareerRatingView.as_view(),name="careerrating"),
     path("career_rating_delete/<int:id>/",views.career_rate_delete_view,name="ratingdelete"),
