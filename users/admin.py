@@ -10,7 +10,8 @@ from django.conf import settings
 from django.db.models import Q, Max
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 import os
 import glob
 import json
@@ -210,11 +211,38 @@ def _user_admin_inlines():
 
 class UserAdmin(admin.ModelAdmin):
     # form = UserForm
-    fields = ['name','email','mobile','is_active','is_staff','image','password','groups', 'user_permissions','user_type','user_status','is_demo_account','is_system_demo']
-    readonly_fields = ['is_system_demo']
+    fields = [
+        'name',
+        'email',
+        'mobile',
+        'is_active',
+        'is_staff',
+        'image',
+        'password',
+        'groups',
+        'user_permissions',
+        'user_type',
+        'user_status',
+        'is_demo_account',
+        'is_system_demo',
+        'admin_password_reset',
+    ]
+    readonly_fields = ['is_system_demo', 'admin_password_reset']
     inlines = _user_admin_inlines()
     # date_hierarchy = 'created'
-    list_display = ['id', 'name','email','mobile','is_active','is_demo_account','is_system_demo','object_status','created','last_login']
+    list_display = [
+        'id',
+        'name',
+        'email',
+        'mobile',
+        'is_active',
+        'is_demo_account',
+        'admin_password_reset_link',
+        'is_system_demo',
+        'object_status',
+        'created',
+        'last_login',
+    ]
     sortable_by=['id', 'name','email','mobile']
     ordering = ['-id']
     list_editable = ['is_demo_account']
@@ -227,15 +255,98 @@ class UserAdmin(admin.ModelAdmin):
     ]
     change_list_template = 'admin/users/user/change_list.html'
 
+    def admin_password_reset(self, obj):
+        if not obj or not obj.pk:
+            return format_html(
+                '<span class="help">Save the user first, then use this button to set a new password without the old password.</span>'
+            )
+        url = reverse(
+            'admin:%s_%s_set_password'
+            % (self.model._meta.app_label, self.model._meta.model_name),
+            args=[obj.pk],
+        )
+        return format_html(
+            '<a class="button" href="{}" style="display:inline-block;padding:10px 15px;background:#417690;color:#fff;'
+            'text-decoration:none;border-radius:4px;font-weight:600;">Set new password (admin)</a>'
+            '<p class="help" style="margin-top:8px;">Sets a new login password directly. Does not require the current password.</p>',
+            url,
+        )
+
+    admin_password_reset.short_description = 'Password reset (admin)'
+
+    def admin_password_reset_link(self, obj):
+        url = reverse(
+            'admin:%s_%s_set_password'
+            % (self.model._meta.app_label, self.model._meta.model_name),
+            args=[obj.pk],
+        )
+        return format_html(
+            '<a class="button" href="{}" style="display:inline-block;padding:4px 10px;background:#417690;'
+            'color:#fff;text-decoration:none;border-radius:4px;font-size:12px;font-weight:600;">Set password</a>',
+            url,
+        )
+
+    admin_password_reset_link.short_description = 'Password'
+    admin_password_reset_link.admin_order_field = None
+
     def get_urls(self):
         urls = super().get_urls()
         custom = [
+            path(
+                'set-password/<int:user_id>/',
+                self.admin_site.admin_view(self.set_password_view),
+                name='%s_%s_set_password' % (self.model._meta.app_label, self.model._meta.model_name),
+            ),
             path('student-test-reset/', self.admin_site.admin_view(self.student_test_reset_view), name='users_user_student_test_reset'),
             path('student-test-reset/list/', self.admin_site.admin_view(self.student_test_reset_list_view), name='users_user_student_test_reset_list'),
             path('student-test-reset/tests/', self.admin_site.admin_view(self.student_test_reset_tests_view), name='users_user_student_test_reset_tests'),
             path('student-test-reset/action/', self.admin_site.admin_view(self.student_test_reset_action_view), name='users_user_student_test_reset_action'),
         ]
         return custom + urls
+
+    def set_password_view(self, request, user_id):
+        """Admin-only: set a user's password without knowing the old password."""
+        if not (
+            request.user.is_superuser
+            or request.user.has_perm('users.change_user')
+            or request.user.has_perm('counselor.change_counselor')
+        ):
+            messages.error(request, 'You do not have permission to reset passwords.')
+            return redirect('admin:index')
+
+        target = get_object_or_404(User, pk=user_id)
+
+        if request.method == 'POST':
+            p1 = request.POST.get('password1', '')
+            p2 = request.POST.get('password2', '')
+            if p1 != p2:
+                messages.error(request, 'The two password fields did not match.')
+            elif not p1:
+                messages.error(request, 'Password cannot be empty.')
+            else:
+                # No AUTH_PASSWORD_VALIDATORS check here — admin may set any non-empty password.
+                target.set_password(p1)
+                # Single SQL UPDATE: avoids User.save() (avatar fetch, extra signals) for speed.
+                User.objects.filter(pk=target.pk).update(
+                    password=target.password,
+                    modified=timezone.now(),
+                )
+                messages.success(
+                    request,
+                    'Password updated for %s.' % (target.email or target.pk),
+                )
+                return redirect(
+                    'admin:%s_%s_changelist'
+                    % (self.model._meta.app_label, self.model._meta.model_name),
+                )
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Set password (%s)' % (target.email or target.pk),
+            'opts': self.model._meta,
+            'target_user': target,
+        }
+        return render(request, 'admin/users/user/set_password.html', context)
 
     def student_test_reset_view(self, request):
         context = {

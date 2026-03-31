@@ -251,7 +251,15 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         return True
 
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
         super().save(*args, **kwargs)
+        # Password / last_login-only saves must not run name fix or _grab_avatar (HTTP to ui-avatars.com,
+        # up to ~5s) — otherwise admin "set password" and every login feel slow for users without an image.
+        if update_fields is not None:
+            uf = set(update_fields)
+            identity_or_image = {"name", "email", "mobile", "image"}
+            if not (uf & identity_or_image):
+                return
         name_val = (self.name or "").strip()
         if not name_val or name_val == "Student":
             # str() so mobile (int) from signup doesn't break .strip()

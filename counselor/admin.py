@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.decorators import action
 from django.db.models import Count
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.html import format_html
 from counselor.models import Counselor
@@ -480,7 +481,13 @@ class CounselorAdminForm(forms.ModelForm):
 @admin.register(Counselor)
 class CounselorAdmin(admin.ModelAdmin):
     form = CounselorAdminForm
-    list_display = ('counselor_name', 'counselor_email', 'counselor_admin', 'counselor_gender')
+    list_display = (
+        'counselor_name',
+        'counselor_email',
+        'counselor_admin',
+        'counselor_gender',
+        'linked_user_password_list_link',
+    )
     search_fields = ('counselor_name', 'counselor_email', 'counselor_admin__username')
     list_filter = ('counselor_gender',)
     ordering = ('counselor_name',)
@@ -488,6 +495,60 @@ class CounselorAdmin(admin.ModelAdmin):
         'reset_counselor_course_soft_for_linked_user',
         'reset_counselor_course_hard_for_linked_user',
     )
+
+    def get_fields(self, request, obj=None):
+        f = list(super().get_fields(request, obj))
+        if 'linked_user_password_reset' not in f:
+            f.append('linked_user_password_reset')
+        return f
+
+    def get_readonly_fields(self, request, obj=None):
+        return list(super().get_readonly_fields(request, obj)) + ['linked_user_password_reset']
+
+    def linked_user_password_reset(self, obj):
+        if not obj or not obj.pk:
+            return format_html(
+                '<span class="help">Save the counselor first, then use this button to set the linked user '
+                'password (no old password required).</span>'
+            )
+        if not obj.coun_user_id:
+            return format_html(
+                '<span class="errors">No linked user account. Assign <strong>coun_user</strong> first.</span>'
+            )
+        User = get_user_model()
+        url = reverse(
+            'admin:%s_%s_set_password'
+            % (User._meta.app_label, User._meta.model_name),
+            args=[obj.coun_user_id],
+        )
+        label = obj.coun_user.email or ('user #%s' % obj.coun_user_id)
+        return format_html(
+            '<a class="button" href="{}" style="display:inline-block;padding:10px 15px;background:#417690;color:#fff;'
+            'text-decoration:none;border-radius:4px;font-weight:600;">Set password for linked user</a>'
+            '<p class="help" style="margin-top:8px;">Sets login password for <strong>{}</strong> without the old password.</p>',
+            url,
+            label,
+        )
+
+    linked_user_password_reset.short_description = 'Linked user password (admin)'
+
+    def linked_user_password_list_link(self, obj):
+        if not obj.coun_user_id:
+            return '—'
+        User = get_user_model()
+        url = reverse(
+            'admin:%s_%s_set_password'
+            % (User._meta.app_label, User._meta.model_name),
+            args=[obj.coun_user_id],
+        )
+        return format_html(
+            '<a class="button" href="{}" style="display:inline-block;padding:4px 10px;background:#417690;'
+            'color:#fff;text-decoration:none;border-radius:4px;font-size:12px;font-weight:600;">Set password</a>',
+            url,
+        )
+
+    linked_user_password_list_link.short_description = 'Linked user password'
+    linked_user_password_list_link.admin_order_field = None
 
     def _reset_counselors_linked_users(self, request, queryset, mode):
         from counselor.course_reset import reset_counselor_course_data_for_user
