@@ -142,33 +142,67 @@
   .popup-footer .btn {
     min-width: 120px;
   }
-  .video-container {
+  /* Dedicated shell: global custom-min.css .video-container uses height:0 + absolute video (iframe embed hack) and breaks native <video> */
+  .course-learning-video-shell {
     position: relative;
     width: 100%;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .video-container video {
-    width: 100%;
     height: auto;
-    max-height: 600px;
+    padding-bottom: 0;
+    background: linear-gradient(180deg, #f3f4f6 0%, #e8eaef 100%);
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: visible;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 2vw, 20px);
+    min-height: 180px;
   }
-  {% if is_restricted_view %}
-  /* Restricted view: hide only the seek scrubber; keep current time / duration visible */
-  .video-container video::-webkit-media-controls-timeline {
+  .course-learning-video-shell video {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: min(72vh, 720px);
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.12);
+    border: none;
+  }
+  .lesson-video-completion-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #047857;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    margin-top: 0.5rem;
+  }
+  .lesson-video-completion-status i {
+    font-size: 1.1rem;
+  }
+  {% if hide_video_scrubber %}
+  /* Non-demo counselors: hide seek scrubber; forward skip still enforced in JS */
+  .course-learning-video-shell video::-webkit-media-controls-timeline {
     display: none !important;
   }
-  .video-container video::-webkit-media-controls-timeline-container {
+  .course-learning-video-shell video::-webkit-media-controls-timeline-container {
     display: none !important;
   }
   /* For Firefox */
-  .video-container video::-moz-media-controls-timeline {
+  .course-learning-video-shell video::-moz-media-controls-timeline {
     display: none !important;
   }
   /* For standard HTML5 video controls */
-  .video-container video::-webkit-media-controls-panel {
+  .course-learning-video-shell video::-webkit-media-controls-panel {
     display: flex !important;
   }
   {% endif %}
@@ -435,6 +469,14 @@
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
   }
+  .lesson-note-item.lesson-note-item--seekable {
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .lesson-note-item.lesson-note-item--seekable:hover {
+    border-color: #5046e5;
+    box-shadow: 0 2px 8px rgba(80, 70, 229, 0.12);
+  }
   .lesson-note-item .lesson-note-head {
     display: flex;
     justify-content: space-between;
@@ -482,7 +524,6 @@
       <div class="col-lg-9">
           <div class="px-4">
             <!-- Progress Bar -->
-            {% if not is_restricted_view %}
             <div class="progress-bar-container">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="fs-16 fw-semibold">Course Progress</span>
@@ -492,12 +533,6 @@
                 <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
               </div>
             </div>
-            {% else %}
-            <div class="alert alert-warning mb-3">
-              <i class='bx bx-lock me-2'></i>
-              Restricted view. Full course navigation and progress features are available for demo counselors.
-            </div>
-            {% endif %}
 
             <!-- Content Display -->
             {% if content_type == 'part' and current_part %}
@@ -529,11 +564,13 @@
                   <div class="tab-pane fade {% if has_video or not has_pdf %}show active{% endif %}" id="lesson-video-pane" role="tabpanel" aria-labelledby="lesson-video-tab">
                     <div class="lesson-tab-pane-inner">
                       {% if has_video %}
-                      <div class="video-container">
-                        {# Demo: preload=auto buffers sooner; restricted: metadata only. Speed also depends on file size, CDN, and Range (HTTP 206) support on the host. #}
+                      <div class="course-learning-video-shell">
+                        {# autoplay muted: required by most browsers; user can unmute. preload=auto helps start quickly. #}
                         <video id="video-{{ current_part.id }}"
-                               preload="{% if is_demo_account %}auto{% else %}metadata{% endif %}"
+                               preload="auto"
                                playsinline
+                               autoplay
+                               muted
                                controls
                                data-part-id="{{ current_part.id }}">
                           <source src="{{ current_part.video_url }}" type="video/mp4">
@@ -547,8 +584,9 @@
                       </div>
                       {% endif %}
                       {% if is_completed %}
-                      <div class="alert alert-success mt-3 mb-0">
-                        <i class='bx bx-check-circle me-2'></i>Video completed!
+                      <div class="lesson-video-completion-status" role="status">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Lesson video completed</span>
                       </div>
                       {% endif %}
                     </div>
@@ -585,14 +623,19 @@
                 <h4 class="d-flex align-items-center gap-2 mb-2">
                   <i class='bx bx-notepad text-primary'></i> Notes
                 </h4>
+                <p class="text-muted fs-12 mb-2 mb-0 lesson-notes-seek-hint">
+                  <i class='bx bx-info-circle align-middle me-1'></i>
+                  Click a saved note to move the video to that note&apos;s start time.
+                </p>
                 <div id="lessonNotesList" class="lesson-notes-list" data-delete-url-template="{{ url('counselor:delete_note', args=[0]) }}">
                 {% if part_notes %}
                   {% for n in part_notes %}
-                  <div class="lesson-note-item" data-note-id="{{ n.id }}">
+                  <div class="lesson-note-item{% if n.video_timestamp %} lesson-note-item--seekable{% endif %}" data-note-id="{{ n.id }}"{% if n.video_timestamp %} data-note-start="{{ n.video_timestamp|e }}" title="Click to play video from this start time"{% endif %}>
                     <div class="lesson-note-head">
                       {% if n.video_timestamp or n.video_end_timestamp %}
                       <div class="lesson-note-meta mb-0">
                         <i class='bx bx-time-five align-middle'></i>
+                        {% if n.video_timestamp %}<i class='bx bx-play-circle text-primary align-middle me-1' title="Play from start"></i>{% endif %}
                         Start <strong>{{ n.video_timestamp or '—' }}</strong>
                         <span class="text-muted">·</span>
                         End <strong>{{ n.video_end_timestamp or '—' }}</strong>
@@ -714,21 +757,13 @@
                     {% endif %}
                     
                     <div class="text-center mt-4">
-                      {% if not is_restricted_view %}
                       <button onclick="navigateToNextPart()" class="btn custom-button purple-button">
                         Continue to Next Part <i class='bx bx-chevron-right ms-2'></i>
                       </button>
-                      {% endif %}
                     </div>
                   </div>
                 {% else %}
                   <!-- Quiz Not Completed - Show Questions One by One -->
-                  {% if is_restricted_view %}
-                    <div class="alert alert-warning mb-0">
-                      <i class='bx bx-lock me-2'></i>
-                      Quiz is restricted for this account.
-                    </div>
-                  {% else %}
                   <form id="quizForm" method="POST" action="{{ url('counselor:submit_full_quiz', args=[counselor.id, current_quiz.id]) }}">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     
@@ -809,7 +844,6 @@
                       {% endif %}
                     </div>
                   </form>
-                  {% endif %}
                 {% endif %}
               </div>
 
@@ -1320,16 +1354,26 @@
             video.currentTime = (data.progress / 100) * video.duration;
             lastTime = video.currentTime;
           }
+          var playAttempt = video.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') {
+            playAttempt.catch(function() {});
+          }
         })
         .catch(err => {
           // Silently handle errors - video will start from beginning
           console.debug('No saved progress found for video-' + partId);
+          var playAttempt = video.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') {
+            playAttempt.catch(function() {});
+          }
         });
       
       video.addEventListener('timeupdate', function() {
         if (!this.duration) return;
         if (restrictVideoSeek) {
-          if (!isUserSeeking && this.currentTime > lastTime + 2) {
+          if (this._noteSeekGuard) {
+            lastTime = this.currentTime;
+          } else if (!isUserSeeking && this.currentTime > lastTime + 2) {
             this.currentTime = lastTime;
           } else {
             lastTime = this.currentTime;
@@ -1342,12 +1386,18 @@
       if (restrictVideoSeek) {
         video.addEventListener('seeking', function() {
           isUserSeeking = true;
+          if (this._noteSeekGuard) return;
           if (this.currentTime > lastTime + 2) {
             this.currentTime = lastTime;
           }
         });
         video.addEventListener('seeked', function() {
           isUserSeeking = false;
+          if (this._noteSeekGuard) {
+            lastTime = this.currentTime;
+            this._noteSeekGuard = false;
+            return;
+          }
           if (this.currentTime > lastTime + 2) {
             this.currentTime = lastTime;
           } else {
@@ -1438,6 +1488,59 @@
       return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
     return m + ':' + String(s).padStart(2, '0');
+  }
+
+  /** Parse stored clip time (M:SS, MM:SS, or H:MM:SS) to seconds */
+  function parseNoteTimeToSeconds(str) {
+    if (str == null || str === '') return NaN;
+    var s = String(str).trim();
+    if (!s) return NaN;
+    var parts = s.split(':').map(function (p) { return parseInt(p, 10); });
+    if (parts.some(function (n) { return isNaN(n); })) return NaN;
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return NaN;
+  }
+
+  function ensureLessonVideoTabActive() {
+    var pane = document.getElementById('lesson-video-pane');
+    if (pane && pane.classList.contains('active')) return;
+    var tabBtn = document.getElementById('lesson-video-tab');
+    if (tabBtn) tabBtn.click();
+  }
+
+  function seekLessonVideoToSeconds(sec) {
+    ensureLessonVideoTabActive();
+    var v = getLessonVideoEl();
+    if (!v) {
+      if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'No video for this lesson' });
+      return;
+    }
+    if (!isFinite(sec) || sec < 0) {
+      if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'Invalid time on this note' });
+      return;
+    }
+    if (restrictVideoSeek) v._noteSeekGuard = true;
+    var trySeek = function () {
+      if (v.duration && isFinite(v.duration)) {
+        v.currentTime = Math.min(sec, Math.max(0, v.duration - 0.25));
+      } else {
+        v.currentTime = sec;
+      }
+      var p = v.play();
+      if (p && typeof p.catch === 'function') p.catch(function () {});
+      var shell = v.closest('.course-learning-video-shell');
+      if (shell) shell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+    if (v.readyState >= 1) {
+      trySeek();
+    } else {
+      v.addEventListener('loadedmetadata', function onMeta() {
+        v.removeEventListener('loadedmetadata', onMeta);
+        trySeek();
+      }, { once: true });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -1537,6 +1640,11 @@
       return tpl.replace(/\/0(\/|$)/, '/' + noteId + '$1');
     }
 
+    function escapeHtmlAttr(str) {
+      if (str == null) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
     function appendLessonNoteRow(data) {
       var list = document.getElementById('lessonNotesList');
       if (!list || !data || !data.id) return;
@@ -1545,15 +1653,20 @@
       var t0 = data.time || '';
       var t1 = data.time_end || '';
       var hasTimes = !!(t0 || t1);
+      var seekable = !!(t0 && String(t0).trim());
       var delUrl = buildNoteDeleteUrl(data.id);
       var delBtn = '';
       if (delUrl) {
         delBtn = '<button type="button" class="btn btn-sm btn-outline-danger lesson-note-delete flex-shrink-0" data-note-id="' + data.id + '" data-delete-url="' + escapeHtml(delUrl) + '" title="Delete note">Delete</button>';
       }
+      var playIcon = seekable ? '<i class=\'bx bx-play-circle text-primary align-middle me-1\' title=\'Play from start\'></i>' : '';
       var meta = hasTimes
-        ? '<div class="lesson-note-meta mb-0"><i class=\'bx bx-time-five align-middle\'></i> Start <strong>' + escapeHtml(t0 || '—') + '</strong> <span class="text-muted">·</span> End <strong>' + escapeHtml(t1 || '—') + '</strong></div>'
+        ? '<div class="lesson-note-meta mb-0"><i class=\'bx bx-time-five align-middle\'></i>' + playIcon + ' Start <strong>' + escapeHtml(t0 || '—') + '</strong> <span class="text-muted">·</span> End <strong>' + escapeHtml(t1 || '—') + '</strong></div>'
         : '<div class="flex-grow-1"></div>';
-      var html = '<div class="lesson-note-item" data-note-id="' + data.id + '"><div class="lesson-note-head">' + meta + delBtn + '</div><div class="lesson-note-body">' + escapeHtml(data.content || '') + '</div></div>';
+      var seekClass = seekable ? ' lesson-note-item--seekable' : '';
+      var dataStart = seekable ? ' data-note-start="' + escapeHtmlAttr(t0) + '"' : '';
+      var titleSeek = seekable ? ' title="Click to play video from this start time"' : '';
+      var html = '<div class="lesson-note-item' + seekClass + '" data-note-id="' + data.id + '"' + dataStart + titleSeek + '><div class="lesson-note-head">' + meta + delBtn + '</div><div class="lesson-note-body">' + escapeHtml(data.content || '') + '</div></div>';
       list.insertAdjacentHTML('beforeend', html);
     }
 
@@ -1668,6 +1781,24 @@
             alert('Could not delete note.');
           }
         });
+    }
+
+    var lessonNotesListEl = document.getElementById('lessonNotesList');
+    if (lessonNotesListEl) {
+      lessonNotesListEl.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.lesson-note-delete')) return;
+        var item = e.target.closest && e.target.closest('.lesson-note-item');
+        if (!item || !item.classList.contains('lesson-note-item--seekable')) return;
+        var start = item.getAttribute('data-note-start');
+        if (!start || !String(start).trim()) return;
+        e.preventDefault();
+        var sec = parseNoteTimeToSeconds(start);
+        if (!isFinite(sec)) {
+          if (typeof Swal !== 'undefined') Swal.fire({ icon: 'info', title: 'Could not read this note\'s time' });
+          return;
+        }
+        seekLessonVideoToSeconds(sec);
+      });
     }
 
     document.addEventListener('click', function (e) {

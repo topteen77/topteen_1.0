@@ -1,3 +1,21 @@
+{# Short quiz label: "CH 3- quiz part 1" -> "Quiz: part 1" #}
+{% macro quiz_short_title(title) -%}
+{%- set t = (title or '')|trim -%}
+{%- if not t -%}Quiz{%- else -%}
+{%- set tnorm = t|replace('Part', 'part') -%}
+{%- if 'part' in tnorm|lower -%}
+  {%- set chunks = tnorm.split('part') -%}
+  {%- if chunks|length > 1 -%}
+Quiz: part{{ chunks[-1]|trim }}
+  {%- else -%}
+Quiz: {{ t }}
+  {%- endif -%}
+{%- else -%}
+Quiz: {{ t }}
+{%- endif -%}
+{%- endif -%}
+{%- endmacro %}
+
 <div class="course-sidebar course-sidebar-pro">
   <div class="card course-sidebar-card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
@@ -5,10 +23,10 @@
         <span class="d-block text-uppercase fs-11 fw-bold letter-spacing-1" style="color:#5249DF;">Course content</span>
         <h2 class="fs-16 fw-bold mb-0 mt-1 text-dark lh-sm">{% if course and course.title %}{{ course.title }}{% else %}Course{% endif %}</h2>
         {% if course %}
-        <p class="fs-12 text-muted mb-0 mt-1">Navigate chapters and lessons below</p>
+        <p class="fs-12 text-muted mb-0 mt-1">Chapters &amp; lessons</p>
         {% endif %}
         <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-sm w-100 mt-2 fw-semibold course-sidebar-resume-btn" title="Jump to your latest progress">
-          <i class='bx bx-play-circle me-1'></i> Resume latest
+          <i class='bx bx-play-circle me-1'></i> Resume
         </a>
       </div>
       
@@ -17,32 +35,34 @@
         {% for chapter in chapters_list %}
         {% set is_current_chapter = current_chapter and current_chapter.id == chapter.id %}
         {% set is_chapter_locked = chapter_locked_status.get(chapter.id, False) %}
-        <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %}" data-chapter-id="{{ chapter.id }}">
-          <div class="chapter-header" {% if not is_chapter_locked and not is_restricted_view %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
+        {% set ns_ch = namespace(chapter_done=false) %}
+        {% if chapter.parts.exists() %}
+          {% set ns_ch.chapter_done = true %}
+          {% for part in chapter.parts.all() %}
+            {% set pid = part.id %}
+            {% if not video_progress.get(pid, false) %}
+              {% set ns_ch.chapter_done = false %}
+            {% elif part.quizzes.exists() and not quiz_completion_status.get(pid, false) %}
+              {% set ns_ch.chapter_done = false %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %} {% if ns_ch.chapter_done %}chapter-item--completed{% endif %}" data-chapter-id="{{ chapter.id }}">
+          <div class="chapter-header" {% if not is_chapter_locked %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
             <div class="d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center flex-grow-1">
-                <div class="chapter-number me-3">
-                  {% if video_progress and chapter.parts.exists() %}
-                    {% set all_parts_completed = true %}
-                    {% for part in chapter.parts.all() %}
-                      {% set part_id = part.id %}
-                      {% if not video_progress.get(part_id, False) %}
-                        {% set all_parts_completed = false %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if all_parts_completed %}
-                      <i class='bx bx-check-circle text-success fs-18'></i>
-                    {% else %}
-                      <span class="chapter-index">{{ loop.index }}</span>
+                <!-- <div class="chapter-number me-3 {% if ns_ch.chapter_done %}chapter-number--complete{% endif %}">
+                  <span class="chapter-index">{{ loop.index }}</span>
+                </div> -->
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex align-items-start gap-2 flex-wrap">
+                    <p class="fs-14 fw-semibold mb-0 chapter-title-text">{{ chapter.title }}</p>
+                    {% if ns_ch.chapter_done %}
+                    <span class="chapter-badge-completed">Done</span>
                     {% endif %}
-                  {% else %}
-                    <span class="chapter-index">{{ loop.index }}</span>
-                  {% endif %}
-                </div>
-                <div class="flex-grow-1">
-                  <p class="fs-14 fw-semibold mb-0">{{ chapter.title }}</p>
+                  </div>
                   {% if chapter.parts.exists() %}
-                  <small class="text-gray fs-12">{{ chapter.parts.count() }} parts</small>
+                  <small class="text-gray fs-12">{{ chapter.parts.count() }} lessons</small>
                   {% endif %}
                 </div>
               </div>
@@ -65,54 +85,62 @@
             {% set is_video_completed = video_progress.get(part_id, False) %}
             {% set is_quiz_completed = quiz_completion_status.get(part_id, False) %}
             {% set is_part_locked = part_locked_status.get(part_id, False) %}
-            
-            <div class="part-item {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
+            {% set part_fully_complete = false %}
+            {% if is_video_completed %}
+              {% if not part.quizzes.exists() %}
+                {% set part_fully_complete = true %}
+              {% elif is_quiz_completed %}
+                {% set part_fully_complete = true %}
+              {% endif %}
+            {% endif %}
+            <div class="part-item sidebar-row {% if part_fully_complete %}part-item--complete{% endif %} {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
                  data-part-id="{{ part_id }}"
-                 {% if not is_part_locked and not is_restricted_view %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
-              <div class="d-flex align-items-center justify-content-between mb-1">
-                <div class="d-flex align-items-center flex-grow-1">
-                  <i class='bx bx-play-circle me-2 fs-16 {% if is_current_part %}text-primary{% else %}text-primary{% endif %}'></i>
-                  <span class="fs-13 fw-semibold">{{ part.title }}</span>
+                 {% if not is_part_locked %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <div class="d-flex align-items-start flex-grow-1 min-w-0">
+                  <span class="sidebar-bullet" aria-hidden="true"></span>
+                  <span class="sidebar-row-title">{{ part.title }}</span>
                 </div>
-                {% if is_video_completed %}
-                  <i class='bx bx-check-circle {% if is_current_part %}text-primary{% else %}text-success{% endif %} fs-16'></i>
-                {% else %}
-                  <i class='bx bx-time-five {% if is_current_part %}text-warning{% else %}text-warning{% endif %} fs-16'></i>
+                <div class="part-row-status flex-shrink-0 text-end">
+                {% if part_fully_complete %}
+                  <span class="sidebar-status-badge sidebar-status-badge--done">Done</span>
+                {% elif not is_video_completed %}
+                  <span class="sidebar-status-badge sidebar-status-badge--pending" title="Video not completed">Video</span>
+                {% elif part.quizzes.exists() and not is_quiz_completed %}
+                  <span class="sidebar-status-badge sidebar-status-badge--quiz" title="Quiz pending">Quiz</span>
                 {% endif %}
+                </div>
               </div>
-              
-              <!-- Quiz Items -->
+            </div>
               {% if part.quizzes.exists() %}
                 {% for quiz in part.quizzes.all() %}
-                {% set is_quiz_completed = quiz_completion_status.get(part_id, False) %}
+                {% set is_this_quiz_done = quiz.id in (completed_quiz_ids if completed_quiz_ids is defined else []) %}
                 {% set is_current_quiz = current_quiz and current_quiz.id == quiz.id %}
                 {% set is_quiz_locked = not is_video_completed %}
-                <div class="quiz-item {% if is_video_completed and not is_part_locked %}enabled{% else %}disabled{% endif %} {% if is_quiz_completed %}completed{% endif %} {% if is_current_quiz %}active{% endif %} {% if is_quiz_locked or is_part_locked %}locked{% endif %}"
+                <div class="quiz-item quiz-sidebar-row sidebar-row {% if is_video_completed and not is_part_locked %}enabled{% else %}disabled{% endif %} {% if is_this_quiz_done %}completed{% endif %} {% if is_current_quiz %}active{% endif %} {% if is_quiz_locked or is_part_locked %}locked{% endif %}"
                      data-quiz-id="{{ quiz.id }}"
-                     {% if is_video_completed and not is_part_locked and not is_restricted_view %}onclick="event.stopPropagation(); navigateToQuiz({{ quiz.id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative;"{% endif %}>
+                     {% if is_video_completed and not is_part_locked %}onclick="navigateToQuiz({{ quiz.id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative;"{% endif %}>
                   {% if is_current_quiz %}
-                  <div style="position: absolute; left: -2px; top: 50%; transform: translateY(-50%); width: 5px; height: 75%; background: linear-gradient(180deg, #ff6b6b 0%, #ffa500 100%); border-radius: 0 6px 6px 0; box-shadow: 0 0 8px rgba(255, 107, 107, 0.45);"></div>
+                  <div class="quiz-active-marker" aria-hidden="true"></div>
                   {% endif %}
-                  <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center flex-grow-1">
-                      <i class='bx bx-file-blank me-2 fs-14 {% if is_current_quiz %}text-danger{% else %}text-gray{% endif %}' style="{% if is_current_quiz %}color: #e03131 !important;{% endif %}"></i>
-                      <span class="fs-12 {% if is_current_quiz %}fw-semibold{% endif %}">Quiz: {{ quiz.title|default('Quiz ' ~ loop.index) }}</span>
-                      {% if is_quiz_completed %}
-                      <span class="badge {% if is_current_quiz %}bg-danger text-white{% else %}bg-success{% endif %} ms-2 fs-10">Done</span>
-                      {% endif %}
+                  <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div class="d-flex align-items-start flex-grow-1 min-w-0">
+                      <span class="sidebar-bullet sidebar-bullet--quiz" aria-hidden="true"></span>
+                      <span class="sidebar-row-title sidebar-row-title--quiz {% if is_current_quiz %}fw-semibold{% endif %}">{{ quiz_short_title(quiz.title) }}</span>
                     </div>
-                    {% if is_quiz_completed %}
-                      <i class='bx bx-check-circle {% if is_current_quiz %}text-danger{% else %}text-success{% endif %} fs-14' style="{% if is_current_quiz %}color: #e03131 !important;{% endif %}"></i>
-                    {% elif is_video_completed and not is_part_locked %}
-                      <i class='bx bx-time-five {% if is_current_quiz %}text-danger{% else %}text-primary{% endif %} fs-14' style="{% if is_current_quiz %}color: #ff6b6b !important;{% endif %}"></i>
+                    <div class="part-row-status flex-shrink-0 text-end">
+                    {% if is_this_quiz_done %}
+                      <span class="sidebar-status-badge sidebar-status-badge--done">Done</span>
+                    {% elif not is_video_completed or is_part_locked %}
+                      <i class='bx bx-lock text-gray fs-14' title="Locked"></i>
                     {% else %}
-                      <i class='bx bx-lock text-gray fs-14'></i>
+                      <span class="sidebar-status-badge sidebar-status-badge--pending">Quiz</span>
                     {% endif %}
+                    </div>
                   </div>
                 </div>
                 {% endfor %}
               {% endif %}
-            </div>
             {% endfor %}
           </div>
           {% endif %}
@@ -277,8 +305,121 @@
     box-shadow: 0 2px 8px rgba(82, 73, 223, 0.15);
     transform: none;
   }
+  .chapter-item.active .chapter-number.chapter-number--complete {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 2px solid #10b981;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  }
+  .chapter-item.active .chapter-number.chapter-number--complete .chapter-index {
+    color: #047857;
+  }
   .chapter-index {
     font-size: 15px;
+  }
+  .chapter-number.chapter-number--complete {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 2px solid #10b981;
+    box-shadow: none;
+  }
+  .chapter-number.chapter-number--complete .chapter-index {
+    color: #047857;
+  }
+  .chapter-badge-completed {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #047857;
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+  .chapter-item.chapter-item--completed:not(.active) {
+    border-color: #bbf7d0;
+    background: #fafffe;
+  }
+  .chapter-title-text {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.35;
+    max-width: 100%;
+  }
+  /* Unified bullet for lesson parts and quizzes */
+  .sidebar-bullet {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #9ca3af;
+    margin-top: 0.42em;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  .part-item.active .sidebar-bullet {
+    background: #5249DF;
+    box-shadow: 0 0 0 2px rgba(82, 73, 223, 0.22);
+  }
+  .part-item.part-item--complete .sidebar-bullet {
+    background: #10b981;
+  }
+  .quiz-item.quiz-sidebar-row.active .sidebar-bullet--quiz {
+    background: #5249DF;
+    box-shadow: 0 0 0 2px rgba(82, 73, 223, 0.22);
+  }
+  .quiz-item.quiz-sidebar-row.completed .sidebar-bullet--quiz {
+    background: #10b981;
+  }
+  .sidebar-row-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #111827;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+  }
+  .sidebar-row-title--quiz {
+    font-weight: 500;
+  }
+  .quiz-item.quiz-sidebar-row.active .sidebar-row-title--quiz {
+    color: #5249DF;
+    font-weight: 600;
+  }
+  .sidebar-status-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .sidebar-status-badge--done {
+    color: #047857;
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+  }
+  .sidebar-status-badge--pending {
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+  }
+  .sidebar-status-badge--quiz {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+  }
+  .part-row-status {
+    min-width: 2.5rem;
+    text-align: right;
   }
   
   /* Parts List Styles — neutral panel so last items stay readable */
@@ -300,6 +441,10 @@
     cursor: pointer;
     transition: all 0.25s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .part-item.part-item--complete:not(.active) {
+    border-left-color: #6ee7b7;
+    background: #fafafa;
   }
   .part-item:hover {
     background: #f8f7ff;
@@ -358,7 +503,28 @@
     z-index: 2;
   }
   
-  /* Quiz Item Styles */
+  /* Quiz rows: sibling of part row (not nested), full width — match part card weight */
+  .quiz-item.quiz-sidebar-row {
+    margin-left: 0 !important;
+    margin-top: 0;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .quiz-active-marker {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 70%;
+    background: linear-gradient(180deg, #5249DF 0%, #8b7cf8 100%);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 6px rgba(82, 73, 223, 0.25);
+  }
+  /* Quiz Item Styles — align with part rows (white card, left accent) */
   .quiz-item {
     padding: 10px 12px;
     margin-top: 6px;
@@ -366,75 +532,57 @@
     margin-bottom: 4px;
     border-radius: 6px;
     font-size: 13px;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
+    transition: all 0.25s ease;
+    border-left: 4px solid transparent;
     position: relative;
   }
-  .quiz-item.enabled {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+  .quiz-item.quiz-sidebar-row.enabled {
+    background: #fff;
     cursor: pointer;
-    border-left-color: #ffb3b3;
+    border-left-color: #e5e7eb;
   }
-  .quiz-item.enabled:hover {
-    background: linear-gradient(135deg, #ffe8e8 0%, #ffd9d9 100%);
-    border-left-color: #ff6b6b;
+  .quiz-item.quiz-sidebar-row.enabled:hover {
+    background: #f8f7ff;
+    border-left-color: #5249DF;
     transform: translateX(2px);
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
+    box-shadow: 0 4px 12px rgba(82, 73, 223, 0.1);
   }
   .quiz-item.disabled,
   .quiz-item.locked {
-    background: #f5f5f5;
-    opacity: 0.7;
+    background: #f9fafb;
+    opacity: 0.75;
     cursor: not-allowed !important;
-    border-left-color: #ddd;
+    border-left-color: #e5e7eb;
   }
-  .quiz-item.locked:hover {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%) !important;
-    border-left-color: #ff6b6b !important;
-    border-left-width: 4px !important;
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2) !important;
-    transform: translateX(2px) !important;
+  .quiz-item.quiz-sidebar-row.locked:hover {
+    background: #f9fafb !important;
+    border-left-color: #e5e7eb !important;
+    transform: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   }
-  .quiz-item.locked::after {
-    content: '🔒';
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 12px;
-    opacity: 0.8;
-    z-index: 2;
+  /* Status column shows lock; avoid duplicate emoji */
+  .quiz-item.quiz-sidebar-row.locked::after {
+    display: none;
   }
-  .quiz-item.completed {
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    border-left-color: #28a745;
+  .quiz-item.quiz-sidebar-row.completed:not(.active) {
+    background: #fafafa;
+    border-left-color: #6ee7b7;
   }
-  .quiz-item.active {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.95) 100%);
+  .quiz-item.quiz-sidebar-row.active {
+    background: #fff;
     border-left-width: 5px;
-    border-left-color: #ff6b6b;
+    border-left-color: #5249DF;
     padding-left: 13px;
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25), inset 0 0 0 2px rgba(255, 107, 107, 0.1);
-    font-weight: 600;
-    color: #ff6b6b;
-    transform: translateX(5px);
+    box-shadow: 0 6px 18px rgba(82, 73, 223, 0.14);
+    transform: translateX(4px);
   }
   .quiz-item.active::before {
-    content: '▶';
-    position: absolute;
-    left: 10px;
-    color: #ff6b6b;
-    font-size: 10px;
-    font-weight: bold;
+    display: none;
+    content: none;
   }
-  .part-item.active .quiz-item.active {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
-    color: #c53030;
-    border-left-color: #ff6b6b;
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2), inset 0 0 0 1px rgba(255, 107, 107, 0.15);
-  }
-  .part-item.active .quiz-item.active::before {
-    color: #ff6b6b;
+  .quiz-item.quiz-sidebar-row.active::before {
+    display: none;
+    content: none;
   }
   
   /* Certificate Badge */

@@ -2561,7 +2561,12 @@ class CourseLearningView(View):
         
         user = request.user
         is_demo_account = bool(getattr(user, "is_demo_account", False))
-        is_restricted_view = (
+        # Full course learning for every counselor. Previously non-demo counselors were stuck on the
+        # first lesson with no navigation, quiz, or resume; that was only appropriate for a preview
+        # mode, not for enrolled learning.
+        is_restricted_view = False
+        # Non-demo counselors: hide the video timeline scrubber (forward skip still blocked in JS).
+        hide_video_scrubber = (
             request.user.user_type == choices.UserType.COUNSELOR and not is_demo_account
         )
         course_with_related_data = CounselorCourse.objects.prefetch_related(
@@ -2585,25 +2590,44 @@ class CourseLearningView(View):
                 for progress in progress_data
             }
         
-        # Get quiz completion status
+        # Quiz scores: collect completed quiz IDs; per-part "all quizzes done" for navigation/sidebar
         quiz_completion_status = {}
+        completed_quiz_ids = set()
+        scores = []
         try:
             quiz_result = QuizResults.objects.get(user=user)
-            scores = quiz_result.scores if isinstance(quiz_result.scores, list) else []
+            raw_scores = quiz_result.scores
+            if isinstance(raw_scores, str):
+                import json
+
+                scores = json.loads(raw_scores) if raw_scores and raw_scores.strip() else []
+            elif isinstance(raw_scores, list):
+                scores = raw_scores
+            else:
+                scores = []
             for score in scores:
-                part_id = score.get('part_id')
-                if part_id:
-                    quiz_completion_status[part_id] = True
+                if not isinstance(score, dict):
+                    continue
+                qid = score.get("quiz_id")
+                if qid is not None:
+                    try:
+                        completed_quiz_ids.add(int(qid))
+                    except (TypeError, ValueError):
+                        pass
+            for chapter in course_with_related_data.chapters.all():
+                for part in chapter.parts.all():
+                    qids = list(part.quizzes.values_list("id", flat=True))
+                    if not qids:
+                        continue
+                    quiz_completion_status[part.id] = all(
+                        int(q) in completed_quiz_ids for q in qids
+                    )
         except QuizResults.DoesNotExist:
             scores = []
         
         # Determine what content to show based on URL parameters
-        # Restricted counselors: always show only the first lesson (view-only).
-        content_type = None
-        content_id = None
-        if not is_restricted_view:
-            content_type = request.GET.get('type', None)  # chapter, part, quiz
-            content_id = request.GET.get('id', None)
+        content_type = request.GET.get('type', None)  # chapter, part, quiz
+        content_id = request.GET.get('id', None)
         
         current_chapter = None
         current_part = None
@@ -2612,16 +2636,6 @@ class CourseLearningView(View):
         
         chapters_list = list(course_with_related_data.chapters.all())
 
-        if is_restricted_view and chapters_list:
-            # Force the restricted view to the very first part in the course.
-            first_chapter = chapters_list[0]
-            first_part = first_chapter.parts.first()
-            if first_part:
-                current_chapter = first_chapter
-                current_part = first_part
-                content_type = "part"
-                content_id = str(first_part.id)
-        
         # If no specific content requested, find the next pending part
         if not content_type and not content_id:
             # Find the first incomplete part
@@ -2919,13 +2933,6 @@ class CourseLearningView(View):
         for chapter_idx, chapter in enumerate(chapters_list):
             # Check if previous chapter is completed
             is_chapter_locked = False
-            if is_restricted_view:
-                # In restricted mode, lock everything except the first chapter.
-                is_chapter_locked = chapter_idx != 0
-                chapter_locked_status[chapter.id] = is_chapter_locked
-                for part_idx, part in enumerate(list(chapter.parts.all())):
-                    part_locked_status[part.id] = not (chapter_idx == 0 and part_idx == 0)
-                continue
             if chapter_idx > 0:
                 prev_chapter = chapters_list[chapter_idx - 1]
                 prev_chapter_complete = True
@@ -3090,6 +3097,7 @@ class CourseLearningView(View):
             'content_type': content_type,
             'video_progress': video_progress,
             'quiz_completion_status': quiz_completion_status,
+            'completed_quiz_ids': completed_quiz_ids,
             'progress_percentage': progress_percentage,
             'certification': certification,
             'chapter_locked_status': chapter_locked_status,  # Locked status for chapters
@@ -3097,6 +3105,7 @@ class CourseLearningView(View):
             'part_notes': part_notes,
             'is_demo_account': is_demo_account,
             'is_restricted_view': is_restricted_view,
+            'hide_video_scrubber': hide_video_scrubber,
             'video_preconnect_href': video_preconnect_href,
             'restrict_video_seek': restrict_video_seek,
         }
