@@ -2535,6 +2535,49 @@ def TestVttVideo(request):
     return render(request, 'template20/counselor/test_vtt_video.html')
 
 
+@login_required(login_url=reverse_lazy('users:login'))
+def part_caption_vtt(request, counselor_id, part_id):
+    """
+    Same-origin WebVTT proxy for the course learning player.
+
+    Serves captions without setting crossorigin on <video> (which forces CORS on the
+    MP4 and often breaks playback on S3 when video objects are not CORS-enabled).
+    """
+    from core import choices
+    from django.http import Http404
+    import urllib.error
+    import urllib.request
+
+    counselor = get_object_or_404(Counselor, id=counselor_id)
+    if request.user.user_type == choices.UserType.COUNSELOR:
+        if counselor.coun_user != request.user:
+            raise Http404("You don't have permission to access this counselor's course.")
+
+    course = CounselorCourse.objects.first()
+    if not course:
+        raise Http404("No course found.")
+
+    part = get_object_or_404(Part, id=part_id, chapter__course=course)
+
+    vtt_url = part.get_caption_vtt_url()
+    if not vtt_url:
+        raise Http404("No captions for this part.")
+
+    try:
+        req = urllib.request.Request(
+            vtt_url,
+            headers={"User-Agent": "TopTeen-course-caption-proxy/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = resp.read()
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError):
+        raise Http404("Captions unavailable.")
+
+    r = HttpResponse(data, content_type="text/vtt; charset=utf-8")
+    r["Cache-Control"] = "private, max-age=3600"
+    return r
+
+
 # ============================================================================
 # COURSE LEARNING MODULE - Separate dedicated learning interface
 # ============================================================================

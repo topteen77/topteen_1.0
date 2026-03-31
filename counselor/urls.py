@@ -1,5 +1,5 @@
 
-from django.urls import path,include
+from django.urls import path, re_path
 from . import views
 
 app_name="counselor"
@@ -33,6 +33,11 @@ urlpatterns = [
     # Course Learning Module - New dedicated learning interface
     # Note: autocomplete must come before the general course_learning pattern
     path('course_learning/<int:counselor_id>/autocomplete/', views.autocomplete_course, name='autocomplete_course'),
+    re_path(
+        r'^course_learning/(?P<counselor_id>\d+)/caption/(?P<part_id>\d+)\.vtt$',
+        views.part_caption_vtt,
+        name='part_caption_vtt',
+    ),
     path('course_learning/<int:counselor_id>/', views.CourseLearningView.as_view(), name='course_learning'),
     path('course_results/<int:counselor_id>/', views.CourseResultsView.as_view(), name='course_results'),
     path('view_certificate/<int:counselor_id>/', views.ViewCertificateView.as_view(), name='view_certificate'),

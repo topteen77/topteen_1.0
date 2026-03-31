@@ -564,6 +564,8 @@
                   <div class="tab-pane fade {% if has_video or not has_pdf %}show active{% endif %}" id="lesson-video-pane" role="tabpanel" aria-labelledby="lesson-video-tab">
                     <div class="lesson-tab-pane-inner">
                       {% if has_video %}
+                      {# Captions: same-origin proxy so <video> does not need crossorigin (which breaks MP4 on many S3 setups). #}
+                      {% set caption_vtt_url = current_part.get_caption_vtt_url() %}
                       <div class="course-learning-video-shell">
                         {# autoplay muted: required by most browsers; user can unmute. preload=auto helps start quickly. #}
                         <video id="video-{{ current_part.id }}"
@@ -574,6 +576,9 @@
                                controls
                                data-part-id="{{ current_part.id }}">
                           <source src="{{ current_part.video_url }}" type="video/mp4">
+                          {% if caption_vtt_url %}
+                          <track kind="subtitles" src="{{ url('counselor:part_caption_vtt', args=[counselor.id, current_part.id]) }}" srclang="en" label="English" default>
+                          {% endif %}
                           Your browser does not support the video tag.
                         </video>
                       </div>

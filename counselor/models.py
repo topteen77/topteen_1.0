@@ -119,7 +119,11 @@ class Part(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)  # URL for the video
-    video_vtt = models.URLField(blank=True, null=True)  # URL for the video
+    video_vtt = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Optional WebVTT captions URL. If empty, captions are assumed at the same path as the video with a .vtt extension.",
+    )
     pdf_url = models.URLField(blank=True, null=True)  # URL for the PDF
 
     class Meta:
@@ -127,6 +131,29 @@ class Part(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_caption_vtt_url(self):
+        """
+        WebVTT URL for HTML5 <track>: explicit video_vtt, or same path as video_url with .vtt
+        (e.g. .../chapter3part3.mp4 -> .../chapter3part3.vtt).
+        """
+        import re
+        from urllib.parse import urlparse, urlunparse
+
+        explicit = (getattr(self, "video_vtt", None) or "").strip()
+        if explicit:
+            return explicit
+        video = (self.video_url or "").strip()
+        if not video:
+            return ""
+        parsed = urlparse(video)
+        path = parsed.path or ""
+        if not path:
+            return ""
+        new_path = re.sub(r"\.[^./\\]+$", ".vtt", path, count=1, flags=re.IGNORECASE)
+        if new_path == path:
+            new_path = path.rstrip("/") + ".vtt"
+        return urlunparse(parsed._replace(path=new_path))
 
 class Notes(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
