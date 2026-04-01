@@ -98,6 +98,9 @@ Quiz: {{ t }}
                 {% set part_fully_complete = true %}
               {% endif %}
             {% endif %}
+            {# Hide duplicate "Case Studies" part row — PDF list is shown inline after Practical Training #}
+            {% set hide_host_part = case_study_host_part_id and part.id == case_study_host_part_id %}
+            {% if not hide_host_part %}
             <div class="part-item sidebar-row {% if part_fully_complete %}part-item--complete{% endif %} {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
                  data-part-id="{{ part_id }}"
                  {% if not is_part_locked %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
@@ -153,6 +156,28 @@ Quiz: {{ t }}
                 </div>
                 {% endfor %}
               {% endif %}
+            {% endif %}
+
+            {# Case Studies — single row after Practical Training; opens Index + PDF on main panel (no video-style badge) #}
+            {% if case_study_insert_after_part_id and part.id == case_study_insert_after_part_id and chapter.id == case_study_chapter_id and case_study_count > 0 %}
+            <div class="part-item sidebar-row sidebar-case-studies-nav mb-2 mt-1 {% if content_type == 'case_study_index' %}active{% endif %}"
+                 onclick="window.location.href='{{ url('counselor:course_learning', args=[counselor.id]) }}?type=case_study_index'"
+                 style="cursor: pointer; position: relative;">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <div class="d-flex align-items-start flex-grow-1 min-w-0">
+                  <span class="sidebar-bullet" aria-hidden="true"></span>
+                  <div class="sidebar-row-title-wrap">
+                    <span class="sidebar-row-title">Case Studies</span>
+                    <small class="sidebar-row-subtitle">PDF index</small>
+                  </div>
+                </div>
+                <div class="part-row-status flex-shrink-0 text-end">
+                  <span class="badge bg-light text-dark border">{{ case_study_count }}</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
             {% endfor %}
           </div>
           {% endif %}

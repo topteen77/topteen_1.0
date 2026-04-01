@@ -7,7 +7,21 @@ from django.core.paginator import Paginator
 from app.models import Answer, Results
 from institute.filters import StudentFilter
 from institute.models import ClassAndSection, Institute, StudentManagement
-from .models import Counselor, Quiz, Chapter, Part, QuizAnswers, QuizResults, VideoProgress, CounselorCourse, Notes, CounselorCertification, Question
+from .models import (
+    Counselor,
+    Quiz,
+    Chapter,
+    Part,
+    CaseStudy,
+    QuizAnswers,
+    QuizResults,
+    VideoProgress,
+    CounselorCourse,
+    Notes,
+    CounselorCertification,
+    Question,
+)
+from .course_completion import is_course_fully_completed as _is_course_fully_completed
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count
 from django.utils import timezone
@@ -17,7 +31,7 @@ from .models import Counselor, FollowUpStatus
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 
-from django.http import JsonResponse, HttpResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 
 
 from django.urls import reverse_lazy, reverse
@@ -2435,6 +2449,91 @@ def get_progress_and_duration(request, video_id):
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=400)
 
 
+@login_required(login_url=reverse_lazy('users:login'))
+def case_study_pdf(request, counselor_id, case_id):
+    """
+    Serve case study PDFs (local folder or remote URL) with auth.
+
+    Behavior:
+    - CaseStudy.pdf_url is a full https URL: fetched and served same-origin (avoids CORS for PDF.js).
+    - CaseStudy.pdf_url is a filename/relative path:
+      - If Part.case_study_folder_url starts with http(s): join and fetch.
+      - Else treat Part.case_study_folder_url as a local directory path (absolute or relative to BASE_DIR).
+      - If no folder is set: fall back to <BASE_DIR>/case_studies.
+    """
+    from core import choices
+    from django.http import Http404, FileResponse, HttpResponse
+    from pathlib import Path
+    import urllib.error
+    import urllib.request
+
+    counselor = get_object_or_404(Counselor, id=counselor_id)
+    if request.user.user_type == choices.UserType.COUNSELOR and counselor.coun_user != request.user:
+        raise Http404("You don't have permission to access this counselor's course.")
+
+    try:
+        cs = CaseStudy.objects.select_related("part").get(pk=case_id)
+    except CaseStudy.DoesNotExist:
+        raise Http404("Case study not found.")
+
+    part = cs.part
+    if not part:
+        raise Http404("Invalid case study.")
+
+    raw = (cs.pdf_url or "").strip()
+    if not raw:
+        raise Http404("Missing PDF url.")
+
+    def _serve_remote(url: str):
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "TopTeen-case-study-proxy/1.0"},
+            )
+            with urllib.request.urlopen(req, timeout=25) as r:
+                data = r.read()
+        except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError):
+            raise Http404("PDF unavailable.")
+        resp = HttpResponse(data, content_type="application/pdf")
+        resp["Content-Disposition"] = 'inline; filename="case-study.pdf"'
+        resp["Cache-Control"] = "private, max-age=0, no-store"
+        return resp
+
+    # Full URL
+    if raw.startswith("http://") or raw.startswith("https://"):
+        return _serve_remote(raw)
+
+    # Prevent traversal for relative pdf_url
+    safe_name = raw.replace("\\", "/").strip()
+    if safe_name.startswith("/") or ".." in safe_name.split("/"):
+        raise Http404("Invalid filename.")
+
+    base = (getattr(part, "case_study_folder_url", None) or "").strip()
+    if base.startswith("http://") or base.startswith("https://"):
+        url = base.rstrip("/") + "/" + safe_name.lstrip("/")
+        return _serve_remote(url)
+
+    # Local file base directory
+    if base:
+        base_dir = Path(base)
+        if not base_dir.is_absolute():
+            base_dir = (Path(settings.BASE_DIR) / base_dir)
+    else:
+        base_dir = Path(settings.BASE_DIR) / "case_studies"
+    base_dir = base_dir.resolve()
+
+    pdf_path = (base_dir / safe_name).resolve()
+    if (base_dir not in pdf_path.parents) and (pdf_path != base_dir):
+        raise Http404("Invalid path.")
+    if not pdf_path.exists() or not pdf_path.is_file() or pdf_path.suffix.lower() != ".pdf":
+        raise Http404("File not found.")
+
+    resp = FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+    resp["Content-Disposition"] = f'inline; filename="{pdf_path.name}"'
+    resp["Cache-Control"] = "private, max-age=0, no-store"
+    return resp
+
+
 @csrf_exempt
 def update_progress(request):
     if request.method == 'POST':
@@ -2600,6 +2699,7 @@ class CourseLearningView(View):
     def get(self, request, counselor_id):
         from core import choices
         from django.http import Http404
+        import re
         
         # Retrieve the counselor using the provided ID
         counselor = get_object_or_404(Counselor, id=counselor_id)
@@ -2639,6 +2739,11 @@ class CourseLearningView(View):
                 int(progress.video_id.split('-')[1]): progress.completed 
                 for progress in progress_data
             }
+
+        # No video URL → nothing to watch; treat like PDF/case studies (optional for status).
+        for _part in Part.objects.filter(chapter__course=course_with_related_data):
+            if not (_part.video_url or "").strip():
+                video_progress[_part.id] = True
         
         # Quiz scores: collect completed quiz IDs; per-part "all quizzes done" for navigation/sidebar
         quiz_completion_status = {}
@@ -2686,6 +2791,47 @@ class CourseLearningView(View):
         
         chapters_list = list(course_with_related_data.chapters.all())
 
+        # Case studies: driven by Admin rows under Part (CaseStudyInline)
+        # Use the first part in the course that has case studies OR a folder URL set.
+        case_study_host_part = None
+        case_study_chapter_id = None
+        case_studies = []
+        try:
+            for ch in chapters_list:
+                for p in ch.parts.all():
+                    if p.case_studies.exists() or (getattr(p, "case_study_folder_url", None) or "").strip():
+                        case_study_host_part = p
+                        case_study_chapter_id = getattr(ch, "id", None)
+                        # Load DB rows (ordered)
+                        qs = p.case_studies.all().order_by("sort_order", "id")
+                        case_studies = [{"id": cs.id, "title": cs.title or "", "pdf_url": cs.pdf_url or ""} for cs in qs]
+                        break
+                if case_study_host_part:
+                    break
+        except Exception:
+            case_study_host_part = None
+            case_study_chapter_id = None
+            case_studies = []
+        has_chapter_17 = bool(case_study_host_part and case_study_chapter_id)
+
+        # Sidebar: show Case Studies block after "Practical Training", not before all parts.
+        # Hide the duplicate Part row whose title is "Case Studies" (host part with CaseStudy rows).
+        case_study_host_part_id = getattr(case_study_host_part, "id", None)
+        case_study_insert_after_part_id = None
+        if case_study_host_part and case_study_chapter_id:
+            ch = getattr(case_study_host_part, "chapter", None)
+            if ch:
+                for p in ch.parts.all():
+                    t = (getattr(p, "title", "") or "").strip().lower()
+                    if "practical training" in t or "practicle training" in t:
+                        case_study_insert_after_part_id = p.id
+                        break
+                if case_study_insert_after_part_id is None:
+                    for p in ch.parts.all():
+                        if case_study_host_part_id and p.id != case_study_host_part_id:
+                            case_study_insert_after_part_id = p.id
+                            break
+
         # If no specific content requested, find the next pending part
         if not content_type and not content_id:
             # Find the first incomplete part
@@ -2725,6 +2871,25 @@ class CourseLearningView(View):
                     current_chapter = last_chapter
                     content_type = 'part'
         
+        elif content_type in ('case_study', 'case_study_index'):
+            # case_study (legacy) → case_study_index: Index tab + optional Case Study PDF tab
+            content_type = 'case_study_index'
+            cs_id = request.GET.get("cs")
+            if cs_id:
+                try:
+                    cs_id_int = int(cs_id)
+                except (TypeError, ValueError):
+                    raise Http404("Case study not found.")
+                if not any(int(cs.get("id")) == cs_id_int for cs in case_studies):
+                    raise Http404("Case study not found.")
+                case_study_current_id = cs_id_int
+            else:
+                case_study_current_id = None
+            current_chapter = next((ch for ch in chapters_list if getattr(ch, "id", None) == case_study_chapter_id), None)
+            current_part = None
+            current_quiz = None
+            current_question_index = 0
+
         elif content_type == 'chapter' and content_id:
             try:
                 requested_chapter = Chapter.objects.get(id=content_id, course=course_with_related_data)
@@ -2968,6 +3133,18 @@ class CourseLearningView(View):
             if first_part:
                 current_part = first_part
                 content_type = 'part'
+
+        # Suppress PDF Notes tab when requested in admin (e.g., case studies replace an index PDF)
+        hide_practical_training_pdf = False
+        if current_part and getattr(current_part, "suppress_pdf_notes_tab", False):
+            hide_practical_training_pdf = True
+
+        case_study_current_id = locals().get("case_study_current_id", None)
+        case_study_pdf_url = None
+        case_study_title = None
+        if content_type == "case_study_index" and case_study_current_id:
+            case_study_pdf_url = reverse("counselor:case_study_pdf", args=[counselor.id, case_study_current_id])
+            case_study_title = next((cs["title"] for cs in case_studies if int(cs["id"]) == int(case_study_current_id)), str(case_study_current_id))
         
         # Calculate overall progress
         # A part is considered complete only if:
@@ -3172,6 +3349,16 @@ class CourseLearningView(View):
             'video_preconnect_href': video_preconnect_href,
             'restrict_video_seek': restrict_video_seek,
             'enable_auto_forward': enable_auto_forward,
+            'case_studies': case_studies,
+            'has_chapter_17': has_chapter_17,
+            'case_study_chapter_id': case_study_chapter_id,
+            'case_study_host_part_id': case_study_host_part_id,
+            'case_study_insert_after_part_id': case_study_insert_after_part_id,
+            'case_study_count': len(case_studies) if case_studies else 0,
+            'case_study_current_id': case_study_current_id,
+            'case_study_pdf_url': case_study_pdf_url,
+            'case_study_title': case_study_title,
+            'hide_practical_training_pdf': hide_practical_training_pdf,
         }
         
         return render(request, self.template_name, context)
@@ -3497,72 +3684,6 @@ def submit_full_quiz(request, counselor_id, quiz_id):
     # Redirect to course learning page - it will automatically find and show next pending part
     # This ensures proper navigation to incomplete videos/quizzes
     return redirect('counselor:course_learning', counselor_id=counselor_id)
-
-
-def _is_course_fully_completed(user):
-    """
-    Check if course is fully completed (all videos + all quizzes).
-    Returns True only if everything is done.
-    """
-    course = CounselorCourse.objects.prefetch_related(
-        'chapters__parts__quizzes__questions__answers'
-    ).first()
-    
-    if not course:
-        return False
-    
-    # Get all parts
-    all_parts = Part.objects.filter(chapter__course=course)
-    part_ids = list(all_parts.values_list('id', flat=True))
-    
-    if not part_ids:
-        return False
-    
-    # Check if all videos are completed
-    video_progress = VideoProgress.objects.filter(
-        user=user,
-        video_id__in=[f"video-{part_id}" for part_id in part_ids],
-        completed=True
-    )
-    completed_video_ids = {int(progress.video_id.split('-')[1]) for progress in video_progress}
-    
-    # Check if all quizzes are completed
-    try:
-        quiz_result = QuizResults.objects.get(user=user)
-        if isinstance(quiz_result.scores, str):
-            import json
-            scores = json.loads(quiz_result.scores) if quiz_result.scores else []
-        elif isinstance(quiz_result.scores, list):
-            scores = quiz_result.scores
-        else:
-            scores = []
-    except QuizResults.DoesNotExist:
-        scores = []
-    
-    # Get parts that have quizzes
-    parts_with_quizzes = {part.id for part in all_parts if part.quizzes.exists()}
-    
-    # Get parts with completed quizzes
-    completed_quiz_parts = set()
-    for score in scores:
-        part_id = score.get('part_id')
-        if part_id:
-            completed_quiz_parts.add(part_id)
-    
-    # Check each part:
-    # 1. Video must be completed
-    # 2. If part has quiz, quiz must be completed
-    for part_id in part_ids:
-        # Check video completion
-        if part_id not in completed_video_ids:
-            return False
-        
-        # Check quiz completion if quiz exists
-        if part_id in parts_with_quizzes:
-            if part_id not in completed_quiz_parts:
-                return False
-    
-    return True
 
 
 @login_required(login_url=reverse_lazy('users:login'))

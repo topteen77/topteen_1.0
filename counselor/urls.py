@@ -38,6 +38,11 @@ urlpatterns = [
         views.part_caption_vtt,
         name='part_caption_vtt',
     ),
+    path(
+        'course_learning/<int:counselor_id>/case-study/<int:case_id>/',
+        views.case_study_pdf,
+        name='case_study_pdf',
+    ),
     path('course_learning/<int:counselor_id>/', views.CourseLearningView.as_view(), name='course_learning'),
     path('course_results/<int:counselor_id>/', views.CourseResultsView.as_view(), name='course_results'),
     path('view_certificate/<int:counselor_id>/', views.ViewCertificateView.as_view(), name='view_certificate'),

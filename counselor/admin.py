@@ -14,6 +14,7 @@ from .models import (
     CounselorCourse,
     Chapter,
     Part,
+    CaseStudy,
     Quiz,
     Question,
     QuizAnswers,
@@ -58,7 +59,15 @@ class QuizInline(nested_admin.NestedStackedInline):
 class PartInline(nested_admin.NestedStackedInline):
     """Inline for parts within chapters"""
     model = Part
-    fields = ('title', 'description', 'video_url', 'video_vtt', 'pdf_url')
+    fields = (
+        'title',
+        'description',
+        'video_url',
+        'video_vtt',
+        'pdf_url',
+        'case_study_folder_url',
+        'suppress_pdf_notes_tab',
+    )
     extra = 1
     inlines = [QuizInline]
     verbose_name = "Part"
@@ -217,21 +226,44 @@ class ChapterAdmin(admin.ModelAdmin):
         return total
     get_quiz_count.short_description = 'Quizzes'
 
+class CaseStudyInline(admin.TabularInline):
+    model = CaseStudy
+    extra = 0
+    fields = ('title', 'pdf_url', 'sort_order')
+    ordering = ('sort_order', 'id')
+
+
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
     """Admin for Part model"""
-    list_display = ('title', 'chapter', 'get_course', 'has_video', 'has_pdf', 'get_quiz_count')
+    list_display = (
+        'title',
+        'chapter',
+        'get_course',
+        'has_video',
+        'has_pdf',
+        'get_case_study_count',
+        'get_quiz_count',
+    )
     search_fields = ('title', 'chapter__title', 'chapter__course__title')
     list_filter = ('chapter__course', 'chapter')
     ordering = ('chapter__course', 'chapter', 'title')
-    
+    inlines = [CaseStudyInline]
+
     fieldsets = (
         ('Part Information', {
             'fields': ('chapter', 'title', 'description')
         }),
         ('Media Files', {
             'fields': ('video_url', 'video_vtt', 'pdf_url'),
-            'description': 'Enter URLs for video, VTT subtitle file, and PDF resources.'
+            'description': 'Enter URLs for video, VTT subtitle file, and lesson PDF (optional).',
+        }),
+        ('Case studies', {
+            'fields': ('case_study_folder_url', 'suppress_pdf_notes_tab'),
+            'description': (
+                'Optional folder URL (project or S3 prefix) used when each Case Study row uses a relative filename only. '
+                'Add rows below. When case studies exist or “Suppress PDF notes tab” is checked, the PDF Notes tab can be hidden.'
+            ),
         }),
     )
     
@@ -253,6 +285,37 @@ class PartAdmin(admin.ModelAdmin):
     def get_quiz_count(self, obj):
         return obj.quizzes.count()
     get_quiz_count.short_description = 'Quizzes'
+
+    @admin.display(description='Case studies')
+    def get_case_study_count(self, obj):
+        n = obj.case_studies.count()
+        if n == 0:
+            return '—'
+        url = reverse('admin:counselor_casestudy_changelist') + f'?part__id__exact={obj.pk}'
+        return format_html('<a href="{}">{}</a>', url, n)
+
+@admin.register(CaseStudy)
+class CaseStudyAdmin(admin.ModelAdmin):
+    list_display = ('title', 'part', 'get_chapter', 'sort_order', 'pdf_url_short')
+    list_filter = ('part__chapter__course', 'part__chapter')
+    search_fields = ('title', 'pdf_url', 'part__title')
+    ordering = ('part__chapter', 'part', 'sort_order', 'id')
+    raw_id_fields = ('part',)
+
+    fieldsets = (
+        (None, {'fields': ('part', 'title', 'pdf_url', 'sort_order')}),
+    )
+
+    @admin.display(description='Chapter')
+    def get_chapter(self, obj):
+        if obj.part and obj.part.chapter:
+            return obj.part.chapter.title
+        return '—'
+
+    @admin.display(description='PDF')
+    def pdf_url_short(self, obj):
+        s = (obj.pdf_url or '')[:80]
+        return s + ('…' if len(obj.pdf_url or '') > 80 else '')
 
 @admin.register(Quiz)
 class QuizAdmin(nested_admin.NestedModelAdmin):
