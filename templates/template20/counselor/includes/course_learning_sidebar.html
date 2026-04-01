@@ -55,6 +55,12 @@ Quiz: {{ t }}
                   <span class="chapter-index">{{ loop.index }}</span>
                 </div> -->
                 <div class="flex-grow-1 min-w-0">
+                  <div class="chapter-meta-row d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <span class="chapter-no-badge">Chapter {{ loop.index }}</span>
+                    {% if chapter.parts.exists() %}
+                    <span class="chapter-lesson-count">{{ chapter.parts.count() }} lessons</span>
+                    {% endif %}
+                  </div>
                   <div class="d-flex align-items-start gap-2 flex-wrap">
                     {% if ns_ch.chapter_done %}
                     <span class="chapter-title-check" title="Completed" aria-label="Completed">
@@ -63,9 +69,6 @@ Quiz: {{ t }}
                     {% endif %}
                     <p class="fs-14 fw-semibold mb-0 chapter-title-text">{{ chapter.title }}</p>
                   </div>
-                  {% if chapter.parts.exists() %}
-                  <small class="text-gray fs-12">{{ chapter.parts.count() }} lessons</small>
-                  {% endif %}
                 </div>
               </div>
               <div class="d-flex align-items-center">
@@ -101,7 +104,10 @@ Quiz: {{ t }}
               <div class="d-flex align-items-start justify-content-between gap-2">
                 <div class="d-flex align-items-start flex-grow-1 min-w-0">
                   <span class="sidebar-bullet" aria-hidden="true"></span>
-                  <span class="sidebar-row-title">{{ part.title }}</span>
+                  <div class="sidebar-row-title-wrap">
+                    <span class="sidebar-row-title">{{ part.title }}</span>
+                    <small class="sidebar-row-subtitle">Part {{ loop.index }} · Video lesson</small>
+                  </div>
                 </div>
                 <div class="part-row-status flex-shrink-0 text-end">
                 {% if part_fully_complete %}
@@ -364,7 +370,7 @@ Quiz: {{ t }}
     color: #ffffff;
     box-shadow: 0 4px 10px rgba(16, 185, 129, 0.28);
     flex-shrink: 0;
-    position:absolute;
+    position: absolute;
   }
   .chapter-title-check i {
     font-size: 0.92rem;
@@ -380,6 +386,26 @@ Quiz: {{ t }}
     word-break: break-word;
     line-height: 1.35;
     max-width: 100%;
+  }
+  .chapter-meta-row {
+    margin-top: 1px;
+  }
+  .chapter-no-badge {
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #4338ca;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    padding: 0.12rem 0.45rem;
+    line-height: 1.2;
+  }
+  .chapter-lesson-count {
+    font-size: 0.72rem;
+    color: #6b7280;
+    font-weight: 600;
   }
   /* Unified bullet for lesson parts and quizzes */
   .sidebar-bullet {
@@ -418,6 +444,21 @@ Quiz: {{ t }}
     flex: 1;
     min-width: 0;
     text-transform: capitalize;
+  }
+  .sidebar-row-title-wrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+  .sidebar-row-subtitle {
+    font-size: 0.68rem;
+    color: #6b7280;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
   .sidebar-row-title--quiz {
     font-weight: 500;
