@@ -547,6 +547,56 @@
       opacity: 1;
     }
   }
+  /* Full-screen loader between questions when ENABLE_AUTO_FORWARD is on */
+  .quiz-auto-forward-loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    z-index: 10050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: quizLoaderFadeIn 0.2s ease;
+  }
+  @keyframes quizLoaderFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .quiz-auto-forward-loader-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    text-align: center;
+    max-width: 300px;
+    border: 1px solid #e9ecf6;
+  }
+  .quiz-auto-forward-loader-spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid #e9ecf6;
+    border-top-color: #5046e5;
+    border-radius: 50%;
+    animation: quizLoaderSpin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes quizLoaderSpin {
+    to { transform: rotate(360deg); }
+  }
+  .quiz-auto-forward-loader-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .quiz-auto-forward-loader-text i {
+    color: #16a34a;
+    font-size: 1.35rem;
+  }
   .answer-validation-error {
     color: #dc3545;
     font-size: 14px;
@@ -959,10 +1009,11 @@
                         <video id="video-{{ current_part.id }}"
                                preload="auto"
                                playsinline
-                               autoplay
-                               muted
+                               {% if not is_completed %}autoplay{% endif %}
+                               {% if not is_completed %}muted{% endif %}
                                controls
-                               data-part-id="{{ current_part.id }}">
+                               data-part-id="{{ current_part.id }}"
+                               data-is-completed="{{ 'true' if is_completed else 'false' }}">
                           <source src="{{ current_part.video_url }}" type="video/mp4">
                           {% if caption_vtt_url %}
                           <track kind="subtitles" src="{{ url('counselor:part_caption_vtt', args=[counselor.id, current_part.id]) }}" srclang="en" label="English" default>
@@ -1447,9 +1498,47 @@
     }
   }
 
-  // Quiz navigation
+  // Quiz navigation (auto-advance matches ENABLE_AUTO_FORWARD in Admin → Psychometric Test Settings / core.Configuration)
   var quizLastQuestionSubmitTimer = null;
+  var quizAutoForwardNextTimer = null;
+  var quizAutoForwardLoaderEl = null;
   var quizSubmitLocked = false;
+  const ENABLE_AUTO_FORWARD = {{ enable_auto_forward|default(true)|tojson }};
+
+  function hideQuizAutoForwardLoader() {
+    if (quizAutoForwardLoaderEl) {
+      quizAutoForwardLoaderEl.remove();
+      quizAutoForwardLoaderEl = null;
+    }
+  }
+
+  function showQuizAutoForwardLoader() {
+    hideQuizAutoForwardLoader();
+    var overlay = document.createElement('div');
+    overlay.className = 'quiz-auto-forward-loader-overlay';
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.setAttribute('aria-busy', 'true');
+    overlay.innerHTML =
+      '<div class="quiz-auto-forward-loader-card">' +
+      '<div class="quiz-auto-forward-loader-spinner" aria-hidden="true"></div>' +
+      '<div class="quiz-auto-forward-loader-text"><i class="bx bx-check-circle" aria-hidden="true"></i><span>Answer saved</span></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    quizAutoForwardLoaderEl = overlay;
+  }
+
+  function clearQuizAutoForwardTimers() {
+    if (quizAutoForwardNextTimer) {
+      clearTimeout(quizAutoForwardNextTimer);
+      quizAutoForwardNextTimer = null;
+    }
+    if (quizLastQuestionSubmitTimer) {
+      clearTimeout(quizLastQuestionSubmitTimer);
+      quizLastQuestionSubmitTimer = null;
+    }
+    hideQuizAutoForwardLoader();
+  }
 
   function nextQuestion() {
     // Validate answer before proceeding
@@ -1494,16 +1583,12 @@
   }
 
   function previousQuestion() {
+    clearQuizAutoForwardTimers();
     const currentQuestion = document.querySelector('.question-container.active');
     const prevQuestion = currentQuestion.previousElementSibling;
     
     if (prevQuestion && prevQuestion.classList.contains('question-container')) {
       const totalQuestions = {{ total_questions }};
-      const wasLast = parseInt(currentQuestion.dataset.questionIndex) >= totalQuestions - 1;
-      if (wasLast && quizLastQuestionSubmitTimer) {
-        clearTimeout(quizLastQuestionSubmitTimer);
-        quizLastQuestionSubmitTimer = null;
-      }
       currentQuestion.classList.remove('active');
       prevQuestion.classList.add('active');
       
@@ -1555,35 +1640,45 @@
       errorElement.classList.remove('show');
       questionContainer.classList.remove('has-error');
     }
-    
-    // Show visual feedback that answer was saved
-    showAnswerSavedIndicator();
-    
-    // Auto-forward to next question after a short delay (except on last question)
+
+    if (quizAutoForwardNextTimer) {
+      clearTimeout(quizAutoForwardNextTimer);
+      quizAutoForwardNextTimer = null;
+    }
+    if (quizLastQuestionSubmitTimer) {
+      clearTimeout(quizLastQuestionSubmitTimer);
+      quizLastQuestionSubmitTimer = null;
+    }
+
+    if (!ENABLE_AUTO_FORWARD) {
+      showAnswerSavedIndicator();
+      return;
+    }
+
+    // Auto-forward: full-screen loader with "Answer saved" between questions
     const currentQuestion = document.querySelector('.question-container.active');
     if (!currentQuestion) return;
-    
+
     const nextQuestionElement = currentQuestion.nextElementSibling;
     const totalQuestions = {{ total_questions }};
     const currentQuestionIndex = parseInt(currentQuestion.dataset.questionIndex);
-    
-    // Check if this is the last question
+
+    showQuizAutoForwardLoader();
+
     if (currentQuestionIndex >= totalQuestions - 1) {
-      if (quizLastQuestionSubmitTimer) {
-        clearTimeout(quizLastQuestionSubmitTimer);
-        quizLastQuestionSubmitTimer = null;
-      }
-      // Last question - show submit popup after delay (single timer; re-answer clears previous)
       quizLastQuestionSubmitTimer = setTimeout(function() {
         quizLastQuestionSubmitTimer = null;
+        hideQuizAutoForwardLoader();
         showSubmitQuizPopup();
-      }, 1200); // 1200ms delay to let user see their selection and feedback
+      }, 1200);
     } else if (nextQuestionElement && nextQuestionElement.classList.contains('question-container')) {
-      // Not last question - auto-forward to next
-      setTimeout(function() {
-        // Call the nextQuestion function to move forward
+      quizAutoForwardNextTimer = setTimeout(function() {
+        quizAutoForwardNextTimer = null;
+        hideQuizAutoForwardLoader();
         nextQuestion();
-      }, 1200); // 1200ms delay to let user see their selection and feedback
+      }, 1200);
+    } else {
+      hideQuizAutoForwardLoader();
     }
   }
   
@@ -1783,6 +1878,7 @@
   // Video progress tracking; forward-seek prevention applies only when restrictVideoSeek is true
   document.querySelectorAll('video').forEach(video => {
     const partId = video.getAttribute('data-part-id');
+    const isPartCompleted = (video.getAttribute('data-is-completed') === 'true');
     let lastTime = 0;
     let isUserSeeking = false;
     
@@ -1798,25 +1894,36 @@
         })
         .then(data => {
           if (data.status === 'success' && data.progress && video.duration && data.progress > 0) {
-            video.currentTime = (data.progress / 100) * video.duration;
-            lastTime = video.currentTime;
+            // Avoid restoring to the very end for completed parts (can instantly fire "ended" and reload-loop).
+            if (!isPartCompleted && Number(data.progress) < 99.5) {
+              video.currentTime = (Number(data.progress) / 100) * video.duration;
+              lastTime = video.currentTime;
+            } else {
+              video.currentTime = 0;
+              lastTime = 0;
+            }
           }
-          var playAttempt = video.play();
-          if (playAttempt && typeof playAttempt.catch === 'function') {
-            playAttempt.catch(function() {});
+          if (!isPartCompleted) {
+            var playAttempt = video.play();
+            if (playAttempt && typeof playAttempt.catch === 'function') {
+              playAttempt.catch(function() {});
+            }
           }
         })
         .catch(err => {
           // Silently handle errors - video will start from beginning
           console.debug('No saved progress found for video-' + partId);
-          var playAttempt = video.play();
-          if (playAttempt && typeof playAttempt.catch === 'function') {
-            playAttempt.catch(function() {});
+          if (!isPartCompleted) {
+            var playAttempt = video.play();
+            if (playAttempt && typeof playAttempt.catch === 'function') {
+              playAttempt.catch(function() {});
+            }
           }
         });
       
       video.addEventListener('timeupdate', function() {
         if (!this.duration) return;
+        if (isPartCompleted) return; // Do not update progress once completed.
         if (restrictVideoSeek) {
           if (this._noteSeekGuard) {
             lastTime = this.currentTime;
@@ -1864,6 +1971,7 @@
       }
       
       video.addEventListener('pause', function() {
+        if (isPartCompleted) return; // Do not update progress once completed.
         if (this.duration) {
           var p = (this.currentTime / this.duration) * 100;
           updateVideoProgress('video-' + partId, p, this.duration, true);
@@ -1872,11 +1980,13 @@
 
       video.addEventListener('ended', function() {
         if (this.duration) {
-          updateVideoProgress('video-' + partId, 100, this.duration, true);
-          // Reload to update sidebar status
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
+          if (!isPartCompleted) {
+            updateVideoProgress('video-' + partId, 100, this.duration, true);
+            // Reload to update sidebar status (first time completion only)
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          }
         }
       });
     }

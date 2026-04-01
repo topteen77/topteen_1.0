@@ -24,6 +24,7 @@ from django.urls import reverse_lazy, reverse
 from core.breadcrumbs import get_breadcrumb
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 
 User = get_user_model()
 
@@ -2455,6 +2456,11 @@ def update_progress(request):
             if not isinstance(progress, (int, float)) or progress < 0 or progress > 100:
                 return JsonResponse({'status': 'fail', 'error': 'Progress must be a number between 0 and 100'}, status=400)
 
+            # If already completed, do not update status/progress again (prevents churn + UI bugs when revisiting completed parts)
+            existing = VideoProgress.objects.filter(user=user, video_id=video_id).first()
+            if existing and getattr(existing, "completed", False):
+                return JsonResponse({'status': 'success', 'progress': 100})
+
             # Update or create progress record
             video_progress, created = VideoProgress.objects.update_or_create(
                 user=user,
@@ -2582,6 +2588,7 @@ def part_caption_vtt(request, counselor_id, part_id):
 # COURSE LEARNING MODULE - Separate dedicated learning interface
 # ============================================================================
 
+@method_decorator(never_cache, name='dispatch')
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class CourseLearningView(View):
     """
@@ -3126,6 +3133,19 @@ class CourseLearningView(View):
             request.user.user_type == choices.UserType.COUNSELOR and not is_demo_account
         )
 
+        # Same as globals context processor: quiz auto-forward + loader read Admin Configuration (not cached HTML).
+        from core.models import Configuration
+
+        try:
+            _raw_af = Configuration.get(
+                'ENABLE_AUTO_FORWARD',
+                default=str(getattr(settings, 'ENABLE_AUTO_FORWARD', True)).lower(),
+                editable=True,
+            )
+            enable_auto_forward = str(_raw_af).lower() in ('true', '1', 'yes', 'on')
+        except Exception:
+            enable_auto_forward = getattr(settings, 'ENABLE_AUTO_FORWARD', True)
+
         context = {
             'counselor': counselor,
             'course': course_with_related_data,
@@ -3151,6 +3171,7 @@ class CourseLearningView(View):
             'hide_video_scrubber': hide_video_scrubber,
             'video_preconnect_href': video_preconnect_href,
             'restrict_video_seek': restrict_video_seek,
+            'enable_auto_forward': enable_auto_forward,
         }
         
         return render(request, self.template_name, context)
