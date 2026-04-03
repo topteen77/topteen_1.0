@@ -248,6 +248,23 @@
     font-size: 14px;
   }
 
+  /* .form-control sets appearance:none on selects but does not add a caret (unlike .form-select) */
+  .counselor-dashboard .counselor-filter-card select.form-control.custom-input {
+    padding-right: 2.25rem;
+    background-color: #EFF3F6;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+  .counselor-dashboard .counselor-filter-card select.form-control.custom-input:focus {
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+
   .counselor-dashboard .counselor-filter-card .input-group-text {
     min-height: 44px;
     align-items: center;
@@ -427,13 +444,24 @@
     max-height: calc(100vh - 150px);
     overflow: auto;
   }
+  /* lg+: Bootstrap's base .offcanvas keeps visibility:hidden + off-screen transform;
+     offcanvas-lg only tweaks colors/body — reset so the inline filter is visible on desktop */
   @media (min-width: 992px) {
-    .counselor-filter-offcanvas.offcanvas-lg {
+    #counselorFilterDrawer.counselor-filter-offcanvas.offcanvas-lg {
+      position: static;
+      visibility: visible;
+      transform: none !important;
+      width: 100%;
+      max-width: none;
+      height: auto;
+      z-index: auto;
+      transition: none;
       background: transparent;
       border-left: none;
     }
     .counselor-filter-offcanvas.offcanvas-lg .offcanvas-body {
       overflow: visible;
+      width: 100%;
     }
   }
 </style>
