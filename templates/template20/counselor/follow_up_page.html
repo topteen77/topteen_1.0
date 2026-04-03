@@ -10,8 +10,35 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .follow-up-page {
-    padding-top: 80px;
+    padding-top: 37px;
   }
+
+  .tt-header .navbar {
+  background: rgb(244, 243, 255, .50);
+  border-radius: 0px;
+  box-shadow: none;
+  backdrop-filter: blur(3px);
+  border: none !important;
+}
+
+
+  .header.tt-header{
+  margin-top: 0px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  backdrop-filter: blur(2.15px);
+  background: rgb(244, 243, 255, .80);
+  border: 0px ;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+  border-bottom: 1px solid #5350f72e;
+  transition: all 0.2s;
+}
+
+  .footer-main.border-bottom-t {
+	display: none;
+}
+
 </style>
 {% endblock %}
 
@@ -29,7 +56,7 @@
                    class="rounded-circle" 
                    style="width: 104px; height: 104px; object-fit: cover;" 
                    alt="Counselor"
-                   onerror="this.src='{{ static('images_new/icons/user-icon.svg') }}'">
+                   data-fallback-src="{{ static('images_new/icons/user-icon.svg') }}">
               {% else %}
               <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
                 <i class='bx bx-user fs-48 text-gray'></i>
@@ -84,7 +111,7 @@
                   Search
                 </button>
                 <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}" 
-                   class="btn btn-secondary" 
+                   class="btn btn-secondary d-flex align-items-center justify-content-center" 
                    style="height: 50px; width: 150px; text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
                   Reset
                 </a>
@@ -251,5 +278,15 @@
   </div>
   {% endfor %}
 {% endif %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('img[data-fallback-src]').forEach(function(imgEl) {
+      imgEl.addEventListener('error', function() {
+        var fb = imgEl.getAttribute('data-fallback-src');
+        if (fb) imgEl.src = fb;
+      }, { once: true });
+    });
+  });
+</script>
 {% endblock %}
 

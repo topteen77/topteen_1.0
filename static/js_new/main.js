@@ -357,13 +357,15 @@
 
 // header fixed //
 const header = document.querySelector('.header');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 50) {
-    header.classList.add('shrink');
-  } else {
-    header.classList.remove('shrink');
-  }
-});
+if (header) {
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      header.classList.add('shrink');
+    } else {
+      header.classList.remove('shrink');
+    }
+  });
+}
 
 
 
@@ -408,6 +410,10 @@ const dropdown = document.querySelectorAll(".dropdown");
 dropdown.forEach((item) => {
   const dropdownToggle = item.querySelector(".dropdown-toggle");
 
+  // Some dropdown-like wrappers (e.g. notifications bell) use Bootstrap and do not have
+  // our custom `.dropdown-toggle` element. Avoid crashing the rest of the JS.
+  if (!dropdownToggle) return;
+
   dropdownToggle.addEventListener("click", () => {
     const dropdownShow = document.querySelector(".dropdown-show");
     toggleDropdownItem(item);
@@ -422,6 +428,7 @@ dropdown.forEach((item) => {
 // Function to display the dropdown menu
 const toggleDropdownItem = (item) => {
   const dropdownContent = item.querySelector(".dropdown-content");
+  if (!dropdownContent) return;
 
   // Remove other dropdown that have 'dropdown-show' class
   if (item.classList.contains("dropdown-show")) {
