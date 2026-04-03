@@ -12,6 +12,7 @@ from users.models import User
 from core import choices
 from core.models import BaseModel, BaseMoneyModel, Configuration,SlugModel
 
+
 class CounselorCourse(models.Model):
     title = models.CharField(max_length=200, blank=True, null=True)
     currency = models.PositiveSmallIntegerField(
@@ -106,7 +107,7 @@ class CounselorCourse(models.Model):
 
 class Chapter(models.Model):
     course = models.ForeignKey(CounselorCourse, on_delete=models.CASCADE, related_name="chapters",blank=True, null=True)
-    title = models.CharField(max_length=100)    
+    title = models.CharField(max_length=100)
 
     class Meta:
         verbose_name_plural = "Course Chapters"

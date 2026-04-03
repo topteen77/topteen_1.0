@@ -1,0 +1,541 @@
+{# Markdown/md required. data-map-type from context (counselor_mindmap_map_type) = Core DEFAULT_course_MINDMAP_TYPE. ?map_type= overrides; else JSON map_type. #}
+<div class="counselor-mindmap-widget border rounded p-2 bg-white" data-json-url="{{ mindmap_json_url }}" data-map-type="{{ mindmap_map_type|default('', true) }}" data-radial-src="{{ static('js/radial-mindmap.js') }}" id="cmw-{{ widget_id }}">
+  <div class="d-flex justify-content-end align-items-center gap-2 mb-2 flex-wrap">
+    {% if fullscreen_url %}
+    <a href="{{ fullscreen_url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
+      <i class='bx bx-expand-alt me-1'></i> Full page
+    </a>
+    {% endif %}
+  </div>
+  <div id="cmhost-{{ widget_id }}" class="counselor-mm-host position-relative rounded overflow-hidden border bg-light" style="min-height:280px;">
+    <div id="cmload-{{ widget_id }}" class="align-items-center justify-content-center gap-2 position-absolute top-0 start-0 w-100 h-100" style="display:none;z-index:5;background:rgba(255,255,255,0.9);">
+      <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
+      <span class="text-muted small">Loading mindmap…</span>
+    </div>
+    <svg class="counselor-mindmap-svg w-100 border-0 rounded-0 bg-transparent" id="cmsvg-{{ widget_id }}" style="min-height:280px;display:block;"></svg>
+    <div id="cmctl-{{ widget_id }}" class="d-none position-absolute top-0 end-0 p-2" style="z-index:10;">
+      <div class="btn-group-vertical gap-1 shadow-sm">
+        <button type="button" class="btn btn-sm btn-light border" data-cm-zoom-in title="Zoom in" aria-label="Zoom in">＋</button>
+        <button type="button" class="btn btn-sm btn-light border" data-cm-zoom-out title="Zoom out" aria-label="Zoom out">－</button>
+        <button type="button" class="btn btn-sm btn-light border" data-cm-reset title="Reset" aria-label="Reset view">⊙</button>
+      </div>
+    </div>
+  </div>
+  <p class="text-muted fs-12 mb-0 mt-1 d-none counselor-mindmap-error" id="cme-{{ widget_id }}">Could not load mindmap.</p>
+</div>
+<script type="module">
+(function () {
+  var MAP_LIB = 'https://esm.sh/markmap-lib@0.17.2?deps=markmap-common@0.18.9';
+  var MAP_VIEW = 'https://esm.sh/markmap-view@0.17.2?deps=markmap-common@0.18.9,d3@7.9.0';
+  var D3_MOD = 'https://esm.sh/d3@7.9.0';
+
+  function normalizeMapType(s) {
+    if (s == null || typeof s !== 'string') return 'tree';
+    var t = s.trim().toLowerCase();
+    if (t === 'concept' || t === 'concept_map' || t === 'conceptmap') return 'concept';
+    if (t === 'radial' || t === 'radial_tree' || t === 'sunburst' || t === 'ring') return 'radial';
+    if (t === 'cluster' || t === 'dendrogram' || t === 'tidy' || t === 'horizontal_tree') return 'cluster';
+    if (
+      t === 'career_radial' ||
+      t === 'careers_radial' ||
+      t === 'career_radial_mindmap' ||
+      t === 'radial_drill' ||
+      t === 'xmind_style'
+    ) {
+      return 'career_radial';
+    }
+    if (t === 'tree' || t === 'hierarchical' || t === 'hierarchy' || t === 'outline' || t === 'markmap' || t === 'mindmap') return 'tree';
+    return 'tree';
+  }
+
+  function resolveMapType(rootEl, data) {
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      var fromUrl = params.get('mindmap_type') || params.get('map_type');
+      if (fromUrl) return normalizeMapType(fromUrl);
+    } catch (e) {}
+    var fromAttr = (rootEl && rootEl.getAttribute('data-map-type')) || '';
+    if (fromAttr.trim()) return normalizeMapType(fromAttr);
+    var fromJson = (data && (data.map_type || data.mapType)) || '';
+    if (fromJson) return normalizeMapType(String(fromJson));
+    return 'tree';
+  }
+
+  function plainLabel(node) {
+    var d = document.createElement('div');
+    d.innerHTML = node.content || '';
+    var t = (d.textContent || '').trim().replace(/\s+/g, ' ');
+    if (t.length > 80) t = t.slice(0, 77) + '…';
+    return t || '—';
+  }
+
+  /** Markmap transform root -> jsMind node_tree (same shape as careers/views career_mindmap_json_api). */
+  function markmapToJsMindTree(mmRoot) {
+    function walk(mm, pathIndices) {
+      var id = pathIndices.length === 0 ? 'root' : 'n' + pathIndices.join('_');
+      var o = { id: id, topic: plainLabel(mm), expanded: true };
+      var kids = mm.children || [];
+      if (kids.length) {
+        o.children = kids.map(function (ch, i) {
+          return walk(ch, pathIndices.concat([i]));
+        });
+      }
+      return o;
+    }
+    return walk(mmRoot, []);
+  }
+
+  /**
+   * Bootstrap hides inactive tab panes (0×0 layout). RadialMindmap then initializes with zero size and stays blank.
+   * Reflow when the host gets real dimensions (tab shown or layout complete).
+   */
+  function setupCounselorMindmapVisibleReflow(hostEl, svgEl, markmapInstance) {
+    if (!hostEl || typeof window.ResizeObserver === 'undefined') return;
+    var timer;
+    var ro = new ResizeObserver(function () {
+      if (hostEl.clientWidth < 2 || hostEl.clientHeight < 2) return;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        window.dispatchEvent(new Event('resize'));
+        if (markmapInstance && typeof markmapInstance.fit === 'function') {
+          try {
+            markmapInstance.fit();
+          } catch (e) {}
+        }
+      }, 60);
+    });
+    ro.observe(hostEl);
+  }
+
+  var counselorRadialLoadPromise = null;
+  function ensureRadialMindmap(scriptUrl) {
+    if (typeof window !== 'undefined' && window.RadialMindmap) return Promise.resolve();
+    if (!scriptUrl) return Promise.reject(new Error('No radial-mindmap script URL'));
+    if (counselorRadialLoadPromise) return counselorRadialLoadPromise;
+    counselorRadialLoadPromise = new Promise(function (resolve, reject) {
+      var sc = document.createElement('script');
+      sc.src = scriptUrl;
+      sc.async = true;
+      sc.onload = function () {
+        if (window.RadialMindmap) resolve();
+        else {
+          counselorRadialLoadPromise = null;
+          reject(new Error('RadialMindmap not defined after script load'));
+        }
+      };
+      sc.onerror = function () {
+        counselorRadialLoadPromise = null;
+        reject(new Error('Failed to load radial-mindmap.js'));
+      };
+      document.head.appendChild(sc);
+    });
+    return counselorRadialLoadPromise;
+  }
+
+  function mindmapToHierarchy(mmNode) {
+    var kids = mmNode.children || [];
+    var o = { name: plainLabel(mmNode) };
+    if (kids.length) o.children = kids.map(mindmapToHierarchy);
+    return o;
+  }
+
+  function renderConceptMap(svgEl, root) {
+    var NS = 'http://www.w3.org/2000/svg';
+    var w = Math.max(svgEl.clientWidth || 0, 400);
+    var h = Math.max(svgEl.clientHeight || 0, 280);
+    svgEl.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+
+    function addLine(x1, y1, x2, y2) {
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', x1);
+      line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2);
+      line.setAttribute('y2', y2);
+      line.setAttribute('stroke', '#94a3b8');
+      line.setAttribute('stroke-width', '2');
+      svgEl.appendChild(line);
+    }
+
+    function addBubble(x, y, text, opt) {
+      opt = opt || {};
+      var r = opt.r || 36;
+      var g = document.createElementNS(NS, 'g');
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', x);
+      c.setAttribute('cy', y);
+      c.setAttribute('r', r);
+      c.setAttribute('fill', opt.fill || '#e0e7ff');
+      c.setAttribute('stroke', opt.stroke || '#6366f1');
+      c.setAttribute('stroke-width', '2');
+      g.appendChild(c);
+      var fo = document.createElementNS(NS, 'foreignObject');
+      fo.setAttribute('x', x - r);
+      fo.setAttribute('y', y - r);
+      fo.setAttribute('width', r * 2);
+      fo.setAttribute('height', r * 2);
+      var div = document.createElement('div');
+      div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+      div.style.cssText = 'display:flex;align-items:center;justify-content:center;text-align:center;height:100%;font-size:' + (opt.fontSize || '11px') + ';padding:6px;box-sizing:border-box;overflow:hidden;line-height:1.2;color:#1e293b;';
+      div.textContent = text;
+      fo.appendChild(div);
+      g.appendChild(fo);
+      svgEl.appendChild(g);
+    }
+
+    var cx = w / 2;
+    var cy = h / 2;
+    var rootText = plainLabel(root);
+    var rr = Math.min(56, 22 + Math.min(rootText.length, 40) * 0.9);
+    addBubble(cx, cy, rootText, { r: rr, fill: '#fef3c7', stroke: '#d97706' });
+
+    var kids = root.children || [];
+    var n = kids.length;
+    if (!n) return;
+
+    var R = Math.min(w, h) * 0.3;
+    kids.forEach(function (child, i) {
+      var angle = (2 * Math.PI * i) / n - Math.PI / 2;
+      var x = cx + R * Math.cos(angle);
+      var y = cy + R * Math.sin(angle);
+      addLine(cx, cy, x, y);
+      var ct = plainLabel(child);
+      addBubble(x, y, ct, { r: 40, fill: '#dbeafe', stroke: '#2563eb' });
+      var subs = child.children || [];
+      var m = subs.length;
+      if (!m) return;
+      var r2 = Math.min(w, h) * 0.15;
+      var spread = Math.min(0.55, 1.2 / Math.max(m, 1));
+      subs.forEach(function (sub, j) {
+        var a2 = angle + spread * (j - (m - 1) / 2);
+        var x2 = x + r2 * Math.cos(a2);
+        var y2 = y + r2 * Math.sin(a2);
+        addLine(x, y, x2, y2);
+        addBubble(x2, y2, plainLabel(sub), { r: 30, fill: '#dcfce7', stroke: '#16a34a', fontSize: '10px' });
+      });
+    });
+  }
+
+  function renderD3RadialTree(svgEl, mmRoot, d3) {
+    var data = mindmapToHierarchy(mmRoot);
+    var w = Math.max(svgEl.clientWidth || 0, 420);
+    var h = Math.max(svgEl.clientHeight || 0, 320);
+    var outerRadius = Math.min(w, h) / 2 - 24;
+    var innerPad = 8;
+
+    var root = d3.hierarchy(data);
+    root.sort(function (a, b) {
+      return d3.ascending(a.height, b.height) || d3.ascending(a.data.name, b.data.name);
+    });
+
+    var tree = d3
+      .tree()
+      .size([2 * Math.PI, outerRadius - innerPad])
+      .separation(function (a, b) {
+        return (a.parent === b.parent ? 1 : 2) / Math.max(a.depth, 1);
+      });
+
+    tree(root);
+
+    var svg = d3.select(svgEl);
+    svg.selectAll('*').remove();
+    svg
+      .attr('viewBox', [-w / 2, -h / 2, w, h].join(' '))
+      .attr('width', '100%')
+      .attr('height', h)
+      .style('font', '11px system-ui, sans-serif');
+
+    var linkGen = d3
+      .linkRadial()
+      .angle(function (d) {
+        return d.x;
+      })
+      .radius(function (d) {
+        return d.y;
+      });
+
+    var g = svg.append('g');
+
+    g.selectAll('path.counselor-mm-link')
+      .data(root.links())
+      .join('path')
+      .attr('class', 'counselor-mm-link')
+      .attr('fill', 'none')
+      .attr('stroke', '#94a3b8')
+      .attr('stroke-width', 1.5)
+      .attr('d', linkGen);
+
+    var color = d3.scaleOrdinal(d3.schemeTableau10);
+
+    var node = g
+      .selectAll('g.counselor-mm-node')
+      .data(root.descendants())
+      .join('g')
+      .attr('class', 'counselor-mm-node')
+      .attr('transform', function (d) {
+        return 'rotate(' + ((d.x * 180) / Math.PI - 90) + ') translate(' + d.y + ',0)';
+      });
+
+    node
+      .append('circle')
+      .attr('fill', function (d) {
+        return color(d.depth);
+      })
+      .attr('r', function (d) {
+        return d.depth === 0 ? 7 : 4;
+      })
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1.2);
+
+    node
+      .append('text')
+      .attr('dy', '0.31em')
+      .attr('x', function (d) {
+        return d.x < Math.PI === !d.children ? 8 : -8;
+      })
+      .attr('text-anchor', function (d) {
+        return d.x < Math.PI === !d.children ? 'start' : 'end';
+      })
+      .attr('transform', function (d) {
+        return 'rotate(' + (d.x >= Math.PI ? 180 : 0) + ')';
+      })
+      .attr('fill', '#1e293b')
+      .text(function (d) {
+        var n = d.data.name;
+        return n.length > 36 ? n.slice(0, 33) + '…' : n;
+      })
+      .clone(true)
+      .lower()
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 3)
+      .attr('fill', null);
+  }
+
+  function renderD3Cluster(svgEl, mmRoot, d3) {
+    var data = mindmapToHierarchy(mmRoot);
+    var w = Math.max(svgEl.clientWidth || 0, 480);
+    var h = Math.max(svgEl.clientHeight || 0, 300);
+
+    var root = d3.hierarchy(data);
+    root.sort(function (a, b) {
+      return d3.ascending(a.data.name, b.data.name);
+    });
+
+    var cluster = d3.cluster().size([h - 48, w - 32]);
+    cluster(root);
+
+    var svg = d3.select(svgEl);
+    svg.selectAll('*').remove();
+    svg.attr('viewBox', [0, 0, w, h].join(' ')).attr('width', '100%').attr('height', h).style('font', '11px system-ui, sans-serif');
+
+    var g = svg.append('g').attr('transform', 'translate(16,24)');
+
+    var link = d3
+      .linkHorizontal()
+      .x(function (d) {
+        return d.y;
+      })
+      .y(function (d) {
+        return d.x;
+      });
+
+    g.selectAll('path.counselor-mm-link')
+      .data(root.links())
+      .join('path')
+      .attr('class', 'counselor-mm-link')
+      .attr('fill', 'none')
+      .attr('stroke', '#94a3b8')
+      .attr('stroke-width', 1.5)
+      .attr('d', link);
+
+    var color = d3.scaleOrdinal(d3.schemeTableau10);
+
+    var node = g
+      .selectAll('g.counselor-mm-node')
+      .data(root.descendants())
+      .join('g')
+      .attr('class', 'counselor-mm-node')
+      .attr('transform', function (d) {
+        return 'translate(' + d.y + ',' + d.x + ')';
+      });
+
+    node
+      .append('circle')
+      .attr('r', 4)
+      .attr('fill', function (d) {
+        return color(d.depth);
+      })
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1);
+
+    node
+      .append('text')
+      .attr('dy', '0.31em')
+      .attr('x', 8)
+      .attr('fill', '#1e293b')
+      .text(function (d) {
+        var n = d.data.name;
+        return n.length > 48 ? n.slice(0, 45) + '…' : n;
+      });
+  }
+
+  var wid = {{ widget_id|tojson }};
+  var rootEl = document.getElementById('cmw-' + wid);
+  var hostEl = document.getElementById('cmhost-' + wid);
+  var svgEl = document.getElementById('cmsvg-' + wid);
+  var errEl = document.getElementById('cme-' + wid);
+  if (!rootEl || !svgEl || !hostEl) return;
+  var url = rootEl.getAttribute('data-json-url');
+  if (!url) {
+    if (errEl) {
+      errEl.classList.remove('d-none');
+      errEl.textContent = 'Missing mindmap data URL.';
+    }
+    return;
+  }
+
+  try {
+    var fullLink = rootEl.querySelector('a.btn[href]');
+    if (fullLink && fullLink.getAttribute('href')) {
+      var cur = new URLSearchParams(window.location.search || '');
+      var mt = cur.get('mindmap_type') || cur.get('map_type');
+      if (mt) {
+        var u = new URL(fullLink.getAttribute('href'), window.location.origin);
+        u.searchParams.set('map_type', mt);
+        fullLink.setAttribute('href', u.pathname + u.search + (u.hash || ''));
+      }
+    }
+  } catch (e) {}
+
+  fetch(url, { credentials: 'same-origin' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      var md = (data && (data.markdown || data.md)) || '';
+      if (typeof md !== 'string' || !md.trim()) {
+        throw new Error('No markdown in JSON');
+      }
+      var mapType = resolveMapType(rootEl, data);
+      var libP = import(MAP_LIB).then(function (lib) {
+        var Transformer = lib.Transformer;
+        var transformer = new Transformer();
+        var result = transformer.transform(md);
+        return { root: result.root, mapType: mapType };
+      });
+
+      if (mapType === 'concept') {
+        return libP.then(function (pack) {
+          renderConceptMap(svgEl, pack.root);
+          setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
+        });
+      }
+
+      if (mapType === 'radial' || mapType === 'cluster') {
+        return libP.then(function (pack) {
+          return import(D3_MOD).then(function (d3) {
+            if (mapType === 'radial') renderD3RadialTree(svgEl, pack.root, d3);
+            else renderD3Cluster(svgEl, pack.root, d3);
+            setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
+          });
+        });
+      }
+
+      if (mapType === 'career_radial') {
+        var radialSrc = rootEl.getAttribute('data-radial-src');
+        var loadEl = document.getElementById('cmload-' + wid);
+        var ctl = document.getElementById('cmctl-' + wid);
+        return libP.then(function (pack) {
+          if (loadEl) {
+            loadEl.style.display = 'flex';
+          }
+          var isFullscreenPage = document.body && document.body.classList.contains('counselor-mindmap-fullscreen-page');
+          /* Fullscreen: let CSS size .counselor-mm-host to viewport; inline height on a short host + tall SVG min-height was clipping the graph. */
+          if (isFullscreenPage) {
+            hostEl.style.height = '';
+            hostEl.style.minHeight = '';
+          } else {
+            var hTarget = Math.min(520, Math.max(300, Math.round(window.innerHeight * 0.42)));
+            hostEl.style.minHeight = '280px';
+            hostEl.style.height = hTarget + 'px';
+          }
+          return ensureRadialMindmap(radialSrc).then(function () {
+            if (!window.RadialMindmap) throw new Error('RadialMindmap unavailable');
+            var iid = 'counselor-mm-' + String(wid).replace(/[^a-zA-Z0-9_-]/g, '_');
+            var payload = {
+              format: 'node_tree',
+              meta: { name: 'Mindmap', version: '1.0' },
+              data: markmapToJsMindTree(pack.root)
+            };
+            function wireControls() {
+              if (ctl) {
+                ctl.classList.remove('d-none');
+                var zin = ctl.querySelector('[data-cm-zoom-in]');
+                var zout = ctl.querySelector('[data-cm-zoom-out]');
+                var rst = ctl.querySelector('[data-cm-reset]');
+                if (zin) zin.onclick = function () { window.RadialMindmap.zoomIn(iid); };
+                if (zout) zout.onclick = function () { window.RadialMindmap.zoomOut(iid); };
+                if (rst) rst.onclick = function () { window.RadialMindmap.reset(iid); };
+              }
+            }
+            function doInit() {
+              window.RadialMindmap.init({
+                instanceId: iid,
+                containerId: 'cmhost-' + wid,
+                svgId: 'cmsvg-' + wid,
+                loadingId: 'cmload-' + wid,
+                data: payload,
+                onNodeClick: function (node, ctx) {
+                  if (ctx.goToParent || ctx.hasChildren) window.RadialMindmap.setCenter(iid, node);
+                }
+              });
+              wireControls();
+            }
+            if (isFullscreenPage) {
+              requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                  doInit();
+                  setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
+                });
+              });
+            } else {
+              doInit();
+              setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
+            }
+          });
+        });
+      }
+
+      if (mapType === 'tree') {
+        return libP.then(function (pack) {
+          return import(MAP_VIEW).then(function (view) {
+            var Markmap = view.Markmap;
+            var mm = Markmap.create(svgEl);
+            mm.setData(pack.root);
+            mm.fit();
+            setupCounselorMindmapVisibleReflow(hostEl, svgEl, mm);
+          });
+        });
+      }
+
+      return libP.then(function (pack) {
+        return import(MAP_VIEW).then(function (view) {
+          var Markmap = view.Markmap;
+          var mm = Markmap.create(svgEl);
+          mm.setData(pack.root);
+          mm.fit();
+          setupCounselorMindmapVisibleReflow(hostEl, svgEl, mm);
+        });
+      });
+    })
+    .catch(function (err) {
+      console.error('Counselor mindmap:', err);
+      if (errEl) {
+        errEl.classList.remove('d-none');
+        if (err && err.message) errEl.textContent = 'Could not load mindmap: ' + err.message;
+      }
+    });
+})();
+</script>

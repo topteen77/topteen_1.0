@@ -9,6 +9,11 @@ urlpatterns = [
     path("Counselor_Course_payment/",views.CounselorCoursepayment,name="CounselorCoursepayment"),
     path("Counselor_Course_detail/", views.CounselorCourseDetailView.as_view(), name="counselor_course_detail"),
     path("Counselor_Course_curriculum/", views.CounselorCourseCurriculumView.as_view(), name="counselor_course_curriculum"),
+    path(
+        "Counselor_Course_curriculum/mindmap/",
+        views.CounselorCourseCurriculumMindmapFullView.as_view(),
+        name="course_curriculum_mindmap_full",
+    ),
     path('Counselor_Course_payment_success/<path:enc_id>/', views.CounselorCoursePaymentSuccess.as_view(), name='counselor_course_payment_success'),
     path('Counselor_Course_payment_fail/<path:enc_id>/', views.CounselorCoursePaymentFail.as_view(), name='counselor_course_payment_fail'),
     path("Counselor_Course/<int:counselor_id>/",views.CourseStartsView.as_view(),name="Counselor_Course"),
@@ -42,6 +47,16 @@ urlpatterns = [
         'course_learning/<int:counselor_id>/case-study/<int:case_id>/',
         views.case_study_pdf,
         name='case_study_pdf',
+    ),
+    path(
+        'course_learning/<int:counselor_id>/mindmap/chapter/<int:chapter_id>/',
+        views.CourseLearningChapterMindmapView.as_view(),
+        name='course_learning_chapter_mindmap',
+    ),
+    path(
+        'course_learning/<int:counselor_id>/mindmap/part/<int:part_id>/',
+        views.CourseLearningPartMindmapView.as_view(),
+        name='course_learning_part_mindmap',
     ),
     path('course_learning/<int:counselor_id>/', views.CourseLearningView.as_view(), name='course_learning'),
     path('course_results/<int:counselor_id>/', views.CourseResultsView.as_view(), name='course_results'),

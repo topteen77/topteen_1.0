@@ -47,10 +47,11 @@ Quiz: {{ t }}
             {% endif %}
           {% endfor %}
         {% endif %}
+        {% set ch_mm = chapter_mindmap_by_id.get(chapter.id) if chapter_mindmap_by_id is defined else none %}
         <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %} {% if ns_ch.chapter_done %}chapter-item--completed{% endif %}" data-chapter-id="{{ chapter.id }}">
           <div class="chapter-header" {% if not is_chapter_locked %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center flex-grow-1">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+              <div class="d-flex align-items-center flex-grow-1 min-w-0">
                 <!-- <div class="chapter-number me-3 {% if ns_ch.chapter_done %}chapter-number--complete{% endif %}">
                   <span class="chapter-index">{{ loop.index }}</span>
                 </div> -->
@@ -71,11 +72,19 @@ Quiz: {{ t }}
                   </div>
                 </div>
               </div>
-              <div class="d-flex align-items-center">
+              <div class="part-row-status flex-shrink-0 text-end d-flex align-items-center justify-content-end gap-1">
+                {% if ch_mm and not is_chapter_locked %}
+                <a href="{{ ch_mm.fullscreen_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-decoration-none text-primary lh-1 p-1 rounded" title="Chapter mindmap (opens in new tab)"
+                   onclick="event.stopPropagation();" aria-label="Open chapter mindmap in new tab">
+                  <i class='bx bx-git-branch fs-18'></i>
+                </a>
+                {% endif %}
                 {% if is_current_chapter %}
-                <i class='bx bx-chevron-down fs-18 me-2 chapter-active-chevron'></i>
+                <i class='bx bx-chevron-down fs-18 chapter-active-chevron' aria-hidden="true"></i>
                 {% else %}
-                <i class='bx bx-chevron-right text-gray fs-18 me-2'></i>
+                <i class='bx bx-chevron-right text-gray fs-18' aria-hidden="true"></i>
                 {% endif %}
               </div>
             </div>
@@ -112,7 +121,16 @@ Quiz: {{ t }}
                     <small class="sidebar-row-subtitle">Part {{ loop.index }} · Video lesson</small>
                   </div>
                 </div>
-                <div class="part-row-status flex-shrink-0 text-end">
+                <div class="part-row-status flex-shrink-0 text-end d-flex align-items-center justify-content-end gap-1">
+                {% set pmm = part_mindmap_by_id.get(part_id) if part_mindmap_by_id is defined else none %}
+                {% if pmm and not is_part_locked %}
+                <a href="{{ pmm.fullscreen_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-decoration-none text-primary lh-1 p-1 rounded" title="Part mindmap (opens in new tab)"
+                   onclick="event.stopPropagation();" aria-label="Open part mindmap in new tab">
+                  <i class='bx bx-git-branch fs-18'></i>
+                </a>
+                {% endif %}
                 {% if part_fully_complete %}
                   <span class="sidebar-status-badge sidebar-status-badge--done" title="Completed" aria-label="Completed">
                     <i class='bx bx-check'></i>

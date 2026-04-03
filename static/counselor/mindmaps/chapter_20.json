@@ -1,0 +1,60 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 20,
+    "part_id": null
+  },
+  "markdown": "# Advanced Practical Training\n## Practical Training\n## Case Studies\n",
+  "md": "# Advanced Practical Training\n## Practical Training\n## Case Studies\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_20",
+      "class": "sheet",
+      "title": "Advanced Practical Training",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_20",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Advanced Practical Training",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_20_p_88",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Practical Training",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_20_p_88_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_20_p_99",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Case Studies",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

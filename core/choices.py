@@ -424,3 +424,15 @@ MINDMAP_TYPE_CHOICES = (
     ('14', 'Vertical Network'),
     ('15', 'Vertical Timeline'),
 )
+
+# Counselor course/chapter/part static JSON mindmaps (counselor_mindmap_widget.html).
+# Stored as Configuration DEFAULT_course_MINDMAP_TYPE (numeric string). Aligns 6/7 with career layouts where useful.
+COURSE_MINDMAP_CONFIG_CHOICES = (
+    ('1', 'Tree — Markmap (collapsible outline)'),
+    ('2', 'Concept map — rings'),
+    ('3', 'Radial tree — D3'),
+    ('4', 'Cluster / dendrogram — D3'),
+    ('5', 'Career-style radial — drill & zoom'),
+    ('6', 'D3 radial tree (same spirit as career “Radial”)'),
+    ('7', 'Career-style radial (same spirit as career “Cards” / interactive)'),
+)

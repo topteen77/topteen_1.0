@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 19,
+    "part_id": 77
+  },
+  "markdown": "# Fieldwork and Practical Experience for Career Counselors\n## Key points\n- This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…\n",
+  "md": "# Fieldwork and Practical Experience for Career Counselors\n## Key points\n- This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_77",
+      "class": "sheet",
+      "title": "Fieldwork and Practical Experience for Career Counselors",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_77",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Fieldwork and Practical Experience for Career Counselors",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_77_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_77_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

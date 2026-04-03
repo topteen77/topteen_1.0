@@ -1,0 +1,137 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 16,
+    "part_id": null
+  },
+  "markdown": "# Job Search and Professional Development Strategies\n## Effective Job Search Strategies and Techniques\n## Resume Writing and LinkedIn Profile Optimization\n## Interview Preparation Methods\n## Networking Skills and Professional Relationship Building\n## Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n## Identifying Key Competences\n",
+  "md": "# Job Search and Professional Development Strategies\n## Effective Job Search Strategies and Techniques\n## Resume Writing and LinkedIn Profile Optimization\n## Interview Preparation Methods\n## Networking Skills and Professional Relationship Building\n## Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n## Identifying Key Competences\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_16",
+      "class": "sheet",
+      "title": "Job Search and Professional Development Strategies",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_16",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Job Search and Professional Development Strategies",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_16_p_63",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Effective Job Search Strategies and Techniques",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_p_63_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers effective job search strategies and techniques, offering practical tips on resume building, networking, online job platforms, and interview…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_p_64",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Resume Writing and LinkedIn Profile Optimization",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_p_64_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video focuses on resume writing and LinkedIn profile optimization, providing tips and techniques to create impactful resumes and enhance LinkedIn profil…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_p_65",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Interview Preparation Methods",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_p_65_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores interview preparation methods, offering practical strategies to help clients improve their interview skills, build confidence, and effect…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_p_66",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Networking Skills and Professional Relationship Building",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_p_66_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers networking skills and professional relationship building, providing strategies to help clients connect with industry professionals, expand …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_p_67",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Ongoing Professional Development, Growth and Enhancement in Career  Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_p_67_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_p_68",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Identifying Key Competences",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_p_68_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

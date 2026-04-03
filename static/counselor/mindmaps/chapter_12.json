@@ -1,0 +1,120 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 12,
+    "part_id": null
+  },
+  "markdown": "# Overseas Education Landscape\n## Engineering Admission Process\n## Medicine and Healthcare Admission Process\n## Commerce Admission Process\n## Humanities Admission Process\n## Other Options ( vocational / diploma or certificate courses)\n",
+  "md": "# Overseas Education Landscape\n## Engineering Admission Process\n## Medicine and Healthcare Admission Process\n## Commerce Admission Process\n## Humanities Admission Process\n## Other Options ( vocational / diploma or certificate courses)\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_12",
+      "class": "sheet",
+      "title": "Overseas Education Landscape",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_12",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Overseas Education Landscape",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_12_p_80",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Engineering Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_80_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_81",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Medicine and Healthcare Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_81_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_82",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Commerce Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_82_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_83",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Humanities Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_83_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video outlines the humanities admission process, covering essential steps such as entrance exams, eligibility criteria, application procedures, and tips…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_84",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Other Options ( vocational / diploma or certificate courses)",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_84_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

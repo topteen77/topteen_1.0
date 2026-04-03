@@ -1,0 +1,127 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 3,
+    "part_id": null
+  },
+  "markdown": "# Introduction to Career Counseling\n## Understanding Career Counseling\n## The Importance of Career Counseling\n## Scope and Opportunities in Career Counseling\n## Historical Evolution and Current Trends in Career Counseling\n",
+  "md": "# Introduction to Career Counseling\n## Understanding Career Counseling\n## The Importance of Career Counseling\n## Scope and Opportunities in Career Counseling\n## Historical Evolution and Current Trends in Career Counseling\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_3",
+      "class": "sheet",
+      "title": "Introduction to Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_3",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Introduction to Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_3_p_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Understanding Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_p_6_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "In this video, we explore the fundamentals of career counseling, its significance, and how it helps individuals make informed career choices by assessing the…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_3_p_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "The Importance of Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_p_7_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video highlights the crucial role of career counseling in shaping successful career paths.",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_p_7_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "It discusses how guidance helps individuals make informed decisions and navigate their professional journey with confidence.",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_3_p_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Scope and Opportunities in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_p_8_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores the growing scope and diverse opportunities in career counseling.",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_p_8_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "It examines how the field is evolving and the various career paths available for aspiring counselors.",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_3_p_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Historical Evolution and Current Trends in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_p_9_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video delves into the historical evolution of career counseling and explores the current trends shaping the field.",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_p_9_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "It highlights how the profession has adapted to meet the changing needs of individuals and the job market.",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

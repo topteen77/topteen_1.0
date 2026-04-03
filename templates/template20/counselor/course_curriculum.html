@@ -42,6 +42,16 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-10 mx-auto">
+          {% if course_mindmap_json_url and course_mindmap_full_url %}
+          <div class="course-curriculum-card p-3 p-md-4 mb-4">
+            <h2 class="fs-18 fw-bold mb-3">Course mindmap</h2>
+            {% set mindmap_json_url = course_mindmap_json_url %}
+            {% set fullscreen_url = course_mindmap_full_url %}
+            {% set mindmap_map_type = counselor_mindmap_map_type|default('tree', true) %}
+            {% set widget_id = 'curriculum-course' %}
+            {% include 'template20/counselor/includes/counselor_mindmap_widget.html' %}
+          </div>
+          {% endif %}
           <div class="course-curriculum-card p-3 p-md-4">
             {% if not course %}
               <p class="text-gray mb-0">No course found. Please create a course and chapters in admin.</p>

@@ -208,10 +208,14 @@ class ChapterAdmin(admin.ModelAdmin):
     search_fields = ('title', 'course__title')
     list_filter = ('course',)
     ordering = ('course', 'title')
-    
+
     fieldsets = (
         ('Chapter Information', {
-            'fields': ('course', 'title')
+            'fields': ('course', 'title'),
+            'description': (
+                'Chapter mindmap: add static/counselor/mindmaps/chapter_<this chapter id>.json when needed. '
+                'If the file exists and counselor course mindmaps are enabled (Core website settings), a mindmap icon appears on the chapter row in course learning.'
+            ),
         }),
     )
     
@@ -262,7 +266,9 @@ class PartAdmin(admin.ModelAdmin):
             'fields': ('case_study_folder_url', 'suppress_pdf_notes_tab'),
             'description': (
                 'Optional folder URL (project or S3 prefix) used when each Case Study row uses a relative filename only. '
-                'Add rows below. When case studies exist or “Suppress PDF notes tab” is checked, the PDF Notes tab can be hidden.'
+                'Add rows below. When case studies exist or “Suppress PDF notes tab” is checked, the PDF Notes tab can be hidden. '
+                'Part mindmap: add static/counselor/mindmaps/part_<this part id>.json with {"markdown": "# ..."}; the Mindmap tab '
+                'and sidebar icon appear when the file exists and counselor mindmaps are enabled in Core website settings.'
             ),
         }),
     )

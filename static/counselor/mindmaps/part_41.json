@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 11,
+    "part_id": 41
+  },
+  "markdown": "# Advising on Educational Pathways and Vocational Training\n## Key points\n- This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…\n",
+  "md": "# Advising on Educational Pathways and Vocational Training\n## Key points\n- This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_41",
+      "class": "sheet",
+      "title": "Advising on Educational Pathways and Vocational Training",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_41",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Advising on Educational Pathways and Vocational Training",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_41_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_41_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

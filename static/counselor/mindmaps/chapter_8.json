@@ -1,0 +1,137 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 8,
+    "part_id": null
+  },
+  "markdown": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n## Interest Inventories and Their Applications\n## Aptitude and Skills Testing in Career Counseling\n## Personality Assessments: Myers-Briggs, Big Five, etc\n## Administering and Interpreting Psychometric Tests\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n",
+  "md": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n## Interest Inventories and Their Applications\n## Aptitude and Skills Testing in Career Counseling\n## Personality Assessments: Myers-Briggs, Big Five, etc\n## Administering and Interpreting Psychometric Tests\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_8",
+      "class": "sheet",
+      "title": "Self-Assessment and Career Assessment Tools",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_8",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Self-Assessment and Career Assessment Tools",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_8_p_24",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "The Role of Self-Assessment in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_8_p_24_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_8_p_25",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Interest Inventories and Their Applications",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_8_p_25_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_8_p_26",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Aptitude and Skills Testing in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_8_p_26_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_8_p_27",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Personality Assessments: Myers-Briggs, Big Five, etc",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_8_p_27_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_8_p_28",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Administering and Interpreting Psychometric Tests",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_8_p_28_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_8_p_29",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_8_p_29_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

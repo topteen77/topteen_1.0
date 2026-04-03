@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 20,
+    "part_id": 88
+  },
+  "markdown": "# Practical Training\n## Key points\n- This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n",
+  "md": "# Practical Training\n## Key points\n- This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_88",
+      "class": "sheet",
+      "title": "Practical Training",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_88",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Practical Training",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_88_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_88_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

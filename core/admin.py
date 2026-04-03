@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
-from core.choices import MINDMAP_TYPE_CHOICES
+from core.choices import COURSE_MINDMAP_CONFIG_CHOICES, MINDMAP_TYPE_CHOICES
 from django.utils import timezone
 from django.utils.html import conditional_escape, format_html, strip_tags
 from django.urls import path, reverse
@@ -98,11 +98,28 @@ class WebsiteSettingsForm(forms.Form):
         label='Enable career mindmap',
         help_text='Show career mindmaps on career detail pages, careers chat, and dedicated mindmap page. When disabled, mindmap sections and icons are hidden site-wide.',
     )
+    ENABLE_COUNSELOR_COURSE_MINDMAP = forms.BooleanField(
+        required=False,
+        label='Enable counselor course mindmaps',
+        help_text=(
+            'When enabled, counselor certification course/part/chapter mindmaps appear when the matching static JSON file exists '
+            '(curriculum course map, learning sidebar icons, full-page views, part Mindmap tab). When disabled, all of these are hidden.'
+        ),
+    )
     DEFAULT_MINDMAP_TYPE = forms.ChoiceField(
         choices=MINDMAP_TYPE_CHOICES,
         required=True,
         label='Default mindmap type',
         help_text='Default layout when opening the dedicated mindmap page (e.g. Radial, Tree-style, Cards, Flow). Users can change it via the dropdown on the page.',
+    )
+    DEFAULT_course_MINDMAP_TYPE = forms.ChoiceField(
+        choices=COURSE_MINDMAP_CONFIG_CHOICES,
+        required=True,
+        label='Default counselor course mindmap type',
+        help_text=(
+            'Visualization for counselor certification mindmaps (curriculum, course learning sidebar/tab, full page). '
+            'Uses static JSON markdown only; no URL parameter needed. Values 6–7 align with career mindmap “Radial” / “Cards” style where applicable.'
+        ),
     )
     CHATBOT_DEFAULT_MODE = forms.ChoiceField(
         choices=[
@@ -256,9 +273,21 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = val
                 config.save()
+                # ENABLE_COUNSELOR_COURSE_MINDMAP
+                key = 'ENABLE_COUNSELOR_COURSE_MINDMAP'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
                 # DEFAULT_MINDMAP_TYPE
                 key = 'DEFAULT_MINDMAP_TYPE'
                 val = (form.cleaned_data.get(key) or '6').strip() or '6'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = str(val)
+                config.save()
+                # DEFAULT_course_MINDMAP_TYPE
+                key = 'DEFAULT_course_MINDMAP_TYPE'
+                val = (form.cleaned_data.get(key) or '7').strip() or '7'
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = str(val)
                 config.save()
@@ -293,9 +322,12 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 return redirect('admin:core_configuration_website_settings')
         else:
             default_type = Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+            default_course_mm = Configuration.get('DEFAULT_course_MINDMAP_TYPE', '7', editable=True) or '7'
             form = WebsiteSettingsForm(initial={
                 'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),
+                'ENABLE_COUNSELOR_COURSE_MINDMAP': _config_bool('ENABLE_COUNSELOR_COURSE_MINDMAP'),
                 'DEFAULT_MINDMAP_TYPE': default_type,
+                'DEFAULT_course_MINDMAP_TYPE': default_course_mm,
                 'CHATBOT_DEFAULT_MODE': Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default',
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
             })

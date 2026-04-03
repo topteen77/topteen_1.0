@@ -176,7 +176,113 @@ class CounselorCourseCurriculumView(TemplateView):
         context["user_authenticated"] = bool(
             getattr(self.request, "user", None) and self.request.user.is_authenticated
         )
+
+        from counselor.mindmap_json import (
+            course_mindmap_available,
+            course_mindmap_relpath,
+            mindmap_static_url,
+        )
+
+        cm_url = None
+        cm_full = None
+        if course_mindmap_available(course):
+            cm_url = mindmap_static_url(course_mindmap_relpath())
+            cm_full = reverse("counselor:course_curriculum_mindmap_full")
+        context["course_mindmap_json_url"] = cm_url
+        context["course_mindmap_full_url"] = cm_full
+
         return context
+
+
+class CounselorCourseCurriculumMindmapFullView(TemplateView):
+    """Full-page course mindmap (JSON static file)."""
+
+    template_name = "template20/counselor/mindmap_fullscreen.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        from django.http import Http404
+
+        from counselor.mindmap_json import course_mindmap_available
+        from counselor.models import CounselorCourse
+
+        course = CounselorCourse.objects.order_by("id").first()
+        if not course_mindmap_available(course):
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from counselor.mindmap_json import course_mindmap_relpath, mindmap_static_url
+        from counselor.models import CounselorCourse
+
+        course = CounselorCourse.objects.order_by("id").first()
+        ctx["mindmap_json_url"] = mindmap_static_url(course_mindmap_relpath())
+        ctx["page_title"] = "Course mindmap"
+        if course and course.title:
+            ctx["page_title"] = f"Course mindmap — {course.title}"
+        ctx["back_url"] = reverse("counselor:counselor_course_curriculum")
+        return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class CourseLearningChapterMindmapView(View):
+    template_name = "template20/counselor/mindmap_fullscreen.html"
+
+    def get(self, request, counselor_id, chapter_id):
+        from django.http import Http404
+        from core import choices
+        from counselor.mindmap_json import chapter_mindmap_available, chapter_mindmap_relpath, mindmap_static_url
+
+        counselor = get_object_or_404(Counselor, id=counselor_id)
+        if request.user.user_type == choices.UserType.COUNSELOR:
+            if counselor.coun_user != request.user:
+                raise Http404("You don't have permission to access this counselor's course.")
+        chapter = get_object_or_404(Chapter, pk=chapter_id)
+        course = CounselorCourse.objects.order_by("id").first()
+        if not course or chapter.course_id != course.id:
+            raise Http404
+        if not chapter_mindmap_available(chapter):
+            raise Http404
+        return render(
+            request,
+            self.template_name,
+            {
+                "mindmap_json_url": mindmap_static_url(chapter_mindmap_relpath(chapter.id)),
+                "page_title": f"Chapter — {chapter.title}",
+                "back_url": reverse("counselor:course_learning", args=[counselor_id]),
+            },
+        )
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class CourseLearningPartMindmapView(View):
+    template_name = "template20/counselor/mindmap_fullscreen.html"
+
+    def get(self, request, counselor_id, part_id):
+        from django.http import Http404
+        from core import choices
+        from counselor.mindmap_json import part_mindmap_available, part_mindmap_relpath, mindmap_static_url
+
+        counselor = get_object_or_404(Counselor, id=counselor_id)
+        if request.user.user_type == choices.UserType.COUNSELOR:
+            if counselor.coun_user != request.user:
+                raise Http404("You don't have permission to access this counselor's course.")
+        part = get_object_or_404(Part, pk=part_id)
+        course = CounselorCourse.objects.order_by("id").first()
+        if not course or not part.chapter or part.chapter.course_id != course.id:
+            raise Http404
+        if not part_mindmap_available(part):
+            raise Http404
+        return render(
+            request,
+            self.template_name,
+            {
+                "mindmap_json_url": mindmap_static_url(part_mindmap_relpath(part.id)),
+                "page_title": f"Part — {part.title}",
+                "back_url": reverse("counselor:course_learning", args=[counselor_id])
+                + f"?type=part&id={part.id}",
+            },
+        )
 
 
 class CounselorCourseDetailView(TemplateView):
@@ -3323,6 +3429,58 @@ class CourseLearningView(View):
         except Exception:
             enable_auto_forward = getattr(settings, 'ENABLE_AUTO_FORWARD', True)
 
+        from counselor.mindmap_json import (
+            chapter_mindmap_available,
+            chapter_mindmap_relpath,
+            mindmap_static_url,
+            part_mindmap_available,
+            part_mindmap_relpath,
+        )
+
+        chapter_mindmap_by_id = {}
+        part_mindmap_by_id = {}
+        for ch in chapters_list:
+            if chapter_mindmap_available(ch):
+                chapter_mindmap_by_id[ch.id] = {
+                    "json_url": mindmap_static_url(chapter_mindmap_relpath(ch.id)),
+                    "fullscreen_url": reverse(
+                        "counselor:course_learning_chapter_mindmap",
+                        args=[counselor.id, ch.id],
+                    ),
+                }
+            else:
+                chapter_mindmap_by_id[ch.id] = None
+            for p in ch.parts.all():
+                if part_mindmap_available(p):
+                    part_mindmap_by_id[p.id] = {
+                        "json_url": mindmap_static_url(part_mindmap_relpath(p.id)),
+                        "fullscreen_url": reverse(
+                            "counselor:course_learning_part_mindmap",
+                            args=[counselor.id, p.id],
+                        ),
+                    }
+
+        lesson_active_tab = "video"
+        if content_type == "part" and current_part:
+            has_video = bool((current_part.video_url or "").strip())
+            has_pdf = bool((current_part.pdf_url or "").strip()) and not hide_practical_training_pdf
+            has_mindmap = bool(part_mindmap_by_id.get(current_part.id))
+            tab = (request.GET.get("tab") or "").lower()
+            if has_mindmap and tab == "mindmap":
+                lesson_active_tab = "mindmap"
+            elif tab == "pdf" and has_pdf:
+                lesson_active_tab = "pdf"
+            elif tab == "video" and has_video:
+                lesson_active_tab = "video"
+            elif not has_video and has_pdf:
+                lesson_active_tab = "pdf"
+            elif has_video:
+                lesson_active_tab = "video"
+            elif has_mindmap:
+                lesson_active_tab = "mindmap"
+            else:
+                lesson_active_tab = "video"
+
         context = {
             'counselor': counselor,
             'course': course_with_related_data,
@@ -3359,6 +3517,9 @@ class CourseLearningView(View):
             'case_study_pdf_url': case_study_pdf_url,
             'case_study_title': case_study_title,
             'hide_practical_training_pdf': hide_practical_training_pdf,
+            'chapter_mindmap_by_id': chapter_mindmap_by_id,
+            'part_mindmap_by_id': part_mindmap_by_id,
+            'lesson_active_tab': lesson_active_tab,
         }
         
         return render(request, self.template_name, context)

@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 10,
+    "part_id": 34
+  },
+  "markdown": "# Subject combinations and Career guidance\n## Key points\n- This video discusses subject combinations and career guidance, offering insights on how selecting the right subjects can align with future career goals and e…\n",
+  "md": "# Subject combinations and Career guidance\n## Key points\n- This video discusses subject combinations and career guidance, offering insights on how selecting the right subjects can align with future career goals and e…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_34",
+      "class": "sheet",
+      "title": "Subject combinations and Career guidance",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_34",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Subject combinations and Career guidance",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_34_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_34_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video discusses subject combinations and career guidance, offering insights on how selecting the right subjects can align with future career goals and e…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}
