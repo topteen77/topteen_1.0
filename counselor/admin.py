@@ -219,16 +219,21 @@ class ChapterAdmin(admin.ModelAdmin):
         }),
     )
     
+    @admin.display(description='Parts')
     def get_part_count(self, obj):
-        return obj.parts.count()
-    get_part_count.short_description = 'Parts'
-    
+        n = obj.parts.count()
+        base = reverse('admin:counselor_part_changelist')
+        q = f'?chapter__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
+
+    @admin.display(description='Quizzes')
     def get_quiz_count(self, obj):
         total = 0
         for part in obj.parts.all():
             total += part.quizzes.count()
-        return total
-    get_quiz_count.short_description = 'Quizzes'
+        base = reverse('admin:counselor_quiz_changelist')
+        q = f'?quiz_part__chapter__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, total)
 
 class CaseStudyInline(admin.TabularInline):
     model = CaseStudy
@@ -242,7 +247,7 @@ class PartAdmin(admin.ModelAdmin):
     """Admin for Part model"""
     list_display = (
         'title',
-        'chapter',
+        'get_chapter_link',
         'get_course',
         'has_video',
         'has_pdf',
@@ -277,6 +282,15 @@ class PartAdmin(admin.ModelAdmin):
         return obj.chapter.course.title if obj.chapter and obj.chapter.course else '-'
     get_course.short_description = 'Course'
     get_course.admin_order_field = 'chapter__course__title'
+
+    @admin.display(description='Chapter', ordering='chapter__title')
+    def get_chapter_link(self, obj):
+        if not obj.chapter_id:
+            return '—'
+        base = reverse('admin:counselor_chapter_changelist')
+        url = f'{base}?id__exact={obj.chapter_id}'
+        title = obj.chapter.title
+        return format_html('<a href="{}">{}</a>', url, title)
     
     def has_video(self, obj):
         return bool(obj.video_url)
@@ -288,9 +302,12 @@ class PartAdmin(admin.ModelAdmin):
     has_pdf.boolean = True
     has_pdf.short_description = 'Has PDF'
     
+    @admin.display(description='Quizzes')
     def get_quiz_count(self, obj):
-        return obj.quizzes.count()
-    get_quiz_count.short_description = 'Quizzes'
+        n = obj.quizzes.count()
+        base = reverse('admin:counselor_quiz_changelist')
+        q = f'?quiz_part__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
 
     @admin.display(description='Case studies')
     def get_case_study_count(self, obj):
@@ -344,14 +361,17 @@ class QuizAdmin(nested_admin.NestedModelAdmin):
         return '-'
     get_course.short_description = 'Course'
     
+    @admin.display(description='Questions')
     def get_question_count(self, obj):
-        return obj.questions.count()
-    get_question_count.short_description = 'Questions'
+        n = obj.questions.count()
+        base = reverse('admin:counselor_question_changelist')
+        q = f'?quiz__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
 
 @admin.register(Question)
 class QuestionAdmin(nested_admin.NestedModelAdmin):
     """Admin for Question model with nested answers"""
-    list_display = ('get_question_preview', 'quiz', 'get_course', 'get_answer_count', 'get_correct_answer')
+    list_display = ('get_question_preview', 'quiz', 'get_course', 'get_options_count', 'get_correct_answer')
     search_fields = ('question_text', 'quiz__title')
     list_filter = ('quiz__quiz_part__chapter__course',)
     ordering = ('quiz__quiz_part__chapter__course', 'quiz', 'id')
@@ -375,9 +395,12 @@ class QuestionAdmin(nested_admin.NestedModelAdmin):
         return '-'
     get_course.short_description = 'Course'
     
-    def get_answer_count(self, obj):
-        return obj.answers.count()
-    get_answer_count.short_description = 'Answers'
+    @admin.display(description='Options')
+    def get_options_count(self, obj):
+        n = obj.answers.count()
+        base = reverse('admin:counselor_quizanswers_changelist')
+        q = f'?question__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
     
     def get_correct_answer(self, obj):
         correct = obj.answers.filter(is_correct=True).first()
