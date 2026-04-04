@@ -10,8 +10,8 @@
     "chapter_id": 13,
     "part_id": 95
   },
-  "markdown": "# Netherlands\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…\n",
-  "md": "# Netherlands\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…\n",
+  "markdown": "# Netherlands\n- 8. Australia\n- 1. Admission Process\n- 2. Standardized Tests\n- 3. Other Requirements\n- 4. Cost of Study\n- Tuition Fees:\n- Undergraduate Programs:\n- Graduate Programs:\n- Quiz\n- Video\n",
+  "md": "# Netherlands\n- 8. Australia\n- 1. Admission Process\n- 2. Standardized Tests\n- 3. Other Requirements\n- 4. Cost of Study\n- Tuition Fees:\n- Undergraduate Programs:\n- Graduate Programs:\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_95",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_95_vpdfroot",
+              "id": "cc_part_95_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "8. Australia",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_95_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Admission Process",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Standardized Tests",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Other Requirements",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "4. Cost of Study",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Tuition Fees:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Undergraduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Graduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_95_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

@@ -10,8 +10,8 @@
     "chapter_id": 9,
     "part_id": 33
   },
-  "markdown": "# Motivational Interviewing Techniques\n- Video/PDF\n  - This video delves into motivational interviewing techniques, highlighting how these strategies help career counselors enhance client motivation, build confid…\n",
-  "md": "# Motivational Interviewing Techniques\n- Video/PDF\n  - This video delves into motivational interviewing techniques, highlighting how these strategies help career counselors enhance client motivation, build confid…\n",
+  "markdown": "# Motivational Interviewing Techniques\n- Part 4-  Motivational Interviewing Techniques\n- Core Principles of Motivational Interviewing:\n- Motivational Techniques that are used for Career Counseling\n- Quiz\n- Video\n",
+  "md": "# Motivational Interviewing Techniques\n- Part 4-  Motivational Interviewing Techniques\n- Core Principles of Motivational Interviewing:\n- Motivational Techniques that are used for Career Counseling\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_33",
@@ -28,20 +28,43 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_33_vpdfroot",
+              "id": "cc_part_33_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Part 4-  Motivational Interviewing Techniques",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_33_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video delves into motivational interviewing techniques, highlighting how these strategies help career counselors enhance client motivation, build confid…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Core Principles of Motivational Interviewing:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Motivational Techniques that are used for Career Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

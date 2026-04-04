@@ -10,8 +10,8 @@
     "chapter_id": 18,
     "part_id": null
   },
-  "markdown": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- Video/PDF\n  - This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …\n",
-  "md": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- Video/PDF\n  - This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …\n",
+  "markdown": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …\n- Quiz\n- Video\n",
+  "md": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_18",
@@ -28,26 +28,33 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_18_73_part",
+              "id": "cc_ch_18_p_73",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Stressful situation handling & Overcoming Obstacles and setbacks in your career journey",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_18_73_vpdfroot",
+                    "id": "cc_ch_18_p_73_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_18_73_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_18_p_73_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_18_p_73_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]

@@ -10,8 +10,8 @@
     "chapter_id": 3,
     "part_id": 9
   },
-  "markdown": "# Historical Evolution and Current Trends in Career Counseling\n- Video/PDF\n  - This video delves into the historical evolution of career counseling and explores the current trends shaping the field.\n  - It highlights how the profession has adapted to meet the changing needs of individuals and the job market.\n",
-  "md": "# Historical Evolution and Current Trends in Career Counseling\n- Video/PDF\n  - This video delves into the historical evolution of career counseling and explores the current trends shaping the field.\n  - It highlights how the profession has adapted to meet the changing needs of individuals and the job market.\n",
+  "markdown": "# Historical Evolution and Current Trends in Career Counseling\n- Part 4- Historical Evolution of Career Counselling\n- Technological Advancements and Formalization\n- Current Trends in Career Counselling\n- Emerging Career Models and Lifelong Learning\n- Quiz\n- Video\n",
+  "md": "# Historical Evolution and Current Trends in Career Counseling\n- Part 4- Historical Evolution of Career Counselling\n- Technological Advancements and Formalization\n- Current Trends in Career Counselling\n- Emerging Career Models and Lifelong Learning\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_9",
@@ -28,28 +28,51 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_9_vpdfroot",
+              "id": "cc_part_9_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Part 4- Historical Evolution of Career Counselling",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_9_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video delves into the historical evolution of career counseling and explores the current trends shaping the field.",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_part_9_vpdf_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "It highlights how the profession has adapted to meet the changing needs of individuals and the job market.",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_9_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Technological Advancements and Formalization",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_9_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Current Trends in Career Counselling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_9_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Emerging Career Models and Lifelong Learning",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_9_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_9_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

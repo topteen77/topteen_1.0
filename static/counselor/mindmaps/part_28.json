@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 28
   },
-  "markdown": "# Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n",
-  "md": "# Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n",
+  "markdown": "# Administering and Interpreting Psychometric Tests\n- Administering Psychometric Tests\n- 1. Selecting the Appropriate Test\n- 2. Preparing for Administration\n- 3. Administering the Test\n- 4. Ensuring Ethical Practice\n- Interpreting Psychometric Test Results\n- 1. Understanding Test Results\n- 2. Integrating Results into Career Counseling\n- Quiz\n- Video\n",
+  "md": "# Administering and Interpreting Psychometric Tests\n- Administering Psychometric Tests\n- 1. Selecting the Appropriate Test\n- 2. Preparing for Administration\n- 3. Administering the Test\n- 4. Ensuring Ethical Practice\n- Interpreting Psychometric Test Results\n- 1. Understanding Test Results\n- 2. Integrating Results into Career Counseling\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_28",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_28_vpdfroot",
+              "id": "cc_part_28_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Administering Psychometric Tests",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_28_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Selecting the Appropriate Test",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Preparing for Administration",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Administering the Test",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "4. Ensuring Ethical Practice",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Interpreting Psychometric Test Results",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Understanding Test Results",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Integrating Results into Career Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_28_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

@@ -10,8 +10,8 @@
     "chapter_id": 14,
     "part_id": 59
   },
-  "markdown": "# Leveraging Social Media for Career Development\n- Video/PDF\n  - This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
-  "md": "# Leveraging Social Media for Career Development\n- Video/PDF\n  - This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
+  "markdown": "# Leveraging Social Media for Career Development\n- Part 4- Leveraging Social Media for Career Development\n- Personal Branding\n- Networking Opportunities\n- Job Searching and Recruitment\n- Professional Development\n- Building a Support Network\n- Showcasing Achievements\n- Quiz\n- Video\n",
+  "md": "# Leveraging Social Media for Career Development\n- Part 4- Leveraging Social Media for Career Development\n- Personal Branding\n- Networking Opportunities\n- Job Searching and Recruitment\n- Professional Development\n- Building a Support Network\n- Showcasing Achievements\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_59",
@@ -28,20 +28,75 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_59_vpdfroot",
+              "id": "cc_part_59_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Part 4- Leveraging Social Media for Career Development",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_59_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Personal Branding",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Networking Opportunities",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Job Searching and Recruitment",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Professional Development",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Building a Support Network",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Showcasing Achievements",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_59_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

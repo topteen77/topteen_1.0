@@ -10,8 +10,8 @@
     "chapter_id": 13,
     "part_id": 94
   },
-  "markdown": "# New Zealand\n- Video/PDF\n  - This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…\n",
-  "md": "# New Zealand\n- Video/PDF\n  - This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…\n",
+  "markdown": "# New Zealand\n- Admission Process\n- Undergraduate Programs:\n- Graduate Programs:\n- Cost of Study and Living\n- Top Ten Colleges\n- Financial Aid\n- Scholarships:\n- Types of Scholarships:\n- Quiz\n- Video\n",
+  "md": "# New Zealand\n- Admission Process\n- Undergraduate Programs:\n- Graduate Programs:\n- Cost of Study and Living\n- Top Ten Colleges\n- Financial Aid\n- Scholarships:\n- Types of Scholarships:\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_94",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_94_vpdfroot",
+              "id": "cc_part_94_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Admission Process",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_94_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Undergraduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Graduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Cost of Study and Living",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Top Ten Colleges",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Financial Aid",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Scholarships:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Types of Scholarships:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_94_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

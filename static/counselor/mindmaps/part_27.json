@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 27
   },
-  "markdown": "# Personality Assessments: Myers-Briggs, Big Five, etc\n- Video/PDF\n  - This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…\n",
-  "md": "# Personality Assessments: Myers-Briggs, Big Five, etc\n- Video/PDF\n  - This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…\n",
+  "markdown": "# Personality Assessments: Myers-Briggs, Big Five, etc\n- Personality Assessments in Career Counseling\n- Understanding Personality Assessments\n- Common Types of Personality Assessments\n- Myers-Briggs Type Indicator (MBTI):\n- Big Five Personality Traits (OCEAN):\n- Holland Code (RIASEC):\n- 16 Personality Factor Questionnaire (16PF):\n- StrengthsFinder:\n- Quiz\n- Video\n",
+  "md": "# Personality Assessments: Myers-Briggs, Big Five, etc\n- Personality Assessments in Career Counseling\n- Understanding Personality Assessments\n- Common Types of Personality Assessments\n- Myers-Briggs Type Indicator (MBTI):\n- Big Five Personality Traits (OCEAN):\n- Holland Code (RIASEC):\n- 16 Personality Factor Questionnaire (16PF):\n- StrengthsFinder:\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_27",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_27_vpdfroot",
+              "id": "cc_part_27_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Personality Assessments in Career Counseling",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_27_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Understanding Personality Assessments",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Common Types of Personality Assessments",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Myers-Briggs Type Indicator (MBTI):",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Big Five Personality Traits (OCEAN):",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Holland Code (RIASEC):",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "16 Personality Factor Questionnaire (16PF):",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "StrengthsFinder:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_27_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

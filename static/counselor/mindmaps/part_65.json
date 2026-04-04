@@ -10,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 65
   },
-  "markdown": "# Interview Preparation Methods\n- Video/PDF\n  - This video explores interview preparation methods, offering practical strategies to help clients improve their interview skills, build confidence, and effect…\n",
-  "md": "# Interview Preparation Methods\n- Video/PDF\n  - This video explores interview preparation methods, offering practical strategies to help clients improve their interview skills, build confidence, and effect…\n",
+  "markdown": "# Interview Preparation Methods\n- Part 3- Interview Preparation Methods\n- Quiz\n- Video\n",
+  "md": "# Interview Preparation Methods\n- Part 3- Interview Preparation Methods\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_65",
@@ -28,20 +28,27 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_65_vpdfroot",
+              "id": "cc_part_65_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Part 3- Interview Preparation Methods",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_65_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores interview preparation methods, offering practical strategies to help clients improve their interview skills, build confidence, and effect…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_65_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_65_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

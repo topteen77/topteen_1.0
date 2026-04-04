@@ -10,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 18
   },
-  "markdown": "# Cultural Competence and Diversity Awareness\n- Video/PDF\n  - This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …\n",
-  "md": "# Cultural Competence and Diversity Awareness\n- Video/PDF\n  - This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …\n",
+  "markdown": "# Cultural Competence and Diversity Awareness\n- Part 4- Cultural competence and diversity Awareness\n- Core Elements\n- Applications\n- Promoting Diversity Awareness\n- Key Aspects\n- Practical Strategies for Implementation\n- Professional Development\n- Counseling Techniques\n- Quiz\n- Video\n",
+  "md": "# Cultural Competence and Diversity Awareness\n- Part 4- Cultural competence and diversity Awareness\n- Core Elements\n- Applications\n- Promoting Diversity Awareness\n- Key Aspects\n- Practical Strategies for Implementation\n- Professional Development\n- Counseling Techniques\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_18",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_18_vpdfroot",
+              "id": "cc_part_18_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Part 4- Cultural competence and diversity Awareness",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_18_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Core Elements",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Applications",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Promoting Diversity Awareness",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key Aspects",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Practical Strategies for Implementation",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Professional Development",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Counseling Techniques",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_18_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

@@ -10,8 +10,8 @@
     "chapter_id": 10,
     "part_id": null
   },
-  "markdown": "# Career Planning and Exploration\n## Subject combinations and Career guidance\n- Video/PDF\n  - This video discusses subject combinations and career guidance, offering insights on how selecting the right subjects can align with future career goals and e…\n## Career Exploration and Awareness Programs\n- Video/PDF\n  - Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…\n  - Key components include mentorship, skill-building workshops, and educational planning.\n  - These programs foster informed decision-making, skill development, confidence, and networking.\n  - Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.\n## Identifying and Exploring Potential Career Paths\n- Video/PDF\n  - This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…\n## Navigating Career Transitions and Life Changes\n- Video/PDF\n  - This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…\n",
-  "md": "# Career Planning and Exploration\n## Subject combinations and Career guidance\n- Video/PDF\n  - This video discusses subject combinations and career guidance, offering insights on how selecting the right subjects can align with future career goals and e…\n## Career Exploration and Awareness Programs\n- Video/PDF\n  - Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…\n  - Key components include mentorship, skill-building workshops, and educational planning.\n  - These programs foster informed decision-making, skill development, confidence, and networking.\n  - Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.\n## Identifying and Exploring Potential Career Paths\n- Video/PDF\n  - This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…\n## Navigating Career Transitions and Life Changes\n- Video/PDF\n  - This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…\n",
+  "markdown": "# Career Planning and Exploration\n## Subject combinations and Career guidance\n- Part 1- subject combinations and Career guidance\n- 1. Medicine & Healthcare\n- Core Subjects:\n- Additional Courses:\n- 2. Engineering\n- Specializations:\n- Quiz\n- Video\n## Career Exploration and Awareness Programs\n- Objectives of Career Exploration and Awareness Programs\n- Key Components of Effective Programs\n- 1. Self-Assessment Tools\n- 2. Career Information Sessions\n- 3. Experiential Learning Opportunities\n- 4. Mentorship Programs\n- Quiz\n- Video\n## Identifying and Exploring Potential Career Paths\n- Understanding the Student\n- Exploring Career Options\n- Encouraging Real-World Experience\n- Guiding Educational Planning\n- Setting and Achieving Goals\n- Providing Ongoing Support and Guidance\n- Quiz\n- Video\n## Navigating Career Transitions and Life Changes\n- Understanding Career Transitions\n- Steps to Navigating Career Transitions\n- 1. Acknowledging and Embracing Change\n- 2. Reflecting on Values and Goals\n- 3. Exploring New Opportunities\n- 4. Developing a Plan\n- Quiz\n- Video\n",
+  "md": "# Career Planning and Exploration\n## Subject combinations and Career guidance\n- Part 1- subject combinations and Career guidance\n- 1. Medicine & Healthcare\n- Core Subjects:\n- Additional Courses:\n- 2. Engineering\n- Specializations:\n- Quiz\n- Video\n## Career Exploration and Awareness Programs\n- Objectives of Career Exploration and Awareness Programs\n- Key Components of Effective Programs\n- 1. Self-Assessment Tools\n- 2. Career Information Sessions\n- 3. Experiential Learning Opportunities\n- 4. Mentorship Programs\n- Quiz\n- Video\n## Identifying and Exploring Potential Career Paths\n- Understanding the Student\n- Exploring Career Options\n- Encouraging Real-World Experience\n- Guiding Educational Planning\n- Setting and Achieving Goals\n- Providing Ongoing Support and Guidance\n- Quiz\n- Video\n## Navigating Career Transitions and Life Changes\n- Understanding Career Transitions\n- Steps to Navigating Career Transitions\n- 1. Acknowledging and Embracing Change\n- 2. Reflecting on Values and Goals\n- 3. Exploring New Opportunities\n- 4. Developing a Plan\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_10",
@@ -28,128 +28,292 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_10_34_part",
+              "id": "cc_ch_10_p_34",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Subject combinations and Career guidance",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_10_34_vpdfroot",
+                    "id": "cc_ch_10_p_34_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 1- subject combinations and Career guidance",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_10_34_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video discusses subject combinations and career guidance, offering insights on how selecting the right subjects can align with future career goals and e…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Medicine & Healthcare",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Core Subjects:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Additional Courses:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Engineering",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Specializations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_34_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_10_35_part",
+              "id": "cc_ch_10_p_35",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Career Exploration and Awareness Programs",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_10_35_vpdfroot",
+                    "id": "cc_ch_10_p_35_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Objectives of Career Exploration and Awareness Programs",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_10_35_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…",
-                          "children": {
-                            "attached": []
-                          }
-                        },
-                        {
-                          "id": "cc_ch_10_35_vpdf_1",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Key components include mentorship, skill-building workshops, and educational planning.",
-                          "children": {
-                            "attached": []
-                          }
-                        },
-                        {
-                          "id": "cc_ch_10_35_vpdf_2",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "These programs foster informed decision-making, skill development, confidence, and networking.",
-                          "children": {
-                            "attached": []
-                          }
-                        },
-                        {
-                          "id": "cc_ch_10_35_vpdf_3",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Key Components of Effective Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Self-Assessment Tools",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Career Information Sessions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Experiential Learning Opportunities",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Mentorship Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_35_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_10_36_part",
+              "id": "cc_ch_10_p_36",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Identifying and Exploring Potential Career Paths",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_10_36_vpdfroot",
+                    "id": "cc_ch_10_p_36_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Understanding the Student",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_10_36_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Exploring Career Options",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Encouraging Real-World Experience",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Guiding Educational Planning",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Setting and Achieving Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Providing Ongoing Support and Guidance",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_36_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_10_37_part",
+              "id": "cc_ch_10_p_37",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Navigating Career Transitions and Life Changes",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_10_37_vpdfroot",
+                    "id": "cc_ch_10_p_37_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Understanding Career Transitions",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_10_37_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Steps to Navigating Career Transitions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Acknowledging and Embracing Change",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Reflecting on Values and Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Exploring New Opportunities",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Developing a Plan",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_p_37_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]

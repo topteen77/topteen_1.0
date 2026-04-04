@@ -10,8 +10,8 @@
     "chapter_id": 9,
     "part_id": null
   },
-  "markdown": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Video/PDF\n  - This video explores individual counseling techniques, focusing on personalized approaches that help career counselors understand and address the unique needs…\n## Group Counseling Techniques\n- Video/PDF\n  - This video covers group counseling techniques, highlighting strategies for guiding multiple clients in a shared setting to explore career development, decisi…\n## Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - This video explores cognitive-behavioral approaches in career counseling, focusing on how these techniques help clients identify and change negative thought …\n## Motivational Interviewing Techniques\n- Video/PDF\n  - This video delves into motivational interviewing techniques, highlighting how these strategies help career counselors enhance client motivation, build confid…\n",
-  "md": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Video/PDF\n  - This video explores individual counseling techniques, focusing on personalized approaches that help career counselors understand and address the unique needs…\n## Group Counseling Techniques\n- Video/PDF\n  - This video covers group counseling techniques, highlighting strategies for guiding multiple clients in a shared setting to explore career development, decisi…\n## Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - This video explores cognitive-behavioral approaches in career counseling, focusing on how these techniques help clients identify and change negative thought …\n## Motivational Interviewing Techniques\n- Video/PDF\n  - This video delves into motivational interviewing techniques, highlighting how these strategies help career counselors enhance client motivation, build confid…\n",
+  "markdown": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Part 1- Individual Counseling Techniques\n- How individual counseling is conducted in a career counseling setup-\n- Quiz\n- Video\n## Group Counseling Techniques\n- Part 2- Group Counseling Techniques\n- How group counseling is conducted in a career counseling setup-\n- Quiz\n- Video\n## Cognitive-Behavioral Approaches in Career Counseling\n- Part 3- Cognitive-Behavior Approaches in Career Counseling\n- Various Approaches of CBT used in Career Counseling-\n- 1. Cognitive Restructuring\n- 2. Behavioral Experiments\n- 3. Goal Setting\n- 4. Problem-Solving Skills\n- Quiz\n- Video\n## Motivational Interviewing Techniques\n- Part 4-  Motivational Interviewing Techniques\n- Core Principles of Motivational Interviewing:\n- Motivational Techniques that are used for Career Counseling\n- Quiz\n- Video\n",
+  "md": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Part 1- Individual Counseling Techniques\n- How individual counseling is conducted in a career counseling setup-\n- Quiz\n- Video\n## Group Counseling Techniques\n- Part 2- Group Counseling Techniques\n- How group counseling is conducted in a career counseling setup-\n- Quiz\n- Video\n## Cognitive-Behavioral Approaches in Career Counseling\n- Part 3- Cognitive-Behavior Approaches in Career Counseling\n- Various Approaches of CBT used in Career Counseling-\n- 1. Cognitive Restructuring\n- 2. Behavioral Experiments\n- 3. Goal Setting\n- 4. Problem-Solving Skills\n- Quiz\n- Video\n## Motivational Interviewing Techniques\n- Part 4-  Motivational Interviewing Techniques\n- Core Principles of Motivational Interviewing:\n- Motivational Techniques that are used for Career Counseling\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_9",
@@ -28,104 +28,204 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_9_30_part",
+              "id": "cc_ch_9_p_30",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Individual Counseling Techniques",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_9_30_vpdfroot",
+                    "id": "cc_ch_9_p_30_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 1- Individual Counseling Techniques",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_9_30_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explores individual counseling techniques, focusing on personalized approaches that help career counselors understand and address the unique needs…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_30_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "How individual counseling is conducted in a career counseling setup-",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_30_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_30_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_9_31_part",
+              "id": "cc_ch_9_p_31",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Group Counseling Techniques",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_9_31_vpdfroot",
+                    "id": "cc_ch_9_p_31_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 2- Group Counseling Techniques",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_9_31_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video covers group counseling techniques, highlighting strategies for guiding multiple clients in a shared setting to explore career development, decisi…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_31_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "How group counseling is conducted in a career counseling setup-",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_31_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_31_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_9_32_part",
+              "id": "cc_ch_9_p_32",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Cognitive-Behavioral Approaches in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_9_32_vpdfroot",
+                    "id": "cc_ch_9_p_32_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 3- Cognitive-Behavior Approaches in Career Counseling",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_9_32_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explores cognitive-behavioral approaches in career counseling, focusing on how these techniques help clients identify and change negative thought …",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Various Approaches of CBT used in Career Counseling-",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Cognitive Restructuring",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Behavioral Experiments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Goal Setting",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Problem-Solving Skills",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_32_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_9_33_part",
+              "id": "cc_ch_9_p_33",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Motivational Interviewing Techniques",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_9_33_vpdfroot",
+                    "id": "cc_ch_9_p_33_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 4-  Motivational Interviewing Techniques",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_9_33_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video delves into motivational interviewing techniques, highlighting how these strategies help career counselors enhance client motivation, build confid…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_33_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Core Principles of Motivational Interviewing:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_33_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Motivational Techniques that are used for Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_33_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_9_p_33_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]

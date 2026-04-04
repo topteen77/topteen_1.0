@@ -10,8 +10,8 @@
     "chapter_id": 19,
     "part_id": null
   },
-  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n## Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…\n## Fieldwork and Practical Experience for Career Counselors\n- Video/PDF\n  - This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…\n",
-  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n## Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…\n## Fieldwork and Practical Experience for Career Counselors\n- Video/PDF\n  - This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…\n",
+  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- 1. Case Study: Navigating Career Choices\n- Student Profile:\n- Counseling Approach:\n- 2. Case Study: Overcoming Academic Challenges\n- 3. Case Study: Identifying Career Interests\n- 4. Case Study: Career Path Realignment\n- Quiz\n- Video\n## Role Playing and Simulation Exercises for Career Counselors\n- Role Playing and Simulation Exercises for Career Counselors\n- Role Playing\n- Purpose:\n- Implementation:\n- B) Simulation Exercises\n- Benefits for Career Counseling\n- Quiz\n- Video\n## Workshops and Group Discussions in Career Counseling\n- Part 3- Workshops and Group Discussions in Career Counseling\n- Workshops\n- Purpose:\n- Implementation:\n- Group Discussions\n- Benefits of Workshops and Group Discussions\n- Quiz\n- Video\n## Fieldwork and Practical Experience for Career Counselors\n- Part 4- Fieldwork and Practical Experience for Career Counselors\n- 1. Importance of Fieldwork\n- Purpose:\n- Examples:\n- 2. Types of Practical Experience\n- A. Client Interaction\n- Quiz\n- Video\n",
+  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- 1. Case Study: Navigating Career Choices\n- Student Profile:\n- Counseling Approach:\n- 2. Case Study: Overcoming Academic Challenges\n- 3. Case Study: Identifying Career Interests\n- 4. Case Study: Career Path Realignment\n- Quiz\n- Video\n## Role Playing and Simulation Exercises for Career Counselors\n- Role Playing and Simulation Exercises for Career Counselors\n- Role Playing\n- Purpose:\n- Implementation:\n- B) Simulation Exercises\n- Benefits for Career Counseling\n- Quiz\n- Video\n## Workshops and Group Discussions in Career Counseling\n- Part 3- Workshops and Group Discussions in Career Counseling\n- Workshops\n- Purpose:\n- Implementation:\n- Group Discussions\n- Benefits of Workshops and Group Discussions\n- Quiz\n- Video\n## Fieldwork and Practical Experience for Career Counselors\n- Part 4- Fieldwork and Practical Experience for Career Counselors\n- 1. Importance of Fieldwork\n- Purpose:\n- Examples:\n- 2. Types of Practical Experience\n- A. Client Interaction\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_19",
@@ -28,104 +28,292 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_19_74_part",
+              "id": "cc_ch_19_p_74",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Real-World Case Studies in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_74_vpdfroot",
+                    "id": "cc_ch_19_p_74_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "PDF",
+                    "title": "1. Case Study: Navigating Career Choices",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_19_74_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "0 pdf",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Student Profile:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Counseling Approach:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Case Study: Overcoming Academic Challenges",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Case Study: Identifying Career Interests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Case Study: Career Path Realignment",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_74_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_19_75_part",
+              "id": "cc_ch_19_p_75",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Role Playing and Simulation Exercises for Career Counselors",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_75_vpdfroot",
+                    "id": "cc_ch_19_p_75_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Role Playing and Simulation Exercises for Career Counselors",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_19_75_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Role Playing",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Purpose:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Implementation:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "B) Simulation Exercises",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Benefits for Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_75_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_19_76_part",
+              "id": "cc_ch_19_p_76",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Workshops and Group Discussions in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_76_vpdfroot",
+                    "id": "cc_ch_19_p_76_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 3- Workshops and Group Discussions in Career Counseling",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_19_76_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Workshops",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Purpose:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Implementation:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Group Discussions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Benefits of Workshops and Group Discussions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_76_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_19_77_part",
+              "id": "cc_ch_19_p_77",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Fieldwork and Practical Experience for Career Counselors",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_77_vpdfroot",
+                    "id": "cc_ch_19_p_77_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Part 4- Fieldwork and Practical Experience for Career Counselors",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_19_77_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Importance of Fieldwork",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Purpose:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Examples:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Types of Practical Experience",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "A. Client Interaction",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_19_p_77_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]

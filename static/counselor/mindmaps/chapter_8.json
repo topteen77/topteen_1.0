@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": null
   },
-  "markdown": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n- Video/PDF\n  - This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…\n## Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n## Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n## Personality Assessments: Myers-Briggs, Big Five, etc\n- Video/PDF\n  - This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…\n## Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Video/PDF\n  - This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
-  "md": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n- Video/PDF\n  - This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…\n## Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n## Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n## Personality Assessments: Myers-Briggs, Big Five, etc\n- Video/PDF\n  - This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…\n## Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Video/PDF\n  - This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
+  "markdown": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n- Understanding Self-Assessment\n- 1. Identifying Strengths and Weaknesses\n- 2. Clarifying Interests and Values\n- 3. Exploring Personality Traits\n- 4. Setting Realistic Career Goals\n- 5. Enhancing Self-Awareness\n- Quiz\n- Video\n## Interest Inventories and Their Applications\n- Understanding Interest Inventories\n- Common Types of Interest Inventories\n- Applications of Interest Inventories\n- Quiz\n- Video\n## Aptitude and Skills Testing in Career Counseling\n- Aptitude Testing\n- Definition and Purpose\n- Types of Aptitude Tests\n- Applications in Career Counseling\n- Skill Testing\n- Types of Skill Tests\n- Quiz\n- Video\n## Personality Assessments: Myers-Briggs, Big Five, etc\n- Personality Assessments in Career Counseling\n- Understanding Personality Assessments\n- Common Types of Personality Assessments\n- Myers-Briggs Type Indicator (MBTI):\n- Big Five Personality Traits (OCEAN):\n- Holland Code (RIASEC):\n- Quiz\n- Video\n## Administering and Interpreting Psychometric Tests\n- Administering Psychometric Tests\n- 1. Selecting the Appropriate Test\n- 2. Preparing for Administration\n- 3. Administering the Test\n- 4. Ensuring Ethical Practice\n- Interpreting Psychometric Test Results\n- Quiz\n- Video\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- 1. Career Search Tools\n- Definition and Purpose\n- Types of Career Search Tools\n- Applications in Career Counseling\n- 2. Stream Selection Assessments\n- Types of Stream Selection Assessments\n- Quiz\n- Video\n",
+  "md": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n- Understanding Self-Assessment\n- 1. Identifying Strengths and Weaknesses\n- 2. Clarifying Interests and Values\n- 3. Exploring Personality Traits\n- 4. Setting Realistic Career Goals\n- 5. Enhancing Self-Awareness\n- Quiz\n- Video\n## Interest Inventories and Their Applications\n- Understanding Interest Inventories\n- Common Types of Interest Inventories\n- Applications of Interest Inventories\n- Quiz\n- Video\n## Aptitude and Skills Testing in Career Counseling\n- Aptitude Testing\n- Definition and Purpose\n- Types of Aptitude Tests\n- Applications in Career Counseling\n- Skill Testing\n- Types of Skill Tests\n- Quiz\n- Video\n## Personality Assessments: Myers-Briggs, Big Five, etc\n- Personality Assessments in Career Counseling\n- Understanding Personality Assessments\n- Common Types of Personality Assessments\n- Myers-Briggs Type Indicator (MBTI):\n- Big Five Personality Traits (OCEAN):\n- Holland Code (RIASEC):\n- Quiz\n- Video\n## Administering and Interpreting Psychometric Tests\n- Administering Psychometric Tests\n- 1. Selecting the Appropriate Test\n- 2. Preparing for Administration\n- 3. Administering the Test\n- 4. Ensuring Ethical Practice\n- Interpreting Psychometric Test Results\n- Quiz\n- Video\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- 1. Career Search Tools\n- Definition and Purpose\n- Types of Career Search Tools\n- Applications in Career Counseling\n- 2. Stream Selection Assessments\n- Types of Stream Selection Assessments\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_8",
@@ -28,156 +28,414 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_8_24_part",
+              "id": "cc_ch_8_p_24",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "The Role of Self-Assessment in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_24_vpdfroot",
+                    "id": "cc_ch_8_p_24_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Understanding Self-Assessment",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_8_24_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Identifying Strengths and Weaknesses",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Clarifying Interests and Values",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Exploring Personality Traits",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Setting Realistic Career Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Enhancing Self-Awareness",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_24_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_25_part",
+              "id": "cc_ch_8_p_25",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Interest Inventories and Their Applications",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_25_vpdfroot",
+                    "id": "cc_ch_8_p_25_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Understanding Interest Inventories",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_8_25_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_25_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Common Types of Interest Inventories",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_25_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Applications of Interest Inventories",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_25_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_25_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_26_part",
+              "id": "cc_ch_8_p_26",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Aptitude and Skills Testing in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_26_vpdfroot",
+                    "id": "cc_ch_8_p_26_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Aptitude Testing",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_8_26_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Definition and Purpose",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Types of Aptitude Tests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Applications in Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Skill Testing",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Types of Skill Tests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_26_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_27_part",
+              "id": "cc_ch_8_p_27",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Personality Assessments: Myers-Briggs, Big Five, etc",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_27_vpdfroot",
+                    "id": "cc_ch_8_p_27_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Personality Assessments in Career Counseling",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_8_27_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Understanding Personality Assessments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Common Types of Personality Assessments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Myers-Briggs Type Indicator (MBTI):",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Big Five Personality Traits (OCEAN):",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Holland Code (RIASEC):",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_27_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_28_part",
+              "id": "cc_ch_8_p_28",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Administering and Interpreting Psychometric Tests",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_28_vpdfroot",
+                    "id": "cc_ch_8_p_28_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "Administering Psychometric Tests",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_8_28_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Selecting the Appropriate Test",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Preparing for Administration",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Administering the Test",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Ensuring Ethical Practice",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Interpreting Psychometric Test Results",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_28_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_29_part",
+              "id": "cc_ch_8_p_29",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_29_vpdfroot",
+                    "id": "cc_ch_8_p_29_b_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video/PDF",
+                    "title": "1. Career Search Tools",
                     "children": {
-                      "attached": [
-                        {
-                          "id": "cc_ch_8_29_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…",
-                          "children": {
-                            "attached": []
-                          }
-                        }
-                      ]
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Definition and Purpose",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Types of Career Search Tools",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Applications in Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Stream Selection Assessments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Types of Stream Selection Assessments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_8_p_29_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
                     }
                   }
                 ]

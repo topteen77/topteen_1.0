@@ -10,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 67
   },
-  "markdown": "# Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n- Video/PDF\n  - This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…\n",
-  "md": "# Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n- Video/PDF\n  - This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…\n",
+  "markdown": "# Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n- This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…\n- Quiz\n- Video\n",
+  "md": "# Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n- This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_67",
@@ -28,20 +28,27 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_67_vpdfroot",
+              "id": "cc_part_67_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_67_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_67_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_67_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

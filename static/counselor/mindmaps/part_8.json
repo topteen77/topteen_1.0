@@ -10,8 +10,8 @@
     "chapter_id": 3,
     "part_id": 8
   },
-  "markdown": "# Scope and Opportunities in Career Counseling\n- Video/PDF\n  - This video explores the growing scope and diverse opportunities in career counseling.\n  - It examines how the field is evolving and the various career paths available for aspiring counselors.\n",
-  "md": "# Scope and Opportunities in Career Counseling\n- Video/PDF\n  - This video explores the growing scope and diverse opportunities in career counseling.\n  - It examines how the field is evolving and the various career paths available for aspiring counselors.\n",
+  "markdown": "# Scope and Opportunities in Career Counseling\n- Why do students and professionals need career counselling?\n- Scope Of Career Counselling In India\n- Career Opportunities for Career Counsellors\n- 1. Education Industry\n- Career Opportunities in the Education Sector:\n- 2. Non-Governmental Organizations (NGOs) / Non-Profit Organizations (NPOs)\n- Career Opportunities in NGOs/NPOs:\n- 3. Corporate Sector\n- Quiz\n- Video\n",
+  "md": "# Scope and Opportunities in Career Counseling\n- Why do students and professionals need career counselling?\n- Scope Of Career Counselling In India\n- Career Opportunities for Career Counsellors\n- 1. Education Industry\n- Career Opportunities in the Education Sector:\n- 2. Non-Governmental Organizations (NGOs) / Non-Profit Organizations (NPOs)\n- Career Opportunities in NGOs/NPOs:\n- 3. Corporate Sector\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_8",
@@ -28,28 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_8_vpdfroot",
+              "id": "cc_part_8_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Why do students and professionals need career counselling?",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_8_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the growing scope and diverse opportunities in career counseling.",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_part_8_vpdf_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "It examines how the field is evolving and the various career paths available for aspiring counselors.",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Scope Of Career Counselling In India",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Career Opportunities for Career Counsellors",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Education Industry",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Career Opportunities in the Education Sector:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Non-Governmental Organizations (NGOs) / Non-Profit Organizations (NPOs)",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Career Opportunities in NGOs/NPOs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Corporate Sector",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_8_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

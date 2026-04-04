@@ -10,8 +10,8 @@
     "chapter_id": 13,
     "part_id": 90
   },
-  "markdown": "# United Kingdom (UK)\n- Video/PDF\n  - This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…\n",
-  "md": "# United Kingdom (UK)\n- Video/PDF\n  - This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…\n",
+  "markdown": "# United Kingdom (UK)\n- Admission Process:\n- Undergraduate:\n- Graduate:\n- Standard Tests:\n- Other Requirements:\n- Cost of Study:\n- Tuition Fees:\n- Undergraduate Programs:\n- Quiz\n- Video\n",
+  "md": "# United Kingdom (UK)\n- Admission Process:\n- Undergraduate:\n- Graduate:\n- Standard Tests:\n- Other Requirements:\n- Cost of Study:\n- Tuition Fees:\n- Undergraduate Programs:\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_90",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_90_vpdfroot",
+              "id": "cc_part_90_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Admission Process:",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_90_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Undergraduate:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Graduate:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Standard Tests:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Other Requirements:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Cost of Study:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Tuition Fees:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Undergraduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_90_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

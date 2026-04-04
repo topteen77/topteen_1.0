@@ -10,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 68
   },
-  "markdown": "# Identifying Key Competences\n- Video/PDF\n  - This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…\n",
-  "md": "# Identifying Key Competences\n- Video/PDF\n  - This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…\n",
+  "markdown": "# Identifying Key Competences\n- Part 6- Identifying Key Competencies\n- 1. Conduct Comprehensive Assessments\n- 2. Review Academic and Extracurricular Records\n- 3. Conduct One-on-One Interviews\n- 4. Utilize Self-Assessment Tools\n- 5. Gather Feedback from Teachers and Mentors\n- 6. Analyze Results and Identify Patterns\n- 7. Develop Action Plans\n- Quiz\n- Video\n",
+  "md": "# Identifying Key Competences\n- Part 6- Identifying Key Competencies\n- 1. Conduct Comprehensive Assessments\n- 2. Review Academic and Extracurricular Records\n- 3. Conduct One-on-One Interviews\n- 4. Utilize Self-Assessment Tools\n- 5. Gather Feedback from Teachers and Mentors\n- 6. Analyze Results and Identify Patterns\n- 7. Develop Action Plans\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_68",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_68_vpdfroot",
+              "id": "cc_part_68_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Part 6- Identifying Key Competencies",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_68_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Conduct Comprehensive Assessments",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Review Academic and Extracurricular Records",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Conduct One-on-One Interviews",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "4. Utilize Self-Assessment Tools",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "5. Gather Feedback from Teachers and Mentors",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "6. Analyze Results and Identify Patterns",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "7. Develop Action Plans",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_68_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

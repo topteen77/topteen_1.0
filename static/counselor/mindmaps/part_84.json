@@ -10,8 +10,8 @@
     "chapter_id": 12,
     "part_id": 84
   },
-  "markdown": "# Other Options ( vocational / diploma or certificate courses)\n- Video/PDF\n  - This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…\n",
-  "md": "# Other Options ( vocational / diploma or certificate courses)\n- Video/PDF\n  - This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…\n",
+  "markdown": "# Other Options ( vocational / diploma or certificate courses)\n- 1. Vocational Courses\n- Common Vocational Courses\n- Other Courses :\n- Admission Process\n- Tuition Fees\n- Top Institutes\n- National Institute of Open Schooling (NIOS)\n- Indira Gandhi National Open University (IGNOU)\n- Quiz\n- Video\n",
+  "md": "# Other Options ( vocational / diploma or certificate courses)\n- 1. Vocational Courses\n- Common Vocational Courses\n- Other Courses :\n- Admission Process\n- Tuition Fees\n- Top Institutes\n- National Institute of Open Schooling (NIOS)\n- Indira Gandhi National Open University (IGNOU)\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_84",
@@ -28,20 +28,83 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_84_vpdfroot",
+              "id": "cc_part_84_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "1. Vocational Courses",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_84_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Common Vocational Courses",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Other Courses :",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Admission Process",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Tuition Fees",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Top Institutes",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "National Institute of Open Schooling (NIOS)",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Indira Gandhi National Open University (IGNOU)",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

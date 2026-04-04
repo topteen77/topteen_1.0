@@ -10,8 +10,8 @@
     "chapter_id": 15,
     "part_id": 60
   },
-  "markdown": "# Case Management and Record Keeping\n- Video/PDF\n  - This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n",
-  "md": "# Case Management and Record Keeping\n- Video/PDF\n  - This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n",
+  "markdown": "# Case Management and Record Keeping\n- Case Management\n- Key Components\n- Case Documentation\n- Quiz\n- Video\n",
+  "md": "# Case Management and Record Keeping\n- Case Management\n- Key Components\n- Case Documentation\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_60",
@@ -28,20 +28,43 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_60_vpdfroot",
+              "id": "cc_part_60_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Case Management",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_60_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key Components",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Case Documentation",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]

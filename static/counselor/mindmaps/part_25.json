@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 25
   },
-  "markdown": "# Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n",
-  "md": "# Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n",
+  "markdown": "# Interest Inventories and Their Applications\n- Understanding Interest Inventories\n- Common Types of Interest Inventories\n- Applications of Interest Inventories\n- Quiz\n- Video\n",
+  "md": "# Interest Inventories and Their Applications\n- Understanding Interest Inventories\n- Common Types of Interest Inventories\n- Applications of Interest Inventories\n- Quiz\n- Video\n",
   "xmind": [
     {
       "id": "cc_sheet_part_25",
@@ -28,20 +28,43 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_25_vpdfroot",
+              "id": "cc_part_25_pt_0",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video/PDF",
+              "title": "Understanding Interest Inventories",
               "children": {
-                "attached": [
-                  {
-                    "id": "cc_part_25_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…",
-                    "children": {
-                      "attached": []
-                    }
-                  }
-                ]
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_25_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Common Types of Interest Inventories",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_25_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Applications of Interest Inventories",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_25_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_25_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
               }
             }
           ]
