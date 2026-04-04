@@ -10,8 +10,8 @@
     "chapter_id": 14,
     "part_id": null
   },
-  "markdown": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n- Part 1- Utilizing Digital Tools for Career Counseling\n- The Impact of Digital Tools on Career Counseling\n- Accessibility and Reach:\n- Personalization and Customization:\n- Data-Driven Insights:\n- Enhanced Engagement:\n- Quiz\n- Video\n## Online Career Assessments and Planning Software\n- Part 2- Online Career Assessments and Planning Software\n- Key Features and Functionality:\n- Career Assessments:\n- Career Planning:\n- Job Market Insights:\n- Interactive Features:\n- Quiz\n- Video\n## Virtual Counseling and Remote Career Guidance\n- Part 3- Virtual Counseling and Remote Career Guidance\n- Technology Platforms\n- Features of Virtual Counseling\n- Benefits of Virtual Counseling\n- Challenges and Considerations\n- Popular Platforms\n- Quiz\n- Video\n## Leveraging Social Media for Career Development\n- Part 4- Leveraging Social Media for Career Development\n- Personal Branding\n- Networking Opportunities\n- Job Searching and Recruitment\n- Professional Development\n- Building a Support Network\n- Quiz\n- Video\n",
-  "md": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n- Part 1- Utilizing Digital Tools for Career Counseling\n- The Impact of Digital Tools on Career Counseling\n- Accessibility and Reach:\n- Personalization and Customization:\n- Data-Driven Insights:\n- Enhanced Engagement:\n- Quiz\n- Video\n## Online Career Assessments and Planning Software\n- Part 2- Online Career Assessments and Planning Software\n- Key Features and Functionality:\n- Career Assessments:\n- Career Planning:\n- Job Market Insights:\n- Interactive Features:\n- Quiz\n- Video\n## Virtual Counseling and Remote Career Guidance\n- Part 3- Virtual Counseling and Remote Career Guidance\n- Technology Platforms\n- Features of Virtual Counseling\n- Benefits of Virtual Counseling\n- Challenges and Considerations\n- Popular Platforms\n- Quiz\n- Video\n## Leveraging Social Media for Career Development\n- Part 4- Leveraging Social Media for Career Development\n- Personal Branding\n- Networking Opportunities\n- Job Searching and Recruitment\n- Professional Development\n- Building a Support Network\n- Quiz\n- Video\n",
+  "markdown": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - Part 1- Utilizing Digital Tools for Career Counseling\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n- Quiz\n## Online Career Assessments and Planning Software\n- Video/PDF\n  - Part 2- Online Career Assessments and Planning Software\n  - Key Features and Functionality:\n  - Career Assessments:\n  - Career Planning:\n  - Job Market Insights:\n  - Interactive Features:\n  - Integration and Accessibility:\n  - Benefits:\n- Quiz\n## Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - Part 3- Virtual Counseling and Remote Career Guidance\n  - Technology Platforms\n  - Features of Virtual Counseling\n  - Benefits of Virtual Counseling\n  - Challenges and Considerations\n  - Popular Platforms\n  - Application of Virtual Counseling in Education and Employment\n  - Future Trends\n- Quiz\n## Leveraging Social Media for Career Development\n- Video/PDF\n  - Part 4- Leveraging Social Media for Career Development\n  - Personal Branding\n  - Networking Opportunities\n  - Job Searching and Recruitment\n  - Professional Development\n  - Building a Support Network\n  - Showcasing Achievements\n- Quiz\n",
+  "md": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - Part 1- Utilizing Digital Tools for Career Counseling\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n- Quiz\n## Online Career Assessments and Planning Software\n- Video/PDF\n  - Part 2- Online Career Assessments and Planning Software\n  - Key Features and Functionality:\n  - Career Assessments:\n  - Career Planning:\n  - Job Market Insights:\n  - Interactive Features:\n  - Integration and Accessibility:\n  - Benefits:\n- Quiz\n## Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - Part 3- Virtual Counseling and Remote Career Guidance\n  - Technology Platforms\n  - Features of Virtual Counseling\n  - Benefits of Virtual Counseling\n  - Challenges and Considerations\n  - Popular Platforms\n  - Application of Virtual Counseling in Education and Employment\n  - Future Trends\n- Quiz\n## Leveraging Social Media for Career Development\n- Video/PDF\n  - Part 4- Leveraging Social Media for Career Development\n  - Personal Branding\n  - Networking Opportunities\n  - Job Searching and Recruitment\n  - Professional Development\n  - Building a Support Network\n  - Showcasing Achievements\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_14",
@@ -28,71 +28,88 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_14_p_56",
+              "id": "cc_ch_14_56_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Utilizing Digital Tools for Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_56_b_0",
+                    "id": "cc_ch_14_56_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 1- Utilizing Digital Tools for Career Counseling",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_56_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 1- Utilizing Digital Tools for Career Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "The Impact of Digital Tools on Career Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Accessibility and Reach:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Personalization and Customization:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Data-Driven Insights:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Enhanced Engagement:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Forms of Digital Tools in Career Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_56_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Online Assessment Tools:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_14_p_56_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "The Impact of Digital Tools on Career Counseling",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_56_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Accessibility and Reach:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_56_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Personalization and Customization:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_56_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Data-Driven Insights:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_56_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Enhanced Engagement:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_56_b_6",
+                    "id": "cc_ch_14_56_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_56_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -101,71 +118,88 @@
               }
             },
             {
-              "id": "cc_ch_14_p_57",
+              "id": "cc_ch_14_57_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Online Career Assessments and Planning Software",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_57_b_0",
+                    "id": "cc_ch_14_57_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 2- Online Career Assessments and Planning Software",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_57_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 2- Online Career Assessments and Planning Software",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Key Features and Functionality:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Career Assessments:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Career Planning:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Job Market Insights:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Interactive Features:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Integration and Accessibility:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_57_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Benefits:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_14_p_57_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Key Features and Functionality:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_57_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Career Assessments:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_57_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Career Planning:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_57_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Job Market Insights:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_57_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Interactive Features:",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_57_b_6",
+                    "id": "cc_ch_14_57_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_57_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -174,71 +208,88 @@
               }
             },
             {
-              "id": "cc_ch_14_p_58",
+              "id": "cc_ch_14_58_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Virtual Counseling and Remote Career Guidance",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_58_b_0",
+                    "id": "cc_ch_14_58_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 3- Virtual Counseling and Remote Career Guidance",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_58_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 3- Virtual Counseling and Remote Career Guidance",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Technology Platforms",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Features of Virtual Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Benefits of Virtual Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Challenges and Considerations",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Popular Platforms",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Application of Virtual Counseling in Education and Employment",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_58_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Future Trends",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_14_p_58_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Technology Platforms",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_58_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Features of Virtual Counseling",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_58_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Benefits of Virtual Counseling",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_58_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Challenges and Considerations",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_58_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Popular Platforms",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_58_b_6",
+                    "id": "cc_ch_14_58_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_58_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -247,71 +298,80 @@
               }
             },
             {
-              "id": "cc_ch_14_p_59",
+              "id": "cc_ch_14_59_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Leveraging Social Media for Career Development",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_59_b_0",
+                    "id": "cc_ch_14_59_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 4- Leveraging Social Media for Career Development",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_59_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 4- Leveraging Social Media for Career Development",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_59_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Personal Branding",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_59_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Networking Opportunities",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_59_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Job Searching and Recruitment",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_59_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Professional Development",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_59_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Building a Support Network",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_14_59_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Showcasing Achievements",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_14_p_59_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Personal Branding",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_59_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Networking Opportunities",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_59_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Job Searching and Recruitment",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_59_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Professional Development",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_59_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Building a Support Network",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_59_b_6",
+                    "id": "cc_ch_14_59_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_14_p_59_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }

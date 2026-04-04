@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 24
   },
-  "markdown": "# The Role of Self-Assessment in Career Counseling\n- Understanding Self-Assessment\n- 1. Identifying Strengths and Weaknesses\n- 2. Clarifying Interests and Values\n- 3. Exploring Personality Traits\n- 4. Setting Realistic Career Goals\n- 5. Enhancing Self-Awareness\n- 6. Informing Career Exploration\n- 7. Supporting Career Transition\n- Quiz\n- Video\n",
-  "md": "# The Role of Self-Assessment in Career Counseling\n- Understanding Self-Assessment\n- 1. Identifying Strengths and Weaknesses\n- 2. Clarifying Interests and Values\n- 3. Exploring Personality Traits\n- 4. Setting Realistic Career Goals\n- 5. Enhancing Self-Awareness\n- 6. Informing Career Exploration\n- 7. Supporting Career Transition\n- Quiz\n- Video\n",
+  "markdown": "# The Role of Self-Assessment in Career Counseling\n- Video/PDF\n  - Understanding Self-Assessment\n  - 1. Identifying Strengths and Weaknesses\n  - 2. Clarifying Interests and Values\n  - 3. Exploring Personality Traits\n  - 4. Setting Realistic Career Goals\n  - 5. Enhancing Self-Awareness\n  - 6. Informing Career Exploration\n  - 7. Supporting Career Transition\n  - 8. Improving Job Satisfaction and Performance\n  - 9. Providing Direction and Focus\n- Quiz\n",
+  "md": "# The Role of Self-Assessment in Career Counseling\n- Video/PDF\n  - Understanding Self-Assessment\n  - 1. Identifying Strengths and Weaknesses\n  - 2. Clarifying Interests and Values\n  - 3. Exploring Personality Traits\n  - 4. Setting Realistic Career Goals\n  - 5. Enhancing Self-Awareness\n  - 6. Informing Career Exploration\n  - 7. Supporting Career Transition\n  - 8. Improving Job Satisfaction and Performance\n  - 9. Providing Direction and Focus\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_24",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_24_pt_0",
+              "id": "cc_part_24_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Understanding Self-Assessment",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_24_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Understanding Self-Assessment",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Identifying Strengths and Weaknesses",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Clarifying Interests and Values",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Exploring Personality Traits",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Setting Realistic Career Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Enhancing Self-Awareness",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Informing Career Exploration",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "7. Supporting Career Transition",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "8. Improving Job Satisfaction and Performance",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_24_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "9. Providing Direction and Focus",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_24_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Identifying Strengths and Weaknesses",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. Clarifying Interests and Values",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "3. Exploring Personality Traits",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "4. Setting Realistic Career Goals",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "5. Enhancing Self-Awareness",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "6. Informing Career Exploration",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "7. Supporting Career Transition",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_8",
+              "id": "cc_part_24_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_24_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 28
   },
-  "markdown": "# Administering and Interpreting Psychometric Tests\n- Administering Psychometric Tests\n- 1. Selecting the Appropriate Test\n- 2. Preparing for Administration\n- 3. Administering the Test\n- 4. Ensuring Ethical Practice\n- Interpreting Psychometric Test Results\n- 1. Understanding Test Results\n- 2. Integrating Results into Career Counseling\n- Quiz\n- Video\n",
-  "md": "# Administering and Interpreting Psychometric Tests\n- Administering Psychometric Tests\n- 1. Selecting the Appropriate Test\n- 2. Preparing for Administration\n- 3. Administering the Test\n- 4. Ensuring Ethical Practice\n- Interpreting Psychometric Test Results\n- 1. Understanding Test Results\n- 2. Integrating Results into Career Counseling\n- Quiz\n- Video\n",
+  "markdown": "# Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - Administering Psychometric Tests\n  - 1. Selecting the Appropriate Test\n  - 2. Preparing for Administration\n  - 3. Administering the Test\n  - 4. Ensuring Ethical Practice\n  - Interpreting Psychometric Test Results\n  - 1. Understanding Test Results\n  - 2. Integrating Results into Career Counseling\n  - 3. Providing Actionable Insights\n  - 4. Communicating Results\n- Quiz\n",
+  "md": "# Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - Administering Psychometric Tests\n  - 1. Selecting the Appropriate Test\n  - 2. Preparing for Administration\n  - 3. Administering the Test\n  - 4. Ensuring Ethical Practice\n  - Interpreting Psychometric Test Results\n  - 1. Understanding Test Results\n  - 2. Integrating Results into Career Counseling\n  - 3. Providing Actionable Insights\n  - 4. Communicating Results\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_28",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_28_pt_0",
+              "id": "cc_part_28_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Administering Psychometric Tests",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_28_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Administering Psychometric Tests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Selecting the Appropriate Test",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Preparing for Administration",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Administering the Test",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Ensuring Ethical Practice",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Interpreting Psychometric Test Results",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Understanding Test Results",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Integrating Results into Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Providing Actionable Insights",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_28_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Communicating Results",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_28_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Selecting the Appropriate Test",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. Preparing for Administration",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "3. Administering the Test",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "4. Ensuring Ethical Practice",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Interpreting Psychometric Test Results",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Understanding Test Results",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. Integrating Results into Career Counseling",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_8",
+              "id": "cc_part_28_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_28_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

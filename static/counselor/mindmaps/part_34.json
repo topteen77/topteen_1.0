@@ -10,8 +10,8 @@
     "chapter_id": 10,
     "part_id": 34
   },
-  "markdown": "# Subject combinations and Career guidance\n- Part 1- subject combinations and Career guidance\n- 1. Medicine & Healthcare\n- Core Subjects:\n- Additional Courses:\n- 2. Engineering\n- Specializations:\n- 3. Business & Management\n- 4. Law\n- Quiz\n- Video\n",
-  "md": "# Subject combinations and Career guidance\n- Part 1- subject combinations and Career guidance\n- 1. Medicine & Healthcare\n- Core Subjects:\n- Additional Courses:\n- 2. Engineering\n- Specializations:\n- 3. Business & Management\n- 4. Law\n- Quiz\n- Video\n",
+  "markdown": "# Subject combinations and Career guidance\n- Video/PDF\n  - Part 1- subject combinations and Career guidance\n  - 1. Medicine & Healthcare\n  - Core Subjects:\n  - Additional Courses:\n  - 2. Engineering\n  - Specializations:\n  - 3. Business & Management\n  - 4. Law\n  - 5. Computer Science & IT\n  - 6. Finance & Economics\n- Quiz\n",
+  "md": "# Subject combinations and Career guidance\n- Video/PDF\n  - Part 1- subject combinations and Career guidance\n  - 1. Medicine & Healthcare\n  - Core Subjects:\n  - Additional Courses:\n  - 2. Engineering\n  - Specializations:\n  - 3. Business & Management\n  - 4. Law\n  - 5. Computer Science & IT\n  - 6. Finance & Economics\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_34",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_34_pt_0",
+              "id": "cc_part_34_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Part 1- subject combinations and Career guidance",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_34_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 1- subject combinations and Career guidance",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Medicine & Healthcare",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Core Subjects:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Additional Courses:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Engineering",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Specializations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Business & Management",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Law",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Computer Science & IT",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_34_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Finance & Economics",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_34_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Medicine & Healthcare",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Core Subjects:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Additional Courses:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. Engineering",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Specializations:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "3. Business & Management",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "4. Law",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_8",
+              "id": "cc_part_34_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_34_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

@@ -10,8 +10,8 @@
     "chapter_id": 6,
     "part_id": null
   },
-  "markdown": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n- Chapter 4 -    Theoretical Foundations of Career Counseling\n- Overview of Career Development theories\n- 1. Super’s Life-Span, Life-Space Theory\n- 2. Holland’s Theory of Vocational Personalities and Work Environments\n- 3. Krumboltz’s Social Learning Theory of Career Decision Making\n- 4. Gottfredson’s Theory of Circumscription and Compromise\n- Quiz\n- Video\n## Overview of Career Decision-Making Theories\n- Overview of Career Decision-Making Theories\n- 1. Rational Decision-Making Model\n- 2. Bounded Rationality Theory\n- 3. Social Cognitive Career Theory (SCCT)\n- 4. Decision-Making Theory of Career Development (CDDM)\n- 5. Krumboltz’s Social Learning Theory of Career Decision Making\n- Quiz\n- Video\n## Psychological and Sociological Influences on Career Choices\n- Psychosocial Influences on Career Choices\n- 1. Self-Concept\n- 2. Self-Efficacy\n- 3. Family Influence\n- 4. Social and Cultural Norms\n- 5. Peer Influence\n- Quiz\n- Video\n",
-  "md": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n- Chapter 4 -    Theoretical Foundations of Career Counseling\n- Overview of Career Development theories\n- 1. Super’s Life-Span, Life-Space Theory\n- 2. Holland’s Theory of Vocational Personalities and Work Environments\n- 3. Krumboltz’s Social Learning Theory of Career Decision Making\n- 4. Gottfredson’s Theory of Circumscription and Compromise\n- Quiz\n- Video\n## Overview of Career Decision-Making Theories\n- Overview of Career Decision-Making Theories\n- 1. Rational Decision-Making Model\n- 2. Bounded Rationality Theory\n- 3. Social Cognitive Career Theory (SCCT)\n- 4. Decision-Making Theory of Career Development (CDDM)\n- 5. Krumboltz’s Social Learning Theory of Career Decision Making\n- Quiz\n- Video\n## Psychological and Sociological Influences on Career Choices\n- Psychosocial Influences on Career Choices\n- 1. Self-Concept\n- 2. Self-Efficacy\n- 3. Family Influence\n- 4. Social and Cultural Norms\n- 5. Peer Influence\n- Quiz\n- Video\n",
+  "markdown": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n- Video/PDF\n  - Chapter 4 -    Theoretical Foundations of Career Counseling\n  - Overview of Career Development theories\n  - 1. Super’s Life-Span, Life-Space Theory\n  - 2. Holland’s Theory of Vocational Personalities and Work Environments\n  - 3. Krumboltz’s Social Learning Theory of Career Decision Making\n  - 4. Gottfredson’s Theory of Circumscription and Compromise\n  - 5. Brown’s Values-Based Theory\n  - 6. Savickas’s Career Construction Theory\n- Quiz\n## Overview of Career Decision-Making Theories\n- Video/PDF\n  - Overview of Career Decision-Making Theories\n  - 1. Rational Decision-Making Model\n  - 2. Bounded Rationality Theory\n  - 3. Social Cognitive Career Theory (SCCT)\n  - 4. Decision-Making Theory of Career Development (CDDM)\n  - 5. Krumboltz’s Social Learning Theory of Career Decision Making\n  - 6. Holland’s Theory of Vocational Personalities and Work Environments\n  - 7. Gottfredson’s Theory of Circumscription and Compromise\n- Quiz\n## Psychological and Sociological Influences on Career Choices\n- Video/PDF\n  - Psychosocial Influences on Career Choices\n  - 1. Self-Concept\n  - 2. Self-Efficacy\n  - 3. Family Influence\n  - 4. Social and Cultural Norms\n  - 5. Peer Influence\n  - 6. Educational and Vocational Experiences\n  - 7. Personality Traits\n- Quiz\n",
+  "md": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n- Video/PDF\n  - Chapter 4 -    Theoretical Foundations of Career Counseling\n  - Overview of Career Development theories\n  - 1. Super’s Life-Span, Life-Space Theory\n  - 2. Holland’s Theory of Vocational Personalities and Work Environments\n  - 3. Krumboltz’s Social Learning Theory of Career Decision Making\n  - 4. Gottfredson’s Theory of Circumscription and Compromise\n  - 5. Brown’s Values-Based Theory\n  - 6. Savickas’s Career Construction Theory\n- Quiz\n## Overview of Career Decision-Making Theories\n- Video/PDF\n  - Overview of Career Decision-Making Theories\n  - 1. Rational Decision-Making Model\n  - 2. Bounded Rationality Theory\n  - 3. Social Cognitive Career Theory (SCCT)\n  - 4. Decision-Making Theory of Career Development (CDDM)\n  - 5. Krumboltz’s Social Learning Theory of Career Decision Making\n  - 6. Holland’s Theory of Vocational Personalities and Work Environments\n  - 7. Gottfredson’s Theory of Circumscription and Compromise\n- Quiz\n## Psychological and Sociological Influences on Career Choices\n- Video/PDF\n  - Psychosocial Influences on Career Choices\n  - 1. Self-Concept\n  - 2. Self-Efficacy\n  - 3. Family Influence\n  - 4. Social and Cultural Norms\n  - 5. Peer Influence\n  - 6. Educational and Vocational Experiences\n  - 7. Personality Traits\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_6",
@@ -28,71 +28,88 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_6_p_21",
+              "id": "cc_ch_6_21_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Overview of Career Development Theories",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_6_p_21_b_0",
+                    "id": "cc_ch_6_21_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Chapter 4 -    Theoretical Foundations of Career Counseling",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_6_21_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Chapter 4 -    Theoretical Foundations of Career Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Overview of Career Development theories",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Super’s Life-Span, Life-Space Theory",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Holland’s Theory of Vocational Personalities and Work Environments",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Krumboltz’s Social Learning Theory of Career Decision Making",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Gottfredson’s Theory of Circumscription and Compromise",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Brown’s Values-Based Theory",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_21_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Savickas’s Career Construction Theory",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_6_p_21_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Overview of Career Development theories",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_21_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "1. Super’s Life-Span, Life-Space Theory",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_21_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "2. Holland’s Theory of Vocational Personalities and Work Environments",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_21_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "3. Krumboltz’s Social Learning Theory of Career Decision Making",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_21_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "4. Gottfredson’s Theory of Circumscription and Compromise",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_21_b_6",
+                    "id": "cc_ch_6_21_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_21_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -101,71 +118,88 @@
               }
             },
             {
-              "id": "cc_ch_6_p_22",
+              "id": "cc_ch_6_22_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Overview of Career Decision-Making Theories",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_6_p_22_b_0",
+                    "id": "cc_ch_6_22_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Overview of Career Decision-Making Theories",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_6_22_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Overview of Career Decision-Making Theories",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Rational Decision-Making Model",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Bounded Rationality Theory",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Social Cognitive Career Theory (SCCT)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Decision-Making Theory of Career Development (CDDM)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Krumboltz’s Social Learning Theory of Career Decision Making",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Holland’s Theory of Vocational Personalities and Work Environments",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_22_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Gottfredson’s Theory of Circumscription and Compromise",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_6_p_22_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "1. Rational Decision-Making Model",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_22_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "2. Bounded Rationality Theory",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_22_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "3. Social Cognitive Career Theory (SCCT)",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_22_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "4. Decision-Making Theory of Career Development (CDDM)",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_22_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "5. Krumboltz’s Social Learning Theory of Career Decision Making",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_22_b_6",
+                    "id": "cc_ch_6_22_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_22_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -174,71 +208,88 @@
               }
             },
             {
-              "id": "cc_ch_6_p_23",
+              "id": "cc_ch_6_23_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Psychological and Sociological Influences on Career Choices",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_6_p_23_b_0",
+                    "id": "cc_ch_6_23_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Psychosocial Influences on Career Choices",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_6_23_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Psychosocial Influences on Career Choices",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Self-Concept",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Self-Efficacy",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Family Influence",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Social and Cultural Norms",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Peer Influence",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Educational and Vocational Experiences",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_6_23_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Personality Traits",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_6_p_23_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "1. Self-Concept",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_23_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "2. Self-Efficacy",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_23_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "3. Family Influence",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_23_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "4. Social and Cultural Norms",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_23_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "5. Peer Influence",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_23_b_6",
+                    "id": "cc_ch_6_23_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_6_p_23_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }

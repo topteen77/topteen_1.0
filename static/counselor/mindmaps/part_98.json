@@ -10,8 +10,8 @@
     "chapter_id": 13,
     "part_id": 98
   },
-  "markdown": "# Hong Kong\n- This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
-  "md": "# Hong Kong\n- This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "markdown": "# Hong Kong\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "md": "# Hong Kong\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_98",
@@ -28,11 +28,20 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_98_pt_0",
+              "id": "cc_part_98_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_98_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             }
           ]

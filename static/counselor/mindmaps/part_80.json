@@ -10,8 +10,8 @@
     "chapter_id": 12,
     "part_id": 80
   },
-  "markdown": "# Engineering Admission Process\n- 1. Eligibility Criteria\n- Educational Qualification:\n- Minimum Marks:\n- Additional Subjects:\n- Age Limit:\n- 2. National-Level Entrance Exams\n- JEE Main (Joint Entrance Examination - Main):\n- JEE Advanced:\n- Quiz\n- Video\n",
-  "md": "# Engineering Admission Process\n- 1. Eligibility Criteria\n- Educational Qualification:\n- Minimum Marks:\n- Additional Subjects:\n- Age Limit:\n- 2. National-Level Entrance Exams\n- JEE Main (Joint Entrance Examination - Main):\n- JEE Advanced:\n- Quiz\n- Video\n",
+  "markdown": "# Engineering Admission Process\n- Video/PDF\n  - 1. Eligibility Criteria\n  - Educational Qualification:\n  - Minimum Marks:\n  - Additional Subjects:\n  - Age Limit:\n  - 2. National-Level Entrance Exams\n  - JEE Main (Joint Entrance Examination - Main):\n  - JEE Advanced:\n  - Other National-Level Exams:\n  - VITEEE (Vellore Institute of Technology Entrance Exam).\n- Quiz\n",
+  "md": "# Engineering Admission Process\n- Video/PDF\n  - 1. Eligibility Criteria\n  - Educational Qualification:\n  - Minimum Marks:\n  - Additional Subjects:\n  - Age Limit:\n  - 2. National-Level Entrance Exams\n  - JEE Main (Joint Entrance Examination - Main):\n  - JEE Advanced:\n  - Other National-Level Exams:\n  - VITEEE (Vellore Institute of Technology Entrance Exam).\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_80",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_80_pt_0",
+              "id": "cc_part_80_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Eligibility Criteria",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_80_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Eligibility Criteria",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Educational Qualification:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Minimum Marks:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Additional Subjects:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Age Limit:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. National-Level Entrance Exams",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "JEE Main (Joint Entrance Examination - Main):",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "JEE Advanced:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Other National-Level Exams:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_80_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "VITEEE (Vellore Institute of Technology Entrance Exam).",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_80_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Educational Qualification:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Minimum Marks:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Additional Subjects:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Age Limit:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. National-Level Entrance Exams",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "JEE Main (Joint Entrance Examination - Main):",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "JEE Advanced:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_8",
+              "id": "cc_part_80_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_80_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

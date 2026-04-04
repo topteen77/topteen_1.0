@@ -10,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 15
   },
-  "markdown": "# Essential Skills for Effective Career Counseling\n- Part 1- Essential Skills for Effective Career Counseling\n- Imperative Skills for Career Counseling-\n- Quiz\n- Video\n",
-  "md": "# Essential Skills for Effective Career Counseling\n- Part 1- Essential Skills for Effective Career Counseling\n- Imperative Skills for Career Counseling-\n- Quiz\n- Video\n",
+  "markdown": "# Essential Skills for Effective Career Counseling\n- Video/PDF\n  - Part 1- Essential Skills for Effective Career Counseling\n  - Imperative Skills for Career Counseling-\n- Quiz\n",
+  "md": "# Essential Skills for Effective Career Counseling\n- Video/PDF\n  - Part 1- Essential Skills for Effective Career Counseling\n  - Imperative Skills for Career Counseling-\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_15",
@@ -28,33 +28,34 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_15_pt_0",
+              "id": "cc_part_15_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Part 1- Essential Skills for Effective Career Counseling",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_15_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 1- Essential Skills for Effective Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_15_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Imperative Skills for Career Counseling-",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_15_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Imperative Skills for Career Counseling-",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_15_pt_2",
+              "id": "cc_part_15_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_15_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

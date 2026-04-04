@@ -10,8 +10,8 @@
     "chapter_id": 3,
     "part_id": 9
   },
-  "markdown": "# Historical Evolution and Current Trends in Career Counseling\n- Part 4- Historical Evolution of Career Counselling\n- Technological Advancements and Formalization\n- Current Trends in Career Counselling\n- Emerging Career Models and Lifelong Learning\n- Quiz\n- Video\n",
-  "md": "# Historical Evolution and Current Trends in Career Counseling\n- Part 4- Historical Evolution of Career Counselling\n- Technological Advancements and Formalization\n- Current Trends in Career Counselling\n- Emerging Career Models and Lifelong Learning\n- Quiz\n- Video\n",
+  "markdown": "# Historical Evolution and Current Trends in Career Counseling\n- Video/PDF\n  - Part 4- Historical Evolution of Career Counselling\n  - Technological Advancements and Formalization\n  - Current Trends in Career Counselling\n  - Emerging Career Models and Lifelong Learning\n- Quiz\n",
+  "md": "# Historical Evolution and Current Trends in Career Counseling\n- Video/PDF\n  - Part 4- Historical Evolution of Career Counselling\n  - Technological Advancements and Formalization\n  - Current Trends in Career Counselling\n  - Emerging Career Models and Lifelong Learning\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_9",
@@ -28,49 +28,50 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_9_pt_0",
+              "id": "cc_part_9_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Part 4- Historical Evolution of Career Counselling",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_9_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 4- Historical Evolution of Career Counselling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_9_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Technological Advancements and Formalization",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_9_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Current Trends in Career Counselling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_9_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Emerging Career Models and Lifelong Learning",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_9_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Technological Advancements and Formalization",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_9_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Current Trends in Career Counselling",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_9_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Emerging Career Models and Lifelong Learning",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_9_pt_4",
+              "id": "cc_part_9_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_9_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

@@ -10,8 +10,8 @@
     "chapter_id": 17,
     "part_id": 70
   },
-  "markdown": "# Ethical Decision-Making in Career Counseling\n- Ethical Decision-Making in Career Counseling\n- KEY DIFFERENCES-\n- Quiz\n- Video\n",
-  "md": "# Ethical Decision-Making in Career Counseling\n- Ethical Decision-Making in Career Counseling\n- KEY DIFFERENCES-\n- Quiz\n- Video\n",
+  "markdown": "# Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - Ethical Decision-Making in Career Counseling\n  - KEY DIFFERENCES-\n- Quiz\n",
+  "md": "# Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - Ethical Decision-Making in Career Counseling\n  - KEY DIFFERENCES-\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_70",
@@ -28,33 +28,34 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_70_pt_0",
+              "id": "cc_part_70_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Ethical Decision-Making in Career Counseling",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_70_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Ethical Decision-Making in Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_70_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "KEY DIFFERENCES-",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_70_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "KEY DIFFERENCES-",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_70_pt_2",
+              "id": "cc_part_70_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_70_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

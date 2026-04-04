@@ -10,8 +10,8 @@
     "chapter_id": 11,
     "part_id": 42
   },
-  "markdown": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Extra Notes-\n- Funding Opportunities in India\n- Funding Opportunities in Canada\n- Funding Opportunities in the USA\n- Funding Opportunities in the UK\n- Funding Opportunities in Germany\n- Funding Opportunities in France\n- Funding Opportunities in Australia\n- Quiz\n- Video\n",
-  "md": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Extra Notes-\n- Funding Opportunities in India\n- Funding Opportunities in Canada\n- Funding Opportunities in the USA\n- Funding Opportunities in the UK\n- Funding Opportunities in Germany\n- Funding Opportunities in France\n- Funding Opportunities in Australia\n- Quiz\n- Video\n",
+  "markdown": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Video/PDF\n  - Extra Notes-\n  - Funding Opportunities in India\n  - Funding Opportunities in Canada\n  - Funding Opportunities in the USA\n  - Funding Opportunities in the UK\n  - Funding Opportunities in Germany\n  - Funding Opportunities in France\n  - Funding Opportunities in Australia\n  - Funding Opportunities in New Zealand\n  - Funding Opportunities in Hong Kong\n- Quiz\n",
+  "md": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Video/PDF\n  - Extra Notes-\n  - Funding Opportunities in India\n  - Funding Opportunities in Canada\n  - Funding Opportunities in the USA\n  - Funding Opportunities in the UK\n  - Funding Opportunities in Germany\n  - Funding Opportunities in France\n  - Funding Opportunities in Australia\n  - Funding Opportunities in New Zealand\n  - Funding Opportunities in Hong Kong\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_42",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_42_pt_0",
+              "id": "cc_part_42_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Extra Notes-",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_42_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Extra Notes-",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in India",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in Canada",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in the USA",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in the UK",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in Germany",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in France",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in Australia",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in New Zealand",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_42_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Funding Opportunities in Hong Kong",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_42_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in India",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in Canada",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in the USA",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in the UK",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in Germany",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in France",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Funding Opportunities in Australia",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_8",
+              "id": "cc_part_42_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_42_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

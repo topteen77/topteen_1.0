@@ -10,8 +10,8 @@
     "chapter_id": 19,
     "part_id": 75
   },
-  "markdown": "# Role Playing and Simulation Exercises for Career Counselors\n- Role Playing and Simulation Exercises for Career Counselors\n- Role Playing\n- Purpose:\n- Implementation:\n- B) Simulation Exercises\n- Benefits for Career Counseling\n- Role Playing Examples\n- Job Interview Simulation\n- Quiz\n- Video\n",
-  "md": "# Role Playing and Simulation Exercises for Career Counselors\n- Role Playing and Simulation Exercises for Career Counselors\n- Role Playing\n- Purpose:\n- Implementation:\n- B) Simulation Exercises\n- Benefits for Career Counseling\n- Role Playing Examples\n- Job Interview Simulation\n- Quiz\n- Video\n",
+  "markdown": "# Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - Role Playing and Simulation Exercises for Career Counselors\n  - Role Playing\n  - Purpose:\n  - Implementation:\n  - B) Simulation Exercises\n  - Benefits for Career Counseling\n  - Role Playing Examples\n  - Job Interview Simulation\n  - Career Decision-Making Discussion\n  - Conflict Resolution with a Supervisor\n- Quiz\n",
+  "md": "# Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - Role Playing and Simulation Exercises for Career Counselors\n  - Role Playing\n  - Purpose:\n  - Implementation:\n  - B) Simulation Exercises\n  - Benefits for Career Counseling\n  - Role Playing Examples\n  - Job Interview Simulation\n  - Career Decision-Making Discussion\n  - Conflict Resolution with a Supervisor\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_75",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_75_pt_0",
+              "id": "cc_part_75_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Role Playing and Simulation Exercises for Career Counselors",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_75_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Role Playing and Simulation Exercises for Career Counselors",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Role Playing",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Purpose:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Implementation:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "B) Simulation Exercises",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Benefits for Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Role Playing Examples",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Job Interview Simulation",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Career Decision-Making Discussion",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_75_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Conflict Resolution with a Supervisor",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_75_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Role Playing",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Purpose:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Implementation:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "B) Simulation Exercises",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Benefits for Career Counseling",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Role Playing Examples",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Job Interview Simulation",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_8",
+              "id": "cc_part_75_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_75_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

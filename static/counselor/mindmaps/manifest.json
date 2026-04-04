@@ -106,5 +106,14 @@
     "markdown": "Field markdown (or md) is required; parsed by counselor_mindmap_widget.html.",
     "map_type": "tree=Markmap; concept=rings; radial=D3 radial; cluster=D3 dendrogram; career_radial=radial-mindmap.js (career detail style). URL ?map_type= overrides JSON.",
     "xmind": "Array xmind matches XMind sheet/rootTopic/children.attached shape for import or custom radial UI."
+  },
+  "html_export": {
+    "folder": "html",
+    "source_folders": [
+      "attachments",
+      "Quiz"
+    ],
+    "files_written": 249,
+    "error_count": 0
   }
 }

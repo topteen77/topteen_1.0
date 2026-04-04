@@ -10,8 +10,8 @@
     "chapter_id": 4,
     "part_id": 12
   },
-  "markdown": "# Changing scope of Careers in 21st century.\n- Changing scope of Careers in 21st century\n- What is the Future of Work?\n- Evolving Career Possibilities in the 21st Century\n- Emerging Career Fields\n- Shifting Trends in Employment\n- The Skills Needed for Future Careers\n- Emerging Careers for the Next Decades\n- 1. Computer Science Teachers\n- Quiz\n- Video\n",
-  "md": "# Changing scope of Careers in 21st century.\n- Changing scope of Careers in 21st century\n- What is the Future of Work?\n- Evolving Career Possibilities in the 21st Century\n- Emerging Career Fields\n- Shifting Trends in Employment\n- The Skills Needed for Future Careers\n- Emerging Careers for the Next Decades\n- 1. Computer Science Teachers\n- Quiz\n- Video\n",
+  "markdown": "# Changing scope of Careers in 21st century.\n- Video/PDF\n  - Changing scope of Careers in 21st century\n  - What is the Future of Work?\n  - Evolving Career Possibilities in the 21st Century\n  - Emerging Career Fields\n  - Shifting Trends in Employment\n  - The Skills Needed for Future Careers\n  - Emerging Careers for the Next Decades\n  - 1. Computer Science Teachers\n  - 2. Language Teachers\n  - 3. Automobile Mechanics\n- Quiz\n",
+  "md": "# Changing scope of Careers in 21st century.\n- Video/PDF\n  - Changing scope of Careers in 21st century\n  - What is the Future of Work?\n  - Evolving Career Possibilities in the 21st Century\n  - Emerging Career Fields\n  - Shifting Trends in Employment\n  - The Skills Needed for Future Careers\n  - Emerging Careers for the Next Decades\n  - 1. Computer Science Teachers\n  - 2. Language Teachers\n  - 3. Automobile Mechanics\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_12",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_12_pt_0",
+              "id": "cc_part_12_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Changing scope of Careers in 21st century",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_12_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Changing scope of Careers in 21st century",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "What is the Future of Work?",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Evolving Career Possibilities in the 21st Century",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Emerging Career Fields",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Shifting Trends in Employment",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "The Skills Needed for Future Careers",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Emerging Careers for the Next Decades",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Computer Science Teachers",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Language Teachers",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_12_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Automobile Mechanics",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_12_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "What is the Future of Work?",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Evolving Career Possibilities in the 21st Century",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Emerging Career Fields",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Shifting Trends in Employment",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "The Skills Needed for Future Careers",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Emerging Careers for the Next Decades",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Computer Science Teachers",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_8",
+              "id": "cc_part_12_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_12_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

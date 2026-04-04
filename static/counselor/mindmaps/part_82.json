@@ -10,8 +10,8 @@
     "chapter_id": 12,
     "part_id": 82
   },
-  "markdown": "# Commerce Admission Process\n- Course Options and Admission process for Commerce Students After 12th in India\n- 1. Bachelor of Commerce (B.Com)\n- Overview:\n- Specializations:\n- Admission Process:\n- Mathematics Requirement:\n- Tuition Fees:\n- Top Colleges:\n- Quiz\n- Video\n",
-  "md": "# Commerce Admission Process\n- Course Options and Admission process for Commerce Students After 12th in India\n- 1. Bachelor of Commerce (B.Com)\n- Overview:\n- Specializations:\n- Admission Process:\n- Mathematics Requirement:\n- Tuition Fees:\n- Top Colleges:\n- Quiz\n- Video\n",
+  "markdown": "# Commerce Admission Process\n- Video/PDF\n  - Course Options and Admission process for Commerce Students After 12th in India\n  - 1. Bachelor of Commerce (B.Com)\n  - Overview:\n  - Specializations:\n  - Admission Process:\n  - Mathematics Requirement:\n  - Tuition Fees:\n  - Top Colleges:\n  - 2. Bachelor of Business Administration (BBA)\n  - 3. Chartered Accountancy (CA)\n- Quiz\n",
+  "md": "# Commerce Admission Process\n- Video/PDF\n  - Course Options and Admission process for Commerce Students After 12th in India\n  - 1. Bachelor of Commerce (B.Com)\n  - Overview:\n  - Specializations:\n  - Admission Process:\n  - Mathematics Requirement:\n  - Tuition Fees:\n  - Top Colleges:\n  - 2. Bachelor of Business Administration (BBA)\n  - 3. Chartered Accountancy (CA)\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_82",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_82_pt_0",
+              "id": "cc_part_82_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Course Options and Admission process for Commerce Students After 12th in India",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_82_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Course Options and Admission process for Commerce Students After 12th in India",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Bachelor of Commerce (B.Com)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Overview:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Specializations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Admission Process:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Mathematics Requirement:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Tuition Fees:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Top Colleges:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Bachelor of Business Administration (BBA)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_82_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Chartered Accountancy (CA)",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_82_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Bachelor of Commerce (B.Com)",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Overview:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Specializations:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Admission Process:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Mathematics Requirement:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Tuition Fees:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Top Colleges:",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_8",
+              "id": "cc_part_82_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_82_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

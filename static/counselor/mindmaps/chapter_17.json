@@ -10,8 +10,8 @@
     "chapter_id": 17,
     "part_id": null
   },
-  "markdown": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n- This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n- Video\n## Ethical Decision-Making in Career Counseling\n- Ethical Decision-Making in Career Counseling\n- KEY DIFFERENCES-\n- Quiz\n- Video\n## Legal Considerations and Compliance in Career Counseling\n- 1. Confidentiality and Privacy\n- 2. Professional Licensure and Certification\n- 3. Ethical Standards\n- 4. Anti-Discrimination Laws\n- 5. Accuracy and Competence\n- 6. Informed Consent and Documentation\n- Quiz\n- Video\n",
-  "md": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n- This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n- Video\n## Ethical Decision-Making in Career Counseling\n- Ethical Decision-Making in Career Counseling\n- KEY DIFFERENCES-\n- Quiz\n- Video\n## Legal Considerations and Compliance in Career Counseling\n- 1. Confidentiality and Privacy\n- 2. Professional Licensure and Certification\n- 3. Ethical Standards\n- 4. Anti-Discrimination Laws\n- 5. Accuracy and Competence\n- 6. Informed Consent and Documentation\n- Quiz\n- Video\n",
+  "markdown": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n- Video/PDF\n  - This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n## Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - Ethical Decision-Making in Career Counseling\n  - KEY DIFFERENCES-\n- Quiz\n## Legal Considerations and Compliance in Career Counseling\n- Video/PDF\n  - 1. Confidentiality and Privacy\n  - 2. Professional Licensure and Certification\n  - 3. Ethical Standards\n  - 4. Anti-Discrimination Laws\n  - 5. Accuracy and Competence\n  - 6. Informed Consent and Documentation\n  - 7. Handling Complaints and Disputes\n  - IMPORTANCE OF CONFIDENTIALITY AND PRIVACY IN CAREER COUNSELING\n- Quiz\n",
+  "md": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n- Video/PDF\n  - This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n## Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - Ethical Decision-Making in Career Counseling\n  - KEY DIFFERENCES-\n- Quiz\n## Legal Considerations and Compliance in Career Counseling\n- Video/PDF\n  - 1. Confidentiality and Privacy\n  - 2. Professional Licensure and Certification\n  - 3. Ethical Standards\n  - 4. Anti-Discrimination Laws\n  - 5. Accuracy and Competence\n  - 6. Informed Consent and Documentation\n  - 7. Handling Complaints and Disputes\n  - IMPORTANCE OF CONFIDENTIALITY AND PRIVACY IN CAREER COUNSELING\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_17",
@@ -28,31 +28,32 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_17_p_69",
+              "id": "cc_ch_17_69_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Ethics and Professionalism in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_17_p_69_b_0",
+                    "id": "cc_ch_17_69_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_17_69_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_17_p_69_b_1",
+                    "id": "cc_ch_17_69_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_69_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -61,39 +62,40 @@
               }
             },
             {
-              "id": "cc_ch_17_p_70",
+              "id": "cc_ch_17_70_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Ethical Decision-Making in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_17_p_70_b_0",
+                    "id": "cc_ch_17_70_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Ethical Decision-Making in Career Counseling",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_17_70_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Ethical Decision-Making in Career Counseling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_70_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "KEY DIFFERENCES-",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_17_p_70_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "KEY DIFFERENCES-",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_70_b_2",
+                    "id": "cc_ch_17_70_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_70_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }
@@ -102,71 +104,88 @@
               }
             },
             {
-              "id": "cc_ch_17_p_71",
+              "id": "cc_ch_17_71_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Legal Considerations and Compliance in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_17_p_71_b_0",
+                    "id": "cc_ch_17_71_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "1. Confidentiality and Privacy",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_17_71_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Confidentiality and Privacy",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Professional Licensure and Certification",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Ethical Standards",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Anti-Discrimination Laws",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Accuracy and Competence",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Informed Consent and Documentation",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Handling Complaints and Disputes",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_17_71_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "IMPORTANCE OF CONFIDENTIALITY AND PRIVACY IN CAREER COUNSELING",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   },
                   {
-                    "id": "cc_ch_17_p_71_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "2. Professional Licensure and Certification",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_71_b_2",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "3. Ethical Standards",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_71_b_3",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "4. Anti-Discrimination Laws",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_71_b_4",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "5. Accuracy and Competence",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_71_b_5",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "6. Informed Consent and Documentation",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_71_b_6",
+                    "id": "cc_ch_17_71_qz",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Quiz",
-                    "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_17_p_71_b_7",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
                     "children": {
                       "attached": []
                     }

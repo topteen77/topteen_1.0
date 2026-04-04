@@ -10,8 +10,8 @@
     "chapter_id": 20,
     "part_id": null
   },
-  "markdown": "# Advanced Practical Training\n## Practical Training\n- This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n- Video\n## Case Studies\n",
-  "md": "# Advanced Practical Training\n## Practical Training\n- This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n- Video\n## Case Studies\n",
+  "markdown": "# Advanced Practical Training\n## Practical Training\n- video\n  - This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n## Case Studies\n- PDF\n  - 100 pdf\n",
+  "md": "# Advanced Practical Training\n## Practical Training\n- video\n  - This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n## Case Studies\n- PDF\n  - 100 pdf\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_20",
@@ -28,36 +28,55 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_20_p_88",
+              "id": "cc_ch_20_88_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Practical Training",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_20_p_88_b_0",
+                    "id": "cc_ch_20_88_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…",
+                    "title": "video",
                     "children": {
-                      "attached": []
-                    }
-                  },
-                  {
-                    "id": "cc_ch_20_p_88_b_1",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Video",
-                    "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_20_88_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_20_p_99",
+              "id": "cc_ch_20_99_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Case Studies",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_ch_20_99_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_20_99_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "100 pdf",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
               }
             }
           ]

@@ -10,8 +10,8 @@
     "chapter_id": 6,
     "part_id": 23
   },
-  "markdown": "# Psychological and Sociological Influences on Career Choices\n- Psychosocial Influences on Career Choices\n- 1. Self-Concept\n- 2. Self-Efficacy\n- 3. Family Influence\n- 4. Social and Cultural Norms\n- 5. Peer Influence\n- 6. Educational and Vocational Experiences\n- 7. Personality Traits\n- Quiz\n- Video\n",
-  "md": "# Psychological and Sociological Influences on Career Choices\n- Psychosocial Influences on Career Choices\n- 1. Self-Concept\n- 2. Self-Efficacy\n- 3. Family Influence\n- 4. Social and Cultural Norms\n- 5. Peer Influence\n- 6. Educational and Vocational Experiences\n- 7. Personality Traits\n- Quiz\n- Video\n",
+  "markdown": "# Psychological and Sociological Influences on Career Choices\n- Video/PDF\n  - Psychosocial Influences on Career Choices\n  - 1. Self-Concept\n  - 2. Self-Efficacy\n  - 3. Family Influence\n  - 4. Social and Cultural Norms\n  - 5. Peer Influence\n  - 6. Educational and Vocational Experiences\n  - 7. Personality Traits\n  - 8. Socioeconomic Status\n  - 9. Mentorship and Role Models\n- Quiz\n",
+  "md": "# Psychological and Sociological Influences on Career Choices\n- Video/PDF\n  - Psychosocial Influences on Career Choices\n  - 1. Self-Concept\n  - 2. Self-Efficacy\n  - 3. Family Influence\n  - 4. Social and Cultural Norms\n  - 5. Peer Influence\n  - 6. Educational and Vocational Experiences\n  - 7. Personality Traits\n  - 8. Socioeconomic Status\n  - 9. Mentorship and Role Models\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_23",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_23_pt_0",
+              "id": "cc_part_23_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Psychosocial Influences on Career Choices",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_23_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Psychosocial Influences on Career Choices",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Self-Concept",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Self-Efficacy",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Family Influence",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Social and Cultural Norms",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Peer Influence",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Educational and Vocational Experiences",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "7. Personality Traits",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "8. Socioeconomic Status",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_23_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "9. Mentorship and Role Models",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_23_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Self-Concept",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. Self-Efficacy",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "3. Family Influence",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "4. Social and Cultural Norms",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "5. Peer Influence",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "6. Educational and Vocational Experiences",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "7. Personality Traits",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_8",
+              "id": "cc_part_23_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_23_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

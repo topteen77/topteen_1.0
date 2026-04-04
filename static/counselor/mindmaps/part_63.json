@@ -10,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 63
   },
-  "markdown": "# Effective Job Search Strategies and Techniques\n- Part 1- Effective Job Search Strategies and Techniques\n- 1. Define Your Goals\n- 2. Craft a Strong Resume and Cover Letter\n- 3. Leverage Your Network\n- 4. Utilize Online Job Boards and Websites\n- 5. Optimize Your LinkedIn Profile\n- 6. Prepare for Interviews\n- 7. Consider Temporary or Contract Work\n- Quiz\n- Video\n",
-  "md": "# Effective Job Search Strategies and Techniques\n- Part 1- Effective Job Search Strategies and Techniques\n- 1. Define Your Goals\n- 2. Craft a Strong Resume and Cover Letter\n- 3. Leverage Your Network\n- 4. Utilize Online Job Boards and Websites\n- 5. Optimize Your LinkedIn Profile\n- 6. Prepare for Interviews\n- 7. Consider Temporary or Contract Work\n- Quiz\n- Video\n",
+  "markdown": "# Effective Job Search Strategies and Techniques\n- Video/PDF\n  - Part 1- Effective Job Search Strategies and Techniques\n  - 1. Define Your Goals\n  - 2. Craft a Strong Resume and Cover Letter\n  - 3. Leverage Your Network\n  - 4. Utilize Online Job Boards and Websites\n  - 5. Optimize Your LinkedIn Profile\n  - 6. Prepare for Interviews\n  - 7. Consider Temporary or Contract Work\n  - 8. Use Job Search Apps and Tools\n  - 9. Follow Up\n- Quiz\n",
+  "md": "# Effective Job Search Strategies and Techniques\n- Video/PDF\n  - Part 1- Effective Job Search Strategies and Techniques\n  - 1. Define Your Goals\n  - 2. Craft a Strong Resume and Cover Letter\n  - 3. Leverage Your Network\n  - 4. Utilize Online Job Boards and Websites\n  - 5. Optimize Your LinkedIn Profile\n  - 6. Prepare for Interviews\n  - 7. Consider Temporary or Contract Work\n  - 8. Use Job Search Apps and Tools\n  - 9. Follow Up\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_63",
@@ -28,81 +28,98 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_63_pt_0",
+              "id": "cc_part_63_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Part 1- Effective Job Search Strategies and Techniques",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_63_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 1- Effective Job Search Strategies and Techniques",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Define Your Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Craft a Strong Resume and Cover Letter",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Leverage Your Network",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Utilize Online Job Boards and Websites",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Optimize Your LinkedIn Profile",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Prepare for Interviews",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "7. Consider Temporary or Contract Work",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "8. Use Job Search Apps and Tools",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_63_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "9. Follow Up",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_63_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "1. Define Your Goals",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "2. Craft a Strong Resume and Cover Letter",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "3. Leverage Your Network",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "4. Utilize Online Job Boards and Websites",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "5. Optimize Your LinkedIn Profile",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "6. Prepare for Interviews",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_7",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "7. Consider Temporary or Contract Work",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_8",
+              "id": "cc_part_63_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_63_pt_9",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 26
   },
-  "markdown": "# Aptitude and Skills Testing in Career Counseling\n- Aptitude Testing\n- Definition and Purpose\n- Types of Aptitude Tests\n- Applications in Career Counseling\n- Skill Testing\n- Types of Skill Tests\n- Integration of Aptitude and Skill Testing\n- Quiz\n- Video\n",
-  "md": "# Aptitude and Skills Testing in Career Counseling\n- Aptitude Testing\n- Definition and Purpose\n- Types of Aptitude Tests\n- Applications in Career Counseling\n- Skill Testing\n- Types of Skill Tests\n- Integration of Aptitude and Skill Testing\n- Quiz\n- Video\n",
+  "markdown": "# Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - Aptitude Testing\n  - Definition and Purpose\n  - Types of Aptitude Tests\n  - Applications in Career Counseling\n  - Skill Testing\n  - Types of Skill Tests\n  - Integration of Aptitude and Skill Testing\n- Quiz\n",
+  "md": "# Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - Aptitude Testing\n  - Definition and Purpose\n  - Types of Aptitude Tests\n  - Applications in Career Counseling\n  - Skill Testing\n  - Types of Skill Tests\n  - Integration of Aptitude and Skill Testing\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_26",
@@ -28,73 +28,74 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_26_pt_0",
+              "id": "cc_part_26_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Aptitude Testing",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_26_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Aptitude Testing",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_26_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Definition and Purpose",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_26_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Types of Aptitude Tests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_26_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Applications in Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_26_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Skill Testing",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_26_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Types of Skill Tests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_26_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Integration of Aptitude and Skill Testing",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_26_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Definition and Purpose",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Types of Aptitude Tests",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_3",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Applications in Career Counseling",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Skill Testing",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_5",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Types of Skill Tests",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_6",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Integration of Aptitude and Skill Testing",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_7",
+              "id": "cc_part_26_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_26_pt_8",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

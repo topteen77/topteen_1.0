@@ -10,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 25
   },
-  "markdown": "# Interest Inventories and Their Applications\n- Understanding Interest Inventories\n- Common Types of Interest Inventories\n- Applications of Interest Inventories\n- Quiz\n- Video\n",
-  "md": "# Interest Inventories and Their Applications\n- Understanding Interest Inventories\n- Common Types of Interest Inventories\n- Applications of Interest Inventories\n- Quiz\n- Video\n",
+  "markdown": "# Interest Inventories and Their Applications\n- Video/PDF\n  - Understanding Interest Inventories\n  - Common Types of Interest Inventories\n  - Applications of Interest Inventories\n- Quiz\n",
+  "md": "# Interest Inventories and Their Applications\n- Video/PDF\n  - Understanding Interest Inventories\n  - Common Types of Interest Inventories\n  - Applications of Interest Inventories\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_25",
@@ -28,41 +28,42 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_25_pt_0",
+              "id": "cc_part_25_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Understanding Interest Inventories",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_25_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Understanding Interest Inventories",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_25_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Common Types of Interest Inventories",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_25_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Applications of Interest Inventories",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_25_pt_1",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Common Types of Interest Inventories",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_25_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Applications of Interest Inventories",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_25_pt_3",
+              "id": "cc_part_25_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_25_pt_4",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }

@@ -10,8 +10,8 @@
     "chapter_id": 17,
     "part_id": 69
   },
-  "markdown": "# Ethics and Professionalism in Career Counseling\n- This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n- Video\n",
-  "md": "# Ethics and Professionalism in Career Counseling\n- This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n- Video\n",
+  "markdown": "# Ethics and Professionalism in Career Counseling\n- Video/PDF\n  - This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n",
+  "md": "# Ethics and Professionalism in Career Counseling\n- Video/PDF\n  - This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_69",
@@ -28,25 +28,26 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_69_pt_0",
+              "id": "cc_part_69_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+              "title": "Video/PDF",
               "children": {
-                "attached": []
+                "attached": [
+                  {
+                    "id": "cc_part_69_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
               }
             },
             {
-              "id": "cc_part_69_pt_1",
+              "id": "cc_part_69_qz",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Quiz",
-              "children": {
-                "attached": []
-              }
-            },
-            {
-              "id": "cc_part_69_pt_2",
-              "structureClass": "org.xmind.ui.logic.right",
-              "title": "Video",
               "children": {
                 "attached": []
               }
