@@ -1,17 +1,17 @@
 <!-- Students Table and Pagination Container (for AJAX loading) -->
 <div id="students-table-container">
 <div class="table-responsive">
-  <table class="table table-hover">
+  <table class="table counselor-dash-table table-hover mb-0">
     <thead>
       <tr>
-        <th>S.No.</th>
-        <th>Class</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Contact</th>
-        <th>Recent Follow-up</th>
-        <th>Session Attended</th>
-        <th>Psychometric Report</th>
+        <th scope="col">S.No.</th>
+        <th scope="col">Class</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Contact</th>
+        <th scope="col">Recent follow-up</th>
+        <th scope="col">Session attended</th>
+        <th scope="col">Psychometric report</th>
       </tr>
     </thead>
     <tbody>
@@ -96,7 +96,13 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="8" class="text-center">No students found.</td>
+          <td colspan="8" class="counselor-table-empty border-0">
+            <div class="d-flex flex-column align-items-center justify-content-center text-center px-2">
+              <img src="{{ static('images_new/general/no-data.png') }}" alt="" width="120" height="120" class="mb-3 opacity-90" loading="lazy">
+              <p class="fs-16 fw-semibold text-dark mb-1">No data found</p>
+              <p class="fs-13 text-gray mb-0" style="max-width: 420px;">There are no students assigned to you yet, or no rows match your filters. Try changing the search or reset filters.</p>
+            </div>
+          </td>
         </tr>
       {% endif %}
     </tbody>
@@ -106,8 +112,8 @@
 <!-- Pagination Container -->
 <div id="students-pagination">
 {% if students %}
-<div class="d-flex justify-content-between align-items-center mt-3">
-  <div>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 px-3 pb-3">
+  <div class="text-gray fs-13">
     {% if paginator %}
       Showing {{ ((students.number - 1) * students.paginator.per_page) + 1 }} to {% if students.number * students.paginator.per_page < students.paginator.count %}{{ students.number * students.paginator.per_page }}{% else %}{{ students.paginator.count }}{% endif %} of {{ students.paginator.count }} entries
     {% else %}

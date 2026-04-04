@@ -8,51 +8,461 @@
 {% block additionalhead %}
 {{ super() }}
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
+
 <style>
-  .counselor-dashboard {
-    padding-top: 80px;
+  :root {
+    --dash-primary: #3f37c9;
+    --dash-bg: #f6f7fb;
+    --dash-border: #e6e8f0;
+    --dash-muted: #6c7280;
   }
-  .stat-card {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 15px;
+
+  .counsellor-data-show {
+	border: 1px solid var(--dash-border) !important;
+	padding: 11px;
+	border-radius: 10px;
+}
+
+
+  .tt-header .navbar {
+  background: rgb(244, 243, 255, .50);
+  border-radius: 0px;
+  box-shadow: none;
+  backdrop-filter: blur(3px);
+  border: none !important;
+}
+
+
+  .header.tt-header{
+  margin-top: 0px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  backdrop-filter: blur(2.15px);
+  background: rgb(244, 243, 255, .80);
+  border: 0px ;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+  border-bottom: 1px solid #5350f72e;
+  transition: all 0.2s;
+}
+
+  .footer-main.border-bottom-t {
+	display: none;
+}
+
+  .counselor-dashboard {
+    padding-top: 37px;
+    background: #fff;
+  }
+
+  @media (max-width: 991px) {
+    .counselor-dashboard {
+      padding-top: 48px;
+  
+    }
+    .counselor-dashboard .container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  .counselor-sidebar-panel {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+  }
+
+  .counselor-dashboard .stat-card {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 14px 16px;
     display: flex;
     gap: 12px;
     align-items: center;
+    min-height: 88px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .stat-card i {
-    min-width: 32px;
+
+  .counselor-dashboard .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(32, 36, 53, 0.1);
   }
-  .stat-card p {
-    margin: 0;
-  }
-  .stat-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-  }
-  .stat-label {
-    font-size: 10px;
-    color: #828282;
-  }
-  .certified-badge {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #28a745;
-    color: #fff;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
+
+  .counselor-dashboard .stat-card > div:first-child {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    z-index: 10;
+    flex-shrink: 0;
   }
-  .certified-badge i {
+
+  .counselor-dashboard .stat-card > div:first-child i {
+    font-size: 22px;
     color: #fff;
+  }
+
+  .stat-card-assigned > div:first-child {
+    background: linear-gradient(135deg, #3f37c9, #6860f6);
+  }
+
+  .stat-card-followed > div:first-child {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+  }
+
+  .counselor-dashboard .stat-card .text-gray.fs-10,
+  .counselor-dashboard .stat-card .stat-label {
+    color: var(--dash-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .counselor-dashboard .stat-card .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 2px 0;
+  }
+
+
+  .counselor-filter-card .card-body {
+    padding: 1rem 1.15rem;
+  }
+
+  .counselor-table-card {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    overflow: hidden;
+    margin-top: 17px;
+  }
+
+  .counselor-table-card .card-body {
+    padding: 0;
+  }
+
+  .counselor-table-card .card-body > .table-loader-wrap {
+    padding: 1.25rem;
+  }
+
+  .counselor-dash-table {
+    margin-bottom: 0;
+    font-size: 13px;
+  }
+
+  .counselor-dash-table thead th {
+    background: #E1DFFF;
+    color: #3f37c9;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--dash-border);
+    padding: 12px 14px;
+    white-space: nowrap;
+  }
+
+  .counselor-dash-table tbody td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f1f5;
+    color: #374151;
+  }
+
+  .counselor-dash-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .counselor-dash-table tbody tr:hover td {
+    background: rgba(63, 55, 201, 0.04);
+  }
+
+  .counselor-dash-table tbody tr:has(.counselor-table-empty) td {
+    background: #fafbfc !important;
+  }
+
+  .counselor-dash-table tbody tr:has(.counselor-table-empty):hover td {
+    background: #f3f4f6 !important;
+  }
+
+  .counselor-table-empty {
+    padding: 2.5rem 1.5rem !important;
+    background: #fafbfc;
+  }
+
+  .counselor-table-empty img {
+    max-width: 140px;
+    height: auto;
+  }
+
+  .counselor-section-title {
+    color: #111827;
+  }
+
+  .counselor-chart-card {
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    background: #fff;
+  }
+
+  .counselor-chart-card .card-body {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  /* Unified button sizing (touch-friendly ~44px) */
+  .counselor-dashboard .counselor-btn-fixed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+
+  .counselor-dashboard .counselor-btn-fixed i {
+    line-height: 1;
+  }
+
+  /* Aligns Search/Reset row with labeled fields on md+ */
+  .counselor-dashboard .counselor-filter-label-spacer {
+    height: 1.625rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .counselor-dashboard .counselor-filter-card .form-control.custom-input,
+  .counselor-dashboard .counselor-filter-card select.form-control,
+  .counselor-dashboard .counselor-filter-card .input-group .form-control {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* .form-control sets appearance:none on selects but does not add a caret (unlike .form-select) */
+  .counselor-dashboard .counselor-filter-card select.form-control.custom-input {
+    padding-right: 2.25rem;
+    background-color: #EFF3F6;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+  .counselor-dashboard .counselor-filter-card select.form-control.custom-input:focus {
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+
+  .counselor-dashboard .counselor-filter-card .input-group-text {
+    min-height: 44px;
+    align-items: center;
+    display: flex;
+    border-color: var(--dash-border);
+  }
+
+  .counselor-dashboard .counselor-filter-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 576px) {
+    .counselor-dashboard .counselor-filter-actions {
+      flex-direction: row;
+    }
+    .counselor-dashboard .counselor-filter-actions .counselor-btn-fixed {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .counselor-dashboard .counselor-filter-actions .counselor-btn-fixed {
+      flex: 1 1 auto;
+    }
+  }
+
+  /* Enrolled course card: main row (icon + copy) then actions; md+ actions align right */
+  .counselor-course-card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .counselor-course-card-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  @media (min-width: 768px) {
+    .counselor-course-card-inner {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .counselor-course-card-main {
+      align-items: center;
+    }
+  }
+
+  .counselor-course-card-thumb-wrap {
+    width: 194px;
+    height: 132px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #e8f8fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .counselor-course-card-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .counselor-course-card-thumb-fallback {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .counselor-course-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 576px) {
+    .counselor-course-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .counselor-course-actions .counselor-btn-fixed {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .counselor-course-actions {
+      width: auto;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      max-width: min(100%, 320px);
+    }
+    .counselor-course-actions .counselor-btn-fixed {
+      min-width: 132px;
+    }
+  }
+
+  /* Match counselor course learning page progress (course_learning.html) */
+  .counselor-dashboard-course-progress .counselor-dash-progress-bar {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .counselor-dashboard-course-progress .counselor-dash-progress-fill {
+    height: 100%;
+    background: #5046e5;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+  }
+
+  /* Mobile: fixed filter FAB opens drawer; hidden on lg+ where filters are inline */
+  .counselor-filter-fab {
+    position: relative;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    right: 1rem;
+    /* Keep below Bootstrap offcanvas (default z-index: 1045) */
+    z-index: 1030;
+    height: 46px;
+    border-radius: 999px;
+    padding: 0 14px 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 18px rgba(63, 55, 201, 0.38);
+    background: var(--dash-primary);
+    color: #fff;
+    border: none;
+    -webkit-tap-highlight-color: transparent;
+    top: 0;
+  left: 1px;
+  }
+  .counselor-filter-fab:hover,
+  .counselor-filter-fab:focus-visible {
+    color: #fff;
+    background: #5248e0;
+  }
+  .counselor-filter-fab i {
+    font-size: 20px;
+    line-height: 1;
+  }
+  .counselor-filter-fab-text {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* Responsive offcanvas: drawer on &lt; lg, normal card at lg+ */
+  #counselorFilterDrawer {
+    /* Prevent "full width" drawer; keep it as a right-side panel */
+    --bs-offcanvas-width: min(393px, 100vw);
+  padding: 0 20px;
+  }
+  /* Ensure the drawer is visible on mobile */
+  .counselor-filter-offcanvas {
+    background: #fff;
+    border-left: 1px solid rgba(0,0,0,0.08);
+  }
+  .counselor-filter-offcanvas .offcanvas-body {
+    max-height: calc(100vh - 150px);
+    overflow: auto;
+  }
+  /* lg+: Bootstrap's base .offcanvas keeps visibility:hidden + off-screen transform;
+     offcanvas-lg only tweaks colors/body — reset so the inline filter is visible on desktop */
+  @media (min-width: 992px) {
+    #counselorFilterDrawer.counselor-filter-offcanvas.offcanvas-lg {
+      position: static;
+      visibility: visible;
+      transform: none !important;
+      width: 100%;
+      max-width: none;
+      height: auto;
+      z-index: auto;
+      transition: none;
+      background: transparent;
+      border-left: none;
+    }
+    .counselor-filter-offcanvas.offcanvas-lg .offcanvas-body {
+      overflow: visible;
+      width: 100%;
+    }
   }
 </style>
 {% endblock %}
@@ -63,7 +473,7 @@
     <div class="row g-4 pt-4">
       <!-- Left Sidebar -->
       <div class="col-lg-4 d-none d-lg-block">
-        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
+        <div class="counselor-sidebar-panel sticky-top" style="top: 100px;">
           <!-- Counselor Profile -->
           <div class="text-center border-bottom pb-3 mb-3">
             <div class="mb-3 position-relative d-inline-block">
@@ -71,8 +481,8 @@
               <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg" 
                    class="rounded-circle" 
                    style="width: 104px; height: 104px; object-fit: cover;" 
-                   alt="Counselor Image" 
-                   onerror="this.src='{{ static('images_new/icons/user-icon.svg') }}'">
+                   alt="Counselor Image"
+                   data-fallback-src="{{ static('images_new/icons/user-icon.svg') }}">
               {% else %}
               <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
                 <i class='bx bx-user fs-48 text-gray'></i>
@@ -109,8 +519,8 @@
           <!-- My Course Button -->
           {% if request.user.user_type == 4 %}
           <a href="{{ url('counselor:course_learning', args=[counselors.id]) }}" 
-             class="btn w-100 mb-3 text-white fw-bold" 
-             style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;">
+             class="btn w-100 mb-3 text-white fw-semibold counselor-btn-fixed" 
+             style="background: #4CC9F0; border-bottom: 4px solid #3CBAE1;">
             <i class='bx bx-chalkboard me-2'></i> MY COURSE
           </a>
           {% endif %}
@@ -119,25 +529,30 @@
 
       <!-- Main Content -->
       <div class="col-lg-8">
-        <h2 class="fs-24 fw-semibold mb-4">Counselor Dashboard</h2>
+        <h2 class="fs-24 fw-semibold mb-0 counselor-section-title">Counselor Dashboard</h2>
+        <p class="text-gray fs-14 mb-4">Overview of your assigned students, follow-ups, and session activity.</p>
         
         <!-- Statistics Cards -->
         <div class="row g-3 mb-4">
-          <div class="col-12 col-md-6">
-            <div class="stat-card">
-              <i class='bx bx-user-check fs-32 text-primary'></i>
+          <div class="col-md-4 col-6">
+            <div class="stat-card stat-card-assigned">
               <div>
-                <p class="stat-value">{{ students_count }}</p>
-                <p class="stat-label">Assigned</p>
+                <i class='bx bx-user-check'></i>
+              </div>
+              <div>
+                <p class="stat-value mb-0">{{ students_count }}</p>
+                <p class="text-gray fs-10 mb-0">Assigned students</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-6">
-            <div class="stat-card">
-              <i class='bx bx-check-circle fs-32 text-success'></i>
+          <div class="col-md-4 col-6">
+            <div class="stat-card stat-card-followed">
               <div>
-                <p class="stat-value">{{ total_is_followed_up_count }}</p>
-                <p class="stat-label">Followed</p>
+                <i class='bx bx-check-circle'></i>
+              </div>
+              <div>
+                <p class="stat-value mb-0">{{ total_is_followed_up_count }}</p>
+                <p class="text-gray fs-10 mb-0">Follow-ups completed</p>
               </div>
             </div>
           </div>
@@ -145,34 +560,45 @@
 
         {% if show_counselor_course_on_dashboard %}
         <div class="mb-4">
-          <h3 class="fs-18 fw-semibold mb-3">Enrolled courses</h3>
+          <h3 class="fs-20 fw-semibold mb-0 counselor-section-title">Enrolled courses</h3>
+          <p class="text-gray fs-13 mb-3 lh-sm">Your career counseling course and quick access to curriculum.</p>
           <div class="row g-3">
-            <div class="col-12 col-md-8 col-lg-6">
-              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 border rounded-3 p-3"
+            <div class="col-md-12">
+              <div class="counselor-course-card-inner border rounded-3 p-2"
                 style="background:#fff;border-color:#e6e8f0;box-shadow:0 2px 10px rgba(32,36,53,0.06);">
-                <div class="d-flex align-items-center gap-3 min-w-0">
-                  <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                    style="width:44px;height:44px;background:#e8f8fc;">
-                    <i class='bx bx-chalkboard fs-24' style="color:#4CC9F0;"></i>
+                <div class="counselor-course-card-main">
+                  <div class="counselor-course-card-thumb-wrap" aria-hidden="true">
+                    <img src="{{ static('images_new/counselor/cc-detail-img.png') }}" alt=""
+                         data-show-course-thumb-fallback="1">
+                    <i class="bx bx-chalkboard fs-24 counselor-course-card-thumb-fallback" style="color:#4CC9F0;display:none;" aria-hidden="true"></i>
                   </div>
-                  <div class="min-w-0">
-                    <div class="d-flex flex-wrap align-items-center gap-2 mb-0">
-                      <p class="fs-15 fw-semibold mb-0 text-truncate flex-grow-1 min-w-0" title="{{ counselor_course_title }}">{{ counselor_course_title }}</p>
-                      <a href="{{ counselor_course_curriculum_url }}" class="btn btn-sm fw-semibold flex-shrink-0"
-                        style="border:1px solid #4CC9F0;color:#0891b2;background:#fff;">
-                        <i class='bx bx-list-ul align-middle me-1'></i>Curriculum
-                      </a>
-                    </div>
+                  <div class="min-w-0 flex-grow-1">
+                    <p class="fs-15 fw-semibold mb-1 text-break" title="{{ counselor_course_title }}">{{ counselor_course_title }}</p>
                     <p class="text-gray fs-11 mb-0">{% if counselor_course_enrolled %}Career counseling{% else %}Not enrolled yet{% endif %}</p>
+                    <div class="counselor-dashboard-course-progress pt-1">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fs-11 fw-semibold text-uppercase" style="color: var(--dash-muted); letter-spacing: 0.03em;">Course progress</span>
+                        <span class="fs-13 fw-semibold" style="color: #5046e5;">{{ counselor_course_progress_pct|default(0) }}%</span>
+                      </div>
+                      <div class="counselor-dash-progress-bar" role="progressbar" aria-valuenow="{{ counselor_course_progress_pct|default(0) }}" aria-valuemin="0" aria-valuemax="100" aria-label="Course progress">
+                        <div class="counselor-dash-progress-fill" data-progress-pct="{{ counselor_course_progress_pct|default(0) }}"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                {% if counselor_course_enrolled %}
-                <a href="{{ counselor_course_start_url }}" class="btn btn-sm text-white fw-semibold flex-shrink-0"
-                  style="background:#4CC9F0;border-bottom:3px solid #3CBAE1;">{{ counselor_course_cta }}</a>
-                {% else %}
-                <a href="{{ counselor_course_enroll_url }}" class="btn btn-sm text-white fw-semibold flex-shrink-0"
-                  style="background:#4CC9F0;border-bottom:3px solid #3CBAE1;">{{ counselor_course_cta }}</a>
-                {% endif %}
+                <div class="counselor-course-actions">
+                  <a href="{{ counselor_course_curriculum_url }}" class="btn fw-semibold counselor-btn-fixed text-center blue-button"
+                    >
+                    <i class='bx bx-list-ul align-middle me-1'></i>Curriculum
+                  </a>
+                  {% if counselor_course_enrolled %}
+                  <a href="{{ counselor_course_start_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
+                    style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>
+                  {% else %}
+                  <a href="{{ counselor_course_enroll_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
+                    style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>
+                  {% endif %}
+                </div>
               </div>
             </div>
           </div>
@@ -180,110 +606,148 @@
         {% endif %}
 
         <!-- Assigned Students Section -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3 class="fs-18 fw-semibold mb-0">Assigned Students</h3>
-          <div class="d-flex gap-2 align-items-center">
-            <label for="class_and_section_filter" class="form-label text-gray fs-12 mb-1">Records per page</label>
-            <select name="per_page" id="perPageSelect" class="form-control custom-input" style="width: auto; min-width: 100px;" onchange="updatePerPage(this.value)">
-              <option value="10" {% if per_page == '10' %}selected{% endif %}>10</option>
-              <option value="100" {% if per_page == '100' %}selected{% endif %}>100</option>
-              <option value="all" {% if per_page == 'all' %}selected{% endif %}>All</option>
-            </select>
-            <a href="{{ url('counselor:Counselor_follow_up_page', args=[counselors.id]) }}" 
-               class="btn custom-button purple-button">
-              <i class='bx bx-user-check me-1'></i> FOLLOW-UP HISTORY
-            </a>
+        <div class="w-100 mb-3">
+          <div class="row " >
+            
+          <div class="col-md-9">
+
+            <div class="flex-grow-1 min-w-0 mb-md-0 mb-2">
+              <h3 class="fs-20 fw-semibold mb-0 counselor-section-title">Assigned students</h3>
+              <p class="text-gray fs-13 mb-0 lh-sm">Search and filter your roster. Use records per page in the form below.</p>
+            </div>
+
           </div>
+
+          <div class="col-md-3 text-end">
+            <a href="{{ url('counselor:Counselor_follow_up_page', args=[counselors.id]) }}" 
+             class="btn custom-button purple-button counselor-btn-fixed w-100 w-md-auto flex-shrink-0 text-center">
+            <i class='bx bx-history me-1'></i> Follow-up history
+          </a>
+          </div>
+          
+          
+          </div>
+     
+         
         </div>
 
-        <!-- Filter Form -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <form id="filter-form" method="get" class="row g-2 align-items-end">
-              <div class="col-md-2">
-                <label for="classes" class="form-label text-gray fs-12 mb-1">Classes</label>
-                <select name="class_and_section" id="classes" class="form-control custom-input">
-                  <option value="" disabled selected>Classes</option>
-                  {% for cas in class_and_sections %}
-                  <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section') == cas.class_and_section %}selected{% endif %}>
-                    {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }} students){% endif %}
-                  </option>
-                  {% endfor %}
-                </select>
+
+
+        <div class="counsellor-data-show"> 
+
+        <!-- Filter: below-lg = fixed FAB + drawer; lg+ = inline panel (Bootstrap offcanvas-lg) -->
+        <button type="button"
+                class="counselor-filter-fab d-lg-none"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#counselorFilterDrawer"
+                aria-controls="counselorFilterDrawer"
+                aria-label="Filter data"
+                title="Filter data">
+          <i class="bx bx-filter-alt" aria-hidden="true"></i>
+          <span class="counselor-filter-fab-text">Filter data</span>
+        </button>
+
+        <div class="offcanvas offcanvas-end offcanvas-lg counselor-filter-offcanvas mb-4"
+             tabindex="-1"
+             id="counselorFilterDrawer"
+             aria-labelledby="counselorFilterDrawerLabel">
+          <div class="offcanvas-header d-lg-none border-bottom align-items-center py-3">
+            <h2 class="offcanvas-title fs-16 fw-semibold mb-0" id="counselorFilterDrawerLabel">Filter students</h2>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body p-0">
+            <div class="card counselor-filter-card mb-0 w-100 border-0">
+              <div class="card-body p-0">
+                <form id="filter-form" method="get" class="row g-3 align-items-stretch align-items-lg-end">
+                  <div class="col-12 col-sm-6 col-lg-2">
+                    <label for="classes" class="form-label text-gray fs-12 mb-1">Classes</label>
+                    <select name="class_and_section" id="classes" class="form-control custom-input w-100">
+                      <option value="" disabled selected>Classes</option>
+                      {% for cas in class_and_sections %}
+                      <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section') == cas.class_and_section %}selected{% endif %}>
+                        {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }} students){% endif %}
+                      </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12 col-sm-6 col-lg-2">
+                    <label for="assessment" class="form-label text-gray fs-12 mb-1">Assessment</label>
+                    <select name="test_taken" id="assessment" class="form-control custom-input w-100">
+                      <option value="" disabled selected>Assessment</option>
+                      <option value="Yes" {% if request.GET.get('test_taken') == 'Yes' %}selected{% endif %}>Yes</option>
+                      <option value="In Progress" {% if request.GET.get('test_taken') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                      <option value="No" {% if request.GET.get('test_taken') == 'No' %}selected{% endif %}>No</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-lg-3">
+                    <label for="student_name" class="form-label text-gray fs-12 mb-1">Student name</label>
+                    <div class="input-group">
+                      <input type="text"
+                             name="student_name"
+                             id="student_name"
+                             class="form-control custom-input"
+                             placeholder="Search student"
+                             value="{{ request.GET.get('student_name', '') }}">
+                      <span class="input-group-text bg-white border-start-0">
+                        <i class='bx bx-search'></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="col-12 col-lg-2">
+                    <label for="per_page" class="form-label text-gray fs-12 mb-1">Records per page</label>
+                    <select name="per_page" id="per_page" class="form-control custom-input w-100">
+                      <option value="10" {% if request.GET.get('per_page', '10') == '10' %}selected{% endif %}>10</option>
+                      <option value="100" {% if request.GET.get('per_page') == '100' %}selected{% endif %}>100</option>
+                      <option value="all" {% if request.GET.get('per_page') == 'all' %}selected{% endif %}>All</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-lg-3 d-flex flex-column justify-content-end">
+                    <div class="d-none d-lg-block counselor-filter-label-spacer mb-1" aria-hidden="true"></div>
+                    <div class="counselor-filter-actions">
+                      <button type="submit"
+                              class="btn custom-button purple-button counselor-btn-fixed w-100 text-uppercase"
+                              style="font-size: 12px; font-weight: 700; letter-spacing: 0.02em;">
+                        Search
+                      </button>
+                      <a href="{{ url('counselor:CounselorDashboardView', args=[coun_id]) }}"
+                         class="btn btn-secondary counselor-btn-fixed w-100 text-uppercase"
+                         style="font-size: 12px; font-weight: 700; letter-spacing: 0.02em;">
+                        Reset
+                      </a>
+                    </div>
+                  </div>
+                </form>
               </div>
-              <div class="col-md-2">
-                <label for="assessment" class="form-label text-gray fs-12 mb-1">Assessment</label>
-                <select name="test_taken" id="assessment" class="form-control custom-input">
-                  <option value="" disabled selected>Assessment</option>
-                  <option value="Yes" {% if request.GET.get('test_taken') == 'Yes' %}selected{% endif %}>Yes</option>
-                  <option value="In Progress" {% if request.GET.get('test_taken') == 'In Progress' %}selected{% endif %}>In Progress</option>
-                  <option value="No" {% if request.GET.get('test_taken') == 'No' %}selected{% endif %}>No</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="student_name" class="form-label text-gray fs-12 mb-1">Student Name</label>
-                <div class="input-group">
-                  <input type="text" 
-                         name="student_name" 
-                         id="student_name"
-                         class="form-control custom-input" 
-                         placeholder="Search student"
-                         value="{{ request.GET.get('student_name', '') }}">
-                  <span class="input-group-text bg-white border-start-0">
-                    <i class='bx bx-search'></i>
-                  </span>
-                </div>
-              </div>
-              <div class="col-md-2">
-                <label for="per_page" class="form-label text-gray fs-12 mb-1">Records per page</label>
-                <select name="per_page" id="per_page" class="form-control custom-input">
-                  <option value="10" {% if request.GET.get('per_page', '10') == '10' %}selected{% endif %}>10</option>
-                  <option value="100" {% if request.GET.get('per_page') == '100' %}selected{% endif %}>100</option>
-                  <option value="all" {% if request.GET.get('per_page') == 'all' %}selected{% endif %}>All</option>
-                </select>
-              </div>
-              <div class="col-md-3 d-flex gap-2 align-items-end">
-                <button type="submit" 
-                        class="btn custom-button purple-button flex-fill" 
-                        style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
-                  Search
-                </button>
-                <a href="{{ url('counselor:CounselorDashboardView', args=[coun_id]) }}" 
-                   class="btn btn-secondary flex-fill" 
-                   style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
-                  Reset
-                </a>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
 
         <!-- Students Table -->
-        <div class="card">
-          <div class="card-body">
+        <div class="card counselor-table-card">
+          <div class="card-body p-0">
             <!-- Loader -->
-            <div id="students-loader" class="text-center py-5" style="display: none;">
-              <div class="spinner-border text-primary" role="status">
+            <div id="students-loader" class="table-loader-wrap text-center py-5" style="display: none;">
+              <div class="spinner-border text-primary" role="status" style="color: #3f37c9 !important;">
                 <span class="visually-hidden">Loading...</span>
               </div>
-              <p class="mt-3 text-gray">Loading students...</p>
+              <p class="mt-3 text-gray fs-14 mb-0">Loading students…</p>
             </div>
             
             <!-- Table Container -->
             <div id="students-table-wrapper">
             <div id="students-table-container">
             <div class="table-responsive">
-              <table class="table table-hover">
+              <table class="table counselor-dash-table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th>S.No.</th>
-                    <th>Class</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Contact</th>
-                    <th>Recent Follow-up</th>
-                    <th>Session Attended</th>
-                    <th>Psychometric Report</th>
+                    <th scope="col">S.No.</th>
+                    <th scope="col">Class</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Recent follow-up</th>
+                    <th scope="col">Session attended</th>
+                    <th scope="col">Psychometric report</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -368,20 +832,24 @@
                     {% endfor %}
                   {% else %}
                     <tr>
-                      <td colspan="8" class="text-center">No students found.</td>
+                      <td colspan="8" class="counselor-table-empty border-0">
+                        <div class="d-flex flex-column align-items-center justify-content-center text-center px-2">
+                          <img src="{{ static('images_new/general/no-data.png') }}" alt="" width="120" height="120" class="mb-3 opacity-90" loading="lazy">
+                          <p class="fs-16 fw-semibold text-dark mb-1">No data found</p>
+                          <p class="fs-13 text-gray mb-0" style="max-width: 420px;">There are no students assigned to you yet, or no rows match your filters. Try changing the search or reset filters.</p>
+                        </div>
+                      </td>
                     </tr>
                   {% endif %}
                 </tbody>
               </table>
             </div>
-            </div>
-            <!-- End of Table Container -->
 
-              <!-- Pagination -->
+            <!-- Pagination -->
             <div id="students-pagination">
             {% if students %}
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 px-3 pb-3">
+              <div class="text-gray fs-13">
                 {% if paginator %}
                   Showing {{ ((students.number - 1) * students.paginator.per_page) + 1 }} to {% if students.number * students.paginator.per_page < students.paginator.count %}{{ students.number * students.paginator.per_page }}{% else %}{{ students.paginator.count }}{% endif %} of {{ students.paginator.count }} entries
                 {% else %}
@@ -437,17 +905,27 @@
             {% endif %}
             </div>
             <!-- End of Pagination Container -->
+            </div>
+            <!-- End students-table-container -->
           </div>
+            <!-- End students-table-wrapper -->
+          </div>
+          <!-- End card-body -->
         </div>
+        <!-- End counselor-table-card -->
+
+      </div>
 
         <!-- Weekly Session Report -->
-        <div class="card mt-4">
+        <div class="card counselor-chart-card mt-4">
           <div class="card-body text-center">
-            <h5 class="fs-18 fw-bold mb-4">Weekly Counselor Session Report</h5>
+            <h3 class="fs-20 fw-semibold mb-1 counselor-section-title">Weekly session report</h3>
+            <p class="text-gray fs-13 mb-4">Sessions logged per day for counselors in your scope.</p>
             <div id="sessions-loader" class="text-center py-3" style="display: none;">
-              <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <div class="spinner-border spinner-border-sm text-primary" role="status" style="color: #3f37c9 !important;">
                 <span class="visually-hidden">Loading...</span>
               </div>
+              <p class="text-gray fs-13 mt-2 mb-0">Loading chart…</p>
             </div>
             <canvas id="sessionsChart" width="400" height="200"></canvas>
             <div id="no-data-container" data-no-data-img="{{ static('images_new/general/no-data.png') }}" style="display: none;"></div>
@@ -491,9 +969,10 @@
       if (!sessionsData.length || !sessionsData[0].sessions.length) {
         if (canvas) {
           canvas.parentElement.innerHTML = `
-            <div class="d-flex justify-content-center align-items-center flex-column">
-              <img width="100px" src="${noDataImage || ''}" alt="No Data"/>
-              <p class="mt-3">No matching records found</p>
+            <div class="d-flex justify-content-center align-items-center flex-column py-3">
+              <img width="120" height="120" src="${noDataImage || ''}" alt="" class="opacity-90"/>
+              <p class="fs-16 fw-semibold text-dark mt-3 mb-1">No data found</p>
+              <p class="text-gray fs-13 mb-0 px-3" style="max-width: 360px;">There is no session data for this period yet.</p>
             </div>
           `;
         }
@@ -575,9 +1054,39 @@
   document.addEventListener('DOMContentLoaded', function() {
     // Handle filter form submission
     const filterForm = document.getElementById('filter-form');
+    
+    // Render progress bar width (avoid template-in-style parsing)
+    document.querySelectorAll('.counselor-dash-progress-fill[data-progress-pct]').forEach(function(fillEl) {
+      var pct = fillEl.getAttribute('data-progress-pct');
+      fillEl.style.width = (pct ? pct : 0) + '%';
+    });
+
+    // Image fallbacks (no inline onerror JS)
+    document.querySelectorAll('img[data-fallback-src]').forEach(function(imgEl) {
+      imgEl.addEventListener('error', function() {
+        var fb = imgEl.getAttribute('data-fallback-src');
+        if (fb) imgEl.src = fb;
+      }, { once: true });
+    });
+    document.querySelectorAll('.counselor-course-card-thumb-wrap img[data-show-course-thumb-fallback]').forEach(function(imgEl) {
+      imgEl.addEventListener('error', function() {
+        imgEl.style.display = 'none';
+        var icon = imgEl.parentElement && imgEl.parentElement.querySelector('.counselor-course-card-thumb-fallback');
+        if (icon) icon.style.display = 'flex';
+      }, { once: true });
+    });
+    
+    function closeCounselorFilterDrawer() {
+      var drawerEl = document.getElementById('counselorFilterDrawer');
+      if (!drawerEl || typeof bootstrap === 'undefined') return;
+      // Ensure we always have an instance (getInstance() returns null before first open)
+      var oc = bootstrap.Offcanvas.getOrCreateInstance(drawerEl);
+      if (oc) oc.hide();
+    }
     if (filterForm) {
       filterForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        closeCounselorFilterDrawer();
         const url = new URL(window.location.href);
         const formData = new FormData(filterForm);
         for (const [key, value] of formData.entries()) {

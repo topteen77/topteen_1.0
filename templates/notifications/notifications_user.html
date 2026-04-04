@@ -3,20 +3,21 @@
 {% block title_content %}Notifications | Top Teen{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container pt-md-18 pb-5">
   <h3 class="mb-3">Notifications</h3>
   <div class="card mb-3">
     <div class="card-body">
       <form class="row g-2" autocomplete="off" onsubmit="event.preventDefault(); return false;">
+        <label class="form-label" for="nQ">Search</label>
         <div class="col-md-9">
-          <label class="form-label" for="nQ">Search</label>
-          <input id="nQ" name="tt_notifications_search" class="form-control" type="search"
+         
+          <input id="nQ" name="tt_notifications_search" class="form-control rounded" type="search"
             placeholder="Search notifications" autocomplete="off" autocorrect="off"
             autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore>
         </div>
-        <div class="col-md-3 d-flex align-items-end gap-2">
-          <button type="button" id="nFilter" class="btn btn-primary w-100">Apply</button>
-          <button type="button" id="nMarkAll" class="btn btn-outline-secondary">Clear all</button>
+        <div class="col-md-3 d-flex align-items-end gap-2 justify-content-end">
+          <button type="button" id="nFilter" class="btn custom-button purple-button w-50">Apply</button>
+          <button type="button" id="nMarkAll" class="btn custom-button blue-button w-50">Clear all</button>
         </div>
       </form>
     </div>

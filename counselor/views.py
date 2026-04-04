@@ -90,6 +90,77 @@ def _counselor_course_access_for_user(user, counselor_course):
     return False
 
 
+def _counselor_course_progress_percentage(user, counselor_course):
+    """
+    Overall course progress (0–100), matching CourseLearningView:
+    completed parts / total parts, where a part counts only when its video is
+    completed and any quizzes for that part are completed.
+    """
+    if not user or not counselor_course:
+        return 0
+    course = (
+        CounselorCourse.objects.prefetch_related("chapters__parts__quizzes")
+        .filter(pk=counselor_course.pk)
+        .first()
+    )
+    if not course:
+        return 0
+    chapters_list = list(course.chapters.all())
+    total_parts = sum(ch.parts.count() for ch in chapters_list)
+    if total_parts == 0:
+        return 0
+
+    part_ids = []
+    for ch in chapters_list:
+        part_ids.extend(ch.parts.values_list("id", flat=True))
+    video_keys = [f"video-{pid}" for pid in part_ids]
+    video_progress = {}
+    if part_ids:
+        for progress in VideoProgress.objects.filter(user=user, video_id__in=video_keys):
+            video_progress[int(progress.video_id.split("-")[1])] = progress.completed
+
+    quiz_completion_status = {}
+    try:
+        quiz_result = QuizResults.objects.get(user=user)
+        raw_scores = quiz_result.scores
+        if isinstance(raw_scores, str):
+            scores = json.loads(raw_scores) if raw_scores and raw_scores.strip() else []
+        elif isinstance(raw_scores, list):
+            scores = raw_scores
+        else:
+            scores = []
+        completed_quiz_ids = set()
+        for score in scores:
+            if not isinstance(score, dict):
+                continue
+            qid = score.get("quiz_id")
+            if qid is not None:
+                try:
+                    completed_quiz_ids.add(int(qid))
+                except (TypeError, ValueError):
+                    pass
+        for chapter in chapters_list:
+            for part in chapter.parts.all():
+                qids = list(part.quizzes.values_list("id", flat=True))
+                if not qids:
+                    continue
+                quiz_completion_status[part.id] = all(int(q) in completed_quiz_ids for q in qids)
+    except QuizResults.DoesNotExist:
+        pass
+
+    completed_parts = 0
+    for chapter in chapters_list:
+        for part in chapter.parts.all():
+            if not video_progress.get(part.id, False):
+                continue
+            if part.quizzes.exists():
+                if not quiz_completion_status.get(part.id, False):
+                    continue
+            completed_parts += 1
+
+    return int((completed_parts / total_parts) * 100)
+
+
 def _counselor_course_detail_cta(request, course):
     """
     Enroll vs Start/Resume for course detail, aligned with counselor dashboard.
@@ -1955,6 +2026,23 @@ def CounselorDashboard(request, coun_id=None):
         if any(_is_course_fully_completed(u) for u in _dashboard_course_users):
             counselor_course_cta = "Completed"
 
+    counselor_course_progress_pct = 0
+    if counselor_course:
+        _progress_user = None
+        if (
+            request.user.is_authenticated
+            and _counselor_course_access_for_user(request.user, counselor_course)
+        ):
+            _progress_user = request.user
+        elif counselor_user and _counselor_course_access_for_user(
+            counselor_user, counselor_course
+        ):
+            _progress_user = counselor_user
+        if _progress_user:
+            counselor_course_progress_pct = _counselor_course_progress_percentage(
+                _progress_user, counselor_course
+            )
+
     # Initialize lightweight context for initial page load
     context = {
         'counselors': counselor,
@@ -1975,6 +2063,7 @@ def CounselorDashboard(request, coun_id=None):
         'counselor_course_curriculum_url': counselor_course_curriculum_url,
         'show_counselor_course_on_dashboard': show_counselor_course_on_dashboard,
         'counselor_course_cta': counselor_course_cta,
+        'counselor_course_progress_pct': counselor_course_progress_pct,
     }
     
     # Only load student table data if explicitly requested (not on initial page load)
