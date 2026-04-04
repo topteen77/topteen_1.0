@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 6,
     "part_id": 22
   },
-  "markdown": "# Overview of Career Decision-Making Theories\n## Key points\n- This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…\n",
-  "md": "# Overview of Career Decision-Making Theories\n## Key points\n- This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…\n",
+  "markdown": "# Overview of Career Decision-Making Theories\n- Video/PDF\n  - This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…\n",
+  "md": "# Overview of Career Decision-Making Theories\n- Video/PDF\n  - This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_22",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_22_kp",
+              "id": "cc_part_22_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_22_pt_0",
+                    "id": "cc_part_22_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…",
                     "children": {

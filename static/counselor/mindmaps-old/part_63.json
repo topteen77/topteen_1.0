@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 16,
+    "part_id": 63
+  },
+  "markdown": "# Effective Job Search Strategies and Techniques\n## Key points\n- This video covers effective job search strategies and techniques, offering practical tips on resume building, networking, online job platforms, and interview…\n",
+  "md": "# Effective Job Search Strategies and Techniques\n## Key points\n- This video covers effective job search strategies and techniques, offering practical tips on resume building, networking, online job platforms, and interview…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_63",
+      "class": "sheet",
+      "title": "Effective Job Search Strategies and Techniques",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_63",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Effective Job Search Strategies and Techniques",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_63_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_63_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers effective job search strategies and techniques, offering practical tips on resume building, networking, online job platforms, and interview…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

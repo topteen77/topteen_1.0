@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 11,
     "part_id": 42
   },
-  "markdown": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n## Key points\n- - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
-  "md": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n## Key points\n- - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
+  "markdown": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Video/PDF\n  - - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
+  "md": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Video/PDF\n  - - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_42",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_42_kp",
+              "id": "cc_part_42_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_42_pt_0",
+                    "id": "cc_part_42_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "- This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…",
                     "children": {

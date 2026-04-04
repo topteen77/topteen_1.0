@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 12,
+    "part_id": 81
+  },
+  "markdown": "# Medicine and Healthcare Admission Process\n- 1. Eligibility Criteria for Medical Admissions\n- Minimum Marks:\n- Age Limit:\n- 2. Entrance Examination – NEET (National Eligibility cum Entrance Test)\n- 3. Types of Medical Institutions and Seats Available\n- All India Quota (AIQ) Seats:\n- State Quota Seats:\n- Private Colleges and Deemed Universities:\n- Quiz\n- Video\n",
+  "md": "# Medicine and Healthcare Admission Process\n- 1. Eligibility Criteria for Medical Admissions\n- Minimum Marks:\n- Age Limit:\n- 2. Entrance Examination – NEET (National Eligibility cum Entrance Test)\n- 3. Types of Medical Institutions and Seats Available\n- All India Quota (AIQ) Seats:\n- State Quota Seats:\n- Private Colleges and Deemed Universities:\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_81",
+      "class": "sheet",
+      "title": "Medicine and Healthcare Admission Process",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_81",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Medicine and Healthcare Admission Process",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_81_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Eligibility Criteria for Medical Admissions",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Minimum Marks:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Age Limit:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Entrance Examination – NEET (National Eligibility cum Entrance Test)",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Types of Medical Institutions and Seats Available",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "All India Quota (AIQ) Seats:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "State Quota Seats:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Private Colleges and Deemed Universities:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_81_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

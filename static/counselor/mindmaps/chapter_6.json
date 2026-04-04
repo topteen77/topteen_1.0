@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 6,
     "part_id": null
   },
-  "markdown": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n## Overview of Career Decision-Making Theories\n## Psychological and Sociological Influences on Career Choices\n",
-  "md": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n## Overview of Career Decision-Making Theories\n## Psychological and Sociological Influences on Career Choices\n",
+  "markdown": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n- Video/PDF\n  - This video provides an overview of career development theories, exploring key frameworks that guide individuals in understanding career choices, transitions,…\n## Overview of Career Decision-Making Theories\n- Video/PDF\n  - This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…\n## Psychological and Sociological Influences on Career Choices\n- Video/PDF\n  - This video explores the psychological and sociological influences on career choices, examining how factors like personality, family, culture, and societal ex…\n",
+  "md": "# Theoretical Foundations of Career Counseling\n## Overview of Career Development Theories\n- Video/PDF\n  - This video provides an overview of career development theories, exploring key frameworks that guide individuals in understanding career choices, transitions,…\n## Overview of Career Decision-Making Theories\n- Video/PDF\n  - This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…\n## Psychological and Sociological Influences on Career Choices\n- Video/PDF\n  - This video explores the psychological and sociological influences on career choices, examining how factors like personality, family, culture, and societal ex…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_6",
@@ -27,51 +28,78 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_6_p_21",
+              "id": "cc_ch_6_21_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Overview of Career Development Theories",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_6_p_21_b_0",
+                    "id": "cc_ch_6_21_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides an overview of career development theories, exploring key frameworks that guide individuals in understanding career choices, transitions,…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_6_21_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides an overview of career development theories, exploring key frameworks that guide individuals in understanding career choices, transitions,…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_6_p_22",
+              "id": "cc_ch_6_22_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Overview of Career Decision-Making Theories",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_6_p_22_b_0",
+                    "id": "cc_ch_6_22_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_6_22_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video offers an overview of career decision-making theories, highlighting key models that help individuals navigate the process of making informed and e…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_6_p_23",
+              "id": "cc_ch_6_23_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Psychological and Sociological Influences on Career Choices",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_6_p_23_b_0",
+                    "id": "cc_ch_6_23_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the psychological and sociological influences on career choices, examining how factors like personality, family, culture, and societal ex…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_6_23_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores the psychological and sociological influences on career choices, examining how factors like personality, family, culture, and societal ex…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

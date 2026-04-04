@@ -482,14 +482,24 @@ class CareerDetail(TemplateView):
         # Generate career aspect mindmap data (like HIPPOLOGY example)
         ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
 
-        # Safely check if mindmap data exists (XMind file OR description with h2 tags)
+        # Mindmap: API-backed radial/classic vs static SVG accordion navigator
         try:
-            ctx['has_xmind_file'] = career.has_mindmap_data()  # Now checks both XMind and description
+            from core.models import Configuration
+
+            ctx['career_mindmap_api_available'] = career.has_career_mindmap_api_data()
+            dmt = (Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6').strip() or '6'
+            ctx['career_detail_use_classic_mindmap'] = dmt in ('16', '17')
+            ctx['career_detail_classic_layout'] = 'vertical' if dmt == '17' else 'horizontal'
+            # Backward-compatible name used by some templates / logic
+            ctx['has_xmind_file'] = ctx['career_mindmap_api_available']
             ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
             # Pre-fetch clusters as list for Jinja2 template
             ctx['career_clusters'] = list(career.career_cluster.all())
         except Exception:
             # Gracefully handle any errors
+            ctx['career_mindmap_api_available'] = False
+            ctx['career_detail_use_classic_mindmap'] = False
+            ctx['career_detail_classic_layout'] = 'horizontal'
             ctx['has_xmind_file'] = False
             ctx['xmind_file_path'] = None
             ctx['career_clusters'] = []
@@ -2070,7 +2080,9 @@ class CareerMindmapView(TemplateView):
             '12': 'Vertical Cards',
             '13': 'Vertical Flow',
             '14': 'Vertical Network',
-            '15': 'Vertical Timeline'
+            '15': 'Vertical Timeline',
+            '16': 'Classic mindmap',
+            '17': 'Classic mindmap vertical',
         }
         
         # Breadcrumb

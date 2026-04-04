@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 10,
     "part_id": 35
   },
-  "markdown": "# Career Exploration and Awareness Programs\n## Key points\n- Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…\n- Key components include mentorship, skill-building workshops, and educational planning.\n- These programs foster informed decision-making, skill development, confidence, and networking.\n- Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.\n",
-  "md": "# Career Exploration and Awareness Programs\n## Key points\n- Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…\n- Key components include mentorship, skill-building workshops, and educational planning.\n- These programs foster informed decision-making, skill development, confidence, and networking.\n- Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.\n",
+  "markdown": "# Career Exploration and Awareness Programs\n- Video/PDF\n  - Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…\n  - Key components include mentorship, skill-building workshops, and educational planning.\n  - These programs foster informed decision-making, skill development, confidence, and networking.\n  - Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.\n",
+  "md": "# Career Exploration and Awareness Programs\n- Video/PDF\n  - Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…\n  - Key components include mentorship, skill-building workshops, and educational planning.\n  - These programs foster informed decision-making, skill development, confidence, and networking.\n  - Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.\n",
   "xmind": [
     {
       "id": "cc_sheet_part_35",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_35_kp",
+              "id": "cc_part_35_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_35_pt_0",
+                    "id": "cc_part_35_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Career exploration programs help high school students identify strengths, interests, and career paths through self-assessment tools, career information sessi…",
                     "children": {
@@ -41,7 +42,7 @@
                     }
                   },
                   {
-                    "id": "cc_part_35_pt_1",
+                    "id": "cc_part_35_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Key components include mentorship, skill-building workshops, and educational planning.",
                     "children": {
@@ -49,7 +50,7 @@
                     }
                   },
                   {
-                    "id": "cc_part_35_pt_2",
+                    "id": "cc_part_35_vpdf_2",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "These programs foster informed decision-making, skill development, confidence, and networking.",
                     "children": {
@@ -57,7 +58,7 @@
                     }
                   },
                   {
-                    "id": "cc_part_35_pt_3",
+                    "id": "cc_part_35_vpdf_3",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "Effective implementation involves collaboration with stakeholders, tailoring programs to student needs, and continuous evaluation.",
                     "children": {

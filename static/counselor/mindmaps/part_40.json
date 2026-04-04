@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 11,
     "part_id": 40
   },
-  "markdown": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n## Key points\n- This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…\n",
-  "md": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n## Key points\n- This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…\n",
+  "markdown": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…\n",
+  "md": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_40",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_40_kp",
+              "id": "cc_part_40_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_40_pt_0",
+                    "id": "cc_part_40_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…",
                     "children": {

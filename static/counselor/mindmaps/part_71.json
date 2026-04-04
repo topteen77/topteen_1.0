@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 17,
     "part_id": 71
   },
-  "markdown": "# Legal Considerations and Compliance in Career Counseling\n## Key points\n- This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…\n",
-  "md": "# Legal Considerations and Compliance in Career Counseling\n## Key points\n- This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…\n",
+  "markdown": "# Legal Considerations and Compliance in Career Counseling\n- Video/PDF\n  - This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…\n",
+  "md": "# Legal Considerations and Compliance in Career Counseling\n- Video/PDF\n  - This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_71",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_71_kp",
+              "id": "cc_part_71_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_71_pt_0",
+                    "id": "cc_part_71_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…",
                     "children": {

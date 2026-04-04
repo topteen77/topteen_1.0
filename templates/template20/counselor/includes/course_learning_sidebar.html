@@ -21,7 +21,17 @@ Quiz: {{ t }}
     <div class="card-body p-3">
       <div class="course-sidebar-head mb-3 pb-3 border-bottom">
         <span class="d-block text-uppercase fs-11 fw-bold letter-spacing-1" style="color:#5249DF;">Course content</span>
-        <h2 class="fs-16 fw-bold mb-0 mt-1 text-dark lh-sm">{% if course and course.title %}{{ course.title }}{% else %}Course{% endif %}</h2>
+        <div class="d-flex align-items-start justify-content-between gap-2 mt-1">
+          <h2 class="fs-16 fw-bold mb-0 text-dark lh-sm flex-grow-1 min-w-0">{% if course and course.title %}{{ course.title }}{% else %}Course{% endif %}</h2>
+          {% if course_mindmap_info %}
+          <a href="{{ course_mindmap_info.fullscreen_url }}"
+             target="_blank" rel="noopener noreferrer"
+             class="text-decoration-none text-primary lh-1 p-1 rounded flex-shrink-0 align-self-start" title="Course mindmap (opens in new tab)"
+             aria-label="Open course mindmap in new tab">
+            <i class='bx bx-git-branch fs-18'></i>
+          </a>
+          {% endif %}
+        </div>
         {% if course %}
         <p class="fs-12 text-muted mb-0 mt-1">Chapters &amp; lessons</p>
         {% endif %}

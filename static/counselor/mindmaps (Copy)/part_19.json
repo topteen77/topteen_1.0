@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 5,
+    "part_id": 19
+  },
+  "markdown": "# Ethical Considerations and Professional Boundaries\n- Ethical Considerations\n- 1. Confidentiality\n- 2. Informed Consent\n- 3. Professional Competence\n- 4. Avoiding Conflicts of Interest\n- 5. Respect for Client Autonomy\n- 6. Professional Integrity\n- Professional Boundaries\n- Quiz\n- Video\n",
+  "md": "# Ethical Considerations and Professional Boundaries\n- Ethical Considerations\n- 1. Confidentiality\n- 2. Informed Consent\n- 3. Professional Competence\n- 4. Avoiding Conflicts of Interest\n- 5. Respect for Client Autonomy\n- 6. Professional Integrity\n- Professional Boundaries\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_19",
+      "class": "sheet",
+      "title": "Ethical Considerations and Professional Boundaries",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_19",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Ethical Considerations and Professional Boundaries",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_19_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Ethical Considerations",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Confidentiality",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Informed Consent",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Professional Competence",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "4. Avoiding Conflicts of Interest",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "5. Respect for Client Autonomy",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "6. Professional Integrity",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Professional Boundaries",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_19_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

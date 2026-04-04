@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 28
   },
-  "markdown": "# Administering and Interpreting Psychometric Tests\n## Key points\n- This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n",
-  "md": "# Administering and Interpreting Psychometric Tests\n## Key points\n- This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n",
+  "markdown": "# Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n",
+  "md": "# Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_28",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_28_kp",
+              "id": "cc_part_28_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_28_pt_0",
+                    "id": "cc_part_28_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…",
                     "children": {

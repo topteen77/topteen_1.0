@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 11,
+    "part_id": 42
+  },
+  "markdown": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n## Key points\n- - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
+  "md": "# Guidance on Scholarships, Financial Aid, and Funding Opportunities\n## Key points\n- - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_42",
+      "class": "sheet",
+      "title": "Guidance on Scholarships, Financial Aid, and Funding Opportunities",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_42",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Guidance on Scholarships, Financial Aid, and Funding Opportunities",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_42_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_42_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "- This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

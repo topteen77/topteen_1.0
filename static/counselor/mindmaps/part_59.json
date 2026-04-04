@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 14,
     "part_id": 59
   },
-  "markdown": "# Leveraging Social Media for Career Development\n## Key points\n- This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
-  "md": "# Leveraging Social Media for Career Development\n## Key points\n- This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
+  "markdown": "# Leveraging Social Media for Career Development\n- Video/PDF\n  - This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
+  "md": "# Leveraging Social Media for Career Development\n- Video/PDF\n  - This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_59",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_59_kp",
+              "id": "cc_part_59_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_59_pt_0",
+                    "id": "cc_part_59_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…",
                     "children": {

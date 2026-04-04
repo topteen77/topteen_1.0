@@ -1,0 +1,68 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 9,
+    "part_id": 30
+  },
+  "markdown": "# Individual Counseling Techniques\n- Part 1- Individual Counseling Techniques\n- How individual counseling is conducted in a career counseling setup-\n- Quiz\n- Video\n",
+  "md": "# Individual Counseling Techniques\n- Part 1- Individual Counseling Techniques\n- How individual counseling is conducted in a career counseling setup-\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_30",
+      "class": "sheet",
+      "title": "Individual Counseling Techniques",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_30",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Individual Counseling Techniques",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_30_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 1- Individual Counseling Techniques",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_30_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "How individual counseling is conducted in a career counseling setup-",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_30_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_30_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

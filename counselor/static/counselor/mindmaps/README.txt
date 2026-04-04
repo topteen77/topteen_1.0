@@ -16,3 +16,5 @@ After adding files, run collectstatic in production if applicable.
 Regenerate from the database (also writes richer JSON with an "xmind" tree under ../coursemindmap/<segment>/):
   python manage.py export_course_mindmap_json --segment 14
 Then copy course.json / chapter_*.json / part_*.json from that folder into this directory as needed.
+
+Mindmap display type is Core Configuration key DEFAULT_course_MINDMAP_TYPE (e.g. "classic mindmap" = horizontal classic; "classic vertical" or 9 = vertical top-down in counselor/static/counselor/classic-mindmap/).

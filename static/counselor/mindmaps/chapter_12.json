@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 12,
     "part_id": null
   },
-  "markdown": "# Overseas Education Landscape\n## Engineering Admission Process\n## Medicine and Healthcare Admission Process\n## Commerce Admission Process\n## Humanities Admission Process\n## Other Options ( vocational / diploma or certificate courses)\n",
-  "md": "# Overseas Education Landscape\n## Engineering Admission Process\n## Medicine and Healthcare Admission Process\n## Commerce Admission Process\n## Humanities Admission Process\n## Other Options ( vocational / diploma or certificate courses)\n",
+  "markdown": "# Overseas Education Landscape\n## Engineering Admission Process\n- Video/PDF\n  - This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …\n## Medicine and Healthcare Admission Process\n- Video/PDF\n  - This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …\n## Commerce Admission Process\n- Video/PDF\n  - This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…\n## Humanities Admission Process\n- Video/PDF\n  - This video outlines the humanities admission process, covering essential steps such as entrance exams, eligibility criteria, application procedures, and tips…\n## Other Options ( vocational / diploma or certificate courses)\n- Video/PDF\n  - This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…\n",
+  "md": "# Overseas Education Landscape\n## Engineering Admission Process\n- Video/PDF\n  - This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …\n## Medicine and Healthcare Admission Process\n- Video/PDF\n  - This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …\n## Commerce Admission Process\n- Video/PDF\n  - This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…\n## Humanities Admission Process\n- Video/PDF\n  - This video outlines the humanities admission process, covering essential steps such as entrance exams, eligibility criteria, application procedures, and tips…\n## Other Options ( vocational / diploma or certificate courses)\n- Video/PDF\n  - This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_12",
@@ -27,85 +28,130 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_12_p_80",
+              "id": "cc_ch_12_80_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Engineering Admission Process",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_12_p_80_b_0",
+                    "id": "cc_ch_12_80_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_12_80_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_12_p_81",
+              "id": "cc_ch_12_81_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Medicine and Healthcare Admission Process",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_12_p_81_b_0",
+                    "id": "cc_ch_12_81_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_12_81_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_12_p_82",
+              "id": "cc_ch_12_82_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Commerce Admission Process",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_12_p_82_b_0",
+                    "id": "cc_ch_12_82_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_12_82_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_12_p_83",
+              "id": "cc_ch_12_83_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Humanities Admission Process",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_12_p_83_b_0",
+                    "id": "cc_ch_12_83_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video outlines the humanities admission process, covering essential steps such as entrance exams, eligibility criteria, application procedures, and tips…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_12_83_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video outlines the humanities admission process, covering essential steps such as entrance exams, eligibility criteria, application procedures, and tips…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_12_p_84",
+              "id": "cc_ch_12_84_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Other Options ( vocational / diploma or certificate courses)",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_12_p_84_b_0",
+                    "id": "cc_ch_12_84_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_12_84_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores other educational options, including vocational, diploma, and certificate courses, highlighting the admission process, eligibility criter…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

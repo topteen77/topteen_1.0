@@ -1,0 +1,103 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 19,
+    "part_id": null
+  },
+  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n## Role Playing and Simulation Exercises for Career Counselors\n## Workshops and Group Discussions in Career Counseling\n## Fieldwork and Practical Experience for Career Counselors\n",
+  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n## Role Playing and Simulation Exercises for Career Counselors\n## Workshops and Group Discussions in Career Counseling\n## Fieldwork and Practical Experience for Career Counselors\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_19",
+      "class": "sheet",
+      "title": "Practical Applications and Case Studies",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_19",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Practical Applications and Case Studies",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_19_p_74",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Real-World Case Studies in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_19_p_74_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores real-life case studies in career counseling, providing practical examples of how counselors have helped clients navigate career decisions…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_19_p_75",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Role Playing and Simulation Exercises for Career Counselors",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_19_p_75_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_19_p_76",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Workshops and Group Discussions in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_19_p_76_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_19_p_77",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Fieldwork and Practical Experience for Career Counselors",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_19_p_77_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

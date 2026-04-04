@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 10,
     "part_id": 36
   },
-  "markdown": "# Identifying and Exploring Potential Career Paths\n## Key points\n- This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…\n",
-  "md": "# Identifying and Exploring Potential Career Paths\n## Key points\n- This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…\n",
+  "markdown": "# Identifying and Exploring Potential Career Paths\n- Video/PDF\n  - This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…\n",
+  "md": "# Identifying and Exploring Potential Career Paths\n- Video/PDF\n  - This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_36",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_36_kp",
+              "id": "cc_part_36_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_36_pt_0",
+                    "id": "cc_part_36_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video focuses on identifying and exploring potential career paths, providing strategies to help individuals assess their interests, skills, and opportun…",
                     "children": {

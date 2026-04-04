@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 5,
     "part_id": null
   },
-  "markdown": "# Core Skills and Competencies for Career Counselors\n## Essential Skills for Effective Career Counseling\n## Communication and Active Listening Techniques\n## Building Rapport and Trust with Clients\n## Cultural Competence and Diversity Awareness\n## Ethical Considerations and Professional Boundaries\n## Building a growth mindset\n",
-  "md": "# Core Skills and Competencies for Career Counselors\n## Essential Skills for Effective Career Counseling\n## Communication and Active Listening Techniques\n## Building Rapport and Trust with Clients\n## Cultural Competence and Diversity Awareness\n## Ethical Considerations and Professional Boundaries\n## Building a growth mindset\n",
+  "markdown": "# Core Skills and Competencies for Career Counselors\n## Essential Skills for Effective Career Counseling\n- Video/PDF\n  - This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…\n## Communication and Active Listening Techniques\n- Video/PDF\n  - This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…\n## Building Rapport and Trust with Clients\n- Video/PDF\n  - This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…\n## Cultural Competence and Diversity Awareness\n- Video/PDF\n  - This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …\n## Ethical Considerations and Professional Boundaries\n- Video/PDF\n  - This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…\n## Building a growth mindset\n- Video/PDF\n  - This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …\n",
+  "md": "# Core Skills and Competencies for Career Counselors\n## Essential Skills for Effective Career Counseling\n- Video/PDF\n  - This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…\n## Communication and Active Listening Techniques\n- Video/PDF\n  - This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…\n## Building Rapport and Trust with Clients\n- Video/PDF\n  - This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…\n## Cultural Competence and Diversity Awareness\n- Video/PDF\n  - This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …\n## Ethical Considerations and Professional Boundaries\n- Video/PDF\n  - This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…\n## Building a growth mindset\n- Video/PDF\n  - This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_5",
@@ -27,102 +28,156 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_5_p_15",
+              "id": "cc_ch_5_15_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Essential Skills for Effective Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_5_p_15_b_0",
+                    "id": "cc_ch_5_15_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_5_15_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_5_p_16",
+              "id": "cc_ch_5_16_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Communication and Active Listening Techniques",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_5_p_16_b_0",
+                    "id": "cc_ch_5_16_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_5_16_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_5_p_17",
+              "id": "cc_ch_5_17_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Building Rapport and Trust with Clients",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_5_p_17_b_0",
+                    "id": "cc_ch_5_17_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_5_17_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_5_p_18",
+              "id": "cc_ch_5_18_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Cultural Competence and Diversity Awareness",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_5_p_18_b_0",
+                    "id": "cc_ch_5_18_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_5_18_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores the importance of cultural competence and diversity awareness in career counseling, highlighting how understanding different backgrounds …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_5_p_19",
+              "id": "cc_ch_5_19_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Ethical Considerations and Professional Boundaries",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_5_p_19_b_0",
+                    "id": "cc_ch_5_19_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_5_19_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_5_p_20",
+              "id": "cc_ch_5_20_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Building a growth mindset",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_5_p_20_b_0",
+                    "id": "cc_ch_5_20_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_5_20_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

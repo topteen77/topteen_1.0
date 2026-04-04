@@ -1,0 +1,401 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 12,
+    "part_id": null
+  },
+  "markdown": "# Overseas Education Landscape\n## Engineering Admission Process\n- 1. Eligibility Criteria\n- Educational Qualification:\n- Minimum Marks:\n- Additional Subjects:\n- Age Limit:\n- 2. National-Level Entrance Exams\n- Quiz\n- Video\n## Medicine and Healthcare Admission Process\n- 1. Eligibility Criteria for Medical Admissions\n- Minimum Marks:\n- Age Limit:\n- 2. Entrance Examination – NEET (National Eligibility cum Entrance Test)\n- 3. Types of Medical Institutions and Seats Available\n- All India Quota (AIQ) Seats:\n- Quiz\n- Video\n## Commerce Admission Process\n- Course Options and Admission process for Commerce Students After 12th in India\n- 1. Bachelor of Commerce (B.Com)\n- Overview:\n- Specializations:\n- Admission Process:\n- Mathematics Requirement:\n- Quiz\n- Video\n## Humanities Admission Process\n- 1. Bachelor of Arts (BA)\n- Specializations:\n- Admission Process:\n- Top Colleges:\n- 2. Bachelor of Fine Arts (BFA)\n- 3. Bachelor of Design (B.Des)\n- Quiz\n- Video\n## Other Options ( vocational / diploma or certificate courses)\n- 1. Vocational Courses\n- Common Vocational Courses\n- Other Courses :\n- Admission Process\n- Tuition Fees\n- Top Institutes\n- Quiz\n- Video\n",
+  "md": "# Overseas Education Landscape\n## Engineering Admission Process\n- 1. Eligibility Criteria\n- Educational Qualification:\n- Minimum Marks:\n- Additional Subjects:\n- Age Limit:\n- 2. National-Level Entrance Exams\n- Quiz\n- Video\n## Medicine and Healthcare Admission Process\n- 1. Eligibility Criteria for Medical Admissions\n- Minimum Marks:\n- Age Limit:\n- 2. Entrance Examination – NEET (National Eligibility cum Entrance Test)\n- 3. Types of Medical Institutions and Seats Available\n- All India Quota (AIQ) Seats:\n- Quiz\n- Video\n## Commerce Admission Process\n- Course Options and Admission process for Commerce Students After 12th in India\n- 1. Bachelor of Commerce (B.Com)\n- Overview:\n- Specializations:\n- Admission Process:\n- Mathematics Requirement:\n- Quiz\n- Video\n## Humanities Admission Process\n- 1. Bachelor of Arts (BA)\n- Specializations:\n- Admission Process:\n- Top Colleges:\n- 2. Bachelor of Fine Arts (BFA)\n- 3. Bachelor of Design (B.Des)\n- Quiz\n- Video\n## Other Options ( vocational / diploma or certificate courses)\n- 1. Vocational Courses\n- Common Vocational Courses\n- Other Courses :\n- Admission Process\n- Tuition Fees\n- Top Institutes\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_12",
+      "class": "sheet",
+      "title": "Overseas Education Landscape",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_12",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Overseas Education Landscape",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_12_p_80",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Engineering Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_80_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Eligibility Criteria",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Educational Qualification:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Minimum Marks:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Additional Subjects:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Age Limit:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. National-Level Entrance Exams",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_80_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_81",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Medicine and Healthcare Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_81_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Eligibility Criteria for Medical Admissions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Minimum Marks:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Age Limit:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Entrance Examination – NEET (National Eligibility cum Entrance Test)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Types of Medical Institutions and Seats Available",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "All India Quota (AIQ) Seats:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_81_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_82",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Commerce Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_82_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Course Options and Admission process for Commerce Students After 12th in India",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Bachelor of Commerce (B.Com)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Overview:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Specializations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Admission Process:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Mathematics Requirement:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_82_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_83",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Humanities Admission Process",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_83_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Bachelor of Arts (BA)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Specializations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Admission Process:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Top Colleges:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Bachelor of Fine Arts (BFA)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Bachelor of Design (B.Des)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_83_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_12_p_84",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Other Options ( vocational / diploma or certificate courses)",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_12_p_84_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Vocational Courses",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Common Vocational Courses",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Other Courses :",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Admission Process",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Tuition Fees",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Top Institutes",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_12_p_84_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 10,
     "part_id": 37
   },
-  "markdown": "# Navigating Career Transitions and Life Changes\n## Key points\n- This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…\n",
-  "md": "# Navigating Career Transitions and Life Changes\n## Key points\n- This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…\n",
+  "markdown": "# Navigating Career Transitions and Life Changes\n- Video/PDF\n  - This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…\n",
+  "md": "# Navigating Career Transitions and Life Changes\n- Video/PDF\n  - This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_37",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_37_kp",
+              "id": "cc_part_37_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_37_pt_0",
+                    "id": "cc_part_37_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explores navigating career transitions and life changes, offering guidance on how to adapt to new career opportunities, challenges, and personal g…",
                     "children": {

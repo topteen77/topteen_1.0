@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": 96
+  },
+  "markdown": "# Australia\n## Key points\n- This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "md": "# Australia\n## Key points\n- This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_96",
+      "class": "sheet",
+      "title": "Australia",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_96",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Australia",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_96_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_96_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

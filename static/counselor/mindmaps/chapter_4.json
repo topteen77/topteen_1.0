@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 4,
     "part_id": null
   },
-  "markdown": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n## Changing scope of Careers in 21st century.\n## Indian education and Career landscape\n## Study Abroad- a detailed Perspective\n",
-  "md": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n## Changing scope of Careers in 21st century.\n## Indian education and Career landscape\n## Study Abroad- a detailed Perspective\n",
+  "markdown": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n- Video/PDF\n  - This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …\n## Changing scope of Careers in 21st century.\n- Video/PDF\n  - This video examines the changing scope of careers in the 21st century, highlighting emerging trends, new industries, and how technological advancements are r…\n## Indian education and Career landscape\n- Video/PDF\n  - This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…\n## Study Abroad- a detailed Perspective\n- Video/PDF\n  - This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…\n",
+  "md": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n- Video/PDF\n  - This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …\n## Changing scope of Careers in 21st century.\n- Video/PDF\n  - This video examines the changing scope of careers in the 21st century, highlighting emerging trends, new industries, and how technological advancements are r…\n## Indian education and Career landscape\n- Video/PDF\n  - This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…\n## Study Abroad- a detailed Perspective\n- Video/PDF\n  - This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_4",
@@ -27,68 +28,104 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_4_p_11",
+              "id": "cc_ch_4_11_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "What is Education and career Ecosystem?",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_4_p_11_b_0",
+                    "id": "cc_ch_4_11_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_11_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_4_p_12",
+              "id": "cc_ch_4_12_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Changing scope of Careers in 21st century.",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_4_p_12_b_0",
+                    "id": "cc_ch_4_12_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video examines the changing scope of careers in the 21st century, highlighting emerging trends, new industries, and how technological advancements are r…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_12_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video examines the changing scope of careers in the 21st century, highlighting emerging trends, new industries, and how technological advancements are r…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_4_p_13",
+              "id": "cc_ch_4_13_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Indian education and Career landscape",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_4_p_13_b_0",
+                    "id": "cc_ch_4_13_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_13_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_4_p_14",
+              "id": "cc_ch_4_14_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Study Abroad- a detailed Perspective",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_4_p_14_b_0",
+                    "id": "cc_ch_4_14_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_14_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

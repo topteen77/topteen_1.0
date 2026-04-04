@@ -7,10 +7,16 @@ staticfiles finders (and STATICFILES_DIRS in dev).
 from __future__ import annotations
 
 import json
+import threading
+import time
 from pathlib import Path
 
 from django.contrib.staticfiles import finders
 from django.templatetags.static import static
+
+# Process-local TTL cache for mindmap flags (DEBUG dev uses DummyCache — Django cache is a no-op).
+_MINDMAP_FLAG_CACHE: dict[int, tuple[float, bool, dict[int, bool], dict[int, bool]]] = {}
+_MINDMAP_FLAG_LOCK = threading.Lock()
 
 
 def counselor_mindmaps_globally_enabled() -> bool:
@@ -97,3 +103,67 @@ def part_mindmap_available(part) -> bool:
     if not pid:
         return False
     return mindmap_json_valid(part_mindmap_relpath(pid))
+
+
+def cached_course_chapter_part_mindmap_flags(course, chapters_list, *, ttl: int = 3600):
+    """
+    Return (course_has_mindmap, chapter_id -> bool, part_id -> bool).
+
+    Without caching, each course learning request re-reads and json.loads every static
+    mindmap file (chapter_*.json / part_*.json) — multi-second cost at scale.
+
+    Uses a **process-local** TTL dict so it works when Django settings use DummyCache
+    (typical DEBUG + DISABLE_CACHE_FOR_DEV). Also writes to Django cache when that backend
+    is real (Redis/LocMem) so multiple workers can share entries.
+    """
+    if not counselor_mindmaps_globally_enabled():
+        return False, {}, {}
+
+    from counselor.models import CounselorCourse
+
+    if not course or not isinstance(course, CounselorCourse):
+        return False, {}, {}
+
+    cid = int(course.id)
+    now = time.time()
+
+    with _MINDMAP_FLAG_LOCK:
+        ent = _MINDMAP_FLAG_CACHE.get(cid)
+        if ent is not None and (now - ent[0]) < ttl:
+            return ent[1], ent[2], ent[3]
+
+    try:
+        from django.core.cache import cache
+
+        key = f"counselor_mm_av:v2:{cid}"
+        hit = cache.get(key)
+        if isinstance(hit, dict) and "course" in hit and "chapters" in hit and "parts" in hit:
+            course_ok = hit["course"]
+            ch_f = hit["chapters"]
+            part_f = hit["parts"]
+            with _MINDMAP_FLAG_LOCK:
+                _MINDMAP_FLAG_CACHE[cid] = (now, course_ok, ch_f, part_f)
+            return course_ok, ch_f, part_f
+    except Exception:
+        pass
+
+    course_ok = course_mindmap_available(course)
+    ch_f = {}
+    part_f = {}
+    for ch in chapters_list:
+        ch_f[ch.id] = chapter_mindmap_available(ch)
+        for p in ch.parts.all():
+            part_f[p.id] = part_mindmap_available(p)
+
+    payload = {"course": course_ok, "chapters": ch_f, "parts": part_f}
+    try:
+        from django.core.cache import cache
+
+        cache.set(f"counselor_mm_av:v2:{cid}", payload, ttl)
+    except Exception:
+        pass
+
+    with _MINDMAP_FLAG_LOCK:
+        _MINDMAP_FLAG_CACHE[cid] = (now, course_ok, ch_f, part_f)
+
+    return course_ok, ch_f, part_f

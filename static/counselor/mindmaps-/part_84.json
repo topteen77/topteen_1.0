@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 12,
+    "part_id": 84
+  },
+  "markdown": "# Other Options ( vocational / diploma or certificate courses)\n- Part 5- Other Options (Vocational / diploma or certificate courses)\n- 1. Vocational Courses\n- Common Vocational Courses\n- Other Courses :\n- Admission Process\n- Tuition Fees\n- Top Institutes\n- National Institute of Open Schooling (NIOS)\n- Quiz\n- Video\n",
+  "md": "# Other Options ( vocational / diploma or certificate courses)\n- Part 5- Other Options (Vocational / diploma or certificate courses)\n- 1. Vocational Courses\n- Common Vocational Courses\n- Other Courses :\n- Admission Process\n- Tuition Fees\n- Top Institutes\n- National Institute of Open Schooling (NIOS)\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_84",
+      "class": "sheet",
+      "title": "Other Options ( vocational / diploma or certificate courses)",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_84",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Other Options ( vocational / diploma or certificate courses)",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_84_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 5- Other Options (Vocational / diploma or certificate courses)",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Vocational Courses",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Common Vocational Courses",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Other Courses :",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Admission Process",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Tuition Fees",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Top Institutes",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "National Institute of Open Schooling (NIOS)",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_84_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

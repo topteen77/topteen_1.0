@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 13,
     "part_id": null
   },
-  "markdown": "# Study Abroad- Traditional and Emerging countries\n## Study abroad- an over view\n## United States (USA)\n## United Kingdom (UK)\n## Canada\n## Germany\n## Singapore\n## New Zealand\n## Netherlands\n## Australia\n## France\n## Hong Kong\n",
-  "md": "# Study Abroad- Traditional and Emerging countries\n## Study abroad- an over view\n## United States (USA)\n## United Kingdom (UK)\n## Canada\n## Germany\n## Singapore\n## New Zealand\n## Netherlands\n## Australia\n## France\n## Hong Kong\n",
+  "markdown": "# Study Abroad- Traditional and Emerging countries\n## Study abroad- an over view\n- Video/PDF\n  - This video offers an overview of studying abroad, covering key aspects such as the benefits, application processes, financial considerations, top destination…\n## United States (USA)\n- Video/PDF\n  - This video provides detailed insights into the education scenario of USA, covering admission procedures, standard tests, cost of study and living, weather, f…\n## United Kingdom (UK)\n- Video/PDF\n  - This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…\n## Canada\n- Video/PDF\n  - This video provides detailed insights into the education scenario Canada, covering admission procedures, standard tests, cost of study and living, weather, f…\n## Germany\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Germany, covering admission procedures, standard tests, cost of study and living, weathe…\n## Singapore\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…\n## New Zealand\n- Video/PDF\n  - This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…\n## Netherlands\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…\n## Australia\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…\n## France\n- Video/PDF\n  - This video provides detailed insights into the education scenario of France, covering admission procedures, standard tests, cost of study and living, weather…\n## Hong Kong\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "md": "# Study Abroad- Traditional and Emerging countries\n## Study abroad- an over view\n- Video/PDF\n  - This video offers an overview of studying abroad, covering key aspects such as the benefits, application processes, financial considerations, top destination…\n## United States (USA)\n- Video/PDF\n  - This video provides detailed insights into the education scenario of USA, covering admission procedures, standard tests, cost of study and living, weather, f…\n## United Kingdom (UK)\n- Video/PDF\n  - This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…\n## Canada\n- Video/PDF\n  - This video provides detailed insights into the education scenario Canada, covering admission procedures, standard tests, cost of study and living, weather, f…\n## Germany\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Germany, covering admission procedures, standard tests, cost of study and living, weathe…\n## Singapore\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…\n## New Zealand\n- Video/PDF\n  - This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…\n## Netherlands\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…\n## Australia\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…\n## France\n- Video/PDF\n  - This video provides detailed insights into the education scenario of France, covering admission procedures, standard tests, cost of study and living, weather…\n## Hong Kong\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_13",
@@ -27,187 +28,286 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_13_p_86",
+              "id": "cc_ch_13_86_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Study abroad- an over view",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_86_b_0",
+                    "id": "cc_ch_13_86_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video offers an overview of studying abroad, covering key aspects such as the benefits, application processes, financial considerations, top destination…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_86_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video offers an overview of studying abroad, covering key aspects such as the benefits, application processes, financial considerations, top destination…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_89",
+              "id": "cc_ch_13_89_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "United States (USA)",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_89_b_0",
+                    "id": "cc_ch_13_89_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of USA, covering admission procedures, standard tests, cost of study and living, weather, f…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_89_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of USA, covering admission procedures, standard tests, cost of study and living, weather, f…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_90",
+              "id": "cc_ch_13_90_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "United Kingdom (UK)",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_90_b_0",
+                    "id": "cc_ch_13_90_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_90_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of UK, covering admission procedures, standard tests, cost of study and living, weather, fi…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_91",
+              "id": "cc_ch_13_91_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Canada",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_91_b_0",
+                    "id": "cc_ch_13_91_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario Canada, covering admission procedures, standard tests, cost of study and living, weather, f…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_91_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario Canada, covering admission procedures, standard tests, cost of study and living, weather, f…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_92",
+              "id": "cc_ch_13_92_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Germany",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_92_b_0",
+                    "id": "cc_ch_13_92_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of Germany, covering admission procedures, standard tests, cost of study and living, weathe…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_92_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of Germany, covering admission procedures, standard tests, cost of study and living, weathe…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_93",
+              "id": "cc_ch_13_93_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Singapore",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_93_b_0",
+                    "id": "cc_ch_13_93_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_93_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_94",
+              "id": "cc_ch_13_94_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "New Zealand",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_94_b_0",
+                    "id": "cc_ch_13_94_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_94_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of New Zealand, covering admission procedures, standard tests, cost of study and living, we…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_95",
+              "id": "cc_ch_13_95_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Netherlands",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_95_b_0",
+                    "id": "cc_ch_13_95_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_95_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of Netherlands, covering admission procedures, standard tests, cost of study and living, we…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_96",
+              "id": "cc_ch_13_96_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Australia",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_96_b_0",
+                    "id": "cc_ch_13_96_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_96_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of Australia, covering admission procedures, standard tests, cost of study and living, weat…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_97",
+              "id": "cc_ch_13_97_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "France",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_97_b_0",
+                    "id": "cc_ch_13_97_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of France, covering admission procedures, standard tests, cost of study and living, weather…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_97_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of France, covering admission procedures, standard tests, cost of study and living, weather…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_13_p_98",
+              "id": "cc_ch_13_98_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Hong Kong",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_13_p_98_b_0",
+                    "id": "cc_ch_13_98_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_98_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

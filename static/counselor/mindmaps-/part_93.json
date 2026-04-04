@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": 93
+  },
+  "markdown": "# Singapore\n- 6. New Zealand\n- 1. Admission Process\n- 2. Standardized Tests\n- 3. Other Requirements\n- 4. Cost of Study\n- Tuition Fees\n\nUndergraduate Programs:\n- Graduate Programs:\n- Cost of Living\n- Quiz\n- Video\n",
+  "md": "# Singapore\n- 6. New Zealand\n- 1. Admission Process\n- 2. Standardized Tests\n- 3. Other Requirements\n- 4. Cost of Study\n- Tuition Fees\n\nUndergraduate Programs:\n- Graduate Programs:\n- Cost of Living\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_93",
+      "class": "sheet",
+      "title": "Singapore",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_93",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Singapore",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_93_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "6. New Zealand",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Admission Process",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Standardized Tests",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Other Requirements",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "4. Cost of Study",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Tuition Fees\n\nUndergraduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Graduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Cost of Living",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_93_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

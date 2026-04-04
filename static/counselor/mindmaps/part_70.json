@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 17,
     "part_id": 70
   },
-  "markdown": "# Ethical Decision-Making in Career Counseling\n## Key points\n- This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …\n",
-  "md": "# Ethical Decision-Making in Career Counseling\n## Key points\n- This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …\n",
+  "markdown": "# Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …\n",
+  "md": "# Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …\n",
   "xmind": [
     {
       "id": "cc_sheet_part_70",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_70_kp",
+              "id": "cc_part_70_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_70_pt_0",
+                    "id": "cc_part_70_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …",
                     "children": {

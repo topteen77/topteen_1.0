@@ -50,6 +50,48 @@ class InstituteMarketingGroup(BaseModel):
     def __str__(self):
         return self.m_group_name
 
+
+def get_default_marketing_group_for_direct_registration():
+    """
+    Marketing group for institutes that register without selecting a marketing partner.
+    Uses settings.DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID (marketing user, e.g. 1409).
+    Returns None if the setting is 0/unset or the user does not exist or is not a marketing admin.
+    """
+    uid = getattr(settings, 'DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID', None)
+    if uid in (None, 0):
+        return None
+    try:
+        uid = int(uid)
+    except (TypeError, ValueError):
+        return None
+    if uid <= 0:
+        return None
+    try:
+        admin_user = User.objects.get(pk=uid)
+    except User.DoesNotExist:
+        return None
+    if admin_user.user_type != choices.UserType.MARKETINGGROUPADMIN:
+        return None
+    mg = InstituteMarketingGroup.objects.filter(
+        marketing_group_admin=admin_user
+    ).order_by('id').first()
+    if mg:
+        return mg
+    return InstituteMarketingGroup.objects.create(
+        m_group_name=(admin_user.name or admin_user.email or 'Default direct registrations')[:250],
+        marketing_group_admin=admin_user,
+    )
+
+
+def resolve_marketing_group_for_public_registration(selected_group):
+    """
+    If the signup form chose a marketing group, keep it. Otherwise attach the default direct pool.
+    """
+    if selected_group is not None:
+        return selected_group
+    return get_default_marketing_group_for_direct_registration()
+
+
 class Institute(BaseModel, SlugModel):
     """
     Model representing an educational institute.

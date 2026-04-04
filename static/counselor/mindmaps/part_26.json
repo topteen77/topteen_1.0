@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 26
   },
-  "markdown": "# Aptitude and Skills Testing in Career Counseling\n## Key points\n- This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n",
-  "md": "# Aptitude and Skills Testing in Career Counseling\n## Key points\n- This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n",
+  "markdown": "# Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n",
+  "md": "# Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_26",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_26_kp",
+              "id": "cc_part_26_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_26_pt_0",
+                    "id": "cc_part_26_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…",
                     "children": {

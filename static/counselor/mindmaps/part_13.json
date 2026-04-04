@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 4,
     "part_id": 13
   },
-  "markdown": "# Indian education and Career landscape\n## Key points\n- This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…\n",
-  "md": "# Indian education and Career landscape\n## Key points\n- This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…\n",
+  "markdown": "# Indian education and Career landscape\n- Video/PDF\n  - This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…\n",
+  "md": "# Indian education and Career landscape\n- Video/PDF\n  - This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_13",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_13_kp",
+              "id": "cc_part_13_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_13_pt_0",
+                    "id": "cc_part_13_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…",
                     "children": {

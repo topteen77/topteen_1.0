@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 19,
+    "part_id": 74
+  },
+  "markdown": "# Real-World Case Studies in Career Counseling\n- 1. Case Study: Navigating Career Choices\n- Student Profile:\n- Counseling Approach:\n- 2. Case Study: Overcoming Academic Challenges\n- 3. Case Study: Identifying Career Interests\n- 4. Case Study: Career Path Realignment\n- 5. Case Study: Transitioning to Higher Education\n- 6. Case Study: Addressing Career Indecision\n- Quiz\n- Video\n",
+  "md": "# Real-World Case Studies in Career Counseling\n- 1. Case Study: Navigating Career Choices\n- Student Profile:\n- Counseling Approach:\n- 2. Case Study: Overcoming Academic Challenges\n- 3. Case Study: Identifying Career Interests\n- 4. Case Study: Career Path Realignment\n- 5. Case Study: Transitioning to Higher Education\n- 6. Case Study: Addressing Career Indecision\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_74",
+      "class": "sheet",
+      "title": "Real-World Case Studies in Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_74",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Real-World Case Studies in Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_74_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Case Study: Navigating Career Choices",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Student Profile:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Counseling Approach:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Case Study: Overcoming Academic Challenges",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. Case Study: Identifying Career Interests",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "4. Case Study: Career Path Realignment",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "5. Case Study: Transitioning to Higher Education",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "6. Case Study: Addressing Career Indecision",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_74_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

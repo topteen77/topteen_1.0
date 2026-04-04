@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 4,
     "part_id": 11
   },
-  "markdown": "# What is Education and career Ecosystem?\n## Key points\n- This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …\n",
-  "md": "# What is Education and career Ecosystem?\n## Key points\n- This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …\n",
+  "markdown": "# What is Education and career Ecosystem?\n- Video/PDF\n  - This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …\n",
+  "md": "# What is Education and career Ecosystem?\n- Video/PDF\n  - This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …\n",
   "xmind": [
     {
       "id": "cc_sheet_part_11",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_11_kp",
+              "id": "cc_part_11_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_11_pt_0",
+                    "id": "cc_part_11_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …",
                     "children": {

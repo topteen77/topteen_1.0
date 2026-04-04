@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 10,
+    "part_id": 36
+  },
+  "markdown": "# Identifying and Exploring Potential Career Paths\n- Understanding the Student\n- Exploring Career Options\n- Encouraging Real-World Experience\n- Guiding Educational Planning\n- Setting and Achieving Goals\n- Providing Ongoing Support and Guidance\n- Promoting Flexibility and Openness\n- Conclusion\n- Quiz\n- Video\n",
+  "md": "# Identifying and Exploring Potential Career Paths\n- Understanding the Student\n- Exploring Career Options\n- Encouraging Real-World Experience\n- Guiding Educational Planning\n- Setting and Achieving Goals\n- Providing Ongoing Support and Guidance\n- Promoting Flexibility and Openness\n- Conclusion\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_36",
+      "class": "sheet",
+      "title": "Identifying and Exploring Potential Career Paths",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_36",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Identifying and Exploring Potential Career Paths",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_36_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Understanding the Student",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Exploring Career Options",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Encouraging Real-World Experience",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Guiding Educational Planning",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Setting and Achieving Goals",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Providing Ongoing Support and Guidance",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Promoting Flexibility and Openness",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Conclusion",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_36_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

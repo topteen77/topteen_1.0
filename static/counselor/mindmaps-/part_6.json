@@ -1,0 +1,100 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 3,
+    "part_id": 6
+  },
+  "markdown": "# Understanding Career Counseling\n- What is career counseling and why is it important?\n- Part 1- Understanding Career Counselling\n- What Is Counselling?\n- What is career counselling?\n- Who is a career counselor?\n- Who needs career counselling and When?\n- Quiz\n- Video\n",
+  "md": "# Understanding Career Counseling\n- What is career counseling and why is it important?\n- Part 1- Understanding Career Counselling\n- What Is Counselling?\n- What is career counselling?\n- Who is a career counselor?\n- Who needs career counselling and When?\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_6",
+      "class": "sheet",
+      "title": "Understanding Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_6",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Understanding Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_6_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "What is career counseling and why is it important?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 1- Understanding Career Counselling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "What Is Counselling?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "What is career counselling?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Who is a career counselor?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Who needs career counselling and When?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_6_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

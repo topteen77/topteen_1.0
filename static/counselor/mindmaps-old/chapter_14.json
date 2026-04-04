@@ -1,0 +1,103 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 14,
+    "part_id": null
+  },
+  "markdown": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n## Online Career Assessments and Planning Software\n## Virtual Counseling and Remote Career Guidance\n## Leveraging Social Media for Career Development\n",
+  "md": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n## Online Career Assessments and Planning Software\n## Virtual Counseling and Remote Career Guidance\n## Leveraging Social Media for Career Development\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_14",
+      "class": "sheet",
+      "title": "Technology Integration in Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_14",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Technology Integration in Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_14_p_56",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Utilizing Digital Tools for Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_14_p_56_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores how to utilize digital tools for career counseling, highlighting platforms and technologies that enhance career guidance, assessments, an…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_14_p_57",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Online Career Assessments and Planning Software",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_14_p_57_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers online career assessments and planning software, showcasing how these digital tools help individuals evaluate their skills, interests, and …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_14_p_58",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Virtual Counseling and Remote Career Guidance",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_14_p_58_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores virtual counseling and remote career guidance, highlighting how online platforms and technologies provide accessible and effective career…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_14_p_59",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Leveraging Social Media for Career Development",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_14_p_59_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

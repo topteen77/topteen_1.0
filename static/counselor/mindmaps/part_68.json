@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 68
   },
-  "markdown": "# Identifying Key Competences\n## Key points\n- This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…\n",
-  "md": "# Identifying Key Competences\n## Key points\n- This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…\n",
+  "markdown": "# Identifying Key Competences\n- Video/PDF\n  - This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…\n",
+  "md": "# Identifying Key Competences\n- Video/PDF\n  - This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_68",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_68_kp",
+              "id": "cc_part_68_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_68_pt_0",
+                    "id": "cc_part_68_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video focuses on identifying key competences, emphasizing how understanding essential skills and strengths can help individuals align their abilities wi…",
                     "children": {

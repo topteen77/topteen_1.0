@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 8,
+    "part_id": 29
+  },
+  "markdown": "# Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Part 6- Using Career Assessment Tools in Career Counseling\n- 1. Career Search Tools\n- Definition and Purpose\n- Types of Career Search Tools\n- Applications in Career Counseling\n- 2. Stream Selection Assessments\n- Types of Stream Selection Assessments\n- 3. College Search Tools\n- Quiz\n- Video\n",
+  "md": "# Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Part 6- Using Career Assessment Tools in Career Counseling\n- 1. Career Search Tools\n- Definition and Purpose\n- Types of Career Search Tools\n- Applications in Career Counseling\n- 2. Stream Selection Assessments\n- Types of Stream Selection Assessments\n- 3. College Search Tools\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_29",
+      "class": "sheet",
+      "title": "Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_29",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_29_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 6- Using Career Assessment Tools in Career Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "1. Career Search Tools",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Definition and Purpose",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Types of Career Search Tools",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Applications in Career Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "2. Stream Selection Assessments",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Types of Stream Selection Assessments",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "3. College Search Tools",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_29_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

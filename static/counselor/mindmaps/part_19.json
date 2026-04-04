@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 19
   },
-  "markdown": "# Ethical Considerations and Professional Boundaries\n## Key points\n- This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…\n",
-  "md": "# Ethical Considerations and Professional Boundaries\n## Key points\n- This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…\n",
+  "markdown": "# Ethical Considerations and Professional Boundaries\n- Video/PDF\n  - This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…\n",
+  "md": "# Ethical Considerations and Professional Boundaries\n- Video/PDF\n  - This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_19",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_19_kp",
+              "id": "cc_part_19_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_19_pt_0",
+                    "id": "cc_part_19_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video discusses ethical considerations and professional boundaries in career counseling, emphasizing the importance of maintaining integrity, confidenti…",
                     "children": {

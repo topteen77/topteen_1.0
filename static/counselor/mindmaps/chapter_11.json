@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 11,
     "part_id": null
   },
-  "markdown": "# Educational and Vocational Guidance\n## Understanding the Education and Career Ecosystem in India\n## Overview of the Overseas Vocational Education Landscape (country  specific)\n## Advising on Educational Pathways and Vocational Training\n## Guidance on Scholarships, Financial Aid, and Funding Opportunities\n",
-  "md": "# Educational and Vocational Guidance\n## Understanding the Education and Career Ecosystem in India\n## Overview of the Overseas Vocational Education Landscape (country  specific)\n## Advising on Educational Pathways and Vocational Training\n## Guidance on Scholarships, Financial Aid, and Funding Opportunities\n",
+  "markdown": "# Educational and Vocational Guidance\n## Understanding the Education and Career Ecosystem in India\n- Video/PDF\n  - This video provides an overview of the education and career ecosystem in India, exploring how the country's educational structure and industry needs shape ca…\n## Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…\n## Advising on Educational Pathways and Vocational Training\n- Video/PDF\n  - This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…\n## Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Video/PDF\n  - - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
+  "md": "# Educational and Vocational Guidance\n## Understanding the Education and Career Ecosystem in India\n- Video/PDF\n  - This video provides an overview of the education and career ecosystem in India, exploring how the country's educational structure and industry needs shape ca…\n## Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…\n## Advising on Educational Pathways and Vocational Training\n- Video/PDF\n  - This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…\n## Guidance on Scholarships, Financial Aid, and Funding Opportunities\n- Video/PDF\n  - - This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_11",
@@ -27,68 +28,104 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_11_p_38",
+              "id": "cc_ch_11_38_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Understanding the Education and Career Ecosystem in India",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_11_p_38_b_0",
+                    "id": "cc_ch_11_38_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video provides an overview of the education and career ecosystem in India, exploring how the country's educational structure and industry needs shape ca…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_11_38_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides an overview of the education and career ecosystem in India, exploring how the country's educational structure and industry needs shape ca…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_11_p_40",
+              "id": "cc_ch_11_40_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Overview of the Overseas Vocational Education Landscape (country  specific)",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_11_p_40_b_0",
+                    "id": "cc_ch_11_40_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_11_40_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video offers an overview of the overseas vocational education landscape, focusing on country-specific approaches to vocational training and the career o…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_11_p_41",
+              "id": "cc_ch_11_41_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Advising on Educational Pathways and Vocational Training",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_11_p_41_b_0",
+                    "id": "cc_ch_11_41_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_11_41_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores advising on educational pathways and vocational training, providing guidance on how students can choose the right educational options and…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_11_p_42",
+              "id": "cc_ch_11_42_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Guidance on Scholarships, Financial Aid, and Funding Opportunities",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_11_p_42_b_0",
+                    "id": "cc_ch_11_42_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "- This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_11_42_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "- This video offers guidance on scholarships, financial aid, and funding opportunities, helping students explore various options to finance their education a…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

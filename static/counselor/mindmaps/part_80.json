@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 12,
     "part_id": 80
   },
-  "markdown": "# Engineering Admission Process\n## Key points\n- This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …\n",
-  "md": "# Engineering Admission Process\n## Key points\n- This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …\n",
+  "markdown": "# Engineering Admission Process\n- Video/PDF\n  - This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …\n",
+  "md": "# Engineering Admission Process\n- Video/PDF\n  - This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …\n",
   "xmind": [
     {
       "id": "cc_sheet_part_80",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_80_kp",
+              "id": "cc_part_80_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_80_pt_0",
+                    "id": "cc_part_80_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explains the engineering admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for …",
                     "children": {

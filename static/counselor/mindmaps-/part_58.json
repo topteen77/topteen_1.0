@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 14,
+    "part_id": 58
+  },
+  "markdown": "# Virtual Counseling and Remote Career Guidance\n- Part 3- Virtual Counseling and Remote Career Guidance\n- Technology Platforms\n- Features of Virtual Counseling\n- Benefits of Virtual Counseling\n- Challenges and Considerations\n- Popular Platforms\n- Application of Virtual Counseling in Education and Employment\n- Future Trends\n- Quiz\n- Video\n",
+  "md": "# Virtual Counseling and Remote Career Guidance\n- Part 3- Virtual Counseling and Remote Career Guidance\n- Technology Platforms\n- Features of Virtual Counseling\n- Benefits of Virtual Counseling\n- Challenges and Considerations\n- Popular Platforms\n- Application of Virtual Counseling in Education and Employment\n- Future Trends\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_58",
+      "class": "sheet",
+      "title": "Virtual Counseling and Remote Career Guidance",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_58",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Virtual Counseling and Remote Career Guidance",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_58_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 3- Virtual Counseling and Remote Career Guidance",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Technology Platforms",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Features of Virtual Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Benefits of Virtual Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Challenges and Considerations",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Popular Platforms",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Application of Virtual Counseling in Education and Employment",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Future Trends",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_58_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

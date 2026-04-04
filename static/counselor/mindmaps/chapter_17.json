@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 17,
     "part_id": null
   },
-  "markdown": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n## Ethical Decision-Making in Career Counseling\n## Legal Considerations and Compliance in Career Counseling\n",
-  "md": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n## Ethical Decision-Making in Career Counseling\n## Legal Considerations and Compliance in Career Counseling\n",
+  "markdown": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n- Video/PDF\n  - This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n## Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …\n## Legal Considerations and Compliance in Career Counseling\n- Video/PDF\n  - This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…\n",
+  "md": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n- Video/PDF\n  - This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…\n## Ethical Decision-Making in Career Counseling\n- Video/PDF\n  - This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …\n## Legal Considerations and Compliance in Career Counseling\n- Video/PDF\n  - This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_17",
@@ -27,51 +28,78 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_17_p_69",
+              "id": "cc_ch_17_69_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Ethics and Professionalism in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_17_p_69_b_0",
+                    "id": "cc_ch_17_69_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_17_69_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_17_p_70",
+              "id": "cc_ch_17_70_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Ethical Decision-Making in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_17_p_70_b_0",
+                    "id": "cc_ch_17_70_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_17_70_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_17_p_71",
+              "id": "cc_ch_17_71_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Legal Considerations and Compliance in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_17_p_71_b_0",
+                    "id": "cc_ch_17_71_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_17_71_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

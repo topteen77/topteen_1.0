@@ -793,6 +793,14 @@ PSYCHOMETRIC_COURSE_FREE_ID=3
 DEMO_EMAIL=[]
 CREDIT_LIMIT=5000
 
+# User id of the marketing admin who owns self-serve ("direct") institute signups when no partner is chosen.
+# Set to 0 in .env to leave marketing_group unset for direct registrations.
+DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID = config(
+    'DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID',
+    default=1409,
+    cast=int,
+)
+
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 # Only allow Google (and other search engines) to index when ENVIRONMENT=production in .env
 ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production')

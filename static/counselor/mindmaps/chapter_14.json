@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 14,
     "part_id": null
   },
-  "markdown": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n## Online Career Assessments and Planning Software\n## Virtual Counseling and Remote Career Guidance\n## Leveraging Social Media for Career Development\n",
-  "md": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n## Online Career Assessments and Planning Software\n## Virtual Counseling and Remote Career Guidance\n## Leveraging Social Media for Career Development\n",
+  "markdown": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - This video explores how to utilize digital tools for career counseling, highlighting platforms and technologies that enhance career guidance, assessments, an…\n## Online Career Assessments and Planning Software\n- Video/PDF\n  - This video covers online career assessments and planning software, showcasing how these digital tools help individuals evaluate their skills, interests, and …\n## Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - This video explores virtual counseling and remote career guidance, highlighting how online platforms and technologies provide accessible and effective career…\n## Leveraging Social Media for Career Development\n- Video/PDF\n  - This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
+  "md": "# Technology Integration in Career Counseling\n## Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - This video explores how to utilize digital tools for career counseling, highlighting platforms and technologies that enhance career guidance, assessments, an…\n## Online Career Assessments and Planning Software\n- Video/PDF\n  - This video covers online career assessments and planning software, showcasing how these digital tools help individuals evaluate their skills, interests, and …\n## Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - This video explores virtual counseling and remote career guidance, highlighting how online platforms and technologies provide accessible and effective career…\n## Leveraging Social Media for Career Development\n- Video/PDF\n  - This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_14",
@@ -27,68 +28,104 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_14_p_56",
+              "id": "cc_ch_14_56_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Utilizing Digital Tools for Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_56_b_0",
+                    "id": "cc_ch_14_56_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores how to utilize digital tools for career counseling, highlighting platforms and technologies that enhance career guidance, assessments, an…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_56_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores how to utilize digital tools for career counseling, highlighting platforms and technologies that enhance career guidance, assessments, an…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_14_p_57",
+              "id": "cc_ch_14_57_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Online Career Assessments and Planning Software",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_57_b_0",
+                    "id": "cc_ch_14_57_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers online career assessments and planning software, showcasing how these digital tools help individuals evaluate their skills, interests, and …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_57_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers online career assessments and planning software, showcasing how these digital tools help individuals evaluate their skills, interests, and …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_14_p_58",
+              "id": "cc_ch_14_58_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Virtual Counseling and Remote Career Guidance",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_58_b_0",
+                    "id": "cc_ch_14_58_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores virtual counseling and remote career guidance, highlighting how online platforms and technologies provide accessible and effective career…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_58_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores virtual counseling and remote career guidance, highlighting how online platforms and technologies provide accessible and effective career…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_14_p_59",
+              "id": "cc_ch_14_59_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Leveraging Social Media for Career Development",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_14_p_59_b_0",
+                    "id": "cc_ch_14_59_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_14_59_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video discusses leveraging social media for career development, focusing on how platforms like LinkedIn, Twitter, and Instagram can be used for networki…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

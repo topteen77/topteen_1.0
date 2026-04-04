@@ -1,0 +1,116 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": 97
+  },
+  "markdown": "# France\n- Admission Process\n- Cost of Study and Living\n- Tuition Fees:\n- Undergraduate Programs:\n- Graduate Programs:\n- Cost of Living:\n- Top Ten Colleges\n- Financial Aid\n- Quiz\n- Video\n",
+  "md": "# France\n- Admission Process\n- Cost of Study and Living\n- Tuition Fees:\n- Undergraduate Programs:\n- Graduate Programs:\n- Cost of Living:\n- Top Ten Colleges\n- Financial Aid\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_97",
+      "class": "sheet",
+      "title": "France",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_97",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "France",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_97_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Admission Process",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Cost of Study and Living",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Tuition Fees:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Undergraduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Graduate Programs:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Cost of Living:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Top Ten Colleges",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Financial Aid",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_8",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_97_pt_9",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

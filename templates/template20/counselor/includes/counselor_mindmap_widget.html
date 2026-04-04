@@ -1,12 +1,62 @@
-{# Markdown/md required. data-map-type from context (counselor_mindmap_map_type) = Core DEFAULT_course_MINDMAP_TYPE. ?map_type= overrides; else JSON map_type. #}
-<div class="counselor-mindmap-widget border rounded p-2 bg-white" data-json-url="{{ mindmap_json_url }}" data-map-type="{{ mindmap_map_type|default('', true) }}" data-radial-src="{{ static('js/radial-mindmap.js') }}" id="cmw-{{ widget_id }}">
-  <div class="d-flex justify-content-end align-items-center gap-2 mb-2 flex-wrap">
-    {% if fullscreen_url %}
-    <a href="{{ fullscreen_url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
-      <i class='bx bx-expand-alt me-1'></i> Full page
-    </a>
-    {% endif %}
-  </div>
+{# Markdown/md required. data-map-type from counselor_mindmap_map_type = Core DEFAULT_course_MINDMAP_TYPE (e.g. classic mindmap, 7, tree). ?mindmap_type= / ?map_type= overrides. #}
+<style>
+  /* In-page maximize/minimize (same idea as career detail classic mindmap; no separate URL). */
+  .counselor-mindmap-widget.counselor-mm-maximized {
+    position: fixed !important;
+    inset: 0;
+    z-index: 10050;
+    margin: 0 !important;
+    padding: max(10px, env(safe-area-inset-top, 10px)) max(10px, env(safe-area-inset-right, 10px)) max(10px, env(safe-area-inset-bottom, 10px)) max(10px, env(safe-area-inset-left, 10px));
+    background: #fff;
+    overflow: hidden;
+    display: flex !important;
+    flex-direction: column;
+    min-height: 100vh;
+    max-height: 100vh;
+    box-sizing: border-box;
+    border-radius: 0 !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .counselor-mindmap-widget.counselor-mm-maximized .counselor-mm-host {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    display: flex;
+    flex-direction: column;
+  }
+  .counselor-mindmap-widget.counselor-mm-maximized .counselor-mm-host .counselor-mindmap-svg,
+  .counselor-mindmap-widget.counselor-mm-maximized .counselor-mm-host > [id^='cm-classic-slot-'] {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+  }
+  .counselor-mindmap-widget.counselor-mm-maximized #cmctl-{{ widget_id }} {
+    z-index: 10060;
+  }
+  .counselor-mindmap-widget [data-cm-maximize] {
+    white-space: nowrap;
+  }
+  /* Classic mindmap: fill the enlarged host (same flex idea as .counselor-classic-mm--fill-host). */
+  .counselor-mindmap-widget.counselor-mm-maximized .counselor-classic-mm {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .counselor-mindmap-widget.counselor-mm-maximized .counselor-classic-mm .cc-viewport {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  body.counselor-mm-maximized-open {
+    overflow: hidden !important;
+  }
+</style>
+<div class="counselor-mindmap-widget border rounded p-2 bg-white" data-json-url="{{ mindmap_json_url }}" data-map-type="{{ mindmap_map_type|default('', true) }}" data-radial-src="{{ static('js/radial-mindmap.js') }}" data-classic-src="{{ static('counselor/classic-mindmap/classic-mindmap.js') }}" data-classic-css="{{ static('counselor/classic-mindmap/classic-mindmap.css') }}" id="cmw-{{ widget_id }}">
   <div id="cmhost-{{ widget_id }}" class="counselor-mm-host position-relative rounded overflow-hidden border bg-light" style="min-height:280px;">
     <div id="cmload-{{ widget_id }}" class="align-items-center justify-content-center gap-2 position-absolute top-0 start-0 w-100 h-100" style="display:none;z-index:5;background:rgba(255,255,255,0.9);">
       <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
@@ -15,6 +65,11 @@
     <svg class="counselor-mindmap-svg w-100 border-0 rounded-0 bg-transparent" id="cmsvg-{{ widget_id }}" style="min-height:280px;display:block;"></svg>
     <div id="cmctl-{{ widget_id }}" class="d-none position-absolute top-0 end-0 p-2" style="z-index:10;">
       <div class="btn-group-vertical gap-1 shadow-sm">
+        <button type="button" class="btn btn-sm btn-outline-primary border" data-cm-maximize title="Expand mind map to full screen" aria-pressed="false" aria-label="Maximize mind map">
+          <i class="bx bx-expand-alt counselor-mm-fs-icon" data-cm-fs-icon aria-hidden="true"></i><span class="counselor-mm-fs-label ms-1">Maximize</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-light border d-none" data-cm-expand-all title="Expand all branches" aria-label="Expand all"><i class="bx bx-expand-vertical"></i></button>
+        <button type="button" class="btn btn-sm btn-light border d-none" data-cm-collapse-all title="Collapse to root only" aria-label="Collapse all"><i class="bx bx-collapse-vertical"></i></button>
         <button type="button" class="btn btn-sm btn-light border" data-cm-zoom-in title="Zoom in" aria-label="Zoom in">＋</button>
         <button type="button" class="btn btn-sm btn-light border" data-cm-zoom-out title="Zoom out" aria-label="Zoom out">－</button>
         <button type="button" class="btn btn-sm btn-light border" data-cm-reset title="Reset" aria-label="Reset view">⊙</button>
@@ -25,13 +80,27 @@
 </div>
 <script type="module">
 (function () {
-  var MAP_LIB = 'https://esm.sh/markmap-lib@0.17.2?deps=markmap-common@0.18.9';
-  var MAP_VIEW = 'https://esm.sh/markmap-view@0.17.2?deps=markmap-common@0.18.9,d3@7.9.0';
+  /* Pin markmap-lib + markmap-view + markmap-common to one line (0.17 + common@0.18 broke: childSelector removed from common). */
+  var MAP_LIB = 'https://esm.sh/markmap-lib@0.18.12?deps=markmap-common@0.18.9';
+  var MAP_VIEW = 'https://esm.sh/markmap-view@0.18.12?deps=markmap-common@0.18.9,d3@7.9.0';
   var D3_MOD = 'https://esm.sh/d3@7.9.0';
+
+  var COURSE_MAP_NUM = {
+    '1': 'tree',
+    '2': 'concept',
+    '3': 'radial',
+    '4': 'cluster',
+    '5': 'career_radial',
+    '6': 'radial',
+    '7': 'career_radial',
+    '8': 'classic',
+    '9': 'classic_vertical',
+  };
 
   function normalizeMapType(s) {
     if (s == null || typeof s !== 'string') return 'tree';
     var t = s.trim().toLowerCase();
+    if (COURSE_MAP_NUM[t]) return COURSE_MAP_NUM[t];
     if (t === 'concept' || t === 'concept_map' || t === 'conceptmap') return 'concept';
     if (t === 'radial' || t === 'radial_tree' || t === 'sunburst' || t === 'ring') return 'radial';
     if (t === 'cluster' || t === 'dendrogram' || t === 'tidy' || t === 'horizontal_tree') return 'cluster';
@@ -44,6 +113,24 @@
     ) {
       return 'career_radial';
     }
+    if (
+      t === 'classic' ||
+      t === 'classic_mindmap' ||
+      t === 'classic mindmap' ||
+      t === 'classic-mindmap' ||
+      t === 'horizontal_classic'
+    ) {
+      return 'classic';
+    }
+    if (
+      t === 'classic_vertical' ||
+      t === 'classic-vertical' ||
+      t === 'classic vertical' ||
+      t === 'vertical_classic' ||
+      t === '9'
+    ) {
+      return 'classic_vertical';
+    }
     if (t === 'tree' || t === 'hierarchical' || t === 'hierarchy' || t === 'outline' || t === 'markmap' || t === 'mindmap') return 'tree';
     return 'tree';
   }
@@ -54,10 +141,11 @@
       var fromUrl = params.get('mindmap_type') || params.get('map_type');
       if (fromUrl) return normalizeMapType(fromUrl);
     } catch (e) {}
-    var fromAttr = (rootEl && rootEl.getAttribute('data-map-type')) || '';
-    if (fromAttr.trim()) return normalizeMapType(fromAttr);
+    /* Static JSON map_type matches admin 1–9; prefer it over global data-map-type. */
     var fromJson = (data && (data.map_type || data.mapType)) || '';
     if (fromJson) return normalizeMapType(String(fromJson));
+    var fromAttr = (rootEl && rootEl.getAttribute('data-map-type')) || '';
+    if (fromAttr.trim()) return normalizeMapType(fromAttr);
     return 'tree';
   }
 
@@ -69,20 +157,117 @@
     return t || '—';
   }
 
+  /** Markmap root -> flat nodes for CounselorClassicMindmap (doc-md/mindmap layout). */
+  function markmapToClassicNodes(mmRoot) {
+    var list = [];
+    function walk(mm, parentId, depth, pathIndices) {
+      var id = pathIndices.length === 0 ? 'root' : 'n' + pathIndices.join('_');
+      var level =
+        depth === 0 ? 'root' : depth === 1 ? 'topic' : depth === 2 ? 'sub' : 'leaf';
+      var text = plainLabel(mm);
+      var o = { id: id, text: text, level: level };
+      if (parentId) o.parent = parentId;
+      list.push(o);
+      var kids = mm.children || [];
+      kids.forEach(function (ch, i) {
+        walk(ch, id, depth + 1, pathIndices.concat([i]));
+      });
+    }
+    walk(mmRoot, null, 0, []);
+    return list;
+  }
+
   /** Markmap transform root -> jsMind node_tree (same shape as careers/views career_mindmap_json_api). */
   function markmapToJsMindTree(mmRoot) {
-    function walk(mm, pathIndices) {
+    function walk(mm, pathIndices, depth) {
       var id = pathIndices.length === 0 ? 'root' : 'n' + pathIndices.join('_');
-      var o = { id: id, topic: plainLabel(mm), expanded: true };
       var kids = mm.children || [];
-      if (kids.length) {
+      var hasKids = kids.length > 0;
+      /* depth 0 = root (expanded if has children); depth >= 1 branch nodes start collapsed so user opens deeper levels. */
+      var expanded = !hasKids || depth < 1;
+      var o = { id: id, topic: plainLabel(mm), expanded: expanded };
+      if (hasKids) {
         o.children = kids.map(function (ch, i) {
-          return walk(ch, pathIndices.concat([i]));
+          return walk(ch, pathIndices.concat([i]), depth + 1);
         });
       }
       return o;
     }
-    return walk(mmRoot, []);
+    return walk(mmRoot, [], 0);
+  }
+
+  /**
+   * Career-style fullscreen: reparent to document.body while maximized so position:fixed works
+   * (Bootstrap tabs / .fade use transforms that break fixed positioning inside the tab).
+   */
+  function wireCounselorMindmapMaximize(widgetEl) {
+    if (!widgetEl || widgetEl.getAttribute('data-cm-maximize-wired')) return;
+    var btn = widgetEl.querySelector('[data-cm-maximize]');
+    if (!btn) return;
+    if (document.body && document.body.classList.contains('counselor-mindmap-fullscreen-page')) {
+      btn.classList.add('d-none');
+      return;
+    }
+    widgetEl.setAttribute('data-cm-maximize-wired', '1');
+    var icon = btn.querySelector('[data-cm-fs-icon]');
+    var label = btn.querySelector('.counselor-mm-fs-label');
+    function setMaximized(on) {
+      var host = widgetEl.querySelector('.counselor-mm-host');
+      if (on) {
+        if (!widgetEl._cmPlaceholder) {
+          var ph = document.createComment('counselor-mm-placeholder');
+          if (widgetEl.parentNode) {
+            widgetEl.parentNode.insertBefore(ph, widgetEl);
+            widgetEl._cmPlaceholder = ph;
+          }
+        }
+        if (document.body && widgetEl.parentNode !== document.body) {
+          document.body.appendChild(widgetEl);
+        }
+        if (host) {
+          widgetEl.dataset.cmHostPrevHeight = host.style.height || '';
+          widgetEl.dataset.cmHostPrevMinHeight = host.style.minHeight || '';
+          host.style.height = '';
+          host.style.minHeight = '';
+        }
+      } else {
+        var ph = widgetEl._cmPlaceholder;
+        if (ph && ph.parentNode) {
+          ph.parentNode.insertBefore(widgetEl, ph);
+          ph.parentNode.removeChild(ph);
+        }
+        widgetEl._cmPlaceholder = null;
+        if (host && widgetEl.dataset.cmHostPrevHeight !== undefined) {
+          host.style.height = widgetEl.dataset.cmHostPrevHeight;
+          host.style.minHeight = widgetEl.dataset.cmHostPrevMinHeight;
+          delete widgetEl.dataset.cmHostPrevHeight;
+          delete widgetEl.dataset.cmHostPrevMinHeight;
+        }
+      }
+      widgetEl.classList.toggle('counselor-mm-maximized', on);
+      document.body.classList.toggle('counselor-mm-maximized-open', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.title = on ? 'Return mind map to inline size' : 'Expand mind map to full screen';
+      if (icon) {
+        icon.classList.remove('bx-expand-alt', 'bx-exit-fullscreen');
+        icon.classList.add(on ? 'bx-exit-fullscreen' : 'bx-expand-alt');
+      }
+      if (label) label.textContent = on ? 'Minimize' : 'Maximize';
+      window.dispatchEvent(new Event('resize'));
+      setTimeout(function () {
+        window.dispatchEvent(new Event('resize'));
+      }, 120);
+    }
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setMaximized(!widgetEl.classList.contains('counselor-mm-maximized'));
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && widgetEl.classList.contains('counselor-mm-maximized')) {
+        setMaximized(false);
+      }
+    });
   }
 
   /**
@@ -90,6 +275,8 @@
    * Reflow when the host gets real dimensions (tab shown or layout complete).
    */
   function setupCounselorMindmapVisibleReflow(hostEl, svgEl, markmapInstance) {
+    var widget = hostEl && hostEl.closest && hostEl.closest('.counselor-mindmap-widget');
+    if (widget) wireCounselorMindmapMaximize(widget);
     if (!hostEl || typeof window.ResizeObserver === 'undefined') return;
     var timer;
     var ro = new ResizeObserver(function () {
@@ -105,6 +292,42 @@
       }, 60);
     });
     ro.observe(hostEl);
+  }
+
+  var counselorClassicLoadPromise = null;
+  function ensureClassicMindmap(scriptUrl) {
+    if (typeof window !== 'undefined' && window.CounselorClassicMindmap) return Promise.resolve();
+    if (!scriptUrl) return Promise.reject(new Error('No classic mindmap script URL'));
+    if (counselorClassicLoadPromise) return counselorClassicLoadPromise;
+    counselorClassicLoadPromise = new Promise(function (resolve, reject) {
+      var sc = document.createElement('script');
+      sc.src = scriptUrl;
+      sc.async = true;
+      sc.onload = function () {
+        if (window.CounselorClassicMindmap) resolve();
+        else {
+          counselorClassicLoadPromise = null;
+          reject(new Error('CounselorClassicMindmap not defined after script load'));
+        }
+      };
+      sc.onerror = function () {
+        counselorClassicLoadPromise = null;
+        reject(new Error('Failed to load classic-mindmap.js'));
+      };
+      document.head.appendChild(sc);
+    });
+    return counselorClassicLoadPromise;
+  }
+
+  function ensureClassicCss(href) {
+    if (!href) return;
+    var lid = 'counselor-classic-mm-css';
+    if (document.getElementById(lid)) return;
+    var lk = document.createElement('link');
+    lk.id = lid;
+    lk.rel = 'stylesheet';
+    lk.href = href;
+    document.head.appendChild(lk);
   }
 
   var counselorRadialLoadPromise = null;
@@ -139,6 +362,17 @@
     return o;
   }
 
+  /** Deepest visible depth from root: 0 = root only, 1 = root + direct children (deeper structure dropped for first paint). */
+  function mindmapToHierarchyClamped(mmNode, maxDepthInclusive) {
+    function walk(mm, depth) {
+      var name = plainLabel(mm);
+      var kids = mm.children || [];
+      if (!kids.length || depth > maxDepthInclusive) return { name: name };
+      return { name: name, children: kids.map(function (ch) { return walk(ch, depth + 1); }) };
+    }
+    return walk(mmNode, 0);
+  }
+
   function renderConceptMap(svgEl, root) {
     var NS = 'http://www.w3.org/2000/svg';
     var w = Math.max(svgEl.clientWidth || 0, 400);
@@ -146,6 +380,9 @@
     svgEl.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
     svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+    var zoomRoot = document.createElementNS(NS, 'g');
+    zoomRoot.setAttribute('class', 'counselor-mm-svg-zoom-root');
+    svgEl.appendChild(zoomRoot);
 
     function addLine(x1, y1, x2, y2) {
       var line = document.createElementNS(NS, 'line');
@@ -155,7 +392,7 @@
       line.setAttribute('y2', y2);
       line.setAttribute('stroke', '#94a3b8');
       line.setAttribute('stroke-width', '2');
-      svgEl.appendChild(line);
+      zoomRoot.appendChild(line);
     }
 
     function addBubble(x, y, text, opt) {
@@ -181,7 +418,7 @@
       div.textContent = text;
       fo.appendChild(div);
       g.appendChild(fo);
-      svgEl.appendChild(g);
+      zoomRoot.appendChild(g);
     }
 
     var cx = w / 2;
@@ -202,23 +439,11 @@
       addLine(cx, cy, x, y);
       var ct = plainLabel(child);
       addBubble(x, y, ct, { r: 40, fill: '#dbeafe', stroke: '#2563eb' });
-      var subs = child.children || [];
-      var m = subs.length;
-      if (!m) return;
-      var r2 = Math.min(w, h) * 0.15;
-      var spread = Math.min(0.55, 1.2 / Math.max(m, 1));
-      subs.forEach(function (sub, j) {
-        var a2 = angle + spread * (j - (m - 1) / 2);
-        var x2 = x + r2 * Math.cos(a2);
-        var y2 = y + r2 * Math.sin(a2);
-        addLine(x, y, x2, y2);
-        addBubble(x2, y2, plainLabel(sub), { r: 30, fill: '#dcfce7', stroke: '#16a34a', fontSize: '10px' });
-      });
     });
   }
 
   function renderD3RadialTree(svgEl, mmRoot, d3) {
-    var data = mindmapToHierarchy(mmRoot);
+    var data = mindmapToHierarchyClamped(mmRoot, 1);
     var w = Math.max(svgEl.clientWidth || 0, 420);
     var h = Math.max(svgEl.clientHeight || 0, 320);
     var outerRadius = Math.min(w, h) / 2 - 24;
@@ -255,7 +480,7 @@
         return d.y;
       });
 
-    var g = svg.append('g');
+    var g = svg.append('g').attr('class', 'counselor-mm-d3-zoom');
 
     g.selectAll('path.counselor-mm-link')
       .data(root.links())
@@ -312,8 +537,64 @@
       .attr('fill', null);
   }
 
+  /** Zoom/pan helpers for SVG-based maps (concept, D3 radial/cluster). */
+  function hideToolbarExpandCollapse(ctl) {
+    if (!ctl) return;
+    var exp = ctl.querySelector('[data-cm-expand-all]');
+    var col = ctl.querySelector('[data-cm-collapse-all]');
+    if (exp) exp.classList.add('d-none');
+    if (col) col.classList.add('d-none');
+  }
+
+  function wireSvgGroupZoom(ctl, groupEl, cx, cy) {
+    if (!ctl || !groupEl) return;
+    var k = 1;
+    function apply() {
+      if (cx == null || cy == null) {
+        groupEl.setAttribute('transform', 'scale(' + k + ')');
+      } else {
+        groupEl.setAttribute(
+          'transform',
+          'translate(' + cx + ',' + cy + ') scale(' + k + ') translate(' + -cx + ',' + -cy + ')'
+        );
+      }
+    }
+    ctl.classList.remove('d-none');
+    hideToolbarExpandCollapse(ctl);
+    var zin = ctl.querySelector('[data-cm-zoom-in]');
+    var zout = ctl.querySelector('[data-cm-zoom-out]');
+    var rst = ctl.querySelector('[data-cm-reset]');
+    if (zin) zin.onclick = function () { k *= 1.15; apply(); };
+    if (zout) zout.onclick = function () { k /= 1.15; if (k < 0.25) k = 0.25; apply(); };
+    if (rst) rst.onclick = function () { k = 1; apply(); };
+  }
+
+  function wireMarkmapToolbar(ctl, mm) {
+    if (!ctl || !mm) return;
+    ctl.classList.remove('d-none');
+    hideToolbarExpandCollapse(ctl);
+    var zin = ctl.querySelector('[data-cm-zoom-in]');
+    var zout = ctl.querySelector('[data-cm-zoom-out]');
+    var rst = ctl.querySelector('[data-cm-reset]');
+    if (zin) {
+      zin.onclick = function () {
+        mm.rescale(1.15).catch(function () {});
+      };
+    }
+    if (zout) {
+      zout.onclick = function () {
+        mm.rescale(1 / 1.15).catch(function () {});
+      };
+    }
+    if (rst) {
+      rst.onclick = function () {
+        mm.fit().catch(function () {});
+      };
+    }
+  }
+
   function renderD3Cluster(svgEl, mmRoot, d3) {
-    var data = mindmapToHierarchy(mmRoot);
+    var data = mindmapToHierarchyClamped(mmRoot, 1);
     var w = Math.max(svgEl.clientWidth || 0, 480);
     var h = Math.max(svgEl.clientHeight || 0, 300);
 
@@ -329,7 +610,8 @@
     svg.selectAll('*').remove();
     svg.attr('viewBox', [0, 0, w, h].join(' ')).attr('width', '100%').attr('height', h).style('font', '11px system-ui, sans-serif');
 
-    var g = svg.append('g').attr('transform', 'translate(16,24)');
+    var gOuter = svg.append('g').attr('transform', 'translate(16,24)');
+    var g = gOuter.append('g').attr('class', 'counselor-mm-d3-zoom');
 
     var link = d3
       .linkHorizontal()
@@ -395,20 +677,20 @@
     return;
   }
 
-  try {
-    var fullLink = rootEl.querySelector('a.btn[href]');
-    if (fullLink && fullLink.getAttribute('href')) {
-      var cur = new URLSearchParams(window.location.search || '');
-      var mt = cur.get('mindmap_type') || cur.get('map_type');
-      if (mt) {
-        var u = new URL(fullLink.getAttribute('href'), window.location.origin);
-        u.searchParams.set('map_type', mt);
-        fullLink.setAttribute('href', u.pathname + u.search + (u.hash || ''));
-      }
-    }
-  } catch (e) {}
+  /**
+   * JSON is already loaded via fetch (AJAX). The slow part is doing that work while the Mindmap
+   * tab is still hidden (course learning) or during the critical first paint. Defer until the
+   * tab is shown, or use requestIdleCallback when the widget is already visible.
+   */
+  function scheduleMindmapLoad() {
+    var tabPane = rootEl.closest('.tab-pane');
+    var hiddenTab = !!(tabPane && !tabPane.classList.contains('show'));
 
-  fetch(url, { credentials: 'same-origin' })
+    function runMindmapLoad() {
+      if (rootEl.getAttribute('data-cm-loaded') === '1') return;
+      rootEl.setAttribute('data-cm-loaded', '1');
+
+      fetch(url, { credentials: 'same-origin' })
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -429,6 +711,12 @@
       if (mapType === 'concept') {
         return libP.then(function (pack) {
           renderConceptMap(svgEl, pack.root);
+          var ctlC = document.getElementById('cmctl-' + wid);
+          var zr = svgEl.querySelector('.counselor-mm-svg-zoom-root');
+          var vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+          var cw = vb && vb.width ? vb.width / 2 : Math.max(svgEl.clientWidth, 400) / 2;
+          var ch = vb && vb.height ? vb.height / 2 : Math.max(svgEl.clientHeight, 280) / 2;
+          if (ctlC && zr) wireSvgGroupZoom(ctlC, zr, cw, ch);
           setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
         });
       }
@@ -436,8 +724,18 @@
       if (mapType === 'radial' || mapType === 'cluster') {
         return libP.then(function (pack) {
           return import(D3_MOD).then(function (d3) {
-            if (mapType === 'radial') renderD3RadialTree(svgEl, pack.root, d3);
-            else renderD3Cluster(svgEl, pack.root, d3);
+            var ctlD = document.getElementById('cmctl-' + wid);
+            if (mapType === 'radial') {
+              renderD3RadialTree(svgEl, pack.root, d3);
+              var zgR = svgEl.querySelector('.counselor-mm-d3-zoom');
+              if (ctlD && zgR) wireSvgGroupZoom(ctlD, zgR, 0, 0);
+            } else {
+              renderD3Cluster(svgEl, pack.root, d3);
+              var zgC = svgEl.querySelector('.counselor-mm-d3-zoom');
+              var wc = Math.max(svgEl.clientWidth || 0, 480);
+              var hc = Math.max(svgEl.clientHeight || 0, 300);
+              if (ctlD && zgC) wireSvgGroupZoom(ctlD, zgC, (wc - 32) / 2, (hc - 48) / 2);
+            }
             setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
           });
         });
@@ -472,6 +770,10 @@
             function wireControls() {
               if (ctl) {
                 ctl.classList.remove('d-none');
+                var expBtn = ctl.querySelector('[data-cm-expand-all]');
+                var colBtn = ctl.querySelector('[data-cm-collapse-all]');
+                if (expBtn) expBtn.classList.add('d-none');
+                if (colBtn) colBtn.classList.add('d-none');
                 var zin = ctl.querySelector('[data-cm-zoom-in]');
                 var zout = ctl.querySelector('[data-cm-zoom-out]');
                 var rst = ctl.querySelector('[data-cm-reset]');
@@ -508,13 +810,68 @@
         });
       }
 
+      if (mapType === 'classic' || mapType === 'classic_vertical') {
+        var classicSrc = rootEl.getAttribute('data-classic-src');
+        var classicCss = rootEl.getAttribute('data-classic-css');
+        var ctlClassic = document.getElementById('cmctl-' + wid);
+        var classicLayout = mapType === 'classic_vertical' ? 'vertical' : 'horizontal';
+        return libP.then(function (pack) {
+          var classicNodes = markmapToClassicNodes(pack.root);
+          ensureClassicCss(classicCss);
+          svgEl.style.display = 'none';
+          var slotId = 'cm-classic-slot-' + wid;
+          var slot = document.getElementById(slotId);
+          if (!slot) {
+            slot = document.createElement('div');
+            slot.id = slotId;
+            slot.className = 'position-relative w-100';
+            slot.style.minHeight = Math.max(280, hostEl.clientHeight || 0) + 'px';
+            if (ctlClassic) hostEl.insertBefore(slot, ctlClassic);
+            else hostEl.appendChild(slot);
+          } else {
+            slot.innerHTML = '';
+            slot.style.display = 'block';
+            slot.style.minHeight = Math.max(280, hostEl.clientHeight || 0) + 'px';
+          }
+          return ensureClassicMindmap(classicSrc).then(function () {
+            if (!window.CounselorClassicMindmap) throw new Error('CounselorClassicMindmap unavailable');
+            var api = window.CounselorClassicMindmap.mount(slot, {
+              nodes: classicNodes,
+              layout: classicLayout,
+              initialExpandDepth: 1,
+            });
+            if (ctlClassic) {
+              ctlClassic.classList.remove('d-none');
+              var expC = ctlClassic.querySelector('[data-cm-expand-all]');
+              var colC = ctlClassic.querySelector('[data-cm-collapse-all]');
+              if (expC) {
+                expC.classList.remove('d-none');
+                expC.onclick = function () { api.expandAll(); };
+              }
+              if (colC) {
+                colC.classList.remove('d-none');
+                colC.onclick = function () { api.collapseAll(); };
+              }
+              var zinC = ctlClassic.querySelector('[data-cm-zoom-in]');
+              var zoutC = ctlClassic.querySelector('[data-cm-zoom-out]');
+              var rstC = ctlClassic.querySelector('[data-cm-reset]');
+              if (zinC) zinC.onclick = function () { api.zoomIn(); };
+              if (zoutC) zoutC.onclick = function () { api.zoomOut(); };
+              if (rstC) rstC.onclick = function () { api.reset(); };
+            }
+            setupCounselorMindmapVisibleReflow(hostEl, svgEl, null);
+          });
+        });
+      }
+
       if (mapType === 'tree') {
         return libP.then(function (pack) {
           return import(MAP_VIEW).then(function (view) {
             var Markmap = view.Markmap;
-            var mm = Markmap.create(svgEl);
-            mm.setData(pack.root);
+            var ctlT = document.getElementById('cmctl-' + wid);
+            var mm = Markmap.create(svgEl, { initialExpandLevel: 3 }, pack.root);
             mm.fit();
+            wireMarkmapToolbar(ctlT, mm);
             setupCounselorMindmapVisibleReflow(hostEl, svgEl, mm);
           });
         });
@@ -523,9 +880,10 @@
       return libP.then(function (pack) {
         return import(MAP_VIEW).then(function (view) {
           var Markmap = view.Markmap;
-          var mm = Markmap.create(svgEl);
-          mm.setData(pack.root);
+          var ctlF = document.getElementById('cmctl-' + wid);
+          var mm = Markmap.create(svgEl, { initialExpandLevel: 3 }, pack.root);
           mm.fit();
+          wireMarkmapToolbar(ctlF, mm);
           setupCounselorMindmapVisibleReflow(hostEl, svgEl, mm);
         });
       });
@@ -537,5 +895,59 @@
         if (err && err.message) errEl.textContent = 'Could not load mindmap: ' + err.message;
       }
     });
+    }
+
+    if (hiddenTab) {
+      var paneId = tabPane && tabPane.id;
+      var tabBtn = paneId ? document.querySelector('[data-bs-target="#' + paneId + '"]') : null;
+      var ran = false;
+      function runOnce() {
+        if (ran) return;
+        ran = true;
+        runMindmapLoad();
+      }
+      if (tabBtn) {
+        tabBtn.addEventListener('shown.bs.tab', runOnce);
+      }
+      if (typeof IntersectionObserver !== 'undefined') {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting && entry.intersectionRatio > 0) {
+              io.disconnect();
+              runOnce();
+            }
+          });
+        }, { root: null, rootMargin: '0px', threshold: 0.01 });
+        io.observe(hostEl);
+      } else if (!tabBtn) {
+        runOnce();
+      }
+      if (!tabBtn && tabPane && typeof MutationObserver !== 'undefined') {
+        var mo = new MutationObserver(function () {
+          if (tabPane.classList.contains('show')) {
+            mo.disconnect();
+            runOnce();
+          }
+        });
+        mo.observe(tabPane, { attributes: true, attributeFilter: ['class'] });
+      }
+      return;
+    }
+
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(
+        function () {
+          runMindmapLoad();
+        },
+        { timeout: 1200 }
+      );
+    } else {
+      setTimeout(function () {
+        runMindmapLoad();
+      }, 0);
+    }
+  }
+
+  scheduleMindmapLoad();
 })();
 </script>

@@ -49,6 +49,11 @@ urlpatterns = [
         name='case_study_pdf',
     ),
     path(
+        'course_learning/<int:counselor_id>/mindmap/course/',
+        views.CourseLearningCourseMindmapView.as_view(),
+        name='course_learning_course_mindmap',
+    ),
+    path(
         'course_learning/<int:counselor_id>/mindmap/chapter/<int:chapter_id>/',
         views.CourseLearningChapterMindmapView.as_view(),
         name='course_learning_chapter_mindmap',

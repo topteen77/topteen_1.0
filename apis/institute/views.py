@@ -11,11 +11,13 @@ from django.core.exceptions import ValidationError
 import re
 
 from users.models import User
-from institute.models import Institute, InstituteMarketingGroup, InstituteGroup
+from institute.models import (
+    Institute,
+    InstituteMarketingGroup,
+    InstituteGroup,
+    resolve_marketing_group_for_public_registration,
+)
 from core import choices
-from django.shortcuts import get_object_or_404
-
-
 class InstituteRegisterAPI(APIView):
     """
     API endpoint for institute registration
@@ -82,13 +84,14 @@ class InstituteRegisterAPI(APIView):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Get marketing group if provided
+            # Marketing group from form, or default pool for direct (self-serve) registration
             marketing_group = None
             if marketing_group_id:
                 try:
-                    marketing_group = get_object_or_404(InstituteMarketingGroup, id=marketing_group_id)
-                except:
-                    pass  # If not found, leave as None
+                    marketing_group = InstituteMarketingGroup.objects.get(id=int(marketing_group_id))
+                except (InstituteMarketingGroup.DoesNotExist, ValueError, TypeError):
+                    marketing_group = None
+            marketing_group = resolve_marketing_group_for_public_registration(marketing_group)
 
             # Generate random password (like existing form does)
             import random

@@ -1,0 +1,100 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 3,
+    "part_id": 7
+  },
+  "markdown": "# The Importance of Career Counseling\n- Part 2- Importance of Career Counselling\n- Why is Career Counselling important?\n- Other skills that career counselling can teach-\n- Important Elements of Career Counselling\n- What Skills Do You Need to Become a Career Counselor?\n- Who Can Become A Career Counsellor?\n- Quiz\n- Video\n",
+  "md": "# The Importance of Career Counseling\n- Part 2- Importance of Career Counselling\n- Why is Career Counselling important?\n- Other skills that career counselling can teach-\n- Important Elements of Career Counselling\n- What Skills Do You Need to Become a Career Counselor?\n- Who Can Become A Career Counsellor?\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_7",
+      "class": "sheet",
+      "title": "The Importance of Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_7",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "The Importance of Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_7_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 2- Importance of Career Counselling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Why is Career Counselling important?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Other skills that career counselling can teach-",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Important Elements of Career Counselling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "What Skills Do You Need to Become a Career Counselor?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_5",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Who Can Become A Career Counsellor?",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_6",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_7_pt_7",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

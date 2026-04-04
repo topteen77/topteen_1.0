@@ -1,0 +1,239 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 15,
+    "part_id": null
+  },
+  "markdown": "# Career Management and Case Documentation\n## Case Management and Record Keeping\n- Case Management and Case Documentation for Career Counsellors\n- Case Management\n- Key Components\n- Case Documentation\n- Quiz\n- Video\n## Developing Career Plans and Following Up on Client Progress\n- Part 2- Developing a Career Action Plan and Following up on Client Progress\n- 1. Conducting Self-Assessments\n- 2. Exploring Career Options\n- 3. Setting SMART Goals\n- Examples:\n- 4. Creating a Detailed Action Plan\n- Quiz\n- Video\n## Documenting Counseling Sessions and Client Interactions\n- Part 3- Documenting Counseling Sessions and Client Interactions\n- Importance of Documentation\n- Key Components of Documentation\n- a. Session Notes\n- b. Initial Intake Records\n- c. Assessment Reports\n- Quiz\n- Video\n",
+  "md": "# Career Management and Case Documentation\n## Case Management and Record Keeping\n- Case Management and Case Documentation for Career Counsellors\n- Case Management\n- Key Components\n- Case Documentation\n- Quiz\n- Video\n## Developing Career Plans and Following Up on Client Progress\n- Part 2- Developing a Career Action Plan and Following up on Client Progress\n- 1. Conducting Self-Assessments\n- 2. Exploring Career Options\n- 3. Setting SMART Goals\n- Examples:\n- 4. Creating a Detailed Action Plan\n- Quiz\n- Video\n## Documenting Counseling Sessions and Client Interactions\n- Part 3- Documenting Counseling Sessions and Client Interactions\n- Importance of Documentation\n- Key Components of Documentation\n- a. Session Notes\n- b. Initial Intake Records\n- c. Assessment Reports\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_15",
+      "class": "sheet",
+      "title": "Career Management and Case Documentation",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_15",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Career Management and Case Documentation",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_15_p_60",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Case Management and Record Keeping",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_15_p_60_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Case Management and Case Documentation for Career Counsellors",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_60_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Case Management",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_60_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Key Components",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_60_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Case Documentation",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_60_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_60_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_15_p_61",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Developing Career Plans and Following Up on Client Progress",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_15_p_61_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 2- Developing a Career Action Plan and Following up on Client Progress",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Conducting Self-Assessments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Exploring Career Options",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Setting SMART Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Examples:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Creating a Detailed Action Plan",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_61_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_15_p_62",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Documenting Counseling Sessions and Client Interactions",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_15_p_62_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 3- Documenting Counseling Sessions and Client Interactions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Importance of Documentation",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Key Components of Documentation",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "a. Session Notes",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "b. Initial Intake Records",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "c. Assessment Reports",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_ch_15_p_62_b_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 from core import choices
 from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 from counselor.models import Counselor
 from institute.models import Institute,StudentManagement,InstituteGroup
 from django.shortcuts import get_object_or_404
@@ -13,6 +14,21 @@ def only_superuser(view_func):
             return view_func(request,*args,**kwargs)
         else:
             return HttpResponseRedirect("/")
+    return wrap
+
+
+def superuser_or_marketing_institute_create(view_func):
+    """Superuser, marketing admin, or institute-group admin may create institutes via this view."""
+    def wrap(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect(reverse_lazy('users:login'))
+        ut = request.user.user_type
+        if request.user.is_superuser or ut in (
+            choices.UserType.MARKETINGGROUPADMIN,
+            choices.UserType.INSTITUTEGROUPADMIN,
+        ):
+            return view_func(request, *args, **kwargs)
+        return HttpResponseRedirect("/")
     return wrap
 
 def marketing_group_user_only(view_func):
@@ -113,6 +129,9 @@ def institute_profile_update_delete(view_func):
         ins_id=request.POST.get("institute_id")
         ins=get_object_or_404(Institute,id=ins_id)
         ins_grp=Institute.objects.filter(institute_group__institute_group_admin=request.user)
+        mg = ins.marketing_group
+        if mg and mg.marketing_group_admin_id == request.user.id:
+            return view_func(request,*args,**kwargs)
         if request.user.is_superuser or ins_grp.exists() or (request.user==ins.created_by):
             return view_func(request,*args,**kwargs)
         else:

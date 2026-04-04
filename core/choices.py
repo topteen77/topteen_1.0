@@ -405,7 +405,7 @@ class InstituteType(object):
     )
 
 
-# Mindmap layout types for dedicated mindmap page (variation 1–15)
+# Mindmap layout types for dedicated mindmap page (variation 1–16)
 # Used in Core website settings and career mindmap dropdown.
 MINDMAP_TYPE_CHOICES = (
     ('1', 'Compact'),
@@ -423,10 +423,13 @@ MINDMAP_TYPE_CHOICES = (
     ('13', 'Vertical Flow'),
     ('14', 'Vertical Network'),
     ('15', 'Vertical Timeline'),
+    ('16', 'Classic mindmap — horizontal pills & curved links'),
+    ('17', 'Classic mindmap — vertical (top-down pills)'),
 )
 
 # Counselor course/chapter/part static JSON mindmaps (counselor_mindmap_widget.html).
-# Stored as Configuration DEFAULT_course_MINDMAP_TYPE (numeric string). Aligns 6/7 with career layouts where useful.
+# Stored as Configuration DEFAULT_course_MINDMAP_TYPE (numeric string 1–9; see counselor.mindmap_config._NUM_TO_WIDGET_MAP_TYPE).
+# Aligns 6/7 with career layouts where useful. 8 = classic horizontal; 9 = classic vertical.
 COURSE_MINDMAP_CONFIG_CHOICES = (
     ('1', 'Tree — Markmap (collapsible outline)'),
     ('2', 'Concept map — rings'),
@@ -435,4 +438,6 @@ COURSE_MINDMAP_CONFIG_CHOICES = (
     ('5', 'Career-style radial — drill & zoom'),
     ('6', 'D3 radial tree (same spirit as career “Radial”)'),
     ('7', 'Career-style radial (same spirit as career “Cards” / interactive)'),
+    ('8', 'Classic mindmap — horizontal pills & curved links'),
+    ('9', 'Classic mindmap — vertical (top-down pills)'),
 )

@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 15,
     "part_id": null
   },
-  "markdown": "# Career Management and Case Documentation\n## Case Management and Record Keeping\n## Developing Career Plans and Following Up on Client Progress\n## Documenting Counseling Sessions and Client Interactions\n",
-  "md": "# Career Management and Case Documentation\n## Case Management and Record Keeping\n## Developing Career Plans and Following Up on Client Progress\n## Documenting Counseling Sessions and Client Interactions\n",
+  "markdown": "# Career Management and Case Documentation\n## Case Management and Record Keeping\n- Video/PDF\n  - This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n## Developing Career Plans and Following Up on Client Progress\n- Video/PDF\n  - This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…\n## Documenting Counseling Sessions and Client Interactions\n- Video/PDF\n  - This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…\n",
+  "md": "# Career Management and Case Documentation\n## Case Management and Record Keeping\n- Video/PDF\n  - This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n## Developing Career Plans and Following Up on Client Progress\n- Video/PDF\n  - This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…\n## Documenting Counseling Sessions and Client Interactions\n- Video/PDF\n  - This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_15",
@@ -27,51 +28,78 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_15_p_60",
+              "id": "cc_ch_15_60_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Case Management and Record Keeping",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_15_p_60_b_0",
+                    "id": "cc_ch_15_60_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_15_60_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_15_p_61",
+              "id": "cc_ch_15_61_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Developing Career Plans and Following Up on Client Progress",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_15_p_61_b_0",
+                    "id": "cc_ch_15_61_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_15_61_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_15_p_62",
+              "id": "cc_ch_15_62_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Documenting Counseling Sessions and Client Interactions",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_15_p_62_b_0",
+                    "id": "cc_ch_15_62_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_15_62_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

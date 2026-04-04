@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 4,
     "part_id": 14
   },
-  "markdown": "# Study Abroad- a detailed Perspective\n## Key points\n- This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…\n",
-  "md": "# Study Abroad- a detailed Perspective\n## Key points\n- This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…\n",
+  "markdown": "# Study Abroad- a detailed Perspective\n- Video/PDF\n  - This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…\n",
+  "md": "# Study Abroad- a detailed Perspective\n- Video/PDF\n  - This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_14",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_14_kp",
+              "id": "cc_part_14_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_14_pt_0",
+                    "id": "cc_part_14_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…",
                     "children": {

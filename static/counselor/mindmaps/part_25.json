@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 25
   },
-  "markdown": "# Interest Inventories and Their Applications\n## Key points\n- This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n",
-  "md": "# Interest Inventories and Their Applications\n## Key points\n- This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n",
+  "markdown": "# Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n",
+  "md": "# Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_25",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_25_kp",
+              "id": "cc_part_25_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_25_pt_0",
+                    "id": "cc_part_25_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…",
                     "children": {

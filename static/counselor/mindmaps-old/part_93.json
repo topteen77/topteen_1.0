@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": 93
+  },
+  "markdown": "# Singapore\n## Key points\n- This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "md": "# Singapore\n## Key points\n- This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_93",
+      "class": "sheet",
+      "title": "Singapore",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_93",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Singapore",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_93_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_93_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video provides detailed insights into the education scenario of Singapore, covering admission procedures, standard tests, cost of study and living, weat…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

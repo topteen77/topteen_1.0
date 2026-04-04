@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 19,
     "part_id": null
   },
-  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n## Role Playing and Simulation Exercises for Career Counselors\n## Workshops and Group Discussions in Career Counseling\n## Fieldwork and Practical Experience for Career Counselors\n",
-  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n## Role Playing and Simulation Exercises for Career Counselors\n## Workshops and Group Discussions in Career Counseling\n## Fieldwork and Practical Experience for Career Counselors\n",
+  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n## Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…\n## Fieldwork and Practical Experience for Career Counselors\n- Video/PDF\n  - This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…\n",
+  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n## Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…\n## Fieldwork and Practical Experience for Career Counselors\n- Video/PDF\n  - This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_19",
@@ -27,68 +28,104 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_19_p_74",
+              "id": "cc_ch_19_74_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Real-World Case Studies in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_p_74_b_0",
+                    "id": "cc_ch_19_74_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores real-life case studies in career counseling, providing practical examples of how counselors have helped clients navigate career decisions…",
+                    "title": "PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_19_74_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "0 pdf",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_19_p_75",
+              "id": "cc_ch_19_75_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Role Playing and Simulation Exercises for Career Counselors",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_p_75_b_0",
+                    "id": "cc_ch_19_75_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_19_75_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video focuses on role-playing and simulation exercises for career counselors, demonstrating how these techniques can enhance counseling skills, improve …",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_19_p_76",
+              "id": "cc_ch_19_76_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Workshops and Group Discussions in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_p_76_b_0",
+                    "id": "cc_ch_19_76_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_19_76_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores workshops and group discussions in career counseling, highlighting how these interactive formats foster collaboration, encourage peer lea…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_19_p_77",
+              "id": "cc_ch_19_77_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Fieldwork and Practical Experience for Career Counselors",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_19_p_77_b_0",
+                    "id": "cc_ch_19_77_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_19_77_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers fieldwork and practical experience for career counselors, emphasizing the importance of hands-on learning in real-world settings to build s…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

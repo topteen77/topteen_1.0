@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 64
   },
-  "markdown": "# Resume Writing and LinkedIn Profile Optimization\n## Key points\n- This video focuses on resume writing and LinkedIn profile optimization, providing tips and techniques to create impactful resumes and enhance LinkedIn profil…\n",
-  "md": "# Resume Writing and LinkedIn Profile Optimization\n## Key points\n- This video focuses on resume writing and LinkedIn profile optimization, providing tips and techniques to create impactful resumes and enhance LinkedIn profil…\n",
+  "markdown": "# Resume Writing and LinkedIn Profile Optimization\n- Video/PDF\n  - This video focuses on resume writing and LinkedIn profile optimization, providing tips and techniques to create impactful resumes and enhance LinkedIn profil…\n",
+  "md": "# Resume Writing and LinkedIn Profile Optimization\n- Video/PDF\n  - This video focuses on resume writing and LinkedIn profile optimization, providing tips and techniques to create impactful resumes and enhance LinkedIn profil…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_64",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_64_kp",
+              "id": "cc_part_64_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_64_pt_0",
+                    "id": "cc_part_64_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video focuses on resume writing and LinkedIn profile optimization, providing tips and techniques to create impactful resumes and enhance LinkedIn profil…",
                     "children": {

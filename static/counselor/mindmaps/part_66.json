@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 66
   },
-  "markdown": "# Networking Skills and Professional Relationship Building\n## Key points\n- This video covers networking skills and professional relationship building, providing strategies to help clients connect with industry professionals, expand …\n",
-  "md": "# Networking Skills and Professional Relationship Building\n## Key points\n- This video covers networking skills and professional relationship building, providing strategies to help clients connect with industry professionals, expand …\n",
+  "markdown": "# Networking Skills and Professional Relationship Building\n- Video/PDF\n  - This video covers networking skills and professional relationship building, providing strategies to help clients connect with industry professionals, expand …\n",
+  "md": "# Networking Skills and Professional Relationship Building\n- Video/PDF\n  - This video covers networking skills and professional relationship building, providing strategies to help clients connect with industry professionals, expand …\n",
   "xmind": [
     {
       "id": "cc_sheet_part_66",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_66_kp",
+              "id": "cc_part_66_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_66_pt_0",
+                    "id": "cc_part_66_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video covers networking skills and professional relationship building, providing strategies to help clients connect with industry professionals, expand …",
                     "children": {

@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 20
   },
-  "markdown": "# Building a growth mindset\n## Key points\n- This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …\n",
-  "md": "# Building a growth mindset\n## Key points\n- This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …\n",
+  "markdown": "# Building a growth mindset\n- Video/PDF\n  - This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …\n",
+  "md": "# Building a growth mindset\n- Video/PDF\n  - This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …\n",
   "xmind": [
     {
       "id": "cc_sheet_part_20",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_20_kp",
+              "id": "cc_part_20_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_20_pt_0",
+                    "id": "cc_part_20_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explores the concept of building a growth mindset, focusing on how fostering resilience, adaptability, and a positive attitude can enhance career …",
                     "children": {

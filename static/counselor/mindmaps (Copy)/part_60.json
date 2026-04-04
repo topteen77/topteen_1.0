@@ -1,0 +1,76 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 15,
+    "part_id": 60
+  },
+  "markdown": "# Case Management and Record Keeping\n- Case Management\n- Key Components\n- Case Documentation\n- Quiz\n- Video\n",
+  "md": "# Case Management and Record Keeping\n- Case Management\n- Key Components\n- Case Documentation\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_60",
+      "class": "sheet",
+      "title": "Case Management and Record Keeping",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_60",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Case Management and Record Keeping",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_60_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Case Management",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key Components",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Case Documentation",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_60_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

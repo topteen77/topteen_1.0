@@ -1,0 +1,103 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 4,
+    "part_id": null
+  },
+  "markdown": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n## Changing scope of Careers in 21st century.\n## Indian education and Career landscape\n## Study Abroad- a detailed Perspective\n",
+  "md": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n## Changing scope of Careers in 21st century.\n## Indian education and Career landscape\n## Study Abroad- a detailed Perspective\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_4",
+      "class": "sheet",
+      "title": "Understanding the Education and Career Ecosystem",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_4",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Understanding the Education and Career Ecosystem",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_4_p_11",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "What is Education and career Ecosystem?",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_p_11_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explains the concept of the education and career ecosystem, exploring how various components like education systems, industries, and career paths …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_4_p_12",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Changing scope of Careers in 21st century.",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_p_12_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video examines the changing scope of careers in the 21st century, highlighting emerging trends, new industries, and how technological advancements are r…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_4_p_13",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Indian education and Career landscape",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_p_13_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video provides an overview of the Indian education and career landscape, focusing on key trends, opportunities, and challenges in the evolving education…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_4_p_14",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Study Abroad- a detailed Perspective",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_p_14_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video offers a detailed perspective on studying abroad, covering essential factors such as admission processes, costs, top universities, and opportuniti…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

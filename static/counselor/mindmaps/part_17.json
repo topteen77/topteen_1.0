@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 17
   },
-  "markdown": "# Building Rapport and Trust with Clients\n## Key points\n- This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…\n",
-  "md": "# Building Rapport and Trust with Clients\n## Key points\n- This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…\n",
+  "markdown": "# Building Rapport and Trust with Clients\n- Video/PDF\n  - This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…\n",
+  "md": "# Building Rapport and Trust with Clients\n- Video/PDF\n  - This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_17",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_17_kp",
+              "id": "cc_part_17_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_17_pt_0",
+                    "id": "cc_part_17_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video focuses on strategies for building rapport and trust with clients, emphasizing how these essential elements create a supportive environment for ef…",
                     "children": {

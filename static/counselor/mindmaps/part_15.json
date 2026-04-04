@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 15
   },
-  "markdown": "# Essential Skills for Effective Career Counseling\n## Key points\n- This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…\n",
-  "md": "# Essential Skills for Effective Career Counseling\n## Key points\n- This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…\n",
+  "markdown": "# Essential Skills for Effective Career Counseling\n- Video/PDF\n  - This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…\n",
+  "md": "# Essential Skills for Effective Career Counseling\n- Video/PDF\n  - This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_15",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_15_kp",
+              "id": "cc_part_15_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_15_pt_0",
+                    "id": "cc_part_15_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explores the essential skills required for effective career counseling, focusing on communication, empathy, assessment, and guidance techniques th…",
                     "children": {

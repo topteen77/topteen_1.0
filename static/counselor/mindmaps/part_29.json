@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 8,
     "part_id": 29
   },
-  "markdown": "# Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n## Key points\n- This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
-  "md": "# Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n## Key points\n- This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
+  "markdown": "# Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Video/PDF\n  - This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
+  "md": "# Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Video/PDF\n  - This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_29",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_29_kp",
+              "id": "cc_part_29_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_29_pt_0",
+                    "id": "cc_part_29_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…",
                     "children": {

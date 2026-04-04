@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 15,
     "part_id": 60
   },
-  "markdown": "# Case Management and Record Keeping\n## Key points\n- This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n",
-  "md": "# Case Management and Record Keeping\n## Key points\n- This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n",
+  "markdown": "# Case Management and Record Keeping\n- Video/PDF\n  - This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n",
+  "md": "# Case Management and Record Keeping\n- Video/PDF\n  - This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_60",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_60_kp",
+              "id": "cc_part_60_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_60_pt_0",
+                    "id": "cc_part_60_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video covers case management and record keeping in career counseling, emphasizing the importance of maintaining accurate client records, tracking progre…",
                     "children": {

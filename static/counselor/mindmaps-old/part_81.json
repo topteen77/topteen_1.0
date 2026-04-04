@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 12,
+    "part_id": 81
+  },
+  "markdown": "# Medicine and Healthcare Admission Process\n## Key points\n- This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …\n",
+  "md": "# Medicine and Healthcare Admission Process\n## Key points\n- This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_81",
+      "class": "sheet",
+      "title": "Medicine and Healthcare Admission Process",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_81",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Medicine and Healthcare Admission Process",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_81_kp",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Key points",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_81_pt_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video outlines the medicine and healthcare admission process, detailing the steps involved in applying to medical colleges, entrance exams, eligibility …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

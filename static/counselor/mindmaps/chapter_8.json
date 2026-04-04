@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "chapter",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 8,
     "part_id": null
   },
-  "markdown": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n## Interest Inventories and Their Applications\n## Aptitude and Skills Testing in Career Counseling\n## Personality Assessments: Myers-Briggs, Big Five, etc\n## Administering and Interpreting Psychometric Tests\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n",
-  "md": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n## Interest Inventories and Their Applications\n## Aptitude and Skills Testing in Career Counseling\n## Personality Assessments: Myers-Briggs, Big Five, etc\n## Administering and Interpreting Psychometric Tests\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n",
+  "markdown": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n- Video/PDF\n  - This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…\n## Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n## Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n## Personality Assessments: Myers-Briggs, Big Five, etc\n- Video/PDF\n  - This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…\n## Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Video/PDF\n  - This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
+  "md": "# Self-Assessment and Career Assessment Tools\n## The Role of Self-Assessment in Career Counseling\n- Video/PDF\n  - This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…\n## Interest Inventories and Their Applications\n- Video/PDF\n  - This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…\n## Aptitude and Skills Testing in Career Counseling\n- Video/PDF\n  - This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…\n## Personality Assessments: Myers-Briggs, Big Five, etc\n- Video/PDF\n  - This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…\n## Administering and Interpreting Psychometric Tests\n- Video/PDF\n  - This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…\n## Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search\n- Video/PDF\n  - This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_8",
@@ -27,102 +28,156 @@
         "children": {
           "attached": [
             {
-              "id": "cc_ch_8_p_24",
+              "id": "cc_ch_8_24_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "The Role of Self-Assessment in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_p_24_b_0",
+                    "id": "cc_ch_8_24_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_8_24_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video highlights the role of self-assessment in career counseling, emphasizing how understanding one's strengths, interests, and values helps guide info…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_p_25",
+              "id": "cc_ch_8_25_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Interest Inventories and Their Applications",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_p_25_b_0",
+                    "id": "cc_ch_8_25_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_8_25_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers interest inventories and their applications in career counseling, demonstrating how these tools help individuals identify their passions an…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_p_26",
+              "id": "cc_ch_8_26_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Aptitude and Skills Testing in Career Counseling",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_p_26_b_0",
+                    "id": "cc_ch_8_26_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_8_26_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores the role of aptitude and skills testing in career counseling, highlighting how these assessments help individuals understand their streng…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_p_27",
+              "id": "cc_ch_8_27_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Personality Assessments: Myers-Briggs, Big Five, etc",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_p_27_b_0",
+                    "id": "cc_ch_8_27_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_8_27_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores personality assessments like Myers-Briggs and the Big Five, focusing on how these tools help career counselors understand individual trai…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_p_28",
+              "id": "cc_ch_8_28_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Administering and Interpreting Psychometric Tests",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_p_28_b_0",
+                    "id": "cc_ch_8_28_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_8_28_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explains the process of administering and interpreting psychometric tests in career counseling, highlighting how these assessments provide valuabl…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
               }
             },
             {
-              "id": "cc_ch_8_p_29",
+              "id": "cc_ch_8_29_part",
               "structureClass": "org.xmind.ui.logic.right",
               "title": "Using Career Assessment Tools: Career Search, Stream Selection,  Examinations, College Search",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_ch_8_p_29_b_0",
+                    "id": "cc_ch_8_29_vpdfroot",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…",
+                    "title": "Video/PDF",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_ch_8_29_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video covers the use of career assessment tools, including career searches, stream selection, examinations, college searches, and resources, to help ind…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

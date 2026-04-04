@@ -375,6 +375,22 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             return False
         except Exception:
             return False
+
+    def has_career_mindmap_api_data(self):
+        """
+        True when /careers/api/career/.../mindmap/json/ can return usable jsMind JSON:
+        XMind file on disk, or a non-empty description that parses (including root-only).
+        Wider than has_mindmap_data() so careers with structured HTML but no <h2> still get the live mindmap.
+        """
+        try:
+            if self.has_xmind_file():
+                return True
+            if not (self.name and self.description and str(self.description).strip()):
+                return False
+            j = self.convert_description_to_jsmind_json()
+            return j is not None
+        except Exception:
+            return False
     
     def validate_mindmap(self):
         """

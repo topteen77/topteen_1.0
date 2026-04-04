@@ -1,0 +1,86 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 17,
+    "part_id": null
+  },
+  "markdown": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n## Ethical Decision-Making in Career Counseling\n## Legal Considerations and Compliance in Career Counseling\n",
+  "md": "# Ethics and Professionalism in Career Counseling\n## Ethics and Professionalism in Career Counseling\n## Ethical Decision-Making in Career Counseling\n## Legal Considerations and Compliance in Career Counseling\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_17",
+      "class": "sheet",
+      "title": "Ethics and Professionalism in Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_17",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Ethics and Professionalism in Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_17_p_69",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Ethics and Professionalism in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_17_p_69_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores ethics and professionalism in career counseling, highlighting the importance of maintaining integrity, confidentiality, and a client-cent…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_17_p_70",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Ethical Decision-Making in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_17_p_70_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video covers ethical decision-making in career counseling, focusing on how counselors can navigate complex situations while upholding ethical standards …",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_17_p_71",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Legal Considerations and Compliance in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_17_p_71_b_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "This video explores legal considerations and compliance in career counseling, highlighting the importance of adhering to laws, regulations, and ethical stand…",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

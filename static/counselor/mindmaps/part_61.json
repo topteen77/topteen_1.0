@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 15,
     "part_id": 61
   },
-  "markdown": "# Developing Career Plans and Following Up on Client Progress\n## Key points\n- This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…\n",
-  "md": "# Developing Career Plans and Following Up on Client Progress\n## Key points\n- This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…\n",
+  "markdown": "# Developing Career Plans and Following Up on Client Progress\n- Video/PDF\n  - This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…\n",
+  "md": "# Developing Career Plans and Following Up on Client Progress\n- Video/PDF\n  - This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_61",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_61_kp",
+              "id": "cc_part_61_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_61_pt_0",
+                    "id": "cc_part_61_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explores developing career plans and following up on client progress, highlighting strategies for creating actionable career goals and providing o…",
                     "children": {

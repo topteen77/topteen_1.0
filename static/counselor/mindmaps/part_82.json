@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 12,
     "part_id": 82
   },
-  "markdown": "# Commerce Admission Process\n## Key points\n- This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…\n",
-  "md": "# Commerce Admission Process\n## Key points\n- This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…\n",
+  "markdown": "# Commerce Admission Process\n- Video/PDF\n  - This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…\n",
+  "md": "# Commerce Admission Process\n- Video/PDF\n  - This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_82",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_82_kp",
+              "id": "cc_part_82_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_82_pt_0",
+                    "id": "cc_part_82_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video explains the commerce admission process, covering key steps such as entrance exams, eligibility criteria, application procedures, and tips for sec…",
                     "children": {

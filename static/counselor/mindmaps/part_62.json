@@ -1,6 +1,7 @@
 {
   "format_version": 1,
   "mindmap_type": "counselor_course",
+  "map_type": "tree",
   "scope": "part",
   "meta": {
     "course_learning_url_segment": 14,
@@ -9,8 +10,8 @@
     "chapter_id": 15,
     "part_id": 62
   },
-  "markdown": "# Documenting Counseling Sessions and Client Interactions\n## Key points\n- This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…\n",
-  "md": "# Documenting Counseling Sessions and Client Interactions\n## Key points\n- This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…\n",
+  "markdown": "# Documenting Counseling Sessions and Client Interactions\n- Video/PDF\n  - This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…\n",
+  "md": "# Documenting Counseling Sessions and Client Interactions\n- Video/PDF\n  - This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…\n",
   "xmind": [
     {
       "id": "cc_sheet_part_62",
@@ -27,13 +28,13 @@
         "children": {
           "attached": [
             {
-              "id": "cc_part_62_kp",
+              "id": "cc_part_62_vpdfroot",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Key points",
+              "title": "Video/PDF",
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_62_pt_0",
+                    "id": "cc_part_62_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
                     "title": "This video focuses on documenting counseling sessions and client interactions, emphasizing the importance of accurate record-keeping for tracking progress, e…",
                     "children": {

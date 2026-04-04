@@ -1,0 +1,76 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 9,
+    "part_id": 33
+  },
+  "markdown": "# Motivational Interviewing Techniques\n- Part 4-  Motivational Interviewing Techniques\n- Core Principles of Motivational Interviewing:\n- Motivational Techniques that are used for Career Counseling\n- Quiz\n- Video\n",
+  "md": "# Motivational Interviewing Techniques\n- Part 4-  Motivational Interviewing Techniques\n- Core Principles of Motivational Interviewing:\n- Motivational Techniques that are used for Career Counseling\n- Quiz\n- Video\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_33",
+      "class": "sheet",
+      "title": "Motivational Interviewing Techniques",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_33",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Motivational Interviewing Techniques",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_33_pt_0",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Part 4-  Motivational Interviewing Techniques",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_1",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Core Principles of Motivational Interviewing:",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_2",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Motivational Techniques that are used for Career Counseling",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_3",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            },
+            {
+              "id": "cc_part_33_pt_4",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}
