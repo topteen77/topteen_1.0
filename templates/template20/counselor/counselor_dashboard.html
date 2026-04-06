@@ -433,7 +433,7 @@
   #counselorFilterDrawer {
     /* Prevent "full width" drawer; keep it as a right-side panel */
     --bs-offcanvas-width: min(393px, 100vw);
-  padding: 0 20px;
+
   }
   /* Ensure the drawer is visible on mobile */
   .counselor-filter-offcanvas {
@@ -462,6 +462,12 @@
     .counselor-filter-offcanvas.offcanvas-lg .offcanvas-body {
       overflow: visible;
       width: 100%;
+    }
+  }
+
+  @media (max-width: 420px) {
+    #counselorFilterDrawer {
+      padding: 0 20px;
     }
   }
 </style>
@@ -586,6 +592,8 @@
                     </div>
                   </div>
                 </div>
+
+
                 <div class="counselor-course-actions">
                   <a href="{{ counselor_course_curriculum_url }}" class="btn fw-semibold counselor-btn-fixed text-center blue-button"
                     >
@@ -604,30 +612,23 @@
           </div>
         </div>
         {% endif %}
-
         <!-- Assigned Students Section -->
         <div class="w-100 mb-3">
-          <div class="row " >
-            
+          <div class="row " >            
           <div class="col-md-9">
-
             <div class="flex-grow-1 min-w-0 mb-md-0 mb-2">
               <h3 class="fs-20 fw-semibold mb-0 counselor-section-title">Assigned students</h3>
               <p class="text-gray fs-13 mb-0 lh-sm">Search and filter your roster. Use records per page in the form below.</p>
             </div>
-
           </div>
-
           <div class="col-md-3 text-end">
             <a href="{{ url('counselor:Counselor_follow_up_page', args=[counselors.id]) }}" 
              class="btn custom-button purple-button counselor-btn-fixed w-100 w-md-auto flex-shrink-0 text-center">
             <i class='bx bx-history me-1'></i> Follow-up history
           </a>
-          </div>
+          </div>         
           
-          
-          </div>
-     
+          </div>    
          
         </div>
 

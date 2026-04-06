@@ -1,21 +1,5 @@
-{# Short quiz label: "CH 3- quiz part 1" -> "Quiz: part 1" #}
-{% macro quiz_short_title(title) -%}
-{%- set t = (title or '')|trim -%}
-{%- if not t -%}Quiz{%- else -%}
-{%- set tnorm = t|replace('Part', 'part') -%}
-{%- if 'part' in tnorm|lower -%}
-  {%- set chunks = tnorm.split('part') -%}
-  {%- if chunks|length > 1 -%}
-Quiz: part{{ chunks[-1]|trim }}
-  {%- else -%}
-Quiz: {{ t }}
-  {%- endif -%}
-{%- else -%}
-Quiz: {{ t }}
-{%- endif -%}
-{%- endif -%}
-{%- endmacro %}
-
+{# When the first lesson in a chapter is only intro/overview/instructions, it is labeled
+   "Introduction" (not Part 1) so the first substantive lesson stays "Part 1" (e.g. USA). #}
 <div class="course-sidebar course-sidebar-pro">
   <div class="card course-sidebar-card border-0 shadow-sm mb-4">
     <div class="card-body p-3">
@@ -83,8 +67,24 @@ Quiz: {{ t }}
           
           <!-- Parts List (shown when chapter is active) -->
           {% if is_current_chapter and chapter.parts.exists() %}
+          {% set fp = chapter.parts.all()|first %}
+          {% set chapter_first_is_intro = fp and (
+            
+            ('introductory' in (fp.title|lower)) or
+            ('instruction' in (fp.title|lower))
+          ) %}
           <div class="parts-list mt-2 px-2 pb-2">
             {% for part in chapter.parts.all() %}
+            {% if chapter_first_is_intro and loop.first %}
+              {% set lesson_subtitle = 'Introduction · Video lesson' %}
+              {% set quiz_sidebar_label = 'Introduction' %}
+            {% elif chapter_first_is_intro %}
+              {% set lesson_subtitle = 'Part ' ~ (loop.index - 1) ~ ' · Video lesson' %}
+              {% set quiz_sidebar_label = 'Part ' ~ (loop.index - 1) %}
+            {% else %}
+              {% set lesson_subtitle = 'Part ' ~ loop.index ~ ' · Video lesson' %}
+              {% set quiz_sidebar_label = 'Part ' ~ loop.index %}
+            {% endif %}
             {% set part_id = part.id %}
             {% set is_current_part = current_part and current_part.id == part_id %}
             {% set is_video_completed = video_progress.get(part_id, False) %}
@@ -106,7 +106,7 @@ Quiz: {{ t }}
                   <span class="sidebar-bullet" aria-hidden="true"></span>
                   <div class="sidebar-row-title-wrap">
                     <span class="sidebar-row-title">{{ part.title }}</span>
-                    <small class="sidebar-row-subtitle">Part {{ loop.index }} · Video lesson</small>
+                    <small class="sidebar-row-subtitle">{{ lesson_subtitle }}</small>
                   </div>
                 </div>
                 <div class="part-row-status flex-shrink-0 text-end">
@@ -136,7 +136,7 @@ Quiz: {{ t }}
                   <div class="d-flex align-items-center justify-content-between gap-2">
                     <div class="d-flex align-items-start flex-grow-1 min-w-0">
                       <span class="sidebar-bullet sidebar-bullet--quiz" aria-hidden="true"></span>
-                      <span class="sidebar-row-title sidebar-row-title--quiz {% if is_current_quiz %}fw-semibold{% endif %}">{{ quiz_short_title(quiz.title) }}</span>
+                      <span class="sidebar-row-title sidebar-row-title--quiz {% if is_current_quiz %}fw-semibold{% endif %}">Quiz: {{ quiz_sidebar_label }}</span>
                     </div>
                     <div class="part-row-status flex-shrink-0 text-end">
                     {% if is_this_quiz_done %}
