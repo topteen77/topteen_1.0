@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 15,
+    "part_id": 62
+  },
+  "markdown": "# Documenting Counseling Sessions and Client Interactions\n- Video/PDF\n  - Part 3- Documenting Counseling Sessions and Client Interactions\n  - Importance of Documentation\n  - Key Components of Documentation\n  - a. Session Notes\n  - b. Initial Intake Records\n  - c. Assessment Reports\n  - d. Career Development Plans\n  - e. Outcome Tracking\n  - f. Confidentiality and Security\n  - Best Practices for Effective Documentation\n- Quiz\n",
+  "md": "# Documenting Counseling Sessions and Client Interactions\n- Video/PDF\n  - Part 3- Documenting Counseling Sessions and Client Interactions\n  - Importance of Documentation\n  - Key Components of Documentation\n  - a. Session Notes\n  - b. Initial Intake Records\n  - c. Assessment Reports\n  - d. Career Development Plans\n  - e. Outcome Tracking\n  - f. Confidentiality and Security\n  - Best Practices for Effective Documentation\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_62",
+      "class": "sheet",
+      "title": "Documenting Counseling Sessions and Client Interactions",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_62",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Documenting Counseling Sessions and Client Interactions",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_62_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_62_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 3- Documenting Counseling Sessions and Client Interactions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Importance of Documentation",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Key Components of Documentation",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "a. Session Notes",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "b. Initial Intake Records",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "c. Assessment Reports",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "d. Career Development Plans",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "e. Outcome Tracking",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "f. Confidentiality and Security",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_62_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Best Practices for Effective Documentation",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_62_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

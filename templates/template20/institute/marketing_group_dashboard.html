@@ -185,6 +185,16 @@
                   data-bs-target="#addInstituteModal">
             <i class='bx bx-plus me-2'></i> ADD INSTITUTE
           </button>
+
+          <button type="button"
+                  id="sidebar-pending-institutes-btn"
+                  class="btn w-100 mb-2 fw-bold d-flex align-items-center justify-content-center gap-2"
+                  style="background: #fff8e6; border: 1px solid #f5d78e; color: #856404;"
+                  title="Show institutes awaiting approval">
+            <i class='bx bx-time-five'></i>
+            <span>Pending approval</span>
+            <span class="badge rounded-pill {% if pending_institute_count and pending_institute_count > 0 %}bg-warning text-dark{% else %}bg-secondary{% endif %}" id="sidebar-pending-count">{{ pending_institute_count|default(0) }}</span>
+          </button>
           
           <!-- My Dashboard Button -->
           {% if request.user.user_type == 5 %}
@@ -350,15 +360,24 @@
                   <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>All</option>
                 </select>
               </div>
-              <div class="col-md-4 d-flex gap-2 align-items-end">
+              <div class="col-md-2">
+                <label for="institute_status_filter" class="form-label text-gray fs-12 mb-1">Status</label>
+                <select name="status" id="institute_status_filter" class="form-control custom-input">
+                  <option value="" {% if not search_params.status %}selected{% endif %}>All</option>
+                  <option value="pending" {% if search_params.status == 'pending' %}selected{% endif %}>Pending</option>
+                  <option value="approved" {% if search_params.status == 'approved' %}selected{% endif %}>Approved</option>
+                  <option value="rejected" {% if search_params.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+              </div>
+              <div class="col-md-2 d-flex flex-column gap-2 align-items-stretch justify-content-end">
                 <button type="submit" 
-                        class="btn custom-button purple-button flex-fill" 
-                        style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                        class="btn custom-button purple-button w-100" 
+                        style="text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.01em;">
                   Search
                 </button>
                 <a href="{{ url('institute:marketinggroupdashboard') }}" 
-                   class="btn btn-secondary flex-fill" 
-                   style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
+                   class="btn btn-secondary w-100 text-center" 
+                   style="text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.01em;">
                   Reset
                 </a>
               </div>
@@ -1479,6 +1498,29 @@
       }
     }, 1200);
     
+    const sidebarPendingBtn = document.getElementById('sidebar-pending-institutes-btn');
+    if (sidebarPendingBtn) {
+      sidebarPendingBtn.addEventListener('click', function() {
+        const statusSel = document.getElementById('institute_status_filter');
+        const form = document.getElementById('institute-filter-form');
+        if (statusSel) {
+          statusSel.value = 'pending';
+        }
+        let url;
+        if (form) {
+          const params = new URLSearchParams(new FormData(form));
+          url = window.location.pathname + '?' + params.toString();
+        } else {
+          url = window.location.pathname + '?status=pending';
+        }
+        loadInstitutesTable(url);
+        const mainCol = document.getElementById('main-content-area');
+        if (mainCol) {
+          mainCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+
     const instituteFilterForm = document.getElementById('institute-filter-form');
     
     if (instituteFilterForm) {
@@ -1506,8 +1548,75 @@
       });
     }
     
-    // Handle pagination links with AJAX
+    // Handle pagination links with AJAX; hard-delete (empty institutes only)
     document.addEventListener('click', function(e) {
+      const delBtn = e.target.closest('.institute-hard-delete-btn');
+      if (delBtn) {
+        e.preventDefault();
+        const deleteUrl = delBtn.getAttribute('data-delete-url');
+        const row = delBtn.closest('tr.institute-row');
+        const insName = (row && row.getAttribute('data-institute-name')) || 'this institute';
+        if (!deleteUrl) {
+          return;
+        }
+        Swal.fire({
+          icon: 'warning',
+          title: 'Permanently delete institute?',
+          text: 'This cannot be undone.\n\nInstitute: ' + insName,
+          showCancelButton: true,
+          confirmButtonText: 'Yes, delete permanently',
+          confirmButtonColor: '#d33',
+          cancelButtonText: 'Cancel'
+        }).then(function(result) {
+          if (!result.isConfirmed) {
+            return;
+          }
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+            document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+          const formData = new FormData();
+          formData.append('csrfmiddlewaretoken', csrfToken);
+          fetch(deleteUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+          })
+            .then(function(response) {
+              return response.json().then(function(data) {
+                return { ok: response.ok, status: response.status, data: data };
+              });
+            })
+            .then(function(res) {
+              if (res.ok && res.data.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Deleted',
+                  text: res.data.message || 'Institute removed.',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 3000,
+                  timerProgressBar: true
+                });
+                loadInstitutesTable(
+                  window.location.pathname + '?data_type=institutes' +
+                  (window.location.search ? '&' + window.location.search.substring(1) : '')
+                );
+              } else {
+                throw new Error(res.data.error || 'Delete failed');
+              }
+            })
+            .catch(function(err) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err.message || 'Delete failed',
+                confirmButtonText: 'OK'
+              });
+            });
+        });
+        return;
+      }
       const paginationLink = e.target.closest('.pagination a');
       if (paginationLink) {
         e.preventDefault();

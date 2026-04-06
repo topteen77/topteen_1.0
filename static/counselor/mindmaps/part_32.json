@@ -1,0 +1,125 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 9,
+    "part_id": 32
+  },
+  "markdown": "# Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Part 3- Cognitive-Behavior Approaches in Career Counseling\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n  - 8. Self-Efficacy Enhancement\n- Quiz\n",
+  "md": "# Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Part 3- Cognitive-Behavior Approaches in Career Counseling\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n  - 8. Self-Efficacy Enhancement\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_32",
+      "class": "sheet",
+      "title": "Cognitive-Behavioral Approaches in Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_32",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Cognitive-Behavioral Approaches in Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_32_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_32_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 3- Cognitive-Behavior Approaches in Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Various Approaches of CBT used in Career Counseling-",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Cognitive Restructuring",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Behavioral Experiments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Goal Setting",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Problem-Solving Skills",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Self-Monitoring",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "7. Coping Strategies",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_32_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "8. Self-Efficacy Enhancement",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_32_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

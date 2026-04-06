@@ -1,0 +1,962 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": null
+  },
+  "markdown": "# Study Abroad- Traditional and Emerging countries\n## Study abroad- an over view\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## United States (USA)\n- Video/PDF\n  - 2. United Kingdom (UK)\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n- Quiz\n## United Kingdom (UK)\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## Canada\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## Germany\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## Singapore\n- Video/PDF\n  - 6. New Zealand\n  - 1. Admission Process\n  - 2. Standardized Tests\n  - 3. Other Requirements\n  - 4. Cost of Study\n  - Tuition Fees\n\nUndergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living\n- Quiz\n## New Zealand\n- Video/PDF\n  - Admission Process\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Study and Living\n  - Top Ten Colleges\n  - Financial Aid\n  - Scholarships:\n  - Types of Scholarships:\n- Quiz\n## Netherlands\n- Video/PDF\n  - 8. Australia\n  - 1. Admission Process\n  - 2. Standardized Tests\n  - 3. Other Requirements\n  - 4. Cost of Study\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n- Quiz\n## Australia\n- Video/PDF\n  - Admission Process\n  - Cost of Study and Living\n  - Tuition Fees\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living:\n  - Top Ten Colleges\n  - Financial Aid\n- Quiz\n## France\n- Video/PDF\n  - Admission Process\n  - Cost of Study and Living\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living:\n  - Top Ten Colleges\n  - Financial Aid\n- Quiz\n## Hong Kong\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "md": "# Study Abroad- Traditional and Emerging countries\n## Study abroad- an over view\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## United States (USA)\n- Video/PDF\n  - 2. United Kingdom (UK)\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n- Quiz\n## United Kingdom (UK)\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## Canada\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## Germany\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n- Quiz\n## Singapore\n- Video/PDF\n  - 6. New Zealand\n  - 1. Admission Process\n  - 2. Standardized Tests\n  - 3. Other Requirements\n  - 4. Cost of Study\n  - Tuition Fees\n\nUndergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living\n- Quiz\n## New Zealand\n- Video/PDF\n  - Admission Process\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Study and Living\n  - Top Ten Colleges\n  - Financial Aid\n  - Scholarships:\n  - Types of Scholarships:\n- Quiz\n## Netherlands\n- Video/PDF\n  - 8. Australia\n  - 1. Admission Process\n  - 2. Standardized Tests\n  - 3. Other Requirements\n  - 4. Cost of Study\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n- Quiz\n## Australia\n- Video/PDF\n  - Admission Process\n  - Cost of Study and Living\n  - Tuition Fees\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living:\n  - Top Ten Colleges\n  - Financial Aid\n- Quiz\n## France\n- Video/PDF\n  - Admission Process\n  - Cost of Study and Living\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living:\n  - Top Ten Colleges\n  - Financial Aid\n- Quiz\n## Hong Kong\n- Video/PDF\n  - This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_13",
+      "class": "sheet",
+      "title": "Study Abroad- Traditional and Emerging countries",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_13",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Study Abroad- Traditional and Emerging countries",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_13_86_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Study abroad- an over view",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_86_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_86_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Standard Tests:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Other Requirements:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_86_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_86_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_89_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "United States (USA)",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_89_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_89_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. United Kingdom (UK)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Standard Tests:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Other Requirements:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_89_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_89_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_90_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "United Kingdom (UK)",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_90_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_90_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Standard Tests:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Other Requirements:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_90_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_90_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_91_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Canada",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_91_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_91_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Standard Tests:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Other Requirements:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_91_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_91_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_92_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Germany",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_92_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_92_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Standard Tests:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Other Requirements:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_92_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_92_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_93_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Singapore",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_93_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_93_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. New Zealand",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Admission Process",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Standardized Tests",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Other Requirements",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Cost of Study",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees\n\nUndergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_93_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Living",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_93_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_94_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "New Zealand",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_94_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_94_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study and Living",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Top Ten Colleges",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Financial Aid",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Scholarships:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_94_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Types of Scholarships:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_94_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_95_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Netherlands",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_95_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_95_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "8. Australia",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Admission Process",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Standardized Tests",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Other Requirements",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Cost of Study",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_95_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_95_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_96_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Australia",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_96_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_96_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study and Living",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Living:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Top Ten Colleges",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_96_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Financial Aid",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_96_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_97_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "France",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_97_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_97_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Admission Process",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Study and Living",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Tuition Fees:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Undergraduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Graduate Programs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cost of Living:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Top Ten Colleges",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_13_97_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Financial Aid",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_13_97_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_13_98_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Hong Kong",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_13_98_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_13_98_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video provides detailed insights into the education scenario of Hong Kong, covering admission procedures, standard tests, cost of study and living, weat…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

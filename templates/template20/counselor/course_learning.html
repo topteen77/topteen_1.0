@@ -862,6 +862,51 @@
     border-radius: 10px;
     padding: 1rem 0.75rem;
   }
+  /* Case study index: multi-column grid, scrollable */
+  .case-study-index-scroll {
+    max-height: min(72vh, 720px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+  }
+  .case-study-index-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 10px;
+  }
+  .case-study-index-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 8px;
+    background: #fafbff;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    text-align: center;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .case-study-index-card:hover {
+    border-color: #5249df;
+    box-shadow: 0 4px 14px rgba(82, 73, 223, 0.12);
+  }
+  .case-study-index-card .cs-pdf-icon {
+    line-height: 1;
+    display: block;
+  }
+  .case-study-index-card .cs-pdf-icon i {
+    font-size: 2rem;
+    color: #c62828;
+    vertical-align: middle;
+  }
+  .case-study-index-card .ftitle {
+    font-size: 0.72rem;
+    color: #6b7280;
+    line-height: 1.2;
+  }
   .lesson-notes-list::-webkit-scrollbar {
     width: 7px;
   }
@@ -973,11 +1018,152 @@
       <div class="col-lg-9 course-main-col">
           <div class="px-md-4 px-0 course-main-inner">
             <!-- Content Display -->
-            {% if content_type == 'part' and current_part %}
+            {% if content_type == 'case_study_index' %}
+              <div class="mb-3">
+                <h3 class="fs-24 fw-semibold mb-2">Case Studies</h3>
+                {% if case_study_current_id and case_study_title %}
+                <p class="text-gray mb-0">Selected: <strong>{{ case_study_title }}</strong></p>
+                {% else %}
+                <p class="text-gray mb-0">Use the <strong>Index</strong> tab to search and open a PDF; it opens in <strong>Case Study PDF</strong>.</p>
+                {% endif %}
+              </div>
+
+              <div class="card lesson-content-card">
+                <ul class="nav nav-tabs lesson-content-tabs" id="caseStudyIndexTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if not case_study_current_id %}active{% endif %}" id="case-study-tab-index" data-bs-toggle="tab" data-bs-target="#case-study-pane-index" type="button" role="tab" aria-controls="case-study-pane-index" aria-selected="{% if not case_study_current_id %}true{% else %}false{% endif %}">
+                      <i class='bx bx-grid-alt me-1 align-middle'></i> Index
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if case_study_current_id %}active{% endif %}" id="case-study-tab-pdf" data-bs-toggle="tab" data-bs-target="#case-study-pane-pdf" type="button" role="tab" aria-controls="case-study-pane-pdf" aria-selected="{% if case_study_current_id %}true{% else %}false{% endif %}">
+                      <i class='bx bx-file-blank me-1 align-middle'></i> Case Study PDF
+                    </button>
+                  </li>
+                </ul>
+                <div class="tab-content" id="caseStudyIndexTabContent">
+                  <div class="tab-pane fade {% if not case_study_current_id %}show active{% endif %}" id="case-study-pane-index" role="tabpanel" aria-labelledby="case-study-tab-index">
+                    <div class="lesson-tab-pane-inner">
+                      <form class="mb-3" role="search" autocomplete="off" onsubmit="return false;">
+                        <input type="search"
+                               class="form-control form-control-sm"
+                               id="caseStudyIndexSearch"
+                               name="cs_index_filter"
+                               placeholder="Search by title or filename…"
+                               autocomplete="off"
+                               autocorrect="off"
+                               autocapitalize="off"
+                               spellcheck="false"
+                               data-lpignore="true"
+                               data-form-type="search"
+                               readonly
+                               aria-label="Filter case studies by title or filename">
+                      </form>
+                      <div class="case-study-index-scroll">
+                        <div class="case-study-index-grid" id="caseStudyIndexGrid"></div>
+                      </div>
+                      {% if not case_studies or case_studies|length == 0 %}
+                      <p class="text-muted fs-14 mb-0 mt-2">No case studies are configured for this course yet.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="tab-pane fade {% if case_study_current_id %}show active{% endif %}" id="case-study-pane-pdf" role="tabpanel" aria-labelledby="case-study-tab-pdf">
+                    <div class="lesson-tab-pane-inner">
+                      {% if case_study_pdf_url %}
+                      {% set pdf_url_base = case_study_pdf_url.split('#')[0] %}
+                      {% set pdf_embed_src = pdf_url_base ~ '#toolbar=0&navpanes=0' %}
+                      <p class="text-gray fs-12 mb-2"><i class='bx bx-info-circle me-1'></i>View only — copying case study text is disabled.</p>
+                      <div class="lesson-pdf-iframe-wrap lesson-pdf-iframe-wrap--viewonly lesson-pdf-secure-viewer"
+                           id="caseStudyIndexPdfViewer"
+                           data-pdf-url="{{ pdf_url_base }}"
+                           data-pdf-fallback-src="{{ pdf_embed_src }}">
+                        <div class="lesson-pdf-secure-pages" id="caseStudyIndexPdfPages" aria-label="Case study PDF pages"></div>
+                        <div class="lesson-pdf-secure-fallback d-none" id="caseStudyIndexPdfFallback">
+                          <iframe src="{{ pdf_embed_src }}" title="Case Study PDF"></iframe>
+                          <p class="text-warning fs-12 mb-0 mt-2">Standard preview (limited copy protection). If the PDF is on another domain, allow CORS on the file host for the secure viewer.</p>
+                        </div>
+                      </div>
+                      {% else %}
+                      <div class="lesson-empty-hint">
+                        <i class='bx bx-file-blank fs-2 text-muted d-block mb-2'></i>
+                        <p class="mb-0">Choose a PDF from the <strong>Index</strong> tab.</p>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <script>
+              (function() {
+                var items = {{ case_studies|tojson }};
+                var baseUrl = "{{ url('counselor:course_learning', args=[counselor.id]) }}";
+                var grid = document.getElementById('caseStudyIndexGrid');
+                var search = document.getElementById('caseStudyIndexSearch');
+                if (search) {
+                  search.value = '';
+                  function unlockCaseStudySearch() {
+                    search.removeAttribute('readonly');
+                    search.removeEventListener('focus', unlockCaseStudySearch);
+                    search.removeEventListener('pointerdown', unlockCaseStudySearch);
+                  }
+                  search.addEventListener('focus', unlockCaseStudySearch);
+                  search.addEventListener('pointerdown', unlockCaseStudySearch);
+                }
+                function fnameFromUrl(u) {
+                  if (!u) return '';
+                  var s = String(u).split('?')[0].split('/');
+                  return s[s.length - 1] || u;
+                }
+                function render(list) {
+                  if (!grid) return;
+                  grid.innerHTML = '';
+                  (list || []).forEach(function(cs) {
+                    var fn = fnameFromUrl(cs.pdf_url);
+                    var card = document.createElement('button');
+                    card.type = 'button';
+                    card.className = 'case-study-index-card w-100 border-0';
+                    card.setAttribute('aria-label', (cs.title || fn || 'Case study') + ', open PDF');
+                    var iconWrap = document.createElement('span');
+                    iconWrap.className = 'cs-pdf-icon';
+                    iconWrap.setAttribute('aria-hidden', 'true');
+                    var ic = document.createElement('i');
+                    ic.className = 'bx bxs-file-pdf';
+                    iconWrap.appendChild(ic);
+                    var f2 = document.createElement('span');
+                    f2.className = 'ftitle';
+                    f2.textContent = cs.title || '';
+                    card.appendChild(iconWrap);
+                    card.appendChild(f2);
+                    card.addEventListener('click', function() {
+                      window.location.href = baseUrl + '?type=case_study_index&cs=' + encodeURIComponent(cs.id);
+                    });
+                    grid.appendChild(card);
+                  });
+                }
+                function filtered() {
+                  var q = (search && search.value || '').trim().toLowerCase();
+                  if (!q) return items || [];
+                  return (items || []).filter(function(cs) {
+                    var fn = fnameFromUrl(cs.pdf_url).toLowerCase();
+                    var t = (cs.title || '').toLowerCase();
+                    return fn.indexOf(q) !== -1 || t.indexOf(q) !== -1;
+                  });
+                }
+                if (search) search.addEventListener('input', function() { render(filtered()); });
+                render(filtered());
+              })();
+              </script>
+
+            {% elif content_type == 'part' and current_part %}
               {% set part_id = current_part.id %}
               {% set is_completed = video_progress.get(part_id, False) %}
-              {% set has_video = current_part.video_url %}
-              {% set has_pdf = current_part.pdf_url %}
+              {% set has_video = (current_part.video_url or '')|trim %}
+              {% set has_pdf = (current_part.pdf_url or '')|trim and not hide_practical_training_pdf %}
+              {% set pmm_cur = part_mindmap_by_id.get(part_id) if part_mindmap_by_id is defined else none %}
+              {% set tab_vid = (lesson_active_tab is defined and lesson_active_tab == 'video') %}
+              {% set tab_pdf = has_pdf and (lesson_active_tab is defined and lesson_active_tab == 'pdf') %}
+              {% set tab_mm = (lesson_active_tab is defined and lesson_active_tab == 'mindmap') %}
               <div class="mb-3">
                 <h3 class="fs-24 fw-semibold mb-2">{{ current_part.title }}</h3>
                 {% if current_part.description %}
@@ -988,18 +1174,27 @@
               <div class="card lesson-content-card">
                 <ul class="nav nav-tabs lesson-content-tabs" id="lessonPartTabs" role="tablist">
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link {% if has_video or not has_pdf %}active{% endif %}" id="lesson-video-tab" data-bs-toggle="tab" data-bs-target="#lesson-video-pane" type="button" role="tab" aria-controls="lesson-video-pane" aria-selected="true">
+                    <button class="nav-link {% if tab_vid %}active{% endif %}" id="lesson-video-tab" data-bs-toggle="tab" data-bs-target="#lesson-video-pane" type="button" role="tab" aria-controls="lesson-video-pane" aria-selected="{{ 'true' if tab_vid else 'false' }}">
                       <i class='bx bx-play-circle me-1 align-middle'></i> Video
                     </button>
                   </li>
+                  {% if has_pdf %}
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link {% if not has_video and has_pdf %}active{% endif %}" id="lesson-pdf-tab" data-bs-toggle="tab" data-bs-target="#lesson-pdf-pane" type="button" role="tab" aria-controls="lesson-pdf-pane" aria-selected="false">
+                    <button class="nav-link {% if tab_pdf %}active{% endif %}" id="lesson-pdf-tab" data-bs-toggle="tab" data-bs-target="#lesson-pdf-pane" type="button" role="tab" aria-controls="lesson-pdf-pane" aria-selected="{{ 'true' if tab_pdf else 'false' }}">
                       <i class='bx bx-file-blank me-1 align-middle'></i> PDF Notes
                     </button>
                   </li>
+                  {% endif %}
+                  {% if pmm_cur %}
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if tab_mm %}active{% endif %}" id="lesson-mindmap-tab" data-bs-toggle="tab" data-bs-target="#lesson-mindmap-pane" type="button" role="tab" aria-controls="lesson-mindmap-pane" aria-selected="{{ 'true' if tab_mm else 'false' }}">
+                      <i class='bx bx-git-branch me-1 align-middle'></i> Mindmap
+                    </button>
+                  </li>
+                  {% endif %}
                 </ul>
                 <div class="tab-content" id="lessonPartTabContent">
-                  <div class="tab-pane fade {% if has_video or not has_pdf %}show active{% endif %}" id="lesson-video-pane" role="tabpanel" aria-labelledby="lesson-video-tab">
+                  <div class="tab-pane fade {% if tab_vid %}show active{% endif %}" id="lesson-video-pane" role="tabpanel" aria-labelledby="lesson-video-tab">
                     <div class="lesson-tab-pane-inner">
                       {% if has_video %}
                       {# Captions: same-origin proxy so <video> does not need crossorigin (which breaks MP4 on many S3 setups). #}
@@ -1035,9 +1230,9 @@
                       {% endif %}
                     </div>
                   </div>
-                  <div class="tab-pane fade {% if not has_video and has_pdf %}show active{% endif %}" id="lesson-pdf-pane" role="tabpanel" aria-labelledby="lesson-pdf-tab">
+                  {% if has_pdf %}
+                  <div class="tab-pane fade {% if tab_pdf %}show active{% endif %}" id="lesson-pdf-pane" role="tabpanel" aria-labelledby="lesson-pdf-tab">
                     <div class="lesson-tab-pane-inner">
-                      {% if has_pdf %}
                       {# Strip existing fragment; Chrome/Edge PDF viewer: #toolbar=0 navpanes=0 hides download/print toolbar (view-only where supported). #}
                       {% set pdf_url_base = current_part.pdf_url.split('#')[0] %}
                       {% set pdf_embed_src = pdf_url_base ~ '#toolbar=0&navpanes=0' %}
@@ -1052,14 +1247,20 @@
                           <p class="text-warning fs-12 mb-0 mt-2">Standard preview (limited copy protection). If the PDF is on another domain, allow CORS on the file host for the secure viewer.</p>
                         </div>
                       </div>
-                      {% else %}
-                      <div class="lesson-empty-hint">
-                        <i class='bx bx-file-blank fs-2 text-muted d-block mb-2'></i>
-                        No PDF is attached to this lesson. Add a PDF URL in Admin → Parts.
-                      </div>
-                      {% endif %}
                     </div>
                   </div>
+                  {% endif %}
+                  {% if pmm_cur %}
+                  <div class="tab-pane fade {% if tab_mm %}show active{% endif %}" id="lesson-mindmap-pane" role="tabpanel" aria-labelledby="lesson-mindmap-tab">
+                    <div class="lesson-tab-pane-inner">
+                      {% set mindmap_json_url = pmm_cur.json_url %}
+                      {% set fullscreen_url = pmm_cur.fullscreen_url %}
+                      {% set mindmap_map_type = counselor_mindmap_map_type|default('classic_vertical', true) %}
+                      {% set widget_id = 'part' ~ part_id ~ 'embed' %}
+                      {% include 'template20/counselor/includes/counselor_mindmap_widget.html' %}
+                    </div>
+                  </div>
+                  {% endif %}
                 </div>
               </div>
 
@@ -1330,7 +1531,7 @@
 {{ super() }}
 <!-- SweetAlert2 for notifications -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+{# PDF.js loaded on demand when .lesson-pdf-secure-viewer exists (saves ~500KB+ on video-only / welcome views) #}
 <script>
   // Hide any profile sidebars that might appear
   (function() {
@@ -2393,39 +2594,40 @@
    * Falls back to iframe if PDF.js fails (e.g. CORS on external PDF host).
    */
   document.addEventListener('DOMContentLoaded', function () {
-    var root = document.getElementById('lessonPdfSecureViewer');
-    var pagesEl = document.getElementById('lessonPdfPages');
-    var fallbackEl = document.getElementById('lessonPdfFallback');
-    if (!root || !pagesEl) return;
+    var viewers = document.querySelectorAll('.lesson-pdf-secure-viewer');
+    if (!viewers.length) return;
 
-    var pdfUrl = root.getAttribute('data-pdf-url');
-    if (!pdfUrl) return;
+    viewers.forEach(function (root) {
+      if (!root.getAttribute('data-pdf-url')) return;
+      root.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      root.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    });
 
-    function inViewer(el) {
-      return el && root.contains(el);
+    function inAnyViewer(el) {
+      for (var i = 0; i < viewers.length; i++) {
+        if (el && viewers[i].contains(el)) return true;
+      }
+      return false;
     }
-
-    root.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-    root.addEventListener('dragstart', function (e) { e.preventDefault(); });
 
     document.addEventListener('selectstart', function (e) {
       if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
-      if (inViewer(e.target)) e.preventDefault();
+      if (inAnyViewer(e.target)) e.preventDefault();
     }, true);
 
     document.addEventListener('copy', function (e) {
       if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
-      if (inViewer(e.target)) e.preventDefault();
+      if (inAnyViewer(e.target)) e.preventDefault();
     }, true);
 
     document.addEventListener('cut', function (e) {
       if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
-      if (inViewer(e.target)) e.preventDefault();
+      if (inAnyViewer(e.target)) e.preventDefault();
     }, true);
 
     document.addEventListener('paste', function (e) {
       if (e.target && e.target.closest && e.target.closest('.lesson-notes-section')) return;
-      if (inViewer(e.target)) e.preventDefault();
+      if (inAnyViewer(e.target)) e.preventDefault();
     }, true);
 
     document.addEventListener('keydown', function (e) {
@@ -2435,54 +2637,90 @@
       var k = e.key;
       if (k !== 'c' && k !== 'C' && k !== 'x' && k !== 'X' && k !== 'v' && k !== 'V' && k !== 'a' && k !== 'A') return;
       var t = e.target;
-      if (inViewer(t) || inViewer(document.activeElement)) e.preventDefault();
+      if (inAnyViewer(t) || inAnyViewer(document.activeElement)) e.preventDefault();
     }, true);
 
-    if (typeof pdfjsLib === 'undefined') {
-      if (fallbackEl) fallbackEl.classList.remove('d-none');
-      return;
+    var PDFJS_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    var PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    function loadPdfJsOnce() {
+      if (typeof pdfjsLib !== 'undefined') return Promise.resolve(pdfjsLib);
+      if (window.__courseLearningPdfJsPromise) return window.__courseLearningPdfJsPromise;
+      window.__courseLearningPdfJsPromise = new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = PDFJS_SRC;
+        s.async = true;
+        s.onload = function () {
+          if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+            resolve(pdfjsLib);
+          } else {
+            reject(new Error('pdfjsLib missing after load'));
+          }
+        };
+        s.onerror = function () {
+          reject(new Error('Failed to load PDF.js script'));
+        };
+        document.head.appendChild(s);
+      });
+      return window.__courseLearningPdfJsPromise;
     }
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    loadPdfJsOnce()
+      .then(function () {
+        viewers.forEach(function (root) {
+          var pagesEl = root.querySelector('.lesson-pdf-secure-pages');
+          var fallbackEl = root.querySelector('.lesson-pdf-secure-fallback');
+          var pdfUrl = root.getAttribute('data-pdf-url');
+          if (!pagesEl || !pdfUrl) return;
 
-    requestAnimationFrame(function () {
-    pdfjsLib.getDocument({ url: pdfUrl, verbosity: 0 }).promise
-      .then(function (pdf) {
-        pagesEl.innerHTML = '';
-        var containerW = Math.max(320, pagesEl.clientWidth || root.clientWidth || 800);
+          requestAnimationFrame(function () {
+            pdfjsLib.getDocument({ url: pdfUrl, verbosity: 0 }).promise
+              .then(function (pdf) {
+                pagesEl.innerHTML = '';
+                var containerW = Math.max(320, pagesEl.clientWidth || root.clientWidth || 800);
 
-        function renderPage(num) {
-          return pdf.getPage(num).then(function (page) {
-            var wrap = document.createElement('div');
-            wrap.className = 'lesson-pdf-page-wrap';
-            var canvas = document.createElement('canvas');
-            canvas.setAttribute('draggable', 'false');
-            var ctx = canvas.getContext('2d', { alpha: false });
-            var base = page.getViewport({ scale: 1 });
-            var scale = containerW / base.width;
-            var viewport = page.getViewport({ scale: scale });
-            canvas.width = Math.floor(viewport.width);
-            canvas.height = Math.floor(viewport.height);
-            return page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
-              wrap.appendChild(canvas);
-              pagesEl.appendChild(wrap);
-            });
+                function renderPage(num) {
+                  return pdf.getPage(num).then(function (page) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'lesson-pdf-page-wrap';
+                    var canvas = document.createElement('canvas');
+                    canvas.setAttribute('draggable', 'false');
+                    var ctx = canvas.getContext('2d', { alpha: false });
+                    var base = page.getViewport({ scale: 1 });
+                    var scale = containerW / base.width;
+                    var viewport = page.getViewport({ scale: scale });
+                    canvas.width = Math.floor(viewport.width);
+                    canvas.height = Math.floor(viewport.height);
+                    return page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
+                      wrap.appendChild(canvas);
+                      pagesEl.appendChild(wrap);
+                    });
+                  });
+                }
+
+                var chain = Promise.resolve();
+                for (var n = 1; n <= pdf.numPages; n++) {
+                  (function (pageNum) {
+                    chain = chain.then(function () { return renderPage(pageNum); });
+                  })(n);
+                }
+                return chain;
+              })
+              .catch(function (err) {
+                console.warn('PDF secure viewer failed:', err);
+                if (fallbackEl) fallbackEl.classList.remove('d-none');
+              });
           });
-        }
-
-        var chain = Promise.resolve();
-        for (var n = 1; n <= pdf.numPages; n++) {
-          (function (pageNum) {
-            chain = chain.then(function () { return renderPage(pageNum); });
-          })(n);
-        }
-        return chain;
+        });
       })
       .catch(function (err) {
-        console.warn('Lesson PDF secure viewer failed:', err);
-        if (fallbackEl) fallbackEl.classList.remove('d-none');
+        console.warn('PDF.js:', err);
+        viewers.forEach(function (root) {
+          var fallbackEl = root.querySelector('.lesson-pdf-secure-fallback');
+          if (fallbackEl) fallbackEl.classList.remove('d-none');
+        });
       });
-    });
   });
 </script>
 {% endblock %}

@@ -12,6 +12,7 @@ from users.models import User
 from core import choices
 from core.models import BaseModel, BaseMoneyModel, Configuration,SlugModel
 
+
 class CounselorCourse(models.Model):
     title = models.CharField(max_length=200, blank=True, null=True)
     currency = models.PositiveSmallIntegerField(
@@ -106,7 +107,7 @@ class CounselorCourse(models.Model):
 
 class Chapter(models.Model):
     course = models.ForeignKey(CounselorCourse, on_delete=models.CASCADE, related_name="chapters",blank=True, null=True)
-    title = models.CharField(max_length=100)    
+    title = models.CharField(max_length=100)
 
     class Meta:
         verbose_name_plural = "Course Chapters"
@@ -125,6 +126,20 @@ class Part(models.Model):
         help_text="Optional WebVTT captions URL. If empty, captions are assumed at the same path as the video with a .vtt extension.",
     )
     pdf_url = models.URLField(blank=True, null=True)  # URL for the PDF
+    case_study_folder_url = models.TextField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Optional base URL for case study PDFs (e.g. S3 folder prefix ending with /). "
+            "When set, each Case Study can use a relative filename only (e.g. CS1.pdf)."
+        ),
+    )
+    suppress_pdf_notes_tab = models.BooleanField(
+        default=False,
+        help_text=(
+            "Hide the PDF Notes tab for this lesson (e.g. when case studies replace an index PDF)."
+        ),
+    )
 
     class Meta:
         verbose_name_plural = "Course Parts"
@@ -154,6 +169,40 @@ class Part(models.Model):
         if new_path == path:
             new_path = path.rstrip("/") + ".vtt"
         return urlunparse(parsed._replace(path=new_path))
+
+
+class CaseStudy(models.Model):
+    """
+    Case study PDF attached to a course Part (managed in Admin).
+    pdf_url may be a full https URL (e.g. S3) or a relative filename if Part.case_study_folder_url is set.
+    """
+
+    part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name="case_studies")
+    title = models.CharField(max_length=200)
+    pdf_url = models.TextField(
+        help_text="Full PDF URL (https), or relative path/filename if Part has a folder URL set."
+    )
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ("part", "sort_order", "id")
+        verbose_name = "Case study"
+        verbose_name_plural = "Case studies"
+
+    def __str__(self):
+        return f"{self.title} ({self.part_id})"
+
+    def resolve_pdf_url(self) -> str:
+        raw = (self.pdf_url or "").strip()
+        if not raw:
+            return ""
+        if raw.startswith(("http://", "https://")):
+            return raw
+        folder = (getattr(self.part, "case_study_folder_url", None) or "").strip().rstrip("/")
+        if not folder:
+            return raw
+        return f"{folder}/{raw.lstrip('/')}"
+
 
 class Notes(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)

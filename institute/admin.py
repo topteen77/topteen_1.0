@@ -1,8 +1,11 @@
 from django.contrib import admin
+from django.contrib.admin import RelatedOnlyFieldListFilter
+from django.db.models import Count
 from institute.models import Institute,StudentManagement,InstituteAccountDeletion,InstituteLog,ClassAndSection,InstituteGroup,InstituteMarketingGroup
 from users.models import User
 from core import choices
 from django.utils.html import format_html
+from django.utils.http import urlencode
 import re
 from django.urls import reverse
 # Register your models here.
@@ -26,7 +29,17 @@ class UserStatusFilter(admin.SimpleListFilter):
         return queryset
 
 class InstituteMarketingGroupAdmin(admin.ModelAdmin):
-    list_display=["id","m_group_name","marketing_group_admin","get_object_status","get_user_status","get_user_email","created","modified"]
+    list_display=[
+        "id",
+        "m_group_name",
+        "marketing_group_admin",
+        "institutes_list_link",
+        "get_object_status",
+        "get_user_status",
+        "get_user_email",
+        "created",
+        "modified",
+    ]
     readonly_fields=["created","modified"]
     list_filter=[UserStatusFilter,"object_status","created","modified"]
     search_fields=["m_group_name","marketing_group_admin__email","marketing_group_admin__name"]
@@ -36,7 +49,9 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
         # Use complete() to show all marketing groups (not just active ones)
         qs = InstituteMarketingGroup.objects.complete()
         # Also ensure we get users from complete queryset (including soft-deleted)
-        return qs.select_related('marketing_group_admin')
+        return qs.select_related("marketing_group_admin").annotate(
+            _institute_count=Count("institute")
+        )
     
     def get_object_status(self, obj):
         """Display the object_status of the marketing group itself"""
@@ -81,17 +96,69 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
         return "N/A"
     get_user_email.short_description = "User Email"
     get_user_email.admin_order_field = "marketing_group_admin__email"
-    
+
+    @admin.display(description="Institutes")
+    def institutes_list_link(self, obj):
+        """Link to institute changelist filtered to this marketing group (related_name=institute)."""
+        n = getattr(obj, "_institute_count", None)
+        if n is None:
+            try:
+                n = obj.institute.count()
+            except Exception:
+                n = 0
+        if n == 0:
+            return "0"
+        base = reverse("admin:institute_institute_changelist")
+        q = urlencode({"marketing_group__id__exact": str(obj.pk)})
+        return format_html('<a href="{}?{}">{}</a>', base, q, n)
+
 admin.site.register(InstituteMarketingGroup,InstituteMarketingGroupAdmin)
 
 class InstituteAdmin(admin.ModelAdmin):
-    list_display = ["name", "created_by_name", "created_by_email", "is_demo_institute", "is_system_demo", "logo_preview", "modified"]
+    list_display = [
+        "name",
+        "marketing_group_column",
+        "created_by_name",
+        "created_by_email",
+        "is_demo_institute",
+        "is_system_demo",
+        "logo_preview",
+        "modified",
+    ]
     list_editable = ["is_demo_institute"]
-    readonly_fields = ["is_system_demo"]
-    list_filter = ["is_demo_institute", "is_system_demo", "institute_status"]
-    readonly_fields = ["created", "modified", "slug", "logo_preview"]
-    search_fields = ["name", "created_by__name", "created_by__email"]
-    list_select_related = ("created_by",)
+    list_filter = [
+        "is_demo_institute",
+        "is_system_demo",
+        "institute_status",
+        ("marketing_group", RelatedOnlyFieldListFilter),
+    ]
+    readonly_fields = ["created", "modified", "slug", "logo_preview", "is_system_demo"]
+    search_fields = [
+        "name",
+        "created_by__name",
+        "created_by__email",
+        "marketing_group__m_group_name",
+        "marketing_group__marketing_group_admin__email",
+        "marketing_group__marketing_group_admin__name",
+    ]
+    list_select_related = ("created_by", "marketing_group", "marketing_group__marketing_group_admin")
+
+    @admin.display(description="Marketing group", ordering="marketing_group__m_group_name")
+    def marketing_group_column(self, obj):
+        mg = obj.marketing_group
+        if not mg:
+            return "—"
+        label = mg.m_group_name or f"Group #{mg.pk}"
+        admin_user = mg.marketing_group_admin
+        if admin_user:
+            email = getattr(admin_user, "email", "") or ""
+            if email:
+                label = f"{label} ({email})"
+        try:
+            url = reverse("admin:institute_institutemarketinggroup_change", args=[mg.pk])
+            return format_html('<a href="{}">{}</a>', url, label)
+        except Exception:
+            return label
 
     @admin.display(description="Institute User Name", ordering="created_by__name")
     def created_by_name(self, obj):

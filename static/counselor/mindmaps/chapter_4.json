@@ -1,0 +1,396 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 4,
+    "part_id": null
+  },
+  "markdown": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n- Video/PDF\n  - Higher Education Dynamics\n  - Ecological Perspective in Education\n  - Educational Landscape in India\n  - Structure of the K-12 Education System\n  - New Education Policy 2020\n  - Transformation in the K-12 Education Ecosystem in India\n  - National Skills Qualification Framework (NSQF)\n  - Curriculum and Examination Administration\n- Quiz\n## Changing scope of Careers in 21st century.\n- Video/PDF\n  - Changing scope of Careers in 21st century\n  - What is the Future of Work?\n  - Evolving Career Possibilities in the 21st Century\n  - Emerging Career Fields\n  - Shifting Trends in Employment\n  - The Skills Needed for Future Careers\n  - Emerging Careers for the Next Decades\n  - 1. Computer Science Teachers\n- Quiz\n## Indian education and Career landscape\n- Video/PDF\n  - Major employment trends for 2024\n  - Rise of Chatbots in Customer Support\n  - Growing Demand for AI and Machine Learning\n  - Expansion of the FinTech Sector\n  - Rising Demand for Big Data Analytics Jobs\n  - Continued Growth in IT Talent Acquisition\n  - Future Workforce Trends: Skilled Labor\n  - Hybrid and Location-Agnostic Work Environments\n- Quiz\n## Study Abroad- a detailed Perspective\n- Video/PDF\n  - Study in India or Abroad? Determining Factors in the Decision\n  - Student Mobility: Dynamics outside India\n  - Leading Destinations:\n  - Emerging Destinations:\n  - Regional Mobility Trends:\n  - Influencing Factors:\n  - Impact of Policy Changes:\n  - Future trends for Indian Study Abroad students\n- Quiz\n",
+  "md": "# Understanding the Education and Career Ecosystem\n## What is Education and career Ecosystem?\n- Video/PDF\n  - Higher Education Dynamics\n  - Ecological Perspective in Education\n  - Educational Landscape in India\n  - Structure of the K-12 Education System\n  - New Education Policy 2020\n  - Transformation in the K-12 Education Ecosystem in India\n  - National Skills Qualification Framework (NSQF)\n  - Curriculum and Examination Administration\n- Quiz\n## Changing scope of Careers in 21st century.\n- Video/PDF\n  - Changing scope of Careers in 21st century\n  - What is the Future of Work?\n  - Evolving Career Possibilities in the 21st Century\n  - Emerging Career Fields\n  - Shifting Trends in Employment\n  - The Skills Needed for Future Careers\n  - Emerging Careers for the Next Decades\n  - 1. Computer Science Teachers\n- Quiz\n## Indian education and Career landscape\n- Video/PDF\n  - Major employment trends for 2024\n  - Rise of Chatbots in Customer Support\n  - Growing Demand for AI and Machine Learning\n  - Expansion of the FinTech Sector\n  - Rising Demand for Big Data Analytics Jobs\n  - Continued Growth in IT Talent Acquisition\n  - Future Workforce Trends: Skilled Labor\n  - Hybrid and Location-Agnostic Work Environments\n- Quiz\n## Study Abroad- a detailed Perspective\n- Video/PDF\n  - Study in India or Abroad? Determining Factors in the Decision\n  - Student Mobility: Dynamics outside India\n  - Leading Destinations:\n  - Emerging Destinations:\n  - Regional Mobility Trends:\n  - Influencing Factors:\n  - Impact of Policy Changes:\n  - Future trends for Indian Study Abroad students\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_4",
+      "class": "sheet",
+      "title": "Understanding the Education and Career Ecosystem",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_4",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Understanding the Education and Career Ecosystem",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_4_11_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "What is Education and career Ecosystem?",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_11_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_11_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Higher Education Dynamics",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Ecological Perspective in Education",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Educational Landscape in India",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Structure of the K-12 Education System",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "New Education Policy 2020",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Transformation in the K-12 Education Ecosystem in India",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "National Skills Qualification Framework (NSQF)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_11_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Curriculum and Examination Administration",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_4_11_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_4_12_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Changing scope of Careers in 21st century.",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_12_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_12_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Changing scope of Careers in 21st century",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "What is the Future of Work?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Evolving Career Possibilities in the 21st Century",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Emerging Career Fields",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Shifting Trends in Employment",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "The Skills Needed for Future Careers",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Emerging Careers for the Next Decades",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_12_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Computer Science Teachers",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_4_12_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_4_13_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Indian education and Career landscape",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_13_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_13_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Major employment trends for 2024",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Rise of Chatbots in Customer Support",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Growing Demand for AI and Machine Learning",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Expansion of the FinTech Sector",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Rising Demand for Big Data Analytics Jobs",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Continued Growth in IT Talent Acquisition",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Future Workforce Trends: Skilled Labor",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_13_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Hybrid and Location-Agnostic Work Environments",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_4_13_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_4_14_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Study Abroad- a detailed Perspective",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_4_14_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_4_14_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Study in India or Abroad? Determining Factors in the Decision",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Student Mobility: Dynamics outside India",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Leading Destinations:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Emerging Destinations:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Regional Mobility Trends:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Influencing Factors:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Impact of Policy Changes:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_4_14_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Future trends for Indian Study Abroad students",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_4_14_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

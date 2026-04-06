@@ -1,0 +1,69 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 9,
+    "part_id": 31
+  },
+  "markdown": "# Group Counseling Techniques\n- Video/PDF\n  - Part 2- Group Counseling Techniques\n  - How group counseling is conducted in a career counseling setup-\n- Quiz\n",
+  "md": "# Group Counseling Techniques\n- Video/PDF\n  - Part 2- Group Counseling Techniques\n  - How group counseling is conducted in a career counseling setup-\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_31",
+      "class": "sheet",
+      "title": "Group Counseling Techniques",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_31",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Group Counseling Techniques",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_31_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_31_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 2- Group Counseling Techniques",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_31_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "How group counseling is conducted in a career counseling setup-",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_31_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

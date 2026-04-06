@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 11,
+    "part_id": 41
+  },
+  "markdown": "# Advising on Educational Pathways and Vocational Training\n- Video/PDF\n  - Understanding Vocational Education\n  - Explain Vocational Education:\n  - Benefits of Vocational Training:\n  - Advising on Pathways\n  - Assess Interests and Strengths:\n  - Explore Vocational Options:\n  - Educational Pathways:\n  - Navigating the Application Process\n  - Program Requirements:\n  - Financial Planning:\n- Quiz\n",
+  "md": "# Advising on Educational Pathways and Vocational Training\n- Video/PDF\n  - Understanding Vocational Education\n  - Explain Vocational Education:\n  - Benefits of Vocational Training:\n  - Advising on Pathways\n  - Assess Interests and Strengths:\n  - Explore Vocational Options:\n  - Educational Pathways:\n  - Navigating the Application Process\n  - Program Requirements:\n  - Financial Planning:\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_41",
+      "class": "sheet",
+      "title": "Advising on Educational Pathways and Vocational Training",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_41",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Advising on Educational Pathways and Vocational Training",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_41_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_41_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Understanding Vocational Education",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Explain Vocational Education:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Benefits of Vocational Training:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Advising on Pathways",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Assess Interests and Strengths:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Explore Vocational Options:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Educational Pathways:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Navigating the Application Process",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Program Requirements:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_41_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Financial Planning:",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_41_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

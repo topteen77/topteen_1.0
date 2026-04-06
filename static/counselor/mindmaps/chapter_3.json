@@ -1,0 +1,308 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 3,
+    "part_id": null
+  },
+  "markdown": "# Introduction to Career Counseling\n## Understanding Career Counseling\n- Video/PDF\n  - What Is Counselling?\n  - What is career counselling?\n  - Who is a career counselor?\n  - Who needs career counselling and When?\n- Quiz\n## The Importance of Career Counseling\n- Video/PDF\n  - Why is Career Counselling important?\n  - Other skills that career counselling can teach-\n  - Important Elements of Career Counselling\n  - What Skills Do You Need to Become a Career Counselor?\n  - Who Can Become A Career Counsellor?\n- Quiz\n## Scope and Opportunities in Career Counseling\n- Video/PDF\n  - Why do students and professionals need career counselling?\n  - Scope Of Career Counselling In India\n  - Career Opportunities for Career Counsellors\n  - 1. Education Industry\n  - Career Opportunities in the Education Sector:\n  - 2. Non-Governmental Organizations (NGOs) / Non-Profit Organizations (NPOs)\n  - Career Opportunities in NGOs/NPOs:\n  - 3. Corporate Sector\n- Quiz\n## Historical Evolution and Current Trends in Career Counseling\n- Video/PDF\n  - Part 4- Historical Evolution of Career Counselling\n  - Technological Advancements and Formalization\n  - Current Trends in Career Counselling\n  - Emerging Career Models and Lifelong Learning\n- Quiz\n",
+  "md": "# Introduction to Career Counseling\n## Understanding Career Counseling\n- Video/PDF\n  - What Is Counselling?\n  - What is career counselling?\n  - Who is a career counselor?\n  - Who needs career counselling and When?\n- Quiz\n## The Importance of Career Counseling\n- Video/PDF\n  - Why is Career Counselling important?\n  - Other skills that career counselling can teach-\n  - Important Elements of Career Counselling\n  - What Skills Do You Need to Become a Career Counselor?\n  - Who Can Become A Career Counsellor?\n- Quiz\n## Scope and Opportunities in Career Counseling\n- Video/PDF\n  - Why do students and professionals need career counselling?\n  - Scope Of Career Counselling In India\n  - Career Opportunities for Career Counsellors\n  - 1. Education Industry\n  - Career Opportunities in the Education Sector:\n  - 2. Non-Governmental Organizations (NGOs) / Non-Profit Organizations (NPOs)\n  - Career Opportunities in NGOs/NPOs:\n  - 3. Corporate Sector\n- Quiz\n## Historical Evolution and Current Trends in Career Counseling\n- Video/PDF\n  - Part 4- Historical Evolution of Career Counselling\n  - Technological Advancements and Formalization\n  - Current Trends in Career Counselling\n  - Emerging Career Models and Lifelong Learning\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_3",
+      "class": "sheet",
+      "title": "Introduction to Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_3",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Introduction to Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_3_6_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Understanding Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_6_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_3_6_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "What Is Counselling?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_6_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "What is career counselling?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_6_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Who is a career counselor?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_6_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Who needs career counselling and When?",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_6_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_3_7_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "The Importance of Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_7_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_3_7_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Why is Career Counselling important?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_7_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Other skills that career counselling can teach-",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_7_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Important Elements of Career Counselling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_7_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "What Skills Do You Need to Become a Career Counselor?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_7_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Who Can Become A Career Counsellor?",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_7_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_3_8_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Scope and Opportunities in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_8_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_3_8_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Why do students and professionals need career counselling?",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Scope Of Career Counselling In India",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Career Opportunities for Career Counsellors",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Education Industry",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Career Opportunities in the Education Sector:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Non-Governmental Organizations (NGOs) / Non-Profit Organizations (NPOs)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Career Opportunities in NGOs/NPOs:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_8_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Corporate Sector",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_8_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_3_9_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Historical Evolution and Current Trends in Career Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_3_9_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_3_9_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 4- Historical Evolution of Career Counselling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_9_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Technological Advancements and Formalization",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_9_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Current Trends in Career Counselling",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_3_9_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Emerging Career Models and Lifelong Learning",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_3_9_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

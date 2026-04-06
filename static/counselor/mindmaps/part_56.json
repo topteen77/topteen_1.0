@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 14,
+    "part_id": 56
+  },
+  "markdown": "# Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - Part 1- Utilizing Digital Tools for Career Counseling\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n  - Career Exploration Platforms:\n  - E-Learning and Skill Development:\n- Quiz\n",
+  "md": "# Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - Part 1- Utilizing Digital Tools for Career Counseling\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n  - Career Exploration Platforms:\n  - E-Learning and Skill Development:\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_56",
+      "class": "sheet",
+      "title": "Utilizing Digital Tools for Career Counseling",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_56",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Utilizing Digital Tools for Career Counseling",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_56_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_56_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 1- Utilizing Digital Tools for Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "The Impact of Digital Tools on Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Accessibility and Reach:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Personalization and Customization:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Data-Driven Insights:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Enhanced Engagement:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Forms of Digital Tools in Career Counseling",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Online Assessment Tools:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Career Exploration Platforms:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_56_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "E-Learning and Skill Development:",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_56_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

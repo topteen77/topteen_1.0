@@ -50,7 +50,14 @@ from django.template.loader import get_template
 import pdfkit 
 from django.core.files import File
 from django.conf import settings
-from institute.models import Institute, InstituteGroup, InstituteMarketingGroup,StudentManagement, get_global_remain_credits
+from institute.models import (
+    Institute,
+    InstituteGroup,
+    InstituteMarketingGroup,
+    StudentManagement,
+    get_global_remain_credits,
+    resolve_marketing_group_for_public_registration,
+)
 from django.middleware.csrf import get_token
 # from .forms import InstituteRegistrationForm
 import re
@@ -314,6 +321,8 @@ def create_institute(request):
                         mrk_group = get_object_or_404(InstituteMarketingGroup, id=markiting_group_id)
                     except:
                         pass
+
+                mrk_group = resolve_marketing_group_for_public_registration(mrk_group)
 
                 # Generate random password (use default from settings)
                 password = settings.DEFAULT_PASSWORD

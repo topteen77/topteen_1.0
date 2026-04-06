@@ -20,6 +20,11 @@ urlpatterns = [
     path("marketing_profile_edit/",views.InstituteMarketingProfileEditView.as_view(),name="marketingprofileedit"),
     path("update_seat_capacity/",views.UpdateSeatCapacityView.as_view(),name="updateseatcapacity"),
     path("institute_approve/<int:id>/", views.InstituteApproveView.as_view(), name="instituteapprove"),
+    path(
+        "institute_hard_delete/<int:id>/",
+        views.InstituteHardDeleteView.as_view(),
+        name="instituteharddelete",
+    ),
     
     # path("create_counselor_dashboard",views.CounselorDashboard,name="CounselorDashboardView"),
     # path("create_Counselor_Course",views.CounselorCourse,name="CounselorCourse"),
@@ -44,13 +49,13 @@ urlpatterns = [
     path("marketing_block/<int:id>/",views.MarketingBlockView.as_view(),name="marketingblock"),
     path("download_student_sample_csv/",views.students_csv_sample_file,name="download_student_sample_csv"),
     path("p0ost_matric_student_sample_data/",views.post_matric_student_sample_data,name="post_matric_student_sample_csv"),
-    path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),
-    
+    # Must be before <slug:slug>/ so the API is never mistaken for an institute slug
+    path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),
     # old code not in use - start
     # New isolated routes for institute authentication frontend
     # old code not in use - end
     path("auth/register/", views.InstituteRegisterView.as_view(), name="register"),
     path("auth/login/", views.InstituteLoginView.as_view(), name="login"),
     path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
-    path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),
+    path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),
 ]

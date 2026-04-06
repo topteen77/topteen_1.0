@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": 90
+  },
+  "markdown": "# United Kingdom (UK)\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living:\n- Quiz\n",
+  "md": "# United Kingdom (UK)\n- Video/PDF\n  - Admission Process:\n  - Undergraduate:\n  - Graduate:\n  - Standard Tests:\n  - Other Requirements:\n  - Cost of Study:\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - Cost of Living:\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_90",
+      "class": "sheet",
+      "title": "United Kingdom (UK)",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_90",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "United Kingdom (UK)",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_90_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_90_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Admission Process:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Undergraduate:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Graduate:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Standard Tests:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Other Requirements:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Cost of Study:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Tuition Fees:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Undergraduate Programs:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Graduate Programs:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_90_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Cost of Living:",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_90_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

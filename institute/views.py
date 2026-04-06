@@ -16,7 +16,7 @@ from .task import send_new_student_credential,institute_deletion_request,create_
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from institute.decorators import change_counselor_password_only, institute_user_only,institute_authenticated_user_only,institute_block_student_only,institute_update_delete_student_only,institute_change_student_password_only,institute_profile_update_delete, marketing_group_user_only,only_superuser,institute_group_user_only
+from institute.decorators import change_counselor_password_only, institute_user_only,institute_authenticated_user_only,institute_block_student_only,institute_update_delete_student_only,institute_change_student_password_only,institute_profile_update_delete, marketing_group_user_only,only_superuser,institute_group_user_only,superuser_or_marketing_institute_create
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -26,11 +26,32 @@ from institute.models import Institute,StudentManagement,InstituteAccountDeletio
 from django.conf import settings
 from django.http import HttpResponse
 from institute.filters import StudentFilter
+from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 from app.models import Results, TestCompletion
-from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_institute
+from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_institute, get_empty_heatmap_data
 # Create your views here.
+
+
+def user_manages_institute_for_api(user, institute):
+    """
+    True if the user may read institute/student API payloads for this institute.
+    Scopes marketing, institute-group, school, and counselor roles to their own institutes.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    if institute.created_by_id == user.id:
+        return True
+    if institute.institute_group_id and institute.institute_group.institute_group_admin_id == user.id:
+        return True
+    if institute.marketing_group_id and institute.marketing_group.marketing_group_admin_id == user.id:
+        return True
+    if Counselor.objects.filter(coun_user=user, counselor_admin=institute).exists():
+        return True
+    return False
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(only_superuser,name='dispatch')
@@ -177,7 +198,7 @@ class AdminDashboardView(TemplateView):
         return render(request,self.template_name,self.get_context(request,*args,**kwargs))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-@method_decorator(only_superuser,name='dispatch')
+@method_decorator(superuser_or_marketing_institute_create,name='dispatch')
 class InstituteCreateView(TemplateView):
     template_name = 'template20/institute/marketing_group_dashboard.html'
     
@@ -189,27 +210,58 @@ class InstituteCreateView(TemplateView):
         import re
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
-        ins_email=request.POST.get("institute_email")
-        # ins_user=get_object_or_404(User,id=user_id)
-        name= request.POST.get("institute_name")
-        address=request.POST.get("institute_address")
-        contact=request.POST.get("institute_contact")
-        admin_contact=request.POST.get("institute_admin")
-        credit_counts=request.POST.get("ins_credits")
-        institute_group_id=request.POST.get("institute_group")
-        logo=request.FILES.get("institute_logo")
-        ins_em=re.match(evalid,ins_email)
-        if ins_em and name and address and contact and admin_contact and logo and (0<=int(credit_counts)<=get_global_remain_credits()):
+        ins_email = (request.POST.get("institute_email") or "").strip()
+        name = (request.POST.get("institute_name") or "").strip()
+        address = (request.POST.get("institute_address") or "").strip()
+        contact = (request.POST.get("institute_contact") or "").strip()
+        admin_contact = (request.POST.get("institute_admin") or "").strip()
+        credit_counts_raw = request.POST.get("ins_credits")
+        institute_group_id = request.POST.get("institute_group")
+        logo = request.FILES.get("institute_logo")
+        referer = request.META.get('HTTP_REFERER') or reverse('institute:marketinggroupdashboard')
+
+        ins_em = re.match(evalid, ins_email) if ins_email else None
+
+        if ins_email and User.objects.filter(email__iexact=ins_email).exists():
+            messages.error(
+                request,
+                "This email is already registered. An institute with this login may already exist.",
+            )
+            return HttpResponseRedirect(referer)
+
+        if name and address and Institute.objects.filter(name__iexact=name, address__iexact=address).exists():
+            messages.error(
+                request,
+                "An institute with this name and address already exists.",
+            )
+            return HttpResponseRedirect(referer)
+
+        try:
+            credit_counts = int(credit_counts_raw)
+        except (TypeError, ValueError):
+            messages.error(request, "Enter a valid number for exam credits.")
+            return HttpResponseRedirect(referer)
+
+        max_credits = get_global_remain_credits()
+        if ins_em and name and address and contact and admin_contact and logo and 0 <= credit_counts <= max_credits:
             # Attach institute to selected institute group (if any)
             if institute_group_id:
                 ins_group=get_object_or_404(InstituteGroup,id=institute_group_id)
             else:
                 ins_group=None
 
-            # Attach institute to the marketing group of the logged-in marketing admin
+            # Attach institute to this user's marketing group (create one if missing — common for new admins)
             marketing_group = InstituteMarketingGroup.objects.filter(
                 marketing_group_admin=request.user
-            ).first()
+            ).order_by('id').first()
+            if request.user.user_type == choices.UserType.MARKETINGGROUPADMIN and not marketing_group:
+                label = (request.user.name or request.user.email or '').strip()
+                if not label:
+                    label = f"Marketing group {request.user.pk}"
+                marketing_group = InstituteMarketingGroup.objects.create(
+                    m_group_name=label[:250],
+                    marketing_group_admin=request.user,
+                )
 
             import random
             password=''.join([str(random.randint(0,10)) for _ in range(6)])
@@ -230,13 +282,17 @@ class InstituteCreateView(TemplateView):
             send_institute_mail.delay(ins.created_by.email,password)
             messages.success(request, "Institute Created")
         else:
-            if User.objects.filter(email=ins_email).exists():
-                messages.error(request,"{} Already Exist !!".format(ins_email))
-            elif not (int(credit_counts)<=get_global_remain_credits()):
-                messages.error(request,"No Remaining Credits")
+            if credit_counts > max_credits:
+                messages.error(request, "No remaining credits for this allocation.")
+            elif not logo:
+                messages.error(request, "Institute logo is required.")
+            elif not ins_em:
+                messages.error(request, "Enter a valid institute email address.")
+            elif not (name and address and contact and admin_contact):
+                messages.error(request, "Please fill all required institute fields.")
             else:
-                messages.error(request,"Something Went Wrong !!")
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+                messages.error(request, "Something went wrong. Please check the form and try again.")
+        return HttpResponseRedirect(referer)
 
 # manish
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -407,24 +463,11 @@ class MarketingGroupDashboardView(TemplateView):
         return stream_counts
     
     def get_institute_group_info(self, group_admin, search_params=None, load_full_data=False):
-        # Get marketing group
-        marketing_group = InstituteMarketingGroup.objects.filter(
-            marketing_group_admin=group_admin
-        ).first()
-        
-        if not marketing_group:
-            return {
-                "institutes": Institute.objects.none(),
-                "student_count": 0,
-                "counselor_count": 0,
-                "institute_data": [],
-                "tstudents": StudentManagement.objects.none(),
-                "streams": {},
-                "locations": []
-            }
-        
-        # Start with base queryset
-        institutes = Institute.objects.filter(marketing_group=marketing_group)
+        # Scope by marketing_group.admin user (not .first() on InstituteMarketingGroup) so each
+        # marketing admin only sees institutes tied to groups they own — even with multiple groups.
+        institutes = Institute.objects.filter(
+            marketing_group__marketing_group_admin=group_admin
+        )
         
         # Apply filters if provided
         if search_params:
@@ -445,6 +488,15 @@ class MarketingGroupDashboardView(TemplateView):
                 institutes = institutes.filter(
                     address__icontains=search_params['location_search']
                 )
+
+            status_key = (search_params.get('status') or '').strip().lower()
+            status_map = {
+                'pending': choices.InstituteStatus.PENDING,
+                'approved': choices.InstituteStatus.APPROVED,
+                'rejected': choices.InstituteStatus.REJECTED,
+            }
+            if status_key in status_map:
+                institutes = institutes.filter(institute_status=status_map[status_key])
 
         # Annotate with student count
         institutes = institutes.annotate(
@@ -469,7 +521,7 @@ class MarketingGroupDashboardView(TemplateView):
         if load_full_data:
             # Use select_related to optimize queries
             tstudents = StudentManagement.objects.filter(
-                institute__marketing_group=marketing_group
+                institute__marketing_group__marketing_group_admin=group_admin
             ).select_related('student', 'institute')[:1000]  # Limit to 1000 students
             
             # Optimize test results query - use prefetch_related
@@ -505,10 +557,10 @@ class MarketingGroupDashboardView(TemplateView):
         return {
             "institutes": institutes,
             "student_count": StudentManagement.objects.filter(
-                institute__marketing_group=marketing_group
+                institute__marketing_group__marketing_group_admin=group_admin
             ).count() if not load_full_data else tstudents.count(),
             "counselor_count": Counselor.objects.filter(
-                counselor_admin__marketing_group=marketing_group
+                counselor_admin__marketing_group__marketing_group_admin=group_admin
             ).count(),
             "institute_data": institute_data,
             "tstudents": tstudents,
@@ -526,10 +578,13 @@ class MarketingGroupDashboardView(TemplateView):
         ctx["html_head"] = self.html_head()
         
         # Get search parameters
+        _raw_status = (request.GET.get('status') or '').strip().lower()
+        _status = _raw_status if _raw_status in ('pending', 'approved', 'rejected', '') else ''
         search_params = {
             'institute': request.GET.get('institute', '').strip(),
             'location': request.GET.get('location', '').strip(),
-            'location_search': request.GET.get('location_search', '').strip()
+            'location_search': request.GET.get('location_search', '').strip(),
+            'status': _status,
         }
         
         # Check what data is being requested
@@ -538,45 +593,30 @@ class MarketingGroupDashboardView(TemplateView):
         
         # For initial page load, use lightweight mode
         if not is_ajax:
-            # Lightweight initial load - minimal queries
+            # Lightweight initial load — scope all institute metrics to this user's marketing admin
             group_admin = request.user
-            marketing_group = InstituteMarketingGroup.objects.filter(
-                marketing_group_admin=group_admin
-            ).first()
-            
-            if marketing_group:
-                # Quick counts only - no full data loading
-                ctx.update({
-                    'total_institute_count': Institute.objects.filter(marketing_group=marketing_group).count(),
-                    'total_stu_count': None,  # Will load via AJAX
-                    'counselors_count': None,  # Will load via AJAX
-                    'institutes': [],
-                    'total_students_count': None,
-                    'test_result_count': None,
-                    'streams': {},
-                    'locations': list(Institute.objects.filter(
-                        marketing_group=marketing_group
-                    ).values_list('address', flat=True).distinct()[:50]),  # Limit locations, convert to list
-                    'search_params': search_params,
-                    "institute_group": InstituteGroup.objects.all(),
-                    "institute_types": choices.InstituteType.CHOICES,
-                    'institutes_paginations': None
-                })
-            else:
-                ctx.update({
-                    'total_institute_count': Institute.objects.none(),
-                    'total_stu_count': 0,
-                    'counselors_count': 0,
-                    'institutes': [],
-                    'total_students_count': None,
-                    'test_result_count': None,
-                    'streams': {},
-                    'locations': [],
-                    'search_params': search_params,
-                    "institute_group": InstituteGroup.objects.all(),
-                    "institute_types": choices.InstituteType.CHOICES,
-                    'institutes_paginations': None
-                })
+            _scoped = Institute.objects.filter(
+                marketing_group__marketing_group_admin=group_admin
+            )
+            ctx.update({
+                'total_institute_count': _scoped.count(),
+                'pending_institute_count': _scoped.filter(
+                    institute_status=choices.InstituteStatus.PENDING,
+                ).count(),
+                'total_stu_count': None,  # Will load via AJAX
+                'counselors_count': None,  # Will load via AJAX
+                'institutes': [],
+                'total_students_count': None,
+                'test_result_count': None,
+                'streams': {},
+                'locations': list(
+                    _scoped.values_list('address', flat=True).distinct()[:50]
+                ),
+                'search_params': search_params,
+                "institute_group": InstituteGroup.objects.all(),
+                "institute_types": choices.InstituteType.CHOICES,
+                'institutes_paginations': None,
+            })
         elif data_type == 'institutes':
             # AJAX request for institute table
             group_admin = request.user
@@ -609,166 +649,92 @@ class MarketingGroupDashboardView(TemplateView):
             
             ctx['search_params'] = search_params
             ctx['per_page'] = per_page
+            from urllib.parse import urlencode
+            _qs = {}
+            for _k in ('institute', 'location', 'location_search', 'status'):
+                _v = (search_params.get(_k) or '').strip()
+                if _v:
+                    _qs[_k] = _v
+            if per_page:
+                _qs['per_page'] = str(per_page)
+            ctx['institute_table_query_string'] = urlencode(_qs)
         elif data_type == 'stats':
             # AJAX request for statistics
             group_admin = request.user
-            marketing_group = InstituteMarketingGroup.objects.filter(
-                marketing_group_admin=group_admin
-            ).first()
-            if marketing_group:
-                from institute.models import get_global_remain_credits
-                from django.conf import settings
-                institutes_in_group = Institute.objects.filter(marketing_group=marketing_group)
-                total_credits = sum(inst.credit_counts for inst in institutes_in_group)
-                ctx.update({
-                    'total_stu_count': StudentManagement.objects.filter(
-                        institute__marketing_group=marketing_group
-                    ).count(),
-                    'counselors_count': Counselor.objects.filter(
-                        counselor_admin__marketing_group=marketing_group
-                    ).count(),
-                    'total_credits': total_credits,
-                    'global_credits': settings.CREDIT_LIMIT,
-                    'total_events': 0,  # Placeholder - add actual events count if available
-                })
-            else:
-                ctx.update({
-                    'total_stu_count': 0,
-                    'counselors_count': 0,
-                    'total_credits': 0,
-                    'total_events': 0,
-                })
+            from django.conf import settings
+            institutes_in_group = Institute.objects.filter(
+                marketing_group__marketing_group_admin=group_admin
+            )
+            total_credits = sum(inst.credit_counts for inst in institutes_in_group)
+            ctx.update({
+                'total_stu_count': StudentManagement.objects.filter(
+                    institute__marketing_group__marketing_group_admin=group_admin
+                ).count(),
+                'counselors_count': Counselor.objects.filter(
+                    counselor_admin__marketing_group__marketing_group_admin=group_admin
+                ).count(),
+                'total_credits': total_credits,
+                'global_credits': settings.CREDIT_LIMIT,
+                'total_events': 0,  # Placeholder - add actual events count if available
+            })
         elif data_type == 'charts':
             # AJAX request for charts data - OPTIMIZED for performance
             group_admin = request.user
-            marketing_group = InstituteMarketingGroup.objects.filter(
-                marketing_group_admin=group_admin
-            ).first()
-            
-            if not marketing_group:
-                ctx.update({
-                    'institutes': [],
-                    'total_students_count': 0,
-                    'test_result_count': 0,
-                    'streams': {},
-                    'streams_chart_data': [],
-                })
-            else:
-                # OPTIMIZED: Get institute data for location chart (only address and student_count)
-                # Use values() and annotate() to get aggregated data directly from DB
-                # Limit to top 20 locations by student count to prevent chart overflow
-                institute_data = list(
-                    Institute.objects
-                    .filter(marketing_group=marketing_group)
-                    .values('address')
-                    .annotate(student_count=Count('student_management'))
-                    .order_by('-student_count')[:20]  # Top 20 locations only
-                )
-                
-                # Get full institute list for seat capacity table (with seat capacity data)
-                seat_capacity_institutes = list(
-                    Institute.objects
-                    .filter(marketing_group=marketing_group)
-                    .values('id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb')
-                    .order_by('name')[:100]  # Limit to 100 institutes
-                )
-                
-                # OPTIMIZED: Get total student count (single query)
-                total_students_count = StudentManagement.objects.filter(
-                    institute__marketing_group=marketing_group
-                ).count()
-                
-                # OPTIMIZED: Get test result count (single query with exists check)
-                test_result_count = StudentManagement.objects.filter(
-                    institute__marketing_group=marketing_group
-                ).filter(
-                    student__results__test_paper='test3'
-                ).distinct().count()
-                
-                # OPTIMIZED: Get streams data (only if needed, with limits)
-                # Only fetch a sample of students with results for stream calculation
-                sample_students = StudentManagement.objects.filter(
-                    institute__marketing_group=marketing_group
-                ).select_related('student')[:200]  # Limit to 200 for stream calculation
-                
-                # Get test results for sample students only
-                student_users = [stu.student for stu in sample_students]
-                test_results_queryset = Results.objects.filter(
-                    user__in=student_users,
-                    test_paper='test3'
-                ).select_related('user')[:200]  # Limit results
-                
-                # Create mapping and process streams
-                results_map = {result.user: result for result in test_results_queryset}
-                test_results = []
-                for stu in sample_students:
-                    if stu.student in results_map:
-                        result = results_map[stu.student]
-                        if result.results:
-                            personality_res = result.results
-                            sreams_scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
-                            test_results.append({"streams": sreams_scores})
-                
-                streams_data = self.get_stream(test_results) if test_results else {}
-                
-                # Convert streams dict to list format for chart
-                # Sort by count (descending) and limit to top 15 to prevent chart overflow
-                streams_chart_data = []
-                if streams_data:
-                    sorted_streams = sorted(streams_data.items(), key=lambda x: x[1], reverse=True)[:15]
-                    for stream, count in sorted_streams:
-                        streams_chart_data.append({
-                            'stream': stream,
-                            'count': count
-                        })
-                
-                ctx.update({
-                    'institutes': institute_data,  # Optimized: only address and student_count for chart
-                    'total_students_count': total_students_count,
-                    'test_result_count': test_result_count,
-                    'streams': streams_data,
-                    'streams_chart_data': streams_chart_data,
-                    'seat_capacity_institutes': seat_capacity_institutes,  # Add seat capacity data
-                })
-                
-                # Handle seat capacity pagination separately
-                if data_type == 'seat_capacity':
-                    # Get paginated seat capacity data
-                    page = request.GET.get('page', 1)
-                    per_page = request.GET.get('per_page', 10)
-                    
-                    seat_capacity_queryset = Institute.objects.filter(
-                        marketing_group=marketing_group
-                    ).order_by('name')
-                    
-                    paginator = Paginator(seat_capacity_queryset, per_page)
-                    seat_capacity_page = paginator.get_page(page)
-                    
-                    seat_capacity_list = []
-                    for inst in seat_capacity_page:
-                        seat_capacity_list.append({
-                            'id': inst.id,
-                            'name': inst.name,
-                            'pcm': inst.pcm,
-                            'cbm': inst.cbm,
-                            'comm': inst.comm,
-                            'hme': inst.hme,
-                            'hmb': inst.hmb
-                        })
-                    
-                    ctx.update({
-                        'institutes': seat_capacity_list,
-                        'page': seat_capacity_page.number,
-                        'per_page': per_page,
-                        'total_pages': paginator.num_pages,
-                        'total_count': paginator.count,
-                        'has_previous': seat_capacity_page.has_previous(),
-                        'has_next': seat_capacity_page.has_next(),
-                        'previous_page': seat_capacity_page.previous_page_number() if seat_capacity_page.has_previous() else None,
-                        'next_page': seat_capacity_page.next_page_number() if seat_capacity_page.has_next() else None,
-                        'start_index': seat_capacity_page.start_index(),
-                        'end_index': seat_capacity_page.end_index(),
+            _mscope = Institute.objects.filter(
+                marketing_group__marketing_group_admin=group_admin
+            )
+            # OPTIMIZED: Get institute data for location chart (only address and student_count)
+            institute_data = list(
+                _mscope.values('address')
+                .annotate(student_count=Count('student_management'))
+                .order_by('-student_count')[:20]
+            )
+            seat_capacity_institutes = list(
+                _mscope.values('id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb')
+                .order_by('name')[:100]
+            )
+            total_students_count = StudentManagement.objects.filter(
+                institute__marketing_group__marketing_group_admin=group_admin
+            ).count()
+            test_result_count = StudentManagement.objects.filter(
+                institute__marketing_group__marketing_group_admin=group_admin
+            ).filter(
+                student__results__test_paper='test3'
+            ).distinct().count()
+            sample_students = StudentManagement.objects.filter(
+                institute__marketing_group__marketing_group_admin=group_admin
+            ).select_related('student')[:200]
+            student_users = [stu.student for stu in sample_students]
+            test_results_queryset = Results.objects.filter(
+                user__in=student_users,
+                test_paper='test3'
+            ).select_related('user')[:200]
+            results_map = {result.user: result for result in test_results_queryset}
+            test_results = []
+            for stu in sample_students:
+                if stu.student in results_map:
+                    result = results_map[stu.student]
+                    if result.results:
+                        personality_res = result.results
+                        sreams_scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
+                        test_results.append({"streams": sreams_scores})
+            streams_data = self.get_stream(test_results) if test_results else {}
+            streams_chart_data = []
+            if streams_data:
+                sorted_streams = sorted(streams_data.items(), key=lambda x: x[1], reverse=True)[:15]
+                for stream, count in sorted_streams:
+                    streams_chart_data.append({
+                        'stream': stream,
+                        'count': count
                     })
+            ctx.update({
+                'institutes': institute_data,
+                'total_students_count': total_students_count,
+                'test_result_count': test_result_count,
+                'streams': streams_data,
+                'streams_chart_data': streams_chart_data,
+                'seat_capacity_institutes': seat_capacity_institutes,
+            })
         else:
             # Default AJAX - just institute table
             group_admin = request.user
@@ -778,6 +744,15 @@ class MarketingGroupDashboardView(TemplateView):
             page_number = request.GET.get('page', 1)
             ctx['institutes_paginations'] = pages.get_page(page_number)
             ctx['search_params'] = search_params
+            ctx['per_page'] = '10'
+            from urllib.parse import urlencode
+            _qs = {}
+            for _k in ('institute', 'location', 'location_search', 'status'):
+                _v = (search_params.get(_k) or '').strip()
+                if _v:
+                    _qs[_k] = _v
+            _qs['per_page'] = '10'
+            ctx['institute_table_query_string'] = urlencode(_qs)
         
         return ctx
     
@@ -830,10 +805,13 @@ class MarketingGroupDashboardView(TemplateView):
     
     def get_search_parameters(self, request):
         """Extract and validate search parameters from request"""
+        _raw_status = (request.GET.get('status') or '').strip().lower()
+        _status = _raw_status if _raw_status in ('pending', 'approved', 'rejected', '') else ''
         return {
             'institute': request.GET.get('institute', '').strip(),
             'location': request.GET.get('location', '').strip(),
-            'location_search': request.GET.get('location_search', '').strip()
+            'location_search': request.GET.get('location_search', '').strip(),
+            'status': _status,
         }
 
     def apply_filters(self, queryset, search_params):
@@ -846,6 +824,15 @@ class MarketingGroupDashboardView(TemplateView):
             
         if search_params.get('location_search'):
             queryset = queryset.filter(address__icontains=search_params['location_search'])
+
+        status_key = (search_params.get('status') or '').strip().lower()
+        status_map = {
+            'pending': choices.InstituteStatus.PENDING,
+            'approved': choices.InstituteStatus.APPROVED,
+            'rejected': choices.InstituteStatus.REJECTED,
+        }
+        if status_key in status_map:
+            queryset = queryset.filter(institute_status=status_map[status_key])
         
         return queryset
     
@@ -883,18 +870,15 @@ class InstituteMarketingProfileEditView(TemplateView):
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
             
             ins = get_object_or_404(Institute, id=ins_id)
-            # Verify the institute belongs to the user's marketing group
             group_admin = request.user
-            marketing_group = InstituteMarketingGroup.objects.filter(
-                marketing_group_admin=group_admin
-            ).first()
-            
-            if not marketing_group or ins.marketing_group != marketing_group:
-                messages.error(request, "Unauthorized access.")
-                # Handle AJAX requests
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({'success': False, 'error': 'Unauthorized access.'}, status=403)
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+            mg = ins.marketing_group
+            if not request.user.is_superuser:
+                if not mg or mg.marketing_group_admin_id != group_admin.id:
+                    messages.error(request, "Unauthorized access.")
+                    # Handle AJAX requests
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'success': False, 'error': 'Unauthorized access.'}, status=403)
+                    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
             
             # Get the institute user (created_by)
             if ins.created_by:
@@ -923,20 +907,34 @@ class InstituteMarketingProfileEditView(TemplateView):
         ins_credits=request.POST.get("upd_credits")
         ins_group=request.POST.get("institute_group")
         ins_logo=request.FILES.get("institute_logo")
-        
+        ins_status_raw = request.POST.get("institute_status")
+
         ins=get_object_or_404(Institute,id=ins_id)
-        
-        # Verify the institute belongs to the user's marketing group
         group_admin = request.user
-        marketing_group = InstituteMarketingGroup.objects.filter(
-            marketing_group_admin=group_admin
-        ).first()
-        
-        if not marketing_group or ins.marketing_group != marketing_group:
-            messages.error(request, "Unauthorized access.")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        if ins_name or ins_address or ins_contact or ins_admin or ins_logo or ins_credits or ins_group:
+        mg = ins.marketing_group
+        if not request.user.is_superuser:
+            if not mg or mg.marketing_group_admin_id != group_admin.id:
+                messages.error(request, "Unauthorized access.")
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Unauthorized access.'}, status=403)
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+        status_updated = False
+        if ins_status_raw not in (None, ""):
+            try:
+                s = int(str(ins_status_raw).strip())
+            except (ValueError, TypeError):
+                s = None
+            allowed = (
+                choices.InstituteStatus.APPROVED,
+                choices.InstituteStatus.REJECTED,
+                choices.InstituteStatus.PENDING,
+            )
+            if s in allowed and ins.institute_status != s:
+                ins.institute_status = s
+                status_updated = True
+
+        if ins_name or ins_address or ins_contact or ins_admin or ins_logo or ins_credits or ins_group or status_updated:
             if ins_name:
                 update_student_data.delay(ins.id,ins_name)
                 ins.name=ins_name
@@ -2529,16 +2527,83 @@ class InstituteApproveView(View):
     View to approve an institute by changing its status from pending to approved.
     """
     def get(self, request, id):
+        referer = request.META.get('HTTP_REFERER') or reverse('institute:marketinggroupdashboard')
         try:
             institute = Institute.objects.get(id=id)
-            institute.institute_status = choices.InstituteStatus.APPROVED
-            institute.save()
-            messages.success(request, f"Institute '{institute.name}' has been approved successfully.")
         except Institute.DoesNotExist:
             messages.error(request, "Institute not found.")
-        
-        # Redirect back to the referring page or to a default page
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+            return HttpResponseRedirect(referer)
+        if not request.user.is_superuser:
+            mg = institute.marketing_group
+            if not mg or mg.marketing_group_admin_id != request.user.id:
+                messages.error(
+                    request,
+                    "You can only approve institutes that belong to your marketing group.",
+                )
+                return HttpResponseRedirect(referer)
+        institute.institute_status = choices.InstituteStatus.APPROVED
+        institute.save()
+        messages.success(request, f"Institute '{institute.name}' has been approved successfully.")
+        return HttpResponseRedirect(referer)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(marketing_group_user_only, name='dispatch')
+class InstituteHardDeleteView(View):
+    """
+    Permanently remove an institute from the database when it has no student registrations.
+    Allowed for superuser or the institute's marketing_group marketing_group_admin.
+    """
+
+    http_method_names = ['post']
+
+    def post(self, request, id, *args, **kwargs):
+        referer = request.META.get('HTTP_REFERER') or reverse('institute:marketinggroupdashboard')
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+        def respond_error(message, status=400):
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': message}, status=status)
+            messages.error(request, message)
+            return HttpResponseRedirect(referer)
+
+        def respond_success(message):
+            if is_ajax:
+                return JsonResponse({'success': True, 'message': message})
+            messages.success(request, message)
+            return HttpResponseRedirect(referer)
+
+        try:
+            institute = Institute.objects.get(id=id)
+        except Institute.DoesNotExist:
+            return respond_error('Institute not found.', 404)
+
+        if getattr(institute, 'is_system_demo', False):
+            return respond_error('System demo institutes cannot be deleted.', 403)
+
+        if not request.user.is_superuser:
+            mg = institute.marketing_group
+            if not mg or mg.marketing_group_admin_id != request.user.id:
+                return respond_error(
+                    'You can only delete institutes that belong to your marketing group.',
+                    403,
+                )
+
+        name = institute.name
+        try:
+            with transaction.atomic():
+                locked = Institute.objects.select_for_update().get(pk=institute.pk)
+                if StudentManagement.objects.complete().filter(institute_id=locked.pk).exists():
+                    return respond_error(
+                        'Cannot delete: this institute has student registrations (including inactive rows).',
+                    )
+                locked.delete(hard_delete=True)
+        except Institute.DoesNotExist:
+            return respond_error('Institute not found.', 404)
+        except Exception:
+            return respond_error('Could not delete this institute.', 500)
+
+        return respond_success(f"Institute '{name}' was permanently deleted.")
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3104,12 +3169,16 @@ class InstituteHistoryLogView(TemplateView):
         return render(request,self.template_name,self.get_context(request,*args,**kwargs))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-@method_decorator(institute_user_only,name='dispatch')
 class StudentData(APIView):
     def post(self,request,*args,**kwargs):
         id=request.POST.get("id")
-        # user=get_object_or_404(User,id=id)
-        stu=get_object_or_404(StudentManagement,student__id=id)
+        stu = StudentManagement.objects.filter(student__id=id).select_related(
+            'institute', 'student', 'class_and_section'
+        ).first()
+        if not stu:
+            return JsonResponse({"success": "false", "error": "Not found"}, status=404)
+        if not user_manages_institute_for_api(request.user, stu.institute):
+            return JsonResponse({"success": "false", "error": "Forbidden"}, status=403)
         if stu.class_and_section is not None:
             response={"success":"true","name":stu.student.name,"email":stu.student.email,"mobile":stu.student.mobile,"class_id":stu.class_and_section.id,"class":stu.class_and_section.class_and_section}
         else:
@@ -3117,11 +3186,16 @@ class StudentData(APIView):
         return JsonResponse(response)
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-@method_decorator(only_superuser,name='dispatch')
 class InstituteData(APIView):
     def post(self,request,*args,**kwargs):
         id=request.POST.get("id")
-        ins=get_object_or_404(Institute,id=id)
+        ins = Institute.objects.filter(id=id).select_related(
+            'institute_group', 'marketing_group', 'created_by'
+        ).first()
+        if not ins:
+            return JsonResponse({"success": "false", "error": "Not found"}, status=404)
+        if not user_manages_institute_for_api(request.user, ins):
+            return JsonResponse({"success": "false", "error": "Forbidden"}, status=403)
         response={"success":"true","name":ins.name,"address":ins.address,"contact_info":ins.contact_info,"admin_contact":ins.administrator_contact,"credits":ins.credit_counts}
         if ins.institute_group:
             response["ins_group"]=ins.institute_group.group_name
@@ -3335,6 +3409,10 @@ def get_heatmap_data_api(request):
                 if institute:
                     heatmap_data = get_heatmap_data_for_institute(institute, demographic_type)
                     return JsonResponse(heatmap_data, safe=False)
+                # Marketing / institute-group dashboards load this API before an org row may exist
+                ut = getattr(user, 'user_type', None)
+                if ut == choices.UserType.MARKETINGGROUPADMIN or ut == choices.UserType.INSTITUTEGROUPADMIN:
+                    return JsonResponse(get_empty_heatmap_data(), safe=False)
                 return JsonResponse({'error': 'User is not authorized'}, status=403)
         
         # Get heatmap data for group

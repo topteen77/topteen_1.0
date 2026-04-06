@@ -5,7 +5,17 @@
     <div class="card-body p-3">
       <div class="course-sidebar-head mb-3 pb-3 border-bottom">
         <span class="d-block text-uppercase fs-11 fw-bold letter-spacing-1" style="color:#5249DF;">Course content</span>
-        <h2 class="fs-16 fw-bold mb-0 mt-1 text-dark lh-sm">{% if course and course.title %}{{ course.title }}{% else %}Course{% endif %}</h2>
+        <div class="d-flex align-items-start justify-content-between gap-2 mt-1">
+          <h2 class="fs-16 fw-bold mb-0 text-dark lh-sm flex-grow-1 min-w-0">{% if course and course.title %}{{ course.title }}{% else %}Course{% endif %}</h2>
+          {% if course_mindmap_info %}
+          <a href="{{ course_mindmap_info.fullscreen_url }}"
+             target="_blank" rel="noopener noreferrer"
+             class="text-decoration-none text-primary lh-1 p-1 rounded flex-shrink-0 align-self-start" title="Course mindmap (opens in new tab)"
+             aria-label="Open course mindmap in new tab">
+            <i class='bx bx-git-branch fs-18'></i>
+          </a>
+          {% endif %}
+        </div>
         {% if course %}
         <p class="fs-12 text-muted mb-0 mt-1">Chapters &amp; lessons</p>
         {% endif %}
@@ -31,10 +41,11 @@
             {% endif %}
           {% endfor %}
         {% endif %}
+        {% set ch_mm = chapter_mindmap_by_id.get(chapter.id) if chapter_mindmap_by_id is defined else none %}
         <div class="chapter-item {% if is_current_chapter %}active{% endif %} {% if is_chapter_locked %}locked{% endif %} {% if ns_ch.chapter_done %}chapter-item--completed{% endif %}" data-chapter-id="{{ chapter.id }}">
           <div class="chapter-header" {% if not is_chapter_locked %}onclick="navigateToChapter({{ chapter.id }})"{% endif %}>
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center flex-grow-1">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+              <div class="d-flex align-items-center flex-grow-1 min-w-0">
                 <!-- <div class="chapter-number me-3 {% if ns_ch.chapter_done %}chapter-number--complete{% endif %}">
                   <span class="chapter-index">{{ loop.index }}</span>
                 </div> -->
@@ -55,11 +66,19 @@
                   </div>
                 </div>
               </div>
-              <div class="d-flex align-items-center">
+              <div class="part-row-status flex-shrink-0 text-end d-flex align-items-center justify-content-end gap-1">
+                {% if ch_mm and not is_chapter_locked %}
+                <a href="{{ ch_mm.fullscreen_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-decoration-none text-primary lh-1 p-1 rounded" title="Chapter mindmap (opens in new tab)"
+                   onclick="event.stopPropagation();" aria-label="Open chapter mindmap in new tab">
+                  <i class='bx bx-git-branch fs-18'></i>
+                </a>
+                {% endif %}
                 {% if is_current_chapter %}
-                <i class='bx bx-chevron-down fs-18 me-2 chapter-active-chevron'></i>
+                <i class='bx bx-chevron-down fs-18 chapter-active-chevron' aria-hidden="true"></i>
                 {% else %}
-                <i class='bx bx-chevron-right text-gray fs-18 me-2'></i>
+                <i class='bx bx-chevron-right text-gray fs-18' aria-hidden="true"></i>
                 {% endif %}
               </div>
             </div>
@@ -98,6 +117,9 @@
                 {% set part_fully_complete = true %}
               {% endif %}
             {% endif %}
+            {# Hide duplicate "Case Studies" part row — PDF list is shown inline after Practical Training #}
+            {% set hide_host_part = case_study_host_part_id and part.id == case_study_host_part_id %}
+            {% if not hide_host_part %}
             <div class="part-item sidebar-row {% if part_fully_complete %}part-item--complete{% endif %} {% if is_current_part %}active{% endif %} {% if is_part_locked %}locked{% endif %}" 
                  data-part-id="{{ part_id }}"
                  {% if not is_part_locked %}onclick="navigateToPart({{ part_id }})" style="cursor: pointer; position: relative;"{% else %}style="cursor: not-allowed; position: relative; opacity: 0.6;"{% endif %}>
@@ -109,7 +131,16 @@
                     <small class="sidebar-row-subtitle">{{ lesson_subtitle }}</small>
                   </div>
                 </div>
-                <div class="part-row-status flex-shrink-0 text-end">
+                <div class="part-row-status flex-shrink-0 text-end d-flex align-items-center justify-content-end gap-1">
+                {% set pmm = part_mindmap_by_id.get(part_id) if part_mindmap_by_id is defined else none %}
+                {% if pmm and not is_part_locked %}
+                <a href="{{ pmm.fullscreen_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-decoration-none text-primary lh-1 p-1 rounded" title="Part mindmap (opens in new tab)"
+                   onclick="event.stopPropagation();" aria-label="Open part mindmap in new tab">
+                  <i class='bx bx-git-branch fs-18'></i>
+                </a>
+                {% endif %}
                 {% if part_fully_complete %}
                   <span class="sidebar-status-badge sidebar-status-badge--done" title="Completed" aria-label="Completed">
                     <i class='bx bx-check'></i>
@@ -153,6 +184,28 @@
                 </div>
                 {% endfor %}
               {% endif %}
+            {% endif %}
+
+            {# Case Studies — single row after Practical Training; opens Index + PDF on main panel (no video-style badge) #}
+            {% if case_study_insert_after_part_id and part.id == case_study_insert_after_part_id and chapter.id == case_study_chapter_id and case_study_count > 0 %}
+            <div class="part-item sidebar-row sidebar-case-studies-nav mb-2 mt-1 {% if content_type == 'case_study_index' %}active{% endif %}"
+                 onclick="window.location.href='{{ url('counselor:course_learning', args=[counselor.id]) }}?type=case_study_index'"
+                 style="cursor: pointer; position: relative;">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <div class="d-flex align-items-start flex-grow-1 min-w-0">
+                  <span class="sidebar-bullet" aria-hidden="true"></span>
+                  <div class="sidebar-row-title-wrap">
+                    <span class="sidebar-row-title">Case Studies</span>
+                    <small class="sidebar-row-subtitle">PDF index</small>
+                  </div>
+                </div>
+                <div class="part-row-status flex-shrink-0 text-end">
+                  <span class="badge bg-light text-dark border">{{ case_study_count }}</span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
             {% endfor %}
           </div>
           {% endif %}

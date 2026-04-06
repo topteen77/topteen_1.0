@@ -56,6 +56,8 @@ Interactive mind map for {{ career.name }}
             <a href="?variation=13" class="btn btn-sm {% if variation == '13' or variation == 13 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">⬇️ Vertical Flow</a>
             <a href="?variation=14" class="btn btn-sm {% if variation == '14' or variation == 14 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">⬇️ Vertical Network</a>
             <a href="?variation=15" class="btn btn-sm {% if variation == '15' or variation == 15 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none;">⬇️ Vertical Timeline</a>
+            <a href="?variation=16" class="btn btn-sm {% if variation == '16' or variation == 16 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); color: white; border: none;">Classic (horizontal)</a>
+            <a href="?variation=17" class="btn btn-sm {% if variation == '17' or variation == 17 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #0a5a9a 0%, #2a9fd8 100%); color: white; border: none;">Classic (vertical)</a>
           </div>
         </div>
         <script>
@@ -582,11 +584,42 @@ Interactive mind map for {{ career.name }}
   </div>
   {% endif %}
 
+  <!-- Variations 16–17: Classic mindmap horizontal vs vertical (same engine as counselor course) -->
+  {% if variation == '16' or variation == 16 or variation == '17' or variation == 17 %}
+  <div class="container mb-4">
+    <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(10, 129, 207, 0.12);">
+      <div class="card-header text-white" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); padding: 15px 25px;">
+        <h5 class="mb-0">{% if variation == '17' or variation == 17 %}Classic mindmap (vertical) —{% else %}Classic mindmap (horizontal) —{% endif %} {{ career.name }}</h5>
+        <small style="opacity: 0.95;">{% if variation == '17' or variation == 17 %}Top-down levels with pills &amp; curved links{% else %}Left-to-right tree with pills &amp; curved links{% endif %} — same template family as counselor course mindmaps</small>
+      </div>
+      <div class="card-body p-3">
+        <div class="d-flex justify-content-end gap-2 mb-2 flex-wrap">
+          <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerPageClassicApi &amp;&amp; window.__careerPageClassicApi.expandAll){window.__careerPageClassicApi.expandAll();}" title="Expand all branches" aria-label="Expand all"><i class="bx bx-expand-vertical"></i></button>
+          <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerPageClassicApi &amp;&amp; window.__careerPageClassicApi.collapseAll){window.__careerPageClassicApi.collapseAll();}" title="Collapse to root only" aria-label="Collapse all"><i class="bx bx-collapse-vertical"></i></button>
+          <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerPageClassicApi){window.__careerPageClassicApi.zoomIn();}" title="Zoom in">＋</button>
+          <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerPageClassicApi){window.__careerPageClassicApi.zoomOut();}" title="Zoom out">－</button>
+          <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerPageClassicApi){window.__careerPageClassicApi.reset();}" title="Reset view">⊙</button>
+        </div>
+        <div class="position-relative rounded border overflow-hidden bg-light" style="height: 700px; max-height: 80vh;">
+          <div id="loading-career-classic" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center gap-2" style="z-index:3;background:rgba(255,255,255,0.92);">
+            <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+            <span class="text-muted">Loading classic mindmap…</span>
+          </div>
+          <div id="career-page-classic-mindmap-host" class="w-100 h-100" style="min-height: 400px; display: none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Load jsMind Library -->
   <link type="text/css" rel="stylesheet" href="/static/jsmind/jsmind.css" />
   <script src="/static/jsmind/jsmind.js"></script>
   <script src="/static/jsmind/jsmind.draggable.js"></script>
   <script src="{{ static('js/radial-mindmap.js') }}"></script>
+  {% if variation == '16' or variation == 16 or variation == '17' or variation == 17 %}
+  <script src="{{ static('js/career-mindmap-classic-embed.js') }}"></script>
+  {% endif %}
 
   <script>
   let xmindJm = null;
@@ -1757,6 +1790,36 @@ Interactive mind map for {{ career.name }}
           document.addEventListener('DOMContentLoaded', loadTimelineMindmap);
       } else {
           loadTimelineMindmap();
+      }
+  } else if (variation === '16' || variation === '17') {
+      function initCareerClassicVariation() {
+          var host = document.getElementById('career-page-classic-mindmap-host');
+          var loadEl = document.getElementById('loading-career-classic');
+          if (!host || typeof CareerMindmapClassic === 'undefined') {
+              if (loadEl) loadEl.innerHTML = '<span class="text-danger small">Classic mindmap script missing.</span>';
+              return;
+          }
+          var cssHref = '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}';
+          var jsSrc = '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}';
+          var apiUrl = '/careers/api/career/{{ career.slug }}-{{ career.id }}-mindmap/json/';
+          var layout = variation === '17' ? 'vertical' : 'horizontal';
+          CareerMindmapClassic.initFromApi({
+              apiUrl: apiUrl,
+              hostElement: host,
+              loadingEl: loadEl,
+              cssHref: cssHref,
+              jsSrc: jsSrc,
+              layout: layout
+          }).then(function (api) {
+              window.__careerPageClassicApi = api;
+          }).catch(function (err) {
+              if (typeof console !== 'undefined' && console.warn) console.warn('Classic mindmap:', err);
+          });
+      }
+      if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initCareerClassicVariation);
+      } else {
+          initCareerClassicVariation();
       }
   }
 

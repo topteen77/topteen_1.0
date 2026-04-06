@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 11,
+    "part_id": 40
+  },
+  "markdown": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - Part 2- Overseas  Vocational Education Landscape\n  - Canada\n  - Vocational Education:\n  - Career Options:\n  - United Kingdom (UK)\n  - United States (USA)\n  - Australia\n  - Germany\n  - Singapore\n  - Hong Kong\n- Quiz\n",
+  "md": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - Part 2- Overseas  Vocational Education Landscape\n  - Canada\n  - Vocational Education:\n  - Career Options:\n  - United Kingdom (UK)\n  - United States (USA)\n  - Australia\n  - Germany\n  - Singapore\n  - Hong Kong\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_40",
+      "class": "sheet",
+      "title": "Overview of the Overseas Vocational Education Landscape (country  specific)",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_40",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Overview of the Overseas Vocational Education Landscape (country  specific)",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_40_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_40_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 2- Overseas  Vocational Education Landscape",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Canada",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Vocational Education:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Career Options:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "United Kingdom (UK)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "United States (USA)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Australia",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Germany",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Singapore",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_40_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Hong Kong",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_40_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

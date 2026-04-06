@@ -904,8 +904,11 @@ Explore our comprehensive collection of career paths organized by industry and i
                     </div>
                   </div>
                   <svg id="career-mindmap-modal-svg" style="width: 100%; height: 100%; display: none; margin: auto;"></svg>
+                  <div id="career-mindmap-modal-classic-host" style="display: none; width: 100%; height: 100%; min-height: 400px; position: absolute; left: 0; top: 0; overflow: auto; z-index: 2; background: #edf1f8;"></div>
                   <div id="career-mindmap-modal-controls" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">
                     <div class="btn-group-vertical" style="gap: 8px;">
+                      <button type="button" class="btn btn-sm btn-light shadow career-mindmap-modal-classic-only d-none" id="career-mindmap-modal-expand-all" title="Expand all branches" aria-label="Expand all"><i class="bx bx-expand-vertical"></i></button>
+                      <button type="button" class="btn btn-sm btn-light shadow career-mindmap-modal-classic-only d-none" id="career-mindmap-modal-collapse-all" title="Collapse to root only" aria-label="Collapse all"><i class="bx bx-collapse-vertical"></i></button>
                       <button type="button" class="btn btn-sm btn-light shadow" id="career-mindmap-modal-zoom-in" title="Zoom In" aria-label="Zoom in mindmap">🔍+</button>
                       <button type="button" class="btn btn-sm btn-light shadow" id="career-mindmap-modal-zoom-out" title="Zoom Out" aria-label="Zoom out mindmap">🔍-</button>
                       <button type="button" class="btn btn-sm btn-light shadow" id="career-mindmap-modal-reset" title="Reset view" aria-label="Reset mindmap view to start">🎯</button>
@@ -2143,9 +2146,23 @@ body.ai-fullscreen-active {
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ static('js/radial-mindmap.js') }}"></script>
+<script src="{{ static('js/career-mindmap-classic-embed.js') }}"></script>
 <script>
   // Parent->Student context for bookmarking (when parent is suggesting for a specific student)
   window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
+
+  /** Core Configuration DEFAULT_MINDMAP_TYPE — 16 = classic horizontal, 17 = classic vertical (career modal/accordion/chat). */
+  var SITE_DEFAULT_MINDMAP_TYPE = '{{ default_mindmap_type|default("6", true)|escapejs }}'.trim() || '6';
+  function careerClassicMindmapEmbedLayout() {
+    var s = String(SITE_DEFAULT_MINDMAP_TYPE);
+    if (s === '17') return 'vertical';
+    if (s === '16') return 'horizontal';
+    return '';
+  }
+  function careerSiteUsesClassicMindmapEmbed() {
+    return careerClassicMindmapEmbedLayout() !== '';
+  }
+  var careerMindmapModalClassicApi = null;
 
   // Helper function to get CSRF token from cookies
   function getCookie(name) {
@@ -2970,10 +2987,28 @@ document.addEventListener('DOMContentLoaded', function() {
     return CareersRadialMindmap.mapTopicToSection(topic);
   }
   
-  window.radialMindmapZoomIn = function(careerId) { CareersRadialMindmap.zoomIn(careerId); };
-  window.radialMindmapZoomOut = function(careerId) { CareersRadialMindmap.zoomOut(careerId); };
+  window.radialMindmapZoomIn = function(careerId) {
+    var acc = window['careerClassicAccApi_' + careerId];
+    if (acc && acc.zoomIn) acc.zoomIn();
+    else CareersRadialMindmap.zoomIn(careerId);
+  };
+  window.radialMindmapZoomOut = function(careerId) {
+    var acc = window['careerClassicAccApi_' + careerId];
+    if (acc && acc.zoomOut) acc.zoomOut();
+    else CareersRadialMindmap.zoomOut(careerId);
+  };
   window.radialMindmapReset = function(careerId) {
-    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.reset(careerId);
+    var acc = window['careerClassicAccApi_' + careerId];
+    if (acc && acc.reset) acc.reset();
+    else if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.reset(careerId);
+  };
+  window.radialMindmapExpandAll = function(careerId) {
+    var acc = window['careerClassicAccApi_' + careerId];
+    if (acc && acc.expandAll) acc.expandAll();
+  };
+  window.radialMindmapCollapseAll = function(careerId) {
+    var acc = window['careerClassicAccApi_' + careerId];
+    if (acc && acc.collapseAll) acc.collapseAll();
   };
 
   const MODAL_MINDMAP_INSTANCE_ID = 'career-mindmap-modal';
@@ -3000,17 +3035,62 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('career-mindmap-modal-container');
     const loadingEl = document.getElementById('career-mindmap-modal-loading');
     const svgEl = document.getElementById('career-mindmap-modal-svg');
+    const classicHostEl = document.getElementById('career-mindmap-modal-classic-host');
     const controlsEl = document.getElementById('career-mindmap-modal-controls');
     if (!modalEl || !container || !svgEl || !loadingEl) return;
-    if (titleEl) titleEl.textContent = '✨ Radial Mind Map - ' + (career.name || '');
+
+    document.querySelectorAll('.career-mindmap-modal-classic-only').forEach(function (el) {
+      el.classList.add('d-none');
+    });
+
+    if (careerMindmapModalClassicApi && typeof careerMindmapModalClassicApi.destroy === 'function') {
+      try { careerMindmapModalClassicApi.destroy(); } catch (e) {}
+    }
+    careerMindmapModalClassicApi = null;
+    if (classicHostEl) {
+      classicHostEl.style.display = 'none';
+      classicHostEl.innerHTML = '';
+    }
+
     loadingEl.style.display = 'flex';
     svgEl.style.display = 'none';
     svgEl.innerHTML = '';
     if (controlsEl) controlsEl.style.display = 'none';
+
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
       careerMindmapModalInstance = careerMindmapModalInstance || bootstrap.Modal.getOrCreateInstance(modalEl);
       careerMindmapModalInstance.show();
     }
+
+    var embedLayout = careerClassicMindmapEmbedLayout();
+    if (embedLayout) {
+      if (titleEl) titleEl.textContent = (embedLayout === 'vertical' ? 'Classic mind map (vertical) — ' : 'Classic mind map — ') + (career.name || '');
+      if (!classicHostEl || typeof CareerMindmapClassic === 'undefined') {
+        loadingEl.style.display = 'none';
+        return;
+      }
+      var cssHref = '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}';
+      var jsSrc = '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}';
+      CareerMindmapClassic.initFromApi({
+        apiUrl: '/careers/api/career/' + (career.slug || '') + '-' + (career.id || '') + '-mindmap/json/',
+        hostElement: classicHostEl,
+        loadingEl: loadingEl,
+        cssHref: cssHref,
+        jsSrc: jsSrc,
+        layout: embedLayout
+      }).then(function (api) {
+        careerMindmapModalClassicApi = api;
+        if (controlsEl) controlsEl.style.display = 'flex';
+        document.querySelectorAll('.career-mindmap-modal-classic-only').forEach(function (el) {
+          el.classList.remove('d-none');
+        });
+      }).catch(function () {
+        if (controlsEl) controlsEl.style.display = 'none';
+      });
+      return;
+    }
+
+    if (titleEl) titleEl.textContent = '✨ Radial Mind Map - ' + (career.name || '');
     if (typeof window.RadialMindmap === 'undefined') return;
     window.RadialMindmap.init({
       instanceId: MODAL_MINDMAP_INSTANCE_ID,
@@ -3027,7 +3107,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (ctx.hasChildren) {
           window.RadialMindmap.setCenter(MODAL_MINDMAP_INSTANCE_ID, node);
         }
-        // In popup, do not call showCareerSectionInChat so chat is unaffected
       }
     });
   }
@@ -3062,13 +3141,24 @@ document.addEventListener('DOMContentLoaded', function() {
   const zoomOutBtn = document.getElementById('career-mindmap-modal-zoom-out');
   const zoomResetBtn = document.getElementById('career-mindmap-modal-reset');
   if (zoomInBtn) zoomInBtn.addEventListener('click', function() {
-    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomIn(MODAL_MINDMAP_INSTANCE_ID);
+    if (careerMindmapModalClassicApi && careerMindmapModalClassicApi.zoomIn) careerMindmapModalClassicApi.zoomIn();
+    else if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomIn(MODAL_MINDMAP_INSTANCE_ID);
   });
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', function() {
-    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomOut(MODAL_MINDMAP_INSTANCE_ID);
+    if (careerMindmapModalClassicApi && careerMindmapModalClassicApi.zoomOut) careerMindmapModalClassicApi.zoomOut();
+    else if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.zoomOut(MODAL_MINDMAP_INSTANCE_ID);
   });
   if (zoomResetBtn) zoomResetBtn.addEventListener('click', function() {
-    if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.reset(MODAL_MINDMAP_INSTANCE_ID);
+    if (careerMindmapModalClassicApi && careerMindmapModalClassicApi.reset) careerMindmapModalClassicApi.reset();
+    else if (typeof window.RadialMindmap !== 'undefined') window.RadialMindmap.reset(MODAL_MINDMAP_INSTANCE_ID);
+  });
+  const zoomExpandAllBtn = document.getElementById('career-mindmap-modal-expand-all');
+  const zoomCollapseAllBtn = document.getElementById('career-mindmap-modal-collapse-all');
+  if (zoomExpandAllBtn) zoomExpandAllBtn.addEventListener('click', function() {
+    if (careerMindmapModalClassicApi && careerMindmapModalClassicApi.expandAll) careerMindmapModalClassicApi.expandAll();
+  });
+  if (zoomCollapseAllBtn) zoomCollapseAllBtn.addEventListener('click', function() {
+    if (careerMindmapModalClassicApi && careerMindmapModalClassicApi.collapseAll) careerMindmapModalClassicApi.collapseAll();
   });
 
   // Load sample career questions on initial load
@@ -5077,20 +5167,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Initialize mindmap in chat message - uses single RadialMindmap component
+  // Initialize mindmap in chat message - radial or classic per DEFAULT_MINDMAP_TYPE (optional host: id `${containerId}-classic`)
   function initializeChatMindmap(career, containerId, svgId, loadingId, controlsId, onComplete) {
     const container = document.getElementById(containerId);
     const svg = document.getElementById(svgId);
     if (!container || !svg) return;
-    if (typeof window.RadialMindmap === 'undefined') {
-      if (onComplete) setTimeout(onComplete, 300);
-      return;
-    }
-    // Prevent any click inside the mindmap from bubbling – chat must not scroll when clicking on mindmap
     container.setAttribute('data-mindmap-no-scroll', '1');
     container.addEventListener('click', function(e) {
       e.stopPropagation();
     });
+    var chatClassicLayout = careerClassicMindmapEmbedLayout();
+    if (chatClassicLayout && typeof CareerMindmapClassic !== 'undefined') {
+      const host = document.getElementById(containerId + '-classic');
+      const loadEl = loadingId ? document.getElementById(loadingId) : null;
+      if (host) {
+        svg.style.display = 'none';
+        CareerMindmapClassic.initFromApi({
+          apiUrl: '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/',
+          hostElement: host,
+          loadingEl: loadEl,
+          cssHref: '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}',
+          jsSrc: '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}',
+          layout: chatClassicLayout
+        }).then(function () {
+          if (onComplete) setTimeout(onComplete, 200);
+        }).catch(function () {
+          if (onComplete) setTimeout(onComplete, 200);
+        });
+        return;
+      }
+    }
+    if (typeof window.RadialMindmap === 'undefined') {
+      if (onComplete) setTimeout(onComplete, 300);
+      return;
+    }
     window.RadialMindmap.init({
       instanceId: String(career.id),
       containerId: containerId,
@@ -5544,15 +5654,29 @@ document.addEventListener('DOMContentLoaded', function() {
       ));
     }
     
-    // Mindmap Section - Use same mindmap implementation as detail page
+    // Mindmap Section - radial or classic (DEFAULT_MINDMAP_TYPE 16) per site configuration
     if (career.has_mindmap) {
-      // Create unique IDs for this career's mindmap to avoid conflicts
       const mindmapContainerId = 'radial-mindmap-container-' + career.id;
       const loadingId = 'loading-radial-' + career.id;
       const svgId = 'radial-svg-' + career.id;
       const controlsId = 'radial-controls-' + career.id;
-      
-        accordionItems.push(buildAccordionItem(
+      const classicSlotId = 'career-classic-acc-' + career.id;
+      const mmHeaderTitle = careerSiteUsesClassicMindmapEmbed()
+        ? (careerClassicMindmapEmbedLayout() === 'vertical'
+            ? ('Classic mind map (vertical) — ' + escapeHtml(career.name))
+            : ('Classic mind map — ' + escapeHtml(career.name)))
+        : ('✨ Radial Mind Map - ' + escapeHtml(career.name));
+      const mmHeaderSub = careerSiteUsesClassicMindmapEmbed()
+        ? (careerClassicMindmapEmbedLayout() === 'vertical'
+            ? 'Top-down pills &amp; curved links'
+            : 'Horizontal pills &amp; curved links')
+        : 'Nodes arranged in concentric circles';
+      const classicMindmapToolbarExtras = careerSiteUsesClassicMindmapEmbed()
+        ? '<button type="button" class="btn btn-sm btn-light shadow" onclick="window.radialMindmapExpandAll(' + career.id + ')" title="Expand all branches" aria-label="Expand all"><i class=\'bx bx-expand-vertical\'></i></button>' +
+          '<button type="button" class="btn btn-sm btn-light shadow" onclick="window.radialMindmapCollapseAll(' + career.id + ')" title="Collapse to root only" aria-label="Collapse all"><i class=\'bx bx-collapse-vertical\'></i></button>'
+        : '';
+
+      accordionItems.push(buildAccordionItem(
         accordionId,
         'mindmap',
         'Mindmap',
@@ -5560,20 +5684,22 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="mindmap-wrapper">' +
             '<div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">' +
               '<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">' +
-                '<h5 class="mb-0">✨ Radial Mind Map - ' + escapeHtml(career.name) + '</h5>' +
-                '<small style="opacity: 0.9;">Nodes arranged in concentric circles</small>' +
+                '<h5 class="mb-0">' + mmHeaderTitle + '</h5>' +
+                '<small style="opacity: 0.9;">' + mmHeaderSub + '</small>' +
               '</div>' +
               '<div class="card-body p-3" style="display: flex; justify-content: center; align-items: center;">' +
                 '<div class="radial-mindmap-container" id="' + mindmapContainerId + '" style="height: 500px; max-height: 70vh; width: 100%; overflow: auto; background: radial-gradient(circle at center, #ffffff 0%, #f0f4ff 100%); border-radius: 12px; position: relative; touch-action: pan-x pan-y; display: flex; justify-content: center; align-items: center;">' +
                   '<div id="' + loadingId + '" class="loading" style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; position: absolute; top: 0; left: 0;">' +
                     '<div style="text-align: center;">' +
                       '<div class="spinner-border text-primary" role="status"></div>' +
-                      '<p class="mt-2">Loading radial mind map...</p>' +
+                      '<p class="mt-2">Loading mind map...</p>' +
                     '</div>' +
                   '</div>' +
                   '<svg id="' + svgId + '" style="width: 100%; height: 100%; display: none; margin: auto;"></svg>' +
+                  '<div id="' + classicSlotId + '" style="display: none; width: 100%; height: 100%; position: absolute; left: 0; top: 0; overflow: auto; z-index: 2; background: #edf1f8;"></div>' +
                   '<div id="' + controlsId + '" style="position: absolute; top: 15px; right: 15px; z-index: 1000; display: none;">' +
                     '<div class="btn-group-vertical" style="gap: 8px;">' +
+                      classicMindmapToolbarExtras +
                       '<button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomIn(' + career.id + ')" title="Zoom In">🔍+</button>' +
                       '<button class="btn btn-sm btn-light shadow" onclick="window.radialMindmapZoomOut(' + career.id + ')" title="Zoom Out">🔍-</button>' +
                     '</div>' +
@@ -5584,16 +5710,50 @@ document.addEventListener('DOMContentLoaded', function() {
           '</div>' +
         '</div>'
       ));
-      
-      // Initialize mindmap when accordion is opened - use same rendering as detail page
+
       setTimeout(function() {
         const accordionButton = document.querySelector('[data-bs-target="#collapse' + accordionId + 'mindmap"]');
         const collapseElement = document.getElementById('collapse' + accordionId + 'mindmap');
-        
-        function initializeRadialMindmap() {
+
+        function initializeAccordionMindmap() {
           const container = document.getElementById(mindmapContainerId);
           const svg = document.getElementById(svgId);
-          if (!container || !svg || typeof window.RadialMindmap === 'undefined') return;
+          const classicHost = document.getElementById(classicSlotId);
+          const loadEl = document.getElementById(loadingId);
+          if (!container) return;
+
+          if (careerSiteUsesClassicMindmapEmbed()) {
+            if (!classicHost || typeof CareerMindmapClassic === 'undefined') return;
+            if (svg) svg.style.display = 'none';
+            var prev = window['careerClassicAccApi_' + career.id];
+            if (prev && prev.destroy) {
+              try { prev.destroy(); } catch (e) {}
+            }
+            window['careerClassicAccApi_' + career.id] = null;
+            if (loadEl) loadEl.style.display = 'flex';
+            CareerMindmapClassic.initFromApi({
+              apiUrl: '/careers/api/career/' + career.slug + '-' + career.id + '-mindmap/json/',
+              hostElement: classicHost,
+              loadingEl: loadEl,
+              cssHref: '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}',
+              jsSrc: '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}',
+              layout: careerClassicMindmapEmbedLayout()
+            }).then(function (api) {
+              window['careerClassicAccApi_' + career.id] = api;
+              var ctl = document.getElementById(controlsId);
+              if (ctl) ctl.style.display = 'flex';
+            }).catch(function () {
+              var ctl = document.getElementById(controlsId);
+              if (ctl) ctl.style.display = 'none';
+            });
+            return;
+          }
+
+          if (!svg || typeof window.RadialMindmap === 'undefined') return;
+          if (classicHost) {
+            classicHost.style.display = 'none';
+            classicHost.innerHTML = '';
+          }
           window.RadialMindmap.init({
             instanceId: String(career.id),
             containerId: mindmapContainerId,
@@ -5615,19 +5775,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
         }
-        
-        // Uses global renderRadialMindmapForCareer - viewBox zoom, CareersRadialMindmap.handleNodeClick for links
-        
+
         if (accordionButton) {
           accordionButton.addEventListener('shown.bs.collapse', function() {
-            initializeRadialMindmap();
+            initializeAccordionMindmap();
           });
-          
           if (collapseElement && collapseElement.classList.contains('show')) {
-            initializeRadialMindmap();
+            initializeAccordionMindmap();
           }
         } else {
-          setTimeout(initializeRadialMindmap, 500);
+          setTimeout(initializeAccordionMindmap, 500);
         }
       }, 200);
     }

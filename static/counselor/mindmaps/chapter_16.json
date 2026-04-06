@@ -1,0 +1,464 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 16,
+    "part_id": null
+  },
+  "markdown": "# Job Search and Professional Development Strategies\n## Effective Job Search Strategies and Techniques\n- Video/PDF\n  - Part 1- Effective Job Search Strategies and Techniques\n  - 1. Define Your Goals\n  - 2. Craft a Strong Resume and Cover Letter\n  - 3. Leverage Your Network\n  - 4. Utilize Online Job Boards and Websites\n  - 5. Optimize Your LinkedIn Profile\n  - 6. Prepare for Interviews\n  - 7. Consider Temporary or Contract Work\n- Quiz\n## Resume Writing and LinkedIn Profile Optimization\n- Video/PDF\n  - Part 2- Resume Writing and LinkedIn Profile Optimization\n  - 1. Choose the Right Format\n  - 2. Craft a Strong Summary or Objective Statement\n  - 3. Highlight Your Skills\n  - 4. Detail Your Work Experience\n  - 5. Include Education and Certifications\n  - 6. Add Additional Sections (if applicable)\n  - 7. Ensure Clean Design and Formatting\n- Quiz\n## Interview Preparation Methods\n- Video/PDF\n  - Part 3- Interview Preparation Methods\n- Quiz\n## Networking Skills and Professional Relationship Building\n- Video/PDF\n  - Part 4- Networking Skills and Professional Relationship Building\n  - 1. Active Listening\n  - 2. Effective Communication\n  - 3. Networking Events\n  - 4. Professional Organizations\n  - 5. Social Media Presence\n  - 6. Offering Help\n  - 7. Personal Branding\n- Quiz\n## Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n- Video/PDF\n  - This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…\n- Quiz\n## Identifying Key Competences\n- Video/PDF\n  - Part 6- Identifying Key Competencies\n  - 1. Conduct Comprehensive Assessments\n  - 2. Review Academic and Extracurricular Records\n  - 3. Conduct One-on-One Interviews\n  - 4. Utilize Self-Assessment Tools\n  - 5. Gather Feedback from Teachers and Mentors\n  - 6. Analyze Results and Identify Patterns\n  - 7. Develop Action Plans\n- Quiz\n",
+  "md": "# Job Search and Professional Development Strategies\n## Effective Job Search Strategies and Techniques\n- Video/PDF\n  - Part 1- Effective Job Search Strategies and Techniques\n  - 1. Define Your Goals\n  - 2. Craft a Strong Resume and Cover Letter\n  - 3. Leverage Your Network\n  - 4. Utilize Online Job Boards and Websites\n  - 5. Optimize Your LinkedIn Profile\n  - 6. Prepare for Interviews\n  - 7. Consider Temporary or Contract Work\n- Quiz\n## Resume Writing and LinkedIn Profile Optimization\n- Video/PDF\n  - Part 2- Resume Writing and LinkedIn Profile Optimization\n  - 1. Choose the Right Format\n  - 2. Craft a Strong Summary or Objective Statement\n  - 3. Highlight Your Skills\n  - 4. Detail Your Work Experience\n  - 5. Include Education and Certifications\n  - 6. Add Additional Sections (if applicable)\n  - 7. Ensure Clean Design and Formatting\n- Quiz\n## Interview Preparation Methods\n- Video/PDF\n  - Part 3- Interview Preparation Methods\n- Quiz\n## Networking Skills and Professional Relationship Building\n- Video/PDF\n  - Part 4- Networking Skills and Professional Relationship Building\n  - 1. Active Listening\n  - 2. Effective Communication\n  - 3. Networking Events\n  - 4. Professional Organizations\n  - 5. Social Media Presence\n  - 6. Offering Help\n  - 7. Personal Branding\n- Quiz\n## Ongoing Professional Development, Growth and Enhancement in Career  Counseling\n- Video/PDF\n  - This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…\n- Quiz\n## Identifying Key Competences\n- Video/PDF\n  - Part 6- Identifying Key Competencies\n  - 1. Conduct Comprehensive Assessments\n  - 2. Review Academic and Extracurricular Records\n  - 3. Conduct One-on-One Interviews\n  - 4. Utilize Self-Assessment Tools\n  - 5. Gather Feedback from Teachers and Mentors\n  - 6. Analyze Results and Identify Patterns\n  - 7. Develop Action Plans\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_16",
+      "class": "sheet",
+      "title": "Job Search and Professional Development Strategies",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_16",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Job Search and Professional Development Strategies",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_16_63_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Effective Job Search Strategies and Techniques",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_63_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_16_63_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 1- Effective Job Search Strategies and Techniques",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Define Your Goals",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Craft a Strong Resume and Cover Letter",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Leverage Your Network",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Utilize Online Job Boards and Websites",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Optimize Your LinkedIn Profile",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Prepare for Interviews",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_63_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Consider Temporary or Contract Work",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_16_63_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_64_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Resume Writing and LinkedIn Profile Optimization",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_64_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_16_64_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 2- Resume Writing and LinkedIn Profile Optimization",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Choose the Right Format",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Craft a Strong Summary or Objective Statement",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Highlight Your Skills",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Detail Your Work Experience",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Include Education and Certifications",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Add Additional Sections (if applicable)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_64_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Ensure Clean Design and Formatting",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_16_64_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_65_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Interview Preparation Methods",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_65_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_16_65_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 3- Interview Preparation Methods",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_16_65_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_66_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Networking Skills and Professional Relationship Building",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_66_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_16_66_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 4- Networking Skills and Professional Relationship Building",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Active Listening",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Effective Communication",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Networking Events",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Professional Organizations",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Social Media Presence",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Offering Help",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_66_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Personal Branding",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_16_66_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_67_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Ongoing Professional Development, Growth and Enhancement in Career  Counseling",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_67_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_16_67_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "This video explores ongoing professional development, growth, and enhancement in career counseling, highlighting the importance of continuous learning, skill…",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_16_67_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_16_68_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Identifying Key Competences",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_16_68_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_16_68_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 6- Identifying Key Competencies",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Conduct Comprehensive Assessments",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Review Academic and Extracurricular Records",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Conduct One-on-One Interviews",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Utilize Self-Assessment Tools",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Gather Feedback from Teachers and Mentors",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Analyze Results and Identify Patterns",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_16_68_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "7. Develop Action Plans",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_16_68_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

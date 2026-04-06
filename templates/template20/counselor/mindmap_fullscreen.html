@@ -1,0 +1,39 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}{{ page_title|default('Mindmap') }} | Top Teen{% endblock %}
+
+{% block bodyclass %}counselor-mindmap-fullscreen-page{% endblock %}
+
+{% block additionalhead %}
+<style>
+  /* Host height must match the radial mindmap container used for layout; do not oversize the SVG alone or overflow clips the graph. */
+  .counselor-mindmap-fullscreen-page { padding-top: 88px; }
+  .counselor-mindmap-fullscreen-inner { min-height: calc(100vh - 120px); }
+  .counselor-mindmap-fullscreen-inner .counselor-mm-host {
+    height: calc(100vh - 200px) !important;
+    min-height: 320px !important;
+  }
+  .counselor-mindmap-fullscreen-inner .counselor-mindmap-svg {
+    min-height: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="container py-3 counselor-mindmap-fullscreen-inner">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <h1 class="fs-20 fw-semibold mb-0">{{ page_title|default('Mindmap') }}</h1>
+    {% if back_url %}
+    <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">
+      <i class='bx bx-arrow-back me-1'></i> Back
+    </a>
+    {% endif %}
+  </div>
+  {% set widget_id = 'full' %}
+  {% set fullscreen_url = none %}
+  {% set mindmap_map_type = counselor_mindmap_map_type|default('tree', true) %}
+  {% include 'template20/counselor/includes/counselor_mindmap_widget.html' %}
+</main>
+{% endblock %}

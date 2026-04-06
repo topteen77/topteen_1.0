@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 4,
+    "part_id": 11
+  },
+  "markdown": "# What is Education and career Ecosystem?\n- Video/PDF\n  - Higher Education Dynamics\n  - Ecological Perspective in Education\n  - Educational Landscape in India\n  - Structure of the K-12 Education System\n  - New Education Policy 2020\n  - Transformation in the K-12 Education Ecosystem in India\n  - National Skills Qualification Framework (NSQF)\n  - Curriculum and Examination Administration\n  - Role of the National Council for Educational Research and Training (NCERT)\n  - Education Boards in India\n- Quiz\n",
+  "md": "# What is Education and career Ecosystem?\n- Video/PDF\n  - Higher Education Dynamics\n  - Ecological Perspective in Education\n  - Educational Landscape in India\n  - Structure of the K-12 Education System\n  - New Education Policy 2020\n  - Transformation in the K-12 Education Ecosystem in India\n  - National Skills Qualification Framework (NSQF)\n  - Curriculum and Examination Administration\n  - Role of the National Council for Educational Research and Training (NCERT)\n  - Education Boards in India\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_11",
+      "class": "sheet",
+      "title": "What is Education and career Ecosystem?",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_11",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "What is Education and career Ecosystem?",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_11_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_11_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Higher Education Dynamics",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Ecological Perspective in Education",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Educational Landscape in India",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Structure of the K-12 Education System",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "New Education Policy 2020",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Transformation in the K-12 Education Ecosystem in India",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "National Skills Qualification Framework (NSQF)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Curriculum and Examination Administration",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Role of the National Council for Educational Research and Training (NCERT)",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_11_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Education Boards in India",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_11_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

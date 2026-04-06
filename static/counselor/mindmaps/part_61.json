@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 15,
+    "part_id": 61
+  },
+  "markdown": "# Developing Career Plans and Following Up on Client Progress\n- Video/PDF\n  - Part 2- Developing a Career Action Plan and Following up on Client Progress\n  - 1. Conducting Self-Assessments\n  - 2. Exploring Career Options\n  - 3. Setting SMART Goals\n  - Examples:\n  - 4. Creating a Detailed Action Plan\n  - Components:\n  - 5. Monitoring Progress\n  - Methods:\n  - 6. Providing Continuous Support\n- Quiz\n",
+  "md": "# Developing Career Plans and Following Up on Client Progress\n- Video/PDF\n  - Part 2- Developing a Career Action Plan and Following up on Client Progress\n  - 1. Conducting Self-Assessments\n  - 2. Exploring Career Options\n  - 3. Setting SMART Goals\n  - Examples:\n  - 4. Creating a Detailed Action Plan\n  - Components:\n  - 5. Monitoring Progress\n  - Methods:\n  - 6. Providing Continuous Support\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_61",
+      "class": "sheet",
+      "title": "Developing Career Plans and Following Up on Client Progress",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_61",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Developing Career Plans and Following Up on Client Progress",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_61_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_61_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 2- Developing a Career Action Plan and Following up on Client Progress",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Conducting Self-Assessments",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Exploring Career Options",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Setting SMART Goals",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Examples:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Creating a Detailed Action Plan",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Components:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Monitoring Progress",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Methods:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_61_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Providing Continuous Support",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_61_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

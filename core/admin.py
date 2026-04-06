@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
-from core.choices import MINDMAP_TYPE_CHOICES
+from core.choices import COURSE_MINDMAP_CONFIG_CHOICES, MINDMAP_TYPE_CHOICES
 from django.utils import timezone
 from django.utils.html import conditional_escape, format_html, strip_tags
 from django.urls import path, reverse
@@ -98,11 +98,32 @@ class WebsiteSettingsForm(forms.Form):
         label='Enable career mindmap',
         help_text='Show career mindmaps on career detail pages, careers chat, and dedicated mindmap page. When disabled, mindmap sections and icons are hidden site-wide.',
     )
+    ENABLE_COUNSELOR_COURSE_MINDMAP = forms.BooleanField(
+        required=False,
+        label='Enable counselor course mindmaps',
+        help_text=(
+            'When enabled, counselor certification course/part/chapter mindmaps appear when the matching static JSON file exists '
+            '(curriculum course map, learning sidebar icons, full-page views, part Mindmap tab). When disabled, all of these are hidden.'
+        ),
+    )
     DEFAULT_MINDMAP_TYPE = forms.ChoiceField(
         choices=MINDMAP_TYPE_CHOICES,
         required=True,
         label='Default mindmap type',
-        help_text='Default layout when opening the dedicated mindmap page (e.g. Radial, Tree-style, Cards, Flow). Users can change it via the dropdown on the page.',
+        help_text=(
+            'Default layout for /careers/mindmap/… and careers chat/accordion mindmaps when not overridden. '
+            'Value 16 uses the classic horizontal pill layout; value 17 uses the classic vertical (top-down) layout (same engine as counselor course).'
+        ),
+    )
+    DEFAULT_course_MINDMAP_TYPE = forms.ChoiceField(
+        choices=COURSE_MINDMAP_CONFIG_CHOICES,
+        required=True,
+        label='Default counselor course mindmap type',
+        help_text=(
+            'Visualization for counselor certification mindmaps (curriculum, course learning sidebar/tab, full page). '
+            'Uses static JSON markdown only; no URL parameter needed. Values 6–7 align with career mindmap “Radial” / “Cards” style where applicable. '
+            'Value 8 is the classic horizontal mindmap (pill nodes); value 9 is the classic vertical (top-down) layout.'
+        ),
     )
     CHATBOT_DEFAULT_MODE = forms.ChoiceField(
         choices=[
@@ -124,15 +145,98 @@ class WebsiteSettingsForm(forms.Form):
     )
 
 
+DEFAULT_MINDMAP_CONFIG_KEY = 'DEFAULT_MINDMAP_TYPE'
+DEFAULT_COURSE_MINDMAP_CONFIG_KEY = 'DEFAULT_course_MINDMAP_TYPE'
+
+
+class ConfigurationAdminForm(forms.ModelForm):
+    """Use labeled dropdowns for mindmap-related configuration keys (same labels as Website settings)."""
+
+    class Meta:
+        model = Configuration
+        fields = ['key', 'value']
+
+    @staticmethod
+    def _default_mindmap_value_to_choice(stored: str) -> str:
+        raw = (stored or '').strip()
+        if not raw:
+            return '6'
+        allowed = {c[0] for c in MINDMAP_TYPE_CHOICES}
+        if raw in allowed:
+            return raw
+        return '6'
+
+    @staticmethod
+    def _course_mindmap_value_to_choice(stored: str) -> str:
+        raw = (stored or '').strip()
+        if not raw:
+            return '8'
+        allowed = {c[0] for c in COURSE_MINDMAP_CONFIG_CHOICES}
+        if raw in allowed:
+            return raw
+        nk = raw.lower().replace(' ', '_').replace('-', '_')
+        if nk in ('classic_mindmap', 'classic', 'horizontal_classic'):
+            return '8'
+        return '8'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        cfg_key = None
+        if getattr(self.instance, 'pk', None):
+            cfg_key = (self.instance.key or '').strip()
+        elif self.data:
+            cfg_key = (self.data.get('key') or '').strip()
+
+        if cfg_key == DEFAULT_MINDMAP_CONFIG_KEY:
+            self.fields['value'] = forms.ChoiceField(
+                choices=MINDMAP_TYPE_CHOICES,
+                label='Value',
+                required=True,
+                help_text=(
+                    'Default layout for the dedicated career mindmap page (and related UI). '
+                    'Same options as Core → Configuration → Website settings (Default mindmap type).'
+                ),
+            )
+            if self.instance.pk:
+                self.fields['value'].initial = self._default_mindmap_value_to_choice(self.instance.value)
+            return
+
+        if cfg_key == DEFAULT_COURSE_MINDMAP_CONFIG_KEY:
+            self.fields['value'] = forms.ChoiceField(
+                choices=COURSE_MINDMAP_CONFIG_CHOICES,
+                label='Value',
+                required=True,
+                help_text=(
+                    'Counselor course mindmap layout (curriculum, learning UI, full page). '
+                    'Same options as Core → Configuration → Website settings (mindmap section).'
+                ),
+            )
+            if self.instance.pk:
+                self.fields['value'].initial = self._course_mindmap_value_to_choice(self.instance.value)
+
+
 class ConfigurationAdmin(admin.ModelAdmin):
+    form = ConfigurationAdminForm
     # date_hierarchy = 'created'  # Disabled: Requires MySQL timezone tables to be loaded
-    list_display = ['id', 'key','value','created','modified']
-    sortable_by=['id', 'key','created']
+    list_display = ['id', 'key', 'value_display', 'created', 'modified']
+    sortable_by = ['id', 'key', 'created']
     ordering = ['id']
     # list_editable=['name','email']
-    list_filter = ('modified','created')
-    search_fields=['key','value']
-    list_display_links=['id','key']
+    list_filter = ('modified', 'created')
+    search_fields = ['key', 'value']
+    list_display_links = ['id', 'key']
+
+    @admin.display(description='Value')
+    def value_display(self, obj):
+        if obj.key == DEFAULT_MINDMAP_CONFIG_KEY:
+            label_by_value = dict(MINDMAP_TYPE_CHOICES)
+            choice_val = ConfigurationAdminForm._default_mindmap_value_to_choice(obj.value)
+            return label_by_value.get(choice_val, obj.value)
+        if obj.key == DEFAULT_COURSE_MINDMAP_CONFIG_KEY:
+            label_by_value = dict(COURSE_MINDMAP_CONFIG_CHOICES)
+            choice_val = ConfigurationAdminForm._course_mindmap_value_to_choice(obj.value)
+            return label_by_value.get(choice_val, obj.value)
+        return obj.value
 
     def get_fields(self, request, obj=None):
         if obj is None:
@@ -256,9 +360,21 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = val
                 config.save()
+                # ENABLE_COUNSELOR_COURSE_MINDMAP
+                key = 'ENABLE_COUNSELOR_COURSE_MINDMAP'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
                 # DEFAULT_MINDMAP_TYPE
                 key = 'DEFAULT_MINDMAP_TYPE'
                 val = (form.cleaned_data.get(key) or '6').strip() or '6'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = str(val)
+                config.save()
+                # DEFAULT_course_MINDMAP_TYPE
+                key = 'DEFAULT_course_MINDMAP_TYPE'
+                val = (form.cleaned_data.get(key) or '7').strip() or '7'
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = str(val)
                 config.save()
@@ -293,9 +409,12 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 return redirect('admin:core_configuration_website_settings')
         else:
             default_type = Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+            default_course_mm = Configuration.get('DEFAULT_course_MINDMAP_TYPE', '7', editable=True) or '7'
             form = WebsiteSettingsForm(initial={
                 'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),
+                'ENABLE_COUNSELOR_COURSE_MINDMAP': _config_bool('ENABLE_COUNSELOR_COURSE_MINDMAP'),
                 'DEFAULT_MINDMAP_TYPE': default_type,
+                'DEFAULT_course_MINDMAP_TYPE': default_course_mm,
                 'CHATBOT_DEFAULT_MODE': Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default',
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
             })

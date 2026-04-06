@@ -1,0 +1,53 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 20,
+    "part_id": 99
+  },
+  "markdown": "# Case Studies\n- PDF\n  - 100 pdf\n",
+  "md": "# Case Studies\n- PDF\n  - 100 pdf\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_99",
+      "class": "sheet",
+      "title": "Case Studies",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_99",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Case Studies",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_99_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_99_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "100 pdf",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

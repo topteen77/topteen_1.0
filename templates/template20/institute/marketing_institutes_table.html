@@ -49,6 +49,14 @@
                       title="Change Password">
                 <i class='bx bx-key text-info'></i>
               </button>
+              {% if not ins.is_system_demo and (ins.student_count or 0) == 0 %}
+              <button type="button"
+                      class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
+                      data-delete-url="{{ url('institute:instituteharddelete', args=[ins.id]) }}"
+                      title="Permanently delete (no students)">
+                <i class='bx bx-trash text-danger'></i>
+              </button>
+              {% endif %}
             </div>
           </td>
           <td>
@@ -57,6 +65,10 @@
                class="badge bg-warning text-dark">
               <i class='bx bx-time-five me-1'></i> Pending
             </a>
+            {% elif ins.institute_status == 2 %}
+            <span class="badge bg-danger">
+              <i class='bx bx-x-circle me-1'></i> Rejected
+            </span>
             {% else %}
             <span class="badge bg-success">
               <i class='bx bx-check-circle me-1'></i> Approved
@@ -100,6 +112,14 @@
                       title="Change Password">
                 <i class='bx bx-key text-info'></i>
               </button>
+              {% if not ins.is_system_demo and (ins.student_count or 0) == 0 %}
+              <button type="button"
+                      class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
+                      data-delete-url="{{ url('institute:instituteharddelete', args=[ins.id]) }}"
+                      title="Permanently delete (no students)">
+                <i class='bx bx-trash text-danger'></i>
+              </button>
+              {% endif %}
             </div>
           </td>
           <td>
@@ -108,6 +128,10 @@
                class="badge bg-warning text-dark">
               <i class='bx bx-time-five me-1'></i> Pending
             </a>
+            {% elif ins.institute_status == 2 %}
+            <span class="badge bg-danger">
+              <i class='bx bx-x-circle me-1'></i> Rejected
+            </span>
             {% else %}
             <span class="badge bg-success">
               <i class='bx bx-check-circle me-1'></i> Approved
@@ -140,7 +164,7 @@
     <ul class="pagination mb-0">
       {% if institutes_paginations.has_previous() %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ institutes_paginations.previous_page_number() }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">
+        <a class="page-link" href="?page={{ institutes_paginations.previous_page_number() }}{% if institute_table_query_string %}&{{ institute_table_query_string }}{% endif %}">
           <i class='bx bx-chevron-left'></i>
         </a>
       </li>
@@ -157,7 +181,7 @@
         </li>
         {% elif num <= 3 or num > institutes_paginations.paginator.num_pages - 3 or (num >= institutes_paginations.number - 2 and num <= institutes_paginations.number + 2) %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ num }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">{{ num }}</a>
+          <a class="page-link" href="?page={{ num }}{% if institute_table_query_string %}&{{ institute_table_query_string }}{% endif %}">{{ num }}</a>
         </li>
         {% elif num == 4 or num == institutes_paginations.paginator.num_pages - 3 %}
         <li class="page-item disabled">
@@ -168,7 +192,7 @@
       
       {% if institutes_paginations.has_next() %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ institutes_paginations.next_page_number() }}{% if search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}">
+        <a class="page-link" href="?page={{ institutes_paginations.next_page_number() }}{% if institute_table_query_string %}&{{ institute_table_query_string }}{% endif %}">
           <i class='bx bx-chevron-right'></i>
         </a>
       </li>
@@ -224,6 +248,14 @@
             <div class="mb-3">
               <label class="form-label">Institute Logo</label>
               <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Approval status</label>
+              <select name="institute_status" class="form-select" aria-label="Approval status">
+                <option value="3" {% if ins.institute_status == 3 %}selected{% endif %}>Pending</option>
+                <option value="1" {% if ins.institute_status == 1 %}selected{% endif %}>Approved</option>
+                <option value="2" {% if ins.institute_status == 2 %}selected{% endif %}>Rejected</option>
+              </select>
             </div>
           </div>
           <div class="modal-footer">
@@ -303,6 +335,14 @@
             <div class="mb-3">
               <label class="form-label">Institute Logo</label>
               <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Approval status</label>
+              <select name="institute_status" class="form-select" aria-label="Approval status">
+                <option value="3" {% if ins.institute_status == 3 %}selected{% endif %}>Pending</option>
+                <option value="1" {% if ins.institute_status == 1 %}selected{% endif %}>Approved</option>
+                <option value="2" {% if ins.institute_status == 2 %}selected{% endif %}>Rejected</option>
+              </select>
             </div>
           </div>
           <div class="modal-footer">

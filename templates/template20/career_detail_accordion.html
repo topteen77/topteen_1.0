@@ -711,6 +711,41 @@
     color: #667eea;
     font-weight: bold;
   }
+
+  /* Career detail classic mindmap: expand this block to the full viewport (no separate URL) */
+  #career-classic-mindmap-section.career-detail-mindmap-maximized {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    margin: 0 !important;
+    padding: max(10px, env(safe-area-inset-top, 10px)) max(10px, env(safe-area-inset-right, 10px)) max(10px, env(safe-area-inset-bottom, 10px)) max(10px, env(safe-area-inset-left, 10px));
+    background: #fff;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #career-classic-mindmap-section.career-detail-mindmap-maximized .card {
+    height: calc(100vh - 20px);
+    max-height: calc(100vh - 20px);
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+  #career-classic-mindmap-section.career-detail-mindmap-maximized .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex !important;
+    flex-direction: column;
+  }
+  #career-classic-mindmap-section.career-detail-mindmap-maximized .career-detail-classic-mm-frame {
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  body.career-detail-mindmap-fs-open {
+    overflow: hidden !important;
+  }
   
   /* Mobile Mind Map */
   @media (max-width: 768px) {
@@ -847,9 +882,9 @@
           {% endif %}
 
           <!-- ============================================ -->
-          <!-- NEW SVG-based Mindmap (Active) - Hide if XMind file exists or mindmap disabled -->
+          <!-- NEW SVG-based Mindmap (Active) - When API mindmap unavailable (no XMind / no parsable description) -->
           <!-- ============================================ -->
-          {% if enable_career_mindmap and not has_xmind_file %}
+          {% if enable_career_mindmap and not career_mindmap_api_available %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-svg-mindmap-section">
             <div class="mindmap-card" role="region" aria-labelledby="mindmap-title" aria-describedby="mindmap-caption">
               <div class="mindmap-head">
@@ -930,9 +965,101 @@
           {% endif %}
 
           <!-- ============================================ -->
-          <!-- Radial Mindmap (Variation 6) - Dynamic from XMind files -->
+          <!-- API mindmap: classic (DEFAULT_MINDMAP_TYPE 16–17) or radial (default) -->
           <!-- ============================================ -->
-          {% if enable_career_mindmap and has_xmind_file %}
+          {% if enable_career_mindmap and career_mindmap_api_available %}
+          {% if career_detail_use_classic_mindmap %}
+          <div class="mindmap-wrapper mt-5 mb-5" id="career-classic-mindmap-section">
+            <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(10, 129, 207, 0.12);">
+              <div class="card-header text-white" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); padding: 15px 25px;">
+                <h5 class="mb-0">{% if career_detail_classic_layout == 'vertical' %}Classic mind map (vertical){% else %}Classic mind map{% endif %} — {{ career.name }}</h5>
+                <small style="opacity: 0.95;">{% if career_detail_classic_layout == 'vertical' %}Top-down tree — same engine as counselor course mindmaps{% else %}Horizontal tree — same engine as counselor course mindmaps{% endif %}</small>
+              </div>
+              <div class="card-body p-3 d-flex flex-column" style="min-height: 0;">
+                <div class="d-flex justify-content-end align-items-center gap-2 mb-2 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerDetailClassicApi &amp;&amp; window.__careerDetailClassicApi.expandAll){window.__careerDetailClassicApi.expandAll();}" title="Expand all branches" aria-label="Expand all"><i class="bx bx-expand-vertical"></i></button>
+                  <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerDetailClassicApi &amp;&amp; window.__careerDetailClassicApi.collapseAll){window.__careerDetailClassicApi.collapseAll();}" title="Collapse to root only" aria-label="Collapse all"><i class="bx bx-collapse-vertical"></i></button>
+                  <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerDetailClassicApi){window.__careerDetailClassicApi.zoomIn();}" title="Zoom in">＋</button>
+                  <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerDetailClassicApi){window.__careerDetailClassicApi.zoomOut();}" title="Zoom out">－</button>
+                  <button type="button" class="btn btn-sm btn-light border" onclick="if(window.__careerDetailClassicApi){window.__careerDetailClassicApi.reset();}" title="Reset view">⊙</button>
+                  <button type="button" id="career-detail-mindmap-fs-btn" class="btn btn-sm btn-outline-primary" title="Expand mind map to full screen" aria-pressed="false">
+                    <i class="bx bx-expand-alt me-1 career-mm-fs-icon" aria-hidden="true"></i><span class="career-mm-fs-label">Maximize</span>
+                  </button>
+                </div>
+                <div class="position-relative rounded border overflow-hidden bg-light flex-grow-1 career-detail-classic-mm-frame" style="height: 70vh; min-height: 420px; max-height: 85vh;">
+                  <div id="loading-career-detail-classic" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center gap-2" style="z-index:3;background:rgba(255,255,255,0.92);">
+                    <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                    <span class="text-muted">Loading mind map…</span>
+                  </div>
+                  <div id="career-detail-classic-mindmap-host" class="w-100 h-100 career-detail-classic-mm-host" style="min-height: 0; height: 100%; display: none;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <script src="{{ static('js/career-mindmap-classic-embed.js') }}"></script>
+          <script>
+          (function() {
+            if (!document.getElementById('career-classic-mindmap-section')) return;
+            function initCareerDetailClassic() {
+              var host = document.getElementById('career-detail-classic-mindmap-host');
+              var loadEl = document.getElementById('loading-career-detail-classic');
+              if (!host || typeof CareerMindmapClassic === 'undefined') {
+                if (loadEl) loadEl.innerHTML = '<span class="text-danger small p-3">Mind map script could not load.</span>';
+                return;
+              }
+              var cssHref = '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}';
+              var jsSrc = '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}';
+              var layout = '{{ career_detail_classic_layout|default("horizontal") }}';
+              CareerMindmapClassic.initFromApi({
+                apiUrl: '/careers/api/career/{{ career.slug }}-{{ career.id }}-mindmap/json/',
+                hostElement: host,
+                loadingEl: loadEl,
+                cssHref: cssHref,
+                jsSrc: jsSrc,
+                layout: layout
+              }).then(function (api) {
+                window.__careerDetailClassicApi = api;
+              }).catch(function (err) {
+                if (typeof console !== 'undefined' && console.warn) {
+                  console.warn('Career detail classic mindmap:', err);
+                }
+              });
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initCareerDetailClassic);
+            else initCareerDetailClassic();
+            function setupCareerDetailMindmapFullscreen() {
+              var section = document.getElementById('career-classic-mindmap-section');
+              var btn = document.getElementById('career-detail-mindmap-fs-btn');
+              if (!section || !btn) return;
+              var icon = btn.querySelector('.career-mm-fs-icon');
+              var label = btn.querySelector('.career-mm-fs-label');
+              function setMaximized(on) {
+                section.classList.toggle('career-detail-mindmap-maximized', on);
+                document.body.classList.toggle('career-detail-mindmap-fs-open', on);
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                if (icon) {
+                  icon.classList.remove('bx-expand-alt', 'bx-exit-fullscreen');
+                  icon.classList.add(on ? 'bx-exit-fullscreen' : 'bx-expand-alt');
+                }
+                if (label) label.textContent = on ? 'Minimize' : 'Maximize';
+                btn.title = on ? 'Return mind map to inline size' : 'Expand mind map to full screen';
+                if (on && window.__careerDetailClassicApi && typeof window.__careerDetailClassicApi.reset === 'function') {
+                  try { window.__careerDetailClassicApi.reset(); } catch (e) {}
+                }
+              }
+              btn.addEventListener('click', function () {
+                setMaximized(!section.classList.contains('career-detail-mindmap-maximized'));
+              });
+              document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && section.classList.contains('career-detail-mindmap-maximized')) {
+                  setMaximized(false);
+                }
+              });
+            }
+            setupCareerDetailMindmapFullscreen();
+          })();
+          </script>
+          {% else %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-xmind-mindmap-section">
             <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
               <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">
@@ -983,7 +1110,7 @@
             else run();
           })();
           </script>
-          <!-- legacy radial script removed - using static/js/radial-mindmap.js -->
+          {% endif %}
           {% endif %}
 
           <!-- Accordion Content Container -->

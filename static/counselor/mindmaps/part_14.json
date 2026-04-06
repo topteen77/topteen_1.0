@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 4,
+    "part_id": 14
+  },
+  "markdown": "# Study Abroad- a detailed Perspective\n- Video/PDF\n  - Study in India or Abroad? Determining Factors in the Decision\n  - Student Mobility: Dynamics outside India\n  - Leading Destinations:\n  - Emerging Destinations:\n  - Regional Mobility Trends:\n  - Influencing Factors:\n  - Impact of Policy Changes:\n  - Future trends for Indian Study Abroad students\n  - Popular Higher Education Subject Choices for Indian Students Studying Abroad\n  - 1. Engineering and Technology (45%)\n- Quiz\n",
+  "md": "# Study Abroad- a detailed Perspective\n- Video/PDF\n  - Study in India or Abroad? Determining Factors in the Decision\n  - Student Mobility: Dynamics outside India\n  - Leading Destinations:\n  - Emerging Destinations:\n  - Regional Mobility Trends:\n  - Influencing Factors:\n  - Impact of Policy Changes:\n  - Future trends for Indian Study Abroad students\n  - Popular Higher Education Subject Choices for Indian Students Studying Abroad\n  - 1. Engineering and Technology (45%)\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_14",
+      "class": "sheet",
+      "title": "Study Abroad- a detailed Perspective",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_14",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Study Abroad- a detailed Perspective",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_14_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_14_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Study in India or Abroad? Determining Factors in the Decision",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Student Mobility: Dynamics outside India",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Leading Destinations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Emerging Destinations:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Regional Mobility Trends:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Influencing Factors:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Impact of Policy Changes:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Future trends for Indian Study Abroad students",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Popular Higher Education Subject Choices for Indian Students Studying Abroad",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_14_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Engineering and Technology (45%)",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_14_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

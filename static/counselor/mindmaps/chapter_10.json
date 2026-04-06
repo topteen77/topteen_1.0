@@ -1,0 +1,396 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "chapter",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 10,
+    "part_id": null
+  },
+  "markdown": "# Career Planning and Exploration\n## Subject combinations and Career guidance\n- Video/PDF\n  - Part 1- subject combinations and Career guidance\n  - 1. Medicine & Healthcare\n  - Core Subjects:\n  - Additional Courses:\n  - 2. Engineering\n  - Specializations:\n  - 3. Business & Management\n  - 4. Law\n- Quiz\n## Career Exploration and Awareness Programs\n- Video/PDF\n  - Objectives of Career Exploration and Awareness Programs\n  - Key Components of Effective Programs\n  - 1. Self-Assessment Tools\n  - 2. Career Information Sessions\n  - 3. Experiential Learning Opportunities\n  - 4. Mentorship Programs\n  - 5. Educational and Career Planning\n  - 6. Skill-Building Workshops\n- Quiz\n## Identifying and Exploring Potential Career Paths\n- Video/PDF\n  - Understanding the Student\n  - Exploring Career Options\n  - Encouraging Real-World Experience\n  - Guiding Educational Planning\n  - Setting and Achieving Goals\n  - Providing Ongoing Support and Guidance\n  - Promoting Flexibility and Openness\n  - Conclusion\n- Quiz\n## Navigating Career Transitions and Life Changes\n- Video/PDF\n  - Understanding Career Transitions\n  - Steps to Navigating Career Transitions\n  - 1. Acknowledging and Embracing Change\n  - 2. Reflecting on Values and Goals\n  - 3. Exploring New Opportunities\n  - 4. Developing a Plan\n  - 5. Building a Support System\n  - 6. Developing Resilience and Adaptability\n- Quiz\n",
+  "md": "# Career Planning and Exploration\n## Subject combinations and Career guidance\n- Video/PDF\n  - Part 1- subject combinations and Career guidance\n  - 1. Medicine & Healthcare\n  - Core Subjects:\n  - Additional Courses:\n  - 2. Engineering\n  - Specializations:\n  - 3. Business & Management\n  - 4. Law\n- Quiz\n## Career Exploration and Awareness Programs\n- Video/PDF\n  - Objectives of Career Exploration and Awareness Programs\n  - Key Components of Effective Programs\n  - 1. Self-Assessment Tools\n  - 2. Career Information Sessions\n  - 3. Experiential Learning Opportunities\n  - 4. Mentorship Programs\n  - 5. Educational and Career Planning\n  - 6. Skill-Building Workshops\n- Quiz\n## Identifying and Exploring Potential Career Paths\n- Video/PDF\n  - Understanding the Student\n  - Exploring Career Options\n  - Encouraging Real-World Experience\n  - Guiding Educational Planning\n  - Setting and Achieving Goals\n  - Providing Ongoing Support and Guidance\n  - Promoting Flexibility and Openness\n  - Conclusion\n- Quiz\n## Navigating Career Transitions and Life Changes\n- Video/PDF\n  - Understanding Career Transitions\n  - Steps to Navigating Career Transitions\n  - 1. Acknowledging and Embracing Change\n  - 2. Reflecting on Values and Goals\n  - 3. Exploring New Opportunities\n  - 4. Developing a Plan\n  - 5. Building a Support System\n  - 6. Developing Resilience and Adaptability\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_chapter_10",
+      "class": "sheet",
+      "title": "Career Planning and Exploration",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_chapter_10",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Career Planning and Exploration",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_ch_10_34_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Subject combinations and Career guidance",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_10_34_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_10_34_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Part 1- subject combinations and Career guidance",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Medicine & Healthcare",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Core Subjects:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Additional Courses:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Engineering",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Specializations:",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Business & Management",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_34_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Law",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_34_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_10_35_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Career Exploration and Awareness Programs",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_10_35_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_10_35_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Objectives of Career Exploration and Awareness Programs",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Key Components of Effective Programs",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Self-Assessment Tools",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Career Information Sessions",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Experiential Learning Opportunities",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Mentorship Programs",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Educational and Career Planning",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_35_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Skill-Building Workshops",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_35_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_10_36_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Identifying and Exploring Potential Career Paths",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_10_36_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_10_36_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Understanding the Student",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Exploring Career Options",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Encouraging Real-World Experience",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Guiding Educational Planning",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Setting and Achieving Goals",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Providing Ongoing Support and Guidance",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Promoting Flexibility and Openness",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_36_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Conclusion",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_36_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_ch_10_37_part",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Navigating Career Transitions and Life Changes",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_ch_10_37_vpdfroot",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Video/PDF",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_ch_10_37_vpdf_0",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Understanding Career Transitions",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Steps to Navigating Career Transitions",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Acknowledging and Embracing Change",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Reflecting on Values and Goals",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Exploring New Opportunities",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Developing a Plan",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_6",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Building a Support System",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_10_37_vpdf_7",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "6. Developing Resilience and Adaptability",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_ch_10_37_qz",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Quiz",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

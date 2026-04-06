@@ -1,0 +1,179 @@
+/* Classic horizontal mindmap (from doc-md/mindmap), scoped under .counselor-classic-mm */
+
+.counselor-classic-mm {
+  --cc-bg: #eef2f9;
+  --cc-line: #4f5f7a;
+  --cc-toolbar-shadow: rgba(23, 36, 66, 0.08);
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #1f2937;
+}
+
+.counselor-classic-mm *,
+.counselor-classic-mm *::before,
+.counselor-classic-mm *::after {
+  box-sizing: border-box;
+}
+
+/* When mounted with fillContainer (e.g. career detail card), stretch to parent height instead of fixed 280px */
+.counselor-classic-mm.counselor-classic-mm--fill-host {
+  height: 100%;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+
+.counselor-classic-mm.counselor-classic-mm--fill-host .cc-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+
+.counselor-classic-mm .cc-viewport {
+  height: 280px;
+  min-height: 280px;
+  overflow: auto;
+  cursor: grab;
+  border-radius: 0.25rem;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(90deg, rgba(123, 148, 199, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(123, 148, 199, 0.08) 1px, transparent 1px),
+    #edf1f8;
+  background-size: auto, 28px 28px, 28px 28px, auto;
+}
+
+.counselor-mindmap-fullscreen-page .counselor-mm-host .counselor-classic-mm .cc-viewport {
+  height: calc(100vh - 200px);
+  min-height: 360px;
+}
+
+.counselor-classic-mm .cc-canvas {
+  position: relative;
+  transform-origin: 0 0;
+}
+
+.counselor-classic-mm .cc-mindmap,
+.counselor-classic-mm .cc-links {
+  position: absolute;
+  inset: 0;
+}
+
+.counselor-classic-mm .cc-mindmap {
+  overflow: visible;
+}
+
+.counselor-classic-mm .cc-links {
+  pointer-events: none;
+}
+
+.counselor-classic-mm .cc-link {
+  fill: none;
+  stroke: var(--cc-line);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.92;
+}
+
+.counselor-classic-mm .cc-node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  padding: 12px 46px 12px 16px;
+  min-height: 56px;
+  min-width: 250px;
+  max-width: 360px;
+  /* Let +/- toggle sit outside the pill in vertical mode; clip text on the label only */
+  overflow: visible;
+  box-shadow: 0 8px 20px rgba(36, 54, 96, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.counselor-classic-mm .cc-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(36, 54, 96, 0.22);
+}
+
+.counselor-classic-mm .cc-node-label {
+  flex: 1;
+  min-width: 0;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.counselor-classic-mm .cc-viewport.cc-viewport--dragging {
+  cursor: grabbing;
+}
+
+.counselor-classic-mm .cc-node-toggle {
+  position: absolute;
+  z-index: 2;
+  flex-shrink: 0;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+}
+
+.counselor-classic-mm .cc-node-toggle:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.counselor-classic-mm .cc-node-toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.counselor-classic-mm .cc-node.cc-root {
+  background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%);
+  font-size: 13px;
+}
+
+.counselor-classic-mm .cc-node.cc-topic {
+  background: linear-gradient(135deg, #ff45b4 0%, #ff8ad5 100%);
+}
+
+.counselor-classic-mm .cc-node.cc-sub {
+  background: linear-gradient(135deg, #14a8ef 0%, #60d0ff 100%);
+}
+
+.counselor-classic-mm .cc-node.cc-leaf {
+  background: linear-gradient(135deg, #22d8b0 0%, #65efcc 100%);
+}
+
+/* Vertical layout: toggle below node (keep inside overflow-visible canvas; was clipped with overflow:hidden on .cc-node) */
+.counselor-classic-mm--vertical .cc-node-toggle {
+  right: auto;
+  left: 50%;
+  top: auto;
+  bottom: -14px;
+  transform: translateX(-50%);
+}
+
+.counselor-classic-mm--vertical .cc-node:hover {
+  transform: translateY(-1px);
+}

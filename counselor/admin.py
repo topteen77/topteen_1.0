@@ -14,6 +14,7 @@ from .models import (
     CounselorCourse,
     Chapter,
     Part,
+    CaseStudy,
     Quiz,
     Question,
     QuizAnswers,
@@ -58,7 +59,15 @@ class QuizInline(nested_admin.NestedStackedInline):
 class PartInline(nested_admin.NestedStackedInline):
     """Inline for parts within chapters"""
     model = Part
-    fields = ('title', 'description', 'video_url', 'video_vtt', 'pdf_url')
+    fields = (
+        'title',
+        'description',
+        'video_url',
+        'video_vtt',
+        'pdf_url',
+        'case_study_folder_url',
+        'suppress_pdf_notes_tab',
+    )
     extra = 1
     inlines = [QuizInline]
     verbose_name = "Part"
@@ -199,39 +208,73 @@ class ChapterAdmin(admin.ModelAdmin):
     search_fields = ('title', 'course__title')
     list_filter = ('course',)
     ordering = ('course', 'title')
-    
+
     fieldsets = (
         ('Chapter Information', {
-            'fields': ('course', 'title')
+            'fields': ('course', 'title'),
+            'description': (
+                'Chapter mindmap: add static/counselor/mindmaps/chapter_<this chapter id>.json when needed. '
+                'If the file exists and counselor course mindmaps are enabled (Core website settings), a mindmap icon appears on the chapter row in course learning.'
+            ),
         }),
     )
     
+    @admin.display(description='Parts')
     def get_part_count(self, obj):
-        return obj.parts.count()
-    get_part_count.short_description = 'Parts'
-    
+        n = obj.parts.count()
+        base = reverse('admin:counselor_part_changelist')
+        q = f'?chapter__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
+
+    @admin.display(description='Quizzes')
     def get_quiz_count(self, obj):
         total = 0
         for part in obj.parts.all():
             total += part.quizzes.count()
-        return total
-    get_quiz_count.short_description = 'Quizzes'
+        base = reverse('admin:counselor_quiz_changelist')
+        q = f'?quiz_part__chapter__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, total)
+
+class CaseStudyInline(admin.TabularInline):
+    model = CaseStudy
+    extra = 0
+    fields = ('title', 'pdf_url', 'sort_order')
+    ordering = ('sort_order', 'id')
+
 
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
     """Admin for Part model"""
-    list_display = ('title', 'chapter', 'get_course', 'has_video', 'has_pdf', 'get_quiz_count')
+    list_display = (
+        'title',
+        'get_chapter_link',
+        'get_course',
+        'has_video',
+        'has_pdf',
+        'get_case_study_count',
+        'get_quiz_count',
+    )
     search_fields = ('title', 'chapter__title', 'chapter__course__title')
     list_filter = ('chapter__course', 'chapter')
     ordering = ('chapter__course', 'chapter', 'title')
-    
+    inlines = [CaseStudyInline]
+
     fieldsets = (
         ('Part Information', {
             'fields': ('chapter', 'title', 'description')
         }),
         ('Media Files', {
             'fields': ('video_url', 'video_vtt', 'pdf_url'),
-            'description': 'Enter URLs for video, VTT subtitle file, and PDF resources.'
+            'description': 'Enter URLs for video, VTT subtitle file, and lesson PDF (optional).',
+        }),
+        ('Case studies', {
+            'fields': ('case_study_folder_url', 'suppress_pdf_notes_tab'),
+            'description': (
+                'Optional folder URL (project or S3 prefix) used when each Case Study row uses a relative filename only. '
+                'Add rows below. When case studies exist or “Suppress PDF notes tab” is checked, the PDF Notes tab can be hidden. '
+                'Part mindmap: add static/counselor/mindmaps/part_<this part id>.json with {"markdown": "# ..."}; the Mindmap tab '
+                'and sidebar icon appear when the file exists and counselor mindmaps are enabled in Core website settings.'
+            ),
         }),
     )
     
@@ -239,6 +282,15 @@ class PartAdmin(admin.ModelAdmin):
         return obj.chapter.course.title if obj.chapter and obj.chapter.course else '-'
     get_course.short_description = 'Course'
     get_course.admin_order_field = 'chapter__course__title'
+
+    @admin.display(description='Chapter', ordering='chapter__title')
+    def get_chapter_link(self, obj):
+        if not obj.chapter_id:
+            return '—'
+        base = reverse('admin:counselor_chapter_changelist')
+        url = f'{base}?id__exact={obj.chapter_id}'
+        title = obj.chapter.title
+        return format_html('<a href="{}">{}</a>', url, title)
     
     def has_video(self, obj):
         return bool(obj.video_url)
@@ -250,9 +302,43 @@ class PartAdmin(admin.ModelAdmin):
     has_pdf.boolean = True
     has_pdf.short_description = 'Has PDF'
     
+    @admin.display(description='Quizzes')
     def get_quiz_count(self, obj):
-        return obj.quizzes.count()
-    get_quiz_count.short_description = 'Quizzes'
+        n = obj.quizzes.count()
+        base = reverse('admin:counselor_quiz_changelist')
+        q = f'?quiz_part__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
+
+    @admin.display(description='Case studies')
+    def get_case_study_count(self, obj):
+        n = obj.case_studies.count()
+        if n == 0:
+            return '—'
+        url = reverse('admin:counselor_casestudy_changelist') + f'?part__id__exact={obj.pk}'
+        return format_html('<a href="{}">{}</a>', url, n)
+
+@admin.register(CaseStudy)
+class CaseStudyAdmin(admin.ModelAdmin):
+    list_display = ('title', 'part', 'get_chapter', 'sort_order', 'pdf_url_short')
+    list_filter = ('part__chapter__course', 'part__chapter')
+    search_fields = ('title', 'pdf_url', 'part__title')
+    ordering = ('part__chapter', 'part', 'sort_order', 'id')
+    raw_id_fields = ('part',)
+
+    fieldsets = (
+        (None, {'fields': ('part', 'title', 'pdf_url', 'sort_order')}),
+    )
+
+    @admin.display(description='Chapter')
+    def get_chapter(self, obj):
+        if obj.part and obj.part.chapter:
+            return obj.part.chapter.title
+        return '—'
+
+    @admin.display(description='PDF')
+    def pdf_url_short(self, obj):
+        s = (obj.pdf_url or '')[:80]
+        return s + ('…' if len(obj.pdf_url or '') > 80 else '')
 
 @admin.register(Quiz)
 class QuizAdmin(nested_admin.NestedModelAdmin):
@@ -275,14 +361,17 @@ class QuizAdmin(nested_admin.NestedModelAdmin):
         return '-'
     get_course.short_description = 'Course'
     
+    @admin.display(description='Questions')
     def get_question_count(self, obj):
-        return obj.questions.count()
-    get_question_count.short_description = 'Questions'
+        n = obj.questions.count()
+        base = reverse('admin:counselor_question_changelist')
+        q = f'?quiz__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
 
 @admin.register(Question)
 class QuestionAdmin(nested_admin.NestedModelAdmin):
     """Admin for Question model with nested answers"""
-    list_display = ('get_question_preview', 'quiz', 'get_course', 'get_answer_count', 'get_correct_answer')
+    list_display = ('get_question_preview', 'quiz', 'get_course', 'get_options_count', 'get_correct_answer')
     search_fields = ('question_text', 'quiz__title')
     list_filter = ('quiz__quiz_part__chapter__course',)
     ordering = ('quiz__quiz_part__chapter__course', 'quiz', 'id')
@@ -306,9 +395,12 @@ class QuestionAdmin(nested_admin.NestedModelAdmin):
         return '-'
     get_course.short_description = 'Course'
     
-    def get_answer_count(self, obj):
-        return obj.answers.count()
-    get_answer_count.short_description = 'Answers'
+    @admin.display(description='Options')
+    def get_options_count(self, obj):
+        n = obj.answers.count()
+        base = reverse('admin:counselor_quizanswers_changelist')
+        q = f'?question__id__exact={obj.pk}' if obj.pk else ''
+        return format_html('<a href="{}{}">{}</a>', base, q, n)
     
     def get_correct_answer(self, obj):
         correct = obj.answers.filter(is_correct=True).first()

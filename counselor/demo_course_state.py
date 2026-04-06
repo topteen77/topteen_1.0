@@ -9,6 +9,7 @@ import uuid
 from django.db import transaction
 
 from core import choices
+from counselor.course_completion import is_course_fully_completed as _is_course_fully_completed
 from counselor.models import (
     CounselorCertification,
     CounselorCourse,
@@ -28,50 +29,6 @@ class DemoCounselorCourseState:
         (FAILED, "Failed (videos done; quizzes incomplete — workable)"),
         (NOT_COMPLETED, "Not completed (payment only; no progress)"),
     )
-
-
-def _is_course_fully_completed(user):
-    """Same logic as counselor.views._is_course_fully_completed (avoid importing views)."""
-    course = CounselorCourse.objects.prefetch_related(
-        "chapters__parts__quizzes__questions__answers"
-    ).first()
-    if not course:
-        return False
-    all_parts = Part.objects.filter(chapter__course=course)
-    part_ids = list(all_parts.values_list("id", flat=True))
-    if not part_ids:
-        return False
-    video_progress = VideoProgress.objects.filter(
-        user=user,
-        video_id__in=[f"video-{part_id}" for part_id in part_ids],
-        completed=True,
-    )
-    completed_video_ids = {
-        int(progress.video_id.split("-")[1]) for progress in video_progress
-    }
-    try:
-        quiz_result = QuizResults.objects.get(user=user)
-        if isinstance(quiz_result.scores, str):
-            scores = json.loads(quiz_result.scores) if quiz_result.scores else []
-        elif isinstance(quiz_result.scores, list):
-            scores = quiz_result.scores
-        else:
-            scores = []
-    except QuizResults.DoesNotExist:
-        scores = []
-    parts_with_quizzes = {part.id for part in all_parts if part.quizzes.exists()}
-    completed_quiz_parts = set()
-    for score in scores:
-        part_id = score.get("part_id")
-        if part_id:
-            completed_quiz_parts.add(part_id)
-    for part_id in part_ids:
-        if part_id not in completed_video_ids:
-            return False
-        if part_id in parts_with_quizzes:
-            if part_id not in completed_quiz_parts:
-                return False
-    return True
 
 
 def _issue_certificate_if_eligible(user):

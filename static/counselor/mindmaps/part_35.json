@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 10,
+    "part_id": 35
+  },
+  "markdown": "# Career Exploration and Awareness Programs\n- Video/PDF\n  - Objectives of Career Exploration and Awareness Programs\n  - Key Components of Effective Programs\n  - 1. Self-Assessment Tools\n  - 2. Career Information Sessions\n  - 3. Experiential Learning Opportunities\n  - 4. Mentorship Programs\n  - 5. Educational and Career Planning\n  - 6. Skill-Building Workshops\n  - Benefits of Career Exploration and Awareness Programs\n  - Implementing Effective Programs\n- Quiz\n",
+  "md": "# Career Exploration and Awareness Programs\n- Video/PDF\n  - Objectives of Career Exploration and Awareness Programs\n  - Key Components of Effective Programs\n  - 1. Self-Assessment Tools\n  - 2. Career Information Sessions\n  - 3. Experiential Learning Opportunities\n  - 4. Mentorship Programs\n  - 5. Educational and Career Planning\n  - 6. Skill-Building Workshops\n  - Benefits of Career Exploration and Awareness Programs\n  - Implementing Effective Programs\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_35",
+      "class": "sheet",
+      "title": "Career Exploration and Awareness Programs",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_35",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Career Exploration and Awareness Programs",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_35_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_35_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Objectives of Career Exploration and Awareness Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Key Components of Effective Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Self-Assessment Tools",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Career Information Sessions",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Experiential Learning Opportunities",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Mentorship Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Educational and Career Planning",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Skill-Building Workshops",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Benefits of Career Exploration and Awareness Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_35_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Implementing Effective Programs",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_35_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

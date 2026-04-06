@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 13,
+    "part_id": 95
+  },
+  "markdown": "# Netherlands\n- Video/PDF\n  - 8. Australia\n  - 1. Admission Process\n  - 2. Standardized Tests\n  - 3. Other Requirements\n  - 4. Cost of Study\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - 5. Cost of Living\n  - 6. Top Ten Universities\n- Quiz\n",
+  "md": "# Netherlands\n- Video/PDF\n  - 8. Australia\n  - 1. Admission Process\n  - 2. Standardized Tests\n  - 3. Other Requirements\n  - 4. Cost of Study\n  - Tuition Fees:\n  - Undergraduate Programs:\n  - Graduate Programs:\n  - 5. Cost of Living\n  - 6. Top Ten Universities\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_95",
+      "class": "sheet",
+      "title": "Netherlands",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_95",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Netherlands",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_95_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_95_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "8. Australia",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "1. Admission Process",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Standardized Tests",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Other Requirements",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Cost of Study",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Tuition Fees:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Undergraduate Programs:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Graduate Programs:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "5. Cost of Living",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_95_vpdf_9",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "6. Top Ten Universities",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_95_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}

@@ -11,6 +11,7 @@ from core.models import EntranceTestPrepExam
 from users.models import User
 from core import choices
 from core.choices import MINDMAP_TYPE_CHOICES
+from counselor.mindmap_config import get_counselor_mindmap_map_type
 from django.db.models import Q, Count, Q as DjangoQ
 from functools import reduce
 from operator import or_
@@ -461,6 +462,7 @@ def globals(request):
         "enable_career_mindmap": _config_bool('ENABLE_CAREER_MINDMAP', True),
         "default_mindmap_type": str(Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6').strip() or '6',
         "mindmap_type_choices": MINDMAP_TYPE_CHOICES,
+        "counselor_mindmap_map_type": get_counselor_mindmap_map_type(),
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),

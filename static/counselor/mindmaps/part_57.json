@@ -1,0 +1,125 @@
+{
+  "format_version": 1,
+  "mindmap_type": "counselor_course",
+  "map_type": "tree",
+  "scope": "part",
+  "meta": {
+    "course_learning_url_segment": 14,
+    "note": "counselor_id in /counselor/course_learning/<segment>/",
+    "course_id": 1,
+    "chapter_id": 14,
+    "part_id": 57
+  },
+  "markdown": "# Online Career Assessments and Planning Software\n- Video/PDF\n  - Part 2- Online Career Assessments and Planning Software\n  - Key Features and Functionality:\n  - Career Assessments:\n  - Career Planning:\n  - Job Market Insights:\n  - Interactive Features:\n  - Integration and Accessibility:\n  - Benefits:\n  - Challenges:\n- Quiz\n",
+  "md": "# Online Career Assessments and Planning Software\n- Video/PDF\n  - Part 2- Online Career Assessments and Planning Software\n  - Key Features and Functionality:\n  - Career Assessments:\n  - Career Planning:\n  - Job Market Insights:\n  - Interactive Features:\n  - Integration and Accessibility:\n  - Benefits:\n  - Challenges:\n- Quiz\n",
+  "xmind": [
+    {
+      "id": "cc_sheet_part_57",
+      "class": "sheet",
+      "title": "Online Career Assessments and Planning Software",
+      "extensions": [],
+      "topicPositioning": "fixed",
+      "topicOverlapping": "overlap",
+      "coreVersion": "2.100.0",
+      "rootTopic": {
+        "id": "cc_root_part_57",
+        "structureClass": "org.xmind.ui.map.unbalanced",
+        "title": "Online Career Assessments and Planning Software",
+        "children": {
+          "attached": [
+            {
+              "id": "cc_part_57_vpdfroot",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Video/PDF",
+              "children": {
+                "attached": [
+                  {
+                    "id": "cc_part_57_vpdf_0",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Part 2- Online Career Assessments and Planning Software",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_1",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Key Features and Functionality:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Career Assessments:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Career Planning:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Job Market Insights:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_5",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Interactive Features:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_6",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Integration and Accessibility:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_7",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Benefits:",
+                    "children": {
+                      "attached": []
+                    }
+                  },
+                  {
+                    "id": "cc_part_57_vpdf_8",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "Challenges:",
+                    "children": {
+                      "attached": []
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cc_part_57_qz",
+              "structureClass": "org.xmind.ui.logic.right",
+              "title": "Quiz",
+              "children": {
+                "attached": []
+              }
+            }
+          ]
+        },
+        "class": "topic"
+      }
+    }
+  ]
+}
