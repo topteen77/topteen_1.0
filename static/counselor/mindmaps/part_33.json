@@ -10,8 +10,8 @@
     "chapter_id": 9,
     "part_id": 33
   },
-  "markdown": "# Motivational Interviewing Techniques\n- Video/PDF\n  - Part 4-  Motivational Interviewing Techniques\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
-  "md": "# Motivational Interviewing Techniques\n- Video/PDF\n  - Part 4-  Motivational Interviewing Techniques\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
+  "markdown": "# Motivational Interviewing Techniques\n- Video/PDF\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
+  "md": "# Motivational Interviewing Techniques\n- Video/PDF\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_33",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_33_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 4-  Motivational Interviewing Techniques",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_33_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

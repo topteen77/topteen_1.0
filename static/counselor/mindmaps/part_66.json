@@ -10,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 66
   },
-  "markdown": "# Networking Skills and Professional Relationship Building\n- Video/PDF\n  - Part 4- Networking Skills and Professional Relationship Building\n  - 1. Active Listening\n  - 2. Effective Communication\n  - 3. Networking Events\n  - 4. Professional Organizations\n  - 5. Social Media Presence\n  - 6. Offering Help\n  - 7. Personal Branding\n  - 8. Regular Follow-Up\n  - 9. Building Trust\n- Quiz\n",
-  "md": "# Networking Skills and Professional Relationship Building\n- Video/PDF\n  - Part 4- Networking Skills and Professional Relationship Building\n  - 1. Active Listening\n  - 2. Effective Communication\n  - 3. Networking Events\n  - 4. Professional Organizations\n  - 5. Social Media Presence\n  - 6. Offering Help\n  - 7. Personal Branding\n  - 8. Regular Follow-Up\n  - 9. Building Trust\n- Quiz\n",
+  "markdown": "# Networking Skills and Professional Relationship Building\n- Video/PDF\n  - 1. Active Listening\n  - 2. Effective Communication\n  - 3. Networking Events\n  - 4. Professional Organizations\n  - 5. Social Media Presence\n  - 6. Offering Help\n  - 7. Personal Branding\n  - 8. Regular Follow-Up\n  - 9. Building Trust\n- Quiz\n",
+  "md": "# Networking Skills and Professional Relationship Building\n- Video/PDF\n  - 1. Active Listening\n  - 2. Effective Communication\n  - 3. Networking Events\n  - 4. Professional Organizations\n  - 5. Social Media Presence\n  - 6. Offering Help\n  - 7. Personal Branding\n  - 8. Regular Follow-Up\n  - 9. Building Trust\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_66",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_66_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 4- Networking Skills and Professional Relationship Building",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_66_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

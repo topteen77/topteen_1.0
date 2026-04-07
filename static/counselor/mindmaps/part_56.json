@@ -10,8 +10,8 @@
     "chapter_id": 14,
     "part_id": 56
   },
-  "markdown": "# Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - Part 1- Utilizing Digital Tools for Career Counseling\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n  - Career Exploration Platforms:\n  - E-Learning and Skill Development:\n- Quiz\n",
-  "md": "# Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - Part 1- Utilizing Digital Tools for Career Counseling\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n  - Career Exploration Platforms:\n  - E-Learning and Skill Development:\n- Quiz\n",
+  "markdown": "# Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n  - Career Exploration Platforms:\n  - E-Learning and Skill Development:\n- Quiz\n",
+  "md": "# Utilizing Digital Tools for Career Counseling\n- Video/PDF\n  - The Impact of Digital Tools on Career Counseling\n  - Accessibility and Reach:\n  - Personalization and Customization:\n  - Data-Driven Insights:\n  - Enhanced Engagement:\n  - Forms of Digital Tools in Career Counseling\n  - Online Assessment Tools:\n  - Career Exploration Platforms:\n  - E-Learning and Skill Development:\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_56",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_56_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 1- Utilizing Digital Tools for Career Counseling",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_56_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

@@ -10,8 +10,8 @@
     "chapter_id": 9,
     "part_id": 32
   },
-  "markdown": "# Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Part 3- Cognitive-Behavior Approaches in Career Counseling\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n  - 8. Self-Efficacy Enhancement\n- Quiz\n",
-  "md": "# Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Part 3- Cognitive-Behavior Approaches in Career Counseling\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n  - 8. Self-Efficacy Enhancement\n- Quiz\n",
+  "markdown": "# Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n  - 8. Self-Efficacy Enhancement\n- Quiz\n",
+  "md": "# Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n  - 8. Self-Efficacy Enhancement\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_32",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_32_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 3- Cognitive-Behavior Approaches in Career Counseling",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_32_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

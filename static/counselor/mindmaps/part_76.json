@@ -10,8 +10,8 @@
     "chapter_id": 19,
     "part_id": 76
   },
-  "markdown": "# Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Part 3- Workshops and Group Discussions in Career Counseling\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n",
-  "md": "# Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Part 3- Workshops and Group Discussions in Career Counseling\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n",
+  "markdown": "# Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n",
+  "md": "# Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_76",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_76_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 3- Workshops and Group Discussions in Career Counseling",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_76_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",
