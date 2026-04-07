@@ -616,6 +616,16 @@
                     >
                     <i class='bx bx-list-ul align-middle me-1'></i>Curriculum
                   </a>
+                  {% if counselor_course_enrolled and counselor_course_notes_url %}
+                  <a href="{{ counselor_course_notes_url }}" class="btn fw-semibold counselor-btn-fixed text-center text-white"
+                    style="background:#6c5ce7;border-bottom:4px solid #5548c0;"
+                    title="View all notes saved during lessons">
+                    <i class='bx bx-notepad align-middle me-1'></i>Notes
+                    {% if counselor_course_notes_count and counselor_course_notes_count > 0 %}
+                    <span class="badge bg-light text-dark ms-1">{{ counselor_course_notes_count }}</span>
+                    {% endif %}
+                  </a>
+                  {% endif %}
                   {% if counselor_course_enrolled %}
                   <a href="{{ counselor_course_start_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
                     style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>

@@ -188,13 +188,15 @@
       display: none;
     }
     .learning-top-actions .btn-resume-course,
-    .learning-top-actions .purple-button {
+    .learning-top-actions .purple-button,
+    .learning-top-actions .course-notes-all-btn {
       padding: 0.4rem 0.55rem !important;
       font-size: 0.75rem;
       line-height: 1.1;
     }
     .learning-top-actions .purple-button i,
-    .learning-top-actions .btn-resume-course i {
+    .learning-top-actions .btn-resume-course i,
+    .learning-top-actions .course-notes-all-btn i {
       margin-right: 0 !important;
     }
     .mobile-course-toolbar {
@@ -634,6 +636,42 @@
     background: #5046e5;
     transition: width 0.3s;
   }
+  /* Bootstrap .btn default hover uses --bs-btn-hover-* (often white); override for Notes */
+  .course-notes-all-btn {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #6c5ce7;
+    --bs-btn-border-color: #6c5ce7;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #5b4cdb;
+    --bs-btn-hover-border-color: #5b4cdb;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #4a3cc9;
+    --bs-btn-active-border-color: #4a3cc9;
+    --bs-btn-focus-shadow-rgb: 108, 92, 231;
+    background: #6c5ce7;
+    color: #fff !important;
+    border: none;
+    border-bottom: 4px solid #5548c0;
+  }
+  .course-notes-all-btn:hover,
+  .course-notes-all-btn:focus-visible {
+    color: #fff !important;
+    background-color: #5b4cdb !important;
+    border-color: #5b4cdb !important;
+    border-bottom-color: #4a3cc9 !important;
+  }
+  .course-notes-all-btn:active {
+    color: #fff !important;
+    background-color: #4a3cc9 !important;
+  }
+  .course-notes-all-btn i,
+  .course-notes-all-btn .badge {
+    color: inherit;
+  }
+  .course-notes-all-btn .badge {
+    color: #1f2937 !important;
+    background-color: #f8fafc !important;
+  }
   .dashboard-btn {
     position: static;
     z-index: auto;
@@ -991,6 +1029,9 @@
               <i class='bx bx-play-circle me-1'></i>Resume
             </a>
             {% endif %}
+            <button type="button" class="btn custom-button py-2 course-notes-all-btn" data-bs-toggle="modal" data-bs-target="#courseNotesAllModal" title="All notes saved on lessons">
+              <i class='bx bx-notepad me-1'></i>Notes{% if course_notes_list and course_notes_list|length > 0 %} <span class="badge bg-light text-dark ms-1">{{ course_notes_list|length }}</span>{% endif %}
+            </button>
             <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="btn custom-button purple-button py-2">
               <i class='bx bx-home me-2'></i>My Dashboard
             </a>
@@ -998,6 +1039,43 @@
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="courseNotesAllModal" tabindex="-1" aria-labelledby="courseNotesAllModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fs-18" id="courseNotesAllModalLabel"><i class='bx bx-notepad me-2'></i>My course notes</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0 pt-2">
+            {% if course_notes_list and course_notes_list|length > 0 %}
+            <div class="list-group list-group-flush">
+              {% for n in course_notes_list %}
+              <a class="list-group-item list-group-item-action py-3 px-3" href="{{ url('counselor:course_learning', args=[counselor.id]) }}?type=part&amp;id={{ n.part_id }}&amp;tab=video{% if n.seek_seconds is not none %}&amp;seek_sec={{ n.seek_seconds }}{% endif %}">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <span class="fw-semibold text-dark">{% if n.chapter_title %}{{ n.chapter_title }}{% else %}Lesson{% endif %}</span>
+                  <small class="text-muted text-nowrap">{{ n.updated_at_display }}</small>
+                </div>
+                <div class="fs-13 text-muted text-truncate mt-1">{{ n.part_title }}</div>
+                {% if n.preview %}
+                <p class="mb-0 fs-12 mt-2 text-body-secondary">{{ n.preview }}</p>
+                {% endif %}
+                {% if n.seek_seconds is not none %}
+                <small class="text-primary d-inline-block mt-1"><i class='bx bx-play-circle'></i> Opens video at saved time</small>
+                {% endif %}
+              </a>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted">
+              <p class="mb-0">No notes yet. Open a lesson and use the <strong>Notes</strong> tab next to the video to save clips and text.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="mobile-course-toolbar d-lg-none">
       <button type="button" class="btn course-drawer-toggle" id="courseSidebarToggle" aria-controls="courseSidebarCol" aria-expanded="false">
         <i class='bx bx-menu fs-18'></i>Course Content
@@ -2100,7 +2178,13 @@
           return response.json();
         })
         .then(data => {
-          if (data.status === 'success' && data.progress && video.duration && data.progress > 0) {
+          var skipProgressForNoteSeek = false;
+          try {
+            var _p = new URLSearchParams(window.location.search);
+            var _sk = _p.get('seek_sec');
+            skipProgressForNoteSeek = (_sk !== null && _sk !== '' && !isNaN(parseInt(_sk, 10)));
+          } catch (e) {}
+          if (!skipProgressForNoteSeek && data.status === 'success' && data.progress && video.duration && data.progress > 0) {
             // Avoid restoring to the very end for completed parts (can instantly fire "ended" and reload-loop).
             if (!isPartCompleted && Number(data.progress) < 99.5) {
               video.currentTime = (Number(data.progress) / 100) * video.duration;
@@ -2109,6 +2193,8 @@
               video.currentTime = 0;
               lastTime = 0;
             }
+          } else if (skipProgressForNoteSeek) {
+            lastTime = 0;
           }
           if (!isPartCompleted) {
             var playAttempt = video.play();
@@ -2307,7 +2393,41 @@
     }
   }
 
+  /** Open notes modal from dashboard (?open_notes=1) and seek video from ?seek_sec= when landing on a part */
+  function applyNoteSeekFromUrlQuery() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var raw = params.get('seek_sec');
+      if (raw === null || raw === '') return;
+      var sec = parseInt(raw, 10);
+      if (isNaN(sec) || sec < 0) return;
+      seekLessonVideoToSeconds(sec);
+    } catch (e) {}
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('open_notes') === '1') {
+        var modalEl = document.getElementById('courseNotesAllModal');
+        if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+          } else {
+            new bootstrap.Modal(modalEl).show();
+          }
+          try {
+            var u = new URL(window.location.href);
+            u.searchParams.delete('open_notes');
+            window.history.replaceState({}, '', u.pathname + u.search + u.hash);
+          } catch (e) {}
+        }
+      }
+      if (params.get('seek_sec')) {
+        setTimeout(applyNoteSeekFromUrlQuery, 500);
+        setTimeout(applyNoteSeekFromUrlQuery, 1800);
+      }
+    } catch (e) {}
     var setStartBtn = document.getElementById('lessonNoteSetStartBtn');
     var setEndBtn = document.getElementById('lessonNoteSetEndBtn');
     var inpStart = document.getElementById('lessonNoteTimeStart');

@@ -43,6 +43,36 @@ from django.views.decorators.cache import never_cache
 User = get_user_model()
 
 
+def _note_timestamp_to_seconds(ts):
+    """
+    Parse clip time strings (M:SS, MM:SS, H:MM:SS, or bare seconds) to seconds.
+    Matches parseNoteTimeToSeconds() in course_learning.html.
+    """
+    if ts is None:
+        return None
+    s = str(ts).strip()
+    if not s:
+        return None
+    if ":" not in s:
+        try:
+            v = int(s, 10)
+            return max(0, v)
+        except ValueError:
+            return None
+    parts = s.split(":")
+    try:
+        nums = [int(p.strip(), 10) for p in parts]
+    except ValueError:
+        return None
+    if any(n < 0 for n in nums):
+        return None
+    if len(nums) == 2:
+        return nums[0] * 60 + nums[1]
+    if len(nums) == 3:
+        return nums[0] * 3600 + nums[1] * 60 + nums[2]
+    return None
+
+
 def _counselor_course_access_for_user(user, counselor_course):
     """
     True if this user should be treated as having access to the counselor course:
@@ -2075,6 +2105,16 @@ def CounselorDashboard(request, coun_id=None):
         'counselor_course_cta': counselor_course_cta,
         'counselor_course_progress_pct': counselor_course_progress_pct,
         'counselor_course_certificate_url': counselor_course_certificate_url,
+        'counselor_course_notes_count': (
+            Notes.objects.filter(user=request.user, part__chapter__course=counselor_course).count()
+            if counselor_course
+            else 0
+        ),
+        'counselor_course_notes_url': (
+            reverse("counselor:course_learning", args=[coun_id]) + "?open_notes=1"
+            if counselor_course
+            else ""
+        ),
     }
     
     # Only load student table data if explicitly requested (not on initial page load)
@@ -3630,6 +3670,30 @@ class CourseLearningView(View):
             else:
                 lesson_active_tab = "video"
 
+        course_notes_list = []
+        for n in (
+            Notes.objects.filter(user=user, part__chapter__course=course_with_related_data)
+            .select_related("part", "part__chapter")
+            .order_by("-updated_at")
+        ):
+            content = (n.content or "").strip()
+            preview = content[:160] + ("…" if len(content) > 160 else "")
+            course_notes_list.append(
+                {
+                    "id": n.id,
+                    "part_id": n.part_id,
+                    "part_title": (n.part.title or "")[:200],
+                    "chapter_title": (getattr(n.part.chapter, "title", None) or "")[:200],
+                    "preview": preview,
+                    "seek_seconds": _note_timestamp_to_seconds(n.video_timestamp),
+                    "updated_at_display": (
+                        timezone.localtime(n.updated_at).strftime("%b %d, %Y %H:%M")
+                        if n.updated_at
+                        else ""
+                    ),
+                }
+            )
+
         context = {
             'counselor': counselor,
             'course': course_with_related_data,
@@ -3671,6 +3735,7 @@ class CourseLearningView(View):
             'part_mindmap_by_id': part_mindmap_by_id,
             'course_mindmap_info': course_mindmap_info,
             'lesson_active_tab': lesson_active_tab,
+            'course_notes_list': course_notes_list,
         }
 
         return render(request, self.template_name, context)
