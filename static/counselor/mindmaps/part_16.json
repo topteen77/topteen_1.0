@@ -10,8 +10,8 @@
     "chapter_id": 5,
     "part_id": 16
   },
-  "markdown": "# Communication and Active Listening Techniques\n- Video/PDF\n  - This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…\n- Quiz\n",
-  "md": "# Communication and Active Listening Techniques\n- Video/PDF\n  - This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…\n- Quiz\n",
+  "markdown": "# Communication and Active Listening Techniques\n- Video/PDF\n  - 1. What is Communication?\n    - Process of exchanging information, ideas, and emotions\n    - Includes Verbal (spoken/written) + Non-verbal (body language, facial expressions, tone, gestures)\n    - Goal: Message is understood as intended\n    - Key Components:\n      - Sender → Message → Medium → Receiver → Feedback\n    - Cyclical process (Feedback is essential)\n  - 2. Barriers to Effective Communication\n    - Language differences\n    - Cultural misunderstandings\n    - Personal biases\n    - Solution: Awareness + Adaptability + Inclusive approach\n  - 3. Features of Effective Communication (in Career Counselling)\n    - 1. Create a Safe Space\n      - Physical: Private, comfortable, minimal distractions\n      - Emotional: Trust, empathy, non-judgmental acceptance\n      - Confidentiality assurance\n      - Sensitivity to cultural & individual differences\n    - 2. Establish Proper Context\n      - Explain purpose of session\n      - Discuss client's goals & expectations\n      - Address questions & concerns\n      - Create collaborative environment\n    - 3. Use Empathy\n      - Deeply understand & validate client's feelings\n      - Reflect emotions (e.g., \"It sounds like you're feeling overwhelmed…\")\n      - Use open-ended questions to explore deeper\n      - Builds therapeutic alliance & encourages honesty\n    - 4. Encourage Client Input\n      - Ask open-ended questions & invite feedback\n      - Collaborative strategy discussion\n      - Respect client's autonomy\n      - Maintain professional boundaries\n    - 5. Follow-up, Summarize & Reflect\n      - Follow-up: Review progress, assignments, challenges\n      - Summarize: Condense key points + clarify next steps\n      - Reflect: Evaluate session (counsellor + client)\n      - Helps adjust plan & maintain momentum\n  - 4. Active Listening Techniques (Prime Component in Career Counselling)\n    - 1. Reflective Listening\n      - Mirror back what client said + validate feelings\n    - 2. Open-Ended Questions\n      - Encourage detailed responses (cannot answer with Yes/No)\n    - 3. Paraphrasing\n      - Restate client's points in your own words for clarity\n    - 4. Non-Verbal Cues\n      - Nodding, eye contact, leaning forward\n      - Shows full engagement\n    - 5. Avoiding Interruptions\n      - Give client full space to express thoughts\n- Quiz\n",
+  "md": "# Communication and Active Listening Techniques\n- Video/PDF\n  - 1. What is Communication?\n    - Process of exchanging information, ideas, and emotions\n    - Includes Verbal (spoken/written) + Non-verbal (body language, facial expressions, tone, gestures)\n    - Goal: Message is understood as intended\n    - Key Components:\n      - Sender → Message → Medium → Receiver → Feedback\n    - Cyclical process (Feedback is essential)\n  - 2. Barriers to Effective Communication\n    - Language differences\n    - Cultural misunderstandings\n    - Personal biases\n    - Solution: Awareness + Adaptability + Inclusive approach\n  - 3. Features of Effective Communication (in Career Counselling)\n    - 1. Create a Safe Space\n      - Physical: Private, comfortable, minimal distractions\n      - Emotional: Trust, empathy, non-judgmental acceptance\n      - Confidentiality assurance\n      - Sensitivity to cultural & individual differences\n    - 2. Establish Proper Context\n      - Explain purpose of session\n      - Discuss client's goals & expectations\n      - Address questions & concerns\n      - Create collaborative environment\n    - 3. Use Empathy\n      - Deeply understand & validate client's feelings\n      - Reflect emotions (e.g., \"It sounds like you're feeling overwhelmed…\")\n      - Use open-ended questions to explore deeper\n      - Builds therapeutic alliance & encourages honesty\n    - 4. Encourage Client Input\n      - Ask open-ended questions & invite feedback\n      - Collaborative strategy discussion\n      - Respect client's autonomy\n      - Maintain professional boundaries\n    - 5. Follow-up, Summarize & Reflect\n      - Follow-up: Review progress, assignments, challenges\n      - Summarize: Condense key points + clarify next steps\n      - Reflect: Evaluate session (counsellor + client)\n      - Helps adjust plan & maintain momentum\n  - 4. Active Listening Techniques (Prime Component in Career Counselling)\n    - 1. Reflective Listening\n      - Mirror back what client said + validate feelings\n    - 2. Open-Ended Questions\n      - Encourage detailed responses (cannot answer with Yes/No)\n    - 3. Paraphrasing\n      - Restate client's points in your own words for clarity\n    - 4. Non-Verbal Cues\n      - Nodding, eye contact, leaning forward\n      - Shows full engagement\n    - 5. Avoiding Interruptions\n      - Give client full space to express thoughts\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_16",
@@ -34,11 +34,418 @@
               "children": {
                 "attached": [
                   {
-                    "id": "cc_part_16_vpdf_0",
+                    "id": "cc_part_16_s1",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "This video covers key communication and active listening techniques, highlighting their importance in building rapport, understanding client needs, and facil…",
+                    "title": "1. What is Communication?",
                     "children": {
-                      "attached": []
+                      "attached": [
+                        {
+                          "id": "cc_part_16_a1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Process of exchanging information, ideas, and emotions",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_a2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Includes Verbal (spoken/written) + Non-verbal (body language, facial expressions, tone, gestures)",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_a3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Goal: Message is understood as intended",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_a4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Key Components:",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_a4k",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Sender → Message → Medium → Receiver → Feedback",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_a5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cyclical process (Feedback is essential)",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_part_16_s2",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "2. Barriers to Effective Communication",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_part_16_b1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Language differences",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_b2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Cultural misunderstandings",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_b3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Personal biases",
+                          "children": {
+                            "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_b4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Solution: Awareness + Adaptability + Inclusive approach",
+                          "children": {
+                            "attached": []
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_part_16_s3",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "3. Features of Effective Communication (in Career Counselling)",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_part_16_c1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Create a Safe Space",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_c11",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Physical: Private, comfortable, minimal distractions",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c12",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Emotional: Trust, empathy, non-judgmental acceptance",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c13",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Confidentiality assurance",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c14",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Sensitivity to cultural & individual differences",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_c2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Establish Proper Context",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_c21",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Explain purpose of session",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c22",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Discuss client's goals & expectations",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c23",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Address questions & concerns",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c24",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Create collaborative environment",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_c3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Use Empathy",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_c31",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Deeply understand & validate client's feelings",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c32",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Reflect emotions (e.g., \"It sounds like you're feeling overwhelmed…\")",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c33",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Use open-ended questions to explore deeper",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c34",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Builds therapeutic alliance & encourages honesty",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_c4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Encourage Client Input",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_c41",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Ask open-ended questions & invite feedback",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c42",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Collaborative strategy discussion",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c43",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Respect client's autonomy",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c44",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Maintain professional boundaries",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_c5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Follow-up, Summarize & Reflect",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_c51",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Follow-up: Review progress, assignments, challenges",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c52",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Summarize: Condense key points + clarify next steps",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c53",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Reflect: Evaluate session (counsellor + client)",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_c54",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Helps adjust plan & maintain momentum",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "cc_part_16_s4",
+                    "structureClass": "org.xmind.ui.logic.right",
+                    "title": "4. Active Listening Techniques (Prime Component in Career Counselling)",
+                    "children": {
+                      "attached": [
+                        {
+                          "id": "cc_part_16_d1",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "1. Reflective Listening",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_d11",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Mirror back what client said + validate feelings",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_d2",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "2. Open-Ended Questions",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_d21",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Encourage detailed responses (cannot answer with Yes/No)",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_d3",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "3. Paraphrasing",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_d31",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Restate client's points in your own words for clarity",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_d4",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "4. Non-Verbal Cues",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_d41",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Nodding, eye contact, leaning forward",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_part_16_d42",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Shows full engagement",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_part_16_d5",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "5. Avoiding Interruptions",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_part_16_d51",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Give client full space to express thoughts",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
