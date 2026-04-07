@@ -10,8 +10,8 @@
     "chapter_id": 9,
     "part_id": 30
   },
-  "markdown": "# Individual Counseling Techniques\n- Video/PDF\n  - Part 1- Individual Counseling Techniques\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n",
-  "md": "# Individual Counseling Techniques\n- Video/PDF\n  - Part 1- Individual Counseling Techniques\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n",
+  "markdown": "# Individual Counseling Techniques\n- Video/PDF\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n",
+  "md": "# Individual Counseling Techniques\n- Video/PDF\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_30",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_30_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 1- Individual Counseling Techniques",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_30_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

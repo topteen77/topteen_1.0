@@ -10,8 +10,8 @@
     "chapter_id": 9,
     "part_id": null
   },
-  "markdown": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Video/PDF\n  - Part 1- Individual Counseling Techniques\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n## Group Counseling Techniques\n- Video/PDF\n  - Part 2- Group Counseling Techniques\n  - How group counseling is conducted in a career counseling setup-\n- Quiz\n## Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Part 3- Cognitive-Behavior Approaches in Career Counseling\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n- Quiz\n## Motivational Interviewing Techniques\n- Video/PDF\n  - Part 4-  Motivational Interviewing Techniques\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
-  "md": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Video/PDF\n  - Part 1- Individual Counseling Techniques\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n## Group Counseling Techniques\n- Video/PDF\n  - Part 2- Group Counseling Techniques\n  - How group counseling is conducted in a career counseling setup-\n- Quiz\n## Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Part 3- Cognitive-Behavior Approaches in Career Counseling\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n- Quiz\n## Motivational Interviewing Techniques\n- Video/PDF\n  - Part 4-  Motivational Interviewing Techniques\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
+  "markdown": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Video/PDF\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n## Group Counseling Techniques\n- Video/PDF\n  - How group counseling is conducted in a career counseling setup-\n- Quiz\n## Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n- Quiz\n## Motivational Interviewing Techniques\n- Video/PDF\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
+  "md": "# Counseling Techniques and Approaches\n## Individual Counseling Techniques\n- Video/PDF\n  - How individual counseling is conducted in a career counseling setup-\n- Quiz\n## Group Counseling Techniques\n- Video/PDF\n  - How group counseling is conducted in a career counseling setup-\n- Quiz\n## Cognitive-Behavioral Approaches in Career Counseling\n- Video/PDF\n  - Various Approaches of CBT used in Career Counseling-\n  - 1. Cognitive Restructuring\n  - 2. Behavioral Experiments\n  - 3. Goal Setting\n  - 4. Problem-Solving Skills\n  - 5. Self-Monitoring\n  - 7. Coping Strategies\n- Quiz\n## Motivational Interviewing Techniques\n- Video/PDF\n  - Core Principles of Motivational Interviewing:\n  - Motivational Techniques that are used for Career Counseling\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_9",
@@ -39,14 +39,6 @@
                     "title": "Video/PDF",
                     "children": {
                       "attached": [
-                        {
-                          "id": "cc_ch_9_30_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Part 1- Individual Counseling Techniques",
-                          "children": {
-                            "attached": []
-                          }
-                        },
                         {
                           "id": "cc_ch_9_30_vpdf_1",
                           "structureClass": "org.xmind.ui.logic.right",
@@ -82,14 +74,6 @@
                     "children": {
                       "attached": [
                         {
-                          "id": "cc_ch_9_31_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Part 2- Group Counseling Techniques",
-                          "children": {
-                            "attached": []
-                          }
-                        },
-                        {
                           "id": "cc_ch_9_31_vpdf_1",
                           "structureClass": "org.xmind.ui.logic.right",
                           "title": "How group counseling is conducted in a career counseling setup-",
@@ -123,14 +107,6 @@
                     "title": "Video/PDF",
                     "children": {
                       "attached": [
-                        {
-                          "id": "cc_ch_9_32_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Part 3- Cognitive-Behavior Approaches in Career Counseling",
-                          "children": {
-                            "attached": []
-                          }
-                        },
                         {
                           "id": "cc_ch_9_32_vpdf_1",
                           "structureClass": "org.xmind.ui.logic.right",
@@ -213,14 +189,6 @@
                     "title": "Video/PDF",
                     "children": {
                       "attached": [
-                        {
-                          "id": "cc_ch_9_33_vpdf_0",
-                          "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Part 4-  Motivational Interviewing Techniques",
-                          "children": {
-                            "attached": []
-                          }
-                        },
                         {
                           "id": "cc_ch_9_33_vpdf_1",
                           "structureClass": "org.xmind.ui.logic.right",

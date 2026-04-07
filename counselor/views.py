@@ -93,8 +93,8 @@ def _counselor_course_access_for_user(user, counselor_course):
 def _counselor_course_progress_percentage(user, counselor_course):
     """
     Overall course progress (0–100), matching CourseLearningView:
-    completed parts / total parts, where a part counts only when its video is
-    completed and any quizzes for that part are completed.
+    completed parts / total parts. Parts with no video URL count as done for the
+    video step (case studies / PDF-only shells). Quizzes still required when present.
     """
     if not user or not counselor_course:
         return 0
@@ -151,7 +151,10 @@ def _counselor_course_progress_percentage(user, counselor_course):
     completed_parts = 0
     for chapter in chapters_list:
         for part in chapter.parts.all():
-            if not video_progress.get(part.id, False):
+            # Match CourseLearningView: no video URL → nothing to watch (case studies / PDF shell).
+            has_video = bool((getattr(part, "video_url", None) or "").strip())
+            video_done = video_progress.get(part.id, False) or not has_video
+            if not video_done:
                 continue
             if part.quizzes.exists():
                 if not quiz_completion_status.get(part.id, False):
@@ -2027,6 +2030,7 @@ def CounselorDashboard(request, coun_id=None):
             counselor_course_cta = "Completed"
 
     counselor_course_progress_pct = 0
+    counselor_course_certificate_url = None
     if counselor_course:
         _progress_user = None
         if (
@@ -2042,6 +2046,12 @@ def CounselorDashboard(request, coun_id=None):
             counselor_course_progress_pct = _counselor_course_progress_percentage(
                 _progress_user, counselor_course
             )
+            if counselor_course_enrolled and _is_course_fully_completed(_progress_user):
+                _check_and_issue_certificate(_progress_user, coun_id)
+                if CounselorCertification.objects.filter(user=_progress_user).exists():
+                    counselor_course_certificate_url = reverse(
+                        "counselor:view_certificate", args=[coun_id]
+                    )
 
     # Initialize lightweight context for initial page load
     context = {
@@ -2064,6 +2074,7 @@ def CounselorDashboard(request, coun_id=None):
         'show_counselor_course_on_dashboard': show_counselor_course_on_dashboard,
         'counselor_course_cta': counselor_course_cta,
         'counselor_course_progress_pct': counselor_course_progress_pct,
+        'counselor_course_certificate_url': counselor_course_certificate_url,
     }
     
     # Only load student table data if explicitly requested (not on initial page load)
@@ -3458,11 +3469,15 @@ class CourseLearningView(View):
         
         progress_percentage = int((completed_parts / total_parts * 100)) if total_parts > 0 else 0
         
-        # Get certification status - only show if course is fully completed
-        certification = None
+        # Certificate: create CounselorCertification on first load after completion (not only on quiz POST).
         is_course_complete = _is_course_fully_completed(user)
         if is_course_complete:
-            certification = CounselorCertification.objects.filter(user=user).first()
+            _check_and_issue_certificate(user, counselor.id)
+        certification = (
+            CounselorCertification.objects.filter(user=user).first()
+            if is_course_complete
+            else None
+        )
         
         # Prepare quiz questions for one-by-one display
         quiz_questions = []
@@ -3632,6 +3647,7 @@ class CourseLearningView(View):
             'completed_quiz_ids': completed_quiz_ids,
             'progress_percentage': progress_percentage,
             'certification': certification,
+            'is_course_complete': is_course_complete,
             'chapter_locked_status': chapter_locked_status,  # Locked status for chapters
             'part_locked_status': part_locked_status,  # Locked status for parts
             'part_notes': part_notes,

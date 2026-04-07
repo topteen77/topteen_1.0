@@ -371,11 +371,28 @@
       width: auto;
       flex-direction: row;
       flex-wrap: nowrap;
-      max-width: min(100%, 320px);
+      max-width: none;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: flex-end;
     }
     .counselor-course-actions .counselor-btn-fixed {
-      min-width: 132px;
+      flex: 0 1 auto;
+      min-width: 0;
+      white-space: nowrap;
     }
+  }
+
+  /* Certificate: match sibling buttons — no extra elevation, same visual weight */
+  .counselor-dashboard .counselor-course-actions .counselor-cert-btn {
+    box-shadow: none !important;
+    text-decoration: none;
+  }
+  .counselor-dashboard .counselor-course-actions .counselor-cert-btn:hover,
+  .counselor-dashboard .counselor-course-actions .counselor-cert-btn:focus-visible {
+    color: #fff !important;
+    filter: brightness(1.05);
+    box-shadow: none !important;
   }
 
   /* Match counselor course learning page progress (course_learning.html) */
@@ -602,6 +619,14 @@
                   {% if counselor_course_enrolled %}
                   <a href="{{ counselor_course_start_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
                     style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>
+                  {% if counselor_course_certificate_url %}
+                  <a href="{{ counselor_course_certificate_url }}" class="btn fw-semibold counselor-btn-fixed text-center counselor-cert-btn"
+                    style="background:#2e9d5c;border-bottom:4px solid #247a48;color:#fff;"
+                    title="View and download certificate"
+                    target="_blank" rel="noopener noreferrer">
+                    <i class="bx bx-award me-1" aria-hidden="true"></i>Certificate
+                  </a>
+                  {% endif %}
                   {% else %}
                   <a href="{{ counselor_course_enroll_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
                     style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>

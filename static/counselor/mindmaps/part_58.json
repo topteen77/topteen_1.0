@@ -10,8 +10,8 @@
     "chapter_id": 14,
     "part_id": 58
   },
-  "markdown": "# Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - Part 3- Virtual Counseling and Remote Career Guidance\n  - Technology Platforms\n  - Features of Virtual Counseling\n  - Benefits of Virtual Counseling\n  - Challenges and Considerations\n  - Popular Platforms\n  - Application of Virtual Counseling in Education and Employment\n  - Future Trends\n- Quiz\n",
-  "md": "# Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - Part 3- Virtual Counseling and Remote Career Guidance\n  - Technology Platforms\n  - Features of Virtual Counseling\n  - Benefits of Virtual Counseling\n  - Challenges and Considerations\n  - Popular Platforms\n  - Application of Virtual Counseling in Education and Employment\n  - Future Trends\n- Quiz\n",
+  "markdown": "# Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - Technology Platforms\n  - Features of Virtual Counseling\n  - Benefits of Virtual Counseling\n  - Challenges and Considerations\n  - Popular Platforms\n  - Application of Virtual Counseling in Education and Employment\n  - Future Trends\n- Quiz\n",
+  "md": "# Virtual Counseling and Remote Career Guidance\n- Video/PDF\n  - Technology Platforms\n  - Features of Virtual Counseling\n  - Benefits of Virtual Counseling\n  - Challenges and Considerations\n  - Popular Platforms\n  - Application of Virtual Counseling in Education and Employment\n  - Future Trends\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_58",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_58_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 3- Virtual Counseling and Remote Career Guidance",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_58_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

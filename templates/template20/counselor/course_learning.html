@@ -982,9 +982,15 @@
           </div>
 
           <div class="learning-top-actions dashboard-btn">
+            {% if is_course_complete %}
+            <span class="btn btn-resume-course py-2" style="cursor:default;pointer-events:none;opacity:0.95;" title="Course completed">
+              <i class='bx bx-check-circle me-1'></i>Completed
+            </span>
+            {% else %}
             <a href="{{ url('counselor:course_learning', args=[counselor.id]) }}" class="btn btn-resume-course py-2" title="Open your next incomplete lesson">
               <i class='bx bx-play-circle me-1'></i>Resume
             </a>
+            {% endif %}
             <a href="{{ url('counselor:CounselorDashboardView', args=[counselor.id]) }}" class="btn custom-button purple-button py-2">
               <i class='bx bx-home me-2'></i>My Dashboard
             </a>

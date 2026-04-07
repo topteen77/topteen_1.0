@@ -10,8 +10,8 @@
     "chapter_id": 18,
     "part_id": null
   },
-  "markdown": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- Video/PDF\n  - This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …\n- Quiz\n",
-  "md": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- Video/PDF\n  - This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …\n- Quiz\n",
+  "markdown": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- Video/PDF\n  - Handling Fluttery Situations\n  - Stressful Situations for Students\n    - Sources of Stress\n    - Impacts of Stress\n    - Importance of Early Recognition and Support\n  - Guide for Managing Stressful Situations Effectively\n    - Understand the Source of Stress\n    - Develop Time Management Skills\n    - Practice Effective Study Techniques\n    - Adopt Healthy Lifestyle Habits\n    - Develop Coping Strategies\n    - Seek Support\n    - Maintain a Balanced Life\n    - Reflect and Adjust\n  - Overcoming Obstacles and Setbacks in Career Journey\n    - Role of Obstacles and Setbacks\n  - Structured Approach as a Career Counselor\n    - Acknowledge Their Feelings\n    - Encourage a Growth Mindset\n    - Assess the Situation\n    - Set Realistic Goals\n    - Develop a Concrete Plan\n    - Offer Resources\n    - Encourage Networking\n    - Promote Self-Care and Stress Management\n    - Share Success Stories\n    - Reflect and Adjust\n    - Provide Ongoing Support\n- Quiz\n",
+  "md": "# Dealing with Situations\n## Stressful situation handling & Overcoming Obstacles and setbacks in your career journey\n- Video/PDF\n  - Handling Fluttery Situations\n  - Stressful Situations for Students\n    - Sources of Stress\n    - Impacts of Stress\n    - Importance of Early Recognition and Support\n  - Guide for Managing Stressful Situations Effectively\n    - Understand the Source of Stress\n    - Develop Time Management Skills\n    - Practice Effective Study Techniques\n    - Adopt Healthy Lifestyle Habits\n    - Develop Coping Strategies\n    - Seek Support\n    - Maintain a Balanced Life\n    - Reflect and Adjust\n  - Overcoming Obstacles and Setbacks in Career Journey\n    - Role of Obstacles and Setbacks\n  - Structured Approach as a Career Counselor\n    - Acknowledge Their Feelings\n    - Encourage a Growth Mindset\n    - Assess the Situation\n    - Set Realistic Goals\n    - Develop a Concrete Plan\n    - Offer Resources\n    - Encourage Networking\n    - Promote Self-Care and Stress Management\n    - Share Success Stories\n    - Reflect and Adjust\n    - Provide Ongoing Support\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_18",
@@ -40,11 +40,231 @@
                     "children": {
                       "attached": [
                         {
-                          "id": "cc_ch_18_73_vpdf_0",
+                          "id": "cc_ch_18_73_v0",
                           "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video covers handling stressful situations and overcoming obstacles in your career journey, offering strategies to manage challenges, build resilience, …",
+                          "title": "Handling Fluttery Situations",
                           "children": {
                             "attached": []
+                          }
+                        },
+                        {
+                          "id": "cc_ch_18_73_ss",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Stressful Situations for Students",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_ch_18_73_ss1",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Sources of Stress",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_ss2",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Impacts of Stress",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_ss3",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Importance of Early Recognition and Support",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_ch_18_73_g",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Guide for Managing Stressful Situations Effectively",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_ch_18_73_g1",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Understand the Source of Stress",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g2",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Develop Time Management Skills",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g3",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Practice Effective Study Techniques",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g4",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Adopt Healthy Lifestyle Habits",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g5",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Develop Coping Strategies",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g6",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Seek Support",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g7",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Maintain a Balanced Life",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_g8",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Reflect and Adjust",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_ch_18_73_o",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Overcoming Obstacles and Setbacks in Career Journey",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_ch_18_73_o1",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Role of Obstacles and Setbacks",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "id": "cc_ch_18_73_st",
+                          "structureClass": "org.xmind.ui.logic.right",
+                          "title": "Structured Approach as a Career Counselor",
+                          "children": {
+                            "attached": [
+                              {
+                                "id": "cc_ch_18_73_st1",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Acknowledge Their Feelings",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st2",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Encourage a Growth Mindset",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st3",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Assess the Situation",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st4",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Set Realistic Goals",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st5",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Develop a Concrete Plan",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st6",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Offer Resources",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st7",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Encourage Networking",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st8",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Promote Self-Care and Stress Management",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st9",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Share Success Stories",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st10",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Reflect and Adjust",
+                                "children": {
+                                  "attached": []
+                                }
+                              },
+                              {
+                                "id": "cc_ch_18_73_st11",
+                                "structureClass": "org.xmind.ui.logic.right",
+                                "title": "Provide Ongoing Support",
+                                "children": {
+                                  "attached": []
+                                }
+                              }
+                            ]
                           }
                         }
                       ]

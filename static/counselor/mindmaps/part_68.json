@@ -10,8 +10,8 @@
     "chapter_id": 16,
     "part_id": 68
   },
-  "markdown": "# Identifying Key Competences\n- Video/PDF\n  - Part 6- Identifying Key Competencies\n  - 1. Conduct Comprehensive Assessments\n  - 2. Review Academic and Extracurricular Records\n  - 3. Conduct One-on-One Interviews\n  - 4. Utilize Self-Assessment Tools\n  - 5. Gather Feedback from Teachers and Mentors\n  - 6. Analyze Results and Identify Patterns\n  - 7. Develop Action Plans\n- Quiz\n",
-  "md": "# Identifying Key Competences\n- Video/PDF\n  - Part 6- Identifying Key Competencies\n  - 1. Conduct Comprehensive Assessments\n  - 2. Review Academic and Extracurricular Records\n  - 3. Conduct One-on-One Interviews\n  - 4. Utilize Self-Assessment Tools\n  - 5. Gather Feedback from Teachers and Mentors\n  - 6. Analyze Results and Identify Patterns\n  - 7. Develop Action Plans\n- Quiz\n",
+  "markdown": "# Identifying Key Competences\n- Video/PDF\n  - 1. Conduct Comprehensive Assessments\n  - 2. Review Academic and Extracurricular Records\n  - 3. Conduct One-on-One Interviews\n  - 4. Utilize Self-Assessment Tools\n  - 5. Gather Feedback from Teachers and Mentors\n  - 6. Analyze Results and Identify Patterns\n  - 7. Develop Action Plans\n- Quiz\n",
+  "md": "# Identifying Key Competences\n- Video/PDF\n  - 1. Conduct Comprehensive Assessments\n  - 2. Review Academic and Extracurricular Records\n  - 3. Conduct One-on-One Interviews\n  - 4. Utilize Self-Assessment Tools\n  - 5. Gather Feedback from Teachers and Mentors\n  - 6. Analyze Results and Identify Patterns\n  - 7. Develop Action Plans\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_68",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_68_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 6- Identifying Key Competencies",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_68_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

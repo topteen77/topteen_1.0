@@ -10,8 +10,8 @@
     "chapter_id": 11,
     "part_id": 40
   },
-  "markdown": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - Part 2- Overseas  Vocational Education Landscape\n  - Canada\n  - Vocational Education:\n  - Career Options:\n  - United Kingdom (UK)\n  - United States (USA)\n  - Australia\n  - Germany\n  - Singapore\n  - Hong Kong\n- Quiz\n",
-  "md": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - Part 2- Overseas  Vocational Education Landscape\n  - Canada\n  - Vocational Education:\n  - Career Options:\n  - United Kingdom (UK)\n  - United States (USA)\n  - Australia\n  - Germany\n  - Singapore\n  - Hong Kong\n- Quiz\n",
+  "markdown": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - Canada\n  - Vocational Education:\n  - Career Options:\n  - United Kingdom (UK)\n  - United States (USA)\n  - Australia\n  - Germany\n  - Singapore\n  - Hong Kong\n- Quiz\n",
+  "md": "# Overview of the Overseas Vocational Education Landscape (country  specific)\n- Video/PDF\n  - Canada\n  - Vocational Education:\n  - Career Options:\n  - United Kingdom (UK)\n  - United States (USA)\n  - Australia\n  - Germany\n  - Singapore\n  - Hong Kong\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_part_40",
@@ -33,14 +33,6 @@
               "title": "Video/PDF",
               "children": {
                 "attached": [
-                  {
-                    "id": "cc_part_40_vpdf_0",
-                    "structureClass": "org.xmind.ui.logic.right",
-                    "title": "Part 2- Overseas  Vocational Education Landscape",
-                    "children": {
-                      "attached": []
-                    }
-                  },
                   {
                     "id": "cc_part_40_vpdf_1",
                     "structureClass": "org.xmind.ui.logic.right",

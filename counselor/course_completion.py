@@ -76,8 +76,11 @@ def is_course_fully_completed(user) -> bool:
     completed_quiz_parts = set()
     for score in scores:
         part_id = score.get("part_id")
-        if part_id:
-            completed_quiz_parts.add(part_id)
+        if part_id is not None and part_id != "":
+            try:
+                completed_quiz_parts.add(int(part_id))
+            except (TypeError, ValueError):
+                completed_quiz_parts.add(part_id)
 
     for p in contributing:
         pid = p.id
