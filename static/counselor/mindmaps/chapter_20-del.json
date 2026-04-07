@@ -10,8 +10,8 @@
     "chapter_id": 20,
     "part_id": null
   },
-  "markdown": "# Advanced Practical Training\n## Practical Training\n- video\n  - This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n## Case Studies\n- PDF\n  - 100 pdf\n",
-  "md": "# Advanced Practical Training\n## Practical Training\n- video\n  - This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…\n## Case Studies\n- PDF\n  - 100 pdf\n",
+  "markdown": "# Advanced Practical Training\n## Practical Training\n- video\n  - This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios.\n## Case Studies\n- PDF\n  - 100 Case Studies\n",
+  "md": "# Advanced Practical Training\n## Practical Training\n- video\n  - This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios.\n## Case Studies\n- PDF\n  - 100 Case Studies\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_20",
@@ -42,7 +42,7 @@
                         {
                           "id": "cc_ch_20_88_vpdf_0",
                           "structureClass": "org.xmind.ui.logic.right",
-                          "title": "This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios and cas…",
+                          "title": "This video focuses on practical training in career counseling, highlighting the importance of gaining hands-on experience through real-life scenarios.",
                           "children": {
                             "attached": []
                           }
@@ -68,7 +68,7 @@
                         {
                           "id": "cc_ch_20_99_vpdf_0",
                           "structureClass": "org.xmind.ui.logic.right",
-                          "title": "100 pdf",
+                          "title": "100 Case Studies",
                           "children": {
                             "attached": []
                           }

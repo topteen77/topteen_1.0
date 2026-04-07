@@ -10,8 +10,8 @@
     "chapter_id": 20,
     "part_id": 99
   },
-  "markdown": "# Case Studies\n- PDF\n  - 100 pdf\n",
-  "md": "# Case Studies\n- PDF\n  - 100 pdf\n",
+  "markdown": "# Case Studies\n- PDF\n  - 100 Case Studies\n",
+  "md": "# Case Studies\n- PDF\n  - 100 Case Studies\n",
   "xmind": [
     {
       "id": "cc_sheet_part_99",
@@ -36,7 +36,7 @@
                   {
                     "id": "cc_part_99_vpdf_0",
                     "structureClass": "org.xmind.ui.logic.right",
-                    "title": "100 pdf",
+                    "title": "100 Case Studies",
                     "children": {
                       "attached": []
                     }
