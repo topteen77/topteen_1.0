@@ -43,6 +43,7 @@ from .forms import UserRegisterForm
 from users.models import UserProfile
 from django.middleware.csrf import get_token
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 
 from django.contrib.auth import get_user_model
 from institute.decorators import (
@@ -1808,30 +1809,35 @@ def submit_clicks(request):
             question5_clicks = len(question5_clicks)
             question6_clicks = len(question6_clicks)
 
-            # save to the database
+            # save to the database — keep Results + TestCompletion in one transaction so we never
+            # persist test2 Results without test2_complete (which caused "Resume Test" after submit).
             user = request.user
-            test2_result, created = Results.objects.update_or_create(
-                    user = user,
-                    test_paper='test2',
-                    defaults={
-                        'scores': {
-                            'Realistic': question1_clicks,
-                            'Investigative': question2_clicks,
-                            'Artistic': question3_clicks,
-                            'Social': question4_clicks,
-                            'Enterprising': question5_clicks,
-                            'Conventional': question6_clicks,
+            with transaction.atomic():
+                test2_result, created = Results.objects.update_or_create(
+                        user = user,
+                        test_paper='test2',
+                        defaults={
+                            'scores': {
+                                'Realistic': question1_clicks,
+                                'Investigative': question2_clicks,
+                                'Artistic': question3_clicks,
+                                'Social': question4_clicks,
+                                'Enterprising': question5_clicks,
+                                'Conventional': question6_clicks,
+                            }
                         }
-                    }
-                )
-            test2_result.save()
-            test_completion= TestCompletion.objects.get(user=request.user)
-            test_completion.test2_complete = True
-            test_completion.save()          
+                    )
+                test2_result.save()
+                test_completion, _ = TestCompletion.objects.get_or_create(user=user)
+                test_completion.test2_complete = True
+                test_completion.save()          
             
             return JsonResponse({'message': 'Success'}, status=200)
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            logger.exception("submit_clicks failed for user_id=%s", getattr(request.user, "id", None))
+            return JsonResponse({'message': str(e)}, status=500)
     return JsonResponse({'message': 'Invalid request'}, status=400)
     
 @login_required(login_url=reverse_lazy('users:login'))
@@ -1894,6 +1900,15 @@ def app_submit(request):
     elif not test_completion.test3_complete and all_subtests_complete:
         test_completion.test3_complete = True
         test_completion.save()
+
+    # Career Interest: if Results exist (only created on successful submit_clicks) but flag was not saved, fix UI
+    try:
+        test2_row = Results.objects.filter(user=request.user, test_paper='test2').first()
+        if test2_row and not test_completion.test2_complete:
+            test_completion.test2_complete = True
+            test_completion.save()
+    except Exception:
+        logger.exception("app_submit: could not reconcile test2_complete for user_id=%s", request.user.id)
     
     # Check if tests have been started but not completed
     test_started_status = {

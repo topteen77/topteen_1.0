@@ -29,7 +29,7 @@ document.onclick = function(e){
   const parent = e.target.closest(".beforeType")
   
   if( !parent && !e.target.classList.contains("searchBox")){
-      beforeType.classList.add("hidden");
+      beforeType?.classList.add("hidden");
   }
 }
 
@@ -119,17 +119,19 @@ function SearchCollegeListHtml(parameter,is_mobile=false){
   }
 
 const searchinput=document.querySelector('.searchinput')
-searchinput.addEventListener('keyup',function(e){
+if (searchinput) {
+  searchinput.addEventListener('keyup',function(e){
     const value = e.target.value;
     console.log(value)
     if (value.length>0){
-        beforeType.classList.add('hidden')
+        beforeType?.classList.add('hidden')
     }
     else if(value.length===0){
-        beforeType.classList.remove('hidden')
+        beforeType?.classList.remove('hidden')
     }
 
     mobileSearch(false)
-    
 
-})
+
+  })
+}

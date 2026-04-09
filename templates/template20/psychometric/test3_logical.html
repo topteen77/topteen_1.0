@@ -863,6 +863,8 @@ body.logged-in.test-view-page {
       return true;
     }
 
+    window.validateForm = validateForm;
+
     // Image modal functionality
     $('.modal-trigger').on('click', function () {
       const imgSrc = $(this).attr('src');

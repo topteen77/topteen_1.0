@@ -647,6 +647,9 @@ body.logged-in.test-view-page {
       return true;
     }
 
+    // Inline onclick="return validateForm()" on the submit button resolves on window; without this, ReferenceError in browsers/Cypress.
+    window.validateForm = validateForm;
+
     function doAjaxSubmit() {
       $('#loader').show();
       const formData = $('#multiStepForm').serialize();

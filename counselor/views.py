@@ -2811,6 +2811,23 @@ def case_study_pdf(request, counselor_id, case_id):
     return resp
 
 
+def _dedupe_video_progress(user, video_id):
+    """
+    Keep a single VideoProgress row per (user, video_id). Duplicate rows break
+    update_or_create (MultipleObjectsReturned → 500).
+    """
+    qs = VideoProgress.objects.filter(user=user, video_id=video_id).order_by(
+        "-completed", "-progress", "-id"
+    )
+    rows = list(qs)
+    if len(rows) <= 1:
+        return rows[0] if rows else None
+    keep = rows[0]
+    for r in rows[1:]:
+        r.delete()
+    return keep
+
+
 @csrf_exempt
 def update_progress(request):
     if request.method == 'POST':
@@ -2831,6 +2848,19 @@ def update_progress(request):
 
             if not isinstance(progress, (int, float)) or progress < 0 or progress > 100:
                 return JsonResponse({'status': 'fail', 'error': 'Progress must be a number between 0 and 100'}, status=400)
+
+            # JS sends video.duration as float; model uses PositiveIntegerField
+            if duration is not None:
+                try:
+                    duration = int(round(float(duration)))
+                    if duration < 0:
+                        duration = None
+                except (TypeError, ValueError):
+                    duration = None
+
+            progress = int(round(float(progress)))
+
+            _dedupe_video_progress(user, video_id)
 
             # If already completed, do not update status/progress again (prevents churn + UI bugs when revisiting completed parts)
             existing = VideoProgress.objects.filter(user=user, video_id=video_id).first()

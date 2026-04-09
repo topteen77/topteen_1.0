@@ -169,6 +169,33 @@ python scripts/verify_class12_st
 ** testing script end ***
 
 
+--- Cypress E2E: student psychometric (Class 10 + Class 12) ---
+# Config file: cypress/cypress.student.psychometric.config.js
+# Specs:
+#   cypress/e2e/student_psychometric_class10.cy.js  -> Stream Sorter (/psychometrictest/stream-sorter/)
+#   cypress/e2e/student_psychometric_class12.cy.js -> Career Direction (/psychometrictest/career-direction/)
+# Each spec (when still on the landing page) scrolls to #payment-section and clicks the blue "Book Now" CTA (template: form#paymentForm button.cta-button).
+# Class 10 flow (student_psychometric_class10.cy.js): Institute-linked students skip the payment API and go to /psychometric/home/ (see psychometric_test.html handlePaymentSubmit + app.views.test_buttons). Then: Personality card → t1_intro → test1 → answer all questions → POST /psychometric/submit/. Helper: cy.psychometricAnswerTest1AllQuestions in cypress/support/student_psychometric.js. Set env psychometricSkipTest1Full=true to stop after the dashboard (fast smoke). Full Test 1 can take several minutes (one question at a time).
+# Class 12 spec: landing + Book Now + optional asserts (Career Direction); payment/redirect may differ (e.g. post_matric:tests when paid).
+# Support (login helper): cypress/support/student_psychometric.js  (cy.studentLoginPassword, cy.psychometricAnswerTest1AllQuestions)
+#
+# Default credentials (override via Cypress env or CLI):
+#   studentClass10Email   = demo_student_1@topteen.demo
+#   studentClass12Email   = demo_student_2@topteen.demo
+#   studentDefaultPassword = 12345   (must match Django DEFAULT_PASSWORD for those users; see topteens/settings.py)
+#
+# Prerequisites: Django running at baseUrl in the config (default http://localhost:8002). Demo users must exist and password must match studentDefaultPassword (or set passwords with manage.py set_student_password / admin).
+#
+# Run (from project root):
+#   npx cypress run --config-file cypress/cypress.student.psychometric.config.js
+#   npx cypress open --config-file cypress/cypress.student.psychometric.config.js
+#
+# Override without editing the config file:
+#   CYPRESS_studentDefaultPassword=yourpass CYPRESS_studentClass10Email=demo_student_1@topteen.demo npx cypress run --config-file cypress/cypress.student.psychometric.config.js
+#
+# Note: Counselor course smoke uses a separate config: cypress/cypress.config.js (counselor_course_smoke.cy.js).
+
+
 === Career Battle (React game) ===
 # Career Battle is integrated with the main site: same header/footer and same login session.
 # - /career-battle/  -> Django page with site header and footer; game loads in iframe from /career-battle/app/
@@ -696,5 +723,45 @@ Django Admin → user_analytics → User Activity:
   • Filter "URL type": "Local (localhost, 127.0.0.1, test)" / "Production / other (topteen.in)" / "No URL stored (old records)".
   • Filter to e.g. Local, select rows, Action → Delete to clean test data. Or set ENABLE_USER_ANALYTICS_TRACKING=False, then clean, then set back to True.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
+
+===================================================
+--- Cypress E2E (counselor course smoke) ---
+===================================================
+
+End-to-end tests live under cypress/e2e/. The main spec is counselor_course_smoke.cy.js: demo counselor login, first-visit Resume (or Start Learning), loop through lesson video (seek-to-end) and quizzes, then course results and certificate when the course completes.
+
+Prerequisites
+  • Node.js and npm (for npx cypress).
+  • For local runs: Django dev server running (default base URL http://localhost:8002).
+  • A demo counselor account in the DB (is_demo_account) so demo login cards appear on /user/login/.
+
+Which config file Cypress uses
+  • From the project root, the default config is cypress.config.js (repo root). It sets baseUrl to http://localhost:8002 unless you override with the environment variable CYPRESS_BASE_URL.
+  • An alternate config is cypress/cypress.config.js (single spec, optional baseUrl such as http://demo.topteen.in). Use it explicitly:
+      npx cypress open --config-file cypress/cypress.config.js
+      npx cypress run --config-file cypress/cypress.config.js
+
+Run tests (default root config, local app on :8002)
+
+  1. Start Django, e.g. python manage.py runserver 8002
+  2. Open Cypress UI:
+      cd /home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0
+      npx cypress open --config-file cypress/cypress.config.js
+
+      cd /home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0
+      npx cypress open --config-file cypress/cypress.student.psychometric.config.js
+       npx cypress open
+  3. Or headless:
+       npx cypress run --spec cypress/e2e/counselor_course_smoke.cy.js
+
+Point Cypress at another base URL (staging, different port)
+  CYPRESS_BASE_URL="http://127.0.0.1:8000" npx cypress open
+
+Notes
+  • Timer and timeout values for the smoke spec are constants at the top of cypress/e2e/counselor_course_smoke.cy.js; increase them if CI or network is slow.
+  • Video completion depends on POST /counselor/update_progress/ succeeding; a 500 from that endpoint will prevent data-is-completed from updating.
+  • Cypress screenshots on failure: cypress/screenshots/ (see .gitignore). Root config sets redirectionLimit: 100 because course_learning reloads after video ended.
+
+---------- END CYPRESS E2E ----------
 
 .
