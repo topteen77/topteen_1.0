@@ -37,27 +37,13 @@ Interactive mind map for {{ career.name }}
           </div>
         </div>
         <div class="mt-2 pt-2 border-top border-secondary">
-          <small class="text-muted d-block mb-1">Or pick a layout:</small>
-          <div class="btn-group" role="group" style="flex-wrap: wrap;">
-            <a href="?variation=1" class="btn btn-sm {% if variation == '1' or variation == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">Compact</a>
-            <a href="?variation=2" class="btn btn-sm {% if variation == '2' or variation == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}">Minimal</a>
-            <a href="?variation=3" class="btn btn-sm {% if variation == '3' or variation == 3 %}btn-primary{% else %}btn-outline-primary{% endif %}">Fullscreen</a>
-            <a href="?variation=4" class="btn btn-sm {% if variation == '4' or variation == 4 %}btn-primary{% else %}btn-outline-primary{% endif %}">Sidebar</a>
-            <a href="?variation=5" class="btn btn-sm {% if variation == '5' or variation == 5 %}btn-primary{% else %}btn-outline-primary{% endif %}">Bottom Controls</a>
+          <small class="text-muted d-block mb-1">Quick layouts (same as site default list):</small>
+          <div class="btn-group flex-wrap" role="group">
             <a href="?variation=6" class="btn btn-sm {% if variation == '6' or variation == 6 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">✨ Radial</a>
-            <a href="?variation=7" class="btn btn-sm {% if variation == '7' or variation == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">🎴 Cards</a>
-            <a href="?variation=8" class="btn btn-sm {% if variation == '8' or variation == 8 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">🌊 Flow</a>
-            <a href="?variation=9" class="btn btn-sm {% if variation == '9' or variation == 9 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">🕸️ Network</a>
-            <a href="?variation=10" class="btn btn-sm {% if variation == '10' or variation == 10 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none;">⏱️ Timeline</a>
-            <div class="w-100 mt-2"></div>
-            <small class="text-muted w-100">Vertical Versions:</small>
-            <a href="?variation=11" class="btn btn-sm {% if variation == '11' or variation == 11 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">⬇️ Vertical Radial</a>
-            <a href="?variation=12" class="btn btn-sm {% if variation == '12' or variation == 12 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none;">⬇️ Vertical Cards</a>
-            <a href="?variation=13" class="btn btn-sm {% if variation == '13' or variation == 13 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none;">⬇️ Vertical Flow</a>
-            <a href="?variation=14" class="btn btn-sm {% if variation == '14' or variation == 14 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;">⬇️ Vertical Network</a>
-            <a href="?variation=15" class="btn btn-sm {% if variation == '15' or variation == 15 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none;">⬇️ Vertical Timeline</a>
-            <a href="?variation=16" class="btn btn-sm {% if variation == '16' or variation == 16 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); color: white; border: none;">Classic (horizontal)</a>
-            <a href="?variation=17" class="btn btn-sm {% if variation == '17' or variation == 17 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #0a5a9a 0%, #2a9fd8 100%); color: white; border: none;">Classic (vertical)</a>
+            <a href="?variation=16" class="btn btn-sm {% if variation == '16' or variation == 16 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); color: white; border: none;">Classic pills (H)</a>
+            <a href="?variation=17" class="btn btn-sm {% if variation == '17' or variation == 17 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #0a5a9a 0%, #2a9fd8 100%); color: white; border: none;">Classic pills (V)</a>
+            <a href="?variation=18" class="btn btn-sm {% if variation == '18' or variation == 18 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #059669 0%, #34d399 100%); color: white; border: none;">Career tree (H)</a>
+            <a href="?variation=19" class="btn btn-sm {% if variation == '19' or variation == 19 %}btn-primary{% else %}btn-outline-primary{% endif %}" style="background: linear-gradient(135deg, #047857 0%, #10b981 100%); color: white; border: none;">Career tree (V)</a>
           </div>
         </div>
         <script>
@@ -584,13 +570,14 @@ Interactive mind map for {{ career.name }}
   </div>
   {% endif %}
 
-  <!-- Variations 16–17: Classic mindmap horizontal vs vertical (same engine as counselor course) -->
-  {% if variation == '16' or variation == 16 or variation == '17' or variation == 17 %}
+  <!-- Variations 16–19: Classic pills (16–17) or colored career tree (18–19, counselor part style) -->
+  {% if variation == '16' or variation == 16 or variation == '17' or variation == 17 or variation == '18' or variation == 18 or variation == '19' or variation == 19 %}
   <div class="container mb-4">
     <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(10, 129, 207, 0.12);">
       <div class="card-header text-white" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); padding: 15px 25px;">
-        <h5 class="mb-0">{% if variation == '17' or variation == 17 %}Classic mindmap (vertical) —{% else %}Classic mindmap (horizontal) —{% endif %} {{ career.name }}</h5>
-        <small style="opacity: 0.95;">{% if variation == '17' or variation == 17 %}Top-down levels with pills &amp; curved links{% else %}Left-to-right tree with pills &amp; curved links{% endif %} — same template family as counselor course mindmaps</small>
+        {% set _v = variation|string %}
+        <h5 class="mb-0">{% if _v in ['17','19'] %}{% if _v == '19' %}Career tree (vertical){% else %}Classic mindmap (vertical){% endif %}{% else %}{% if _v == '18' %}Career tree (horizontal){% else %}Classic mindmap (horizontal){% endif %}{% endif %} — {{ career.name }}</h5>
+        <small style="opacity: 0.95;">{% if _v in ['18','19'] %}Colored branches, hub circles, underlined leaves — same look as counselor course classic JSON mindmap.{% elif _v == '17' %}Pill nodes, top-down — compact classic.{% else %}Pill nodes, left-to-right — compact classic.{% endif %}</small>
       </div>
       <div class="card-body p-3">
         <div class="d-flex justify-content-end gap-2 mb-2 flex-wrap">
@@ -617,7 +604,7 @@ Interactive mind map for {{ career.name }}
   <script src="/static/jsmind/jsmind.js"></script>
   <script src="/static/jsmind/jsmind.draggable.js"></script>
   <script src="{{ static('js/radial-mindmap.js') }}"></script>
-  {% if variation == '16' or variation == 16 or variation == '17' or variation == 17 %}
+  {% if variation == '16' or variation == 16 or variation == '17' or variation == 17 or variation == '18' or variation == 18 or variation == '19' or variation == 19 %}
   <script src="{{ static('js/career-mindmap-classic-embed.js') }}"></script>
   {% endif %}
 
@@ -1791,7 +1778,10 @@ Interactive mind map for {{ career.name }}
       } else {
           loadTimelineMindmap();
       }
-  } else if (variation === '16' || variation === '17') {
+  } else if (
+      variation === '16' || variation === 16 || variation === '17' || variation === 17 ||
+      variation === '18' || variation === 18 || variation === '19' || variation === 19
+  ) {
       function initCareerClassicVariation() {
           var host = document.getElementById('career-page-classic-mindmap-host');
           var loadEl = document.getElementById('loading-career-classic');
@@ -1802,14 +1792,17 @@ Interactive mind map for {{ career.name }}
           var cssHref = '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}';
           var jsSrc = '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}';
           var apiUrl = '/careers/api/career/{{ career.slug }}-{{ career.id }}-mindmap/json/';
-          var layout = variation === '17' ? 'vertical' : 'horizontal';
+          var v = parseInt(String(variation), 10);
+          var layout = (v === 17 || v === 19) ? 'vertical' : 'horizontal';
+          var visualStyle = (v === 18 || v === 19) ? 'ribbon' : 'pill';
           CareerMindmapClassic.initFromApi({
               apiUrl: apiUrl,
               hostElement: host,
               loadingEl: loadEl,
               cssHref: cssHref,
               jsSrc: jsSrc,
-              layout: layout
+              layout: layout,
+              visualStyle: visualStyle
           }).then(function (api) {
               window.__careerPageClassicApi = api;
           }).catch(function (err) {

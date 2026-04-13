@@ -2151,13 +2151,19 @@ body.ai-fullscreen-active {
   // Parent->Student context for bookmarking (when parent is suggesting for a specific student)
   window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
 
-  /** Core Configuration DEFAULT_MINDMAP_TYPE — 16 = classic horizontal, 17 = classic vertical (career modal/accordion/chat). */
+  /** Core Configuration DEFAULT_MINDMAP_TYPE — 16/18 horizontal, 17/19 vertical; 18/19 = colored tree (counselor-style). */
   var SITE_DEFAULT_MINDMAP_TYPE = '{{ default_mindmap_type|default("6", true)|escapejs }}'.trim() || '6';
   function careerClassicMindmapEmbedLayout() {
     var s = String(SITE_DEFAULT_MINDMAP_TYPE);
-    if (s === '17') return 'vertical';
-    if (s === '16') return 'horizontal';
+    if (s === '17' || s === '19') return 'vertical';
+    if (s === '16' || s === '18') return 'horizontal';
     return '';
+  }
+  function careerClassicMindmapVisualStyle() {
+    var s = String(SITE_DEFAULT_MINDMAP_TYPE);
+    if (s === '16' || s === '17') return 'pill';
+    if (s === '18' || s === '19') return 'ribbon';
+    return 'ribbon';
   }
   function careerSiteUsesClassicMindmapEmbed() {
     return careerClassicMindmapEmbedLayout() !== '';
@@ -3064,7 +3070,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var embedLayout = careerClassicMindmapEmbedLayout();
     if (embedLayout) {
-      if (titleEl) titleEl.textContent = (embedLayout === 'vertical' ? 'Classic mind map (vertical) — ' : 'Classic mind map — ') + (career.name || '');
+      if (titleEl) {
+        var isRibbon = careerClassicMindmapVisualStyle() === 'ribbon';
+        if (isRibbon) {
+          titleEl.textContent = (embedLayout === 'vertical' ? 'Career tree (vertical) — ' : 'Career tree (horizontal) — ') + (career.name || '');
+        } else {
+          titleEl.textContent = (embedLayout === 'vertical' ? 'Classic mind map (vertical) — ' : 'Classic mind map — ') + (career.name || '');
+        }
+      }
       if (!classicHostEl || typeof CareerMindmapClassic === 'undefined') {
         loadingEl.style.display = 'none';
         return;
@@ -3077,7 +3090,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingEl: loadingEl,
         cssHref: cssHref,
         jsSrc: jsSrc,
-        layout: embedLayout
+        layout: embedLayout,
+        visualStyle: careerClassicMindmapVisualStyle()
       }).then(function (api) {
         careerMindmapModalClassicApi = api;
         if (controlsEl) controlsEl.style.display = 'flex';
@@ -5188,7 +5202,8 @@ document.addEventListener('DOMContentLoaded', function() {
           loadingEl: loadEl,
           cssHref: '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}',
           jsSrc: '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}',
-          layout: chatClassicLayout
+          layout: chatClassicLayout,
+          visualStyle: careerClassicMindmapVisualStyle()
         }).then(function () {
           if (onComplete) setTimeout(onComplete, 200);
         }).catch(function () {
@@ -5661,15 +5676,25 @@ document.addEventListener('DOMContentLoaded', function() {
       const svgId = 'radial-svg-' + career.id;
       const controlsId = 'radial-controls-' + career.id;
       const classicSlotId = 'career-classic-acc-' + career.id;
+      const mmRibbon = (function () {
+        var s = String(SITE_DEFAULT_MINDMAP_TYPE || '');
+        return s === '18' || s === '19';
+      })();
       const mmHeaderTitle = careerSiteUsesClassicMindmapEmbed()
-        ? (careerClassicMindmapEmbedLayout() === 'vertical'
-            ? ('Classic mind map (vertical) — ' + escapeHtml(career.name))
-            : ('Classic mind map — ' + escapeHtml(career.name)))
+        ? (mmRibbon
+            ? (careerClassicMindmapEmbedLayout() === 'vertical'
+                ? ('Career tree (vertical) — ' + escapeHtml(career.name))
+                : ('Career tree (horizontal) — ' + escapeHtml(career.name)))
+            : (careerClassicMindmapEmbedLayout() === 'vertical'
+                ? ('Classic mind map (vertical) — ' + escapeHtml(career.name))
+                : ('Classic mind map — ' + escapeHtml(career.name))))
         : ('✨ Radial Mind Map - ' + escapeHtml(career.name));
       const mmHeaderSub = careerSiteUsesClassicMindmapEmbed()
-        ? (careerClassicMindmapEmbedLayout() === 'vertical'
-            ? 'Top-down pills &amp; curved links'
-            : 'Horizontal pills &amp; curved links')
+        ? (mmRibbon
+            ? 'Colored branches &amp; underlines (counselor course style)'
+            : (careerClassicMindmapEmbedLayout() === 'vertical'
+                ? 'Pill nodes — use admin type 19 for colored vertical tree'
+                : 'Pill nodes — use admin type 18 for colored horizontal tree'))
         : 'Nodes arranged in concentric circles';
       const classicMindmapToolbarExtras = careerSiteUsesClassicMindmapEmbed()
         ? '<button type="button" class="btn btn-sm btn-light shadow" onclick="window.radialMindmapExpandAll(' + career.id + ')" title="Expand all branches" aria-label="Expand all"><i class=\'bx bx-expand-vertical\'></i></button>' +
@@ -5737,7 +5762,8 @@ document.addEventListener('DOMContentLoaded', function() {
               loadingEl: loadEl,
               cssHref: '{{ static("counselor/classic-mindmap/classic-mindmap.css") }}',
               jsSrc: '{{ static("counselor/classic-mindmap/classic-mindmap.js") }}',
-              layout: careerClassicMindmapEmbedLayout()
+              layout: careerClassicMindmapEmbedLayout(),
+              visualStyle: careerClassicMindmapVisualStyle()
             }).then(function (api) {
               window['careerClassicAccApi_' + career.id] = api;
               var ctl = document.getElementById(controlsId);
