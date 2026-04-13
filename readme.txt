@@ -747,12 +747,23 @@ Run tests (default root config, local app on :8002)
   2. Open Cypress UI:
       cd /home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0
       npx cypress open --config-file cypress/cypress.config.js
+      
+      # Faster local run when things are stable
+      CYPRESS_counselorCourseFast=true npx cypress run --config-file cypress/cypress.config.js
+
+      # Cap steps (e.g. smoke that may not finish the whole course)
+      CYPRESS_counselorCourseMaxSteps=25 npx cypress run --config-file cypress/cypress.config.js
+
 
       cd /home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/topteen_1.0
       npx cypress open --config-file cypress/cypress.student.psychometric.config.js
        npx cypress open
   3. Or headless:
        npx cypress run --spec cypress/e2e/counselor_course_smoke.cy.js
+
+#Override the target
+CYPRESS_BASE_URL="https://your-live-domain.com" npx cypress run --config-file cypress/cypress.config.js
+CYPRESS_BASE_URL="https://your-live-domain.com" npx cypress open --config-file cypress/cypress.student.psychometric.config.js
 
 Point Cypress at another base URL (staging, different port)
   CYPRESS_BASE_URL="http://127.0.0.1:8000" npx cypress open
@@ -761,6 +772,8 @@ Notes
   • Timer and timeout values for the smoke spec are constants at the top of cypress/e2e/counselor_course_smoke.cy.js; increase them if CI or network is slow.
   • Video completion depends on POST /counselor/update_progress/ succeeding; a 500 from that endpoint will prevent data-is-completed from updating.
   • Cypress screenshots on failure: cypress/screenshots/ (see .gitignore). Root config sets redirectionLimit: 100 because course_learning reloads after video ended.
+
+
 
 ---------- END CYPRESS E2E ----------
 
