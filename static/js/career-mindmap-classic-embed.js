@@ -144,6 +144,7 @@
               layout: layout,
               fillContainer: opts.fillContainer !== false,
               initialExpandDepth: 1,
+              visualStyle: opts.visualStyle === 'ribbon' ? 'ribbon' : 'pill',
             });
           });
       })

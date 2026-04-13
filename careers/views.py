@@ -487,9 +487,12 @@ class CareerDetail(TemplateView):
             from core.models import Configuration
 
             ctx['career_mindmap_api_available'] = career.has_career_mindmap_api_data()
-            dmt = (Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6').strip() or '6'
-            ctx['career_detail_use_classic_mindmap'] = dmt in ('16', '17')
-            ctx['career_detail_classic_layout'] = 'vertical' if dmt == '17' else 'horizontal'
+            dmt = choices.coerce_default_mindmap_type(
+                Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+            )
+            ctx['career_detail_use_classic_mindmap'] = dmt in ('16', '17', '18', '19')
+            ctx['career_detail_classic_layout'] = 'vertical' if dmt in ('17', '19') else 'horizontal'
+            ctx['career_detail_classic_visual_ribbon'] = dmt in ('18', '19')
             # Backward-compatible name used by some templates / logic
             ctx['has_xmind_file'] = ctx['career_mindmap_api_available']
             ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
@@ -500,6 +503,7 @@ class CareerDetail(TemplateView):
             ctx['career_mindmap_api_available'] = False
             ctx['career_detail_use_classic_mindmap'] = False
             ctx['career_detail_classic_layout'] = 'horizontal'
+            ctx['career_detail_classic_visual_ribbon'] = False
             ctx['has_xmind_file'] = False
             ctx['xmind_file_path'] = None
             ctx['career_clusters'] = []
@@ -2037,9 +2041,8 @@ def career_video_caption_vtt(request, video_id):
 
 class CareerMindmapView(TemplateView):
     """
-    Dedicated mindmap page with multiple layout variations for testing.
-    Access via: /careers/mindmap/<slug>-<career_id>/?variation=1
-    Variations: 1=compact, 2=minimal, 3=fullscreen, 4=sidebar, 5=bottom-controls
+    Dedicated career mindmap page. Supported ?variation= values: 6 (radial), 16–19 (classic / career-tree API).
+    Legacy variation numbers are coerced to the site default or radial (6).
     """
     template_name = "template20/career_mindmap.html"
     
@@ -2057,33 +2060,20 @@ class CareerMindmapView(TemplateView):
         
         # Get variation from query parameter; default from Core website settings (DEFAULT_MINDMAP_TYPE)
         from core.models import Configuration
-        from core.choices import MINDMAP_TYPE_CHOICES
-        default_type = (Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6').strip() or '6'
+
+        allowed = {c[0] for c in choices.MINDMAP_TYPE_CHOICES}
+        default_type = choices.coerce_default_mindmap_type(
+            Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+        )
         variation_param = request.GET.get('variation')
         variation = str(variation_param).strip() if variation_param else default_type
         variation = variation or default_type
+        if variation not in allowed:
+            variation = default_type
         ctx['variation'] = variation
         ctx['default_mindmap_type'] = default_type
-        ctx['mindmap_type_choices'] = MINDMAP_TYPE_CHOICES
-        ctx['variations'] = {
-            '1': 'Compact',
-            '2': 'Minimal',
-            '3': 'Fullscreen',
-            '4': 'Sidebar',
-            '5': 'Bottom Controls',
-            '6': 'Radial',
-            '7': 'Cards',
-            '8': 'Flow',
-            '9': 'Network',
-            '10': 'Timeline',
-            '11': 'Vertical Radial',
-            '12': 'Vertical Cards',
-            '13': 'Vertical Flow',
-            '14': 'Vertical Network',
-            '15': 'Vertical Timeline',
-            '16': 'Classic mindmap',
-            '17': 'Classic mindmap vertical',
-        }
+        ctx['mindmap_type_choices'] = choices.MINDMAP_TYPE_CHOICES
+        ctx['variations'] = dict(choices.MINDMAP_TYPE_CHOICES)
         
         # Breadcrumb
         ctx['breadcrumb'] = self._breadcrumb(career)

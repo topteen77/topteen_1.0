@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
-from core.choices import COURSE_MINDMAP_CONFIG_CHOICES, MINDMAP_TYPE_CHOICES
+from core.choices import (
+    COURSE_MINDMAP_CONFIG_CHOICES,
+    MINDMAP_TYPE_CHOICES,
+    coerce_default_mindmap_type,
+)
 from django.utils import timezone
 from django.utils.html import conditional_escape, format_html, strip_tags
 from django.urls import path, reverse
@@ -111,8 +115,9 @@ class WebsiteSettingsForm(forms.Form):
         required=True,
         label='Default mindmap type',
         help_text=(
-            'Default layout for /careers/mindmap/… and careers chat/accordion mindmaps when not overridden. '
-            'Value 16 uses the classic horizontal pill layout; value 17 uses the classic vertical (top-down) layout (same engine as counselor course).'
+            'Radial (6) or classic / career-tree API mindmaps (16–19). '
+            '16–17: compact pills; 18–19: colored branches and underlines (counselor-style). '
+            'Legacy numeric types in the database are coerced to Radial until you save a new choice.'
         ),
     )
     DEFAULT_course_MINDMAP_TYPE = forms.ChoiceField(
@@ -158,13 +163,7 @@ class ConfigurationAdminForm(forms.ModelForm):
 
     @staticmethod
     def _default_mindmap_value_to_choice(stored: str) -> str:
-        raw = (stored or '').strip()
-        if not raw:
-            return '6'
-        allowed = {c[0] for c in MINDMAP_TYPE_CHOICES}
-        if raw in allowed:
-            return raw
-        return '6'
+        return coerce_default_mindmap_type(stored)
 
     @staticmethod
     def _course_mindmap_value_to_choice(stored: str) -> str:
@@ -368,7 +367,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config.save()
                 # DEFAULT_MINDMAP_TYPE
                 key = 'DEFAULT_MINDMAP_TYPE'
-                val = (form.cleaned_data.get(key) or '6').strip() or '6'
+                val = coerce_default_mindmap_type((form.cleaned_data.get(key) or '6').strip() or '6')
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = str(val)
                 config.save()
@@ -408,7 +407,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
-            default_type = Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+            default_type = coerce_default_mindmap_type(
+                Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
+            )
             default_course_mm = Configuration.get('DEFAULT_course_MINDMAP_TYPE', '7', editable=True) or '7'
             form = WebsiteSettingsForm(initial={
                 'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),

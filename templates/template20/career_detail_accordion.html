@@ -972,8 +972,8 @@
           <div class="mindmap-wrapper mt-5 mb-5" id="career-classic-mindmap-section">
             <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(10, 129, 207, 0.12);">
               <div class="card-header text-white" style="background: linear-gradient(135deg, #0a81cf 0%, #3bb3ff 100%); padding: 15px 25px;">
-                <h5 class="mb-0">{% if career_detail_classic_layout == 'vertical' %}Classic mind map (vertical){% else %}Classic mind map{% endif %} — {{ career.name }}</h5>
-                <small style="opacity: 0.95;">{% if career_detail_classic_layout == 'vertical' %}Top-down tree — same engine as counselor course mindmaps{% else %}Horizontal tree — same engine as counselor course mindmaps{% endif %}</small>
+                <h5 class="mb-0">{% if career_detail_classic_visual_ribbon %}{% if career_detail_classic_layout == 'vertical' %}Career tree mind map (vertical){% else %}Career tree mind map (horizontal){% endif %}{% else %}{% if career_detail_classic_layout == 'vertical' %}Classic mind map (vertical — pills){% else %}Classic mind map (horizontal — pills){% endif %}{% endif %} — {{ career.name }}</h5>
+                <small style="opacity: 0.95;">{% if career_detail_classic_visual_ribbon %}Colored branches, hub circles, and underlined topics — same style as counselor course classic (types 18–19 in admin).{% else %}Compact pill nodes — types 16–17 in admin. Use 18 or 19 for counselor-style colored tree.{% endif %}</small>
               </div>
               <div class="card-body p-3 d-flex flex-column" style="min-height: 0;">
                 <div class="d-flex justify-content-end align-items-center gap-2 mb-2 flex-wrap">
@@ -1016,7 +1016,8 @@
                 loadingEl: loadEl,
                 cssHref: cssHref,
                 jsSrc: jsSrc,
-                layout: layout
+                layout: layout,
+                visualStyle: {% if career_detail_classic_visual_ribbon %}'ribbon'{% else %}'pill'{% endif %}
               }).then(function (api) {
                 window.__careerDetailClassicApi = api;
               }).catch(function (err) {

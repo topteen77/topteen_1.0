@@ -1,0 +1,202 @@
+/* Shared classic mindmap: counselor course widget + career detail (CounselorClassicMindmap). */
+.counselor-classic-mm {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  box-sizing: border-box;
+}
+
+.counselor-classic-mm--fill-host {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.counselor-classic-mm--fill-host .cc-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cc-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.cc-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+}
+
+.cc-svg .cc-link:not(.cc-ribbon-link) {
+  fill: none;
+  stroke: #94a3b8;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Hubs: collapsed = filled dot; expanded = empty ring. Clicks pass through to foreignObject. */
+.cc-svg .cc-ribbon-hub {
+  pointer-events: none;
+}
+
+.cc-career-ribbon-viewport {
+  background: #f1f5f9;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cc-ribbon-branch {
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+/* Reserve space for SVG expand dots (see drawHubsRibbon): H = right edge, V = bottom center. */
+.cc-ribbon-branch--horizontal {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 4px 22px 4px 10px;
+}
+
+.cc-ribbon-branch--vertical {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 4px 10px 22px 10px;
+}
+
+.cc-ribbon-branch-txt {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.cc-ribbon-branch--vertical .cc-ribbon-branch-txt {
+  text-align: left;
+}
+
+.cc-ribbon-leaf {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  height: 100%;
+  padding: 6px 8px 10px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cc-ribbon-leaf-txt {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: center;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.cc-ribbon-leaf--vertical .cc-ribbon-leaf-txt {
+  text-align: left;
+  padding-left: 18px;
+}
+
+.cc-ribbon-node.cc-has-children {
+  cursor: pointer;
+}
+
+.cc-ribbon-node.cc-has-children:hover .cc-ribbon-branch {
+  filter: brightness(0.98);
+}
+
+.cc-ribbon-node:focus {
+  outline: none;
+}
+
+.cc-ribbon-node:focus .cc-ribbon-branch,
+.cc-ribbon-node:focus .cc-ribbon-leaf {
+  box-shadow: inset 0 0 0 2px rgba(10, 129, 207, 0.45);
+  border-radius: 8px;
+}
+
+.cc-pill {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  word-break: break-word;
+  hyphens: auto;
+  min-height: 100%;
+}
+
+.cc-pill.cc-root {
+  font-size: 15px;
+  font-weight: 700;
+  border-color: #0a81cf;
+  background: linear-gradient(135deg, #e8f4fc 0%, #fff 100%);
+  color: #0a3d62;
+}
+
+.cc-pill.cc-topic {
+  border-color: #3bb3ff;
+  background: #fff;
+  color: #0a4d7a;
+}
+
+.cc-pill.cc-sub {
+  font-size: 12px;
+  font-weight: 600;
+  border-color: #a5b4fc;
+  background: #f8fafc;
+}
+
+.cc-pill.cc-leaf {
+  font-size: 12px;
+  font-weight: 500;
+  border-color: #e2e8f0;
+  background: #fff;
+  color: #475569;
+}
+
+.cc-node-wrap.cc-has-children .cc-pill {
+  cursor: pointer;
+}
+
+.cc-node-wrap.cc-has-children .cc-pill:hover {
+  filter: brightness(0.97);
+  border-color: #0a81cf;
+}
+
+.cc-node-wrap:focus {
+  outline: none;
+}
+
+.cc-node-wrap:focus .cc-pill {
+  box-shadow: 0 0 0 3px rgba(10, 129, 207, 0.35);
+}

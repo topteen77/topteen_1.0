@@ -405,27 +405,35 @@ class InstituteType(object):
     )
 
 
-# Mindmap layout types for dedicated mindmap page (variation 1–16)
-# Used in Core website settings and career mindmap dropdown.
+# Mindmap layout types for dedicated career mindmap page + DEFAULT_MINDMAP_TYPE.
+# Kept to one radial (6) plus the four classic / career-tree API layouts (16–19).
 MINDMAP_TYPE_CHOICES = (
-    ('1', 'Compact'),
-    ('2', 'Minimal'),
-    ('3', 'Fullscreen'),
-    ('4', 'Sidebar'),
-    ('5', 'Bottom Controls'),
     ('6', 'Radial'),
-    ('7', 'Cards'),
-    ('8', 'Flow'),
-    ('9', 'Network'),
-    ('10', 'Timeline'),
-    ('11', 'Vertical Radial'),
-    ('12', 'Vertical Cards'),
-    ('13', 'Vertical Flow'),
-    ('14', 'Vertical Network'),
-    ('15', 'Vertical Timeline'),
-    ('16', 'Classic mindmap — horizontal pills & curved links'),
-    ('17', 'Classic mindmap — vertical (top-down pills)'),
+    (
+        '16',
+        'Classic horizontal — pill nodes (compact)',
+    ),
+    (
+        '17',
+        'Classic vertical — pill nodes (compact)',
+    ),
+    (
+        '18',
+        'Career tree — horizontal (colored branches & underlines, counselor course style)',
+    ),
+    (
+        '19',
+        'Career tree — vertical (colored branches & underlines, counselor course style)',
+    ),
 )
+
+MINDMAP_TYPE_ALLOWED = frozenset(c[0] for c in MINDMAP_TYPE_CHOICES)
+
+
+def coerce_default_mindmap_type(raw):
+    """Map legacy stored values (1–15, 7–11, …) to a supported type; default radial."""
+    v = (str(raw) if raw is not None else '').strip() or '6'
+    return v if v in MINDMAP_TYPE_ALLOWED else '6'
 
 # Counselor course/chapter/part static JSON mindmaps (counselor_mindmap_widget.html).
 # Stored as Configuration DEFAULT_course_MINDMAP_TYPE (numeric string 1–9; see counselor.mindmap_config._NUM_TO_WIDGET_MAP_TYPE).
@@ -438,6 +446,6 @@ COURSE_MINDMAP_CONFIG_CHOICES = (
     ('5', 'Career-style radial — drill & zoom'),
     ('6', 'D3 radial tree (same spirit as career “Radial”)'),
     ('7', 'Career-style radial (same spirit as career “Cards” / interactive)'),
-    ('8', 'Classic mindmap — horizontal pills & curved links'),
-    ('9', 'Classic mindmap — vertical (top-down pills)'),
+    ('8', 'Classic mindmap — horizontal (pill nodes in course widget)'),
+    ('9', 'Classic mindmap — vertical (pill nodes in course widget)'),
 )
