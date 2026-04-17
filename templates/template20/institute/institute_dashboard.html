@@ -188,6 +188,47 @@
     border-radius: 15px;
   }
 
+  .institute-dashboard .id-mobile-toolbar {
+    display: none;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .institute-dashboard .id-mobile-toggle-btn {
+    border: 1px solid #dbe3ef;
+    background: #fff;
+    color: var(--id-text);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .institute-dashboard .id-mobile-toggle-btn i {
+    color: var(--id-purple);
+    font-size: 1rem;
+  }
+
+  .institute-dashboard .id-sidebar-close,
+  .institute-dashboard .id-filter-close {
+    display: none;
+    margin-left: auto;
+    margin-bottom: 0.5rem;
+    border: none;
+    background: transparent;
+    color: #475569;
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .institute-dashboard .id-sidebar-overlay,
+  .institute-dashboard .id-filter-overlay {
+    display: none;
+  }
+
   .institute-dashboard .id-main-title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -316,6 +357,7 @@
     letter-spacing: 0.04em;
     border-radius: 10px;
     padding: 0.5rem 1rem;
+    height: 45px;
   }
 
   .institute-dashboard .id-toolbar .btn-id-primary:hover {
@@ -332,6 +374,10 @@
     text-transform: uppercase;
     border-radius: 10px;
     padding: 0.5rem 1rem;
+    height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   }
 
   .institute-dashboard .id-toolbar .btn-id-outline:hover {
@@ -547,6 +593,175 @@
       height: 100vh;
       z-index: 9999;
     }
+
+    .institute-dashboard .id-mobile-toolbar {
+      display: flex;
+    }
+
+    .institute-dashboard .id-sidebar-column {
+      display: contents;
+    }
+
+    .institute-dashboard .id-sidebar-overlay,
+    .institute-dashboard .id-filter-overlay {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 1038;
+    }
+
+    .institute-dashboard .id-sidebar-sticky {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(88vw, 340px);
+      height: 100vh;
+      border-radius: 0;
+      overflow-y: auto;
+      z-index: 1039;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      padding-top: 0.9rem;
+    }
+
+    .institute-dashboard.sidebar-drawer-open .id-sidebar-sticky {
+      transform: translateX(0);
+    }
+
+    .institute-dashboard.sidebar-drawer-open .id-sidebar-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .institute-dashboard .id-sidebar-close,
+    .institute-dashboard .id-filter-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .institute-dashboard .id-toolbar {
+      position: relative;
+    }
+
+    .institute-dashboard .id-filter-toggle {
+      display: inline-flex !important;
+      margin-bottom: 0.8rem;
+    }
+
+    .institute-dashboard .id-filter-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(92vw, 380px);
+      height: 100vh;
+      background: #fff;
+      z-index: 1039;
+      padding: 0.95rem;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      border-left: 1px solid #e2e8f0;
+    }
+
+    .institute-dashboard .id-filter-drawer .id-filter-close {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 2;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid #dbe3ef;
+      margin-bottom: 0.9rem;
+    }
+
+    .institute-dashboard.filters-drawer-open .id-filter-drawer {
+      transform: translateX(0);
+    }
+
+    .institute-dashboard.filters-drawer-open .id-filter-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .institute-dashboard .id-filter-drawer .col-6,
+    .institute-dashboard .id-filter-drawer .col-12,
+    .institute-dashboard .id-filter-drawer .col-md-6,
+    .institute-dashboard .id-filter-drawer .col-lg-2,
+    .institute-dashboard .id-filter-drawer .col-lg-3 {
+      width: 100%;
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .institute-dashboard .id-filter-drawer .justify-content-lg-end {
+      justify-content: stretch !important;
+    }
+
+    .institute-dashboard .id-filter-drawer .btn-id-download,
+    .institute-dashboard .id-filter-drawer .btn-id-primary,
+    .institute-dashboard .id-filter-drawer .btn-id-outline {
+      width: 100%;
+      min-height: 42px;
+      justify-content: center;
+    }
+
+    .institute-dashboard .id-filter-drawer .btn-id-download {
+      border: 1px solid #e2e8f0;
+    }
+
+    .institute-dashboard #students-table-wrapper,
+    .institute-dashboard #students-table-container,
+    .institute-dashboard .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .institute-dashboard #students-table-wrapper table,
+    .institute-dashboard #students-table-container table,
+    .institute-dashboard .id-data-table {
+      min-width: 760px;
+    }
+
+    .institute-dashboard #students-table-wrapper .table th,
+    .institute-dashboard #students-table-wrapper .table td,
+    .institute-dashboard #students-table-container .table th,
+    .institute-dashboard #students-table-container .table td,
+    .institute-dashboard .id-data-table th,
+    .institute-dashboard .id-data-table td {
+      white-space: nowrap;
+    }
+
+    .institute-dashboard .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .institute-dashboard .table-responsive>.table,
+    .institute-dashboard .table-responsive>.table-bordered,
+    .institute-dashboard .table-responsive>.table-striped,
+    .institute-dashboard .table-responsive>.table-hover {
+      min-width: 760px;
+      margin-bottom: 0;
+    }
+
+    .institute-dashboard .table-responsive .table th,
+    .institute-dashboard .table-responsive .table td {
+      white-space: nowrap;
+    }
+  }
+
+  @media (min-width: 992px) {
+    .institute-dashboard .id-filter-toggle {
+      display: none !important;
+    }
   }
 </style>
 {% endblock %}
@@ -556,8 +771,12 @@
   <div class="container-fluid id-shell px-3 px-lg-4">
     <div class="row g-4 pt-3 pt-lg-4">
       <!-- Sidebar -->
-      <aside class="col-12 col-lg-3 col-xl-3">
+      <aside class="col-12 col-lg-3 col-xl-3 id-sidebar-column">
+        <div class="id-sidebar-overlay" id="idSidebarOverlay"></div>
         <div class="id-sidebar-sticky">
+          <button type="button" class="id-sidebar-close" id="idSidebarCloseBtn" aria-label="Close sidebar">
+            <i class='bx bx-x'></i>
+          </button>
           <div class="id-profile-card p-0 box-shadow-none border-bottom-1">
             <div class="text-center">
               {% if institute.logo %}
@@ -657,6 +876,11 @@
 
       <!-- Main -->
       <div class="col-12 col-lg-9 col-xl-9">
+        <div class="id-mobile-toolbar">
+          <button type="button" class="id-mobile-toggle-btn" id="idSidebarOpenBtn">
+            <i class='bx bx-menu'></i> Menu
+          </button>
+        </div>
         {% if messages %}
         <div class="mb-3">
           {% for message in messages %}
@@ -716,7 +940,14 @@
 
           <div class="id-panel id-toolbar ">
             <h2 class="id-panel-title mb-3">Total Students</h2>
-            <form method="GET" class="row g-2 g-lg-3 align-items-end" id="filter-form">
+            <button type="button" class="id-mobile-toggle-btn id-filter-toggle" id="idFilterOpenBtn">
+              <i class='bx bx-filter-alt'></i> Filters
+            </button>
+            <div class="id-filter-overlay" id="idFilterOverlay"></div>
+            <form method="GET" class="row g-2 g-lg-3 align-items-end id-filter-drawer" id="filter-form">
+              <button type="button" class="id-filter-close" id="idFilterCloseBtn" aria-label="Close filters">
+                <i class='bx bx-x'></i>
+              </button>
               <div class="col-6 col-md-6 col-lg-2">
                 <label for="classes" class="form-label mb-1">All Classes</label>
                 <select name="class_and_section" id="classes" class="form-control custom-input">
@@ -2028,6 +2259,64 @@
 <script src="/static/js_new/student_table_ajax.js"></script>
 <script src="{{ static('js/heatmap-dashboard.js') }}"></script>
 <script>
+  // Mobile drawers (sidebar + filters)
+  document.addEventListener('DOMContentLoaded', function () {
+    const dashboardRoot = document.querySelector('.institute-dashboard');
+    if (!dashboardRoot) return;
+
+    const sidebarOpenBtn = document.getElementById('idSidebarOpenBtn');
+    const sidebarCloseBtn = document.getElementById('idSidebarCloseBtn');
+    const sidebarOverlay = document.getElementById('idSidebarOverlay');
+    const filterOpenBtn = document.getElementById('idFilterOpenBtn');
+    const filterCloseBtn = document.getElementById('idFilterCloseBtn');
+    const filterOverlay = document.getElementById('idFilterOverlay');
+
+    function isMobileViewport() {
+      return window.innerWidth < 992;
+    }
+
+    function openSidebarDrawer() {
+      if (!isMobileViewport()) return;
+      dashboardRoot.classList.add('sidebar-drawer-open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebarDrawer() {
+      dashboardRoot.classList.remove('sidebar-drawer-open');
+      if (!dashboardRoot.classList.contains('filters-drawer-open')) {
+        document.body.style.overflow = '';
+      }
+    }
+
+    function openFilterDrawer() {
+      if (!isMobileViewport()) return;
+      dashboardRoot.classList.add('filters-drawer-open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeFilterDrawer() {
+      dashboardRoot.classList.remove('filters-drawer-open');
+      if (!dashboardRoot.classList.contains('sidebar-drawer-open')) {
+        document.body.style.overflow = '';
+      }
+    }
+
+    if (sidebarOpenBtn) sidebarOpenBtn.addEventListener('click', openSidebarDrawer);
+    if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebarDrawer);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebarDrawer);
+
+    if (filterOpenBtn) filterOpenBtn.addEventListener('click', openFilterDrawer);
+    if (filterCloseBtn) filterCloseBtn.addEventListener('click', closeFilterDrawer);
+    if (filterOverlay) filterOverlay.addEventListener('click', closeFilterDrawer);
+
+    window.addEventListener('resize', function () {
+      if (!isMobileViewport()) {
+        dashboardRoot.classList.remove('sidebar-drawer-open', 'filters-drawer-open');
+        document.body.style.overflow = '';
+      }
+    });
+  });
+
   // Update refresh date
   document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
 </script>
