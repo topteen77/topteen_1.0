@@ -34,7 +34,7 @@
         <!-- Right: Accordion Preview -->
         <div style="border: 1px solid #ddd; border-radius: 5px; background: #fff; padding: 20px;">
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #417690;">Accordion Preview</h3>
-            <div id="accordion-preview-container" style="min-height: 400px; max-height: 600px; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
+            <div id="accordion-preview-container" style="min-height: 400px; max-height: min(85vh, 1200px); overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
                 <p style="color: #666; font-style: italic;">Click "Generate Accordion from Content" to see preview here...</p>
             </div>
         </div>
@@ -152,7 +152,35 @@
 .cat-accordion .accordion-body {
     padding: 20px 28px 28px;
     background: #fff;
+    color: #222;
+    font-size: 15px;
+    line-height: 1.55;
 }
+.cat-accordion .accordion-body ul,
+.cat-accordion .accordion-body ol {
+    padding-left: 1.35rem;
+    margin: 0.5rem 0 1rem;
+}
+.cat-accordion .accordion-body img {
+    max-width: 100%;
+    height: auto;
+}
+/* Pros & Cons table (matches public vocational page structure) */
+#accordion-preview-container .pros-cons-table-wrap { margin-top: 8px; }
+#accordion-preview-container .pros-cons-comparison-table {
+    width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;
+}
+#accordion-preview-container .pros-cons-comparison-table th {
+    padding: 10px 12px; font-weight: 700; text-align: left; font-size: 0.95rem;
+}
+#accordion-preview-container .pros-cons-comparison-table th.pros-col { background: #ecfdf5; color: #047857; }
+#accordion-preview-container .pros-cons-comparison-table th.cons-col { background: #fef2f2; color: #b91c1c; }
+#accordion-preview-container .pros-cons-comparison-table td {
+    padding: 12px 14px; vertical-align: top; font-size: 0.9rem; line-height: 1.5;
+}
+#accordion-preview-container .pros-cons-comparison-table .pros-cell { background: #f0fdf4; border-right: 1px solid #e5e7eb; }
+#accordion-preview-container .pros-cons-comparison-table .cons-cell { background: #fff5f5; }
+#accordion-preview-container .pros-cons-comparison-table ul.pros-cons-ul { margin: 0; padding-left: 1.1rem; }
 
 /* Admin preview: collapsed panels hidden (Bootstrap collapse CSS often not loaded in admin) */
 #accordion-preview-container .accordion-collapse.collapse:not(.show) {
@@ -204,6 +232,114 @@
             .replace(/\s+/g, ' ')
             .trim();
         return !t;
+    }
+
+    /** Collect <li> inner markup from mixed ul/li HTML fragments (pros_cons storage). */
+    function fragmentsToLiInnerHtml(parts) {
+        if (!parts || !parts.length) return '';
+        var out = document.createElement('div');
+        parts.forEach(function(fragment) {
+            var w = document.createElement('div');
+            w.innerHTML = fragment;
+            var uls = w.querySelectorAll('ul');
+            if (uls.length) {
+                uls.forEach(function(ul) {
+                    Array.prototype.forEach.call(ul.children, function(child) {
+                        if (child.tagName === 'LI') {
+                            out.appendChild(child.cloneNode(true));
+                        }
+                    });
+                });
+            } else {
+                w.querySelectorAll('li').forEach(function(li) {
+                    out.appendChild(li.cloneNode(true));
+                });
+            }
+        });
+        return out.innerHTML;
+    }
+
+    /**
+     * Split combined Pros & Cons HTML into inner-<ul> content (series of <li>…</li>).
+     * Mirrors public vocational_course_detail parse logic (combined title + orphan lists).
+     */
+    function splitProsConsHtmlToFragments(html) {
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html || '';
+        var prosContent = [];
+        var consContent = [];
+        var currentSection = null;
+        // Omit `li` from the selector: each list is collected once via its parent `ul`.
+        tempDiv.querySelectorAll('h3, h4, p, ul, strong').forEach(function(el) {
+            var text = (el.textContent || '').trim().toLowerCase();
+            if (text.indexOf('pros') !== -1 && text.indexOf('cons') !== -1) {
+                currentSection = null;
+            } else if (text.indexOf('pros') !== -1) {
+                currentSection = 'pros';
+            } else if (text.indexOf('cons') !== -1) {
+                currentSection = 'cons';
+            } else if (currentSection === 'pros' && el.tagName !== 'H3' && el.tagName !== 'H4') {
+                if (el.tagName === 'UL') {
+                    prosContent.push(el.outerHTML);
+                } else if (el.closest && el.closest('ul')) {
+                    // <p> / <strong> inside <li>: already captured with the parent <ul>
+                } else if ((el.textContent || '').trim()) {
+                    prosContent.push('<li>' + (el.textContent || '').trim() + '</li>');
+                }
+            } else if (currentSection === 'cons' && el.tagName !== 'H3' && el.tagName !== 'H4') {
+                if (el.tagName === 'UL') {
+                    consContent.push(el.outerHTML);
+                } else if (el.closest && el.closest('ul')) {
+                    // same as pros
+                } else if ((el.textContent || '').trim()) {
+                    consContent.push('<li>' + (el.textContent || '').trim() + '</li>');
+                }
+            } else if (currentSection === null && el.tagName === 'UL') {
+                if (prosContent.length === 0) {
+                    prosContent.push(el.outerHTML);
+                } else if (consContent.length === 0) {
+                    consContent.push(el.outerHTML);
+                } else {
+                    consContent.push(el.outerHTML);
+                }
+            }
+        });
+        if (prosContent.length === 0 && consContent.length === 0) {
+            var lists = tempDiv.querySelectorAll('ul');
+            if (lists.length >= 2) {
+                prosContent.push(lists[0].outerHTML);
+                consContent.push(lists[1].outerHTML);
+            } else if (lists.length === 1) {
+                prosContent.push(lists[0].outerHTML);
+            }
+        }
+        return {
+            pros: fragmentsToLiInnerHtml(prosContent),
+            cons: fragmentsToLiInnerHtml(consContent)
+        };
+    }
+
+    function buildProsConsTableHtml(prosInner, consInner) {
+        var p = (prosInner || '').trim();
+        var c = (consInner || '').trim();
+        if (!p) p = '<li>No pros listed.</li>';
+        if (!c) c = '<li>No cons listed.</li>';
+        return '<div class="pros-cons-table-wrap">' +
+            '<table class="pros-cons-comparison-table">' +
+            '<thead><tr><th scope="col" class="pros-col">Pros</th><th scope="col" class="cons-col">Cons</th></tr></thead>' +
+            '<tbody><tr><td class="pros-cell"><ul class="pros-cons-ul">' + p + '</ul></td>' +
+            '<td class="cons-cell"><ul class="pros-cons-ul">' + c + '</ul></td></tr></tbody></table></div>';
+    }
+
+    /** Attach structured pros / cons strings under sections.pros_cons for verification and frontend. */
+    function applyProsConsNodes(section) {
+        if (!section || typeof section !== 'object') return;
+        var html = (section.html || '').trim();
+        if (html) {
+            var fr = splitProsConsHtmlToFragments(html);
+            section.pros = fr.pros;
+            section.cons = fr.cons;
+        }
     }
     
     // Fixed accordion headings as per requirements
@@ -560,6 +696,10 @@
                             jsonData.overview = jsonData.sections[overviewKey].html.trim();
                         }
                     }
+
+                    if (jsonData.sections && jsonData.sections.pros_cons) {
+                        applyProsConsNodes(jsonData.sections.pros_cons);
+                    }
                     
                     updateAccordionPreview();
                 }
@@ -776,56 +916,48 @@
             };
         });
         
-        // Find all headings in content - prioritize H2 headings
-        var headings = [];
-        
-        // First, find all H2 headings (primary method)
-        tempDiv.querySelectorAll('h2').forEach(function(h) {
-            headings.push({ element: h, type: 'h2', priority: 1 });
+        // Find all section headings: every h1–h6 (CKEditor often uses H3+), plus p/div that
+        // start with a known section title in bold. Old logic used only H2 when any H2
+        // existed, so H3 titles (e.g. "Career Growth & Prospects") never became their own JSON section.
+        var headingByEl = new Map();
+        function registerHeading(el, source) {
+            if (!el || el.nodeType !== 1) return;
+            if (headingByEl.has(el)) return;
+            headingByEl.set(el, { element: el, type: source || 'heading' });
+        }
+
+        tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(h) {
+            registerHeading(h, 'hx');
         });
-        
-        // Then find other headings (h1, h3-h6) if no H2 found
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('h1, h3, h4, h5, h6').forEach(function(h) {
-                headings.push({ element: h, type: 'heading', priority: 2 });
-            });
-        }
-        
-        // Also check for strong tags that might be headings (if no proper headings found)
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('p strong, div strong').forEach(function(strong) {
-                var text = normalizeText(strong.textContent);
-                // If it's short and looks like a heading
-                if (text.length < 100 && text.split(' ').length <= 8) {
-                    var matched = matchHeadingToSection(text);
-                    if (matched) {
-                        headings.push({ element: strong.closest('p') || strong.closest('div'), type: 'strong', priority: 3 });
-                    }
-                }
-            });
-        }
-        
-        // Also check for paragraphs with bold text at the start (common pattern)
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('p').forEach(function(p) {
-                var firstChild = p.firstElementChild;
-                if (firstChild && (firstChild.tagName === 'STRONG' || firstChild.tagName === 'B')) {
-                    var text = normalizeText(firstChild.textContent);
-                    if (text.length < 100 && text.split(' ').length <= 8) {
-                        var matched = matchHeadingToSection(text);
-                        if (matched) {
-                            headings.push({ element: p, type: 'p-strong', priority: 4 });
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Sort headings by their position in DOM
+
+        tempDiv.querySelectorAll('p, div').forEach(function(block) {
+            var fc = block.firstElementChild;
+            if (!fc || (fc.tagName !== 'STRONG' && fc.tagName !== 'B')) return;
+            var raw = (fc.textContent || '').trim();
+            if (!raw || raw.length > 140) return;
+            if (normalizeText(raw).split(/\s+/).length > 16) return;
+            if (!matchHeadingToSection(raw) && !isExactFixedHeading(raw)) return;
+            registerHeading(block, 'p-strong');
+        });
+
+        var headings = Array.from(headingByEl.values());
         headings.sort(function(a, b) {
             var pos = a.element.compareDocumentPosition(b.element);
             return pos & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
         });
+
+        (function() {
+            var out = [];
+            var prevKey = null;
+            headings.forEach(function(ho) {
+                var t = ho.element.textContent.trim();
+                var k = matchHeadingToSection(t) || headingKeyFromText(t);
+                if (out.length && k === prevKey) return;
+                prevKey = k;
+                out.push(ho);
+            });
+            headings = out;
+        })();
         
         // Process each heading
         var debugLog = [];
@@ -868,8 +1000,10 @@
         window.lastDebugLog = debugLog;
         console.log('Heading matches:', debugLog);
         
-        // Handle content before first heading (could be Overview or general content)
+        // Handle content before first heading (hero / subtitle above first section heading).
+        // Do not overwrite body extracted under <h2>Overview</h2>; merge like fix_vocational_course_headings.generate_content_json.
         var firstHeading = headings.length > 0 ? headings[0].element : null;
+        var overviewKey = 'overview';
         if (firstHeading) {
             var contentBefore = '';
             var current = tempDiv.firstChild;
@@ -884,28 +1018,46 @@
                 }
                 current = current.nextSibling;
             }
-            
-            if (contentBefore.trim()) {
-                // Add content before first heading to Overview section
-                var overviewKey = 'overview';
-                if (accordionData[overviewKey]) {
-                    accordionData[overviewKey].html = contentBefore.trim();
+
+            var innerOverview = (accordionData[overviewKey] && accordionData[overviewKey].html)
+                ? accordionData[overviewKey].html.trim() : '';
+            var beforeTrim = (contentBefore || '').trim();
+            if (accordionData[overviewKey]) {
+                if (sectionHtmlIsEffectivelyBlank(innerOverview)) {
+                    accordionData[overviewKey].html = beforeTrim;
+                } else if (beforeTrim) {
+                    var innerPlain = '';
+                    try {
+                        var iw = document.createElement('div');
+                        iw.innerHTML = innerOverview;
+                        innerPlain = (iw.textContent || iw.innerText || '').replace(/\s+/g, ' ').trim();
+                    } catch (e) {
+                        innerPlain = innerOverview;
+                    }
+                    var leadPlain = '';
+                    try {
+                        var lw = document.createElement('div');
+                        lw.innerHTML = beforeTrim;
+                        leadPlain = (lw.textContent || lw.innerText || '').replace(/\s+/g, ' ').trim();
+                    } catch (e) {
+                        leadPlain = beforeTrim;
+                    }
+                    var leadPrefix = leadPlain.slice(0, 48);
+                    if (leadPrefix && innerPlain.indexOf(leadPrefix) === -1) {
+                        accordionData[overviewKey].html = (beforeTrim.replace(/\s+$/, '') + innerOverview).trim();
+                    }
                 }
             }
         } else {
             // No headings found - put all content in Overview section
             var allContent = tempDiv.innerHTML;
-            if (allContent.trim()) {
-                var overviewKey = 'overview';
-                if (accordionData[overviewKey]) {
-                    accordionData[overviewKey].html = allContent.trim();
-                }
+            if (allContent.trim() && accordionData[overviewKey]) {
+                accordionData[overviewKey].html = allContent.trim();
             }
         }
         
         // Extract overview content from Overview section if it exists
         var overviewContent = '';
-        var overviewKey = 'overview';
         if (accordionData[overviewKey] && accordionData[overviewKey].html) {
             overviewContent = accordionData[overviewKey].html.trim();
         }
@@ -923,6 +1075,16 @@
             overview: overviewContent,
             sections: accordionData
         };
+
+        if (accordionData.pros_cons) {
+            applyProsConsNodes(accordionData.pros_cons);
+        }
+
+        // Keep hidden content_json in sync with generated jsonData (same as submit / "Save JSON to Model")
+        var jsonFieldSync = ensureContentJsonField();
+        if (jsonFieldSync) {
+            jsonFieldSync.value = JSON.stringify(jsonData);
+        }
         
         updateAccordionPreview();
     }
@@ -933,18 +1095,7 @@
     }
 
     function bindAdminAccordionPreviewToggles(accordion) {
-        function closeOthers(openTarget) {
-            accordion.querySelectorAll('.accordion-collapse').forEach(function(c) {
-                if (c === openTarget) return;
-                c.classList.remove('show');
-                var ob = accordion.querySelector('[data-acc-preview-target="#' + c.id + '"]');
-                if (ob) {
-                    ob.classList.add('collapsed');
-                    ob.setAttribute('aria-expanded', 'false');
-                    setAdminAccordionToggleIcon(ob, false);
-                }
-            });
-        }
+        // Independent toggles (do not close other panels) so editors can compare sections side by side
         accordion.querySelectorAll('.accordion-button').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -953,7 +1104,6 @@
                 var target = document.querySelector(sel);
                 if (!target) return;
                 var isOpen = target.classList.contains('show');
-                closeOthers(target);
                 if (isOpen) {
                     target.classList.remove('show');
                     btn.classList.add('collapsed');
@@ -975,6 +1125,10 @@
         
         // Use sections from jsonData if available, otherwise use accordionData
         var sectionsToUse = (jsonData && jsonData.sections) ? jsonData.sections : accordionData;
+
+        if (sectionsToUse && sectionsToUse.pros_cons) {
+            applyProsConsNodes(sectionsToUse.pros_cons);
+        }
         
         if (!sectionsToUse || Object.keys(sectionsToUse).length === 0) {
             container.innerHTML = '<p style="color: #666; font-style: italic;">No accordion data. Click "Generate Accordion from Content" to create.</p>';
@@ -1045,50 +1199,12 @@
             
             if (overviewContent && overviewContent.trim()) {
                 var overviewEl = document.createElement('div');
-                overviewEl.style.cssText = 'color: #666; font-size: 16px; line-height: 1.6;';
-                
-                // Extract first paragraph only from overview HTML
-                var tempDiv = document.createElement('div');
-                tempDiv.innerHTML = overviewContent;
-                
-                // Try to find first <p> tag (skip empty paragraphs)
-                var paragraphs = tempDiv.querySelectorAll('p');
-                var firstParagraph = null;
-                for (var i = 0; i < paragraphs.length; i++) {
-                    var paraText = (paragraphs[i].textContent || paragraphs[i].innerText || '').trim();
-                    if (paraText.length > 0) {
-                        firstParagraph = paragraphs[i];
-                        break;
-                    }
-                }
-                
-                if (firstParagraph) {
-                    // Show only first paragraph (keep HTML formatting but limit text)
-                    var paraText = firstParagraph.textContent || firstParagraph.innerText || '';
-                    if (paraText.length > 300) {
-                        // If paragraph is too long, truncate it
-                        overviewEl.innerHTML = '<p>' + paraText.substring(0, 300) + '...</p>';
-                    } else {
-                        // Show full first paragraph
-                        overviewEl.innerHTML = firstParagraph.outerHTML;
-                    }
-                } else {
-                    // If no <p> tag, get text content and show first 300 characters
-                    var textContent = tempDiv.textContent || tempDiv.innerText || overviewContent;
-                    var cleanText = textContent.replace(/\s+/g, ' ').trim();
-                    if (cleanText.length > 0) {
-                        if (cleanText.length > 300) {
-                            overviewEl.textContent = cleanText.substring(0, 300) + '...';
-                        } else {
-                            overviewEl.textContent = cleanText;
-                        }
-                    } else {
-                        // Fallback: show overview content directly (limited)
-                        var limitedContent = overviewContent.length > 300 ? overviewContent.substring(0, 300) + '...' : overviewContent;
-                        overviewEl.innerHTML = limitedContent;
-                    }
-                }
-                
+                overviewEl.style.cssText = 'color: #666; font-size: 16px; line-height: 1.6; max-height: 420px; overflow-y: auto;';
+                overviewEl.className = 'admin-acc-preview-overview-body';
+
+                // Full overview HTML (hero + subtitle + copy under Overview heading). Old logic showed only the first <p>, hiding parentheticals and long intros.
+                overviewEl.innerHTML = overviewContent;
+
                 heroSection.appendChild(overviewEl);
             } else {
                 // Debug: log if overview is missing
@@ -1120,29 +1236,40 @@
             var heading = sectionData.title || key.replace(/_/g, ' ');
             var sectionId = 'preview-accordion-' + accordionIndex;
             var iconClass = iconMap[heading] || 'bx bx-layer';
-            var hasContent = !sectionHtmlIsEffectivelyBlank(sectionData.html);
+            // Show the same HTML stored in JSON for this section (matches editor / public body).
+            var previewBodyHtml = sectionData.html || '';
+            var hasHtml = !sectionHtmlIsEffectivelyBlank(previewBodyHtml);
+            var hasProsConsNodes = (key === 'pros_cons') &&
+                ((sectionData.pros && String(sectionData.pros).trim()) || (sectionData.cons && String(sectionData.cons).trim()));
+            var hasContent = hasHtml || hasProsConsNodes;
+            if (!hasContent) {
+                return;
+            }
+            if (!hasHtml && hasProsConsNodes) {
+                previewBodyHtml = buildProsConsTableHtml(sectionData.pros, sectionData.cons);
+            }
             
             // Create accordion item
             var accordionItem = document.createElement('div');
-            accordionItem.className = 'accordion-item' + (hasContent ? '' : ' accordion-preview-error');
+            accordionItem.className = 'accordion-item';
             
             // Create header
             var header = document.createElement('h2');
             header.className = 'accordion-header';
             header.id = sectionId + 'Heading';
             
-            // Create button (all start collapsed; open via +/− click)
+            // Admin: expand all sections with content so the full document is visible at a glance
             var button = document.createElement('button');
             button.type = 'button';
-            button.className = 'accordion-button collapsed';
+            button.className = 'accordion-button';
             button.setAttribute('data-acc-preview-target', '#' + sectionId);
-            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-expanded', 'true');
             button.setAttribute('aria-controls', sectionId);
 
             var toggleIcon = document.createElement('span');
             toggleIcon.className = 'admin-acc-toggle-icon';
             toggleIcon.setAttribute('aria-hidden', 'true');
-            toggleIcon.textContent = '+';
+            toggleIcon.textContent = '\u2212';
             
             // Add icon and text
             var buttonContent = document.createElement('span');
@@ -1151,9 +1278,6 @@
             buttonContent.style.flex = '1';
             buttonContent.style.gap = '10px';
             buttonContent.innerHTML = '<i class="' + iconClass + '"></i><span>' + sectionData.title + '</span>';
-            if (!hasContent) {
-                buttonContent.innerHTML += '<span style="margin-left: auto; color: #ba2121; font-size: 12px; font-weight: 600;" title="No visible body text — this panel is hidden on the public site until you add content.">&#9888; Empty</span>';
-            }
             button.appendChild(toggleIcon);
             button.appendChild(buttonContent);
             
@@ -1162,18 +1286,14 @@
             // Create collapse div
             var collapse = document.createElement('div');
             collapse.id = sectionId;
-            collapse.className = 'accordion-collapse collapse';
+            collapse.className = 'accordion-collapse collapse show';
             collapse.setAttribute('aria-labelledby', header.id);
             collapse.setAttribute('data-bs-parent', '#vocationalAccordionPreview');
             
             // Create body
             var body = document.createElement('div');
             body.className = 'accordion-body';
-            if (hasContent) {
-                body.innerHTML = sectionData.html;
-            } else {
-                body.innerHTML = '<p style="color: #ba2121; font-weight: 600; margin: 0;">&#9888; No body content — not shown on the public site until you add text here.</p>';
-            }
+            body.innerHTML = previewBodyHtml;
             
             collapse.appendChild(body);
             accordionItem.appendChild(header);
@@ -1183,6 +1303,13 @@
             // Increment accordion index for next iteration
             accordionIndex++;
         });
+
+        if (accordion.children.length === 0) {
+            var emptyAcc = document.createElement('p');
+            emptyAcc.style.cssText = 'color:#666;padding:12px;margin:0;';
+            emptyAcc.textContent = 'No sections with body content were found. Add section headings (H1–H6) or a short bold line that matches a fixed section name, then click Generate Accordion from Content.';
+            accordion.appendChild(emptyAcc);
+        }
         
         // Append accordion to wrapper
         previewWrapper.appendChild(accordion);

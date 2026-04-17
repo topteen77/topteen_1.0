@@ -419,6 +419,23 @@
     buildQuickLinksFromAccordion();
     {% endif %}
     
+    /** Same blank check as admin vocational preview — aligns visibility with JSON. */
+    function sectionHtmlIsEffectivelyBlank(html) {
+        if (!html || !String(html).trim()) return true;
+        const d = document.createElement('div');
+        try {
+            d.innerHTML = html;
+        } catch (e) {
+            return true;
+        }
+        const t = (d.textContent || d.innerText || '')
+            .replace(/\u00a0/g, ' ')
+            .replace(/[\u200b-\u200d\ufeff]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        return !t;
+    }
+    
     function generateAccordionFromJSON(sections, container) {
         // Clear container first
         container.innerHTML = '';
@@ -454,14 +471,14 @@
             // Ensure sectionHtml is a string and trim it
             sectionHtml = String(sectionHtml || '').trim();
             
-            // Check if there's real content: strip HTML and require non-whitespace text
-            let textContent = '';
-            if (sectionHtml) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = sectionHtml;
-                textContent = (tmp.textContent || tmp.innerText || '').trim();
+            const hasHtml = !sectionHtmlIsEffectivelyBlank(sectionHtml);
+            const isProsConsHeading = heading === 'Pros & Cons';
+            const hasProsConsNodes = isProsConsHeading && sectionData && typeof sectionData === 'object' && sectionData !== null &&
+                (String(sectionData.pros || '').trim() || String(sectionData.cons || '').trim());
+            let hasContent = hasHtml;
+            if (isProsConsHeading) {
+                hasContent = hasHtml || !!hasProsConsNodes;
             }
-            const hasContent = textContent.length > 0 && sectionHtml.length > 10;
             
             // Skip sections without content - don't show empty/blank accordions
             if (!hasContent) {
@@ -517,23 +534,17 @@
             const body = document.createElement('div');
             body.className = 'accordion-body';
             
-            // Special handling for Pros & Cons section
+            // Match admin accordion preview: use section JSON html as-is; Pros & Cons table only when html is empty but pros/cons nodes exist
             if (isProsCons) {
-                const prosConsHTML = parseProsCons(sectionHtml);
-                body.innerHTML = prosConsHTML;
+                if (!hasHtml && hasProsConsNodes) {
+                    body.innerHTML = buildProsConsTableFromNodes(sectionData.pros || '', sectionData.cons || '');
+                } else if (hasHtml) {
+                    body.innerHTML = sectionHtml;
+                } else {
+                    body.innerHTML = parseProsCons(sectionHtml);
+                }
             } else {
-                // Remove redundant headings
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = sectionHtml;
-                const h2Elements = tempDiv.querySelectorAll('h2, h3');
-                h2Elements.forEach(h2 => {
-                    const h2Text = h2.textContent.trim().toLowerCase();
-                    if (FIXED_HEADINGS.some(fh => h2Text.includes(fh.toLowerCase()))) {
-                        h2.remove();
-                    }
-                });
-                
-                body.innerHTML = tempDiv.innerHTML;
+                body.innerHTML = sectionHtml;
             }
             
             collapse.appendChild(body);
@@ -619,16 +630,7 @@
             quickJumpSelect.innerHTML = '<option value="">Jump to section...</option>';
         }
 
-        var hasOverview = document.getElementById('overview');
-        if (hasOverview) {
-            quickLinksUl.appendChild(createQuickLinkItem('overview', 'Overview', 'bx-info-circle'));
-            if (quickJumpSelect) {
-                var opt = document.createElement('option');
-                opt.value = 'overview';
-                opt.textContent = 'Overview';
-                quickJumpSelect.appendChild(opt);
-            }
-        }
+        // Overview lives in #overview-container in the hero; do not duplicate it in the sidebar.
 
         var accordionContainer = document.getElementById('vocational-course-accordion-container');
         if (accordionContainer) {
@@ -656,7 +658,6 @@
             var expanded = accordionContainer.querySelector('.accordion-collapse.show');
             if (expanded && expanded.id) initialActive = expanded.id;
         }
-        if (!initialActive && hasOverview) initialActive = 'overview';
         if (initialActive) setActiveQuickLink(initialActive);
 
         if (accordionContainer) {
@@ -744,7 +745,43 @@
         const numbers = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven'];
         return numbers[index] || 'One';
     }
+
+    function buildProsConsTableFromNodes(prosInner, consInner) {
+        let p = String(prosInner || '').trim();
+        let c = String(consInner || '').trim();
+        if (!p) p = '<li>No pros listed.</li>';
+        if (!c) c = '<li>No cons listed.</li>';
+        return '<div class="pros-cons-table-wrap">' +
+            '<table class="table pros-cons-comparison-table">' +
+            '<thead><tr><th scope="col" class="pros-col">Pros</th><th scope="col" class="cons-col">Cons</th></tr></thead>' +
+            '<tbody><tr><td class="pros-cell"><ul class="pros-cons-ul">' + p + '</ul></td>' +
+            '<td class="cons-cell"><ul class="pros-cons-ul">' + c + '</ul></td></tr></tbody></table></div>';
+    }
     
+    function flattenProsConsListParts(parts) {
+        if (!parts || !parts.length) return '';
+        const out = document.createElement('div');
+        parts.forEach(function(fragment) {
+            const w = document.createElement('div');
+            w.innerHTML = fragment;
+            const uls = w.querySelectorAll('ul');
+            if (uls.length) {
+                uls.forEach(function(ul) {
+                    Array.prototype.forEach.call(ul.children, function(child) {
+                        if (child.tagName === 'LI') {
+                            out.appendChild(child.cloneNode(true));
+                        }
+                    });
+                });
+            } else {
+                w.querySelectorAll('li').forEach(function(li) {
+                    out.appendChild(li.cloneNode(true));
+                });
+            }
+        });
+        return out.innerHTML;
+    }
+
     function parseProsCons(html) {
         // Parse Pros & Cons content and format it in the special grid layout
         const tempDiv = document.createElement('div');
@@ -754,26 +791,41 @@
         let consContent = [];
         let currentSection = null;
         
-        // Find Pros and Cons sections
-        const allElements = tempDiv.querySelectorAll('h3, h4, p, ul, li, strong');
+        // Walk headings and lists only — do NOT include `li` here or each row is processed
+        // again after its parent `ul`, duplicating the whole list in preview and JSON.
+        const allElements = tempDiv.querySelectorAll('h3, h4, p, ul, strong');
         
         allElements.forEach(el => {
             const text = el.textContent.trim().toLowerCase();
-            if (text.includes('pros') && !text.includes('cons')) {
+            if (text.includes('pros') && text.includes('cons')) {
+                currentSection = null;
+            } else if (text.includes('pros')) {
                 currentSection = 'pros';
             } else if (text.includes('cons')) {
                 currentSection = 'cons';
             } else if (currentSection === 'pros' && el.tagName !== 'H3' && el.tagName !== 'H4') {
-                if (el.tagName === 'UL' || el.tagName === 'LI') {
+                if (el.tagName === 'UL') {
                     prosContent.push(el.outerHTML);
+                } else if (el.closest && el.closest('ul')) {
+                    // <p> / <strong> inside list items: already included in the parent <ul> fragment
                 } else if (el.textContent.trim()) {
                     prosContent.push('<li>' + el.textContent.trim() + '</li>');
                 }
             } else if (currentSection === 'cons' && el.tagName !== 'H3' && el.tagName !== 'H4') {
-                if (el.tagName === 'UL' || el.tagName === 'LI') {
+                if (el.tagName === 'UL') {
                     consContent.push(el.outerHTML);
+                } else if (el.closest && el.closest('ul')) {
+                    // same as pros: avoid duplicate rows from bold labels inside <li>
                 } else if (el.textContent.trim()) {
                     consContent.push('<li>' + el.textContent.trim() + '</li>');
+                }
+            } else if (currentSection === null && el.tagName === 'UL') {
+                if (prosContent.length === 0) {
+                    prosContent.push(el.outerHTML);
+                } else if (consContent.length === 0) {
+                    consContent.push(el.outerHTML);
+                } else {
+                    consContent.push(el.outerHTML);
                 }
             }
         });
@@ -790,24 +842,9 @@
             }
         }
         
-        // Build the pros-cons grid HTML
-        let prosHTML = '<div class="pros-section"><h4>Pros</h4><ul>';
-        if (prosContent.length > 0) {
-            prosHTML += prosContent.join('');
-        } else {
-            prosHTML += '<li>No pros listed.</li>';
-        }
-        prosHTML += '</ul></div>';
-        
-        let consHTML = '<div class="cons-section"><h4>Cons</h4><ul>';
-        if (consContent.length > 0) {
-            consHTML += consContent.join('');
-        } else {
-            consHTML += '<li>No cons listed.</li>';
-        }
-        consHTML += '</ul></div>';
-        
-        return '<div class="pros-cons-content">' + prosHTML + consHTML + '</div>';
+        const prosInner = flattenProsConsListParts(prosContent);
+        const consInner = flattenProsConsListParts(consContent);
+        return buildProsConsTableFromNodes(prosInner, consInner);
     }
 })();
 </script>

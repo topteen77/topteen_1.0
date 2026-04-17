@@ -267,6 +267,31 @@ def convert_headings_to_h2(html_content, verbose=False):
     return str(soup), converted_count, converted_headings
 
 
+def section_html_is_trivial(html: str | None) -> bool:
+    """True if fragment has no visible text (empty, whitespace, or nbsp-only paragraphs)."""
+    if not html or not str(html).strip():
+        return True
+    soup = BeautifulSoup(str(html), "html.parser")
+    text = soup.get_text(separator=" ", strip=True)
+    text = re.sub(r"[\xa0\s]+", " ", text).strip()
+    return len(text) == 0
+
+
+def extract_body_before_first_heading(soup: BeautifulSoup, first_heading) -> str:
+    """HTML before the first top-level heading (hero, subtitle, intro before Overview h2)."""
+    if not first_heading:
+        return ""
+    content_before: list[str] = []
+    current = soup.contents[0] if soup.contents else None
+    while current and current != first_heading:
+        if hasattr(current, "name") and current.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+            break
+        if current and str(current).strip():
+            content_before.append(str(current))
+        current = current.next_sibling if hasattr(current, "next_sibling") else None
+    return "".join(content_before).strip()
+
+
 def extract_content_until_next_heading(element, all_elements, current_index):
     """Extract all content until the next heading"""
     content = []
@@ -395,32 +420,36 @@ def generate_content_json(html_content, course_name=None):
                     accordion_data[matched_key]['title'] = h
                     break
     
-    # Extract overview content
+    # Extract overview: use body between Overview h2 and next section, but if that is only
+    # placeholders, pull hero/subtitle HTML from before the first heading (e.g. parenthetical
+    # under the title that sits above <h2>Overview</h2>).
     overview_content = ''
-    
-    # Check if there's an "Overview" section
     overview_key = 'overview'
-    if overview_key in accordion_data and accordion_data[overview_key]['html']:
-        overview_content = accordion_data[overview_key]['html']
-    else:
-        # If no Overview heading found, extract content before first heading
-        if h2_headings:
-            first_heading = h2_headings[0]
-            content_before = []
-            current = soup.contents[0] if soup.contents else None
-            
-            while current and current != first_heading:
-                if hasattr(current, 'name') and current.name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-                    break
-                if current and str(current).strip():
-                    content_before.append(str(current))
-                current = current.next_sibling if hasattr(current, 'next_sibling') else None
-            
-            if content_before:
-                overview_content = ''.join(content_before).strip()
-                # Also add to overview section if it exists
-                if overview_key in accordion_data:
-                    accordion_data[overview_key]['html'] = overview_content
+    before_first = ''
+    if h2_headings:
+        before_first = extract_body_before_first_heading(soup, h2_headings[0])
+
+    inner_overview = ''
+    if overview_key in accordion_data:
+        inner_overview = (accordion_data[overview_key]['html'] or '').strip()
+
+    if overview_key in accordion_data:
+        if section_html_is_trivial(inner_overview):
+            if before_first:
+                accordion_data[overview_key]['html'] = before_first
+                overview_content = before_first
+            else:
+                accordion_data[overview_key]['html'] = ''
+                overview_content = ''
+        else:
+            overview_content = inner_overview
+            if before_first and not section_html_is_trivial(before_first):
+                inner_plain = BeautifulSoup(inner_overview, 'html.parser').get_text(' ', strip=True)
+                lead_plain = BeautifulSoup(before_first, 'html.parser').get_text(' ', strip=True)
+                if lead_plain and lead_plain[:40] not in inner_plain:
+                    merged = (before_first.rstrip() + inner_overview).strip()
+                    accordion_data[overview_key]['html'] = merged
+                    overview_content = merged
     
     # Build final JSON structure
     result = {

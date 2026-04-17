@@ -12402,108 +12402,140 @@ a:hover {
   background: #fff;
 }
 
-.vocational-cr-accordion .pros-cons-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+/* Pros & Cons: comparison table (JSON pros / cons); remainder below uses default rich text */
+.vocational-cr-accordion .pros-cons-table-wrap {
   margin-top: 12px;
+  margin-bottom: 8px;
 }
 
-.vocational-cr-accordion .pros-section,
-.vocational-cr-accordion .cons-section {
-  padding: 20px;
+.vocational-cr-accordion .pros-cons-comparison-table {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
   border-radius: 12px;
-  border: 2px solid;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  table-layout: fixed;
 }
 
-.vocational-cr-accordion .pros-section {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: #10b981;
-}
-
-.vocational-cr-accordion .pros-section h4 {
-  color: #10b981;
+.vocational-cr-accordion .pros-cons-comparison-table thead th {
   font-weight: 700;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 1rem;
+  padding: 14px 18px;
+  border-bottom: 2px solid #e5e7eb;
+  vertical-align: middle;
 }
 
-.vocational-cr-accordion .pros-section h4::before {
+.vocational-cr-accordion .pros-cons-comparison-table thead th.pros-col {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #047857;
+  width: 50%;
+}
+
+.vocational-cr-accordion .pros-cons-comparison-table thead th.pros-col::before {
   content: "✓";
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
+  margin-right: 10px;
   background: #10b981;
   color: #fff;
   border-radius: 50%;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
+  vertical-align: middle;
 }
 
-.vocational-cr-accordion .cons-section {
+.vocational-cr-accordion .pros-cons-comparison-table thead th.cons-col {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-color: #ef4444;
+  color: #b91c1c;
+  width: 50%;
 }
 
-.vocational-cr-accordion .cons-section h4 {
-  color: #ef4444;
-  font-weight: 700;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.vocational-cr-accordion .cons-section h4::before {
+.vocational-cr-accordion .pros-cons-comparison-table thead th.cons-col::before {
   content: "×";
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
+  margin-right: 10px;
   background: #ef4444;
   color: #fff;
   border-radius: 50%;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
+  vertical-align: middle;
 }
 
-.vocational-cr-accordion .pros-section ul,
-.vocational-cr-accordion .cons-section ul {
+.vocational-cr-accordion .pros-cons-comparison-table tbody td {
+  padding: 18px 20px;
+  vertical-align: top;
+  border-top: none;
+}
+
+.vocational-cr-accordion .pros-cons-comparison-table .pros-cell {
+  background: #f0fdf4;
+  border-right: 1px solid #e5e7eb;
+}
+
+.vocational-cr-accordion .pros-cons-comparison-table .cons-cell {
+  background: #fff5f5;
+}
+
+.vocational-cr-accordion .pros-cons-comparison-table ul.pros-cons-ul {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
 
-.vocational-cr-accordion .pros-section ul li,
-.vocational-cr-accordion .cons-section ul li {
-  padding: 10px 0;
-  padding-left: 32px;
+.vocational-cr-accordion .pros-cons-comparison-table ul.pros-cons-ul li {
+  padding: 10px 0 10px 28px;
   position: relative;
   color: #1f2937;
   line-height: 1.6;
 }
 
-.vocational-cr-accordion .pros-section ul li::before {
+.vocational-cr-accordion .pros-cell ul.pros-cons-ul li::before {
   content: "•";
   position: absolute;
-  left: 12px;
+  left: 8px;
   color: #10b981;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
 }
 
-.vocational-cr-accordion .cons-section ul li::before {
+.vocational-cr-accordion .cons-cell ul.pros-cons-ul li::before {
   content: "•";
   position: absolute;
-  left: 12px;
+  left: 8px;
   color: #ef4444;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
+}
+
+.vocational-cr-accordion .pros-cons-additional {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  color: #374151;
+  line-height: 1.65;
+}
+
+.vocational-cr-accordion .pros-cons-additional h2,
+.vocational-cr-accordion .pros-cons-additional h3,
+.vocational-cr-accordion .pros-cons-additional h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.vocational-cr-accordion .pros-cons-additional ul {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 1rem;
 }
 
 .vocational-cr-accordion .chev {
@@ -12511,9 +12543,46 @@ a:hover {
 }
 
 @media (max-width: 767px) {
-  .vocational-cr-accordion .pros-cons-content {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .vocational-cr-accordion .pros-cons-comparison-table thead,
+  .vocational-cr-accordion .pros-cons-comparison-table tbody,
+  .vocational-cr-accordion .pros-cons-comparison-table tr,
+  .vocational-cr-accordion .pros-cons-comparison-table th,
+  .vocational-cr-accordion .pros-cons-comparison-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .vocational-cr-accordion .pros-cons-comparison-table thead tr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  .vocational-cr-accordion .pros-cons-comparison-table tbody tr td.pros-cell {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .vocational-cr-accordion .pros-cons-comparison-table tbody tr td.cons-cell::before {
+    content: "Cons";
+    display: block;
+    font-weight: 700;
+    color: #b91c1c;
+    margin-bottom: 10px;
+    padding-top: 8px;
+  }
+
+  .vocational-cr-accordion .pros-cons-comparison-table tbody tr td.pros-cell::before {
+    content: "Pros";
+    display: block;
+    font-weight: 700;
+    color: #047857;
+    margin-bottom: 10px;
   }
 
   .voc-left .heading-title {
