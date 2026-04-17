@@ -14,74 +14,188 @@
 {{ super() }}
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
-  .psychometric-dashboard-page { padding-top: 60px; }
-  .title-test-info { font-weight: 600; margin-bottom: 29px; font-size: 24px; color: #333333; }
+  .psychometric-dashboard-page {
+    padding-top: 60px;
+    --psych-accent: #3F37C9;
+    --psych-surface: #f8fafc;
+    --psych-border: #e5e7eb;
+  }
+  .psych-dashboard-main {
+    background: linear-gradient(180deg, #f1f5f9 0%, #fff 220px);
+    border-radius: 16px;
+    padding: 1.25rem 1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+  @media (min-width: 768px) {
+    .psych-dashboard-main { padding: 1.75rem 1.75rem 2rem; }
+  }
+  .psych-dashboard-hero {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  }
+  .psych-dashboard-hero h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+    margin-bottom: 0.35rem;
+  }
+  @media (min-width: 576px) {
+    .psych-dashboard-hero h1 { font-size: 1.65rem; }
+  }
+  .psych-dashboard-hero p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    max-width: 42rem;
+    line-height: 1.5;
+  }
+  .psych-section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .psych-section-title .psych-section-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6f42c1, #3F37C9);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.15);
+  }
+  .title-test-info {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
   .stat-card {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 15px;
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 14px;
+    padding: 14px 14px 14px 12px;
     display: flex;
     gap: 12px;
     align-items: center;
+    height: 100%;
+    min-height: 88px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
-  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-  .report-card {
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+  }
+  .stat-card-icon-wrap {
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
-    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .stat-card-icon-wrap.trophy { background: linear-gradient(145deg, #fef3c7, #fde68a); }
+  .stat-card-icon-wrap.points { background: linear-gradient(145deg, #dbeafe, #bfdbfe); }
+  .stat-card-icon-wrap.streak { background: linear-gradient(145deg, #ffedd5, #fdba74); }
+  .stat-card-icon-wrap.level { background: linear-gradient(145deg, #d1fae5, #a7f3d0); }
+  .stat-card .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .stat-card .stat-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .report-card {
+    border-radius: 16px;
+    padding: 22px 18px 18px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    overflow: hidden;
   }
+  .report-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    opacity: 0.85;
+  }
+  .report-card-personality::after { background: linear-gradient(90deg, #5a3d7a, #8b5cf6); }
+  .report-card-interest::after { background: linear-gradient(90deg, #c97b3d, #f59e0b); }
+  .report-card-intelligence::after { background: linear-gradient(90deg, #b83d6d, #ec4899); }
   .report-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
   }
-  .report-card-personality { background: rgba(127, 86, 168, 0.15); }
-  .report-card-interest { background: rgba(245, 158, 81, 0.2); }
-  .report-card-intelligence { background: rgba(233, 120, 168, 0.2); }
+  .report-card-personality { background: linear-gradient(165deg, rgba(127, 86, 168, 0.2) 0%, rgba(127, 86, 168, 0.08) 100%); }
+  .report-card-interest { background: linear-gradient(165deg, rgba(245, 158, 81, 0.22) 0%, rgba(245, 158, 81, 0.08) 100%); }
+  .report-card-intelligence { background: linear-gradient(165deg, rgba(233, 120, 168, 0.22) 0%, rgba(233, 120, 168, 0.08) 100%); }
   .report-badge {
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 600;
     color: #fff;
     margin-top: 10px;
     max-width: 100%;
     text-align: center;
-    line-height: 17px;
+    line-height: 1.35;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   }
   .report-badge-personality { background: #5a3d7a; }
   .report-badge-interest { background: #c97b3d; }
   .report-badge-intelligence { background: #b83d6d; }
   /* Circular progress filled by percentage (conic-gradient) */
   .circle-progress {
-    width: 70px;
-    height: 70px;
+    width: 78px;
+    height: 78px;
     border-radius: 50%;
-    background: conic-gradient(var(--circle-color, #ddd) 0deg calc(var(--pct, 0) * 360deg), rgba(0,0,0,0.08) calc(var(--pct, 0) * 360deg) 360deg);
+    background: conic-gradient(var(--circle-color, #ddd) 0deg calc(var(--pct, 0) * 360deg), rgba(15, 23, 42, 0.08) calc(var(--pct, 0) * 360deg) 360deg);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 10px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #333;
+    margin: 0 auto 12px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
     position: relative;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
   }
   .circle-progress::before {
     content: '';
     position: absolute;
-    inset: 6px;
+    inset: 7px;
     border-radius: 50%;
-    background: rgba(255,255,255);
+    background: #fff;
     z-index: 0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   }
   .circle-progress .circle-progress-text { position: relative; z-index: 1; }
   .report-card-actions {
@@ -107,6 +221,10 @@
     transition: transform 0.2s ease;
   }
   .report-card-actions a:hover { transform: scale(1.1); }
+  .report-card-actions a:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.95);
+    outline-offset: 2px;
+  }
   .report-card-actions .btn-view { background: #3F37C9; }
   .report-card-actions .btn-view:hover { background: #2e2899; color: #fff; }
   .report-card-actions .btn-download { background: #0d6efd; }
@@ -118,58 +236,115 @@
     flex: 1;
   }
   .stream-card {
-    background: rgba(76, 201, 240, 0.12);
-    border: 1px solid rgba(76, 201, 240, 0.35);
-    border-radius: 10px;
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 14px;
     padding: 16px;
     display: flex;
     align-items: center;
     gap: 14px;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
   }
-  .stream-card-icon { width: 40px; height: 40px; flex-shrink: 0; }
-  .view-report-btn {
-    background: #3F37C9;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 28px;
-    font-weight: 600;
-    font-size: 15px;
-    box-shadow: 0 4px 0 #2e2899;
+  .stream-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(76, 201, 240, 0.15);
+    border-color: rgba(76, 201, 240, 0.45);
   }
-  .view-report-btn:hover { color: #fff; background: #2e2899; }
-  .download-report-btn {
-    background: #fff;
-    color: #3F37C9;
-    border: 2px solid #3F37C9;
-    border-radius: 10px;
-    padding: 12px 28px;
-    font-weight: 600;
-    font-size: 15px;
-  }
-  .download-report-btn:hover { color: #3F37C9; background: rgba(63, 55, 201, 0.08); }
-  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
-  .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
-  .vocational-card {
-    border-radius: 10px;
-    overflow: hidden;
-    background: #f7f7fa;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-  }
-  .vocational-img-wrap {
-    width: 100%;
-    height: 180px;
-    background: #e9ecef;
+  .stream-card-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(76, 201, 240, 0.25), rgba(76, 201, 240, 0.1));
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .vocational-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .psych-cta-row {
+    margin-top: 1.5rem;
+    padding-top: 0.25rem;
+  }
+  .view-report-btn {
+    background: linear-gradient(180deg, #4f46e5 0%, #3F37C9 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    box-shadow: 0 4px 14px rgba(63, 55, 201, 0.35), 0 1px 0 rgba(255, 255, 255, 0.15) inset;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .view-report-btn:hover { color: #fff; background: #3730a3; box-shadow: 0 6px 18px rgba(63, 55, 201, 0.4); }
+  .view-report-btn:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+  .download-report-btn {
+    background: #fff;
+    color: #3F37C9;
+    border: 2px solid #c7d2fe;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .download-report-btn:hover { color: #3F37C9; background: #eef2ff; border-color: #a5b4fc; }
+  .download-report-btn:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
+  .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
+  .vocational-card {
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .vocational-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+  }
+  .vocational-card a { display: block; }
+  .vocational-img-wrap {
+    width: 100%;
+    height: 168px;
+    background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .vocational-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain;  }
+  .vocational-card .vocational-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+    padding: 1rem 1rem 1.125rem;
+    color: #0f172a;
+    border-top: 1px solid #f1f5f9;
+    background: #fafafa;
+  }
+  .psych-section-link a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .psych-section-link a:hover {
+    color: #3F37C9;
+    border-bottom-color: rgba(63, 55, 201, 0.35);
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container my-md-8 mt-3 pt-md-10 pt-8">
+<div class="container my-md-8 mt-3 pt-3">
   <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
     <button type="button" class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
       style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
@@ -184,6 +359,7 @@
     </div>
 
     <div class="col-lg-8 col-md-12">
+      <div class="psych-dashboard-main">
       {% if messages %}
       <div class="mb-4">
         {% for message in messages %}
@@ -192,45 +368,50 @@
       </div>
       {% endif %}
 
+      <div class="psych-dashboard-hero">
+        <h1>Psychometric dashboard</h1>
+        <p>Track your progress, review your test reports, and explore stream suggestions tailored to your profile.</p>
+      </div>
+
       <!-- Statistics (home layout) -->
-      <div class="mb-4">
-        <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
+      <div class="mb-4 pb-1">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Statistics</h2>
         <div class="row g-3">
           <div class="col-6 col-md-3">
             <div class="stat-card">
-              <div><i class='bx bx-trophy fs-30 text-warning'></i></div>
-              <div>
-                <p class="fs-18 fw-semibold mb-0">{{ trophies_unlocked|default(0) }}</p>
-                <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+              <div class="stat-card-icon-wrap trophy"><i class='bx bx-trophy fs-24 text-warning'></i></div>
+              <div class="min-w-0">
+                <p class="stat-value mb-0">{{ trophies_unlocked|default(0) }}</p>
+                <p class="stat-label mb-0 lh-sm">Trophies unlocked</p>
               </div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="stat-card">
-              <div><i class='bx bx-star fs-30 text-primary'></i></div>
-              <div>
-                <p class="fs-18 fw-semibold mb-0">{{ total_points|default(0) }}</p>
-                <p class="text-gray fs-10 mb-0">Total Points</p>
+              <div class="stat-card-icon-wrap points"><i class='bx bx-star fs-24 text-primary'></i></div>
+              <div class="min-w-0">
+                <p class="stat-value mb-0">{{ total_points|default(0) }}</p>
+                <p class="stat-label mb-0 lh-sm">Total points</p>
               </div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="stat-card">
-              <div><i class='bx bx-fire fs-30 text-warning'></i></div>
-              <div>
-                <p class="fs-18 fw-semibold mb-0">{{ streak_days|default(0) }}</p>
-                <p class="text-gray fs-10 mb-0">{% if (streak_days|default(0)) == 1 %}1 day{% else %}{{ streak_days|default(0) }} days{% endif %}</p>
+              <div class="stat-card-icon-wrap streak"><i class='bx bxs-hot fs-24 ' style="color: #FF4500;"></i></div>
+              <div class="min-w-0">
+                <p class="stat-value mb-0">{{ streak_days|default(0) }}</p>
+                <p class="stat-label mb-0 lh-sm">{% if (streak_days|default(0)) == 1 %}1 day streak{% else %}{{ streak_days|default(0) }} day streak{% endif %}</p>
               </div>
             </div>
           </div>
           <div class="col-6 col-md-3">
             <div class="stat-card">
-              <div><i class='bx bx-medal fs-30 text-success'></i></div>
-              <div>
-                <p class="fs-18 fw-semibold mb-0">{{ current_level|default('Explorer') }}</p>
-                <p class="text-gray fs-10 mb-0">Current Level</p>
+              <div class="stat-card-icon-wrap level"><i class='bx bx-medal fs-24 text-success'></i></div>
+              <div class="min-w-0">
+                <p class="stat-value mb-0 text-truncate" title="{{ current_level|default('Explorer') }}">{{ current_level|default('Explorer') }}</p>
+                <p class="stat-label mb-0 lh-sm">Current level</p>
                 {% if next_level_min_points is not none and level_progress_percent is not none %}
-                <div class="level-progress-wrap mt-1" style="max-width: 80px;">
+                <div class="level-progress-wrap mt-1" style="max-width: 100%;">
                   <div class="level-progress-bar" style="width: {{ level_progress_percent }}%;"></div>
                 </div>
                 {% endif %}
@@ -242,9 +423,9 @@
 
       <!-- Psychometric Test Report (match screen: three cards with circular %, badges) -->
       <div class="mb-4">
-        <h2 class="fs-24 fw-semibold mb-3">Psychometric Test Report</h2>
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric test report</h2>
         <div class="row g-3">
-          <div class="col-md-4">
+          <div class="col-md-4 mb-md-0 mb-3">
             <div class="report-card report-card-personality">
               <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_html') }}{% endif %}" class="report-card-main-link text-decoration-none text-dark">
                 <div class="circle-progress" style="--circle-color: #5a3d7a; --pct: {{ (personality_pct|default(0) / 100) }};"><span class="circle-progress-text">{{ personality_pct|default(0) }}%</span></div>
@@ -257,7 +438,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-4 mb-md-0 mb-3">
             <div class="report-card report-card-interest">
               <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_html') }}{% endif %}" class="report-card-main-link text-decoration-none text-dark">
                 <div class="circle-progress" style="--circle-color: #c97b3d; --pct: {{ (interest_pct|default(0) / 100) }};"><span class="circle-progress-text">{{ interest_pct|default(0) }}%</span></div>
@@ -270,7 +451,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-4 mb-md-0 mb-3">
             <div class="report-card report-card-intelligence">
               <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_html') }}{% endif %}" class="report-card-main-link text-decoration-none text-dark">
                 <div class="circle-progress" style="--circle-color: #b83d6d; --pct: {{ (intelligence_pct|default(0) / 100) }};"><span class="circle-progress-text">{{ intelligence_pct|default(0) }}%</span></div>
@@ -284,16 +465,16 @@
             </div>
           </div>
         </div>
-        <div class="text-center mt-4 d-flex flex-wrap gap-2 justify-content-center">
-          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_combined_report', args=[report_user_id]) }}{% else %}{{ url('app:class10_combined_report_own') }}{% endif %}" class="btn view-report-btn">View Combined Report</a>
-          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_report_download_pdf', args=[report_user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}" class="btn download-report-btn" target="_blank" rel="noopener">Download PDF</a>
+        <div class="text-center psych-cta-row d-flex flex-wrap gap-2 gap-md-3 justify-content-center align-items-stretch">
+          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_combined_report', args=[report_user_id]) }}{% else %}{{ url('app:class10_combined_report_own') }}{% endif %}" class="btn view-report-btn"><i class='bx bx-file-blank fs-18'></i> View combined report</a>
+          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_report_download_pdf', args=[report_user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}" class="btn download-report-btn" target="_blank" rel="noopener"><i class='bx bx-download fs-18'></i> Download PDF</a>
         </div>
       </div>
 
       <!-- Suggested Streams based on Personality (light blue cards with icon) -->
       {% if streamsubject %}
       <div class="my-md-6 my-4">
-        <h3 class="title-test-info fs-18">Suggested Streams based on Personality</h3>
+        <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested streams from personality</h3>
         <div class="row g-3">
           {% for stream, subject in streamsubject %}
           <div class="col-6 col-md-4">
@@ -303,7 +484,7 @@
               </div>
               <div>
                 <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
-                <p class="fs-13 text-gray mb-0">{{ subject }}</p>
+                <p class="fs-13 text-gray mb-0 lh-sm">{{ subject }}</p>
               </div>
             </div>
           </div>
@@ -315,8 +496,9 @@
       <!-- Vocational Courses for Below Average Students: shown only when result has below-average areas; cards dynamic, each links to its detail page -->
       {% if vocational_course_cards|default([]) %}
       <div class="mb-4">
-        <h3 class="title-test-info fs-18">
-          <a href="{{ url('core:vocational_courses') }}" class="text-dark text-decoration-none">Vocational Courses for Below Average Students</a>
+        <h3 class="psych-section-title psych-section-link mb-3">
+          <span class="psych-section-dot" aria-hidden="true"></span>
+          <a href="{{ url('core:vocational_courses') }}">Vocational courses for below-average students</a>
         </h3>
         <div class="row g-3">
           {% for card in vocational_course_cards %}
@@ -330,7 +512,7 @@
                   <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="{{ card.label }}">
                   {% endif %}
                 </div>
-                <p class="fs-14 fw-semibold mb-0 p-3">{{ card.label }}</p>
+                <p class="vocational-label lh-sm">{{ card.label }}</p>
               </a>
             </div>
           </div>
@@ -338,6 +520,7 @@
         </div>
       </div>
       {% endif %}
+      </div>
     </div>
   </div>
 </div>

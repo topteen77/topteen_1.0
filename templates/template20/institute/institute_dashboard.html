@@ -10,32 +10,424 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
 <style>
+  .header.tt-header {
+    margin-top: 0px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    backdrop-filter: blur(2.15px);
+    background: rgb(244, 243, 255, .80);
+    border: 0px;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+    border-bottom: 1px solid #5350f72e;
+    transition: all 0.2s;
+  }
+
+  .tt-header .navbar {
+    background: rgb(244, 243, 255, .50);
+    border-radius: 0px;
+    box-shadow: none;
+    backdrop-filter: blur(3px);
+    border: none !important;
+  }
+
+
   .institute-dashboard {
-    padding-top: 80px;
+    --id-purple: #5249DF;
+    --id-purple-dark: #4c1d95;
+    --id-purple-soft: #ede9fe;
+    --id-page-bg: #f0f2f7;
+    --id-card: #ffffff;
+    --id-text: #1e1b4b;
+    --id-muted: #64748b;
+    --id-radius: 12px;
+    --id-shadow: 0 4px 24px rgba(91, 33, 182, 0.08);
+    --id-shadow-sm: 0 2px 12px rgba(15, 23, 42, 0.06);
+    padding-top: 46px;
+    background: var(--id-page-bg);
+    min-height: 100vh;
   }
-  .stat-card {
-    background: #f7f7fa;
-    border-radius: 10px;
-    padding: 15px;
+
+  .institute-dashboard .id-shell {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .in-student-table,
+  .id-stat-card,
+  .institute-dashboard .id-chart-card {
+    background: var(--id-card);
+    border-radius: var(--id-radius);
+    /* box-shadow: var(--id-shadow-sm); */
+    border: 1px solid #e9eaee !important;
+  }
+
+  .institute-dashboard .id-profile-card {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .institute-dashboard .id-profile-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--id-purple-soft);
+  }
+
+  .institute-dashboard .id-profile-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin: 0.75rem 0 0.5rem;
+    text-align: center;
+  }
+
+  .institute-dashboard .id-profile-meta {
+    font-size: 0.8125rem;
+    color: var(--id-muted);
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .institute-dashboard .id-profile-meta .id-meta-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .institute-dashboard .id-profile-meta i {
+    color: var(--id-purple);
+    font-size: 1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .institute-dashboard .id-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .institute-dashboard .id-nav-item {
+    display: flex;
     align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--id-text);
+    background: #f8fafc;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
   }
-  .stat-card i {
-    min-width: 32px;
+
+  .institute-dashboard .id-nav-item:hover {
+    background: var(--id-purple-soft);
+    color: var(--id-purple-dark);
   }
-  .stat-card p {
+
+  .institute-dashboard .id-nav-item.active {
+    background: var(--id-purple);
+    color: #fff;
+    pointer-events: none;
+  }
+
+  .institute-dashboard .id-nav-item.active i {
+    color: #fff;
+  }
+
+  .institute-dashboard .id-nav-item i {
+    font-size: 1.15rem;
+    color: var(--id-purple);
+  }
+
+  .institute-dashboard .id-nav-item:hover i {
+    color: var(--id-purple-dark);
+  }
+
+  .institute-dashboard button.id-nav-item {
+    cursor: pointer;
+  }
+
+  .institute-dashboard .id-btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    border: 2px solid var(--id-purple);
+    color: var(--id-purple);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    background: #fff;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .institute-dashboard .id-btn-logout:hover {
+    background: var(--id-purple);
+    color: #fff;
+  }
+
+  .institute-dashboard .id-sidebar-sticky {
+    position: sticky;
+    top: 96px;
+    background: #fff;
+    padding: 17px 14px;
+    border-radius: 15px;
+  }
+
+  .institute-dashboard .id-main-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin-bottom: 1.25rem;
+  }
+
+  .institute-dashboard .id-stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  @media (max-width: 1199px) {
+    .institute-dashboard .id-stats-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .institute-dashboard .id-stats-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .institute-dashboard .id-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    min-height: 88px;
+  }
+
+  .institute-dashboard .id-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .institute-dashboard .id-stat-icon i {
+    font-size: 1.5rem;
+    color: #fff;
+  }
+
+  .institute-dashboard .id-stat-icon--orange {
+    background: linear-gradient(135deg, #fb923c, #ea580c);
+  }
+
+  .institute-dashboard .id-stat-icon--blue {
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+  }
+
+  .institute-dashboard .id-stat-icon--pink {
+    background: linear-gradient(135deg, #f472b6, #db2777);
+  }
+
+  .institute-dashboard .id-stat-icon--green {
+    background: linear-gradient(135deg, #4ade80, #16a34a);
+  }
+
+  .institute-dashboard .id-stat-icon--purple {
+    background: linear-gradient(135deg, #a78bfa, var(--id-purple));
+  }
+
+  .institute-dashboard .id-stat-body {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .institute-dashboard .id-stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--id-text);
+    line-height: 1.2;
     margin: 0;
   }
-  .stat-value {
-    font-size: 18px;
+
+  .institute-dashboard .id-stat-label {
+    font-size: 0.7rem;
     font-weight: 600;
-    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--id-muted);
+    margin: 0.2rem 0 0;
   }
-  .stat-label {
-    font-size: 10px;
-    color: #828282;
+
+  .institute-dashboard .id-panel {
+    padding: 1.15rem 1.25rem;
   }
+
+  .institute-dashboard .id-panel-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin-bottom: 1rem;
+  }
+
+  .institute-dashboard .id-toolbar .form-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--id-muted);
+  }
+
+  .institute-dashboard .id-toolbar .form-control,
+  .institute-dashboard .id-toolbar .custom-input {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-primary {
+    background: var(--id-purple);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-primary:hover {
+    background: var(--id-purple-dark);
+    color: #fff;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-outline {
+    border: 2px solid var(--id-purple);
+    color: var(--id-purple);
+    background: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-outline:hover {
+    background: var(--id-purple-soft);
+    color: var(--id-purple-dark);
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-download {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    color: var(--id-purple);
+    background: #fff;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-download:hover {
+    background: var(--id-purple-soft);
+  }
+
+  /* Purple header tables (students + static tables) */
+  .institute-dashboard #students-table-wrapper .table thead th,
+  .institute-dashboard #students-table-container .table thead th,
+  .institute-dashboard .id-data-table thead th {
+    background: var(--id-purple) !important;
+    color: #fff !important;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: none;
+    border: none;
+    padding: 0.75rem 0.65rem;
+    vertical-align: middle;
+  }
+
+  .institute-dashboard #students-table-wrapper .table,
+  .institute-dashboard #students-table-container .table,
+  .institute-dashboard .id-data-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .institute-dashboard #students-table-wrapper .table tbody td,
+  .institute-dashboard #students-table-container .table tbody td,
+  .institute-dashboard .id-data-table tbody td {
+    font-size: 0.8125rem;
+    padding: 0.65rem 0.65rem;
+    vertical-align: middle;
+    border-color: #eef2ff;
+  }
+
+  .institute-dashboard #students-table-wrapper .table tbody tr:nth-child(even),
+  .institute-dashboard #students-table-container .table tbody tr:nth-child(even),
+  .institute-dashboard .id-data-table tbody tr:nth-child(even) {
+    background: #fafafa;
+  }
+
+  .institute-dashboard .id-chart-card {
+    padding: 1.15rem 1.25rem;
+    height: 100%;
+  }
+
+  .institute-dashboard .id-chart-card .id-chart-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin-bottom: 0.75rem;
+  }
+
+  .institute-dashboard .id-chart-card .chart-canvas-wrap {
+    height: 300px;
+    position: relative;
+  }
+
+  .institute-dashboard .id-heatmap-shell {
+    background: var(--id-card);
+    border-radius: var(--id-radius);
+    box-shadow: var(--id-shadow-sm);
+    border: 1px solid rgba(91, 33, 182, 0.06);
+    overflow: hidden;
+    margin-top: 1.5rem;
+  }
+
+  .institute-dashboard .id-heatmap-shell .heatmap-dashboard-container {
+    min-height: auto;
+    background: linear-gradient(to bottom, #fafbff, #f1f5f9);
+    padding: 1.25rem;
+  }
+
+  .institute-dashboard .heatmap-header-title-icon {
+    background: var(--id-purple) !important;
+  }
+
   /* Student Details Panel */
   .student-details-panel {
     position: fixed;
@@ -52,35 +444,42 @@
     border-left: 1px solid #e0e0e0;
     overflow-y: auto;
   }
+
   /* Ensure modals appear above the student details panel */
   .modal {
     z-index: 1200 !important;
   }
+
   .modal-backdrop {
     z-index: 1150 !important;
   }
+
   .student-details-panel.show {
     right: 0;
   }
+
   .student-panel-header {
     padding: 20px;
-    background: #f7f7fa;
-    border-bottom: 1px solid #e0e0e0;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border-bottom: 1px solid #e9d5ff;
     position: sticky;
     top: 0;
     z-index: 10;
   }
+
   .student-panel-header h5 {
     color: #333;
     font-size: 18px;
     font-weight: 600;
     margin: 0;
   }
+
   .student-panel-body {
     padding: 20px;
     overflow-y: auto;
     flex: 1;
   }
+
   .student-panel-footer {
     padding: 20px;
     background: #f7f7fa;
@@ -89,27 +488,33 @@
     bottom: 0;
     z-index: 10;
   }
+
   .student-panel-footer .btn {
     width: 100%;
     margin-bottom: 10px;
   }
+
   .student-panel-footer .btn:last-child {
     margin-bottom: 0;
   }
+
   .student-panel-footer .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
+
   .student-detail-item {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #f0f0f0;
   }
+
   .student-detail-item:last-child {
     border-bottom: none;
     margin-bottom: 0;
     padding-bottom: 0;
   }
+
   .student-detail-label {
     font-size: 12px;
     color: #828282;
@@ -118,18 +523,22 @@
     letter-spacing: 0.5px;
     margin-bottom: 5px;
   }
+
   .student-detail-value {
     font-size: 14px;
     color: #333;
     word-break: break-word;
   }
-  .table tbody tr.student-row {
+
+  .institute-dashboard .table tbody tr.student-row {
     cursor: pointer;
     transition: background-color 0.2s;
   }
-  .table tbody tr.student-row:hover {
-    background-color: #f8f9fa;
+
+  .institute-dashboard .table tbody tr.student-row:hover {
+    background-color: #f5f3ff;
   }
+
   @media (max-width: 991px) {
     .student-details-panel {
       width: 100%;
@@ -144,264 +553,197 @@
 
 {% block content %}
 <section class="institute-dashboard pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left Sidebar -->
-      <div class="col-lg-4 d-none d-lg-block">
-        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
-          <!-- Institute Profile -->
-          <div class="text-center border-bottom pb-3 mb-3">
-            <div class="mb-3">
+  <div class="container-fluid id-shell px-3 px-lg-4">
+    <div class="row g-4 pt-3 pt-lg-4">
+      <!-- Sidebar -->
+      <aside class="col-12 col-lg-3 col-xl-3">
+        <div class="id-sidebar-sticky">
+          <div class="id-profile-card p-0 box-shadow-none border-bottom-1">
+            <div class="text-center">
               {% if institute.logo %}
-              <img src="{{ institute.logo.url }}" 
-                   class="rounded-circle" 
-                   style="width: 104px; height: 104px; object-fit: cover;" 
-                   alt="Institute Logo">
+              <img src="{{ institute.logo.url }}" class="id-profile-avatar mx-auto d-block" alt="Institute Logo">
               {% else %}
-              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
-                <i class='bx bx-building fs-48 text-gray'></i>
+              <div class="id-profile-avatar mx-auto d-flex align-items-center justify-content-center bg-light">
+                <i class='bx bx-building' style="font-size:2rem;color:#94a3b8;"></i>
               </div>
               {% endif %}
+              <h2 class="id-profile-name">{{ institute.name }}</h2>
             </div>
-            <h5 class="fs-16 fw-semibold mb-3">{{ institute.name }}</h5>
-            <div class="d-flex flex-column gap-2 text-start">
-              {% if institute.created_by and institute.created_by.email %}
-              <div class="d-flex gap-2 align-items-center">
-                <i class='bx bx-envelope fs-18 text-gray'></i>
-                <span class="fs-14 text-gray">
-                  {{ institute.created_by.email }}
-                </span>
+            <div class="id-profile-meta">
+              <div class="id-meta-row">
+                <i class='bx bx-calendar'></i>
+                <span>Joined {% if institute.created %}{{ institute.created.strftime("%B %Y") }}{% else %}-{% endif
+                  %}</span>
               </div>
-              {% endif %}
               {% if institute.contact_info %}
-              <div class="d-flex gap-2 align-items-center">
-                <i class='bx bx-phone fs-18 text-gray'></i>
-                <span class="fs-14 text-gray">
-                  {{ institute.contact_info }}
-                </span>
+              <div class="id-meta-row">
+                <i class='bx bx-phone'></i>
+                <span>{{ institute.contact_info }}</span>
               </div>
               {% endif %}
               {% if institute.administrator_contact %}
-              <div class="d-flex gap-2 align-items-center">
-                <i class='bx bx-user fs-18 text-gray'></i>
-                <span class="fs-14 text-gray">
-                  Admin: {{ institute.administrator_contact }}
-                </span>
+              <div class="id-meta-row">
+                <i class='bx bx-shield-quarter'></i>
+                <span>Admin: {{ institute.administrator_contact }}</span>
               </div>
               {% endif %}
-              <div class="d-flex gap-2 align-items-center">
-                <i class='bx bx-map fs-18 text-gray'></i>
-                <span class="fs-14 text-gray">
-                  {% if institute.address %}{{ institute.address }}{% else %}-{% endif %}
-                </span>
+              {% if institute.created_by and institute.created_by.email %}
+              <div class="id-meta-row">
+                <i class='bx bx-envelope'></i>
+                <span>{{ institute.created_by.email }}</span>
               </div>
-              <div class="d-flex gap-2 align-items-center">
-                <i class='bx bx-calendar fs-18 text-gray'></i>
-                <span class="fs-14 text-gray">
-                  Joined {% if institute.created %}{{ institute.created.strftime("%B, %Y") }}{% else %}-{% endif %}
-                </span>
+              {% endif %}
+              <div class="id-meta-row">
+                <i class='bx bx-map'></i>
+                <span>{% if institute.address %}{{ institute.address }}{% else %}-{% endif %}</span>
               </div>
             </div>
           </div>
-          
-          <!-- Action Buttons -->
-          <button type="button" 
-                  class="btn w-100 mb-2 text-white fw-bold" 
-                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
-                  data-bs-toggle="modal" 
-                  data-bs-target="#addMultipleStudentsModal">
-            <i class='bx bx-plus me-2'></i> Add Multiple Students
-          </button>
-          
-          <button type="button" 
-                  class="btn w-100 mb-2 text-white fw-bold" 
-                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
-                  data-bs-toggle="modal" 
-                  data-bs-target="#addSingleStudentModal">
-            <i class='bx bx-user-plus me-2'></i> Add Single Student
-          </button>
-          
-          <button type="button" 
-                  class="btn w-100 mb-2 text-white fw-bold" 
-                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
-                  data-bs-toggle="modal" 
-                  data-bs-target="#addCounselorModal">
-            <i class='bx bx-user me-2'></i> ADD COUNSELOR
-          </button>
-          
-          <button type="button" 
-                  class="btn w-100 mb-2 text-white fw-bold" 
-                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
-                  data-bs-toggle="modal" 
-                  data-bs-target="#addCsvStudentModal">
-            <i class='bx bx-file me-2'></i> Matric - CSV Upload
-          </button>
-          
-          <button type="button" 
-                  class="btn w-100 mb-2 text-white fw-bold" 
-                  style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1;"
-                  data-bs-toggle="modal" 
-                  data-bs-target="#addPostMatricCsvModal">
-            <i class='bx bx-file me-2'></i> Post-Matric - CSV Upload
-          </button>
-          
-          <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" 
-             class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-             style="background: #4CC9F0; border-bottom: 6px solid #3CBAE1; text-decoration: none;">
-            <i class='bx bx-history me-2'></i> Uploaded History Log
-          </a>
-          
-          {% if request.user.user_type == 5 %}
-            {# Marketing Group Admin #}
-            <a href="{{ url('institute:marketinggroupdashboard') }}" 
-               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-              <i class='bx bx-home me-2'></i> My Dashboard
+
+          <nav class="id-sidebar-nav" aria-label="Institute dashboard">
+
+            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addMultipleStudentsModal">
+              <i class='bx bx-group'></i> Add Multiple Students
+            </button>
+            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addSingleStudentModal">
+              <i class='bx bx-user-plus'></i> Add Single Student
+            </button>
+            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
+              <i class='bx bx-user-voice'></i> Add Counselor
+            </button>
+            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addCsvStudentModal">
+              <i class='bx bx-upload'></i> Matric-CSV Upload
+            </button>
+            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addPostMatricCsvModal">
+              <i class='bx bx-upload'></i> Post-Matric-CSV Upload
+            </button>
+            <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" class="id-nav-item">
+              <i class='bx bx-history'></i> Uploaded History Log
             </a>
-          {% elif request.user.user_type == 3 %}
-            {# Institute Group Admin #}
-            <a href="{{ url('institute:institutegroupdashboard') }}" 
-               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-              <i class='bx bx-home me-2'></i> My Dashboard
-            </a>
-          {% elif request.user.user_type == 2 %}
-            {# Institute #}
+            {% if request.user.user_type == 5 %}
+            <a href="{{ url('institute:marketinggroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i>
+              My Dashboard</a>
+            {% elif request.user.user_type == 3 %}
+            <a href="{{ url('institute:institutegroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i>
+              My Dashboard</a>
+            {% elif request.user.user_type == 2 %}
             {% set institute_obj = request.user.institute_created.last() %}
             {% if institute_obj and institute_obj.slug %}
-              <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" 
-                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-                <i class='bx bx-home me-2'></i> My Dashboard
-              </a>
+            <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="id-nav-item"><i
+                class='bx bx-grid-alt'></i> My Dashboard</a>
             {% else %}
-              <a href="{{ url('users:userdashboard') }}" 
-                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-                <i class='bx bx-home me-2'></i> My Dashboard
-              </a>
+            <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My
+              Dashboard</a>
             {% endif %}
-          {% elif request.user.user_type == 4 %}
-            {# Counselor #}
-            {% set counselor_list = request.user.counselor.all() %}
-            {% if counselor_list|length > 0 %}
-              {% set counselor_obj = counselor_list[0] %}
-              <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" 
-                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-                <i class='bx bx-home me-2'></i> My Dashboard
-              </a>
+            {% elif request.user.user_type == 4 %}
+            {% set counselor_list_nav = request.user.counselor.all() %}
+            {% if counselor_list_nav|length > 0 %}
+            {% set counselor_obj_nav = counselor_list_nav[0] %}
+            <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj_nav.id]) }}" class="id-nav-item"><i
+                class='bx bx-grid-alt'></i> My Dashboard</a>
             {% else %}
-              <a href="{{ url('users:userdashboard') }}" 
-                 class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-                 style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-                <i class='bx bx-home me-2'></i> My Dashboard
-              </a>
+            <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My
+              Dashboard</a>
             {% endif %}
-          {% else %}
-            {# Default - Student or other #}
-            <a href="{{ url('users:userdashboard') }}" 
-               class="btn w-100 mb-2 text-white fw-bold d-block text-center" 
-               style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
-              <i class='bx bx-home me-2'></i> My Dashboard
-            </a>
-          {% endif %}
-          
-          {% if messages %}
-          <div class="mt-3">
-            {% for message in messages %}
-            <div class="alert alert-{{ 'success' if message.tags == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
-              {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
+            {% else %}
+            <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My
+              Dashboard</a>
+            {% endif %}
+          </nav>
 
-      <!-- Main Content -->
-      <div class="col-lg-8">
-        <h2 class="fs-24 fw-semibold mb-4">Dashboard</h2>
-        
-        <!-- Statistics Cards -->
-        <div class="row g-3 mb-4">
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="stat-card">
-              <i class='bx bx-user-check fs-32 text-primary'></i>
-              <div>
-                <p class="stat-value">{{ total_students_count if total_students_count is number else total_students_count|length }}</p>
-                <p class="stat-label">Total Students</p>
-              </div>
+          <a href="{{ url('users:logout') }}" class="id-btn-logout"><i class='bx bx-log-out'></i> Logout</a>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div class="col-12 col-lg-9 col-xl-9">
+        {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+          <div
+            class="alert alert-{{ 'success' if message.tags == 'success' else 'danger' }} alert-dismissible fade show"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <h1 class="id-main-title">Dashboard</h1>
+
+        <div class="id-stats-row">
+          <div class="id-stat-card">
+            <div class="id-stat-icon id-stat-icon--orange"><i class='bx bx-user'></i></div>
+            <div class="id-stat-body">
+              <p class="id-stat-value">{{ total_students_count if total_students_count is number else
+                total_students_count|length }}</p>
+              <p class="id-stat-label lh-sm">Total Students</p>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="stat-card">
-              <i class='bx bx-check-circle fs-32 text-success'></i>
-              <div>
-                <p class="stat-value">{{ test_result_count if test_result_count is number else test_result_count|length }}</p>
-                <p class="stat-label">Psychometric Completed</p>
-              </div>
+          <div class="id-stat-card">
+            <div class="id-stat-icon id-stat-icon--blue"><i class='bx bx-brain'></i></div>
+            <div class="id-stat-body">
+              <p class="id-stat-value">{{ test_result_count if test_result_count is number else test_result_count|length
+                }}</p>
+              <p class="id-stat-label lh-sm">Psychometric</p>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="stat-card">
-              <i class='bx bx-credit-card fs-32 text-warning'></i>
-              <div>
-                <p class="stat-value">{{ institute.credit_counts if institute.credit_counts else 0 }}</p>
-                <p class="stat-label">Total Credits</p>
-              </div>
+          <div class="id-stat-card">
+            <div class="id-stat-icon id-stat-icon--pink"><i class='bx bx-credit-card'></i></div>
+            <div class="id-stat-body">
+              <p class="id-stat-value">{{ institute.credit_counts if institute.credit_counts else 0 }}</p>
+              <p class="id-stat-label lh-sm">Total Credits</p>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="stat-card">
-              <i class='bx bx-wallet fs-32 text-info'></i>
-              <div>
-                <p class="stat-value">{{ institute.get_current_credits_count() }}</p>
-                <p class="stat-label">Remaining Credits</p>
-              </div>
+          <div class="id-stat-card">
+            <div class="id-stat-icon id-stat-icon--green"><i class='bx bx-wallet'></i></div>
+            <div class="id-stat-body">
+              <p class="id-stat-value">{{ institute.get_current_credits_count() }}</p>
+              <p class="id-stat-label lh-sm">Remaining Credits</p>
             </div>
           </div>
-          <div class="col-12 col-md-6 col-lg-4">
-            <div class="stat-card">
-              <i class='bx bx-user fs-32 text-purple'></i>
-              <div>
-                <p class="stat-value">{{ counselor_list|length }}</p>
-                <p class="stat-label">Counselors</p>
-              </div>
+          <div class="id-stat-card">
+            <div class="id-stat-icon id-stat-icon--purple"><i class='bx bx-user-pin'></i></div>
+            <div class="id-stat-body">
+              <p class="id-stat-value">{{ counselor_list|length }}</p>
+              <p class="id-stat-label lh-sm">Counselors</p>
             </div>
           </div>
         </div>
 
-        <!-- Filter Form -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <form method="GET" class="row g-2 align-items-end" id="filter-form">
-              <div class="col-md-2">
-                <label for="classes" class="form-label text-gray fs-12 mb-1">Classes</label>
+        <div class="in-student-table mb-4">
+
+          <div class="id-panel id-toolbar ">
+            <h2 class="id-panel-title mb-3">Total Students</h2>
+            <form method="GET" class="row g-2 g-lg-3 align-items-end" id="filter-form">
+              <div class="col-6 col-md-6 col-lg-2">
+                <label for="classes" class="form-label mb-1">All Classes</label>
                 <select name="class_and_section" id="classes" class="form-control custom-input">
-                  <option value="" disabled selected>Classes</option>
+                  <option value="" disabled selected>All Classes</option>
                   {% for cas in class_and_sections %}
-                  <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section') == cas.class_and_section %}selected{% endif %}>
-                    {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }} students){% endif %}
+                  <option value="{{ cas.class_and_section }}" {% if
+                    request.GET.get('class_and_section')==cas.class_and_section %}selected{% endif %}>
+                    {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }}
+                    students){% endif %}
                   </option>
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-md-2">
-                <label for="streams" class="form-label text-gray fs-12 mb-1">Streams</label>
+              <div class="col-6 col-md-6 col-lg-2">
+                <label for="streams" class="form-label mb-1">Streams</label>
                 <select name="stream" id="streams" class="form-control custom-input">
                   <option value="" disabled selected>Streams</option>
                   {% if unique_streams %}
                   {% for stream in unique_streams %}
-                  <option value="{{ stream }}" {% if request.GET.get('stream') == stream %}selected{% endif %}>
+                  <option value="{{ stream }}" {% if request.GET.get('stream')==stream %}selected{% endif %}>
                     {{ stream }}
                   </option>
                   {% endfor %}
                   {% else %}
                   {% for cas in class_and_sections %}
                   {% if cas.stream %}
-                  <option value="{{ cas.stream }}" {% if request.GET.get('stream') == cas.stream %}selected{% endif %}>
+                  <option value="{{ cas.stream }}" {% if request.GET.get('stream')==cas.stream %}selected{% endif %}>
                     {{ cas.stream }}
                   </option>
                   {% endif %}
@@ -409,64 +751,52 @@
                   {% endif %}
                 </select>
               </div>
-              <div class="col-md-2">
-                <label for="assessment" class="form-label text-gray fs-12 mb-1">Assessment</label>
+              <div class="col-6 col-md-6 col-lg-2">
+                <label for="assessment" class="form-label mb-1">Assessment</label>
                 <select name="test_taken" id="assessment" class="form-control custom-input">
                   <option value="" disabled selected>Assessment</option>
-                  <option value="Yes" {% if request.GET.get('test_taken') == 'Yes' %}selected{% endif %}>Yes</option>
-                  <option value="In Progress" {% if request.GET.get('test_taken') == 'In Progress' %}selected{% endif %}>In Progress</option>
-                  <option value="No" {% if request.GET.get('test_taken') == 'No' %}selected{% endif %}>No</option>
+                  <option value="Yes" {% if request.GET.get('test_taken')=='Yes' %}selected{% endif %}>Yes</option>
+                  <option value="In Progress" {% if request.GET.get('test_taken')=='In Progress' %}selected{% endif %}>
+                    In Progress</option>
+                  <option value="No" {% if request.GET.get('test_taken')=='No' %}selected{% endif %}>No</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label for="student_name" class="form-label text-gray fs-12 mb-1">Student Name</label>
+              <div class="col-12 col-md-6 col-lg-3">
+                <label for="student_name" class="form-label mb-1">Search by Name</label>
                 <div class="input-group">
-                  <input type="text" 
-                         name="student_name" 
-                         id="student_name"
-                         class="form-control custom-input" 
-                         placeholder="Search student"
-                         value="{{ request.GET.get('student_name', '') }}">
-                  <span class="input-group-text bg-white border-start-0">
-                    <i class='bx bx-search'></i>
+                  <input type="text" name="student_name" id="student_name" class="form-control custom-input"
+                    placeholder="Search by name" value="{{ request.GET.get('student_name', '') }}">
+                  <span class="input-group-text bg-white border-start-0 rounded-end">
+                    <i class='bx bx-search text-muted'></i>
                   </span>
                 </div>
               </div>
-              <div class="col-md-3 d-flex gap-2 align-items-end">
-                <a href="{{ request.path }}?{% if request.GET %}{% for key, value in request.GET.items() %}{{ key }}={{ value }}&{% endfor %}{% endif %}download=Yes" 
-                   class="btn btn-link p-0" 
-                   title="Download CSV">
-                  <i class='bx bx-download text-primary fs-24'></i>
+              <div class="col-12 col-md-6 col-lg-3 d-flex flex-wrap gap-2 align-items-end justify-content-lg-end">
+                <a href="{{ request.path }}?{% if request.GET %}{% for key, value in request.GET.items() %}{{ key }}={{ value }}&{% endfor %}{% endif %}download=Yes"
+                  class="btn-id-download text-decoration-none" title="Download CSV">
+                  <i class='bx bx-download fs-5'></i>
                 </a>
-                <button type="submit" 
-                        class="btn custom-button purple-button flex-fill" 
-                        style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
-                  Search
-                </button>
-                <a href="{{ url('institute:institutedashboard', args=[institute.slug]) }}" 
-                   class="btn btn-secondary flex-fill" 
-                   style="text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 0.01em;">
-                  Reset
-                </a>
+                <button type="submit" class="btn btn-id-primary px-3 flex-grow-1 flex-lg-grow-0">Search</button>
+                <a href="{{ url('institute:institutedashboard', args=[institute.slug]) }}"
+                  class="btn btn-id-outline px-3 flex-grow-1 flex-lg-grow-0 text-center text-decoration-none">Reset</a>
               </div>
             </form>
           </div>
-        </div>
 
-        <!-- Students Table -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <!-- Loader -->
-            <div id="students-loader" class="text-center py-5" style="display: none;">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+          <!-- Students Table -->
+          <div class="id-panel mb-4 p-0 overflow-hidden">
+            <div class="p-3 pb-0">
+              <!-- Loader -->
+              <div id="students-loader" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-gray">Loading students...</p>
               </div>
-              <p class="mt-3 text-gray">Loading students...</p>
-            </div>
-            
-            <!-- Table Container (loaded via AJAX) -->
-            <div id="students-table-wrapper">
-              {% set table_config = {
+
+              <!-- Table Container (loaded via AJAX) -->
+              <div id="students-table-wrapper">
+                {% set table_config = {
                 'show_stream': True,
                 'show_email': False,
                 'show_contact': False,
@@ -477,331 +807,324 @@
                 'show_followup': False,
                 'show_institute': False,
                 'role': 'institute'
-              } %}
-              {% set action_urls = {
+                } %}
+                {% set action_urls = {
                 'update': 'institute:update_student',
                 'delete': 'institute:delete_student',
                 'block': 'institute:institutestudentblock',
                 'change_password': 'institute:change_student_password'
-              } %}
-              {% include 'template20/shared/students_table.html' %}
+                } %}
+                {% include 'template20/shared/students_table.html' %}
+              </div>
             </div>
           </div>
+
         </div>
 
+
+
+
         <!-- Charts Section -->
-        <div class="row g-4 mb-4">
+        <div class="row g-3 g-lg-4 mb-4">
           {% if (total_students_count if total_students_count is number else total_students_count|length) > 0 %}
           <div class="col-md-6">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
-                <div style="height: 300px; position: relative;">
-                  <canvas id="personality-chart"></canvas>
-                </div>
+            <div class="id-chart-card h-100">
+              <h3 class="id-chart-title">Psychometric participation</h3>
+              <div class="chart-canvas-wrap">
+                <canvas id="personality-chart"></canvas>
               </div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
-                <div style="height: 300px; position: relative;">
-                  <canvas id="stream_chart"></canvas>
-                </div>
+            <div class="id-chart-card h-100">
+              <h3 class="id-chart-title">Stream based graph of all institutes</h3>
+              <div class="chart-canvas-wrap">
+                <canvas id="stream_chart"></canvas>
               </div>
             </div>
           </div>
           {% else %}
           <div class="col-md-6">
-            <div class="card">
-              <div class="card-body text-center py-5">
-                <i class='bx bx-pie-chart-alt-2 fs-48 text-gray mb-3'></i>
-                <h5 class="fs-18 fw-semibold mb-2">No Data Available</h5>
-                <p class="text-gray">There is no test data to display at this time.</p>
-              </div>
+            <div class="id-chart-card text-center py-5">
+              <i class='bx bx-pie-chart-alt-2 fs-48 text-muted mb-3'></i>
+              <h5 class="fs-18 fw-semibold mb-2">No Data Available</h5>
+              <p class="text-muted mb-0">There is no test data to display at this time.</p>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card">
-              <div class="card-body text-center py-5">
-                <i class='bx bx-bar-chart-alt-2 fs-48 text-gray mb-3'></i>
-                <h5 class="fs-18 fw-semibold mb-2">No Results Available</h5>
-                <p class="text-gray">Test score data will appear here once available.</p>
-              </div>
+            <div class="id-chart-card text-center py-5">
+              <i class='bx bx-bar-chart-alt-2 fs-48 text-muted mb-3'></i>
+              <h5 class="fs-18 fw-semibold mb-2">No Results Available</h5>
+              <p class="text-muted mb-0">Test score data will appear here once available.</p>
             </div>
           </div>
           {% endif %}
         </div>
 
         <!-- Seat Capacity Table -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Sr. No.</th>
-                    <th>Class</th>
-                    <th>PCM</th>
-                    <th>CBM</th>
-                    <th>COMM</th>
-                    <th>HUM</th>
-                    <th>HM</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>1.</td>
-                    <td>11th Class</td>
-                    <td>{{ institute.pcm if institute.pcm else 100 }}</td>
-                    <td>{{ institute.cbm if institute.cbm else 100 }}</td>
-                    <td>{{ institute.comm if institute.comm else 100 }}</td>
-                    <td>{{ institute.hum if institute.hum else 100 }}</td>
-                    <td>{{ institute.hm if institute.hm else 100 }}</td>
-                    <td>
-                      <button type="button" 
-                              class="btn btn-sm btn-primary" 
-                              data-bs-toggle="modal" 
-                              data-bs-target="#editSeatCapacityModal">
+        <div class="in-student-table  mb-4 p-3">
+          <h2 class="id-panel-title">Seat Capacity by Stream in School</h2>
+          <div class="table-responsive rounded-bottom overflow-hidden">
+            <table class="table table-hover id-data-table mb-0">
+              <thead>
+                <tr>
+                  <th>Sr. No.</th>
+                  <th>Class</th>
+                  <th>PCM</th>
+                  <th>CBM</th>
+                  <th>COMM</th>
+                  <th>HUM</th>
+                  <th>HM</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1.</td>
+                  <td>11th Class</td>
+                  <td>{{ institute.pcm if institute.pcm else 100 }}</td>
+                  <td>{{ institute.cbm if institute.cbm else 100 }}</td>
+                  <td>{{ institute.comm if institute.comm else 100 }}</td>
+                  <td>{{ institute.hum if institute.hum else 100 }}</td>
+                  <td>{{ institute.hm if institute.hm else 100 }}</td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-1">
+                      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#editSeatCapacityModal">
                         <i class='bx bx-edit me-1'></i> Edit
                       </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>2.</td>
-                    <td>12th Class</td>
-                    <td>{{ institute.pcm if institute.pcm else 100 }}</td>
-                    <td>{{ institute.cbm if institute.cbm else 100 }}</td>
-                    <td>{{ institute.comm if institute.comm else 100 }}</td>
-                    <td>{{ institute.hum if institute.hum else 100 }}</td>
-                    <td>{{ institute.hm if institute.hm else 100 }}</td>
-                    <td>
-                      <button type="button" 
-                              class="btn btn-sm btn-primary" 
-                              data-bs-toggle="modal" 
-                              data-bs-target="#editSeatCapacityModal">
+                      <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                        data-bs-target="#editSeatCapacityModal">
+                        Save
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>2.</td>
+                  <td>12th Class</td>
+                  <td>{{ institute.pcm if institute.pcm else 100 }}</td>
+                  <td>{{ institute.cbm if institute.cbm else 100 }}</td>
+                  <td>{{ institute.comm if institute.comm else 100 }}</td>
+                  <td>{{ institute.hum if institute.hum else 100 }}</td>
+                  <td>{{ institute.hm if institute.hm else 100 }}</td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-1">
+                      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#editSeatCapacityModal">
                         <i class='bx bx-edit me-1'></i> Edit
                       </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                      <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                        data-bs-target="#editSeatCapacityModal">
+                        Save
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <!-- Counselors Table -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title mb-3">Counselors Details</h5>
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Sr.no.</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Students Followed up</th>
-                    <th>Created</th>
-                    <th>Students Counselled</th>
-                    <th>Action</th>
-                    <th>Block/Unblock</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if counselor_data_list %}
-                    {% set has_counselors = false %}
-                    {% for coun in counselor_data_list %}
-                      {% if coun.coun_admin == institute %}
-                        {% set has_counselors = true %}
-                        <tr>
-                          <td>{{ loop.index }}</td>
-                          <td>
-                            <a href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}">{{ coun.name }}</a>
-                          </td>
-                          <td>{{ coun.email }}</td>
-                          <td>{{ coun.sessions }}</td>
-                          <td>{% if coun.created %}{{ coun.created.strftime('%d-%m-%Y') }}{% else %}-{% endif %}</td>
-                          <td>{{ coun.students_counseled }}</td>
-                          <td>
-                            <div class="d-flex gap-2">
-                              <button type="button" 
-                                      class="btn btn-sm btn-link p-0" 
-                                      data-bs-toggle="modal" 
-                                      data-bs-target="#editCounselorModal{{ coun.id }}"
-                                      title="Edit Profile">
-                                <i class='bx bx-edit text-primary'></i>
-                              </button>
-                              <button type="button" 
-                                      class="btn btn-sm btn-link p-0" 
-                                      data-bs-toggle="modal" 
-                                      data-bs-target="#changeCounselorPasswordModal"
-                                      onclick="document.getElementById('coun_password_id').value='{{ coun.id }}'"
-                                      title="Change Password">
-                                <i class='bx bx-key text-info'></i>
-                              </button>
-                            </div>
-                          </td>
-                          <td>
-                            <button type="button" 
-                                    class="btn btn-sm btn-link p-0" 
-                                    title="Block Profile">
-                              <i class='bx bx-block text-success'></i>
-                            </button>
-                          </td>
-                        </tr>
-                      {% endif %}
-                    {% endfor %}
-                    {% if not has_counselors %}
-                    <tr>
-                      <td colspan="8" class="text-center py-5">
-                        <div class="d-flex flex-column align-items-center">
-                          <i class='bx bx-user-plus fs-48 text-gray mb-3'></i>
-                          <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
-                          <p class="text-gray text-center mb-4">There are no counselors registered in the system.<br>Add counselors to manage student guidance.</p>
-                          <button type="button" 
-                                  class="btn btn-primary" 
-                                  data-bs-toggle="modal" 
-                                  data-bs-target="#addCounselorModal">
-                            <i class='bx bx-user-plus me-2'></i> ADD COUNSELOR
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    {% endif %}
-                  {% else %}
-                  <tr>
-                    <td colspan="8" class="text-center py-5">
-                      <div class="d-flex flex-column align-items-center">
-                        <i class='bx bx-user-plus fs-48 text-gray mb-3'></i>
-                        <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
-                        <p class="text-gray text-center mb-4">There are no counselors registered in the system.<br>Add counselors to manage student guidance.</p>
-                        <button type="button" 
-                                class="btn btn-primary" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#addCounselorModal">
-                          <i class='bx bx-user-plus me-2'></i> ADD COUNSELOR
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
+        <div class="in-student-table  mb-4 p-3">
+          <h2 class="id-panel-title">Counselors Details</h2>
+          <div class="table-responsive rounded-bottom overflow-hidden">
+            <table class="table table-hover id-data-table mb-0">
+              <thead>
+                <tr>
+                  <th>Sr.no.</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Students Followed up</th>
+                  <th>Created</th>
+                  <th>Students Counselled</th>
+                  <th>Action</th>
+                  <th>Block/Unblock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if counselor_data_list %}
+                {% set has_counselors = false %}
+                {% for coun in counselor_data_list %}
+                {% if coun.coun_admin == institute %}
+                {% set has_counselors = true %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>
+                    <a href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}">{{ coun.name }}</a>
+                  </td>
+                  <td>{{ coun.email }}</td>
+                  <td>{{ coun.sessions }}</td>
+                  <td>{% if coun.created %}{{ coun.created.strftime('%d-%m-%Y') }}{% else %}-{% endif %}</td>
+                  <td>{{ coun.students_counseled }}</td>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal"
+                        data-bs-target="#editCounselorModal{{ coun.id }}" title="Edit Profile">
+                        <i class='bx bx-edit text-primary'></i>
+                      </button>
+                      <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal"
+                        data-bs-target="#changeCounselorPasswordModal"
+                        onclick="document.getElementById('coun_password_id').value='{{ coun.id }}'"
+                        title="Change Password">
+                        <i class='bx bx-key text-info'></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-sm btn-link p-0" title="Block Profile">
+                      <i class='bx bx-block text-success'></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                {% if not has_counselors %}
+                <tr>
+                  <td colspan="8" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                      <i class='bx bx-user-plus fs-48 text-gray mb-3'></i>
+                      <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
+                      <p class="text-gray text-center mb-4">There are no counselors registered in the system.<br>Add
+                        counselors to manage student guidance.</p>
+                      <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#addCounselorModal">
+                        <i class='bx bx-user-plus me-2'></i> ADD COUNSELOR
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endif %}
+                {% else %}
+                <tr>
+                  <td colspan="8" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                      <i class='bx bx-user-plus fs-48 text-gray mb-3'></i>
+                      <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
+                      <p class="text-gray text-center mb-4">There are no counselors registered in the system.<br>Add
+                        counselors to manage student guidance.</p>
+                      <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#addCounselorModal">
+                        <i class='bx bx-user-plus me-2'></i> ADD COUNSELOR
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
           </div>
         </div>
 
         <!-- Weekly Counselor Session Report -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title mb-3">Weekly Counselor's Session Report</h5>
-            {% if sessions_data_json and sessions_data_json != '[]' %}
-            <div style="height: 300px; position: relative;">
-              <canvas id="sessionsChart"></canvas>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-              <i class='bx bx-line-chart fs-48 text-gray mb-3'></i>
-              <h5 class="fs-18 fw-semibold mb-2">No Session Data Available</h5>
-              <p class="text-gray">Weekly counselor session data will appear here once sessions are conducted and recorded.</p>
-            </div>
-            {% endif %}
+        <div class="in-student-table  mb-4 p-3">
+          <h2 class="id-panel-title">Weekly Counselor Session Report</h2>
+          {% if sessions_data_json and sessions_data_json != '[]' %}
+          <div class="chart-canvas-wrap">
+            <canvas id="sessionsChart"></canvas>
           </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class='bx bx-line-chart fs-48 text-muted mb-3'></i>
+            <h5 class="fs-18 fw-semibold mb-2">No Session Data Available</h5>
+            <p class="text-muted mb-0">Weekly counselor session data will appear here once sessions are conducted and
+              recorded.</p>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
 
-    <!-- Heatmap Analytics Section -->
-    <div class="heatmap-dashboard-container mt-4">
-      <div class="heatmap-header-card">
-        <div class="heatmap-header-title">
-          <div class="heatmap-header-title-icon">
-            <i class='bx bx-bar-chart-alt-2'></i>
+    <div class="id-heatmap-shell">
+      <!-- Heatmap Analytics Section -->
+      <div class="heatmap-dashboard-container mt-0">
+        <div class="heatmap-header-card">
+          <div class="heatmap-header-title">
+            <div class="heatmap-header-title-icon">
+              <i class='bx bx-bar-chart-alt-2'></i>
+            </div>
+            <div>
+              <h1>Career Education Analytics</h1>
+              <p>Institute-wide Career Interest & Knowledge Matrix</p>
+            </div>
           </div>
-          <div>
-            <h1>Career Education Analytics</h1>
-            <p>Institute-wide Career Interest & Knowledge Matrix</p>
+          <div class="heatmap-actions">
+            <button id="heatmap-refresh-btn" class="heatmap-btn refresh">
+              <i class='bx bx-refresh'></i> Refresh
+            </button>
+            <button id="heatmap-export-btn" class="heatmap-btn export">
+              <i class='bx bx-download'></i> Export
+            </button>
           </div>
-        </div>
-        <div class="heatmap-actions">
-          <button id="heatmap-refresh-btn" class="heatmap-btn refresh">
-            <i class='bx bx-refresh'></i> Refresh
-          </button>
-          <button id="heatmap-export-btn" class="heatmap-btn export">
-            <i class='bx bx-download'></i> Export
-          </button>
-        </div>
 
-        <!-- Statistics Cards -->
-        <div class="heatmap-stats-grid">
-          <div class="heatmap-stat-card high-risk">
-            <div class="stat-label">High Risk Areas</div>
-            <div class="stat-value" id="heatmap-stat-highrisk">0</div>
-            <div class="stat-description">Immediate workshops needed</div>
-          </div>
-          <div class="heatmap-stat-card aligned">
-            <div class="stat-label">High Alignment</div>
-            <div class="stat-value" id="heatmap-stat-aligned">0</div>
-            <div class="stat-description">Students on track</div>
-          </div>
-          <div class="heatmap-stat-card clarity-gap">
-            <div class="stat-label">Avg Clarity Gap</div>
-            <div class="stat-value" id="heatmap-stat-claritygap">0%</div>
-            <div class="stat-description">Interest-knowledge difference</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <div class="heatmap-controls-card">
-        <div class="heatmap-controls">
-          <i class='bx bx-filter-alt'></i>
-          <button class="heatmap-view-btn active" data-view="grade">By Grade</button>
-          <button class="heatmap-view-btn" data-view="section">By Section</button>
-          <button class="heatmap-view-btn" data-view="stream">By Stream</button>
-        </div>
-      </div>
-
-      <!-- Legend -->
-      <div class="heatmap-legend-card">
-        <div class="heatmap-legend">
-          <div class="heatmap-legend-item">
-            <i class='bx bx-info-circle'></i>
-            <span class="font-medium">Legend:</span>
-          </div>
-          <div class="heatmap-legend-item">
-            <div class="heatmap-legend-color" style="background: #EF4444;"></div>
-            <span class="heatmap-legend-text">High Risk (Interest ↑ Knowledge ↓)</span>
-          </div>
-          <div class="heatmap-legend-item">
-            <div class="heatmap-legend-color" style="background: #F59E0B;"></div>
-            <span class="heatmap-legend-text">Maintenance (Balanced)</span>
-          </div>
-          <div class="heatmap-legend-item">
-            <div class="heatmap-legend-color" style="background: #10B981;"></div>
-            <span class="heatmap-legend-text">High Alignment (Future Ready)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Heatmap Grid -->
-      <div class="heatmap-grid-card">
-        <div id="heatmap-grid-container" data-institute-slug="{{ institute.slug }}">
-          <div class="text-center p-5 text-muted">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading heatmap...</span>
+          <!-- Statistics Cards -->
+          <div class="heatmap-stats-grid">
+            <div class="heatmap-stat-card high-risk">
+              <div class="stat-label">High Risk Areas</div>
+              <div class="stat-value" id="heatmap-stat-highrisk">0</div>
+              <div class="stat-description">Immediate workshops needed</div>
+            </div>
+            <div class="heatmap-stat-card aligned">
+              <div class="stat-label">High Alignment</div>
+              <div class="stat-value" id="heatmap-stat-aligned">0</div>
+              <div class="stat-description">Students on track</div>
+            </div>
+            <div class="heatmap-stat-card clarity-gap">
+              <div class="stat-label">Avg Clarity Gap</div>
+              <div class="stat-value" id="heatmap-stat-claritygap">0%</div>
+              <div class="stat-description">Interest-knowledge difference</div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Footer -->
-      <div class="heatmap-footer">
-        Career Education Analytics Dashboard v1.0 | Data refreshed: <span id="heatmap-refresh-date"></span>
+        <!-- Controls -->
+        <div class="heatmap-controls-card">
+          <div class="heatmap-controls">
+            <i class='bx bx-filter-alt'></i>
+            <button class="heatmap-view-btn active" data-view="grade">By Grade</button>
+            <button class="heatmap-view-btn" data-view="section">By Section</button>
+            <button class="heatmap-view-btn" data-view="stream">By Stream</button>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="heatmap-legend-card">
+          <div class="heatmap-legend">
+            <div class="heatmap-legend-item">
+              <i class='bx bx-info-circle'></i>
+              <span class="font-medium">Legend:</span>
+            </div>
+            <div class="heatmap-legend-item">
+              <div class="heatmap-legend-color" style="background: #EF4444;"></div>
+              <span class="heatmap-legend-text">High Risk (Interest ↑ Knowledge ↓)</span>
+            </div>
+            <div class="heatmap-legend-item">
+              <div class="heatmap-legend-color" style="background: #F59E0B;"></div>
+              <span class="heatmap-legend-text">Maintenance (Balanced)</span>
+            </div>
+            <div class="heatmap-legend-item">
+              <div class="heatmap-legend-color" style="background: #10B981;"></div>
+              <span class="heatmap-legend-text">High Alignment (Future Ready)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap Grid -->
+        <div class="heatmap-grid-card">
+          <div id="heatmap-grid-container" data-institute-slug="{{ institute.slug }}">
+            <div class="text-center p-5 text-muted">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading heatmap...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="heatmap-footer">
+          Career Education Analytics Dashboard v1.0 | Data refreshed: <span id="heatmap-refresh-date"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -842,18 +1165,12 @@
     </div>
   </div>
   <div class="student-panel-footer">
-    <button type="button" 
-            class="btn custom-button purple-button" 
-            id="panel-edit-student-btn"
-            title="Edit Student"
-            disabled>
+    <button type="button" class="btn custom-button purple-button" id="panel-edit-student-btn" title="Edit Student"
+      disabled>
       <i class='bx bx-edit me-2'></i> Edit Student
     </button>
-    <button type="button" 
-            class="btn btn-info text-white" 
-            id="panel-change-password-btn"
-            title="Change Password"
-            disabled>
+    <button type="button" class="btn btn-info text-white" id="panel-change-password-btn" title="Change Password"
+      disabled>
       <i class='bx bx-key me-2'></i> Set Password
     </button>
   </div>
@@ -887,11 +1204,8 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Student Emails</label>
-            <textarea name="student_email" 
-                      class="form-control" 
-                      rows="5" 
-                      placeholder="Enter comma separated emails"
-                      required></textarea>
+            <textarea name="student_email" class="form-control" rows="5" placeholder="Enter comma separated emails"
+              required></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -946,7 +1260,8 @@
         <h5 class="modal-title">Create Counselor</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="POST" action="{{ url('institute:createcounselor', args=[institute.slug]) }}" enctype="multipart/form-data">
+      <form method="POST" action="{{ url('institute:createcounselor', args=[institute.slug]) }}"
+        enctype="multipart/form-data">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <input type="hidden" name="counselor_admin" value="{{ institute.id }}">
         <div class="modal-body">
@@ -1008,7 +1323,8 @@
         <div class="modal-body">
           <div class="alert alert-info">
             <i class='bx bx-info-circle me-2'></i>
-            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank" download>Sample CSV</a>
+            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}"
+              target="_blank" download>Sample CSV</a>
           </div>
           <div class="mb-3">
             <label class="form-label">CSV File <span class="text-danger">*</span></label>
@@ -1032,13 +1348,15 @@
         <h5 class="modal-title">Add Students (Post-Matric CSV Upload)</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}" enctype="multipart/form-data">
+      <form method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}"
+        enctype="multipart/form-data">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <input type="hidden" name="institute" value="{{ institute.id }}">
         <div class="modal-body">
           <div class="alert alert-info">
             <i class='bx bx-info-circle me-2'></i>
-            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank" download>Post Matric Sample CSV</a>
+            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}"
+              target="_blank" download>Post Matric Sample CSV</a>
           </div>
           <div class="mb-3">
             <label class="form-label">CSV File <span class="text-danger">*</span></label>
@@ -1159,7 +1477,8 @@
           </div>
           <div class="mb-3">
             <label class="form-label">COMM</label>
-            <input type="number" name="comm" class="form-control" value="{{ institute.comm if institute.comm else 100 }}">
+            <input type="number" name="comm" class="form-control"
+              value="{{ institute.comm if institute.comm else 100 }}">
           </div>
           <div class="mb-3">
             <label class="form-label">HUM</label>
@@ -1181,98 +1500,100 @@
 
 <!-- Update Student Modals (one for each student) -->
 {% if total_students %}
-  {% for ts in total_students %}
-  <div class="modal fade" id="updateStudentModal{{ ts.student.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Update Student</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form method="POST" action="{{ url('institute:institutestudentupdate') }}">
-          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-          <input type="hidden" name="student_id" value="{{ ts.student.id }}">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input type="email" name="student_email" class="form-control" value="{{ ts.student.email }}" readonly>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Name</label>
-              <input type="text" name="student_name" class="form-control" value="{{ ts.student.name if ts.student.name else '' }}">
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Class Section</label>
-              <select name="class_and_section" class="form-control">
-                <option value="">Select Class</option>
-                {% for cas in class_and_sections %}
-                <option value="{{ cas.id }}" {% if ts.class_and_section and ts.class_and_section.id == cas.id %}selected{% endif %}>
-                  {{ cas.class_and_section }}
-                </option>
-                {% endfor %}
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn custom-button purple-button">Update</button>
-          </div>
-        </form>
+{% for ts in total_students %}
+<div class="modal fade" id="updateStudentModal{{ ts.student.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Student</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <form method="POST" action="{{ url('institute:institutestudentupdate') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="student_id" value="{{ ts.student.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="student_email" class="form-control" value="{{ ts.student.email }}" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" name="student_name" class="form-control"
+              value="{{ ts.student.name if ts.student.name else '' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Class Section</label>
+            <select name="class_and_section" class="form-control">
+              <option value="">Select Class</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.id }}" {% if ts.class_and_section and ts.class_and_section.id==cas.id %}selected{%
+                endif %}>
+                {{ cas.class_and_section }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Update</button>
+        </div>
+      </form>
     </div>
   </div>
-  {% endfor %}
+</div>
+{% endfor %}
 {% endif %}
 
 <!-- Edit Counselor Modals (one for each counselor) -->
 {% if counselor_data_list %}
-  {% for coun in counselor_data_list %}
-    {% if coun.coun_admin == institute %}
-    <div class="modal fade" id="editCounselorModal{{ coun.id }}" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Edit Counselor Profile</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <form method="POST" action="#" enctype="multipart/form-data">
-            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Counselor Name</label>
-                <input type="text" name="counselor_name" class="form-control" value="{{ coun.name }}">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Counselor Email</label>
-                <input type="email" name="counselor_email" class="form-control" value="{{ coun.email }}" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Counselor Address</label>
-                <input type="text" name="counselor_address" class="form-control" value="">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Counselor Contact Info</label>
-                <input type="text" name="counselor_contact_info" class="form-control" value="">
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn custom-button purple-button">Update</button>
-            </div>
-          </form>
-        </div>
+{% for coun in counselor_data_list %}
+{% if coun.coun_admin == institute %}
+<div class="modal fade" id="editCounselorModal{{ coun.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Counselor Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <form method="POST" action="#" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Counselor Name</label>
+            <input type="text" name="counselor_name" class="form-control" value="{{ coun.name }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Email</label>
+            <input type="email" name="counselor_email" class="form-control" value="{{ coun.email }}" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Address</label>
+            <input type="text" name="counselor_address" class="form-control" value="">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Contact Info</label>
+            <input type="text" name="counselor_contact_info" class="form-control" value="">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Update</button>
+        </div>
+      </form>
     </div>
-    {% endif %}
-  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endfor %}
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   // Personality Chart
-  {% if (total_students_count if total_students_count is number else total_students_count|length) > 0 %}
-  const test_taken_stu = {{ test_result_count if test_result_count is number else test_result_count|length }};
-  const total_students1 = {{ total_students_count if total_students_count is number else total_students_count|length }};
+  {% if (total_students_count if total_students_count is number else total_students_count | length) > 0 %}
+  const test_taken_stu = {{ test_result_count if test_result_count is number else test_result_count| length }};
+  const total_students1 = {{ total_students_count if total_students_count is number else total_students_count| length }};
   const test_taken_student = test_taken_stu;
 
   const personalityCtx = document.getElementById('personality-chart');
@@ -1280,11 +1601,12 @@
     new Chart(personalityCtx, {
       type: 'pie',
       data: {
-        labels: ['Students Attempted Test', 'Remaining Students'],
+        labels: ['Taken exam', 'Remaining students'],
         datasets: [{
-          data: [test_taken_student, total_students1 - test_taken_student],
-          backgroundColor: ['#B3AFFD', '#4A4CB3'],
-          hoverBackgroundColor: ['#A1A6FF', '#3E3F96']
+          data: [test_taken_student, Math.max(0, total_students1 - test_taken_student)],
+          backgroundColor: ['#93c5fd', '#1e3a8a'],
+          hoverBackgroundColor: ['#7dd3fc', '#172554'],
+          borderWidth: 0
         }]
       },
       options: {
@@ -1293,6 +1615,7 @@
         plugins: {
           legend: {
             position: 'bottom',
+            labels: { usePointStyle: true, padding: 16, font: { size: 12, weight: '500' } }
           }
         }
       }
@@ -1309,35 +1632,41 @@
     {% for stream, count in streams.items() %}
     streamLabels.push('{{ stream }}');
     streamData.push({{ count }});
-    {% endfor %}
-    
-    new Chart(streamCtx, {
-      type: 'bar',
-      data: {
-        labels: streamLabels,
-        datasets: [{
-          label: 'Students',
-          data: streamData,
-          backgroundColor: '#4CC9F0',
-          borderColor: '#3CBAE1',
-          borderWidth: 1
-        }]
+  {% endfor %}
+
+  const streamColors = ['#2563eb', '#ec4899', '#22c55e', '#eab308', '#f97316', '#8b5cf6', '#06b6d4'];
+  new Chart(streamCtx, {
+    type: 'bar',
+    data: {
+      labels: streamLabels,
+      datasets: [{
+        label: 'Students',
+        data: streamData,
+        backgroundColor: streamLabels.map((_, i) => streamColors[i % streamColors.length]),
+        borderColor: streamLabels.map((_, i) => streamColors[i % streamColors.length]),
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(148, 163, 184, 0.2)' }
         },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+        x: {
+          grid: { display: false }
         }
       }
-    });
+    }
+  });
   }
   {% endif %}
 
@@ -1348,41 +1677,49 @@
     try {
       const sessionsData = JSON.parse('{{ sessions_data_json|safe }}');
       if (sessionsData && sessionsData.length > 0 && sessionsData[0].sessions && sessionsData[0].sessions.length > 0) {
-        const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
-        const datasets = sessionsData.map((counselor, index) => ({
-          label: counselor.counselor_name || `Counselor ${index + 1}`,
-          data: counselor.sessions.map(s => s.session_count || 0),
-          backgroundColor: colorPalette[index % colorPalette.length],
-          borderColor: colorPalette[index % colorPalette.length],
-          borderWidth: 1,
-          tension: 0.4
-        }));
-        
         const labels = sessionsData[0].sessions.map(s => {
           const date = new Date(s.day);
-          return date.toLocaleDateString('en-US', { weekday: 'short' });
+          return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'numeric' });
         });
-        
+        const totals = sessionsData[0].sessions.map((_, dayIndex) =>
+          sessionsData.reduce((sum, counselor) => {
+            const row = counselor.sessions && counselor.sessions[dayIndex];
+            return sum + (row && row.session_count ? row.session_count : 0);
+          }, 0)
+        );
         new Chart(sessionsCtx, {
-          type: 'bar',
+          type: 'line',
           data: {
             labels: labels,
-            datasets: datasets
+            datasets: [{
+              label: 'Number of sessions',
+              data: totals,
+              borderColor: '#f97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.08)',
+              pointBackgroundColor: '#3b82f6',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              borderWidth: 2,
+              fill: true,
+              tension: 0.35
+            }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: {
-                position: 'top',
-              }
+              legend: { display: false }
             },
             scales: {
               y: {
                 beginAtZero: true,
-                ticks: {
-                  stepSize: 1
-                }
+                title: { display: true, text: 'Number of sessions', font: { size: 11 } },
+                ticks: { stepSize: 1, precision: 0 },
+                grid: { color: 'rgba(148, 163, 184, 0.25)' }
+              },
+              x: {
+                grid: { display: false }
               }
             }
           }
@@ -1399,14 +1736,14 @@
     // This function can be used to populate update modal with student data
     console.log('Student ID:', studentId);
   }
-  
+
   // Function to open edit student modal from panel
   function openEditStudentModalFromPanel(studentId) {
     if (!studentId) {
       console.error('No student ID provided');
       return;
     }
-    
+
     // Try to find existing modal first
     const existingModal = document.getElementById(`updateStudentModal${studentId}`);
     if (existingModal) {
@@ -1415,7 +1752,7 @@
       modal.show();
       return;
     }
-    
+
     // Modal doesn't exist (AJAX-loaded student), fetch data and populate single modal
     // First, create a single reusable modal if it doesn't exist
     let singleModal = document.getElementById('updateStudentModalSingle');
@@ -1467,16 +1804,16 @@
       document.body.insertAdjacentHTML('beforeend', modalHTML);
       singleModal = document.getElementById('updateStudentModalSingle');
     }
-    
+
     // Fetch student data via API
     const formData = new FormData();
     formData.append('id', studentId);
-    
+
     // Get CSRF token
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
-                     document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
-                     '{{ csrf_token }}';
-    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+      document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
+      '{{ csrf_token }}';
+
     fetch('{{ url("institute:studentdata") }}', {
       method: 'POST',
       body: formData,
@@ -1484,39 +1821,39 @@
         'X-CSRFToken': csrfToken
       }
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success === 'true') {
-        // Populate modal fields
-        document.getElementById('single_modal_user_id').value = studentId;
-        document.getElementById('single_modal_email').value = data.email || '';
-        document.getElementById('single_modal_name').value = data.name || '';
-        document.getElementById('single_modal_mobile').value = data.mobile || '';
-        if (data.class_id) {
-          document.getElementById('single_modal_class_section').value = data.class_id;
+      .then(response => response.json())
+      .then(data => {
+        if (data.success === 'true') {
+          // Populate modal fields
+          document.getElementById('single_modal_user_id').value = studentId;
+          document.getElementById('single_modal_email').value = data.email || '';
+          document.getElementById('single_modal_name').value = data.name || '';
+          document.getElementById('single_modal_mobile').value = data.mobile || '';
+          if (data.class_id) {
+            document.getElementById('single_modal_class_section').value = data.class_id;
+          }
+
+          // Show modal
+          const modal = new bootstrap.Modal(singleModal);
+          modal.show();
+        } else {
+          console.error('Failed to fetch student data');
+          alert('Failed to load student data. Please try again.');
         }
-        
-        // Show modal
-        const modal = new bootstrap.Modal(singleModal);
-        modal.show();
-      } else {
-        console.error('Failed to fetch student data');
-        alert('Failed to load student data. Please try again.');
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching student data:', error);
-      alert('Error loading student data. Please try again.');
-    });
+      })
+      .catch(error => {
+        console.error('Error fetching student data:', error);
+        alert('Error loading student data. Please try again.');
+      });
   }
-  
+
   // Function to open change password modal from panel
   function openChangePasswordModalFromPanel(studentId) {
     if (!studentId) {
       console.error('No student ID provided');
       return;
     }
-    
+
     const passwordModal = document.getElementById('changeStudentPasswordModal');
     if (passwordModal) {
       document.getElementById('password_id').value = studentId;
@@ -1526,14 +1863,14 @@
       console.error('Change password modal not found');
     }
   }
-  
+
   // Add event listeners for panel buttons
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const editBtn = document.getElementById('panel-edit-student-btn');
     const passwordBtn = document.getElementById('panel-change-password-btn');
-    
+
     if (editBtn) {
-      editBtn.addEventListener('click', function() {
+      editBtn.addEventListener('click', function () {
         const panel = document.getElementById('studentDetailsPanel');
         const studentId = panel.getAttribute('data-student-id');
         if (studentId) {
@@ -1543,9 +1880,9 @@
         }
       });
     }
-    
+
     if (passwordBtn) {
-      passwordBtn.addEventListener('click', function() {
+      passwordBtn.addEventListener('click', function () {
         const panel = document.getElementById('studentDetailsPanel');
         const studentId = panel.getAttribute('data-student-id');
         if (studentId) {
@@ -1564,21 +1901,11 @@
     const studentRows = document.querySelectorAll('.student-row');
 
     if (!panel) return;
-    
-    // #region agent log - initialization start
-    try {
-      fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location: 'institute_dashboard.js:init', message: 'initializeStudentRowHandlers start', data: { studentRowsCount: studentRows.length }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-init' })
-      }).catch(()=>{});
-    } catch(e) {}
-    // #endregion
 
     // Close panel handler (only add once)
     if (closeBtn && !closeBtn.hasAttribute('data-click-initialized')) {
       closeBtn.setAttribute('data-click-initialized', 'true');
-      closeBtn.addEventListener('click', function() {
+      closeBtn.addEventListener('click', function () {
         panel.classList.remove('show');
         panel.setAttribute('data-student-id', '');
         const editBtn = document.getElementById('panel-edit-student-btn');
@@ -1592,18 +1919,7 @@
       if (row.hasAttribute('data-click-initialized')) return;
       row.setAttribute('data-click-initialized', 'true');
 
-      // #region agent log - binding handler
-      try {
-        const rid = row.getAttribute('data-student-id') || '';
-        fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location: 'institute_dashboard.js:bind', message: 'binding click handler', data: { rowId: rid }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-bind' })
-        }).catch(()=>{});
-      } catch(e) {}
-      // #endregion
-
-      row.addEventListener('click', function(e) {
+      row.addEventListener('click', function (e) {
         // Populate panel content from data- attributes
         const studentId = row.getAttribute('data-student-id') || '';
         const name = row.getAttribute('data-student-name') || '-';
@@ -1638,42 +1954,22 @@
 
         // Show panel
         panel.classList.add('show');
-        
-        // #region agent log - click fired
-        try {
-          fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: 'institute_dashboard.js:click', message: 'student-row clicked', data: { studentId: studentId }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-click' })
-          }).catch(()=>{});
-        } catch(e) {}
-        // #endregion
       });
     });
   }
 
   // Initialize on page load
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     initializeStudentRowHandlers();
   });
 
   // Delegated click handler to support AJAX-loaded rows
-  (function() {
+  (function () {
     const wrapper = document.getElementById('students-table-wrapper');
     const panel = document.getElementById('studentDetailsPanel');
     if (!wrapper || !panel) return;
 
-    // #region agent log - delegation init
-    try {
-      fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location: 'institute_dashboard.js:delegation-init', message: 'delegation handler initialized', data: {}, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-delegation' })
-      }).catch(()=>{});
-    } catch(e) {}
-    // #endregion
-
-    wrapper.addEventListener('click', function(ev) {
+    wrapper.addEventListener('click', function (ev) {
       const row = ev.target.closest('.student-row');
       if (!row) return;
       try {
@@ -1701,41 +1997,16 @@
         document.getElementById('panel-student-created').textContent = created;
 
         panel.classList.add('show');
-
-        // #region agent log - delegation click
-        try {
-          fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ location: 'institute_dashboard.js:delegation-click', message: 'delegated click', data: { studentId }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H1-delegation-click' })
-          }).catch(()=>{});
-        } catch(e) {}
-        // #endregion
       } catch (err) {
         console.error('Error handling delegated student row click', err);
       }
     });
   })();
 
-  // #region agent log - modal shown listener
-  try {
-    document.addEventListener('shown.bs.modal', function(e) {
-      try {
-        const mid = e && e.target && e.target.id ? e.target.id : 'unknown';
-        fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location: 'institute_dashboard.js:modal-shown', message: 'bootstrap modal shown', data: { modalId: mid }, timestamp: Date.now(), runId: 'pre-fix', hypothesisId: 'H2-modal-show' })
-        }).catch(()=>{});
-      } catch(err) {}
-    });
-  } catch(e) {}
-  // #endregion
-
   // Ensure student details panel is hidden whenever any modal is opening,
   // so the modal/backdrop receive clicks (prevents panel blocking modal).
   try {
-    document.addEventListener('show.bs.modal', function(e) {
+    document.addEventListener('show.bs.modal', function (e) {
       try {
         const panel = document.getElementById('studentDetailsPanel');
         if (panel && panel.classList.contains('show')) {
@@ -1750,7 +2021,7 @@
         console.error('Error hiding student panel on modal show', err);
       }
     });
-  } catch(e) {}
+  } catch (e) { }
 </script>
 
 <!-- Centralized Student Table AJAX Script -->
@@ -1766,4 +2037,3 @@
 {% block chatbot_css %}{% endblock %}
 {% block chatbot %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
-
