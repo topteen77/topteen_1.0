@@ -506,6 +506,11 @@ class DemoLoginView(View):
         return redirect('users:login')
 
     def post(self, request):
+        from .demo_accounts import is_demo_login_ui_enabled
+
+        if not is_demo_login_ui_enabled():
+            messages.error(request, 'Demo login is not enabled for this environment.')
+            return self._login_fallback_url(request)
         token = (request.POST.get('token') or '').strip()
         if not token:
             messages.error(request, 'Invalid demo login request.')

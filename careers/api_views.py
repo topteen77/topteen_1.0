@@ -635,9 +635,10 @@ def autocomplete_clusters(request):
                 seen_names.add(name_lower)
                 # Include count in the text
                 results.append({
-                    'id': c.id, 
-                    'text': f"{c.name.strip()} ({career_count})", 
-                    'value': str(c.id)
+                    'id': c.id,
+                    'name': c.name.strip(),
+                    'text': f"{c.name.strip()} ({career_count})",
+                    'value': str(c.id),
                 })
     
     return JsonResponse({'results': results})

@@ -10,8 +10,8 @@
     "chapter_id": 19,
     "part_id": null
   },
-  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n- Quiz\n## Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - Role Playing and Simulation Exercises for Career Counselors\n  - Role Playing\n  - Purpose:\n  - Implementation:\n  - B) Simulation Exercises\n  - Benefits for Career Counseling\n  - Role Playing Examples\n  - Job Interview Simulation\n- Quiz\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n## Fieldwork and Practical Experience for Career Counselors\n- Video/PDF\n  - 1. Importance of Fieldwork\n  - Purpose:\n  - Examples:\n  - 2. Types of Practical Experience\n  - A. Client Interaction\n  - B. Career Assessments\n  - C. Program Development\n- Quiz\n",
-  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n- Quiz\n## Role Playing and Simulation Exercises for Career Counselors\n- Video/PDF\n  - Role Playing and Simulation Exercises for Career Counselors\n  - Role Playing\n  - Purpose:\n  - Implementation:\n  - B) Simulation Exercises\n  - Benefits for Career Counseling\n  - Role Playing Examples\n  - Job Interview Simulation\n- Quiz\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n## Fieldwork and Practical Experience for Career Counselors\n- Video/PDF\n  - 1. Importance of Fieldwork\n  - Purpose:\n  - Examples:\n  - 2. Types of Practical Experience\n  - A. Client Interaction\n  - B. Career Assessments\n  - C. Program Development\n- Quiz\n",
+  "markdown": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n- Quiz\n## Role Playing and Simulation Exercises for Career Counsellors\n- Video/PDF\n  - Role Playing and Simulation Exercises for Career Counsellors\n  - Role Playing\n  - Purpose:\n  - Implementation:\n  - B) Simulation Exercises\n  - Benefits for Career Counseling\n  - Role Playing Examples\n  - Job Interview Simulation\n- Quiz\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n## Fieldwork and Practical Experience for Career Counsellors\n- Video/PDF\n  - 1. Importance of Fieldwork\n  - Purpose:\n  - Examples:\n  - 2. Types of Practical Experience\n  - A. Client Interaction\n  - B. Career Assessments\n  - C. Program Development\n- Quiz\n",
+  "md": "# Practical Applications and Case Studies\n## Real-World Case Studies in Career Counseling\n- PDF\n  - 0 pdf\n- Quiz\n## Role Playing and Simulation Exercises for Career Counsellors\n- Video/PDF\n  - Role Playing and Simulation Exercises for Career Counsellors\n  - Role Playing\n  - Purpose:\n  - Implementation:\n  - B) Simulation Exercises\n  - Benefits for Career Counseling\n  - Role Playing Examples\n  - Job Interview Simulation\n- Quiz\n## Workshops and Group Discussions in Career Counseling\n- Video/PDF\n  - Workshops\n  - Purpose:\n  - Implementation:\n  - Group Discussions\n  - Benefits of Workshops and Group Discussions\n- Quiz\n## Fieldwork and Practical Experience for Career Counsellors\n- Video/PDF\n  - 1. Importance of Fieldwork\n  - Purpose:\n  - Examples:\n  - 2. Types of Practical Experience\n  - A. Client Interaction\n  - B. Career Assessments\n  - C. Program Development\n- Quiz\n",
   "xmind": [
     {
       "id": "cc_sheet_chapter_19",
@@ -64,7 +64,7 @@
             {
               "id": "cc_ch_19_75_part",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Role Playing and Simulation Exercises for Career Counselors",
+              "title": "Role Playing and Simulation Exercises for Career Counsellors",
               "children": {
                 "attached": [
                   {
@@ -76,7 +76,7 @@
                         {
                           "id": "cc_ch_19_75_vpdf_0",
                           "structureClass": "org.xmind.ui.logic.right",
-                          "title": "Role Playing and Simulation Exercises for Career Counselors",
+                          "title": "Role Playing and Simulation Exercises for Career Counsellors",
                           "children": {
                             "attached": []
                           }
@@ -220,7 +220,7 @@
             {
               "id": "cc_ch_19_77_part",
               "structureClass": "org.xmind.ui.logic.right",
-              "title": "Fieldwork and Practical Experience for Career Counselors",
+              "title": "Fieldwork and Practical Experience for Career Counsellors",
               "children": {
                 "attached": [
                   {

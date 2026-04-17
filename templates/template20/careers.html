@@ -100,6 +100,46 @@ Explore our comprehensive collection of career paths organized by industry and i
   font-size: 1.25rem;
 }
 
+.cluster-cards-search-outer {
+  position: relative;
+  z-index: 30;
+  text-align: left;
+}
+.cluster-search-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(63, 55, 201, 0.15);
+  max-height: min(320px, 50vh);
+  overflow-y: auto;
+  display: none;
+  text-align: left;
+  width: 100%;
+}
+.cluster-search-suggestions.is-open {
+  display: block;
+}
+.cluster-search-suggestion-item {
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #1e1b4b;
+  line-height: 1.35;
+  text-align: left;
+}
+.cluster-search-suggestion-item:hover,
+.cluster-search-suggestion-item.active {
+  background: #eef2ff;
+  color: #312e81;
+}
+
 /* Career inner filter: single bar (input + Search + Reset) like reference */
 .career-inner-search-bar {
   display: flex;
@@ -713,13 +753,16 @@ Explore our comprehensive collection of career paths organized by industry and i
           <form autocomplete="off">
           <div class="row justify-content-center">
             <div class="col-md-12 col-lg-8">
+              <div class="cluster-cards-search-outer">
               <div class="input-group cluster-cards-search-wrap">
-           
-                <input type="text" id="cluster-cards-search" class="form-control border-0" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" data-lpignore="true" data-form-type="other">
-                <span class="input-group-text border-0 rounded-pill"><i class="bx bx-search" aria-hidden="true"></i></span>
+                <input type="text" id="cluster-cards-search" class="form-control border-0" placeholder="Search and select one or more clusters" autocomplete="off" value="" name="cluster_q" aria-label="Filter career clusters" aria-autocomplete="list" aria-controls="cluster-search-suggestions" aria-expanded="false" data-lpignore="true" data-form-type="other">
+                <span class="input-group-text border-0 rounded-pill" role="button" tabindex="0" title="Search clusters"><i class="bx bx-search" aria-hidden="true"></i></span>
+              </div>
+              <ul id="cluster-search-suggestions" class="cluster-search-suggestions" role="listbox" aria-label="Matching career clusters" hidden></ul>
               </div>
               <!-- <p class="small text-muted mt-1 mb-0">Type to filter cluster cards below.</p> -->
             </div>
+          </div>
           </form>
           </div>
         </div>
@@ -2278,29 +2321,47 @@ body.ai-fullscreen-active {
 </script>
 
 <script>
-// Cluster cards page: search filters cluster cards via AJAX; count and results update together
+// Cluster cards page: typeahead suggestions + AJAX filter for cluster cards
 (function() {
   const input = document.getElementById('cluster-cards-search');
   const row = document.getElementById('cluster-cards-row');
   const countEl = document.getElementById('cluster-count-display');
-  if (!input || !row) return;
-  // Don't use system/browser prefilled values (e.g. email) in this search field
+  const suggestionsEl = document.getElementById('cluster-search-suggestions');
+  const wrap = document.querySelector('.cluster-cards-search-outer');
+  if (!input || !row || !suggestionsEl || !wrap) return;
   if (input.value && (input.value.indexOf('@') !== -1 || input.value.indexOf('.com') !== -1)) {
     input.value = '';
   }
   const apiUrl = '{{ url("careers:cluster_cards_search") }}';
+  const suggestUrl = '{{ url("careers:autocomplete_clusters") }}';
   let debounceTimer;
+  let suggestTimer;
+  let activeIndex = -1;
+
+  function setExpanded(open) {
+    input.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function hideSuggestions() {
+    suggestionsEl.classList.remove('is-open');
+    suggestionsEl.innerHTML = '';
+    suggestionsEl.setAttribute('hidden', 'hidden');
+    activeIndex = -1;
+    setExpanded(false);
+  }
+
   function updateCount(n) {
     if (countEl) {
       var s = (n !== 1) ? 's' : '';
-      countEl.innerHTML = '<strong>' + n + '</strong> cluster' + s + ' found';
+      countEl.innerHTML = '<i class=\'bx bx-category text-purple\' style="font-size: 18px;"></i> <strong>' + n + '</strong> cluster' + s + ' found';
     }
   }
-  input.addEventListener('input', function() {
+
+  function debouncedCardFetch() {
     clearTimeout(debounceTimer);
-    const q = (this.value || '').trim();
+    var q = (input.value || '').trim();
     debounceTimer = setTimeout(function() {
-      const url = apiUrl + (q ? '?q=' + encodeURIComponent(q) : '');
+      var url = apiUrl + (q ? '?q=' + encodeURIComponent(q) : '');
       row.style.opacity = '0.6';
       fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
         .then(function(r) { return r.json(); })
@@ -2315,7 +2376,126 @@ body.ai-fullscreen-active {
           row.style.opacity = '';
         });
     }, 300);
+  }
+
+  function renderSuggestions(results) {
+    suggestionsEl.innerHTML = '';
+    if (!results || !results.length) {
+      hideSuggestions();
+      return;
+    }
+    results.forEach(function(item, idx) {
+      var name = (item.name && String(item.name).trim()) || (String(item.text || '').replace(/\s*\(\d+\)\s*$/, '').trim());
+      var li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      li.setAttribute('id', 'cluster-suggest-' + idx);
+      li.className = 'cluster-search-suggestion-item';
+      li.setAttribute('data-name', name);
+      li.textContent = item.text || name;
+      li.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        input.value = name;
+        hideSuggestions();
+        input.focus();
+        debouncedCardFetch();
+      });
+      suggestionsEl.appendChild(li);
+    });
+    suggestionsEl.removeAttribute('hidden');
+    suggestionsEl.classList.add('is-open');
+    setExpanded(true);
+  }
+
+  function fetchSuggestions(q) {
+    var url = suggestUrl + '?q=' + encodeURIComponent(q || '') + '&limit=24';
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        renderSuggestions((data && data.results) ? data.results : []);
+      })
+      .catch(function() { hideSuggestions(); });
+  }
+
+  function setActiveSuggestion(delta) {
+    var items = suggestionsEl.querySelectorAll('.cluster-search-suggestion-item');
+    if (!items.length) return;
+    if (activeIndex >= 0 && items[activeIndex]) items[activeIndex].classList.remove('active');
+    activeIndex += delta;
+    if (activeIndex < 0) activeIndex = items.length - 1;
+    if (activeIndex >= items.length) activeIndex = 0;
+    items[activeIndex].classList.add('active');
+    items[activeIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  function applyActiveSuggestion() {
+    var items = suggestionsEl.querySelectorAll('.cluster-search-suggestion-item');
+    if (activeIndex < 0 || !items[activeIndex]) return;
+    var name = items[activeIndex].getAttribute('data-name') || '';
+    input.value = name;
+    hideSuggestions();
+    debouncedCardFetch();
+  }
+
+  input.addEventListener('input', function() {
+    clearTimeout(suggestTimer);
+    var q = (this.value || '').trim();
+    suggestTimer = setTimeout(function() { fetchSuggestions(q); }, 160);
+    debouncedCardFetch();
   });
+
+  input.addEventListener('focus', function() {
+    clearTimeout(suggestTimer);
+    suggestTimer = setTimeout(function() {
+      fetchSuggestions((input.value || '').trim());
+    }, 60);
+  });
+
+  input.addEventListener('blur', function() {
+    setTimeout(function() {
+      if (!wrap.contains(document.activeElement)) hideSuggestions();
+    }, 200);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (!suggestionsEl.classList.contains('is-open')) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveSuggestion(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveSuggestion(-1);
+    } else if (e.key === 'Enter') {
+      var items = suggestionsEl.querySelectorAll('.cluster-search-suggestion-item');
+      if (items.length === 0) return;
+      if (activeIndex < 0 && items.length === 1) activeIndex = 0;
+      if (activeIndex >= 0) {
+        e.preventDefault();
+        applyActiveSuggestion();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      hideSuggestions();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!wrap.contains(e.target)) hideSuggestions();
+  });
+
+  var searchBtn = wrap.querySelector('.input-group-text');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function() {
+      debouncedCardFetch();
+      input.focus();
+    });
+    searchBtn.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        debouncedCardFetch();
+        input.focus();
+      }
+    });
+  }
 })();
 </script>
 

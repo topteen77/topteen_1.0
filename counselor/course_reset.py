@@ -1,5 +1,5 @@
 """
-Admin/support: reset a user's Career Counseling Course progress to a fresh state.
+Admin/support: reset a user's Careers Counsellor Course progress to a fresh state.
 
 - **soft**: save a JSON snapshot to CounselorCourseAttemptBackup, then delete progress rows.
 - **hard**: delete progress rows with no backup.

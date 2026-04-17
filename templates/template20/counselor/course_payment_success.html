@@ -1,6 +1,6 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Payment Successful | Career Counseling Course{% endblock %}
+{% block title_content %}Payment Successful | Careers Counsellor Course{% endblock %}
 {% block description_content %}Your payment was successful. Start your course now.{% endblock %}
 
 {% block bodyclass %}{{ super() }} counselor-payment-success-page{% endblock %}
@@ -53,7 +53,7 @@
             <h2 class="fs-18 fw-semibold text-dark mb-4">Summary</h2>
             <ul class="list-unstyled mb-0">
               <li class="d-flex justify-content-between py-3 border-bottom">
-                <span class="text-gray">Career Counseling Course</span>
+                <span class="text-gray">Careers Counsellor Course</span>
                 <span class="fw-semibold">₹ {{ payment.amount|default('500') }}</span>
               </li>
               <li class="d-flex justify-content-between py-3">

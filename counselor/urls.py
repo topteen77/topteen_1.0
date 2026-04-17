@@ -1,23 +1,24 @@
 
 from django.urls import path, re_path
+from django.views.generic import RedirectView
 from . import views
 
 app_name="counselor"
 
 urlpatterns = [
     path("counselor_dashboard/<int:coun_id>/",views.CounselorDashboard,name="CounselorDashboardView"),
-    path("Counselor_Course_payment/",views.CounselorCoursepayment,name="CounselorCoursepayment"),
-    path("Counselor_Course_detail/", views.CounselorCourseDetailView.as_view(), name="counselor_course_detail"),
-    path("Counselor_Course_curriculum/", views.CounselorCourseCurriculumView.as_view(), name="counselor_course_curriculum"),
+    path("counselor_course_payment/",views.CounselorCoursepayment,name="CounselorCoursepayment"),
+    path("counselor_course_detail/", views.CounselorCourseDetailView.as_view(), name="counselor_course_detail"),
+    path("counselor_course_curriculum/", views.CounselorCourseCurriculumView.as_view(), name="counselor_course_curriculum"),
     path(
-        "Counselor_Course_curriculum/mindmap/",
+        "counselor_course_curriculum/mindmap/",
         views.CounselorCourseCurriculumMindmapFullView.as_view(),
         name="course_curriculum_mindmap_full",
     ),
-    path('Counselor_Course_payment_success/<path:enc_id>/', views.CounselorCoursePaymentSuccess.as_view(), name='counselor_course_payment_success'),
-    path('Counselor_Course_payment_fail/<path:enc_id>/', views.CounselorCoursePaymentFail.as_view(), name='counselor_course_payment_fail'),
-    path("Counselor_Course/<int:counselor_id>/",views.CourseStartsView.as_view(),name="Counselor_Course"),
-    path('Counselor_enrolled_course/', views.CounselorEnrolledCourseView.as_view(), name='counselor_enrolled_course'),
+    path('counselor_course_payment_success/<path:enc_id>/', views.CounselorCoursePaymentSuccess.as_view(), name='counselor_course_payment_success'),
+    path('counselor_course_payment_fail/<path:enc_id>/', views.CounselorCoursePaymentFail.as_view(), name='counselor_course_payment_fail'),
+    path("counselor_course/<int:counselor_id>/",views.CourseStartsView.as_view(),name="Counselor_Course"),
+    path('counselor_enrolled_course/', views.CounselorEnrolledCourseView.as_view(), name='counselor_enrolled_course'),
     path('<int:coun_id>/follow_up/',views.Students_follow_up, name='Counselor_follow_up_page'),
 
 
@@ -71,4 +72,40 @@ urlpatterns = [
     
     # Counselor authentication routes
     path("auth/login/", views.CounselorLoginView.as_view(), name="login"),
+]
+
+# Legacy PascalCase paths → 301 redirects to canonical lowercase URLs
+urlpatterns += [
+    path(
+        "Counselor_Course_payment/",
+        RedirectView.as_view(pattern_name="counselor:CounselorCoursepayment", permanent=True),
+    ),
+    path(
+        "Counselor_Course_detail/",
+        RedirectView.as_view(pattern_name="counselor:counselor_course_detail", permanent=True),
+    ),
+    path(
+        "Counselor_Course_curriculum/",
+        RedirectView.as_view(pattern_name="counselor:counselor_course_curriculum", permanent=True),
+    ),
+    path(
+        "Counselor_Course_curriculum/mindmap/",
+        RedirectView.as_view(pattern_name="counselor:course_curriculum_mindmap_full", permanent=True),
+    ),
+    path(
+        "Counselor_Course_payment_success/<path:enc_id>/",
+        RedirectView.as_view(pattern_name="counselor:counselor_course_payment_success", permanent=True),
+    ),
+    path(
+        "Counselor_Course_payment_fail/<path:enc_id>/",
+        RedirectView.as_view(pattern_name="counselor:counselor_course_payment_fail", permanent=True),
+    ),
+    path(
+        "Counselor_Course/<int:counselor_id>/",
+        RedirectView.as_view(pattern_name="counselor:Counselor_Course", permanent=True),
+    ),
+    path(
+        "Counselor_enrolled_course/",
+        RedirectView.as_view(pattern_name="counselor:counselor_enrolled_course", permanent=True),
+    ),
 ]

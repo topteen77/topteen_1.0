@@ -76,6 +76,27 @@ class StudentIdSettingsForm(forms.Form):
     )
 
 
+class DemoAccountVisibilityForm(forms.Form):
+    """Toggle demo account cards on login pages (separate for DEBUG vs production)."""
+
+    SHOW_DEMO_ACCOUNT_ON_PRODUCTION = forms.BooleanField(
+        required=False,
+        label="Show demo account on production",
+        help_text=(
+            "When Django DEBUG is False (typical production). If off, demo cards are hidden and "
+            "token demo-login is rejected. Default off for safety."
+        ),
+    )
+    SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT = forms.BooleanField(
+        required=False,
+        label="Show demo account on development",
+        help_text=(
+            "When Django DEBUG is True (typical local/staging with DEBUG on). If off, demo cards are hidden "
+            "and token demo-login is rejected."
+        ),
+    )
+
+
 class PsychometricSettingsForm(forms.Form):
     """Form for psychometric test site settings (Admin-managed)."""
     ENABLE_ANSWERING_CAREFULLY_WIDGET = forms.BooleanField(
@@ -269,6 +290,11 @@ class ConfigurationAdmin(admin.ModelAdmin):
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
+            path(
+                'demo-account-visibility/',
+                self.admin_site.admin_view(self.demo_account_visibility_settings),
+                name='core_configuration_demo_account_visibility',
+            ),
         ]
         return custom + urls
 
@@ -338,6 +364,60 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/psychometric_settings.html', context)
+
+    def demo_account_visibility_settings(self, request):
+        """Admin: enable/disable demo login cards and POST for production vs development (DEBUG)."""
+        from core.models import Configuration
+        from users.demo_accounts import (
+            CONFIG_SHOW_DEMO_DEVELOPMENT,
+            CONFIG_SHOW_DEMO_PRODUCTION,
+        )
+
+        def _cfg_bool(key, default):
+            try:
+                v = Configuration.get(key, default=default, editable=True)
+                return str(v).lower() in ("true", "1", "yes", "on")
+            except Exception:
+                return str(default).lower() in ("true", "1", "yes", "on")
+
+        if request.method == "POST":
+            form = DemoAccountVisibilityForm(request.POST)
+            if form.is_valid():
+                for key, field in (
+                    (CONFIG_SHOW_DEMO_PRODUCTION, "SHOW_DEMO_ACCOUNT_ON_PRODUCTION"),
+                    (CONFIG_SHOW_DEMO_DEVELOPMENT, "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"),
+                ):
+                    val = "true" if form.cleaned_data.get(field, False) else "false"
+                    cfg, _ = Configuration.objects.get_or_create(
+                        key=key, defaults={"value": val, "editable": True}
+                    )
+                    cfg.value = val
+                    cfg.save()
+                messages.success(request, "Demo account visibility saved.")
+                return redirect("admin:core_configuration_demo_account_visibility")
+        else:
+            form = DemoAccountVisibilityForm(
+                initial={
+                    "SHOW_DEMO_ACCOUNT_ON_PRODUCTION": _cfg_bool(
+                        CONFIG_SHOW_DEMO_PRODUCTION, "false"
+                    ),
+                    "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT": _cfg_bool(
+                        CONFIG_SHOW_DEMO_DEVELOPMENT, "true"
+                    ),
+                }
+            )
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Demo account visibility",
+            "form": form,
+            "opts": self.model._meta,
+        }
+        return render(
+            request,
+            "admin/core/configuration/demo_account_visibility_settings.html",
+            context,
+        )
 
     def website_settings_view(self, request):
         """Custom admin view for Core website settings (e.g. mindmap)."""

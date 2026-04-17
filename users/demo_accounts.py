@@ -3,12 +3,40 @@ Shared helper for demo accounts shown on login pages.
 Uses DB only: users/institutes marked as demo in admin. No .env credentials.
 Clicking "Login as" POSTs a signed token to demo-login; server logs in and redirects.
 """
+from django.conf import settings
 from django.core.signing import Signer
 from django.urls import reverse
 from django.middleware.csrf import get_token
 
 from core import choices
 from .models import User
+
+# Core → Configuration (admin: Demo account visibility). Values: true/false.
+CONFIG_SHOW_DEMO_PRODUCTION = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION"
+CONFIG_SHOW_DEMO_DEVELOPMENT = "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+
+
+def _config_bool_true(val):
+    return str(val or "").strip().lower() in ("true", "1", "yes", "on")
+
+
+def is_demo_login_ui_enabled():
+    """
+    Whether login pages may show demo account cards and demo-login POST is allowed.
+    Uses Django DEBUG: development when DEBUG is True, production when False.
+    """
+    try:
+        from core.models import Configuration
+
+        if getattr(settings, "DEBUG", False):
+            return _config_bool_true(
+                Configuration.get(CONFIG_SHOW_DEMO_DEVELOPMENT, default="true", editable=True)
+            )
+        return _config_bool_true(
+            Configuration.get(CONFIG_SHOW_DEMO_PRODUCTION, default="false", editable=True)
+        )
+    except Exception:
+        return bool(getattr(settings, "DEBUG", False))
 
 
 def get_demo_accounts_list(user_types=None):
@@ -37,6 +65,12 @@ def get_demo_login_context(request, user_types=None):
     Return context for demo login section: demo_accounts, demo_login_url, demo_csrf_token.
     No password or email from env; login via token POST to demo-login.
     """
+    if not is_demo_login_ui_enabled():
+        return {
+            "demo_accounts": [],
+            "demo_login_url": request.build_absolute_uri(reverse("users:demo_login")),
+            "demo_csrf_token": get_token(request),
+        }
     return {
         'demo_accounts': get_demo_accounts_list(user_types=user_types),
         'demo_login_url': request.build_absolute_uri(reverse('users:demo_login')),
@@ -48,6 +82,12 @@ def get_demo_institute_login_context(request):
     """
     Return context for institute login: demo cards from institutes with is_demo_institute=True (DB only).
     """
+    if not is_demo_login_ui_enabled():
+        return {
+            "demo_accounts": [],
+            "demo_login_url": request.build_absolute_uri(reverse("institute:demo_login")),
+            "demo_csrf_token": get_token(request),
+        }
     from institute.models import Institute
 
     signer = Signer()

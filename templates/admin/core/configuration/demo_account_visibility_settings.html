@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:core_configuration_changelist' %}">Configuration</a>
+&rsaquo; Demo account visibility
+</div>
+{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 20px; color: #666;">
+  Controls whether <strong>demo account</strong> cards appear on login pages (student, parent, main login, counselor, institute, marketing)
+  and whether <strong>demo-login</strong> (token POST) is accepted.
+  <strong>Development</strong> uses <code>DEBUG=True</code>; <strong>production</strong> uses <code>DEBUG=False</code>.
+  The same keys are stored as Configuration rows and can also be edited from the Configuration list if needed.
+</p>
+
+<form method="post" id="demo-account-visibility-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <h2>Demo account visibility</h2>
+    {% for field in form %}
+    <div class="form-row">
+      <div>
+        {{ field }}
+        <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
+        {% if field.help_text %}
+        <p class="help" style="margin: 5px 0 0 24px; color: #666; font-size: 12px;">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save settings" class="default">
+    <a href="{% url 'admin:core_configuration_changelist' %}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

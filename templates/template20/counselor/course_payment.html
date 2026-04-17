@@ -1,8 +1,8 @@
 {% extends 'template20/base.html' %}
 {% set _cp = course_page|default({}) %}
 
-{% block title_content %}{{ _cp.hero_heading|default('Career Counseling Course') }} | Top Teen{% endblock %}
-{% block description_content %}{{ _cp.hero_description|default('Enroll in the Career Counseling Course and enhance your counseling skills.') }}{% endblock %}
+{% block title_content %}{{ _cp.hero_heading|default('Careers Counsellor Course') }} | Top Teen{% endblock %}
+{% block description_content %}{{ _cp.hero_description|default('Enroll in the Careers Counsellor Course and enhance your counseling skills.') }}{% endblock %}
 
 {% block bodyclass %}course-payment-page{% endblock %}
 
@@ -79,7 +79,7 @@
         {% include 'template20/includes/breadcrumb.html' %}
         <div class="col-lg-6 col-md-12 career-direction-test-hero order-md-1 order-2">
           <span class="highlighter">
-            <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Career Counseling Course
+            <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> Careers Counsellor Course
           </span>
           <h1 class="heading-title">{{ _cp.hero_heading|default('Transform Lives') }}</h1>
           <p class="text-gray fs-25 fs-sm-18 fw-700 hero-subline">Through <span class="text-yellow">{{ _cp.hero_subline|default('Career Counselling') }}</span></p>
@@ -94,7 +94,7 @@
         <div class="col-lg-6 col-md-12 order-md-2 order-1 d-md-block d-none">
           <div class="right-banner d-md-flex justify-content-end">
             <div class="four-pillars-hero-image-wrapper">
-              <img class="img-fluid" src="{{ static('images_new/counselor/cc-hero-img.png') }}" alt="Career Counseling Course" />
+              <img class="img-fluid" src="{{ static('images_new/counselor/cc-hero-img.png') }}" alt="Careers Counsellor Course" />
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@
       <div class="row align-items-center mt-md-5 mt-3">
         <div class="col-lg-5 mb-md-0 mb-6">
           <div class="counselor-image-container">
-            <img src="{{ static('images_new/counselor/counsellor-program.png') }}" alt="Career Counselor Professional" class="img-fluid rounded-circle">
+            <img src="{{ static('images_new/counselor/counsellor-program.png') }}" alt="Career Counsellor Professional" class="img-fluid rounded-circle">
           </div>
         </div>
         <div class="col-lg-7">
@@ -202,10 +202,10 @@
           <div class="payment-first-screen-card">
             <div class="row g-0">
               <div class="col-md-5 payment-card-left">
-                <img src="{{ static('images_new/counselor/businesswoman.png') }}" alt="Career Counseling Course" class="img-fluid" style=" object-fit: contain;">
+                <img src="{{ static('images_new/counselor/businesswoman.png') }}" alt="Careers Counsellor Course" class="img-fluid" style=" object-fit: contain;">
               </div>
               <div class="col-md-7 payment-card-right">
-                <h2 class="payment-title">Career Counseling Course</h2>
+                <h2 class="payment-title">Careers Counsellor Course</h2>
                 <p class="payment-subtitle"><i class='bx bx-certification me-1'></i> Certification Program</p>
                 <span class="payment-tag">Advanced</span>
                 <p class="payment-validity">Career guidance • 1 year validity</p>
@@ -372,7 +372,7 @@
     "amount": "{{ payment.amount }}",
     "currency": "{{ razorpay_currency|default('INR') }}",
     "name": "Top Teen",
-    "description": "Career Counseling Course",
+    "description": "Careers Counsellor Course",
     "image": "{% if request %}{{ request.build_absolute_uri(static('images_new/logos/logo.svg')) }}{% endif %}",
     "order_id": "{{ payment.id }}",
     "handler": function (response) {

@@ -1,5 +1,5 @@
 """
-Test script for Counselor Course Learning Module
+Test script for Counsellor Course Learning Module
 
 This script tests the basic functionality of the course learning module.
 Run this from Django shell: python manage.py shell < counselor/test_course_learning.py

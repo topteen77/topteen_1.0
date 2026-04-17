@@ -1,18 +1,18 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{{ course.title if course and course.title else 'Career Counseling Course' }} | Top Teen
+{{ course.title if course and course.title else 'Careers Counsellor Course' }} | Top Teen
 {% endblock %}
 
 {% block description_content %}
-Explore the Career Counseling Course curriculum and enroll to start learning.
+Explore the Careers Counsellor Course curriculum and enroll to start learning.
 {% endblock %}
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
 <style>
-  /* Counselor Course Detail — adapted from template20/skilllab_course_detail.html */
+  /* Counsellor Course Detail — adapted from template20/skilllab_course_detail.html */
   .course-detail-container { padding: 3rem 0; }
   .course-image { border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; background: #f7f7fb; }
   .course-image img { width: 100%; height: auto; object-fit: cover; }
@@ -97,10 +97,10 @@ Explore the Career Counseling Course curriculum and enroll to start learning.
   <div class="container">
     <div class="row">
       <div class="col-lg-8">
-        <h1 class="mb-3">{{ course.title if course and course.title else 'Career Counseling Course' }}</h1>
+        <h1 class="mb-3">{{ course.title if course and course.title else 'Careers Counsellor Course' }}</h1>
 
         <div class="course-image">
-          <img src="{{ static('images_new/counselor/cc-detail-img.png') }}" alt="Career Counseling Course" onerror="this.style.display='none'">
+          <img src="{{ static('images_new/counselor/cc-detail-img.png') }}" alt="Careers Counsellor Course" onerror="this.style.display='none'">
         </div>
 
         <div class="course-meta">

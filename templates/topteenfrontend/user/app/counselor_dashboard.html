@@ -213,7 +213,7 @@
                         </div>
 
 
-                        <button onclick="window.location='/counselor/Counselor_Course/' + {{counselors.id}} "
+                        <button onclick="window.location='{{ url('counselor:Counselor_Course', args=[counselors.id]) }}'"
                             class="uppercase  w-[295px] h-[53px] bg-[#4CC9F0] rounded-[10px] text-xs text-white font-bold tracking-[0.01em] border-b-[6px] border-[#3CBAE1] flex flex-row justify-center gap-x-[11px] items-center mt-3 text-[14px] mb-4">
                             <span class="text-[18px]"> <i class="fa-solid fa-chalkboard"></i></span>
                             <span>MY COURSE</span>
@@ -536,7 +536,7 @@
                 <div class="lg:max-w-[400px] max-w-[203px] self-center lg:mb-[10px] mb-[18px]  z-20">
                     <h4
                         class="lg:text-[24px] lg:leading-[38px] text-[16px] leading-[30px]  text-[#ffffff] font-bold lh-21">
-                        Advanced&nbsp;Career Counseling Program
+                        Advanced&nbsp;Careers Counsellor Program
                     </h4>
                     <p class="font-normal text-[13px] tracking-[0.0145em] text-[#ffffff]  mb-3 leading-normal">
 

@@ -2,7 +2,7 @@
   "course_learning_url": "http://localhost:8002/counselor/course_learning/14/",
   "course_learning_url_segment": 14,
   "course_id": 1,
-  "course_title": "Careers Counselor Course",
+  "course_title": "Careers Counsellor Course",
   "reference_mindmap_example": "Ag-FinTech Product Manager (XMind content.json style mirrored under xmind key)",
   "files": {
     "course": "course.json",

@@ -453,7 +453,7 @@ class CounselorCourseDetailView(TemplateView):
                 "breadcrumb": get_breadcrumb(
                     [
                         {
-                            "text": "Career Counseling Course",
+                            "text": "Careers Counsellor Course",
                             "url": reverse("counselor:CounselorCoursepayment"),
                         },
                         {"text": "Course Detail", "url": ""},
@@ -1432,7 +1432,7 @@ def CounselorCoursepayment(request):
         success_url = request.build_absolute_uri(reverse('counselor:counselor_course_payment_success', kwargs={'enc_id': enc_id_quoted}))
         fail_url = request.build_absolute_uri(reverse('counselor:counselor_course_payment_fail', kwargs={'enc_id': enc_id_quoted}))
     
-    # Dynamic content for Career Counseling Course page (can be moved to DB/CMS later)
+    # Dynamic content for Careers Counsellor Course page (can be moved to DB/CMS later)
     course_page = {
         'hero_heading': 'Transform Lives',
         'hero_subline': 'Career Counselling',
@@ -1525,7 +1525,7 @@ def CounselorCoursepayment(request):
         'counselor_course_video_yt_id': counselor_course_video_yt_id,
         'breadcrumb': get_breadcrumb([
             {'text': 'Home', 'url': reverse('core:home')},
-            {'text': 'Career Counseling Course', 'url': ''},
+            {'text': 'Careers Counsellor Course', 'url': ''},
         ]),
     }
     return render(request, 'template20/counselor/course_payment.html', context)
@@ -1972,9 +1972,9 @@ def CounselorDashboard(request, coun_id=None):
 
     counselor_course = CounselorCourse.objects.only("title").first()
     counselor_course_title = (
-        (counselor_course.title or "").strip() or "Career Counseling Course"
+        (counselor_course.title or "").strip() or "Careers Counsellor Course"
         if counselor_course
-        else "Career Counseling Course"
+        else "Careers Counsellor Course"
     )
     counselor_user = counselor.coun_user
     # Same users as course detail / payment (request.user) and counselor profile (coun_user)

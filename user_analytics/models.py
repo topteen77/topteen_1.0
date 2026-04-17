@@ -273,7 +273,7 @@ class UserEvent(BaseModel):
         ('course_enrolled', 'Course Enrolled'),
         ('skilllab_enrolled', 'SkillLab Course Enrolled'),
         ('institute_student_registered', 'Institute Student Registered'),
-        ('counselor_course_enrolled', 'Counselor Course Enrolled'),
+        ('counselor_course_enrolled', 'Counsellor Course Enrolled'),
         ('page_view', 'Page View'),
         ('download', 'Download'),
         ('form_submission', 'Form Submission'),
