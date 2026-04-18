@@ -17,7 +17,7 @@ from .models import (
     UserResumeActivity,
     UserResumeSkill,
     UserResumeVolunteerInvolvement,
-    ResumePdfTemplate,
+    ResumeStudioHtmlTemplate,
 )
 from communication.com_service import ComService
 from rest_framework.response import Response
@@ -76,7 +76,15 @@ import re
 from django.utils.safestring import mark_safe
 from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
 from .resume_guided_ai import strip_markdown_fences
-from .resume_payload import resume_editor_payload as _resume_editor_payload
+from .resume_payload import (
+    resume_editor_payload as _resume_editor_payload,
+    resume_studio_embed_finish_pdf_urls,
+    resume_studio_prototype_payload,
+)
+from .resume_studio_html import (
+    admin_studio_html_preview_initial_json,
+    studio_html_template_catalog_json,
+)
 
 
 def _link_current_analytics_session(request, user):
@@ -3303,16 +3311,9 @@ class MyResumesHubView(TemplateView):
         ctx["profile_user"] = profile_user
         UserProfile.objects.get_or_create(user=profile_user)
         ctx.update(_hub_nav_counts(profile_user))
-        resumes = list(
-            UserResume.objects.filter(user=profile_user)
-            .select_related("pdf_template")
-            .order_by("-modified")
-        )
+        resumes = list(UserResume.objects.filter(user=profile_user).order_by("-modified"))
         ctx["resumes"] = resumes
         ctx["resume_rows"] = [{"resume": r, "sections": _resume_section_count(r)} for r in resumes]
-        ctx["pdf_templates"] = list(
-            _pdf_templates_queryset_for_user(profile_user).order_by("sort_order", "id")
-        )
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -3354,44 +3355,6 @@ class ResumeHubDeleteView(View):
             messages.success(request, "That resume was deleted.")
         else:
             messages.info(request, "Resume not found.")
-        return redirect("users:resumebuilder")
-
-
-@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
-class ResumeHubSetPdfTemplateView(View):
-    """POST: assign a ResumePdfTemplate to a UserResume (or clear to use site default)."""
-
-    http_method_names = ["post"]
-
-    def post(self, request, *args, **kwargs):
-        rid = request.POST.get("resume_id")
-        tid = (request.POST.get("pdf_template_id") or "").strip()
-        try:
-            pk = int(rid)
-        except (TypeError, ValueError):
-            messages.error(request, "Invalid resume.")
-            return redirect("users:resumebuilder")
-        resume = UserResume.objects.filter(pk=pk, user=request.user).first()
-        if not resume:
-            messages.error(request, "Resume not found.")
-            return redirect("users:resumebuilder")
-        if not tid:
-            resume.pdf_template = None
-            resume.save(update_fields=["pdf_template", "modified"])
-            messages.success(request, "PDF template reset to the default layout.")
-            return redirect("users:resumebuilder")
-        try:
-            tpl_pk = int(tid)
-        except (TypeError, ValueError):
-            messages.error(request, "Invalid template.")
-            return redirect("users:resumebuilder")
-        tpl = _pdf_templates_queryset_for_user(request.user).filter(pk=tpl_pk).first()
-        if not tpl:
-            messages.error(request, "That template is not available.")
-            return redirect("users:resumebuilder")
-        resume.pdf_template = tpl
-        resume.save(update_fields=["pdf_template", "modified"])
-        messages.success(request, 'PDF layout set to "%s". Use View PDF or PDF download.' % tpl.name)
         return redirect("users:resumebuilder")
 
 
@@ -3627,17 +3590,25 @@ class UserFolderDetail(TemplateView):
 AI_DYNAMIC_GENERATED_SHELL = "mail/user/userresumepdf_gen_ai_dynamic_shell.html"
 
 
-def _pdf_templates_queryset_for_user(user):
-    return ResumePdfTemplate.objects.filter(is_active=True).filter(
-        Q(created_by__isnull=True) | Q(created_by=user)
-    )
-
-
 def _ai_shell_ctx_from_row(row):
+    from users.resume_template_ai import google_font_context_for_template
+
     if not row:
-        return {"ai_dynamic_css": "", "use_ai_dynamic_shell": False}
+        return {
+            "ai_dynamic_css": "",
+            "use_ai_dynamic_shell": False,
+            "ai_google_font_url": "",
+            "ai_google_font_stack": "",
+        }
     css = (getattr(row, "ai_dynamic_css", None) or "").strip()
-    return {"ai_dynamic_css": css, "use_ai_dynamic_shell": bool(css)}
+    use = bool(css)
+    ctx = {"ai_dynamic_css": css if use else "", "use_ai_dynamic_shell": use}
+    if use:
+        ctx.update(google_font_context_for_template(row))
+    else:
+        ctx["ai_google_font_url"] = ""
+        ctx["ai_google_font_stack"] = ""
+    return ctx
 
 
 def _choose_generated_mail_template(row, generated_path):
@@ -3647,57 +3618,19 @@ def _choose_generated_mail_template(row, generated_path):
 
 
 def _resume_pdf_template_row_paths_and_style(
-    user_resume,
-    preview_template_id=None,
-    force_template_row=None,
-    restrict_template_user=None,
+    _user_resume,
+    _preview_template_id=None,
+    _force_template_row=None,
+    _restrict_template_user=None,
 ):
-    """
-    Return (row_or_none, classic_path, generated_path, layout_variant, accent_hex).
-    preview_template_id: optional template pk for one-off PDF/HTML preview without saving FK.
-    force_template_row: optional ResumePdfTemplate instance (e.g. staff admin preview); skips DB lookup by id.
-    restrict_template_user: when resolving preview_template_id, only allow global or this user's templates.
-    """
-
-    def _paths_from_row(row):
-        if not row:
-            return None
-        c = (row.classic_template_path or "").strip() or "mail/user/userresumepdf.html"
-        g = (row.generated_template_path or "").strip() or "mail/user/userresumepdf_generated.html"
-        return c, g
-
-    row = None
-    if force_template_row is not None:
-        row = force_template_row
-    elif preview_template_id:
-        try:
-            pid = int(preview_template_id)
-        except (TypeError, ValueError):
-            pid = None
-        if pid:
-            qs = ResumePdfTemplate.objects.filter(pk=pid, is_active=True)
-            if restrict_template_user is not None:
-                qs = qs.filter(Q(created_by__isnull=True) | Q(created_by=restrict_template_user))
-            row = qs.first()
-
-    if row is None:
-        row = getattr(user_resume, "pdf_template", None)
-        if row and not row.is_active:
-            row = None
-
-    if row is None:
-        row = (
-            ResumePdfTemplate.objects.filter(is_active=True, created_by__isnull=True)
-            .order_by("sort_order", "id")
-            .first()
-        )
-
-    p = _paths_from_row(row)
-    if p:
-        lv = (getattr(row, "layout_variant", None) or "v01").strip() or "v01"
-        ac = (getattr(row, "accent_hex", None) or "#19718c").strip() or "#19718c"
-        return row, p[0], p[1], lv, ac
-    return None, "mail/user/userresumepdf.html", "mail/user/userresumepdf_generated.html", "v01", "#19718c"
+    """Return fixed PDF mail template paths and default layout/accent (no DB template rows)."""
+    return (
+        None,
+        "mail/user/userresumepdf.html",
+        "mail/user/userresumepdf_generated.html",
+        "v01",
+        "#19718c",
+    )
 
 
 @login_required
@@ -3817,169 +3750,6 @@ def resume_html_preview(request, *args, **kwargs):
     return HttpResponse(html, content_type="text/html; charset=utf-8")
 
 
-def _pick_user_resume_for_admin_template_preview(request):
-    """Sample resume for staff HTML preview: staff user's resume first, then any resume with generated HTML."""
-    base = UserResume.objects.complete()
-    staff_qs = base.filter(user=request.user)
-    ur = (
-        staff_qs.exclude(generated_html__isnull=True)
-        .exclude(generated_html="")
-        .order_by("-modified")
-        .first()
-    )
-    if ur:
-        return ur
-    ur = staff_qs.order_by("-modified").first()
-    if ur:
-        return ur
-    return (
-        base.exclude(generated_html__isnull=True)
-        .exclude(generated_html="")
-        .order_by("-modified")
-        .first()
-    )
-
-
-@staff_member_required
-def admin_resume_pdf_template_html_preview(request, template_pk):
-    """
-    Staff-only: render resume HTML using this PDF template row (same pipeline as resume-preview).
-    Uses a sample UserResume so layout/accent can be checked from admin.
-    """
-    tpl = get_object_or_404(ResumePdfTemplate.objects.complete(), pk=template_pk)
-    user_resume = _pick_user_resume_for_admin_template_preview(request)
-    if not user_resume:
-        return HttpResponse(
-            "<p>Add at least one user resume in the database (your own resume is preferred) to preview PDF templates.</p>",
-            status=503,
-            content_type="text/html; charset=utf-8",
-        )
-    owner = user_resume.user
-    UserProfile.objects.get_or_create(user=owner)
-    _tpl_row, classic_path, generated_path, pdf_lv, pdf_ac = _resume_pdf_template_row_paths_and_style(
-        user_resume, preview_template_id=None, force_template_row=tpl
-    )
-    ctx = {
-        "request": request,
-        "profile": get_object_or_404(UserProfile, user=owner),
-        "user_resume": user_resume,
-        "skills": UserResumeSkill.objects.filter(resume=user_resume),
-        "certificates": UserResumeCertificate.objects.filter(resume=user_resume).order_by("issue_date"),
-        "internships": UserResumeInternship.objects.filter(resume=user_resume),
-        "activities": UserResumeActivity.objects.filter(resume=user_resume),
-        "volunteers": UserResumeVolunteerInvolvement.objects.filter(resume=user_resume),
-        "pdf_layout_variant": pdf_lv,
-        "pdf_accent_color": pdf_ac,
-    }
-    ctx.update(_ai_shell_ctx_from_row(tpl))
-    user_image = getattr(owner, "image", None)
-    if user_image:
-        try:
-            ctx["image_url"] = "https://www.topteen.in{}".format(user_image.url)
-        except ValueError:
-            ctx["image_url"] = ""
-    else:
-        ctx["image_url"] = ""
-    from django.template import TemplateDoesNotExist
-
-    if (user_resume.generated_html or "").strip():
-        ctx["generated_resume_html"] = strip_markdown_fences(user_resume.generated_html)
-        chosen, fallback = _choose_generated_mail_template(tpl, generated_path)
-    else:
-        chosen = classic_path
-        fallback = "mail/user/userresumepdf.html"
-    try:
-        template = get_template(chosen)
-    except TemplateDoesNotExist:
-        template = get_template(fallback)
-    html = template.render(ctx)
-    return HttpResponse(html, content_type="text/html; charset=utf-8")
-
-
-@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
-class ResumeAiTemplateStudioView(View):
-    """Student: brief + optional colours / image → OpenAI scoped CSS → new ResumePdfTemplate (visible only to this user)."""
-
-    http_method_names = ["get", "post"]
-
-    def dispatch(self, request, *args, **kwargs):
-        self.resume = get_object_or_404(UserResume, pk=kwargs["resume_id"], user=request.user)
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, resume_id, *args, **kwargs):
-        ctx = {}
-        ctx["html_head"] = build_html_head(
-            title="AI template designer",
-            description="Generate a professional PDF shell from your requirements.",
-        )
-        ctx["resume"] = self.resume
-        ctx["profile_user"] = request.user
-        UserProfile.objects.get_or_create(user=request.user)
-        ctx.update(_hub_nav_counts(request.user))
-        ctx["templates_url"] = reverse("users:resumebuilder_templates", kwargs={"resume_id": self.resume.pk})
-        ctx["ai_generate_api_url"] = reverse(
-            "users:resume_ai_template_generate_api", kwargs={"resume_id": self.resume.pk}
-        )
-        return render(request, "template20/user/resume_ai_template_studio.html", ctx)
-
-    def post(self, request, resume_id, *args, **kwargs):
-        from users.resume_template_ai import generate_and_create_resumepdf_template_from_post
-
-        tpl, err = generate_and_create_resumepdf_template_from_post(
-            request,
-            created_by=request.user,
-            is_active=True,
-            sort_order=460,
-            description="AI-generated shell (your account only).",
-            slug_prefix="user",
-        )
-        if err:
-            messages.error(request, err)
-            return redirect("users:resume_ai_template_studio", resume_id=self.resume.pk)
-        messages.success(request, 'Created "%s". Open Templates to apply it.' % tpl.name)
-        return redirect("users:resumebuilder_templates", resume_id=self.resume.pk)
-
-
-@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
-class ResumeAiTemplateGenerateApiView(View):
-    """JSON: generate template + return preview URL (same-origin path for iframe)."""
-
-    http_method_names = ["post"]
-
-    def post(self, request, resume_id, *args, **kwargs):
-        from django.http import JsonResponse
-
-        from users.resume_template_ai import generate_and_create_resumepdf_template_from_post
-
-        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
-        tpl, err = generate_and_create_resumepdf_template_from_post(
-            request,
-            created_by=request.user,
-            is_active=True,
-            sort_order=460,
-            description="AI-generated shell (your account only).",
-            slug_prefix="user",
-        )
-        if err:
-            return JsonResponse({"ok": False, "error": err}, status=400)
-        preview_path = (
-            reverse("users:resume_html_preview")
-            + "?resume_id="
-            + str(resume.pk)
-            + "&template_id="
-            + str(tpl.pk)
-        )
-        return JsonResponse(
-            {
-                "ok": True,
-                "template_id": tpl.pk,
-                "name": tpl.name,
-                "preview_path": preview_path,
-                "templates_url": reverse("users:resumebuilder_templates", kwargs={"resume_id": resume.pk}),
-            }
-        )
-
-
 @method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
 class ResumeTemplateLibraryView(TemplateView):
     """Screen 2–style template picker: library grid, live preview, apply layout to this resume."""
@@ -3997,29 +3767,57 @@ class ResumeTemplateLibraryView(TemplateView):
         ctx["profile_user"] = request.user
         UserProfile.objects.get_or_create(user=request.user)
         ctx.update(_hub_nav_counts(request.user))
-        rows = list(_pdf_templates_queryset_for_user(request.user).order_by("sort_order", "id"))
-        ctx["library_templates"] = rows
-        ctx["ai_template_studio_url"] = reverse("users:resume_ai_template_studio", kwargs={"resume_id": resume.pk})
-        catalog = [
-            {
-                "id": t.pk,
-                "name": t.name,
-                "category": (getattr(t, "category", None) or "professional").lower(),
-                "accent_hex": getattr(t, "accent_hex", None) or "#19718c",
-                "layout": getattr(t, "layout_variant", None) or "v01",
-            }
-            for t in rows
-        ]
-        ctx["library_templates_catalog"] = catalog
-        # Inline JSON for <script type="application/json"> — avoid custom Jinja filter (env reload issues).
-        _json = json.dumps(catalog, ensure_ascii=False, default=str).translate(
-            str.maketrans({"<": "\\u003c", ">": "\\u003e"})
-        )
-        ctx["library_templates_catalog_json"] = mark_safe(_json)
+        # Template gallery is the static resume-builder prototype (no DB PDF template rows).
+        ctx["library_templates"] = []
+        ctx["library_templates_catalog"] = []
+        ctx["library_templates_catalog_json"] = mark_safe("[]")
         return ctx
 
     def get(self, request, resume_id, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, resume_id, *args, **kwargs))
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeTemplateStudioEmbedView(View):
+    """Minimal HTML document for iframe: resume-builder prototype + DB-backed initial data."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        payload = resume_studio_prototype_payload(resume, request)
+        raw = json.dumps(payload, ensure_ascii=False, default=str).translate(
+            str.maketrans({"<": "\\u003c", ">": "\\u003e"})
+        )
+        finish, pdf = resume_studio_embed_finish_pdf_urls(request, resume)
+        ctx = {
+            "resume": resume,
+            "resume_initial_json": mark_safe(raw),
+            "storage_key": f"resume-builder-proto-{resume.pk}",
+            "finish_url": finish,
+            "pdf_url": pdf,
+            "studio_templates_catalog_json": studio_html_template_catalog_json(),
+            "studio_force_template": "",
+            "studio_template_row": None,
+        }
+        return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
+
+
+@staff_member_required
+def admin_resume_studio_html_template_preview(request, template_pk):
+    """Staff: open the HTML resume studio with sample data and this layout selected (same prototype as students)."""
+    tpl = get_object_or_404(ResumeStudioHtmlTemplate.objects.complete(), pk=template_pk)
+    ctx = {
+        "resume": None,
+        "resume_initial_json": admin_studio_html_preview_initial_json(),
+        "storage_key": f"admin-studio-html-{tpl.pk}",
+        "finish_url": "",
+        "pdf_url": "",
+        "studio_templates_catalog_json": studio_html_template_catalog_json(),
+        "studio_force_template": tpl.template_key,
+        "studio_template_row": tpl,
+    }
+    return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')

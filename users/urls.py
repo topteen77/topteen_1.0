@@ -45,11 +45,6 @@ urlpatterns = [
    path('save-media/',views.SaveMedia.as_view(),name="savemedia"),
    path('resume-builder/create/', views.ResumeHubCreateView.as_view(), name="resumebuilder_create"),
    path('resume-builder/delete/', views.ResumeHubDeleteView.as_view(), name="resumebuilder_delete"),
-   path(
-       'resume-builder/set-pdf-template/',
-       views.ResumeHubSetPdfTemplateView.as_view(),
-       name="resumebuilder_set_pdf_template",
-   ),
    path('resume-builder/generate/', views.ResumeGuidedGenerateView.as_view(), name="resume_guided_generate"),
    path(
        'resume-builder/studio/<int:resume_id>/',
@@ -62,20 +57,15 @@ urlpatterns = [
        name="resumebuilder_templates",
    ),
    path(
-       "resume-builder/studio/<int:resume_id>/templates/ai-design/api/",
-       views.ResumeAiTemplateGenerateApiView.as_view(),
-       name="resume_ai_template_generate_api",
-   ),
-   path(
-       "resume-builder/studio/<int:resume_id>/templates/ai-design/",
-       views.ResumeAiTemplateStudioView.as_view(),
-       name="resume_ai_template_studio",
+       "resume-builder/studio/<int:resume_id>/templates/embed/",
+       views.ResumeTemplateStudioEmbedView.as_view(),
+       name="resumebuilder_templates_embed",
    ),
    path("resume-preview/", views.resume_html_preview, name="resume_html_preview"),
    path(
-       "admin/resume-pdf-template/<int:template_pk>/preview/",
-       views.admin_resume_pdf_template_html_preview,
-       name="admin_resume_pdf_template_preview",
+       "admin/resume-studio-html-template/<int:template_pk>/preview/",
+       views.admin_resume_studio_html_template_preview,
+       name="admin_resume_studio_html_template_preview",
    ),
    path(
        'resume-builder/preview/<int:resume_id>/',

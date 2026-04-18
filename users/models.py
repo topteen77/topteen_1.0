@@ -454,80 +454,63 @@ class UserNote(BaseModel):
     content=RichTextField(null=True,blank=True)
 
 
-class ResumePdfTemplate(BaseModel):
+class ResumeStudioHtmlTemplate(BaseModel):
     """
-    Admin-configurable Django template paths used when rendering resume PDFs.
-    Classic path: section-based resume (skills, certs, …). Generated path: AI HTML wrapper.
+    Admin-managed gallery rows for the student HTML resume studio (static/js prototype).
+    Each template_key must match a renderer in static/resume-builder-prototype/app.js.
     """
 
     name = models.CharField(max_length=120)
-    description = models.TextField(blank=True)
-    classic_template_path = models.CharField(
-        max_length=200,
-        default="mail/user/userresumepdf.html",
-        help_text="Django template path (e.g. mail/user/userresumepdf.html) for PDF when there is no generated HTML.",
-    )
-    generated_template_path = models.CharField(
-        max_length=200,
-        default="mail/user/userresumepdf_generated.html",
-        help_text="Django template path for PDF when the resume has AI-generated HTML.",
-    )
-    is_active = models.BooleanField(default=True)
-    sort_order = models.PositiveSmallIntegerField(default=0)
-    # Visual library (Screen 1 / Screen 2): modular PDF layout + accent; unique when set.
-    library_slug = models.SlugField(
+    template_key = models.SlugField(
         max_length=64,
-        blank=True,
-        null=True,
         unique=True,
-        help_text="Stable id for seeded catalog rows, e.g. v03_c2",
+        help_text="Layout id implemented in the studio prototype, e.g. classic-sidebar, minimalist.",
     )
     category = models.CharField(
         max_length=32,
         default="professional",
         db_index=True,
-        help_text="Filter in template library: professional, modern, creative, simple, executive, all",
+        help_text="Gallery filter: professional, modern, creative, simple",
     )
-    layout_variant = models.CharField(
-        max_length=32,
-        default="v01",
-        help_text="CSS layout key passed into PDF/HTML preview (v01–v12).",
-    )
-    accent_hex = models.CharField(
-        max_length=8,
-        default="#19718c",
-        help_text="Primary accent colour (#RRGGBB) for this template.",
-    )
-    ai_dynamic_css = models.TextField(
+    mock_class = models.CharField(
+        max_length=80,
         blank=True,
-        help_text="AI-generated scoped CSS; when set, generated resumes use the dynamic AI shell.",
+        default="",
+        help_text="Thumbnail mock CSS class, e.g. mock-classic-sidebar. Auto-filled as mock-<key> when empty.",
     )
-    ai_requirements_snapshot = models.TextField(
-        blank=True,
-        help_text="Design brief / requirements used for the last AI shell generation.",
-    )
-    inspiration_image = models.FileField(
-        upload_to="resume_ai_templates/inspire/",
-        blank=True,
-        null=True,
-        help_text="Optional sample image for palette hints (AI template generator).",
-    )
-    created_by = models.ForeignKey(
-        "User",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="created_resume_pdf_templates",
-        help_text="If set, this template is only listed for this user (and staff).",
-    )
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    description = models.TextField(blank=True)
 
     class Meta(BaseModel.Meta):
         ordering = ("sort_order", "id")
-        verbose_name = "Resume PDF template"
-        verbose_name_plural = "Resume PDF templates"
+        verbose_name = "Resume studio HTML template"
+        verbose_name_plural = "Resume studio HTML templates"
 
     def __str__(self):
-        return self.name or "Resume PDF template"
+        return self.name or self.template_key or "Studio template"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        from users.resume_studio_html import ALLOWED_STUDIO_HTML_TEMPLATE_KEYS
+
+        k = (self.template_key or "").strip()
+        if k and k not in ALLOWED_STUDIO_HTML_TEMPLATE_KEYS:
+            raise ValidationError(
+                {
+                    "template_key": (
+                        "This layout is not implemented in the studio prototype. "
+                        "Choose a key from the documented list (same as app.js RENDERERS)."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        tid = (self.template_key or "").strip()
+        if tid and not (self.mock_class or "").strip():
+            self.mock_class = f"mock-{tid}"
+        super().save(*args, **kwargs)
 
 
 class UserResume(BaseModel):
@@ -540,14 +523,6 @@ class UserResume(BaseModel):
     )
     title = models.CharField(max_length=120, default="My resume", blank=True)
     about = models.TextField(null=True, blank=True)
-    pdf_template = models.ForeignKey(
-        "ResumePdfTemplate",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="resumes",
-        help_text="PDF layout; empty uses the first active template from admin.",
-    )
     # AI-guided studio: full HTML from OpenAI + last wizard payload for restore / audit
     generated_html = models.TextField(null=True, blank=True)
     wizard_draft_json = models.TextField(null=True, blank=True)

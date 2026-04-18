@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% if resume %}{{ resume.title|e }} — templates{% elif studio_template_row %}{{ studio_template_row.name|e }} — admin preview{% else %}Resume studio{% endif %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <nav class="filter-nav" id="filterNav" aria-label="Template categories"></nav>
+
+      <section class="panel panel--templates">
+        <h2 class="panel__title">All templates</h2>
+        <div class="template-grid-wrap">
+          <div class="template-grid" id="templateGrid"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">Color scheme</h2>
+        <div class="color-row" id="colorSchemes" aria-label="Accent colors"></div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">Font</h2>
+        <label class="field">
+          <span class="field__label">Body &amp; headings</span>
+          <select id="fontFamily" class="select"></select>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel__title">Text alignment</h2>
+        <div class="align-row" id="textAlignOptions" aria-label="Resume text alignment"></div>
+      </section>
+
+      <section class="panel panel--editor">
+        <h2 class="panel__title">Edit resume</h2>
+        <p class="panel__hint">Fields start from your saved Top Teen resume. Changes here are for preview and PDF export in this tool only (not written back to the database).</p>
+        <div id="editorMount" class="editor"></div>
+      </section>
+    </aside>
+
+    <div class="app-main">
+    <main class="preview-wrap">
+      <div class="preview-toolbar">
+        <span class="preview-toolbar__hint">Live preview — your saved resume data and layout choice</span>
+      </div>
+      <div class="preview-scroll">
+        <article class="resume" id="resume" data-template="classic-sidebar">
+          <div id="resumeMount" class="resume__mount"></div>
+        </article>
+      </div>
+    </main>
+
+    <aside class="actions">
+      <button type="button" class="btn btn--pdf" id="btnPdf" title="Download PDF" aria-label="Download PDF">
+        <svg class="btn__icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 9.5v.75h2.25V13h-2.25V15h-1.5v-2H8v-1.5h2.25V11H8V9.5h3.5zm7.5 9H8V4h12v15.5zM14 9.5V11h2.5v1.5H14V15h-1.5v-2.5H10V11h2.5V9.5H14z"/>
+        </svg>
+        <span class="btn__label">PDF</span>
+      </button>
+      <button type="button" class="btn btn--icon" id="btnPrint" title="Print">Print</button>
+      <button type="button" class="btn btn--primary" id="btnFinish">Finish</button>
+      <div class="score" id="scoreWidget" title="Completeness score">
+        <svg viewBox="0 0 36 36" class="score__ring" aria-hidden="true">
+          <path class="score__bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          <path class="score__fg" id="scoreArc" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+        <span class="score__num" id="scoreNum">0</span>
+        <span class="score__label">Resume score</span>
+      </div>
+    </aside>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span class="text-muted" style="font-size:12px">
+      {% if resume %}Resume #{{ resume.pk }}{% elif studio_template_row %}Admin preview · {{ studio_template_row.template_key|e }}{% endif %}
+    </span>
+  </footer>
+
+  <script type="application/json" id="tt-studio-template-catalog">{{ studio_templates_catalog_json }}</script>
+  <script>
+  window.__TT_RESUME_INITIAL = {{ resume_initial_json }};
+  window.__TT_STORAGE_KEY = {{ storage_key|tojson }};
+  window.__TT_EMBED_FINISH = {{ finish_url|tojson }};
+  window.__TT_EMBED_PDF = {{ pdf_url|tojson }};
+  {% if studio_force_template %}window.__TT_STUDIO_FORCE_TEMPLATE = {{ studio_force_template|tojson }};{% endif %}
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="{{ static('resume-builder-prototype/app.js') }}"></script>
+</body>
+</html>

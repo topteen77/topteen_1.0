@@ -8,11 +8,9 @@ from .models import (
     UserResume,
     UserFolder,
     UserSearchHistory,
-    ResumePdfTemplate,
+    ResumeStudioHtmlTemplate,
 )
 from django.urls import reverse, path
-
-from users import admin_ai_template
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html_join
@@ -209,61 +207,54 @@ class PsychometricTestPaymentInline(admin.TabularInline):
     is_success_display.short_description = 'Success'
 
 
-@admin.register(ResumePdfTemplate)
-class ResumePdfTemplateAdmin(admin.ModelAdmin):
-    change_list_template = "admin/users/resumepdftemplate/change_list.html"
+@admin.register(ResumeStudioHtmlTemplate)
+class ResumeStudioHtmlTemplateAdmin(admin.ModelAdmin):
+    """HTML resume studio gallery (student /templates/embed iframe); keys map to app.js RENDERERS."""
+
     list_display = (
         "name",
-        "template_preview_link",
+        "template_key",
+        "studio_html_preview_link",
         "category",
-        "layout_variant",
-        "accent_hex",
-        "library_slug",
+        "mock_class",
         "is_active",
-        "created_by",
         "sort_order",
-        "classic_template_path",
     )
-    list_filter = ("is_active",)
-    search_fields = ("name", "description")
+    list_filter = ("is_active", "category")
+    search_fields = ("name", "template_key", "description")
     ordering = ("sort_order", "id")
-    readonly_fields = ("template_preview_link_detail",)
+    readonly_fields = ("studio_html_preview_link_detail",)
+    actions = ("activate_selected_studio_templates", "deactivate_selected_studio_templates")
 
-    def get_urls(self):
-        info = self.model._meta.app_label, self.model._meta.model_name
-        extra = [
-            path(
-                "ai-generator/api/",
-                self.admin_site.admin_view(admin_ai_template.ai_resume_template_generator_api),
-                name="%s_%s_ai_generator_api" % info,
-            ),
-            path(
-                "ai-generator/",
-                self.admin_site.admin_view(admin_ai_template.ai_resume_template_generator),
-                name="%s_%s_ai_generator" % info,
-            ),
-        ]
-        return extra + super().get_urls()
+    @action(description="Activate selected templates", permissions=["change"])
+    def activate_selected_studio_templates(self, request, queryset):
+        n = queryset.update(is_active=True)
+        self.message_user(request, "Activated %d template(s)." % n, messages.SUCCESS)
+
+    @action(description="Deactivate selected templates", permissions=["change"])
+    def deactivate_selected_studio_templates(self, request, queryset):
+        n = queryset.update(is_active=False)
+        self.message_user(request, "Deactivated %d template(s)." % n, messages.SUCCESS)
 
     @admin.display(description="Preview")
-    def template_preview_link(self, obj):
+    def studio_html_preview_link(self, obj):
         if not obj.pk:
             return "—"
-        url = reverse("users:admin_resume_pdf_template_preview", kwargs={"template_pk": obj.pk})
+        url = reverse("users:admin_resume_studio_html_template_preview", kwargs={"template_pk": obj.pk})
         return format_html(
             '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Preview</a>',
             url,
         )
 
-    @admin.display(description="HTML preview (sample resume)")
-    def template_preview_link_detail(self, obj):
+    @admin.display(description="HTML studio preview")
+    def studio_html_preview_link_detail(self, obj):
         if not obj.pk:
             return "Save this row first, then use Preview."
-        url = reverse("users:admin_resume_pdf_template_preview", kwargs={"template_pk": obj.pk})
+        url = reverse("users:admin_resume_studio_html_template_preview", kwargs={"template_pk": obj.pk})
         return format_html(
-            '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Open preview in new tab</a>'
-            '<p class="help" style="margin-top:8px">Uses your resume with generated HTML if available; otherwise any resume with generated HTML. '
-            "Classic resumes use the classic PDF template path.</p>",
+            '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Open studio preview</a>'
+            '<p class="help" style="margin-top:8px">Opens the same student resume studio with sample data and this layout. '
+            "Changing <strong>template key</strong> only works for keys implemented in the prototype JavaScript.</p>",
             url,
         )
 

@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Resume</title>
+  {% if ai_google_font_url %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="{{ ai_google_font_url }}" rel="stylesheet">
+  {% endif %}
   <style>
     :root {
       --accent: {{ pdf_accent_color|default('#19718c') }};
@@ -27,6 +32,12 @@
       border-top: 4px solid var(--accent);
     }
     {{ ai_dynamic_css|safe }}
+    {% if ai_google_font_stack %}
+    .ai-shell .gen-wrap,
+    .ai-shell .gen-wrap * {
+      font-family: {{ ai_google_font_stack|safe }} !important;
+    }
+    {% endif %}
   </style>
 </head>
 <body>
