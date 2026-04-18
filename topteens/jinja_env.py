@@ -243,6 +243,13 @@ def tojson_filter(value):
     return mark_safe(json.dumps(value))
 
 
+def tojson_for_script(value):
+    """JSON safe inside <script> tags (avoids premature </script> / markup issues)."""
+    s = json.dumps(value, ensure_ascii=False, default=str)
+    s = s.translate(str.maketrans({"<": "\\u003c", ">": "\\u003e"}))
+    return mark_safe(s)
+
+
 def tojson_pretty(value, indent=2):
     """Convert Python object to well-formatted JSON (for JSON-LD schema in HTML)."""
     return mark_safe(json.dumps(value, indent=indent, ensure_ascii=False))
@@ -311,6 +318,7 @@ def environment(**options):
     # Register escapejs first (required by course_learning.html and other Jinja templates)
     env.filters['escapejs'] = _escapejs
     env.filters['tojson'] = tojson_filter
+    env.filters['tojson_for_script'] = tojson_for_script
     env.filters['tojson_pretty'] = tojson_pretty
     env.filters['urlencode'] = urlencode_filter
     env.filters['blog_category_display'] = blog_category_display

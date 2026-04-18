@@ -1,0 +1,236 @@
+{# AdmitCV-inspired hub: Top Teen colours (purple / cyan / light cards) #}
+<style>
+  .tt-app-hub {
+    --tt-hub-line: #e8ecf4;
+    --tt-hub-muted: #64708b;
+    --tt-hub-card: #ffffff;
+    --tt-hub-purple: #5c54d4;
+    --tt-hub-purple-soft: rgba(92, 84, 212, 0.12);
+    --tt-hub-cyan: #3cbae1;
+  }
+  .tt-app-hub .tt-hub-kpi {
+    background: var(--tt-hub-card);
+    border: 1px solid var(--tt-hub-line);
+    border-radius: 12px;
+    padding: 16px 14px;
+    min-height: 96px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: 0 2px 14px rgba(42, 47, 63, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    height: 100%;
+  }
+  .tt-app-hub .tt-hub-kpi:hover {
+    transform: translateY(-2px);
+    border-color: rgba(63, 55, 201, 0.35);
+    box-shadow: 0 10px 28px rgba(42, 47, 63, 0.08);
+  }
+  .tt-app-hub .tt-hub-ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 22px;
+  }
+  .tt-app-hub .tt-hub-ico.purple { background: var(--tt-hub-purple-soft); color: var(--tt-hub-purple); }
+  .tt-app-hub .tt-hub-ico.cyan { background: rgba(60, 186, 225, 0.14); color: #1a8bb8; }
+  .tt-app-hub .tt-hub-ico.gold { background: rgba(248, 189, 81, 0.25); color: #b87a12; }
+  .tt-app-hub .tt-hub-ico.green { background: rgba(76, 200, 117, 0.15); color: #1e8f4a; }
+  .tt-app-hub .tt-hub-val {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #2a2f3f;
+    line-height: 1.1;
+  }
+  .tt-app-hub .tt-hub-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tt-hub-muted);
+    margin-bottom: 4px;
+  }
+  .tt-app-hub .tt-hub-panel {
+    background: var(--tt-hub-card);
+    border: 1px solid var(--tt-hub-line);
+    border-radius: 12px;
+    padding: 18px 16px;
+    height: 100%;
+    min-height: 140px;
+    box-shadow: 0 2px 14px rgba(42, 47, 63, 0.05);
+  }
+  .tt-app-hub .tt-hub-panel h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tt-hub-muted);
+    margin-bottom: 12px;
+  }
+  .tt-app-hub .tt-hub-panel p {
+    font-size: 13px;
+    color: #4b5563;
+    margin-bottom: 0;
+    line-height: 1.55;
+  }
+  .tt-app-hub .tt-hub-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .tt-app-hub .tt-hub-step {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .tt-app-hub .tt-hub-step:last-child { margin-bottom: 0; }
+  .tt-app-hub a.tt-hub-link { color: var(--tt-hub-purple); font-weight: 600; text-decoration: none; }
+  .tt-app-hub a.tt-hub-link:hover { text-decoration: underline; }
+</style>
+
+<div class="tt-app-hub mb-4 pb-1" id="applications-resume-hub">
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <h2 class="fs-24 fw-semibold mb-1 text-dark">Applications &amp; resume hub</h2>
+      <p class="text-gray fs-13 mb-0" style="max-width: 640px;">
+        See your college shortlist, resume progress, and profile strength in one place — inspired by an admissions-style dashboard, styled for Top Teen.
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ url('users:resumebuilder') }}" class="btn btn-sm custom-button purple-button px-3">
+        <i class='bx bx-file-blank me-1'></i> My resumes
+      </a>
+      <a href="{{ url('users:resumebuilder') }}" class="btn btn-sm btn-outline-primary border-0 px-3" style="background: rgba(92,84,212,0.1); color: #5c54d4;">
+        Manage resumes
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:resumebuilder') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi">
+          <div class="tt-hub-ico purple"><i class='bx bx-file-blank'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Resume sections</div>
+            <div class="tt-hub-val">{{ hub_resume_sections|default(0) }}</div>
+            <p class="fs-11 text-gray mb-0 mt-1">About, skills, activities &amp; more</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:mycolleges') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi">
+          <div class="tt-hub-ico cyan"><i class='bx bxs-graduation'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Colleges saved</div>
+            <div class="tt-hub-val">{{ hub_shortlist_count|default(0) }}</div>
+            <p class="fs-11 text-gray mb-0 mt-1">Shortlist &amp; explore</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:profiledetails') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi">
+          <div class="tt-hub-ico gold"><i class='bx bx-trophy'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Profile strength</div>
+            <div class="tt-hub-val">{{ hub_profile_completion|default(0) }}%</div>
+            <p class="fs-11 text-gray mb-0 mt-1">Complete your profile</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:scrapbook') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi">
+          <div class="tt-hub-ico green"><i class='bx bx-book-content'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Scrapbook notes</div>
+            <div class="tt-hub-val">{{ hub_notes_count|default(0) }}</div>
+            <p class="fs-11 text-gray mb-0 mt-1">Ideas &amp; reminders</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Resume progress</h3>
+        {% if hub_resume_exists and hub_resume_sections > 0 %}
+        <p>You have <strong>{{ hub_resume_sections }}</strong> filled section{{ 's' if hub_resume_sections != 1 else '' }} on your resume. Open the editor to refine wording or export to PDF.</p>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:resumebuilder') }}">Open My resumes →</a>
+        {% else %}
+        <p>No resume sections yet. Open My resumes to create your profile resume, then add sections in the editor.</p>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:resumebuilder') }}">Go to My resumes →</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Recent focus</h3>
+        <p class="mb-2">Keep momentum on applications and career prep.</p>
+        <ul class="list-unstyled mb-0 fs-13 text-gray">
+          <li class="mb-1">• <a class="tt-hub-link" href="{{ url('users:resumebuilder') }}">My resumes</a></li>
+          <li class="mb-1">• <a class="tt-hub-link" href="{{ url('users:mycolleges') }}">My colleges</a></li>
+          <li>• <a class="tt-hub-link" href="{{ url('colleges:college') }}">Browse colleges</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Upcoming dates</h3>
+        {% if hub_upcoming_events %}
+        <ul class="list-unstyled mb-0">
+          {% for ev in hub_upcoming_events %}
+          <li class="d-flex justify-content-between gap-2 fs-13 mb-2 pb-2 border-bottom border-light">
+            <span class="text-dark fw-medium">{{ ev.title }}</span>
+            <span class="text-gray text-nowrap">{{ ev.start.strftime('%d %b') }}{% if ev.end and ev.end != ev.start %} – {{ ev.end.strftime('%d %b') }}{% endif %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:usercalender') }}">Open calendar →</a>
+        {% else %}
+        <p>No upcoming events in your calendar. Add deadlines for tests, applications, or school milestones.</p>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:usercalender') }}">Add to calendar →</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Next steps</h3>
+        <div class="tt-hub-step">
+          <span class="tt-hub-dot" style="background:#f8bd51;"></span>
+          <div>
+            <p class="fw-semibold text-dark mb-0 fs-13">Build your resume</p>
+            <p class="fs-12 text-gray mb-0">Open <a class="tt-hub-link" href="{{ url('users:resumebuilder') }}">My resumes</a> to add resumes, use <strong>Resume studio</strong> (guided), then <strong>PDF download</strong> to export.</p>
+          </div>
+        </div>
+        <div class="tt-hub-step">
+          <span class="tt-hub-dot" style="background:#3cbae1;"></span>
+          <div>
+            <p class="fw-semibold text-dark mb-0 fs-13">Track colleges</p>
+            <p class="fs-12 text-gray mb-0">Save schools from college pages — see them under <a class="tt-hub-link" href="{{ url('users:mycolleges') }}">My colleges</a>.</p>
+          </div>
+        </div>
+        <div class="tt-hub-step">
+          <span class="tt-hub-dot" style="background:#4cc875;"></span>
+          <div>
+            <p class="fw-semibold text-dark mb-0 fs-13">Capture ideas</p>
+            <p class="fs-12 text-gray mb-0">Jot achievements and links in <a class="tt-hub-link" href="{{ url('users:scrapbook') }}">Scrapbook</a> for essays and interviews.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

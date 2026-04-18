@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume</title>
+  <style>
+    :root {
+      --accent: {{ pdf_accent_color|default('#276749') }};
+      --paper: #fdfcfa;
+      --ink: #1c1917;
+      --sub: #57534e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 11pt;
+      line-height: 1.52;
+      color: var(--ink);
+      background: #e7e5e4;
+    }
+    .shell {
+      min-height: 100vh;
+      padding: 22px 16px 36px;
+    }
+    .gen-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--paper);
+      padding: 32px 36px 40px 28px;
+      border-left: 6px solid var(--accent);
+      box-shadow: 0 2px 0 rgba(28, 25, 23, 0.06), 0 18px 48px rgba(28, 25, 23, 0.07);
+    }
+    .gen-wrap h1, .gen-wrap h2, .gen-wrap h3 {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-weight: 650;
+      margin: 1em 0 0.4em;
+    }
+    .gen-wrap h1 {
+      font-size: 1.55rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      border-bottom: 3px double var(--accent);
+      padding-bottom: 0.35em;
+    }
+    .gen-wrap h2 {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-top: 1.35em;
+    }
+    .gen-wrap h3 { font-size: 1rem; color: var(--ink); font-weight: 600; }
+    .gen-wrap p { margin: 0.5em 0; font-family: Georgia, serif; color: var(--sub); }
+    .gen-wrap ul, .gen-wrap ol { margin: 0.45em 0 0.65em 1.2em; color: var(--sub); }
+    .gen-wrap li { margin: 0.25em 0; }
+    .gen-wrap strong { color: var(--ink); }
+    .gen-wrap a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .gen-wrap blockquote {
+      margin: 0.8em 0;
+      padding-left: 14px;
+      border-left: 3px solid rgba(39, 103, 73, 0.35);
+      color: var(--sub);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell rlayout--{{ pdf_layout_variant|default('v01') }}">
+    <div class="gen-wrap">
+      {{ generated_resume_html|safe }}
+    </div>
+  </div>
+</body>
+</html>

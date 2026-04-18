@@ -253,7 +253,7 @@
                         </div>
                         <div class="person_summary_information">
                             <hr>
-                            <p>{{request.user.user_resume.about}}</p>
+                            <p>{{ user_resume.about|default('') }}</p>
                         </div>
 
                     </div>
@@ -351,7 +351,7 @@
                 </div>
                 <div class="right_container">
                     <div class="person_img">
-                        {% if request.user.image %}
+                        {% if request.user.image and image_url %}
                         <img alt="" src="{{image_url}}" style="height: 236px;width: 184px;background-size: contain;">
                         {% else %}
                         <img alt="" src="https://www.topteen.in/media/upload/users/22/user_22.jpg" style="height: 236px;width: 184px;background-size: contain;">

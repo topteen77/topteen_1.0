@@ -3,58 +3,43 @@
 {% block title_content %}User Dashboard | Top Teen{% endblock %}
 {% block description_content %}Access your personalized dashboard with statistics, quick links, and recent activity.{%
 endblock %}
-{% block bodyclass %}logged-in user-dashboard{% endblock %}
+{% block bodyclass %}logged-in user-dashboard user-dashboard-fullscreen student-dashboard-shell{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
 {% block additionalhead %}
 {{ super() }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
+{% include 'template20/user/includes/student_shell_styles.html' %}
 <style>
-  :root {
-    --dash-primary: #3f37c9;
-    --dash-primary-dark: #2e289d;
-    --dash-bg: #f6f7fb;
-    --dash-border: #e6e8f0;
-    --dash-muted: #6c7280;
-  }
-
   .user-dashboard {
-    padding-top: 51px;
-    background: #fff;
-  }
-
-  /* Mobile: minimal top space under fixed header */
-  @media (max-width: 991px) {
-    .user-dashboard {
-      padding-top: 48px;
-    }
-
-    .user-dashboard .container {
-      padding-left: 12px;
-      padding-right: 12px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .user-dashboard {
-      padding-top: 30px;
-    }
-
-    .shadow-sm.rounded-circle.border-0.d-inline-flex.align-items-center.justify-content-center {
-      position: absolute;
-      z-index: 11;
-      top: 94px;
-    }
+    padding-top: 0;
+    background: var(--dash-bg);
+    color: var(--dash-heading);
   }
 
   .stat-card {
-    background: #fff;
-    border: 1px solid var(--dash-border);
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border-soft);
     border-radius: 12px;
     padding: 14px 16px;
     display: flex;
     gap: 12px;
     align-items: center;
     min-height: 88px;
-    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    box-shadow: var(--dash-shadow);
+  }
+
+  .user-dashboard .stat-value,
+  .user-dashboard .stat-card .fs-18.fw-semibold {
+    color: var(--dash-heading);
   }
 
   .stat-card>div:first-child {
@@ -74,24 +59,24 @@ endblock %}
   }
 
   .stat-card-trophies>div:first-child {
-    background: #F8BD51;
+    background: #fff4e5;
   }
 
   .stat-card-points>div:first-child {
-    background: #3F37C9;
+    background: #eae8fc;
   }
 
   .stat-card-streak>div:first-child {
-    background: #EA48A9;
+    background: #fde8f4;
   }
 
   .stat-card-level>div:first-child {
-    background: #4CC875;
+    background: #e4f7ec;
   }
 
   .quick-link-card {
-    background: #fff;
-    border: 1px solid var(--dash-border);
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border-soft);
     border-radius: 12px;
     padding: 14px 16px;
     display: flex;
@@ -100,14 +85,14 @@ endblock %}
     cursor: pointer;
     transition: all 0.25s ease;
     min-height: 108px;
-    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    box-shadow: var(--dash-shadow);
   }
 
   .quick-link-card:hover {
     transform: translateY(-2px);
-    border-color: #6860F6;
-    box-shadow: 0 8px 20px rgba(32, 36, 53, 0.11);
-    background: linear-gradient(31.85deg, #EFEEFF 15.96%, #FFF9EF 84.04%);
+    border-color: rgba(92, 84, 212, 0.35);
+    box-shadow: var(--dash-shadow-hover);
+    background: linear-gradient(145deg, #f7f6ff 0%, #fffdf8 100%);
   }
 
   .quick-link-card:hover i.bx {
@@ -120,7 +105,7 @@ endblock %}
     width: 42px;
     height: 42px;
     border-radius: 10px;
-    background: var(--dash-bg);
+    background: var(--dash-surface-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -139,11 +124,11 @@ endblock %}
   }
 
   .quick-link-card>i.bx {
-    color: #9aa0b2 !important;
+    color: #94a0b8 !important;
     font-size: 20px !important;
     width: 28px;
     height: 28px;
-    border: 1px solid #d8dceb;
+    border: 1px solid var(--dash-border-soft);
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
@@ -246,7 +231,8 @@ endblock %}
 
   .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--dash-shadow-hover);
+    border-color: rgba(92, 84, 212, 0.2);
   }
 
   .streak-flame {
@@ -298,15 +284,74 @@ endblock %}
   .level-progress-wrap {
     height: 4px;
     border-radius: 2px;
-    background: rgba(76, 201, 240, 0.2);
+    background: rgba(91, 201, 234, 0.22);
     overflow: hidden;
   }
 
   .level-progress-bar {
     height: 100%;
     border-radius: 2px;
-    background: #4cc9f0;
+    background: #5bc9ea;
     transition: width 0.5s ease;
+  }
+
+  body.logged-in.user-dashboard h2.fs-24.fw-semibold {
+    color: var(--dash-heading);
+    letter-spacing: -0.02em;
+  }
+
+  body.logged-in.user-dashboard .profile-sidebar {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border-soft);
+    box-shadow: var(--dash-shadow);
+  }
+
+  body.logged-in.user-dashboard .profile-sidebar .bg-light {
+    background-color: var(--dash-surface-soft) !important;
+  }
+
+  body.logged-in.user-dashboard .profile-sidebar .hover-bg-light:hover {
+    background: #eef1fb !important;
+  }
+
+  body.logged-in.user-dashboard .profile-complete-card {
+    background: linear-gradient(135deg, #f5f3ff 0%, #fff9f0 100%);
+    border: 1px solid var(--dash-border-soft);
+  }
+
+  .user-dashboard .dashboard-light-panel {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border-soft) !important;
+    border-radius: 12px;
+    box-shadow: var(--dash-shadow);
+  }
+
+  .user-dashboard .dashboard-tile-soft {
+    background: var(--dash-surface-soft);
+    border: 1px solid var(--dash-border-soft);
+  }
+
+  .user-dashboard .dashboard-enrolled-card {
+    background: var(--dash-surface) !important;
+    border-color: var(--dash-border-soft) !important;
+    box-shadow: var(--dash-shadow) !important;
+  }
+
+  .user-dashboard .dashboard-enrolled-card:hover {
+    box-shadow: var(--dash-shadow-hover) !important;
+    border-color: rgba(92, 84, 212, 0.2) !important;
+  }
+
+  .quick-link-card .d-flex.align-items-start.gap-3>div:first-child,
+  .quick-link-card .d-flex.align-items-start.flex-grow-1>div:first-child {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--dash-surface-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .dashboard-quicklinks-icon {
@@ -322,6 +367,8 @@ endblock %}
 {% endblock %}
 
 {% block content %}
+{% set shell_user = profile_user or request.user %}
+{% include 'template20/user/includes/student_shell_topbar.html' %}
 
 <!-- Refer friends PopUp -->
 <div class="modal fade referFriendsPopup" tabindex="-1" aria-hidden="true">
@@ -345,8 +392,8 @@ endblock %}
 <!-- End of Refer Friends Popup -->
 
 <!-- Main Content -->
-<section class="user-dashboard pb-5">
-  <div class="container">
+<section class="user-dashboard pb-5 std-shell-main">
+  <div class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5">
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3 mb-0" role="alert">
       {{ message }}
@@ -354,17 +401,7 @@ endblock %}
     </div>
     {% endfor %}
 
-    <!-- Mobile profile drawer trigger -->
-    <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
-      <button class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
-        style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
-        type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileProfileDrawer"
-        aria-controls="mobileProfileDrawer" aria-label="Open profile">
-        <i class='bx bxs-user-detail fs-22'></i>
-      </button>
-    </div>
-
-    <div class="row g-4 pt-4">
+    <div class="row g-4 pt-3 pt-lg-4 student-dash-shell" id="studentDashboardShell">
       <!-- Left Part Mobile -->
       <div class="col-12 d-none">
         <!-- User -->
@@ -441,13 +478,11 @@ endblock %}
       <!-- End of left Part Mobile -->
 
       <!-- Left part Desktop -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
+      {% include 'template20/user/includes/student_shell_sidebar_column.html' %}
       <!-- End of Left part Desktop -->
 
       <!-- Right Part -->
-      <div class="col-lg-9">
+      <div class="col-12 col-lg-9 student-dash-main-col">
         <!-- Statistics (dynamic: trophies, points, streak, level) -->
         <div class="mb-4" id="dashboard-stats-section">
           <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
@@ -514,14 +549,16 @@ endblock %}
         </div>
         <!-- End of Statistics -->
 
+        {% include 'template20/user/includes/dashboard_application_resume_hub.html' %}
+
         {% if dashboard_enrolled_items %}
         <div class="mb-4" id="dashboard-enrolled-section">
           <h2 class="fs-24 fw-semibold mb-3">My courses &amp; tests</h2>
           <div class="row g-3">
             {% for item in dashboard_enrolled_items %}
             <div class="col-12 col-sm-6">
-              <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 border rounded-4 p-3 h-100"
-                style="background:#fff;border-color:#e7e9f2;box-shadow:0 8px 20px rgba(32,36,53,0.08);transition:all .2s ease;overflow:hidden;">
+              <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 border rounded-4 p-3 h-100 dashboard-enrolled-card"
+                style="transition:all .2s ease;overflow:hidden;">
                 <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1" style="min-width:0;">
                   <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
                     style="width:48px;height:48px;background:{% if item.kind == 'psychometric' %}#eef6ff{% else %}#f0fff4{% endif %};">
@@ -719,7 +756,7 @@ endblock %}
                         class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
                         <i class='bx bx-note fs-12 me-1'></i> <span class="fs-7">My Notepad</span>
                       </a>
-                      <a href="{{ url('users:resumebuilderwelcome') }}"
+                      <a href="{{ url('users:resumebuilder') }}"
                         class="btn btn-sm bg-light text-dark rounded-pill px-2 py-1">
                         <i class='bx bx-file fs-12 me-1'></i> <span class="fs-7">Resume</span>
                       </a>
@@ -854,7 +891,7 @@ endblock %}
         <!-- Suggested by Parent -->
         <div class="mb-4">
           <h2 class="fs-24 fw-semibold mb-3">Suggested by Parent</h2>
-          <div class="border rounded p-3">
+          <div class="border rounded p-3 dashboard-light-panel">
             <p class="text-gray fs-12 mb-3">
               Based on your linked parent account bookmarks/shortlists.
             </p>
@@ -862,7 +899,7 @@ endblock %}
             <div class="row g-3">
               {% if parent_suggested_careers %}
               <div class="col-12 col-md-6">
-                <div class="p-3 rounded bg-light">
+                <div class="p-3 rounded dashboard-tile-soft">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 fw-semibold">Careers</h6>
                     <a class="fs-12 text-purple" href="{{ url('users:careerinterest') }}">View all</a>
@@ -880,7 +917,7 @@ endblock %}
 
               {% if parent_suggested_videos %}
               <div class="col-12 col-md-6">
-                <div class="p-3 rounded bg-light">
+                <div class="p-3 rounded dashboard-tile-soft">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 fw-semibold">Videos</h6>
                     <a class="fs-12 text-purple" href="{{ url('users:bookmarkvideo') }}">View all</a>
@@ -899,7 +936,7 @@ endblock %}
 
               {% if parent_suggested_colleges %}
               <div class="col-12 col-md-6">
-                <div class="p-3 rounded bg-light">
+                <div class="p-3 rounded dashboard-tile-soft">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 fw-semibold">Colleges</h6>
                     <a class="fs-12 text-purple" href="{{ url('users:bookmarkcollege') }}">View all</a>
@@ -918,7 +955,7 @@ endblock %}
 
               {% if parent_suggested_blogs %}
               <div class="col-12 col-md-6">
-                <div class="p-3 rounded bg-light">
+                <div class="p-3 rounded dashboard-tile-soft">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0 fw-semibold">Blogs</h6>
                     <a class="fs-12 text-purple" href="{{ url('users:bookmarkblog') }}">View all</a>
@@ -944,7 +981,7 @@ endblock %}
         {% if notes %}
         <div class="mb-4">
           <h2 class="fs-24 fw-semibold mb-3">Recent Notes</h2>
-          <div class="border rounded p-3">
+          <div class="border rounded p-3 dashboard-light-panel">
             {% for note in notes %}
             <div class="mb-3 pb-3 border-bottom">
               <h5 class="fs-16 fw-semibold mb-1">{{ note.title|default('Untitled') }}</h5>
@@ -963,6 +1000,8 @@ endblock %}
   </div>
 </section>
 <!-- End of Main Content -->
+
+{% include 'template20/user/includes/student_shell_offcanvas.html' %}
 
 <!-- Mobile Settings Drawer (gear opens this on small screens) -->
 <div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-none"
@@ -1000,6 +1039,7 @@ endblock %}
 
 {% block additionaljs %}
 {{ super() }}
+<script src="{{ static('js/student-shell.js') }}?v=1"></script>
 <script>
   (function () {
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1448,18 +1488,6 @@ endblock %}
     }
   });
 </script>
-
-<!-- Mobile profile drawer (reuses desktop sidebar content) -->
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer"
-  aria-labelledby="mobileProfileDrawerLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    {% include 'template20/user/includes/profile_sidebar.html' %}
-  </div>
-</div>
 
 {% if request.session.get('force_mobile_popup') %}
 <script>

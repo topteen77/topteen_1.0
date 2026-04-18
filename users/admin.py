@@ -1,7 +1,18 @@
 from django.contrib import admin
 from django.contrib.admin.decorators import action
-from .models import User,UserProfile,UserCalender, UserNote, UserResume, UserFolder, UserSearchHistory
+from .models import (
+    User,
+    UserProfile,
+    UserCalender,
+    UserNote,
+    UserResume,
+    UserFolder,
+    UserSearchHistory,
+    ResumePdfTemplate,
+)
 from django.urls import reverse, path
+
+from users import admin_ai_template
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html_join
@@ -196,6 +207,65 @@ class PsychometricTestPaymentInline(admin.TabularInline):
         return format_html('<span style="color: red;">✗</span>')
 
     is_success_display.short_description = 'Success'
+
+
+@admin.register(ResumePdfTemplate)
+class ResumePdfTemplateAdmin(admin.ModelAdmin):
+    change_list_template = "admin/users/resumepdftemplate/change_list.html"
+    list_display = (
+        "name",
+        "template_preview_link",
+        "category",
+        "layout_variant",
+        "accent_hex",
+        "library_slug",
+        "is_active",
+        "created_by",
+        "sort_order",
+        "classic_template_path",
+    )
+    list_filter = ("is_active",)
+    search_fields = ("name", "description")
+    ordering = ("sort_order", "id")
+    readonly_fields = ("template_preview_link_detail",)
+
+    def get_urls(self):
+        info = self.model._meta.app_label, self.model._meta.model_name
+        extra = [
+            path(
+                "ai-generator/api/",
+                self.admin_site.admin_view(admin_ai_template.ai_resume_template_generator_api),
+                name="%s_%s_ai_generator_api" % info,
+            ),
+            path(
+                "ai-generator/",
+                self.admin_site.admin_view(admin_ai_template.ai_resume_template_generator),
+                name="%s_%s_ai_generator" % info,
+            ),
+        ]
+        return extra + super().get_urls()
+
+    @admin.display(description="Preview")
+    def template_preview_link(self, obj):
+        if not obj.pk:
+            return "—"
+        url = reverse("users:admin_resume_pdf_template_preview", kwargs={"template_pk": obj.pk})
+        return format_html(
+            '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Preview</a>',
+            url,
+        )
+
+    @admin.display(description="HTML preview (sample resume)")
+    def template_preview_link_detail(self, obj):
+        if not obj.pk:
+            return "Save this row first, then use Preview."
+        url = reverse("users:admin_resume_pdf_template_preview", kwargs={"template_pk": obj.pk})
+        return format_html(
+            '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Open preview in new tab</a>'
+            '<p class="help" style="margin-top:8px">Uses your resume with generated HTML if available; otherwise any resume with generated HTML. '
+            "Classic resumes use the classic PDF template path.</p>",
+            url,
+        )
 
 
 def _user_admin_inlines():
@@ -538,11 +608,11 @@ class UserAdmin(admin.ModelAdmin):
                 for note in UserNote.objects.complete().filter(user=user):
                     note.delete(hard_delete=True)
                 
-                # Delete UserResume and related
-                if hasattr(user, 'user_resume'):
+                # Delete UserResume rows and related sections
+                for ur in UserResume.objects.complete().filter(user=user):
                     try:
-                        user.user_resume.delete(hard_delete=True)
-                    except:
+                        ur.delete(hard_delete=True)
+                    except Exception:
                         pass
                 
                 # Delete UserFolders (BaseModel - need to hard delete each instance)

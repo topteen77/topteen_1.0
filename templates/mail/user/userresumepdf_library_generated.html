@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume</title>
+  <style>
+    :root {
+      --accent: {{ pdf_accent_color|default('#19718c') }};
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f6f8;
+      color: #1a202c;
+    }
+    .rl {
+      min-height: 100vh;
+      padding: 18px 22px 28px;
+      border-top: 5px solid var(--accent);
+    }
+    .rlayout--v02 .gen-wrap { border-left: 5px solid var(--accent); border-top: none; padding-left: 16px; }
+    .rlayout--v03 .gen-wrap { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+    .rlayout--v04 .gen-wrap { background: #fff; padding: 20px; }
+    .rlayout--v05 .gen-wrap { max-width: 760px; margin: 0 auto; }
+    .rlayout--v06 .gen-wrap { background: linear-gradient(180deg, #fff 0%, #f0f4f8 100%); }
+    .rlayout--v07 .gen-wrap { border: 1px solid #e2e8f0; border-radius: 8px; }
+    .rlayout--v08 .gen-wrap { background: color-mix(in srgb, var(--accent) 6%, #fff); }
+    .rlayout--v09 .gen-wrap { letter-spacing: 0.01em; }
+    .rlayout--v10 .gen-wrap { font-size: 13px; line-height: 1.55; }
+    .rlayout--v11 .gen-wrap { column-count: 1; }
+    .rlayout--v12 .gen-wrap { border-left: 8px solid var(--accent); padding-left: 20px; }
+    .gen-wrap { background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="rl rlayout--{{ pdf_layout_variant|default('v01') }}">
+    <div class="gen-wrap">
+      {{ generated_resume_html|safe }}
+    </div>
+  </div>
+</body>
+</html>

@@ -453,9 +453,126 @@ class UserNote(BaseModel):
     title=models.CharField(max_length=250,null=True,blank=True)
     content=RichTextField(null=True,blank=True)
 
+
+class ResumePdfTemplate(BaseModel):
+    """
+    Admin-configurable Django template paths used when rendering resume PDFs.
+    Classic path: section-based resume (skills, certs, …). Generated path: AI HTML wrapper.
+    """
+
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    classic_template_path = models.CharField(
+        max_length=200,
+        default="mail/user/userresumepdf.html",
+        help_text="Django template path (e.g. mail/user/userresumepdf.html) for PDF when there is no generated HTML.",
+    )
+    generated_template_path = models.CharField(
+        max_length=200,
+        default="mail/user/userresumepdf_generated.html",
+        help_text="Django template path for PDF when the resume has AI-generated HTML.",
+    )
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    # Visual library (Screen 1 / Screen 2): modular PDF layout + accent; unique when set.
+    library_slug = models.SlugField(
+        max_length=64,
+        blank=True,
+        null=True,
+        unique=True,
+        help_text="Stable id for seeded catalog rows, e.g. v03_c2",
+    )
+    category = models.CharField(
+        max_length=32,
+        default="professional",
+        db_index=True,
+        help_text="Filter in template library: professional, modern, creative, simple, executive, all",
+    )
+    layout_variant = models.CharField(
+        max_length=32,
+        default="v01",
+        help_text="CSS layout key passed into PDF/HTML preview (v01–v12).",
+    )
+    accent_hex = models.CharField(
+        max_length=8,
+        default="#19718c",
+        help_text="Primary accent colour (#RRGGBB) for this template.",
+    )
+    ai_dynamic_css = models.TextField(
+        blank=True,
+        help_text="AI-generated scoped CSS; when set, generated resumes use the dynamic AI shell.",
+    )
+    ai_requirements_snapshot = models.TextField(
+        blank=True,
+        help_text="Design brief / requirements used for the last AI shell generation.",
+    )
+    inspiration_image = models.FileField(
+        upload_to="resume_ai_templates/inspire/",
+        blank=True,
+        null=True,
+        help_text="Optional sample image for palette hints (AI template generator).",
+    )
+    created_by = models.ForeignKey(
+        "User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_resume_pdf_templates",
+        help_text="If set, this template is only listed for this user (and staff).",
+    )
+
+    class Meta(BaseModel.Meta):
+        ordering = ("sort_order", "id")
+        verbose_name = "Resume PDF template"
+        verbose_name_plural = "Resume PDF templates"
+
+    def __str__(self):
+        return self.name or "Resume PDF template"
+
+
 class UserResume(BaseModel):
-    user=models.OneToOneField(User,null=True,blank=True,on_delete=models.CASCADE,related_name="user_resume")
-    about= models.TextField(null=True,blank=True)
+    user = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="user_resumes",
+    )
+    title = models.CharField(max_length=120, default="My resume", blank=True)
+    about = models.TextField(null=True, blank=True)
+    pdf_template = models.ForeignKey(
+        "ResumePdfTemplate",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="resumes",
+        help_text="PDF layout; empty uses the first active template from admin.",
+    )
+    # AI-guided studio: full HTML from OpenAI + last wizard payload for restore / audit
+    generated_html = models.TextField(null=True, blank=True)
+    wizard_draft_json = models.TextField(null=True, blank=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("-modified",)
+
+    def __str__(self):
+        return self.title or "Resume"
+
+    def delete(self, hard_delete=False):
+        """Hard-delete related sections first so CASCADE does not soft-delete child rows only."""
+        if hard_delete and self.pk is not None:
+            rid = self.pk
+            # `.complete()` returns a plain QuerySet (no `hard_delete`); use SoftDeletionQuerySet directly.
+            for model in (
+                UserResumeSkill,
+                UserResumeCertificate,
+                UserResumeInternship,
+                UserResumeActivity,
+                UserResumeVolunteerInvolvement,
+            ):
+                SoftDeletionQuerySet(model).filter(resume_id=rid).hard_delete()
+        super().delete(hard_delete=hard_delete)
+
 
 class UserResumeChild(BaseModel):
     resume = models.ForeignKey(UserResume,null=True,blank=True,on_delete=models.CASCADE)

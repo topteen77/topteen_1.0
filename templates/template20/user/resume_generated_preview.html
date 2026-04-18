@@ -1,0 +1,44 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Resume preview | Top Teen{% endblock %}
+{% block description_content %}Preview AI-generated resume HTML.{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .resume-preview-page { padding-top: 72px; padding-bottom: 48px; background: #f7f7fa; min-height: 100vh; }
+  .resume-preview-card {
+    max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(42, 47, 63, 0.08); padding: 24px 28px 32px;
+  }
+  .resume-preview-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .resume-preview-body { border: 1px solid #e8ecf4; border-radius: 10px; padding: 20px 22px; background: #fff; overflow-x: auto; }
+  .resume-preview-body .rv-name { font-family: Georgia, 'Times New Roman', serif; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="resume-preview-page">
+  <div class="container">
+    <div class="resume-preview-card">
+      <div class="resume-preview-toolbar">
+        <div>
+          <h1 class="fs-20 fw-semibold mb-1">Generated resume</h1>
+          <p class="fs-13 text-muted mb-0">{{ resume.title|default('Untitled') }}</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url('users:resumebuilder') }}" class="btn btn-outline-secondary btn-sm">My resumes</a>
+          <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" class="btn custom-button purple-button btn-sm" download>Download PDF</a>
+        </div>
+      </div>
+      <div class="resume-preview-body">
+        {% if resume.generated_html and resume.generated_html.strip() %}
+        {{ resume_html_display|safe }}
+        {% else %}
+        <p class="fs-14 text-muted mb-0">No generated resume is stored yet. Use <strong>Resume studio</strong>, run <strong>Generate</strong>, then open this page again.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

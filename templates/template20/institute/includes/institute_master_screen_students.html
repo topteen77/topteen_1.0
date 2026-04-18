@@ -1,0 +1,117 @@
+{# Screen 2 — students overview (light). #}
+{% set v0 = url('institute:institutedashboard', args=[institute.slug]) %}
+<section id="im-screen-students" class="im-screen im-screen--students" aria-labelledby="im-screen-students-title">
+  <header class="im-screen-head im-screen-head--row">
+    <div>
+      <h2 id="im-screen-students-title" class="im-screen-title">Students</h2>
+      <p class="im-screen-sub mb-0">Enrollment, class and stream breakdown</p>
+    </div>
+    <div class="im-screen-actions">
+      <span class="im-pill im-pill--muted">Live roster data</span>
+      <a class="btn btn-sm im-btn-outline" href="{{ v0 }}#institute-students">Open full roster</a>
+    </div>
+  </header>
+
+  <div class="im-stu-metrics">
+    <div class="im-stu-metric im-stu-metric--pink">
+      <span class="im-stu-metric-val">{{ master_n_students }}</span>
+      <span class="im-stu-metric-lbl">Total enrolled</span>
+    </div>
+    <div class="im-stu-metric im-stu-metric--purple">
+      <span class="im-stu-metric-val">{% if class_counts %}{{ class_counts.values()|sum }}{% else %}0{% endif %}</span>
+      <span class="im-stu-metric-lbl">Seats across classes</span>
+    </div>
+    <div class="im-stu-metric im-stu-metric--green">
+      <span class="im-stu-metric-val">{{ unique_streams|length if unique_streams else 0 }}</span>
+      <span class="im-stu-metric-lbl">Distinct streams</span>
+    </div>
+    <div class="im-stu-metric im-stu-metric--amber">
+      <span class="im-stu-metric-val">{{ active_students if active_students is defined else master_n_students }}</span>
+      <span class="im-stu-metric-lbl">Active accounts</span>
+    </div>
+  </div>
+
+  <div class="im-stu-charts row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="im-dash-chart-card h-100">
+        <h3 class="im-dash-chart-title">Stream distribution</h3>
+        {% if master_stream_keys and master_stream_vals|length %}
+        <ul class="im-legend list-unstyled small mb-0">
+          {% for k in master_stream_keys %}
+          <li class="d-flex justify-content-between gap-2 py-1 border-bottom border-light"><span>{{ k }}</span><strong>{{ master_stream_vals[loop.index0] }}</strong></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted small mb-0">Stream mix will appear once personality assessments populate.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="im-dash-chart-card h-100">
+        <h3 class="im-dash-chart-title">Class enrollment</h3>
+        <div class="im-bar-grid">
+          {% if class_counts %}
+          {% set mx = class_counts.values()|max %}
+          {% for cls, cnt in class_counts.items() %}
+          <div class="im-bar-row">
+            <span class="im-bar-name text-truncate">{{ cls }}</span>
+            <div class="im-bar-track"><div class="im-bar-fill" style="width: {{ ((cnt * 100 // mx) if mx else 0) }}%;"></div></div>
+            <span class="im-bar-num">{{ cnt }}</span>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-muted small mb-0">No class sections yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="im-stu-cards-head d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+    <h3 class="im-h3 mb-0">Student profiles</h3>
+    <span class="badge rounded-pill im-badge-soft">Preview · {{ master_student_rows|length }} shown</span>
+  </div>
+  <div class="im-stu-card-grid">
+    {% for sm in master_student_rows %}
+    {% if sm.student %}
+    {% set u = sm.student %}
+    {% set initials = ((u.name or u.email or 'ST')[0:2])|upper %}
+    {% set joined = sm.created.strftime('%d %b %Y') if sm.created else '—' %}
+    {% set cls = sm.class_and_section.class_and_section if sm.class_and_section else '—' %}
+    {% set stream = sm.class_and_section.stream if sm.class_and_section and sm.class_and_section.stream else '—' %}
+    <article class="im-stu-card">
+      <div class="im-stu-card-top">
+        <div class="im-stu-av">{{ initials }}</div>
+        <div class="im-stu-card-head min-w-0">
+          <div class="im-stu-name text-truncate">{{ u.name or u.email }}</div>
+          <div class="im-stu-sub text-muted small">
+            <span>{{ cls }}</span>
+            <span class="mx-1">·</span>
+            <span>{{ stream }}</span>
+          </div>
+          <div class="im-stu-meta-line">
+            <span class="im-stu-meta-ic" aria-hidden="true"><i class='bx bx-calendar'></i></span>
+            <span class="small text-muted">Joined {{ joined }}</span>
+          </div>
+          <div class="im-stu-meta-line">
+            <span class="im-stu-meta-ic" aria-hidden="true"><i class='bx bx-envelope'></i></span>
+            {% if u.email %}
+            <a class="small text-truncate d-inline-block" href="mailto:{{ u.email|e }}" style="max-width:100%;">{{ u.email }}</a>
+            {% else %}
+            <span class="small text-muted">—</span>
+            {% endif %}
+          </div>
+        </div>
+        <span class="badge im-stu-badge {% if not u.is_active %}im-stu-badge--off{% endif %}">{% if u.is_active %}Active{% else %}Inactive{% endif %}</span>
+      </div>
+      <div class="im-stu-card-foot">
+        <a href="{{ v0 }}#institute-students" class="small">Open classic dashboard</a>
+      </div>
+    </article>
+    {% endif %}
+    {% endfor %}
+    {% if not master_student_rows %}
+    <p class="text-muted col-12">No students enrolled yet.</p>
+    {% endif %}
+  </div>
+</section>

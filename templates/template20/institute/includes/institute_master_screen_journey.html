@@ -1,0 +1,19 @@
+{% set v0 = url('institute:institutedashboard', args=[institute.slug]) %}
+<section id="im-screen-journey" class="im-screen im-screen--compact" aria-labelledby="im-screen-journey-title">
+  <header class="im-screen-head">
+    <h2 id="im-screen-journey-title" class="im-screen-title">Journey tracker</h2>
+    <p class="im-screen-sub">High-level progress snapshot</p>
+  </header>
+  <div class="im-compact-grid">
+    <div class="im-compact-card">
+      <p class="im-compact-val">{{ master_n_students }}</p>
+      <p class="im-compact-lbl">Students on file</p>
+      <a class="im-compact-link" href="{{ v0 }}#institute-journey-tracker">KPI strip on classic →</a>
+    </div>
+    <div class="im-compact-card">
+      <p class="im-compact-val">{{ master_sessions_week_total }}</p>
+      <p class="im-compact-lbl">Counselor sessions logged this week</p>
+      <a class="im-compact-link" href="{{ v0 }}#institute-weekly-sessions">Weekly session report →</a>
+    </div>
+  </div>
+</section>

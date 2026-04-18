@@ -19,7 +19,7 @@
         <tr>
           <td>{{ (institutes_paginations.number - 1) * institutes_paginations.paginator.per_page + loop.index }}</td>
           <td>
-            <a href="{{ url('institute:institutedashboard', args=[ins.slug]) }}">
+            <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
           </td>

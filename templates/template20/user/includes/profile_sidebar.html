@@ -92,7 +92,7 @@
     <div class="d-flex">
       <div class="me-3">
         <img src="{{ static('images_new/icons/award-icon.svg') }}" class="w-100" style="max-width: 45px;"
-          alt="Verified" />
+          alt="" width="45" height="49" />
       </div>
       <div class="flex-grow-1">
         <p class="fs-14 fw-semibold text-dark mb-1">Complete your profile</p>
@@ -135,7 +135,7 @@
     {# Institute #}
     {% set institute_obj = request.user.institute_created.last() %}
     {% if institute_obj and institute_obj.slug %}
-    <a href="{{ url_('institute:institutedashboard', args=[institute_obj.slug]) }}"
+    <a href="{{ url_('institute:institute_masterdashboard', args=[institute_obj.slug]) }}"
       class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
@@ -241,6 +241,52 @@
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
     </a>
+    {% endif %}
+    {% if request.user.user_type == 1 %}
+    <div class="profile-sidebar-hub-nav mb-2">
+      <p class="profile-sidebar-section-label mb-2">Applications</p>
+      <a href="{{ url_('users:userdashboard') }}#applications-resume-hub" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
+              <span aria-hidden="true">🎓</span> Applications
+            </p>
+          </div>
+          <span class="profile-sidebar-nav-badge">{{ hub_application_count|default(0) }}</span>
+        </div>
+      </a>
+      <a href="{{ url_('users:mycolleges') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
+              <span aria-hidden="true">🎯</span> Universities
+            </p>
+          </div>
+          <span class="profile-sidebar-nav-badge">{{ hub_shortlist_count|default(0) }}</span>
+        </div>
+      </a>
+      <p class="profile-sidebar-section-label mb-2 mt-3">My Work</p>
+      <a href="{{ url_('users:resumebuilder') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
+              <span aria-hidden="true">📄</span> My Resumes
+            </p>
+          </div>
+          <span class="profile-sidebar-nav-badge">{{ hub_resume_count|default(0) }}</span>
+        </div>
+      </a>
+      <a href="{{ url_('users:scrapbook') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
+              <span aria-hidden="true">✅</span> Goals &amp; Tasks
+            </p>
+          </div>
+          <span class="profile-sidebar-nav-badge">{{ hub_notes_count|default(0) }}</span>
+        </div>
+      </a>
+    </div>
     {% endif %}
     <a href="{{ url_('users:viewprofile') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">

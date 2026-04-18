@@ -57,5 +57,10 @@ urlpatterns = [
     path("auth/register/", views.InstituteRegisterView.as_view(), name="register"),
     path("auth/login/", views.InstituteLoginView.as_view(), name="login"),
     path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
-    path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),
+    path(
+        "<slug:slug>/dashboard/",
+        views.InstituteMasterDashboardView.as_view(),
+        name="institute_masterdashboard",
+    ),
+    path("<slug:slug>/", views.InstituteDashboardView.as_view(), name="institutedashboard"),
 ]

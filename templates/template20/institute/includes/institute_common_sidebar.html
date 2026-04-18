@@ -1,0 +1,137 @@
+{# Shared institute sidebar: classic (v0) + master. Pass institute_sidebar_mode: 'classic' | 'master' #}
+{% set v0_dash = url('institute:institutedashboard', args=[institute.slug]) %}
+{% set master_dash = url('institute:institute_masterdashboard', args=[institute.slug]) %}
+{% set n_students = total_students_count if total_students_count is number else (total_students_count|length if total_students_count is defined else 0) %}
+{% set n_assess = test_result_count if test_result_count is number else 0 %}
+{% set n_counselors = counselor_list|length if counselor_list is defined else 0 %}
+<aside class="col-12 col-lg-3 col-xl-3 id-sidebar-column">
+  <div class="id-sidebar-overlay" id="idSidebarOverlay"></div>
+  <div class="id-sidebar-sticky">
+    <button type="button" class="id-sidebar-close" id="idSidebarCloseBtn" aria-label="Close sidebar">
+      <i class='bx bx-x'></i>
+    </button>
+    <div class="id-profile-card p-0 box-shadow-none border-bottom-1">
+      <div class="text-center">
+        {% if institute.logo %}
+        <img src="{{ institute.logo.url }}" class="id-profile-avatar mx-auto d-block" alt="Institute Logo">
+        {% else %}
+        <div class="id-profile-avatar mx-auto d-flex align-items-center justify-content-center bg-light">
+          <i class='bx bx-building' style="font-size:2rem;color:#94a3b8;"></i>
+        </div>
+        {% endif %}
+        <h2 class="id-profile-name">{{ institute.name }}</h2>
+      </div>
+      <div class="id-profile-meta">
+        <div class="id-meta-row">
+          <i class='bx bx-calendar'></i>
+          <span>Joined {% if institute.created %}{{ institute.created.strftime("%B %Y") }}{% else %}-{% endif %}</span>
+        </div>
+        {% if institute.contact_info %}
+        <div class="id-meta-row">
+          <i class='bx bx-phone'></i>
+          <span>{{ institute.contact_info }}</span>
+        </div>
+        {% endif %}
+        {% if institute.administrator_contact %}
+        <div class="id-meta-row">
+          <i class='bx bx-shield-quarter'></i>
+          <span>Admin: {{ institute.administrator_contact }}</span>
+        </div>
+        {% endif %}
+        {% if institute.created_by and institute.created_by.email %}
+        <div class="id-meta-row">
+          <i class='bx bx-envelope'></i>
+          <span>{{ institute.created_by.email }}</span>
+        </div>
+        {% endif %}
+        <div class="id-meta-row">
+          <i class='bx bx-map'></i>
+          <span>{% if institute.address %}{{ institute.address }}{% else %}-{% endif %}</span>
+        </div>
+      </div>
+    </div>
+
+    {% if institute_sidebar_mode == 'master' %}
+    <nav class="id-sidebar-nav id-sidebar-nav--master-extra" aria-label="Master dashboard">
+      <p class="id-nav-sec">Reports</p>
+      <a href="#im-screen-dashboard" class="id-nav-item id-master-dash-link active"><i class='bx bx-home-alt'></i> Dashboard</a>
+      <a href="#im-screen-students" class="id-nav-item d-flex align-items-center justify-content-between gap-2"><span class="d-inline-flex align-items-center gap-2"><i class='bx bx-group'></i> Students</span><span class="badge rounded-pill bg-light text-secondary border" style="font-size:0.65rem;">{{ n_students }}</span></a>
+      <a href="#im-screen-assessments" class="id-nav-item d-flex align-items-center justify-content-between gap-2"><span class="d-inline-flex align-items-center gap-2"><i class='bx bx-brain'></i> Assessments</span><span class="badge rounded-pill bg-light text-secondary border" style="font-size:0.65rem;">{{ n_assess }}</span></a>
+      <a href="#im-screen-journey" class="id-nav-item"><i class='bx bx-trip'></i> Journey tracker</a>
+      <a href="{{ v0_dash }}" class="id-nav-item"><i class='bx bx-layout'></i> v0 dashboard</a>
+      <a href="#career-education-heatmap" class="id-nav-item"><i class='bx bx-grid-alt'></i> Heatmap</a>
+
+      <p class="id-nav-sec">Analytics</p>
+      <a href="#career-analytics-header" class="id-nav-item"><i class='bx bx-bar-chart-alt-2'></i> Career analytics</a>
+      <a href="#career-interest-matrix" class="id-nav-item"><i class='bx bx-grid'></i> Interest matrix</a>
+      <a href="{{ v0_dash }}#institute-streams-capacity" class="id-nav-item"><i class='bx bx-layer'></i> Streams &amp; capacity</a>
+      <a href="{{ v0_dash }}#institute-credits" class="id-nav-item"><i class='bx bx-credit-card'></i> Credits</a>
+
+      <p class="id-nav-sec">Guidance</p>
+      <a href="{{ v0_dash }}#institute-counselors" class="id-nav-item d-flex align-items-center justify-content-between gap-2"><span class="d-inline-flex align-items-center gap-2"><i class='bx bx-user-voice'></i> Counselors</span><span class="badge rounded-pill bg-light text-secondary border" style="font-size:0.65rem;">{{ n_counselors }}</span></a>
+      <a href="{{ v0_dash }}#institute-weekly-sessions" class="id-nav-item"><i class='bx bx-line-chart'></i> Session report</a>
+      <a href="{{ v0_dash }}#institute-session-plan" class="id-nav-item"><i class='bx bx-calendar-check'></i> Session plan</a>
+      <a href="{{ url('core:allfaq') }}" class="id-nav-item"><i class='bx bx-bot'></i> KIRA AI assistant</a>
+
+      <p class="id-nav-sec">Documents</p>
+      <a href="{{ url('core:career_planning') }}" class="id-nav-item"><i class='bx bx-book-open'></i> Best practices</a>
+      <button type="button" class="id-nav-item im-nav-print text-start"><i class='bx bx-printer'></i> Print report</button>
+    </nav>
+    {% endif %}
+
+    <nav class="id-sidebar-nav" aria-label="Institute quick links">
+      <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addMultipleStudentsModal">
+        <i class='bx bx-group'></i> Add Multiple Students
+      </button>
+      <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addSingleStudentModal">
+        <i class='bx bx-user-plus'></i> Add Single Student
+      </button>
+      <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
+        <i class='bx bx-user-voice'></i> Add Counselor
+      </button>
+      <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addCsvStudentModal">
+        <i class='bx bx-upload'></i> Matric-CSV Upload
+      </button>
+      <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addPostMatricCsvModal">
+        <i class='bx bx-upload'></i> Post-Matric-CSV Upload
+      </button>
+      <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" class="id-nav-item">
+        <i class='bx bx-history'></i> Uploaded History Log
+      </a>
+      {% if request.user.user_type == 5 %}
+      <a href="{{ url('institute:marketinggroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% elif request.user.user_type == 3 %}
+      <a href="{{ url('institute:institutegroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% elif request.user.user_type == 2 %}
+      {% set institute_obj = request.user.institute_created.last() %}
+      {% if institute_obj and institute_obj.slug %}
+      <a href="{{ url('institute:institute_masterdashboard', args=[institute_obj.slug]) }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% else %}
+      <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% endif %}
+      {% elif request.user.user_type == 4 %}
+      {% set counselor_list_nav = request.user.counselor.all() %}
+      {% if counselor_list_nav|length > 0 %}
+      {% set counselor_obj_nav = counselor_list_nav[0] %}
+      <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj_nav.id]) }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% else %}
+      <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% endif %}
+      {% else %}
+      <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
+      {% endif %}
+
+      {% if institute_sidebar_mode == 'classic' %}
+      <a href="{{ master_dash }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> Master dashboard</a>
+      {% else %}
+      <a href="{{ v0_dash }}" class="id-nav-item"><i class='bx bx-layout'></i> Classic dashboard</a>
+      {% endif %}
+    </nav>
+
+    {% if institute_sidebar_mode == 'master' %}
+    <p class="id-sidebar-footnote text-muted small px-1 mt-2 mb-0">TopTeen institute analytics · <span id="im-sidebar-date"></span></p>
+    {% endif %}
+
+    <a href="{{ url('users:logout') }}" class="id-btn-logout"><i class='bx bx-log-out'></i> Logout</a>
+  </div>
+</aside>

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 from .import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
@@ -42,8 +43,66 @@ urlpatterns = [
    path('my-hobbies/',views.UserHobbies.as_view(),name="myhobbies"),
    path('career-interests/',views.CareerInterests.as_view(),name="careerinterest"),
    path('save-media/',views.SaveMedia.as_view(),name="savemedia"),
-   path('resume-builder/',views.ResumeBuilder.as_view(),name="resumebuilder"),
-   path('resume-builder-welcome/',views.ResumeBuilderWelcome.as_view(),name="resumebuilderwelcome"),
+   path('resume-builder/create/', views.ResumeHubCreateView.as_view(), name="resumebuilder_create"),
+   path('resume-builder/delete/', views.ResumeHubDeleteView.as_view(), name="resumebuilder_delete"),
+   path(
+       'resume-builder/set-pdf-template/',
+       views.ResumeHubSetPdfTemplateView.as_view(),
+       name="resumebuilder_set_pdf_template",
+   ),
+   path('resume-builder/generate/', views.ResumeGuidedGenerateView.as_view(), name="resume_guided_generate"),
+   path(
+       'resume-builder/studio/<int:resume_id>/',
+       views.ResumeStudioSetupView.as_view(),
+       name="resumebuilder_studio",
+   ),
+   path(
+       'resume-builder/studio/<int:resume_id>/templates/',
+       views.ResumeTemplateLibraryView.as_view(),
+       name="resumebuilder_templates",
+   ),
+   path(
+       "resume-builder/studio/<int:resume_id>/templates/ai-design/api/",
+       views.ResumeAiTemplateGenerateApiView.as_view(),
+       name="resume_ai_template_generate_api",
+   ),
+   path(
+       "resume-builder/studio/<int:resume_id>/templates/ai-design/",
+       views.ResumeAiTemplateStudioView.as_view(),
+       name="resume_ai_template_studio",
+   ),
+   path("resume-preview/", views.resume_html_preview, name="resume_html_preview"),
+   path(
+       "admin/resume-pdf-template/<int:template_pk>/preview/",
+       views.admin_resume_pdf_template_html_preview,
+       name="admin_resume_pdf_template_preview",
+   ),
+   path(
+       'resume-builder/preview/<int:resume_id>/',
+       views.ResumeGeneratedPreviewView.as_view(),
+       name="resumebuilder_preview",
+   ),
+   path(
+       'resume-builder/edit/<int:resume_id>/',
+       views.ResumeBuilderEditView.as_view(),
+       name="resumebuilder_edit",
+   ),
+   path(
+       'resume-builder/edit/',
+       RedirectView.as_view(permanent=False, pattern_name='users:resumebuilder'),
+       name="resumebuilder_edit_legacy",
+   ),
+   path('resume-builder/', views.MyResumesHubView.as_view(), name="resumebuilder"),
+   path(
+       'resume-builder/setup/',
+       RedirectView.as_view(permanent=False, pattern_name='users:resumebuilder'),
+       name="resumebuilder_setup",
+   ),
+   path(
+       'resume-builder-welcome/',
+       RedirectView.as_view(permanent=False, pattern_name='users:resumebuilder'),
+       name="resumebuilderwelcome",
+   ),
    path('folders/',views.UserFolders.as_view(),name="userfolders"),
    path('folder/<int:id>/',views.UserFolderDetail.as_view(),name="userfolder"),
    path("resume-pdf/",views.resume_pdf_download,name="resumepdf"),

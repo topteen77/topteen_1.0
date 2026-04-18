@@ -1,0 +1,99 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Institute Master Dashboard | Top Teen{% endblock %}
+{% block description_content %}Career analytics and institute tools.{% endblock %}
+
+{% block bodyclass %}{{ super() }} institute-master-dashboard{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
+<link rel="stylesheet" href="{{ static('css/institute-master-dashboard-light.css') }}">
+<link rel="stylesheet" href="{{ static('css/institute-sidebar-shared.css') }}">
+{% endblock %}
+
+{% block content %}
+{% set n_assess = test_result_count if test_result_count is number else 0 %}
+<section class="institute-dashboard institute-master-dashboard pb-4" data-institute-shell>
+  <div class="container-fluid id-shell px-3 px-lg-4">
+    <div class="row g-4 pt-3 pt-lg-4">
+      {% set institute_sidebar_mode = 'master' %}
+      {% include 'template20/institute/includes/institute_common_sidebar.html' %}
+
+      <div class="col-12 col-lg-9 col-xl-9 im-main">
+        <div class="id-mobile-toolbar">
+          <button type="button" class="id-mobile-toggle-btn" id="idSidebarOpenBtn">
+            <i class='bx bx-menu'></i> Menu
+          </button>
+        </div>
+      {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ 'success' if message.tags == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% include 'template20/institute/includes/institute_master_screen_dashboard.html' %}
+      {% include 'template20/institute/includes/institute_master_screen_students.html' %}
+      {% include 'template20/institute/includes/institute_master_screen_assessments.html' %}
+      {% include 'template20/institute/includes/institute_master_screen_journey.html' %}
+      {% include 'template20/institute/includes/institute_heatmap_panel.html' %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include 'template20/institute/includes/institute_quick_action_modals.html' %}
+
+<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('heatmap-refresh-date');
+    if (el) el.textContent = new Date().toLocaleDateString();
+    var side = document.getElementById('im-sidebar-date');
+    if (side) side.textContent = 'Updated ' + new Date().toLocaleString();
+    document.querySelectorAll('.im-nav-print').forEach(function (btn) {
+      btn.addEventListener('click', function () { window.print(); });
+    });
+
+    var shell = document.querySelector('[data-institute-shell]');
+    if (!shell) return;
+    var sidebarOpenBtn = document.getElementById('idSidebarOpenBtn');
+    var sidebarCloseBtn = document.getElementById('idSidebarCloseBtn');
+    var sidebarOverlay = document.getElementById('idSidebarOverlay');
+    function isMobileViewport() {
+      return window.innerWidth < 992;
+    }
+    function openSidebarDrawer() {
+      if (!isMobileViewport()) return;
+      shell.classList.add('sidebar-drawer-open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebarDrawer() {
+      shell.classList.remove('sidebar-drawer-open');
+      document.body.style.overflow = '';
+    }
+    if (sidebarOpenBtn) sidebarOpenBtn.addEventListener('click', openSidebarDrawer);
+    if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebarDrawer);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebarDrawer);
+    window.addEventListener('resize', function () {
+      if (!isMobileViewport()) {
+        shell.classList.remove('sidebar-drawer-open');
+        document.body.style.overflow = '';
+      }
+    });
+  });
+</script>
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

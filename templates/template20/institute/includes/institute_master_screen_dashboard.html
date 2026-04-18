@@ -1,0 +1,87 @@
+{# Screen 1 — institute overview (light). Uses master_* context from InstituteMasterDashboardView. #}
+{% set v0 = url('institute:institutedashboard', args=[institute.slug]) %}
+<section id="im-screen-dashboard" class="im-screen im-screen--dashboard" aria-labelledby="im-screen-dashboard-title">
+  <header class="im-screen-head">
+    <h2 id="im-screen-dashboard-title" class="im-screen-title">Dashboard</h2>
+    <p class="im-screen-sub">Overview · KPIs and highlights for {{ institute.name }}</p>
+  </header>
+
+  <div class="im-dash-banner im-dash-banner--success" role="status">
+    <i class='bx bx-check-circle'></i>
+    <span>Welcome to the master dashboard. Scroll to <strong>Students</strong> for roster details, or open the <a href="{{ v0 }}">classic dashboard</a> for full editing tools.</span>
+  </div>
+
+  <div class="im-kpi-grid">
+    <article class="im-kpi im-kpi--slate">
+      <p class="im-kpi-value">{{ master_n_students }}</p>
+      <p class="im-kpi-label">Total students</p>
+      <p class="im-kpi-hint">{{ master_active_classes }} class groups with enrolments</p>
+    </article>
+    <article class="im-kpi im-kpi--green">
+      <p class="im-kpi-value">{{ master_sessions_week_total }}</p>
+      <p class="im-kpi-label">Sessions this week</p>
+      <p class="im-kpi-hint">From counselor follow-ups (Mon–Sat)</p>
+    </article>
+    <article class="im-kpi im-kpi--emerald">
+      <p class="im-kpi-value">{{ master_psychometric_pct }}%</p>
+      <p class="im-kpi-label">Psychometric done</p>
+      <p class="im-kpi-hint">Share of students with completed test data</p>
+    </article>
+    <article class="im-kpi im-kpi--amber">
+      <p class="im-kpi-value">—</p>
+      <p class="im-kpi-label">Avg clarity gap</p>
+      <p class="im-kpi-hint">See <a href="#career-education-heatmap">Career analytics</a> for matrix detail</p>
+    </article>
+    <article class="im-kpi im-kpi--violet">
+      <p class="im-kpi-value">{{ master_credits_remaining }}</p>
+      <p class="im-kpi-label">Credits remaining</p>
+      <p class="im-kpi-hint">Allocated {{ master_credits_total }} total</p>
+    </article>
+  </div>
+
+  <div class="im-dash-charts">
+    <div class="im-dash-chart-card">
+      <h3 class="im-dash-chart-title">Psychometric completion</h3>
+      <div class="im-donut im-donut--psych" style="--im-pct: {{ master_psychometric_pct }}%;">
+        <span class="im-donut-label">{{ master_psychometric_pct }}%</span>
+      </div>
+      <p class="im-dash-chart-foot text-muted small mb-0">Based on students with successful test results.</p>
+    </div>
+    <div class="im-dash-chart-card">
+      <h3 class="im-dash-chart-title">Sessions trend</h3>
+      <div class="im-spark im-spark--sessions">
+        <div class="im-spark-col">
+          <div class="im-spark-bar" style="height: 12px;"></div>
+          <span class="im-spark-label">W1</span>
+        </div>
+        <div class="im-spark-col">
+          <div class="im-spark-bar" style="height: 12px;"></div>
+          <span class="im-spark-label">W2</span>
+        </div>
+        <div class="im-spark-col">
+          <div class="im-spark-bar" style="height: 12px;"></div>
+          <span class="im-spark-label">W3</span>
+        </div>
+        <div class="im-spark-col">
+          {% set _sh = [120, 12 + master_sessions_week_total * 12]|min %}
+          <div class="im-spark-bar" style="height: {{ _sh }}px;"></div>
+          <span class="im-spark-label">W4</span>
+        </div>
+      </div>
+      <p class="im-dash-chart-foot text-muted small mb-0">Last column reflects summed weekly counts.</p>
+    </div>
+  </div>
+
+  <div class="im-dash-foot">
+    {% if master_credits_remaining <= 5 and master_credits_total %}
+    <div class="im-dash-alert im-dash-alert--warn">
+      <i class='bx bx-error-circle'></i>
+      <span><strong>Credit alert:</strong> {{ master_credits_remaining }} credits remaining. Consider topping up before scheduling more sessions.</span>
+    </div>
+    {% endif %}
+    <div class="im-dash-alert im-dash-alert--info">
+      <span class="im-dash-kira">K</span>
+      <span><strong>KIRA insight:</strong> Open <a href="{{ url('core:allfaq') }}">FAQs</a> or the <a href="#career-education-heatmap">interest matrix</a> to align workshops with student clusters.</span>
+    </div>
+  </div>
+</section>

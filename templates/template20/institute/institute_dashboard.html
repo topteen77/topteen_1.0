@@ -8,7 +8,6 @@
 {% block additionalhead %}
 {{ super() }}
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
-<link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
 <style>
   .header.tt-header {
     margin-top: 0px;
@@ -49,6 +48,17 @@
     padding-top: 46px;
     background: var(--id-page-bg);
     min-height: 100vh;
+  }
+
+  #institute-journey-tracker,
+  #institute-students,
+  #institute-assessments,
+  #institute-streams-capacity,
+  #institute-credits,
+  #institute-counselors,
+  #institute-session-plan,
+  #institute-weekly-sessions {
+    scroll-margin-top: 80px;
   }
 
   .institute-dashboard .id-shell {
@@ -111,6 +121,26 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+  }
+
+  .institute-dashboard .id-nav-sec {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--id-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0.75rem 0 0.25rem;
+    padding: 0 0.35rem;
+  }
+
+  .institute-dashboard .id-sidebar-nav--master-extra {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9eaee;
+  }
+
+  .institute-dashboard .id-sidebar-footnote {
+    line-height: 1.35;
   }
 
   .institute-dashboard .id-nav-item {
@@ -455,25 +485,6 @@
     position: relative;
   }
 
-  .institute-dashboard .id-heatmap-shell {
-    background: var(--id-card);
-    border-radius: var(--id-radius);
-    box-shadow: var(--id-shadow-sm);
-    border: 1px solid rgba(91, 33, 182, 0.06);
-    overflow: hidden;
-    margin-top: 1.5rem;
-  }
-
-  .institute-dashboard .id-heatmap-shell .heatmap-dashboard-container {
-    min-height: auto;
-    background: linear-gradient(to bottom, #fafbff, #f1f5f9);
-    padding: 1.25rem;
-  }
-
-  .institute-dashboard .heatmap-header-title-icon {
-    background: var(--id-purple) !important;
-  }
-
   /* Student Details Panel */
   .student-details-panel {
     position: fixed;
@@ -628,11 +639,11 @@
       padding-top: 0.9rem;
     }
 
-    .institute-dashboard.sidebar-drawer-open .id-sidebar-sticky {
+    [data-institute-shell].sidebar-drawer-open .id-sidebar-sticky {
       transform: translateX(0);
     }
 
-    .institute-dashboard.sidebar-drawer-open .id-sidebar-overlay {
+    [data-institute-shell].sidebar-drawer-open .id-sidebar-overlay {
       opacity: 1;
       pointer-events: auto;
     }
@@ -680,11 +691,11 @@
       margin-bottom: 0.9rem;
     }
 
-    .institute-dashboard.filters-drawer-open .id-filter-drawer {
+    [data-institute-shell].filters-drawer-open .id-filter-drawer {
       transform: translateX(0);
     }
 
-    .institute-dashboard.filters-drawer-open .id-filter-overlay {
+    [data-institute-shell].filters-drawer-open .id-filter-overlay {
       opacity: 1;
       pointer-events: auto;
     }
@@ -767,112 +778,11 @@
 {% endblock %}
 
 {% block content %}
-<section class="institute-dashboard pb-5">
+<section class="institute-dashboard pb-5" data-institute-shell>
   <div class="container-fluid id-shell px-3 px-lg-4">
     <div class="row g-4 pt-3 pt-lg-4">
-      <!-- Sidebar -->
-      <aside class="col-12 col-lg-3 col-xl-3 id-sidebar-column">
-        <div class="id-sidebar-overlay" id="idSidebarOverlay"></div>
-        <div class="id-sidebar-sticky">
-          <button type="button" class="id-sidebar-close" id="idSidebarCloseBtn" aria-label="Close sidebar">
-            <i class='bx bx-x'></i>
-          </button>
-          <div class="id-profile-card p-0 box-shadow-none border-bottom-1">
-            <div class="text-center">
-              {% if institute.logo %}
-              <img src="{{ institute.logo.url }}" class="id-profile-avatar mx-auto d-block" alt="Institute Logo">
-              {% else %}
-              <div class="id-profile-avatar mx-auto d-flex align-items-center justify-content-center bg-light">
-                <i class='bx bx-building' style="font-size:2rem;color:#94a3b8;"></i>
-              </div>
-              {% endif %}
-              <h2 class="id-profile-name">{{ institute.name }}</h2>
-            </div>
-            <div class="id-profile-meta">
-              <div class="id-meta-row">
-                <i class='bx bx-calendar'></i>
-                <span>Joined {% if institute.created %}{{ institute.created.strftime("%B %Y") }}{% else %}-{% endif
-                  %}</span>
-              </div>
-              {% if institute.contact_info %}
-              <div class="id-meta-row">
-                <i class='bx bx-phone'></i>
-                <span>{{ institute.contact_info }}</span>
-              </div>
-              {% endif %}
-              {% if institute.administrator_contact %}
-              <div class="id-meta-row">
-                <i class='bx bx-shield-quarter'></i>
-                <span>Admin: {{ institute.administrator_contact }}</span>
-              </div>
-              {% endif %}
-              {% if institute.created_by and institute.created_by.email %}
-              <div class="id-meta-row">
-                <i class='bx bx-envelope'></i>
-                <span>{{ institute.created_by.email }}</span>
-              </div>
-              {% endif %}
-              <div class="id-meta-row">
-                <i class='bx bx-map'></i>
-                <span>{% if institute.address %}{{ institute.address }}{% else %}-{% endif %}</span>
-              </div>
-            </div>
-          </div>
-
-          <nav class="id-sidebar-nav" aria-label="Institute dashboard">
-
-            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addMultipleStudentsModal">
-              <i class='bx bx-group'></i> Add Multiple Students
-            </button>
-            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addSingleStudentModal">
-              <i class='bx bx-user-plus'></i> Add Single Student
-            </button>
-            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
-              <i class='bx bx-user-voice'></i> Add Counselor
-            </button>
-            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addCsvStudentModal">
-              <i class='bx bx-upload'></i> Matric-CSV Upload
-            </button>
-            <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addPostMatricCsvModal">
-              <i class='bx bx-upload'></i> Post-Matric-CSV Upload
-            </button>
-            <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" class="id-nav-item">
-              <i class='bx bx-history'></i> Uploaded History Log
-            </a>
-            {% if request.user.user_type == 5 %}
-            <a href="{{ url('institute:marketinggroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i>
-              My Dashboard</a>
-            {% elif request.user.user_type == 3 %}
-            <a href="{{ url('institute:institutegroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i>
-              My Dashboard</a>
-            {% elif request.user.user_type == 2 %}
-            {% set institute_obj = request.user.institute_created.last() %}
-            {% if institute_obj and institute_obj.slug %}
-            <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="id-nav-item"><i
-                class='bx bx-grid-alt'></i> My Dashboard</a>
-            {% else %}
-            <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My
-              Dashboard</a>
-            {% endif %}
-            {% elif request.user.user_type == 4 %}
-            {% set counselor_list_nav = request.user.counselor.all() %}
-            {% if counselor_list_nav|length > 0 %}
-            {% set counselor_obj_nav = counselor_list_nav[0] %}
-            <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj_nav.id]) }}" class="id-nav-item"><i
-                class='bx bx-grid-alt'></i> My Dashboard</a>
-            {% else %}
-            <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My
-              Dashboard</a>
-            {% endif %}
-            {% else %}
-            <a href="{{ url('users:userdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My
-              Dashboard</a>
-            {% endif %}
-          </nav>
-
-          <a href="{{ url('users:logout') }}" class="id-btn-logout"><i class='bx bx-log-out'></i> Logout</a>
-        </div>
-      </aside>
+      {% set institute_sidebar_mode = 'classic' %}
+      {% include 'template20/institute/includes/institute_common_sidebar.html' %}
 
       <!-- Main -->
       <div class="col-12 col-lg-9 col-xl-9">
@@ -896,7 +806,7 @@
 
         <h1 class="id-main-title">Dashboard</h1>
 
-        <div class="id-stats-row">
+        <div id="institute-journey-tracker" class="id-stats-row">
           <div class="id-stat-card">
             <div class="id-stat-icon id-stat-icon--orange"><i class='bx bx-user'></i></div>
             <div class="id-stat-body">
@@ -913,7 +823,7 @@
               <p class="id-stat-label lh-sm">Psychometric</p>
             </div>
           </div>
-          <div class="id-stat-card">
+          <div id="institute-credits" class="id-stat-card">
             <div class="id-stat-icon id-stat-icon--pink"><i class='bx bx-credit-card'></i></div>
             <div class="id-stat-body">
               <p class="id-stat-value">{{ institute.credit_counts if institute.credit_counts else 0 }}</p>
@@ -936,7 +846,7 @@
           </div>
         </div>
 
-        <div class="in-student-table mb-4">
+        <div id="institute-students" class="in-student-table mb-4">
 
           <div class="id-panel id-toolbar ">
             <h2 class="id-panel-title mb-3">Total Students</h2>
@@ -1056,7 +966,7 @@
 
 
         <!-- Charts Section -->
-        <div class="row g-3 g-lg-4 mb-4">
+        <div id="institute-assessments" class="row g-3 g-lg-4 mb-4">
           {% if (total_students_count if total_students_count is number else total_students_count|length) > 0 %}
           <div class="col-md-6">
             <div class="id-chart-card h-100">
@@ -1093,7 +1003,7 @@
         </div>
 
         <!-- Seat Capacity Table -->
-        <div class="in-student-table  mb-4 p-3">
+        <div id="institute-streams-capacity" class="in-student-table  mb-4 p-3">
           <h2 class="id-panel-title">Seat Capacity by Stream in School</h2>
           <div class="table-responsive rounded-bottom overflow-hidden">
             <table class="table table-hover id-data-table mb-0">
@@ -1158,7 +1068,7 @@
         </div>
 
         <!-- Counselors Table -->
-        <div class="in-student-table  mb-4 p-3">
+        <div id="institute-counselors" class="in-student-table  mb-4 p-3">
           <h2 class="id-panel-title">Counselors Details</h2>
           <div class="table-responsive rounded-bottom overflow-hidden">
             <table class="table table-hover id-data-table mb-0">
@@ -1248,8 +1158,13 @@
           </div>
         </div>
 
+        <div id="institute-session-plan" class="in-student-table mb-3 p-3">
+          <h2 class="id-panel-title fs-6 mb-2">Session planning</h2>
+          <p class="text-muted small mb-0">Schedule and coordinate counselor sessions; review the weekly report below for trends and follow-up.</p>
+        </div>
+
         <!-- Weekly Counselor Session Report -->
-        <div class="in-student-table  mb-4 p-3">
+        <div id="institute-weekly-sessions" class="in-student-table  mb-4 p-3">
           <h2 class="id-panel-title">Weekly Counselor Session Report</h2>
           {% if sessions_data_json and sessions_data_json != '[]' %}
           <div class="chart-canvas-wrap">
@@ -1263,98 +1178,6 @@
               recorded.</p>
           </div>
           {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="id-heatmap-shell">
-      <!-- Heatmap Analytics Section -->
-      <div class="heatmap-dashboard-container mt-0">
-        <div class="heatmap-header-card">
-          <div class="heatmap-header-title">
-            <div class="heatmap-header-title-icon">
-              <i class='bx bx-bar-chart-alt-2'></i>
-            </div>
-            <div>
-              <h1>Career Education Analytics</h1>
-              <p>Institute-wide Career Interest & Knowledge Matrix</p>
-            </div>
-          </div>
-          <div class="heatmap-actions">
-            <button id="heatmap-refresh-btn" class="heatmap-btn refresh">
-              <i class='bx bx-refresh'></i> Refresh
-            </button>
-            <button id="heatmap-export-btn" class="heatmap-btn export">
-              <i class='bx bx-download'></i> Export
-            </button>
-          </div>
-
-          <!-- Statistics Cards -->
-          <div class="heatmap-stats-grid">
-            <div class="heatmap-stat-card high-risk">
-              <div class="stat-label">High Risk Areas</div>
-              <div class="stat-value" id="heatmap-stat-highrisk">0</div>
-              <div class="stat-description">Immediate workshops needed</div>
-            </div>
-            <div class="heatmap-stat-card aligned">
-              <div class="stat-label">High Alignment</div>
-              <div class="stat-value" id="heatmap-stat-aligned">0</div>
-              <div class="stat-description">Students on track</div>
-            </div>
-            <div class="heatmap-stat-card clarity-gap">
-              <div class="stat-label">Avg Clarity Gap</div>
-              <div class="stat-value" id="heatmap-stat-claritygap">0%</div>
-              <div class="stat-description">Interest-knowledge difference</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="heatmap-controls-card">
-          <div class="heatmap-controls">
-            <i class='bx bx-filter-alt'></i>
-            <button class="heatmap-view-btn active" data-view="grade">By Grade</button>
-            <button class="heatmap-view-btn" data-view="section">By Section</button>
-            <button class="heatmap-view-btn" data-view="stream">By Stream</button>
-          </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="heatmap-legend-card">
-          <div class="heatmap-legend">
-            <div class="heatmap-legend-item">
-              <i class='bx bx-info-circle'></i>
-              <span class="font-medium">Legend:</span>
-            </div>
-            <div class="heatmap-legend-item">
-              <div class="heatmap-legend-color" style="background: #EF4444;"></div>
-              <span class="heatmap-legend-text">High Risk (Interest ↑ Knowledge ↓)</span>
-            </div>
-            <div class="heatmap-legend-item">
-              <div class="heatmap-legend-color" style="background: #F59E0B;"></div>
-              <span class="heatmap-legend-text">Maintenance (Balanced)</span>
-            </div>
-            <div class="heatmap-legend-item">
-              <div class="heatmap-legend-color" style="background: #10B981;"></div>
-              <span class="heatmap-legend-text">High Alignment (Future Ready)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Heatmap Grid -->
-        <div class="heatmap-grid-card">
-          <div id="heatmap-grid-container" data-institute-slug="{{ institute.slug }}">
-            <div class="text-center p-5 text-muted">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading heatmap...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="heatmap-footer">
-          Career Education Analytics Dashboard v1.0 | Data refreshed: <span id="heatmap-refresh-date"></span>
         </div>
       </div>
     </div>
@@ -1408,200 +1231,7 @@
 </div>
 
 <!-- Modals will be added here -->
-<!-- Add Multiple Students Modal -->
-<div class="modal fade" id="addMultipleStudentsModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Multiple Students</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="POST" action="{{ url('institute:institutedashboard', args=[institute.slug]) }}">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <div class="modal-body">
-          <div class="alert alert-info">
-            <i class='bx bx-info-circle me-2'></i>
-            For multiple students enter comma separated emails<br>
-            eg - email1@gmail.com, email2@gmail.com and so on
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Class Section</label>
-            <select name="class_section" class="form-control" required>
-              <option value="">Select Class</option>
-              {% for cas in class_and_sections %}
-              <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Student Emails</label>
-            <textarea name="student_email" class="form-control" rows="5" placeholder="Enter comma separated emails"
-              required></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Add Students</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add Single Student Modal -->
-<div class="modal fade" id="addSingleStudentModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Single Student</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="POST" action="{{ url('institute:institutestudentcreate') }}">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <input type="hidden" name="institute" value="{{ institute.id }}">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Email <span class="text-danger">*</span></label>
-            <input type="email" name="student_email" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Class Section</label>
-            <select name="class_and_section" class="form-control">
-              <option value="">Select Class</option>
-              {% for cas in class_and_sections %}
-              <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Add Student</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add Counselor Modal -->
-<div class="modal fade" id="addCounselorModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Create Counselor</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="POST" action="{{ url('institute:createcounselor', args=[institute.slug]) }}"
-        enctype="multipart/form-data">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <input type="hidden" name="counselor_admin" value="{{ institute.id }}">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Counselor Name <span class="text-danger">*</span></label>
-            <input type="text" name="counselor_name" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Counselor Email <span class="text-danger">*</span></label>
-            <input type="email" name="counselor_email" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Counselor Address <span class="text-danger">*</span></label>
-            <input type="text" name="counselor_address" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Counselor Contact Info <span class="text-danger">*</span></label>
-            <input type="text" name="counselor_contact_info" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Education <span class="text-danger">*</span></label>
-            <select name="c_education" class="form-control" required>
-              <option value="">Select...</option>
-              <option value="PHD">PHD</option>
-              <option value="Bachelor's Degree">Bachelor's Degree</option>
-              <option value="Master's Degree">Master's Degree</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Gender</label>
-            <select name="counselor_gender" class="form-control">
-              <option value="">Select...</option>
-              <option value="20">Male</option>
-              <option value="30">Female</option>
-              <option value="10">Unknown</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Create Counselor</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add CSV Student Modal -->
-<div class="modal fade" id="addCsvStudentModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Students (CSV Upload)</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="POST" action="{{ url('institute:institutecsvstudentcreate') }}" enctype="multipart/form-data">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <input type="hidden" name="institute" value="{{ institute.id }}">
-        <div class="modal-body">
-          <div class="alert alert-info">
-            <i class='bx bx-info-circle me-2'></i>
-            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}"
-              target="_blank" download>Sample CSV</a>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">CSV File <span class="text-danger">*</span></label>
-            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Upload CSV</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Add Post-Matric CSV Student Modal -->
-<div class="modal fade" id="addPostMatricCsvModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Students (Post-Matric CSV Upload)</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}"
-        enctype="multipart/form-data">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <input type="hidden" name="institute" value="{{ institute.id }}">
-        <div class="modal-body">
-          <div class="alert alert-info">
-            <i class='bx bx-info-circle me-2'></i>
-            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}"
-              target="_blank" download>Post Matric Sample CSV</a>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">CSV File <span class="text-danger">*</span></label>
-            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Upload CSV</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+{% include 'template20/institute/includes/institute_quick_action_modals.html' %}
 
 <!-- Delete Student Modal -->
 <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
@@ -2257,11 +1887,10 @@
 
 <!-- Centralized Student Table AJAX Script -->
 <script src="/static/js_new/student_table_ajax.js"></script>
-<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
 <script>
   // Mobile drawers (sidebar + filters)
   document.addEventListener('DOMContentLoaded', function () {
-    const dashboardRoot = document.querySelector('.institute-dashboard');
+    const dashboardRoot = document.querySelector('[data-institute-shell]');
     if (!dashboardRoot) return;
 
     const sidebarOpenBtn = document.getElementById('idSidebarOpenBtn');
@@ -2316,9 +1945,6 @@
       }
     });
   });
-
-  // Update refresh date
-  document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
 </script>
 {% endblock %}
 

@@ -121,7 +121,7 @@
                 {# Institute #}
                 {% set institute_obj = user.institute_created.last() %}
                 {% if institute_obj and institute_obj.slug %}
-                  <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                  <a href="{{ url('institute:institute_masterdashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                 {% else %}
                   <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                 {% endif %}

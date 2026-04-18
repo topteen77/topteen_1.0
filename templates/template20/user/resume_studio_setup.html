@@ -1,0 +1,102 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Resume studio | Top Teen{% endblock %}
+{% block description_content %}Guided 6-step resume flow for this resume.{% endblock %}
+{% block bodyclass %}logged-in user-dashboard user-dashboard-fullscreen student-dashboard-shell admitcv-elite-flow{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/user/includes/admitcv_resume_theme_head.html' %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+{% include 'template20/user/includes/student_shell_styles.html' %}
+<link rel="stylesheet" href="{{ static('css/admitcv-resume-flow.css') }}?v=8">
+<style>
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    z-index: 1080;
+    max-width: min(420px, 92vw);
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: rgba(30, 30, 40, 0.95);
+    color: #fff;
+    font-size: 14px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+    transition: transform 0.28s ease;
+    pointer-events: none;
+  }
+  #toast.on {
+    transform: translateX(-50%) translateY(0);
+  }
+  html[data-theme="light"] #toast {
+    background: rgba(42, 47, 63, 0.92);
+  }
+</style>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>window.TOPTEEN_RESUME_ID = "{{ resume.pk }}";</script>
+<script>
+  window.ADMITCV_RESUME_CLASSIC_URL = "{{ url('users:resumebuilder_edit', resume_id=resume.pk) }}";
+  window.ADMITCV_RESUME_GENERATE_URL = "{{ url('users:resume_guided_generate') }}";
+  window.ADMITCV_RESUME_PDF_URL = "{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}";
+  window.ADMITCV_RESUME_HUB_URL = "{{ url('users:resumebuilder') }}";
+  window.ADMITCV_RESUME_TEMPLATES_URL = "{{ url('users:resumebuilder_templates', resume_id=resume.pk) }}";
+  window.ADMITCV_RESUME_PREVIEW_URL = "{{ url('users:resume_html_preview') }}";
+</script>
+<script type="application/json" id="admitcv-prefill-json">{{ admitcv_prefill|tojson|safe }}</script>
+<script type="application/json" id="wizard-restore-json">{{ wizard_restore_json|safe }}</script>
+<script src="{{ static('js/admitcv-resume-theme.js') }}" defer></script>
+<script src="{{ static('js/admitcv-resume-flow.js') }}?v=4" defer></script>
+<script src="{{ static('js/student-shell.js') }}?v=1" defer></script>
+{% endblock %}
+
+{% block content %}
+{% set shell_user = profile_user or request.user %}
+{% set student_shell_subtitle = 'Resume studio' %}
+{% set student_shell_show_resume_toolbar = true %}
+{% set student_shell_resume_id = resume.pk %}
+{% set student_shell_resume_toolbar_active = 'studio' %}
+{% include 'template20/user/includes/student_shell_topbar.html' %}
+
+<section class="user-dashboard pb-5 std-shell-main" style="padding-top:0;background:var(--dash-bg);">
+  <div class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3 mb-0" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+
+    <div class="row g-4 pt-3 pt-lg-4 student-dash-shell" id="studentDashboardShell">
+      {% include 'template20/user/includes/student_shell_sidebar_column.html' %}
+
+      <div class="col-12 col-lg-9 student-dash-main-col">
+        <p class="fs-13 text-muted mb-2">{{ resume.title|default('Untitled resume') }}
+          <a href="{{ url('users:resumebuilder_templates', resume_id=resume.pk) }}" class="ms-2 fs-12 text-decoration-none">Templates</a>
+        </p>
+        <div id="root">
+          <span id="np-build" class="np nav-pill" style="display:none;"></span>
+          <span id="np-dash" class="np nav-pill" style="display:none;"></span>
+          {% include 'template20/user/includes/admitcv_wizard_markup.html' %}
+        </div>
+        <div id="toast" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include 'template20/user/includes/student_shell_offcanvas.html' %}
+{% endblock %}
