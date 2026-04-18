@@ -1279,6 +1279,33 @@
 
   function init() {
     loadState();
+    if (window.__TT_STUDIO_PREFS_INITIAL && typeof window.__TT_STUDIO_PREFS_INITIAL === "object") {
+      var si = window.__TT_STUDIO_PREFS_INITIAL;
+      if (si.template && TEMPLATES.some(function (t) { return t.id === si.template; }) && RENDERERS[si.template]) {
+        activeTemplateId = si.template;
+      }
+      if (si.color && COLOR_SCHEMES.some(function (c) { return c.id === si.color; })) {
+        activeColorId = si.color;
+      }
+      if (si.textAlign && TEXT_ALIGN_OPTIONS.some(function (a) { return a.id === si.textAlign; })) {
+        activeTextAlignId = si.textAlign;
+      }
+      if (si.font && fontFamily) {
+        var match = false;
+        for (var fi = 0; fi < FONTS.length; fi++) {
+          if (FONTS[fi].value === si.font) {
+            fontFamily.value = si.font;
+            document.documentElement.style.setProperty("--font-stack", si.font);
+            match = true;
+            break;
+          }
+        }
+        if (!match && si.font) {
+          fontFamily.value = si.font;
+          document.documentElement.style.setProperty("--font-stack", si.font);
+        }
+      }
+    }
     if (window.__TT_STUDIO_FORCE_TEMPLATE) {
       const fk = String(window.__TT_STUDIO_FORCE_TEMPLATE).trim();
       if (fk && TEMPLATES.some((t) => t.id === fk) && RENDERERS[fk]) {
@@ -1317,6 +1344,24 @@
       }
     }
 
+    var dupForm = document.getElementById("ttDupResumeForm");
+    var snapField = document.getElementById("ttStudioSnapshotJson");
+    if (dupForm && snapField) {
+      dupForm.addEventListener("submit", function () {
+        try {
+          snapField.value = JSON.stringify({
+            resume: resumeData,
+            template: activeTemplateId,
+            color: activeColorId,
+            font: fontFamily && fontFamily.value ? fontFamily.value : "",
+            textAlign: activeTextAlignId,
+          });
+        } catch (_) {
+          snapField.value = "";
+        }
+      });
+    }
+
     btnPdf.addEventListener("click", downloadPdf);
     btnPrint.addEventListener("click", () => window.print());
     btnFinish.addEventListener("click", () => {
@@ -1332,19 +1377,6 @@
       window.print();
     });
 
-    const serverPdf = window.__TT_EMBED_PDF || qp("pdf");
-    if (serverPdf) {
-      const actions = document.querySelector(".actions");
-      if (actions) {
-        const a = document.createElement("a");
-        a.href = serverPdf;
-        a.className = "btn btn--icon";
-        a.setAttribute("download", "");
-        a.textContent = "Saved PDF";
-        a.title = "PDF from your saved Top Teen resume data";
-        actions.insertBefore(a, actions.firstChild);
-      }
-    }
   }
 
   init();

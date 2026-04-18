@@ -1,7 +1,7 @@
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, RequestFactory
-from django.urls import reverse
+from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.urls import Resolver404, resolve, reverse
 
 from core import choices
 from institute.models import StudentManagement
@@ -141,3 +141,16 @@ class TestInstituteStudentDashboardShowsNoBuy(TestCase):
         html = resp.content.decode("utf-8", errors="ignore")
         self.assertNotIn("Buy Career Direction Test", html)
         self.assertIn("Career Direction Dashboard", html)
+
+
+class TestResumeAiDesignRouteRemoved(SimpleTestCase):
+    """Removed PDF AI designer (/templates/ai-design/); URLConf must not register these paths."""
+
+    def test_ai_design_paths_do_not_resolve(self):
+        for path in (
+            "/user/resume-builder/studio/28/templates/ai-design/",
+            "/user/resume-builder/studio/28/templates/ai-design/api/",
+        ):
+            with self.subTest(path=path):
+                with self.assertRaises(Resolver404):
+                    resolve(path)

@@ -45,6 +45,11 @@ urlpatterns = [
    path('save-media/',views.SaveMedia.as_view(),name="savemedia"),
    path('resume-builder/create/', views.ResumeHubCreateView.as_view(), name="resumebuilder_create"),
    path('resume-builder/delete/', views.ResumeHubDeleteView.as_view(), name="resumebuilder_delete"),
+   path(
+       "resume-builder/duplicate/",
+       views.ResumeHubDuplicateView.as_view(),
+       name="resumebuilder_duplicate",
+   ),
    path('resume-builder/generate/', views.ResumeGuidedGenerateView.as_view(), name="resume_guided_generate"),
    path(
        'resume-builder/studio/<int:resume_id>/',

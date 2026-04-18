@@ -59,6 +59,14 @@
     </main>
 
     <aside class="actions">
+      {% if resume %}
+      <form id="ttDupResumeForm" method="post" action="{{ duplicate_resume_url }}" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+        <input type="hidden" name="studio_snapshot_json" id="ttStudioSnapshotJson" value="">
+      </form>
+      <button type="submit" form="ttDupResumeForm" formtarget="_top" class="btn btn--icon" id="btnSaveCopy" title="Save a new resume row with the same saved data">Save as new copy</button>
+      {% endif %}
       <button type="button" class="btn btn--pdf" id="btnPdf" title="Download PDF" aria-label="Download PDF">
         <svg class="btn__icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path fill="currentColor" d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 9.5v.75h2.25V13h-2.25V15h-1.5v-2H8v-1.5h2.25V11H8V9.5h3.5zm7.5 9H8V4h12v15.5zM14 9.5V11h2.5v1.5H14V15h-1.5v-2.5H10V11h2.5V9.5H14z"/>
@@ -90,7 +98,8 @@
   window.__TT_RESUME_INITIAL = {{ resume_initial_json }};
   window.__TT_STORAGE_KEY = {{ storage_key|tojson }};
   window.__TT_EMBED_FINISH = {{ finish_url|tojson }};
-  window.__TT_EMBED_PDF = {{ pdf_url|tojson }};
+  window.__TT_RESUME_PK = {% if resume %}{{ resume.pk }}{% else %}null{% endif %};
+  window.__TT_STUDIO_PREFS_INITIAL = {{ studio_prefs_initial_json }};
   {% if studio_force_template %}window.__TT_STUDIO_FORCE_TEMPLATE = {{ studio_force_template|tojson }};{% endif %}
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

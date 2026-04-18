@@ -1,5 +1,6 @@
 """Shared resume editor JSON for classic builder modals (template20) and API responses."""
 
+import html
 import json
 import re
 
@@ -13,6 +14,256 @@ from .models import (
     UserResumeSkill,
     UserResumeVolunteerInvolvement,
 )
+
+# Studio iframe “Save as new copy” — wizard JSON + server PDF generated_html
+STUDIO_PROTO_V1_KEY = "studio_proto_v1"
+
+_STUDIO_COLOR_HEX = {
+    "teal": "#1b9e7a",
+    "blue": "#2563eb",
+    "sky": "#0ea5e9",
+    "indigo": "#4f46e5",
+    "green": "#16a34a",
+    "purple": "#7c3aed",
+    "orange": "#ea580c",
+    "rose": "#e11d48",
+    "slate": "#334155",
+    "black": "#171717",
+}
+
+
+def _wizard_is_studio_only(wiz: dict) -> bool:
+    if not isinstance(wiz, dict) or STUDIO_PROTO_V1_KEY not in wiz:
+        return False
+    return set(wiz.keys()) == {STUDIO_PROTO_V1_KEY}
+
+
+def _merge_studio_proto_resume_into_payload(payload: dict, proto_resume: dict) -> dict:
+    if not isinstance(proto_resume, dict):
+        return payload
+    keys = (
+        "fullName",
+        "headline",
+        "email",
+        "phone",
+        "address",
+        "linkedin",
+        "website",
+        "summary",
+        "photo",
+        "skills",
+        "experience",
+        "education",
+        "certifications",
+        "languages",
+        "interests",
+    )
+    out = dict(payload)
+    for k in keys:
+        if k not in proto_resume:
+            continue
+        v = proto_resume[k]
+        if k in ("skills", "experience", "education", "certifications", "languages"):
+            if isinstance(v, list):
+                out[k] = v
+        elif k == "interests":
+            out[k] = str(v or "")
+        else:
+            out[k] = v
+    return out
+
+
+def studio_prefs_from_resume_record(resume) -> dict:
+    if resume is None:
+        return {}
+    wiz = _wizard_draft_dict(resume)
+    if not wiz:
+        return {}
+    sp = wiz.get(STUDIO_PROTO_V1_KEY)
+    if not isinstance(sp, dict):
+        return {}
+    out = {}
+    for k in ("template", "color", "font", "textAlign"):
+        v = sp.get(k)
+        if v is not None and str(v).strip():
+            out[k] = v
+    return out
+
+
+def _studio_level_to_proficiency(level) -> int:
+    try:
+        lv = int(level)
+    except (TypeError, ValueError):
+        return choices.UserResumeProficiency.BEGINNER
+    if lv <= 2:
+        return choices.UserResumeProficiency.BEGINNER
+    if lv <= 3:
+        return choices.UserResumeProficiency.INTERMEDIATE
+    return choices.UserResumeProficiency.EXPERT
+
+
+def apply_studio_resume_to_userresume_children(resume, rd: dict) -> None:
+    """Replace child rows from prototype resumeData (skills, experience, certifications, …)."""
+    UserResumeSkill.objects.filter(resume=resume).delete()
+    UserResumeCertificate.objects.filter(resume=resume).delete()
+    UserResumeInternship.objects.filter(resume=resume).delete()
+    UserResumeActivity.objects.filter(resume=resume).delete()
+    UserResumeVolunteerInvolvement.objects.filter(resume=resume).delete()
+
+    for sk in rd.get("skills") or []:
+        name = (sk.get("name") or "").strip()
+        if not name:
+            continue
+        UserResumeSkill.objects.create(
+            resume=resume,
+            title=name[:250],
+            description="",
+            profficiency=_studio_level_to_proficiency(sk.get("level")),
+        )
+
+    for ex in rd.get("experience") or []:
+        title = (ex.get("title") or "").strip() or "Experience"
+        company = (ex.get("company") or "").strip() or "—"
+        bullets = ex.get("bullets") or []
+        desc = "\n".join(str(b).strip() for b in bullets if str(b).strip())[:4000]
+        UserResumeInternship.objects.create(
+            resume=resume,
+            role=title[:250],
+            provider=company[:250],
+            description=desc,
+            start_date=None,
+            end_date=None,
+        )
+
+    for c in rd.get("certifications") or []:
+        nm = (c.get("name") or "").strip()
+        if not nm:
+            continue
+        issuer = (c.get("issuer") or "").strip()
+        UserResumeCertificate.objects.create(
+            resume=resume,
+            title=nm[:250],
+            description=issuer[:2000],
+            issue_date=None,
+        )
+
+    for ed in rd.get("education") or []:
+        school = (ed.get("school") or "").strip()
+        degree = (ed.get("degree") or "").strip()
+        if not school and not degree:
+            continue
+        title = (degree or "Education")[:250]
+        detail = " ".join(x for x in [school, (ed.get("dates") or "").strip(), (ed.get("detail") or "").strip()] if x)[:2000]
+        UserResumeActivity.objects.create(
+            resume=resume,
+            title=title,
+            description=detail,
+            issue_date=None,
+        )
+
+    for lang in rd.get("languages") or []:
+        nm = (lang.get("name") or "").strip()
+        if not nm:
+            continue
+        lv = (lang.get("level") or "").strip()
+        UserResumeActivity.objects.create(
+            resume=resume,
+            title=f"Language: {nm}"[:250],
+            description=lv[:500],
+            issue_date=None,
+        )
+
+    interests = (rd.get("interests") or "").strip()
+    if interests:
+        UserResumeActivity.objects.create(
+            resume=resume,
+            title="Interests",
+            description=interests[:2000],
+            issue_date=None,
+        )
+
+
+def studio_v1_pack_to_generated_html(pack: dict) -> str:
+    """Self-contained HTML fragment for userresumepdf_generated.html (pdfkit)."""
+    rd = pack.get("resume") if isinstance(pack.get("resume"), dict) else {}
+    color_id = (pack.get("color") or "teal").strip().lower()
+    accent = _STUDIO_COLOR_HEX.get(color_id, _STUDIO_COLOR_HEX["teal"])
+    font_raw = (pack.get("font") or '"Inter", system-ui, sans-serif').strip()[:240] or '"Inter", system-ui, sans-serif'
+    if not re.match(r'^[\w\s\-",.()+]+$', font_raw):
+        font_raw = '"Inter", system-ui, sans-serif'
+    align = (pack.get("textAlign") or "start").strip().lower()
+    if align not in ("start", "center", "end", "justify"):
+        align = "start"
+    ta = {"start": "left", "center": "center", "end": "right", "justify": "justify"}.get(align, "left")
+
+    def esc(x):
+        return html.escape(str(x or ""), quote=True)
+
+    contact_bits = [
+        esc(p)
+        for p in [
+            rd.get("email"),
+            rd.get("phone"),
+            rd.get("address"),
+            rd.get("linkedin"),
+            rd.get("website"),
+        ]
+        if (p or "").strip()
+    ]
+    contact_html = " · ".join(contact_bits) if contact_bits else ""
+
+    lines = [
+        f'<div class="studio-pdf-root" style="font-family:{font_raw};color:#1a1a2e;text-align:{ta};max-width:820px;margin:0 auto;">',
+        f'<div style="border-bottom:3px solid {esc(accent)};padding-bottom:10px;margin-bottom:14px;">',
+        f'<div style="font-size:26px;font-weight:700;">{esc(rd.get("fullName"))}</div>',
+        f'<div style="font-size:13px;color:#4a5a6e;margin-top:4px;">{esc(rd.get("headline"))}</div>',
+        f'<div style="font-size:11px;color:#5a6a80;margin-top:8px;line-height:1.5;">{contact_html}</div>',
+        "</div>",
+    ]
+    sm = (rd.get("summary") or "").strip()
+    if sm:
+        lines.append(
+            f'<div style="margin:14px 0;padding:10px 12px;background:#f4f6fc;border-left:3px solid {esc(accent)};font-size:13px;line-height:1.6;">{esc(sm)}</div>'
+        )
+    skills = rd.get("skills") or []
+    if skills:
+        lines.append('<div style="margin-top:16px;"><div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Skills</div><div style="margin-top:6px;line-height:1.6;font-size:12px;">')
+        lines.append(", ".join(esc((s.get("name") or "").strip()) for s in skills if (s.get("name") or "").strip()))
+        lines.append("</div></div>")
+    for ex in rd.get("experience") or []:
+        title = (ex.get("title") or "").strip()
+        if not title:
+            continue
+        co = (ex.get("company") or "").strip()
+        dates = (ex.get("dates") or "").strip()
+        lines.append('<div style="margin-top:12px;">')
+        lines.append(
+            f'<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;"><span>{esc(title)}</span><span style="font-size:11px;color:#888;white-space:nowrap;">{esc(dates)}</span></div>'
+        )
+        if co:
+            lines.append(f'<div style="font-size:12px;color:#5a6a80;font-style:italic;">{esc(co)}</div>')
+        for b in ex.get("bullets") or []:
+            bt = str(b).strip()
+            if bt:
+                lines.append(f'<div style="font-size:12px;margin:3px 0 3px 12px;">▸ {esc(bt)}</div>')
+        lines.append("</div>")
+    for ed in rd.get("education") or []:
+        deg = (ed.get("degree") or "").strip()
+        sch = (ed.get("school") or "").strip()
+        if not deg and not sch:
+            continue
+        lines.append(
+            f'<div style="margin-top:10px;font-size:12px;"><strong>{esc(deg)}</strong> — {esc(sch)} <span style="color:#888;">{esc(ed.get("dates") or "")}</span></div>'
+        )
+    for c in rd.get("certifications") or []:
+        nm = (c.get("name") or "").strip()
+        if not nm:
+            continue
+        lines.append(
+            f'<div style="margin-top:6px;font-size:12px;"><strong>{esc(nm)}</strong> — {esc(c.get("issuer") or "")} <span style="color:#888;">{esc(c.get("date") or "")}</span></div>'
+        )
+    lines.append("</div>")
+    return "\n".join(lines)
 
 
 def resume_editor_payload(resume):
@@ -412,7 +663,7 @@ def resume_studio_prototype_payload(resume, request=None):
     interests = ", ".join(hobby_names)
 
     wiz = _wizard_draft_dict(resume)
-    if wiz:
+    if wiz and not _wizard_is_studio_only(wiz):
         wname = (wiz.get("name") or "").strip()
         if wname and not (user.name or "").strip():
             full_name = wname
@@ -455,7 +706,7 @@ def resume_studio_prototype_payload(resume, request=None):
     elif summary:
         summary = _fallback_summary_from_about(summary, 1000)
 
-    return {
+    out = {
         "fullName": full_name,
         "headline": headline,
         "email": email,
@@ -472,12 +723,21 @@ def resume_studio_prototype_payload(resume, request=None):
         "languages": languages_out,
         "interests": interests,
     }
+    if wiz and isinstance(wiz.get(STUDIO_PROTO_V1_KEY), dict):
+        sp = wiz[STUDIO_PROTO_V1_KEY]
+        if isinstance(sp.get("resume"), dict):
+            out = _merge_studio_proto_resume_into_payload(out, sp["resume"])
+    return out
 
 
 def resume_studio_embed_finish_pdf_urls(request, resume):
     """Absolute URLs for prototype iframe (Finish / server PDF links)."""
+    from urllib.parse import urlencode
+
     from django.urls import reverse
 
     finish = request.build_absolute_uri(reverse("users:resumebuilder"))
-    pdf = request.build_absolute_uri(reverse("users:resumepdf") + f"?resume_id={resume.pk}")
+    pdf_base = reverse("users:resumepdf")
+    q = urlencode({"resume_id": int(resume.pk)})
+    pdf = request.build_absolute_uri(f"{pdf_base}?{q}")
     return finish, pdf

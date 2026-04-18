@@ -150,7 +150,7 @@
             <i class="bx bx-show me-1"></i> View
           </a>
           {% endif %}
-          <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" download class="btn custom-button purple-button">
+          <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" class="btn custom-button purple-button">
             <i class='bx bx-export me-2'></i> Export Resume
           </a>
         </div>
@@ -525,7 +525,7 @@
           <i class="bx bx-show me-1"></i> View
         </a>
         {% endif %}
-        <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" download class="btn custom-button purple-button">
+        <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" class="btn custom-button purple-button">
           <i class='bx bx-export me-2'></i> Export Resume
         </a>
       </div>

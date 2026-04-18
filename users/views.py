@@ -77,9 +77,13 @@ from django.utils.safestring import mark_safe
 from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
 from .resume_guided_ai import strip_markdown_fences
 from .resume_payload import (
+    STUDIO_PROTO_V1_KEY,
+    apply_studio_resume_to_userresume_children,
     resume_editor_payload as _resume_editor_payload,
     resume_studio_embed_finish_pdf_urls,
     resume_studio_prototype_payload,
+    studio_prefs_from_resume_record,
+    studio_v1_pack_to_generated_html,
 )
 from .resume_studio_html import (
     admin_studio_html_preview_initial_json,
@@ -3336,6 +3340,123 @@ class ResumeHubCreateView(View):
         return redirect("users:resumebuilder_studio", resume_id=resume.pk)
 
 
+def _duplicate_user_resume_children(source_resume, new_resume):
+    """Copy active section rows from source_resume onto new_resume (same user)."""
+    for s in UserResumeSkill.objects.filter(resume=source_resume):
+        UserResumeSkill.objects.create(
+            resume=new_resume,
+            title=s.title,
+            description=s.description,
+            profficiency=s.profficiency,
+        )
+    for c in UserResumeCertificate.objects.filter(resume=source_resume):
+        UserResumeCertificate.objects.create(
+            resume=new_resume,
+            title=c.title,
+            description=c.description,
+            issue_date=c.issue_date,
+        )
+    for i in UserResumeInternship.objects.filter(resume=source_resume):
+        UserResumeInternship.objects.create(
+            resume=new_resume,
+            provider=i.provider,
+            role=i.role,
+            description=i.description,
+            start_date=i.start_date,
+            end_date=i.end_date,
+        )
+    for a in UserResumeActivity.objects.filter(resume=source_resume):
+        UserResumeActivity.objects.create(
+            resume=new_resume,
+            title=a.title,
+            description=a.description,
+            issue_date=a.issue_date,
+        )
+    for v in UserResumeVolunteerInvolvement.objects.filter(resume=source_resume):
+        UserResumeVolunteerInvolvement.objects.create(
+            resume=new_resume,
+            title=v.title,
+            role=v.role,
+            description=v.description,
+            start_date=v.start_date,
+            end_date=v.end_date,
+        )
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class ResumeHubDuplicateView(View):
+    """POST: duplicate this UserResume (DB-backed sections + studio fields) as a new row."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        from django.db import transaction
+
+        rid = request.POST.get("resume_id")
+        try:
+            pk = int(rid)
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid resume.")
+            return redirect("users:resumebuilder")
+        src = UserResume.objects.filter(pk=pk, user=request.user).first()
+        if not src:
+            messages.error(request, "Resume not found.")
+            return redirect("users:resumebuilder")
+        title = (request.POST.get("title") or "").strip()[:120]
+        raw_snap = (request.POST.get("studio_snapshot_json") or "").strip()
+        if raw_snap:
+            try:
+                snap = json.loads(raw_snap)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                snap = None
+            if isinstance(snap, dict) and isinstance(snap.get("resume"), dict):
+                rd = snap["resume"]
+                if not title:
+                    th = (rd.get("headline") or "").strip()[:100]
+                    base = th or (src.title or "My resume").strip()[:100]
+                    title = f"{base} (copy)"[:120]
+                pack = {
+                    "resume": rd,
+                    "template": (snap.get("template") or "")[:80],
+                    "color": (snap.get("color") or "")[:40],
+                    "font": (snap.get("font") or "")[:240],
+                    "textAlign": (snap.get("textAlign") or "")[:20],
+                }
+                wiz_out = json.dumps({STUDIO_PROTO_V1_KEY: pack}, ensure_ascii=False, default=str)
+                about = (rd.get("summary") or "").strip()[:10000] or (src.about or "")
+                gen_html = studio_v1_pack_to_generated_html(pack)
+                with transaction.atomic():
+                    nr = UserResume.objects.create(
+                        user=request.user,
+                        title=title,
+                        about=about,
+                        generated_html=gen_html,
+                        wizard_draft_json=wiz_out,
+                    )
+                    apply_studio_resume_to_userresume_children(nr, rd)
+                messages.success(
+                    request,
+                    "Saved a new copy with your studio layout and content.",
+                )
+                return redirect("users:resumebuilder_templates", resume_id=nr.pk)
+
+        if not title:
+            base = (src.title or "My resume").strip()[:100]
+            title = f"{base} (copy)"[:120]
+
+        with transaction.atomic():
+            nr = UserResume.objects.create(
+                user=request.user,
+                title=title,
+                about=src.about,
+                generated_html=src.generated_html,
+                wizard_draft_json=src.wizard_draft_json,
+            )
+            _duplicate_user_resume_children(src, nr)
+        messages.success(request, "Saved a fresh copy of your resume. You can edit it below.")
+        return redirect("users:resumebuilder_templates", resume_id=nr.pk)
+
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class ResumeHubDeleteView(View):
     """POST: permanently remove one resume (resume_id) and its sections."""
@@ -3618,10 +3739,10 @@ def _choose_generated_mail_template(row, generated_path):
 
 
 def _resume_pdf_template_row_paths_and_style(
-    _user_resume,
-    _preview_template_id=None,
-    _force_template_row=None,
-    _restrict_template_user=None,
+    user_resume,
+    preview_template_id=None,
+    force_template_row=None,
+    restrict_template_user=None,
 ):
     """Return fixed PDF mail template paths and default layout/accent (no DB template rows)."""
     return (
@@ -3686,12 +3807,12 @@ def resume_pdf_download(request,*args, **kwargs):
     html  = template.render(ctx)
     pdf=pdfkit.from_string(html,False)
     response= HttpResponse(pdf, content_type='application/pdf')
-    name="{}resume.pdf".format( request.user.name if request.user.name else "Student")
+    base = (request.user.name or "Student").strip() or "Student"
+    safe = re.sub(r"[^\w\-. ]+", "_", base, flags=re.UNICODE).strip(" .-_") or "Student"
+    filename = f"{safe}-resume.pdf"
     inline = (request.GET.get("inline") or "").strip().lower() in ("1", "true", "yes")
-    if inline:
-        response["Content-Disposition"] = 'inline; filename="%s"' % name
-    else:
-        response['Content-Disposition']='attachment; filename="' +name+ '"'
+    disp = "inline" if inline else "attachment"
+    response["Content-Disposition"] = '{}; filename="{}"'.format(disp, filename)
     return response
 
 
@@ -3777,6 +3898,7 @@ class ResumeTemplateLibraryView(TemplateView):
         return render(request, self.template_name, self.get_context(request, resume_id, *args, **kwargs))
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
 class ResumeTemplateStudioEmbedView(View):
     """Minimal HTML document for iframe: resume-builder prototype + DB-backed initial data."""
@@ -3789,13 +3911,14 @@ class ResumeTemplateStudioEmbedView(View):
         raw = json.dumps(payload, ensure_ascii=False, default=str).translate(
             str.maketrans({"<": "\\u003c", ">": "\\u003e"})
         )
-        finish, pdf = resume_studio_embed_finish_pdf_urls(request, resume)
+        finish, _pdf = resume_studio_embed_finish_pdf_urls(request, resume)
         ctx = {
             "resume": resume,
             "resume_initial_json": mark_safe(raw),
+            "studio_prefs_initial_json": mark_safe(json.dumps(studio_prefs_from_resume_record(resume))),
             "storage_key": f"resume-builder-proto-{resume.pk}",
             "finish_url": finish,
-            "pdf_url": pdf,
+            "duplicate_resume_url": reverse("users:resumebuilder_duplicate"),
             "studio_templates_catalog_json": studio_html_template_catalog_json(),
             "studio_force_template": "",
             "studio_template_row": None,
@@ -3810,9 +3933,10 @@ def admin_resume_studio_html_template_preview(request, template_pk):
     ctx = {
         "resume": None,
         "resume_initial_json": admin_studio_html_preview_initial_json(),
+        "studio_prefs_initial_json": mark_safe(json.dumps({})),
         "storage_key": f"admin-studio-html-{tpl.pk}",
         "finish_url": "",
-        "pdf_url": "",
+        "duplicate_resume_url": reverse("users:resumebuilder_duplicate"),
         "studio_templates_catalog_json": studio_html_template_catalog_json(),
         "studio_force_template": tpl.template_key,
         "studio_template_row": tpl,
