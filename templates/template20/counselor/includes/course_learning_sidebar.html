@@ -82,13 +82,11 @@
                 {% endif %}
               </div>
             </div>
-          </div>
-          
+          </div>          
           <!-- Parts List (shown when chapter is active) -->
           {% if is_current_chapter and chapter.parts.exists() %}
           {% set fp = chapter.parts.all()|first %}
-          {% set chapter_first_is_intro = fp and (
-            
+          {% set chapter_first_is_intro = fp and (            
             ('introductory' in (fp.title|lower)) or
             ('instruction' in (fp.title|lower))
           ) %}
