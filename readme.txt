@@ -697,4 +697,4 @@ Django Admin → user_analytics → User Activity:
   • Filter to e.g. Local, select rows, Action → Delete to clean test data. Or set ENABLE_USER_ANALYTICS_TRACKING=False, then clean, then set back to True.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
 
-.
+. 
