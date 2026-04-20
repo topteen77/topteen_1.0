@@ -1166,6 +1166,7 @@
         scheduleSave();
         renderTemplateGrid();
         renderPreview();
+        notifyParentSelection();
       });
       templateGrid.appendChild(card);
     });
@@ -1257,6 +1258,23 @@
   function scheduleSave() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(persistState, 400);
+  }
+
+  function notifyParentSelection() {
+    try {
+      if (!window.parent || window.parent === window) return;
+      const fontVal = fontFamily && fontFamily.value ? fontFamily.value : "";
+      window.parent.postMessage(
+        {
+          type: "TT_STUDIO_TEMPLATE_PICK",
+          template: activeTemplateId,
+          color: activeColorId,
+          font: fontVal,
+          textAlign: activeTextAlignId,
+        },
+        "*"
+      );
+    } catch (_) {}
   }
 
   function persistState() {

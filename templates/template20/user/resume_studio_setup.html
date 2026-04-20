@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 {% include 'template20/user/includes/student_shell_styles.html' %}
-<link rel="stylesheet" href="{{ static('css/admitcv-resume-flow.css') }}?v=9">
+<link rel="stylesheet" href="{{ static('css/admitcv-resume-flow.css') }}?v=10">
 {# Needed so Step-6 preview can style studio tpl-* markup (tech-focus etc.) #}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=1">
 <style>
@@ -56,13 +56,15 @@
   window.ADMITCV_RESUME_PDF_URL = "{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}";
   window.ADMITCV_RESUME_HUB_URL = "{{ url('users:resumebuilder') }}";
   window.ADMITCV_RESUME_TEMPLATES_URL = "{{ url('users:resumebuilder_templates', resume_id=resume.pk) }}";
+  window.ADMITCV_RESUME_TEMPLATES_EMBED_URL = "{{ url('users:resumebuilder_templates_embed', resume_id=resume.pk) }}";
   window.ADMITCV_RESUME_PREVIEW_URL = "{{ url('users:resume_html_preview') }}";
 </script>
 <script type="application/json" id="admitcv-prefill-json">{{ admitcv_prefill|tojson|safe }}</script>
 <script type="application/json" id="wizard-restore-json">{{ wizard_restore_json|safe }}</script>
 <script type="application/json" id="admitcv-studio-templates-json">{{ admitcv_studio_template_catalog|tojson|safe }}</script>
+<script type="application/json" id="admitcv-studio-template-previews-json">{{ admitcv_studio_template_previews|tojson|safe }}</script>
 <script src="{{ static('js/admitcv-resume-theme.js') }}" defer></script>
-<script src="{{ static('js/admitcv-resume-flow.js') }}?v=6" defer></script>
+<script src="{{ static('js/admitcv-resume-flow.js') }}?v=8" defer></script>
 <script src="{{ static('js/student-shell.js') }}?v=1" defer></script>
 {% endblock %}
 

@@ -237,7 +237,6 @@ function applyWizardRestore(){
   if (sp && sp.template) {
     var stSel = document.getElementById('f-studio-template');
     if (stSel) stSel.value = String(sp.template);
-    paintStudioTemplateSelection(String(sp.template));
   }
   if (d.style) {
     S.style = d.style;
@@ -264,64 +263,20 @@ function persistStudioResumeToLocal(b){
 
 function initStudioTemplatePicker(){
   var hid = document.getElementById('f-studio-template');
-  var grid = document.getElementById('studio-template-grid');
-  if (!hid || !grid) return;
-  var el = document.getElementById('admitcv-studio-templates-json');
-  var rows = [];
-  if (el && el.textContent) {
-    try {
-      rows = JSON.parse(el.textContent);
-    } catch (e) {}
-  }
-  if (!Array.isArray(rows)) return;
-  grid.innerHTML = '';
+  var frame = document.getElementById('studio-template-picker-frame');
+  if (!hid || !frame) return;
+  var u = (typeof window.ADMITCV_RESUME_TEMPLATES_EMBED_URL === 'string' ? window.ADMITCV_RESUME_TEMPLATES_EMBED_URL : '').trim();
+  if (u) frame.src = u;
 
-  function safeTplMockClass(id){
-    var s = String(id || 'none').toLowerCase().replace(/[^a-z0-9-]/g, '');
-    return s || 'none';
-  }
-
-  function mkTile(id, name, cat){
-    var tile = document.createElement('div');
-    tile.className = 'tpltile';
-    tile.setAttribute('role', 'button');
-    tile.setAttribute('tabindex', '0');
-    tile.setAttribute('data-tpl', id);
-    tile.setAttribute('aria-pressed', 'false');
-    var mock = safeTplMockClass(id);
-    tile.innerHTML =
-      '<div class="tpltile-ck">✓</div>' +
-      '<div class="tpltile-thumb" aria-hidden="true"><div class="tpltile-mock tpltile-mock--' + mock + '"></div></div>' +
-      '<div class="tpltile-body">' +
-        '<div class="tpltile-nm"></div>' +
-        '<div class="tpltile-meta"><span class="tpltile-pill"></span><span class="tpltile-id" style="font-size:11px;color:var(--prose3);">#' + esc(id) + '</span></div>' +
-      '</div>';
-    tile.querySelector('.tpltile-nm').textContent = name || id;
-    tile.querySelector('.tpltile-pill').textContent = cat || 'professional';
-    tile.addEventListener('click', function(){ pickStudioTemplate(id); });
-    tile.addEventListener('keydown', function(e){
-      var k = e.key || '';
-      if(k === 'Enter' || k === ' '){
-        e.preventDefault();
-        pickStudioTemplate(id);
-      }
-    });
-    return tile;
-  }
-
-  // "No preference" tile
-  var none = mkTile('', 'No preference', 'ai html');
-  none.querySelector('.tpltile-id').textContent = 'Default PDF';
-  grid.appendChild(none);
-
-  for (var i = 0; i < rows.length; i++) {
-    var r = rows[i];
-    if (!r || !r.id) continue;
-    grid.appendChild(mkTile(String(r.id), r.name || r.id, r.category || 'professional'));
-  }
-
-  // Apply initial selection (if any)
-  paintStudioTemplateSelection(String(hid.value || ''));
+  // Sync selection from iframe -> wizard hidden field
+  window.addEventListener('message', function(ev){
+    var d = ev && ev.data ? ev.data : null;
+    if (!d || typeof d !== 'object') return;
+    if (d.type !== 'TT_STUDIO_TEMPLATE_PICK') return;
+    if (d.template != null && hid) {
+      hid.value = String(d.template || '');
+    }
+  });
 }
 
 function paintStudioTemplateSelection(id){

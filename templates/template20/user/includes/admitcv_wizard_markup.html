@@ -238,7 +238,15 @@
         <div class="fld">
           <div class="lbl" style="margin-bottom:8px;">Studio layout</div>
           <input type="hidden" id="f-studio-template" value="">
-          <div class="tplg" id="studio-template-grid" aria-label="Studio templates"></div>
+          <div class="rtlp" id="studio-template-picker">
+            <iframe
+              id="studio-template-picker-frame"
+              title="Choose resume template"
+              class="rtlp-frame"
+              src="about:blank"
+              referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+          </div>
           <p class="fs-12 text-muted mb-0 mt-2" id="f-studio-template-hint">Structured fields (title, company, dates, location, bullets) are filled from the AI so the template library matches.</p>
         </div>
       </div>

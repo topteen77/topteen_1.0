@@ -668,6 +668,35 @@ html[data-theme="light"] .tpltile-mock--none{
   color:var(--prose3); font-weight:600; letter-spacing:.2px; text-transform:capitalize;
 }
 
+/* Real mini preview (server-rendered tpl-* markup) */
+.tpltile-mini{
+  position:absolute;
+  inset:0;
+  padding:10px;
+  overflow:hidden;
+}
+.tpltile-mini .tpl{
+  transform-origin:top left;
+  transform:scale(.17);
+  width:820px; /* match studio/pdf max width */
+  pointer-events:none;
+}
+
+/* Inline template picker iframe (Step 6) */
+.rtlp{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.rtlp-frame{
+  display:block;
+  width:100%;
+  height:min(640px, 62vh);
+  border:0;
+  background:#fff;
+}
+
 /* Step nav bar */
 .snav {
   display:flex; align-items:center; justify-content:space-between;

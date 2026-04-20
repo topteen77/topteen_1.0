@@ -3605,7 +3605,31 @@ class ResumeStudioSetupView(TemplateView):
         ctx["wizard_restore_json"] = resume.wizard_draft_json or "{}"
         from users.resume_studio_html import studio_html_template_catalog_rows
 
-        ctx["admitcv_studio_template_catalog"] = studio_html_template_catalog_rows()
+        rows = studio_html_template_catalog_rows()
+        ctx["admitcv_studio_template_catalog"] = rows
+        # Real mini previews for Step-6 tiles (server render, then scale down in CSS).
+        try:
+            from users.resume_studio_html import ADMIN_STUDIO_HTML_PREVIEW_SAMPLE
+            from users.resume_studio_pdf_html import studio_proto_pack_to_mount_html
+            from users.resume_payload import DEFAULT_STUDIO_EMBED_FONT
+
+            previews = []
+            for r in rows:
+                tid = (r.get("id") or "").strip().lower()
+                if not tid:
+                    continue
+                pack = {
+                    "resume": ADMIN_STUDIO_HTML_PREVIEW_SAMPLE,
+                    "template": tid,
+                    "color": "teal",
+                    "font": DEFAULT_STUDIO_EMBED_FONT,
+                    "textAlign": "start",
+                }
+                mount_html, _ = studio_proto_pack_to_mount_html(pack)
+                previews.append({"id": tid, "html": mount_html})
+            ctx["admitcv_studio_template_previews"] = previews
+        except Exception:
+            ctx["admitcv_studio_template_previews"] = []
         return ctx
 
     def get(self, request, resume_id, *args, **kwargs):
