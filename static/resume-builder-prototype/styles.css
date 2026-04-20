@@ -36,6 +36,16 @@ body {
   line-height: 1.45;
 }
 
+/* Picker mode (wizard Step 7): keep template selection + live preview, hide editor and extra actions */
+body.tt-mode-picker .panel--editor {
+  display: none;
+}
+body.tt-mode-picker #btnSaveCopy,
+body.tt-mode-picker #btnFinish,
+body.tt-mode-picker .site-footer {
+  display: none !important;
+}
+
 .app {
   display: flex;
   min-height: calc(100vh - 48px);

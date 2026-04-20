@@ -10,12 +10,13 @@
     <div class="sdot" id="sd4" onclick="jumpTo(4)"><div class="sdot-c">4</div><div class="sdot-lbl">Experience</div></div>
     <div class="sdot" id="sd5" onclick="jumpTo(5)"><div class="sdot-c">5</div><div class="sdot-lbl">Skills</div></div>
     <div class="sdot" id="sd6" onclick="jumpTo(6)"><div class="sdot-c">6</div><div class="sdot-lbl">Generate</div></div>
+    <div class="sdot" id="sd7" onclick="jumpTo(7)"><div class="sdot-c">7</div><div class="sdot-lbl">Templates</div></div>
   </div>
   <div class="step-prog"><div class="step-prog-fill" id="spf"></div></div>
 
   <!-- STEP 1 -->
   <div class="spanel on" id="sp1">
-    <div class="sph"><div class="sph-tag">Step 1 of 6</div><h2 class="sph-title">Personal Profile</h2><p class="sph-desc">Your identity and application targets — the foundation of your resume strategy.</p></div>
+    <div class="sph"><div class="sph-tag">Step 1 of 7</div><h2 class="sph-title">Personal Profile</h2><p class="sph-desc">Your identity and application targets — the foundation of your resume strategy.</p></div>
 
     <div class="fc">
       <div class="fc-head"><div class="fc-ico">👤</div><div><div class="fc-title">Identity &amp; Contact</div><div class="fc-sub">How admissions offices will reach you</div></div></div>
@@ -70,7 +71,7 @@
 
   <!-- STEP 2 -->
   <div class="spanel" id="sp2">
-    <div class="sph"><div class="sph-tag">Step 2 of 6</div><h2 class="sph-title">Academic Profile</h2><p class="sph-desc">Admissions committees scrutinise academic records closely — be thorough and include all grades.</p></div>
+    <div class="sph"><div class="sph-tag">Step 2 of 7</div><h2 class="sph-title">Academic Profile</h2><p class="sph-desc">Admissions committees scrutinise academic records closely — be thorough and include all grades.</p></div>
 
     <div class="fc">
       <div class="fc-head"><div class="fc-ico">📊</div><div><div class="fc-title">Grades &amp; Examination</div></div></div>
@@ -117,7 +118,7 @@
 
   <!-- STEP 3 -->
   <div class="spanel" id="sp3">
-    <div class="sph"><div class="sph-tag">Step 3 of 6</div><h2 class="sph-title">Leadership &amp; Activities</h2><p class="sph-desc">Leadership depth differentiates elite applicants. Be specific about scale and measurable impact.</p></div>
+    <div class="sph"><div class="sph-tag">Step 3 of 7</div><h2 class="sph-title">Leadership &amp; Activities</h2><p class="sph-desc">Leadership depth differentiates elite applicants. Be specific about scale and measurable impact.</p></div>
 
     <div class="fc">
       <div class="fc-head"><div class="fc-ico">👑</div><div><div class="fc-title">Leadership Positions</div><div class="fc-sub">Formal roles where you led, organised, or represented</div></div></div>
@@ -145,7 +146,7 @@
 
   <!-- STEP 4 -->
   <div class="spanel" id="sp4">
-    <div class="sph"><div class="sph-tag">Step 4 of 6</div><h2 class="sph-title">Experience &amp; Impact</h2><p class="sph-desc">Professional experience, research, and community contribution. Quantify everything.</p></div>
+    <div class="sph"><div class="sph-tag">Step 4 of 7</div><h2 class="sph-title">Experience &amp; Impact</h2><p class="sph-desc">Professional experience, research, and community contribution. Quantify everything.</p></div>
 
     <div class="fc">
       <div class="fc-head"><div class="fc-ico">💼</div><div><div class="fc-title">Internships &amp; Work Experience</div></div></div>
@@ -179,7 +180,7 @@
 
   <!-- STEP 5 — Screen 1 (skills & credentials) -->
   <div class="spanel" id="sp5">
-    <div class="sph"><div class="sph-tag">Step 5 of 6 — Screen 1</div><h2 class="sph-title">Skills, Languages &amp; Credentials</h2><p class="sph-desc">Round out your profile with capabilities that signal readiness and intellectual breadth.</p></div>
+    <div class="sph"><div class="sph-tag">Step 5 of 7 — Screen 1</div><h2 class="sph-title">Skills, Languages &amp; Credentials</h2><p class="sph-desc">Round out your profile with capabilities that signal readiness and intellectual breadth.</p></div>
 
     <div class="fc">
       <div class="fc-head"><div class="fc-ico">⚡</div><div><div class="fc-title">Technical &amp; Specialist Skills</div></div></div>
@@ -217,7 +218,7 @@
 
   <!-- STEP 6 — Screen 2 (format, preview, generate) -->
   <div class="spanel" id="sp6">
-    <div class="sph"><div class="sph-tag">Step 6 of 6 — Screen 2</div><h2 class="sph-title">Style &amp; Generate</h2><p class="sph-desc">Choose how your resume should be calibrated. The AI adapts language, structure, and emphasis to each admissions culture.</p></div>
+    <div class="sph"><div class="sph-tag">Step 6 of 7 — Screen 2</div><h2 class="sph-title">Style &amp; Generate</h2><p class="sph-desc">Choose how your resume should be calibrated. The AI adapts language, structure, and emphasis to each admissions culture.</p></div>
 
     <div class="fc" id="fc-admissions-style">
       <div class="fc-head"><div class="fc-ico">🎨</div><div><div class="fc-title">Admissions Style</div><div class="fc-sub">Each style optimises for a different admissions philosophy</div></div></div>
@@ -230,26 +231,6 @@
         <div class="stile" data-style="mba" onclick="pickStyle(this,'mba')"><div class="stile-ck">✓</div><span class="st-ico">💼</span><div class="st-nm">MBA / Leadership</div><div class="st-ds">Wharton, INSEAD, LBS. Quantified business impact, team leadership.</div></div>
       </div>
       <span class="ferr" id="e-style">Please select an admissions style above.</span>
-    </div>
-
-    <div class="fc">
-      <div class="fc-head"><div class="fc-ico">🧩</div><div><div class="fc-title">Resume template <span class="opt">(optional)</span></div><div class="fc-sub">If you pick a layout, the saved PDF uses that studio design when structured data is available.</div></div></div>
-      <div class="fg fg1">
-        <div class="fld">
-          <div class="lbl" style="margin-bottom:8px;">Studio layout</div>
-          <input type="hidden" id="f-studio-template" value="">
-          <div class="rtlp" id="studio-template-picker">
-            <iframe
-              id="studio-template-picker-frame"
-              title="Choose resume template"
-              class="rtlp-frame"
-              src="about:blank"
-              referrerpolicy="strict-origin-when-cross-origin"
-            ></iframe>
-          </div>
-          <p class="fs-12 text-muted mb-0 mt-2" id="f-studio-template-hint">Structured fields (title, company, dates, location, bullets) are filled from the AI so the template library matches.</p>
-        </div>
-      </div>
     </div>
 
     <div class="fc">
@@ -276,6 +257,8 @@
 
     <div class="snav">
       <button class="btn-dim" onclick="goS(5)">← Back</button>
+      <a class="btn-gold-lg" id="gen-next-btn" href="javascript:void(0)" onclick="goS(7)" style="display:none;">Next →</a>
+      <button class="btn-dim" id="gen-again-btn" onclick="doGenerate(null)" style="display:none;">Generate again</button>
       <button class="btn-gold-lg" id="gen-btn" onclick="doGenerate(null)">✨ Generate My Resume</button>
     </div>
 
@@ -303,6 +286,26 @@
         <button type="button" class="btn-dim" id="gen-print-btn">Print</button>
         <a id="gen-finish-btn" class="btn-gen-finish" href="#">Finish</a>
       </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 — Templates + Download -->
+  <div class="spanel" id="sp7">
+    <div class="sph"><div class="sph-tag">Step 7 of 7</div><h2 class="sph-title">Templates &amp; Download</h2><p class="sph-desc">Download your current AI resume, or apply a template and download the styled PDF.</p></div>
+
+    <div class="rtlp-full">
+      <iframe
+        id="studio-template-picker-frame-step7"
+        title="Resume templates and live preview"
+        class="rtlp-frame rtlp-frame--full"
+        src="about:blank"
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(6)">← Back</button>
+      <a class="btn-gold" href="{{ url('users:resumebuilder') }}">Finish</a>
     </div>
   </div>
 

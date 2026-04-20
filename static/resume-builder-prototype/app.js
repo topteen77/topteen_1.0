@@ -1314,6 +1314,17 @@
 
   function init() {
     loadState();
+    function qp(name) {
+      try {
+        return new URLSearchParams(window.location.search).get(name);
+      } catch (_) {
+        return null;
+      }
+    }
+    const isPickerMode = String(qp("mode") || "").trim() === "picker";
+    if (isPickerMode) {
+      document.body.classList.add("tt-mode-picker");
+    }
     if (window.__TT_STUDIO_PREFS_INITIAL && typeof window.__TT_STUDIO_PREFS_INITIAL === "object") {
       var si = window.__TT_STUDIO_PREFS_INITIAL;
       if (si.template && RENDERERS[si.template]) {
@@ -1370,14 +1381,6 @@
     renderEditor();
     bindEditorEvents();
     renderPreview();
-
-    function qp(name) {
-      try {
-        return new URLSearchParams(window.location.search).get(name);
-      } catch (_) {
-        return null;
-      }
-    }
 
     var dupForm = document.getElementById("ttDupResumeForm");
     var snapField = document.getElementById("ttStudioSnapshotJson");

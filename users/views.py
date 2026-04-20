@@ -3607,6 +3607,7 @@ class ResumeStudioSetupView(TemplateView):
 
         rows = studio_html_template_catalog_rows()
         ctx["admitcv_studio_template_catalog"] = rows
+        ctx["resume_has_generated"] = bool((resume.generated_html or "").strip())
         # Real mini previews for Step-6 tiles (server render, then scale down in CSS).
         try:
             from users.resume_studio_html import ADMIN_STUDIO_HTML_PREVIEW_SAMPLE
@@ -3752,6 +3753,8 @@ class ResumeGuidedGenerateView(View):
                         else:
                             ur.generated_html = html_clean
                             draft_save[WIZARD_PREFER_GENERATED_PDF_KEY] = True
+                        # Gate UI behavior: allow skipping steps once generated at least once.
+                        draft_save["generated_once"] = True
                         ur.about = plain
                         ur.wizard_draft_json = json.dumps(
                             draft_save, ensure_ascii=False, default=str
