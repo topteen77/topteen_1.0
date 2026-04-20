@@ -18,7 +18,9 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 {% include 'template20/user/includes/student_shell_styles.html' %}
-<link rel="stylesheet" href="{{ static('css/admitcv-resume-flow.css') }}?v=8">
+<link rel="stylesheet" href="{{ static('css/admitcv-resume-flow.css') }}?v=9">
+{# Needed so Step-6 preview can style studio tpl-* markup (tech-focus etc.) #}
+<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=1">
 <style>
   #toast {
     position: fixed;
@@ -58,8 +60,9 @@
 </script>
 <script type="application/json" id="admitcv-prefill-json">{{ admitcv_prefill|tojson|safe }}</script>
 <script type="application/json" id="wizard-restore-json">{{ wizard_restore_json|safe }}</script>
+<script type="application/json" id="admitcv-studio-templates-json">{{ admitcv_studio_template_catalog|tojson|safe }}</script>
 <script src="{{ static('js/admitcv-resume-theme.js') }}" defer></script>
-<script src="{{ static('js/admitcv-resume-flow.js') }}?v=4" defer></script>
+<script src="{{ static('js/admitcv-resume-flow.js') }}?v=6" defer></script>
 <script src="{{ static('js/student-shell.js') }}?v=1" defer></script>
 {% endblock %}
 

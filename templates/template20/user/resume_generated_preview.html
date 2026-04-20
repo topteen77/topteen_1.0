@@ -32,10 +32,10 @@
         </div>
       </div>
       <div class="resume-preview-body">
-        {% if resume.generated_html and resume.generated_html.strip() %}
+        {% if resume_html_display and resume_html_display.strip() %}
         {{ resume_html_display|safe }}
         {% else %}
-        <p class="fs-14 text-muted mb-0">No generated resume is stored yet. Use <strong>Resume studio</strong>, run <strong>Generate</strong>, then open this page again.</p>
+        <p class="fs-14 text-muted mb-0">No preview yet. Open <strong>Resume studio</strong> or <strong>Template library</strong>, then try again.</p>
         {% endif %}
       </div>
     </div>

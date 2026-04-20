@@ -85,12 +85,13 @@
               <h2 class="fs-18 fw-semibold mb-1">{{ row.resume.title|default('Untitled resume') }}</h2>
               <p class="fs-13 text-muted mb-1">
                 {{ row.sections }} filled section{{ 's' if row.sections != 1 else '' }}
-                {% if row.resume.modified %}· Last updated {{ date_format(row.resume.modified) }}{% endif %}
+                {% if row.resume.modified %}· Last updated {{ localtime(row.resume.modified) }}{% endif %}
               </p>
             </div>
             <div class="d-flex flex-wrap gap-2">
               <a href="{{ url('users:resumebuilder_studio', resume_id=row.resume.pk) }}" class="btn btn-outline-primary btn-sm px-3">Resume studio</a>
               <a href="{{ url('users:resumebuilder_templates', resume_id=row.resume.pk) }}" class="btn btn-outline-secondary btn-sm px-3">Template library</a>
+              <a href="{{ url('users:resumebuilder_templates_embed', resume_id=row.resume.pk) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm px-3">Preview</a>
               <a href="{{ url('users:resumepdf') }}?resume_id={{ row.resume.pk }}&inline=1" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm px-3">View PDF</a>
               <a href="{{ url('users:resumepdf') }}?resume_id={{ row.resume.pk }}" class="btn btn-outline-secondary btn-sm px-3">PDF download</a>
             </div>

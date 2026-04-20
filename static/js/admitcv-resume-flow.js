@@ -233,6 +233,12 @@ function applyWizardRestore(){
   if (d.format) sv('f-format', d.format);
   if (d.tag) sv('f-tag', d.tag);
   if (d.instr) sv('f-instr', d.instr);
+  var sp = d.studio_proto_v1;
+  if (sp && sp.template) {
+    var stSel = document.getElementById('f-studio-template');
+    if (stSel) stSel.value = String(sp.template);
+    paintStudioTemplateSelection(String(sp.template));
+  }
   if (d.style) {
     S.style = d.style;
     var tiles = document.querySelectorAll('#style-grid .stile[data-style]');
@@ -256,10 +262,92 @@ function persistStudioResumeToLocal(b){
   } catch (e) {}
 }
 
+function initStudioTemplatePicker(){
+  var hid = document.getElementById('f-studio-template');
+  var grid = document.getElementById('studio-template-grid');
+  if (!hid || !grid) return;
+  var el = document.getElementById('admitcv-studio-templates-json');
+  var rows = [];
+  if (el && el.textContent) {
+    try {
+      rows = JSON.parse(el.textContent);
+    } catch (e) {}
+  }
+  if (!Array.isArray(rows)) return;
+  grid.innerHTML = '';
+
+  function safeTplMockClass(id){
+    var s = String(id || 'none').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    return s || 'none';
+  }
+
+  function mkTile(id, name, cat){
+    var tile = document.createElement('div');
+    tile.className = 'tpltile';
+    tile.setAttribute('role', 'button');
+    tile.setAttribute('tabindex', '0');
+    tile.setAttribute('data-tpl', id);
+    tile.setAttribute('aria-pressed', 'false');
+    var mock = safeTplMockClass(id);
+    tile.innerHTML =
+      '<div class="tpltile-ck">✓</div>' +
+      '<div class="tpltile-thumb" aria-hidden="true"><div class="tpltile-mock tpltile-mock--' + mock + '"></div></div>' +
+      '<div class="tpltile-body">' +
+        '<div class="tpltile-nm"></div>' +
+        '<div class="tpltile-meta"><span class="tpltile-pill"></span><span class="tpltile-id" style="font-size:11px;color:var(--prose3);">#' + esc(id) + '</span></div>' +
+      '</div>';
+    tile.querySelector('.tpltile-nm').textContent = name || id;
+    tile.querySelector('.tpltile-pill').textContent = cat || 'professional';
+    tile.addEventListener('click', function(){ pickStudioTemplate(id); });
+    tile.addEventListener('keydown', function(e){
+      var k = e.key || '';
+      if(k === 'Enter' || k === ' '){
+        e.preventDefault();
+        pickStudioTemplate(id);
+      }
+    });
+    return tile;
+  }
+
+  // "No preference" tile
+  var none = mkTile('', 'No preference', 'ai html');
+  none.querySelector('.tpltile-id').textContent = 'Default PDF';
+  grid.appendChild(none);
+
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (!r || !r.id) continue;
+    grid.appendChild(mkTile(String(r.id), r.name || r.id, r.category || 'professional'));
+  }
+
+  // Apply initial selection (if any)
+  paintStudioTemplateSelection(String(hid.value || ''));
+}
+
+function paintStudioTemplateSelection(id){
+  var grid = document.getElementById('studio-template-grid');
+  if (!grid) return;
+  var tiles = grid.querySelectorAll('.tpltile[data-tpl]');
+  for (var i = 0; i < tiles.length; i++) {
+    var t = tiles[i];
+    var tid = t.getAttribute('data-tpl') || '';
+    var on = (String(tid) === String(id || ''));
+    if (on) t.classList.add('on'); else t.classList.remove('on');
+    t.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+}
+
+function pickStudioTemplate(id){
+  var hid = document.getElementById('f-studio-template');
+  if (hid) hid.value = String(id || '');
+  paintStudioTemplateSelection(String(id || ''));
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   seedLists();
   wireInputs();
   updBadge();
+  initStudioTemplatePicker();
   wizardAutoStart();
   applyServerPrefill();
   applyWizardRestore();
@@ -1026,15 +1114,65 @@ function hideGenProgressUI(){
   }
 }
 
+function stripTrailingMarkerBlock(raw, marker){
+  raw = String(raw || '');
+  var tag = '\n' + marker + ':';
+  var i = raw.lastIndexOf(tag);
+  if (i < 0) return raw;
+  var j = raw.indexOf('{', i);
+  if (j < 0) return raw.slice(0, i).trim();
+  var depth = 0;
+  for (var k = j; k < raw.length; k++) {
+    var c = raw.charAt(k);
+    if (c === '{') depth++;
+    else if (c === '}') {
+      depth--;
+      if (depth === 0) return raw.slice(0, i).trim();
+    }
+  }
+  return raw.slice(0, i).trim();
+}
+
+function stripAiTrailersForHtml(raw){
+  var s = String(raw || '');
+  s = stripTrailingMarkerBlock(s, 'SCORES');
+  s = stripTrailingMarkerBlock(s, 'RESUME_DATA');
+  return stripMarkdownFences(s.trim());
+}
+
+function parseJsonAfterLastMarker(raw, marker){
+  raw = String(raw || '');
+  var tag = '\n' + marker + ':';
+  var i = raw.lastIndexOf(tag);
+  if (i < 0) return null;
+  var j = raw.indexOf('{', i);
+  if (j < 0) return null;
+  var depth = 0;
+  for (var k = j; k < raw.length; k++) {
+    var c = raw.charAt(k);
+    if (c === '{') depth++;
+    else if (c === '}') {
+      depth--;
+      if (depth === 0) {
+        try {
+          return JSON.parse(raw.slice(j, k + 1));
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function parseScoreMetaFromRaw(raw){
   var out = { tier: '', overall: null };
-  var m = String(raw||'').match(/SCORES:(\{[\s\S]*?\})\s*$/);
-  if(!m) return out;
-  try{
-    var p = JSON.parse(m[1]);
-    if(p.tier) out.tier = String(p.tier);
-    if(p.overall != null && p.overall !== '') out.overall = parseInt(p.overall, 10);
-  } catch(e){}
+  var p = parseJsonAfterLastMarker(raw, 'SCORES');
+  if (!p || typeof p !== 'object') return out;
+  try {
+    if (p.tier) out.tier = String(p.tier);
+    if (p.overall != null && p.overall !== '') out.overall = parseInt(p.overall, 10);
+  } catch (e) {}
   return out;
 }
 
@@ -1054,9 +1192,12 @@ function stripMarkdownFences(s){
   return t.trim();
 }
 
-function showStudioInlinePreview(htmlClean, raw, d, rid, dest, plain){
+function showStudioInlinePreview(htmlClean, raw, d, rid, dest, plain, serverPreviewHtml){
   var body = document.getElementById('gen-preview-body');
-  if(body) body.innerHTML = htmlClean;
+  var shown = (serverPreviewHtml && String(serverPreviewHtml).trim())
+    ? String(serverPreviewHtml)
+    : htmlClean;
+  if(body) body.innerHTML = shown;
   var meta = document.getElementById('gen-preview-meta');
   if(meta){
     var topU = d.unis ? d.unis.split(',').slice(0,3).map(function(u){return u.trim();}).filter(Boolean).join(', ') : '';
@@ -1083,7 +1224,7 @@ function showStudioInlinePreview(htmlClean, raw, d, rid, dest, plain){
   var hubU = typeof window.ADMITCV_RESUME_HUB_URL === 'string' ? window.ADMITCV_RESUME_HUB_URL.trim() : '';
   var fin = document.getElementById('gen-finish-btn');
   if(fin && hubU) fin.setAttribute('href', hubU);
-  window.__topteenGenResumeBundle = { html: htmlClean, plain: plain, dest: dest, d: d, rid: rid };
+  window.__topteenGenResumeBundle = { html: shown, plain: plain, dest: dest, d: d, rid: rid };
   hideGenProgressUI();
   if(wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -1142,6 +1283,8 @@ function doGenerate(rewrite){
     var n = parseInt(rid, 10);
     if (!isNaN(n) && n > 0) payload.resume_id = n;
   }
+  var stSel = document.getElementById('f-studio-template');
+  if (stSel && stSel.value) payload.studio_template_id = String(stSel.value);
   fetch(genUrl, {
     method: 'POST',
     credentials: 'same-origin',
@@ -1169,8 +1312,9 @@ function doGenerate(rewrite){
         return;
       }
       var raw = (res.j && res.j.html) ? String(res.j.html) : '';
-      var html = stripMarkdownFences(raw.replace(/\nSCORES:\{[\s\S]*$/m, '').trim());
-      if (!html) {
+      var html = stripAiTrailersForHtml(raw);
+      var previewHtml = (res.j && res.j.preview_html) ? String(res.j.preview_html) : '';
+      if (!html && !(previewHtml || '').trim()) {
         toast('No resume HTML was returned. Try again.');
         onGenFailure();
         return;
@@ -1178,7 +1322,7 @@ function doGenerate(rewrite){
       var plain = buildPlainResumeSummary(d);
       finishGenProgressSuccess();
       setTimeout(function(){
-        showStudioInlinePreview(html, raw, d, rid, dest, plain);
+        showStudioInlinePreview(html, raw, d, rid, dest, plain, previewHtml);
         restoreBtn();
       }, 420);
     })
@@ -1200,15 +1344,16 @@ function renderResult(raw, d){
     community:65,global:70,ats:78,overall:70,fit:72,
     tier:'Competitive',suggestions:[],booster:''
   };
-  var m = raw.match(/SCORES:(\{[\s\S]*?\})\s*$/);
-  if(m){
-    try{
-      var p = JSON.parse(m[1]);
-      var keys = Object.keys(p);
-      for(var k=0;k<keys.length;k++) sc[keys[k]] = p[keys[k]];
-    } catch(e){ console.warn('[AdmitCV] score parse',e); }
-    raw = raw.replace(/SCORES:\{[\s\S]*?\}\s*$/,'').trim();
+  var pscores = parseJsonAfterLastMarker(raw, 'SCORES');
+  if (pscores && typeof pscores === 'object') {
+    try {
+      var keys = Object.keys(pscores);
+      for (var k = 0; k < keys.length; k++) sc[keys[k]] = pscores[keys[k]];
+    } catch (e) {
+      console.warn('[AdmitCV] score parse', e);
+    }
   }
+  raw = stripAiTrailersForHtml(raw);
 
   S.rhtml = raw;
   S.scores = sc;

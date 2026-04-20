@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume</title>
+  <link rel="stylesheet" href="{{ studio_resume_css_url }}">
+  <style>
+    {{ studio_root_style|safe }}
+    body { margin: 0; background: #fff; font-family: var(--font-stack, "Inter", system-ui, sans-serif); }
+    .pdf-wrap { max-width: 900px; margin: 0 auto; padding: 16px 20px 24px; }
+    .preview-wrap { background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="pdf-wrap">
+    <main class="preview-wrap">
+      <article class="resume" id="resume" data-template="{{ studio_template_id }}">
+        <div id="resumeMount" class="resume__mount">
+          {{ studio_mount_html|safe }}
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

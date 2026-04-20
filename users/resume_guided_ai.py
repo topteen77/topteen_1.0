@@ -4,6 +4,7 @@ Uses settings.OPENAI_API_KEY — never client-supplied keys.
 """
 from __future__ import annotations
 
+import json
 import re
 from typing import Optional, Tuple
 
@@ -138,13 +139,64 @@ def strip_markdown_fences(html: str) -> str:
     return t.strip()
 
 
-def split_generated_html(raw: str) -> str:
-    """Strip trailing SCORES:{...} and markdown code fences; return HTML only."""
+def _strip_trailing_marker_json(raw: str, marker: str) -> str:
+    """Remove a trailing ``\\nMARKER:{...}`` block using brace matching."""
     if not raw:
         return ""
-    m = re.search(r"\nSCORES:\s*\{", raw)
-    out = raw[: m.start()].strip() if m else raw.strip()
-    return strip_markdown_fences(out)
+    tag = f"\n{marker}:"
+    i = raw.rfind(tag)
+    if i < 0:
+        return raw
+    j = raw.find("{", i)
+    if j < 0:
+        return raw[:i].rstrip()
+    depth = 0
+    for k in range(j, len(raw)):
+        c = raw[k]
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return raw[:i].rstrip()
+    return raw[:i].rstrip()
+
+
+def split_generated_html(raw: str) -> str:
+    """Strip trailing RESUME_DATA / SCORES JSON blocks and markdown fences; return HTML only."""
+    if not raw:
+        return ""
+    out = _strip_trailing_marker_json(raw, "SCORES")
+    out = _strip_trailing_marker_json(out, "RESUME_DATA")
+    return strip_markdown_fences(out.strip())
+
+
+def extract_resume_data_json(raw: str) -> dict | None:
+    """Parse ``RESUME_DATA:{...}`` from the model tail (brace-balanced)."""
+    if not raw:
+        return None
+    tag = "\nRESUME_DATA:"
+    i = raw.rfind(tag)
+    if i < 0:
+        return None
+    j = raw.find("{", i)
+    if j < 0:
+        return None
+    depth = 0
+    for k in range(j, len(raw)):
+        c = raw[k]
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                blob = raw[j : k + 1]
+                try:
+                    obj = json.loads(blob)
+                except json.JSONDecodeError:
+                    return None
+                return obj if isinstance(obj, dict) else None
+    return None
 
 
 def build_plain_resume_summary_py(d: dict[str, str]) -> str:
@@ -244,10 +296,31 @@ def _nz(v: str, default: str = "N/A") -> str:
     return t if t else default
 
 
-def build_resume_prompt(d: dict[str, str]) -> str:
+def build_resume_prompt(d: dict[str, str], studio_template_id: str | None = None) -> str:
     style_key = d.get("style") or "ivy_league"
     style_line = STYLE_D.get(style_key, style_key)
     rewrite = (d.get("_rewrite") or "").strip()
+    tid = (studio_template_id or "").strip().lower()
+    template_line = ""
+    if tid:
+        template_line = (
+            f"\nSTUDIO LAYOUT TEMPLATE (must appear in RESUME_DATA only as metadata echo; "
+            f"the user chose layout id \"{tid}\" for the template library — keep all RESUME_DATA fields complete "
+            "regardless of layout).\n"
+        )
+    resume_data_example = (
+        '{"fullName":"Priya Sharma","headline":"Economics · Undergraduate applicant","email":"student@example.com",'
+        '"phone":"+91 90000 00000","address":"Mumbai, India","linkedin":"","website":"","summary":"Three to five sentences.",'
+        '"photo":"","skills":[{"name":"Python","level":4},{"name":"Public speaking","level":3}],'
+        '"experience":[{"title":"Research Intern","company":"National Policy Institute","location":"New Delhi, India",'
+        '"dates":"Jun 2024 — Aug 2024","bullets":["Built literature review dataset from 30+ sources.",'
+        '"Drafted briefing notes for senior analysts."]}],'
+        '"education":[{"degree":"Grade 12 — Science","school":"Example Senior School","dates":"2024 — Present",'
+        '"detail":"Board: CBSE; subjects include Mathematics, Economics, Physics."}],'
+        '"certifications":[{"name":"Coursera: Behavioural Economics","issuer":"Coursera","date":"2023"}],'
+        '"languages":[{"name":"English","level":"Fluent"},{"name":"Hindi","level":"Native"}],'
+        '"interests":"Debate, developmental economics, chess"}'
+    )
 
     return (
         "You are a world-class university admissions consultant and professional CV writer with 20+ years "
@@ -275,6 +348,7 @@ def build_resume_prompt(d: dict[str, str]) -> str:
         f"STYLE: {style_line}\nFORMAT: {_nz(d.get('format'), 'one_page')}\nTAGLINE: {_nz(d.get('tag'), '')}\n"
         f"SPECIAL INSTRUCTIONS: {_nz(d.get('instr'), 'None')}\n"
         + (f"REWRITE MODE: {rewrite}\n" if rewrite else "")
+        + template_line
         + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         "LANGUAGE TRANSFORMATION RULES — APPLY TO EVERY BULLET:\n"
         '• NEVER use: "I participated", "helped with", "was responsible for", "was part of", "assisted"\n'
@@ -301,16 +375,26 @@ def build_resume_prompt(d: dict[str, str]) -> str:
         "11. Projects & Entrepreneurship (if any)\n"
         "12. Skills, Languages & Certifications\n\n"
         "CRITICAL OUTPUT RULES:\n"
-        "• Output ONLY the resume HTML — no preamble, no markdown fences, no explanation\n"
-        "• Immediately after the HTML, on a NEW LINE, output exactly: SCORES:{...json...}\n"
+        "• Output ONLY the resume HTML first — no preamble, no markdown fences, no explanation\n"
+        "• On the NEXT LINE after the HTML, output exactly: RESUME_DATA:{...json...}\n"
+        "• RESUME_DATA must mirror the resume studio / template library schema. Required top-level keys: "
+        "fullName, headline, email, phone, address, linkedin, website, summary, photo (string, often \"\"), "
+        "skills (array of {name, level} with level integer 1-5), experience, education, certifications, languages, interests.\n"
+        "• Every object in experience MUST include all keys: title, company, location, dates, bullets (array of strings). "
+        "Use \"\" for unknown location. education items: degree, school, dates, detail. certifications: name, issuer, date. "
+        "languages: name, level.\n"
+        "• Example shape (fill with real student data, not placeholders): RESUME_DATA:" + resume_data_example + "\n"
+        "• On the NEXT LINE after RESUME_DATA, output exactly: SCORES:{...json...}\n"
         "• SCORES JSON must contain: academic, leadership, research, extracurricular, community, global, ats, "
         "overall, fit (all integers 0-100), tier (\"Competitive\"|\"Strong\"|\"Outstanding\"|\"Elite\"), "
         "suggestions (array of 4 actionable strings), booster (string or empty \"\")\n"
-        "• The entire response = [HTML][newline]SCORES:{json} — nothing else."
+        "• The entire response = [HTML][newline]RESUME_DATA:{json}[newline]SCORES:{json} — nothing else before/after."
     )
 
 
-def generate_resume_raw(d: dict[str, str]) -> Tuple[Optional[str], Optional[str]]:
+def generate_resume_raw(
+    d: dict[str, str], studio_template_id: str | None = None
+) -> Tuple[Optional[str], Optional[str]]:
     """
     Call OpenAI with server OPENAI_API_KEY.
     Returns (full_raw_text_including_optional_SCORES_line, error_message).
@@ -323,7 +407,7 @@ def generate_resume_raw(d: dict[str, str]) -> Tuple[Optional[str], Optional[str]
 
     model = (getattr(settings, "OPENAI_MODEL", None) or getattr(settings, "AI_MODEL", None) or "gpt-4o-mini").strip()
 
-    prompt = build_resume_prompt(d)
+    prompt = build_resume_prompt(d, studio_template_id=studio_template_id)
 
     try:
         import openai

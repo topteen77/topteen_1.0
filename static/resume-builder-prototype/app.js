@@ -100,7 +100,7 @@
     try {
       var arr = JSON.parse(el.textContent);
       if (!Array.isArray(arr) || !arr.length) return DEFAULT_TEMPLATES.slice();
-      return arr
+      var fromServer = arr
         .map(function (row) {
           var id = String((row && (row.id || row.template_key)) || "").trim();
           if (!id) return null;
@@ -116,6 +116,23 @@
           };
         })
         .filter(Boolean);
+      // Admin catalog may list only a subset; saved resumes can still reference any
+      // RENDERERS id. Merge defaults so prefs + grid resolve (e.g. duplicated copy).
+      var seen = new Set();
+      var merged = [];
+      fromServer.forEach(function (t) {
+        if (!seen.has(t.id)) {
+          seen.add(t.id);
+          merged.push(t);
+        }
+      });
+      DEFAULT_TEMPLATES.forEach(function (t) {
+        if (!seen.has(t.id)) {
+          seen.add(t.id);
+          merged.push(t);
+        }
+      });
+      return merged.length ? merged : DEFAULT_TEMPLATES.slice();
     } catch (e) {
       return DEFAULT_TEMPLATES.slice();
     }
@@ -1271,7 +1288,7 @@
       if (!window.__TT_RESUME_INITIAL) {
         if (o.resume && typeof o.resume === "object") resumeData = o.resume;
       }
-      if (o.template && TEMPLATES.some((t) => t.id === o.template)) activeTemplateId = o.template;
+      if (o.template && RENDERERS[o.template]) activeTemplateId = o.template;
       if (o.color && COLOR_SCHEMES.some((c) => c.id === o.color)) activeColorId = o.color;
       if (o.textAlign && TEXT_ALIGN_OPTIONS.some((a) => a.id === o.textAlign)) activeTextAlignId = o.textAlign;
     } catch (_) {}
@@ -1281,7 +1298,7 @@
     loadState();
     if (window.__TT_STUDIO_PREFS_INITIAL && typeof window.__TT_STUDIO_PREFS_INITIAL === "object") {
       var si = window.__TT_STUDIO_PREFS_INITIAL;
-      if (si.template && TEMPLATES.some(function (t) { return t.id === si.template; }) && RENDERERS[si.template]) {
+      if (si.template && RENDERERS[si.template]) {
         activeTemplateId = si.template;
       }
       if (si.color && COLOR_SCHEMES.some(function (c) { return c.id === si.color; })) {
@@ -1308,7 +1325,7 @@
     }
     if (window.__TT_STUDIO_FORCE_TEMPLATE) {
       const fk = String(window.__TT_STUDIO_FORCE_TEMPLATE).trim();
-      if (fk && TEMPLATES.some((t) => t.id === fk) && RENDERERS[fk]) {
+      if (fk && RENDERERS[fk]) {
         activeTemplateId = fk;
       }
     }

@@ -79,15 +79,22 @@ from .resume_guided_ai import strip_markdown_fences
 from .resume_payload import (
     STUDIO_PROTO_V1_KEY,
     apply_studio_resume_to_userresume_children,
+    ensure_studio_proto_v1_defaults_saved,
     resume_editor_payload as _resume_editor_payload,
     resume_studio_embed_finish_pdf_urls,
     resume_studio_prototype_payload,
     studio_prefs_from_resume_record,
     studio_v1_pack_to_generated_html,
+    wizard_prefers_generated_pdf,
 )
 from .resume_studio_html import (
     admin_studio_html_preview_initial_json,
     studio_html_template_catalog_json,
+)
+from .resume_studio_pdf_html import (
+    studio_pack_root_css_block,
+    studio_proto_pack_from_resume,
+    studio_proto_pack_to_mount_html,
 )
 
 
@@ -3546,7 +3553,24 @@ class ResumeGeneratedPreviewView(TemplateView):
         ctx["resume"] = resume
         ctx["profile_user"] = self.request.user
         ctx.update(_hub_nav_counts(self.request.user))
-        ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
+        if wizard_prefers_generated_pdf(resume):
+            ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
+        else:
+            studio_pack = studio_proto_pack_from_resume(resume)
+            if studio_pack:
+                mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
+                ctx["resume_html_display"] = get_template(
+                    "mail/user/userresumepdf_studio_prototype.html"
+                ).render(
+                    {
+                        "studio_resume_css_url": _studio_resume_pdf_stylesheet_url(self.request),
+                        "studio_root_style": studio_pack_root_css_block(studio_pack),
+                        "studio_mount_html": mount_html,
+                        "studio_template_id": template_id,
+                    }
+                )
+            else:
+                ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
         return ctx
 
 
@@ -3579,6 +3603,9 @@ class ResumeStudioSetupView(TemplateView):
             "grade": (profile.grade or "")[:120] if profile else "",
         }
         ctx["wizard_restore_json"] = resume.wizard_draft_json or "{}"
+        from users.resume_studio_html import studio_html_template_catalog_rows
+
+        ctx["admitcv_studio_template_catalog"] = studio_html_template_catalog_rows()
         return ctx
 
     def get(self, request, resume_id, *args, **kwargs):
@@ -3591,7 +3618,7 @@ class ResumeStudioSetupView(TemplateView):
 
 @method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
 class ResumeGuidedGenerateView(View):
-    """POST JSON { \"draft\": {...}, \"resume_id\": <pk> } — AI HTML + persist to UserResume when resume_id set."""
+    """POST JSON { draft, resume_id?, studio_template_id? } — AI HTML + optional studio RESUME_DATA merge."""
 
     http_method_names = ["post"]
 
@@ -3602,11 +3629,23 @@ class ResumeGuidedGenerateView(View):
 
         from users.resume_guided_ai import (
             build_plain_resume_summary_py,
+            extract_resume_data_json,
             generate_resume_raw,
             sanitize_draft,
             split_generated_html,
             sync_user_fields_from_wizard,
         )
+        from users.resume_payload import (
+            DEFAULT_STUDIO_EMBED_FONT,
+            STUDIO_PROTO_V1_KEY,
+            WIZARD_PREFER_GENERATED_PDF_KEY,
+            apply_studio_resume_to_userresume_children,
+            guided_wizard_payload_for_studio,
+            merge_studio_resume_ai_overlay,
+            studio_v1_pack_to_generated_html,
+        )
+        from users.resume_studio_pdf_html import studio_proto_pack_to_mount_html
+        from users.resume_studio_html import ALLOWED_STUDIO_HTML_TEMPLATE_KEYS
 
         try:
             body = json.loads(request.body.decode("utf-8") or "{}")
@@ -3622,13 +3661,21 @@ class ResumeGuidedGenerateView(View):
         except ValueError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
 
-        raw, err = generate_resume_raw(draft)
+        st_raw = body.get("studio_template_id")
+        studio_tid = str(st_raw).strip().lower() if st_raw not in (None, "", b"") else ""
+        if studio_tid and studio_tid not in ALLOWED_STUDIO_HTML_TEMPLATE_KEYS:
+            studio_tid = ""
+
+        raw, err = generate_resume_raw(draft, studio_template_id=studio_tid or None)
         if err:
             logger.warning("resume_guided_generate failed: %s", err[:500])
             return JsonResponse({"error": err}, status=503)
 
         html_clean = split_generated_html(raw)
+        rd_raw = extract_resume_data_json(raw)
         rid = body.get("resume_id")
+        client_preview = html_clean
+        pk = None
         if rid not in (None, "", b""):
             try:
                 pk = int(rid)
@@ -3643,9 +3690,48 @@ class ResumeGuidedGenerateView(View):
                             user=request.user,
                         )
                         plain = build_plain_resume_summary_py(draft)
-                        ur.generated_html = html_clean
+                        fallback_resume = guided_wizard_payload_for_studio(ur, request, draft)
+                        merged_resume = merge_studio_resume_ai_overlay(
+                            fallback_resume,
+                            rd_raw if isinstance(rd_raw, dict) else None,
+                        )
+                        has_pack_content = bool(
+                            merged_resume
+                            and (
+                                (merged_resume.get("fullName") or "").strip()
+                                or (merged_resume.get("headline") or "").strip()
+                                or (merged_resume.get("summary") or "").strip()
+                                or (merged_resume.get("experience") or [])
+                                or (merged_resume.get("education") or [])
+                                or (merged_resume.get("skills") or [])
+                            )
+                        )
+                        pack = None
+                        if has_pack_content:
+                            pack = {
+                                "resume": merged_resume,
+                                "template": studio_tid or "classic-sidebar",
+                                "color": "teal",
+                                "font": DEFAULT_STUDIO_EMBED_FONT,
+                                "textAlign": "start",
+                            }
+                        draft_save = dict(draft)
+                        if pack:
+                            draft_save[STUDIO_PROTO_V1_KEY] = pack
+                            apply_studio_resume_to_userresume_children(ur, pack["resume"])
+                        if studio_tid and pack:
+                            # Use the same renderer as the template library / PDF so the generated preview
+                            # matches the selected layout (e.g. Tech Focus).
+                            mount_html, _template_id = studio_proto_pack_to_mount_html(pack)
+                            ur.generated_html = mount_html
+                            draft_save.pop(WIZARD_PREFER_GENERATED_PDF_KEY, None)
+                        else:
+                            ur.generated_html = html_clean
+                            draft_save[WIZARD_PREFER_GENERATED_PDF_KEY] = True
                         ur.about = plain
-                        ur.wizard_draft_json = json.dumps(draft)
+                        ur.wizard_draft_json = json.dumps(
+                            draft_save, ensure_ascii=False, default=str
+                        )
                         ur.save(
                             update_fields=[
                                 "generated_html",
@@ -3654,12 +3740,13 @@ class ResumeGuidedGenerateView(View):
                                 "modified",
                             ]
                         )
+                        client_preview = (ur.generated_html or html_clean).strip() or html_clean
                         sync_user_fields_from_wizard(request.user, draft)
                 except Exception as exc:
                     logger.exception("resume persist after generate failed: %s", exc)
                     return JsonResponse({"error": "Could not save resume to your account."}, status=500)
 
-        return JsonResponse({"html": raw})
+        return JsonResponse({"html": raw, "preview_html": client_preview})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3754,6 +3841,19 @@ def _resume_pdf_template_row_paths_and_style(
     )
 
 
+def _studio_resume_pdf_stylesheet_url(request) -> str:
+    """Prefer file:// for wkhtmltopdf; else absolute URL to static."""
+    from pathlib import Path
+
+    from django.contrib.staticfiles import finders
+    from django.templatetags.static import static
+
+    p = finders.find("resume-builder-prototype/styles.css")
+    if p and Path(p).is_file():
+        return Path(p).as_uri()
+    return request.build_absolute_uri(static("resume-builder-prototype/styles.css"))
+
+
 @login_required
 def resume_pdf_download(request,*args, **kwargs):
     rid = request.GET.get("resume_id")
@@ -3794,7 +3894,21 @@ def resume_pdf_download(request,*args, **kwargs):
         ctx["image_url"] = ""
     from django.template import TemplateDoesNotExist
 
-    if (user_resume.generated_html or "").strip():
+    studio_pack = (
+        None
+        if wizard_prefers_generated_pdf(user_resume)
+        else studio_proto_pack_from_resume(user_resume)
+    )
+    if studio_pack:
+        mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
+        ctx["studio_resume_css_url"] = _studio_resume_pdf_stylesheet_url(request)
+        ctx["studio_root_style"] = studio_pack_root_css_block(studio_pack)
+        ctx["studio_mount_html"] = mount_html
+        ctx["studio_template_id"] = template_id
+        ctx["generated_resume_html"] = mount_html
+        chosen = "mail/user/userresumepdf_studio_prototype.html"
+        fallback = "mail/user/userresumepdf_studio_prototype.html"
+    elif (user_resume.generated_html or "").strip():
         ctx["generated_resume_html"] = strip_markdown_fences(user_resume.generated_html)
         chosen, fallback = _choose_generated_mail_template(_tpl_row, generated_path)
     else:
@@ -3805,7 +3919,11 @@ def resume_pdf_download(request,*args, **kwargs):
     except TemplateDoesNotExist:
         template = get_template(fallback)
     html  = template.render(ctx)
-    pdf=pdfkit.from_string(html,False)
+    pdf = pdfkit.from_string(
+        html,
+        False,
+        options={"enable-local-file-access": ""},
+    )
     response= HttpResponse(pdf, content_type='application/pdf')
     base = (request.user.name or "Student").strip() or "Student"
     safe = re.sub(r"[^\w\-. ]+", "_", base, flags=re.UNICODE).strip(" .-_") or "Student"
@@ -3857,7 +3975,21 @@ def resume_html_preview(request, *args, **kwargs):
         ctx["image_url"] = ""
     from django.template import TemplateDoesNotExist
 
-    if (user_resume.generated_html or "").strip():
+    studio_pack = (
+        None
+        if wizard_prefers_generated_pdf(user_resume)
+        else studio_proto_pack_from_resume(user_resume)
+    )
+    if studio_pack:
+        mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
+        ctx["studio_resume_css_url"] = _studio_resume_pdf_stylesheet_url(request)
+        ctx["studio_root_style"] = studio_pack_root_css_block(studio_pack)
+        ctx["studio_mount_html"] = mount_html
+        ctx["studio_template_id"] = template_id
+        ctx["generated_resume_html"] = mount_html
+        chosen = "mail/user/userresumepdf_studio_prototype.html"
+        fallback = "mail/user/userresumepdf_studio_prototype.html"
+    elif (user_resume.generated_html or "").strip():
         ctx["generated_resume_html"] = strip_markdown_fences(user_resume.generated_html)
         chosen, fallback = _choose_generated_mail_template(_tpl_row, generated_path)
     else:
@@ -3907,6 +4039,8 @@ class ResumeTemplateStudioEmbedView(View):
 
     def get(self, request, resume_id, *args, **kwargs):
         resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        if ensure_studio_proto_v1_defaults_saved(resume, request):
+            resume.refresh_from_db()
         payload = resume_studio_prototype_payload(resume, request)
         raw = json.dumps(payload, ensure_ascii=False, default=str).translate(
             str.maketrans({"<": "\\u003c", ">": "\\u003e"})
