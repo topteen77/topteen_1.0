@@ -4,14 +4,15 @@
 ═══════════════════════════════════════════════════════ */
 var S = {
   step: 1,
-  STEPS: 6,
+  STEPS: 7,
   style: 'ivy_league',
   unis: [],
   fd: null,       /* last collected form data */
   rhtml: '',      /* last resume HTML */
   scores: null,   /* last scores object */
   busy: false,
-  saved: []
+  saved: [],
+  generatedOnce: false
 };
 
 /* load persisted resumes */
@@ -199,6 +200,7 @@ function applyWizardRestore(){
     return;
   }
   if (!d || typeof d !== 'object' || !Object.keys(d).length) return;
+  if (d.generated_once === true) S.generatedOnce = true;
 
   if (d.name) sv('f-name', d.name);
   if (d.email) sv('f-email', d.email);
@@ -237,7 +239,6 @@ function applyWizardRestore(){
   if (sp && sp.template) {
     var stSel = document.getElementById('f-studio-template');
     if (stSel) stSel.value = String(sp.template);
-    paintStudioTemplateSelection(String(sp.template));
   }
   if (d.style) {
     S.style = d.style;
@@ -252,6 +253,16 @@ function applyWizardRestore(){
   buildPreview();
 }
 
+function updateGenerateButtons(){
+  var has = !!S.generatedOnce;
+  var btn = document.getElementById('gen-btn');
+  var next = document.getElementById('gen-next-btn');
+  var again = document.getElementById('gen-again-btn');
+  if (btn) btn.style.display = has ? 'none' : '';
+  if (next) next.style.display = has ? '' : 'none';
+  if (again) again.style.display = has ? '' : 'none';
+}
+
 function persistStudioResumeToLocal(b){
   if(!b) return;
   try {
@@ -263,65 +274,7 @@ function persistStudioResumeToLocal(b){
 }
 
 function initStudioTemplatePicker(){
-  var hid = document.getElementById('f-studio-template');
-  var grid = document.getElementById('studio-template-grid');
-  if (!hid || !grid) return;
-  var el = document.getElementById('admitcv-studio-templates-json');
-  var rows = [];
-  if (el && el.textContent) {
-    try {
-      rows = JSON.parse(el.textContent);
-    } catch (e) {}
-  }
-  if (!Array.isArray(rows)) return;
-  grid.innerHTML = '';
-
-  function safeTplMockClass(id){
-    var s = String(id || 'none').toLowerCase().replace(/[^a-z0-9-]/g, '');
-    return s || 'none';
-  }
-
-  function mkTile(id, name, cat){
-    var tile = document.createElement('div');
-    tile.className = 'tpltile';
-    tile.setAttribute('role', 'button');
-    tile.setAttribute('tabindex', '0');
-    tile.setAttribute('data-tpl', id);
-    tile.setAttribute('aria-pressed', 'false');
-    var mock = safeTplMockClass(id);
-    tile.innerHTML =
-      '<div class="tpltile-ck">✓</div>' +
-      '<div class="tpltile-thumb" aria-hidden="true"><div class="tpltile-mock tpltile-mock--' + mock + '"></div></div>' +
-      '<div class="tpltile-body">' +
-        '<div class="tpltile-nm"></div>' +
-        '<div class="tpltile-meta"><span class="tpltile-pill"></span><span class="tpltile-id" style="font-size:11px;color:var(--prose3);">#' + esc(id) + '</span></div>' +
-      '</div>';
-    tile.querySelector('.tpltile-nm').textContent = name || id;
-    tile.querySelector('.tpltile-pill').textContent = cat || 'professional';
-    tile.addEventListener('click', function(){ pickStudioTemplate(id); });
-    tile.addEventListener('keydown', function(e){
-      var k = e.key || '';
-      if(k === 'Enter' || k === ' '){
-        e.preventDefault();
-        pickStudioTemplate(id);
-      }
-    });
-    return tile;
-  }
-
-  // "No preference" tile
-  var none = mkTile('', 'No preference', 'ai html');
-  none.querySelector('.tpltile-id').textContent = 'Default PDF';
-  grid.appendChild(none);
-
-  for (var i = 0; i < rows.length; i++) {
-    var r = rows[i];
-    if (!r || !r.id) continue;
-    grid.appendChild(mkTile(String(r.id), r.name || r.id, r.category || 'professional'));
-  }
-
-  // Apply initial selection (if any)
-  paintStudioTemplateSelection(String(hid.value || ''));
+  // Step-6 template selection removed; template choosing happens in Step 7.
 }
 
 function paintStudioTemplateSelection(id){
@@ -338,8 +291,6 @@ function paintStudioTemplateSelection(id){
 }
 
 function pickStudioTemplate(id){
-  var hid = document.getElementById('f-studio-template');
-  if (hid) hid.value = String(id || '');
   paintStudioTemplateSelection(String(id || ''));
 }
 
@@ -348,9 +299,16 @@ document.addEventListener('DOMContentLoaded', function(){
   wireInputs();
   updBadge();
   initStudioTemplatePicker();
+  initStep7TemplatesEmbed();
   wizardAutoStart();
   applyServerPrefill();
   applyWizardRestore();
+  try {
+    if (typeof window.TOPTEEN_RESUME_HAS_GENERATED === 'boolean' && window.TOPTEEN_RESUME_HAS_GENERATED) {
+      S.generatedOnce = true;
+    }
+  } catch (e) {}
+  updateGenerateButtons();
   var pdfA = document.getElementById('gen-download-pdf-link');
   var pdfU = typeof window.ADMITCV_RESUME_PDF_URL === 'string' ? window.ADMITCV_RESUME_PDF_URL.trim() : '';
   var hubU = typeof window.ADMITCV_RESUME_HUB_URL === 'string' ? window.ADMITCV_RESUME_HUB_URL.trim() : '';
@@ -412,7 +370,19 @@ function goPage(id){
    STEP NAVIGATION
 ═══════════════════════════════════════════════════════ */
 function goS(n){
+  if (n === 7 && !S.generatedOnce) {
+    toast('Generate your resume once to unlock templates.');
+    n = 6;
+  }
   S.step = n;
+  // Step 7 needs a wider canvas for the template picker.
+  try {
+    var wrap = document.querySelector('.bld-wrap');
+    if (wrap) {
+      if (n === 7) wrap.classList.add('bld-wrap--wide');
+      else wrap.classList.remove('bld-wrap--wide');
+    }
+  } catch (e) {}
   var panels = document.querySelectorAll('.spanel');
   for(var i=0;i<panels.length;i++) panels[i].classList.remove('on');
   var p = document.getElementById('sp'+n);
@@ -430,6 +400,10 @@ function goS(n){
   var pf = document.getElementById('spf');
   if(pf) pf.style.width = pct+'%';
 
+  if (n === 7) {
+    // Ensure templates iframe always loads when entering Step 7.
+    initStep7TemplatesEmbed();
+  }
   if(n===S.STEPS) buildPreview();
   goPage('build');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -443,6 +417,10 @@ function nextS(from){
 }
 
 function jumpTo(n){
+  if (S.generatedOnce) {
+    goS(n);
+    return;
+  }
   if(n<=S.step) goS(n);
 }
 
@@ -1229,6 +1207,13 @@ function showStudioInlinePreview(htmlClean, raw, d, rid, dest, plain, serverPrev
   if(wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function initStep7TemplatesEmbed(){
+  var frame = document.getElementById('studio-template-picker-frame-step7');
+  if (!frame) return;
+  var u = (typeof window.ADMITCV_RESUME_TEMPLATES_EMBED_URL === 'string' ? window.ADMITCV_RESUME_TEMPLATES_EMBED_URL : '').trim();
+  if (u) frame.src = (u.indexOf('?') >= 0 ? (u + '&mode=picker') : (u + '?mode=picker'));
+}
+
 function doGenerate(rewrite){
   /* Top Teen: validate → server OpenAI → progress UI → inline preview → user continues to editor */
   if (rewrite) {
@@ -1283,8 +1268,6 @@ function doGenerate(rewrite){
     var n = parseInt(rid, 10);
     if (!isNaN(n) && n > 0) payload.resume_id = n;
   }
-  var stSel = document.getElementById('f-studio-template');
-  if (stSel && stSel.value) payload.studio_template_id = String(stSel.value);
   fetch(genUrl, {
     method: 'POST',
     credentials: 'same-origin',
@@ -1323,6 +1306,10 @@ function doGenerate(rewrite){
       finishGenProgressSuccess();
       setTimeout(function(){
         showStudioInlinePreview(html, raw, d, rid, dest, plain, previewHtml);
+        // After generating, move the user to templates/download step.
+        S.generatedOnce = true;
+        updateGenerateButtons();
+        goS(7);
         restoreBtn();
       }, 420);
     })

@@ -1,14 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My Scrapbook | Top Teen{% endblock %}
 {% block description_content %}Access your saved content including notes, resume, bookmarks, and more.{% endblock %}
 
-{% block bodyclass %}{{ super() }} scrapbook-page{% endblock %}
+{% block student_bodyclass %}scrapbook-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
-
 <style>
   .scrapbook-page {
     padding-top: 47px;
@@ -102,18 +100,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="scrapbook-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Scrapbook' %}
+{% endblock %}
 
-      <!-- Right Part - Scrapbook Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}scrapbook-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-4{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -268,10 +264,7 @@
       </div>
         </div>
       </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
+{% endblock %}
 <!-- Add Folder Modal -->
 <div class="modal fade" id="addFolderModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered"> 
@@ -296,7 +289,6 @@
     </div>
   </div>
 </div>
-{% endblock %}
 
 {% block additionaljs %}
 {{ super() }}

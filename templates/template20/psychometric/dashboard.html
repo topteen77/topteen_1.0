@@ -1,4 +1,4 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Psychometric Dashboard | Top Teen{% endblock %}
 {% block description_content %}Your Stream Sorter psychometric dashboard with test results and statistics.{% endblock %}
@@ -7,6 +7,15 @@
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Psychometric dashboard' %}
+{% endblock %}
+
+{% block student_section_class %}psychometric-dashboard-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
 
 {% block bodyclass %}{{ super() }} psychometric-dashboard-page{% endblock %}
 
@@ -343,22 +352,7 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container my-md-8 mt-3 pt-3">
-  <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
-    <button type="button" class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
-      style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
-      data-bs-toggle="offcanvas" data-bs-target="#mobileProfileDrawer" aria-controls="mobileProfileDrawer" aria-label="Open profile">
-      <i class='bx bxs-user-detail fs-22'></i>
-    </button>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-lg-4 d-none d-lg-block">
-      {% include 'template20/user/includes/profile_sidebar.html' %}
-    </div>
-
-    <div class="col-lg-8 col-md-12">
+{% block student_main %}
       <div class="psych-dashboard-main">
       {% if messages %}
       <div class="mb-4">
@@ -521,17 +515,4 @@
       </div>
       {% endif %}
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    {% include 'template20/user/includes/profile_sidebar.html' %}
-  </div>
-</div>
 {% endblock %}

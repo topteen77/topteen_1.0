@@ -923,9 +923,18 @@
 
     const photoInput = document.getElementById("photoInput");
     if (photoInput) {
-      photoInput.addEventListener("change", () => {
+      photoInput.addEventListener("change", async () => {
         const f = photoInput.files && photoInput.files[0];
         if (!f) return;
+        // Upload to S3-backed ImageField so templates show the stored resume photo.
+        const url = await uploadResumePhoto(f);
+        if (url) {
+          resumeData.photo = url;
+          scheduleSave();
+          renderPreview();
+          return;
+        }
+        // Fallback: local preview only (not persisted to DB).
         const r = new FileReader();
         r.onload = () => {
           resumeData.photo = r.result;
@@ -1166,6 +1175,7 @@
         scheduleSave();
         renderTemplateGrid();
         renderPreview();
+        notifyParentSelection();
       });
       templateGrid.appendChild(card);
     });
@@ -1259,6 +1269,54 @@
     saveTimer = setTimeout(persistState, 400);
   }
 
+  function notifyParentSelection() {
+    try {
+      if (!window.parent || window.parent === window) return;
+      const fontVal = fontFamily && fontFamily.value ? fontFamily.value : "";
+      window.parent.postMessage(
+        {
+          type: "TT_STUDIO_TEMPLATE_PICK",
+          template: activeTemplateId,
+          color: activeColorId,
+          font: fontVal,
+          textAlign: activeTextAlignId,
+        },
+        "*"
+      );
+    } catch (_) {}
+  }
+
+  function getCookie(name) {
+    try {
+      const m = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+      return m ? decodeURIComponent(m[2]) : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function uploadResumePhoto(file) {
+    try {
+      if (!file || !window.__TT_RESUME_PK) return null;
+      const u = `/user/resume-builder/studio/${window.__TT_RESUME_PK}/photo/`;
+      const fd = new FormData();
+      fd.append("photo", file);
+      const r = await fetch(u, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: fd,
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return null;
+      return j && j.url ? String(j.url) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function persistState() {
     try {
       const fontVal = fontFamily && fontFamily.value ? fontFamily.value : "";
@@ -1296,6 +1354,17 @@
 
   function init() {
     loadState();
+    function qp(name) {
+      try {
+        return new URLSearchParams(window.location.search).get(name);
+      } catch (_) {
+        return null;
+      }
+    }
+    const isPickerMode = String(qp("mode") || "").trim() === "picker";
+    if (isPickerMode) {
+      document.body.classList.add("tt-mode-picker");
+    }
     if (window.__TT_STUDIO_PREFS_INITIAL && typeof window.__TT_STUDIO_PREFS_INITIAL === "object") {
       var si = window.__TT_STUDIO_PREFS_INITIAL;
       if (si.template && RENDERERS[si.template]) {
@@ -1352,14 +1421,6 @@
     renderEditor();
     bindEditorEvents();
     renderPreview();
-
-    function qp(name) {
-      try {
-        return new URLSearchParams(window.location.search).get(name);
-      } catch (_) {
-        return null;
-      }
-    }
 
     var dupForm = document.getElementById("ttDupResumeForm");
     var snapField = document.getElementById("ttStudioSnapshotJson");

@@ -526,6 +526,7 @@ class UserResume(BaseModel):
     # AI-guided studio: full HTML from OpenAI + last wizard payload for restore / audit
     generated_html = models.TextField(null=True, blank=True)
     wizard_draft_json = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to="upload/resume_images/", null=True, blank=True, max_length=250)
 
     class Meta(BaseModel.Meta):
         ordering = ("-modified",)

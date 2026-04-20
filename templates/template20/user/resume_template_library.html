@@ -1,23 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Resume templates | Top Teen{% endblock %}
 {% block description_content %}Browse layouts, edit sample content, and export — static preview (no database templates).{% endblock %}
-{% block bodyclass %}logged-in user-dashboard user-dashboard-fullscreen student-dashboard-shell admitcv-elite-flow{% endblock %}
-
-{% block header %}{% endblock %}
-{% block footer %}{% endblock %}
-{% block chatbot_css %}{% endblock %}
-{% block chatbot %}{% endblock %}
-{% block chatbot_js %}{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen admitcv-elite-flow{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 {% include 'template20/user/includes/admitcv_resume_theme_head.html' %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
-{% include 'template20/user/includes/student_shell_styles.html' %}
 <style>
   .rtl-page { padding-top: 0; background: var(--dash-bg); min-height: calc(100vh - 52px); }
   .rtl-proto-wrap {
@@ -44,22 +33,21 @@
 {% block additionaljs %}
 {{ super() }}
 <script src="{{ static('js/admitcv-resume-theme.js') }}" defer></script>
-<script src="{{ static('js/student-shell.js') }}?v=1" defer></script>
 {% endblock %}
 
-{% block content %}
-{% set shell_user = profile_user or request.user %}
+{% block student_shell_vars %}
+{{ super() }}
 {% set student_shell_subtitle = 'Resume templates' %}
 {% set student_shell_show_resume_toolbar = true %}
 {% set student_shell_resume_id = resume.pk %}
 {% set student_shell_resume_toolbar_active = 'templates' %}
-{% include 'template20/user/includes/student_shell_topbar.html' %}
+{% endblock %}
 
-<section class="rtl-page pb-3 std-shell-main">
-  <div class="container-fluid user-dashboard-container px-2 px-lg-3 px-xl-4">
-    <div class="row g-0 pt-2 pt-lg-3 student-dash-shell" id="studentDashboardShell">
-      {% include 'template20/user/includes/student_shell_sidebar_column.html' %}
-      <div class="col-12 col-lg-9 student-dash-main-col">
+{% block student_section_class %}rtl-page pb-3 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-2 px-lg-3 px-xl-4{% endblock %}
+{% block student_row_class %}row g-0 pt-2 pt-lg-3 student-dash-shell{% endblock %}
+
+{% block student_main %}
         <p class="fs-13 text-muted mb-2">{{ resume.title|default('Untitled resume') }}</p>
         <div class="rtl-proto-wrap">
           <div class="rtl-proto-toolbar">
@@ -76,10 +64,4 @@
             referrerpolicy="strict-origin-when-cross-origin"
           ></iframe>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-{% include 'template20/user/includes/student_shell_offcanvas.html' %}
 {% endblock %}

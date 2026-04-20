@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My Exams | Top Teen{% endblock %}
 {% block description_content %}View your bookmarked entrance exams.{% endblock %}
 
-{% block bodyclass %}{{ super() }} bookmark-exam-page{% endblock %}
+{% block student_bodyclass %}bookmark-exam-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .bookmark-exam-page {
     padding-top: 47px;
@@ -90,18 +89,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="bookmark-exam-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Exams & tests' %}
+{% endblock %}
 
-      <!-- Right Part - Exams Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}bookmark-exam-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -179,11 +176,6 @@
           </a>
         </div>
         {% endif %}
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}

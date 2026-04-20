@@ -711,7 +711,10 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     if profile and (profile.grade or "").strip():
         parts_addr.append((profile.grade or "").strip())
 
-    photo = _absolute_media_url(request, getattr(user, "image", None))
+    # Prefer resume-specific photo (used by template picker); fallback to user profile avatar.
+    photo = _absolute_media_url(request, getattr(resume, "image", None)) or _absolute_media_url(
+        request, getattr(user, "image", None)
+    )
 
     full_name = (user.name or "").strip() or (user.email or "").split("@")[0]
     headline = (resume.title or "").strip() or "Resume"

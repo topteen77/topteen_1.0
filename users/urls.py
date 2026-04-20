@@ -66,6 +66,11 @@ urlpatterns = [
        views.ResumeTemplateStudioEmbedView.as_view(),
        name="resumebuilder_templates_embed",
    ),
+   path(
+       "resume-builder/studio/<int:resume_id>/photo/",
+       views.ResumeStudioPhotoUploadView.as_view(),
+       name="resumebuilder_studio_photo_upload",
+   ),
    path("resume-preview/", views.resume_html_preview, name="resume_html_preview"),
    path(
        "admin/resume-studio-html-template/<int:template_pk>/preview/",

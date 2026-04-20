@@ -1,4 +1,5 @@
-{% extends 'template20/logged-in-base.html' %}
+{# Use student shell after student login #}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Top Career Recommendations | Top Teen{% endblock %}
 {% block description_content %}Discover the top career recommendations based on your profile and test results.{% endblock %}
@@ -7,6 +8,17 @@
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Top recommendations' %}
+{% endblock %}
+
+{% block student_section_class %}top-recommendations-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-0 pt-3 pt-lg-4{% endblock %}
+{% block student_sidebar %}{% endblock %}
+{% block student_main_col_class %}col-12{% endblock %}
 
 {% block bodyclass %}{{ super() }} top-recommendations-page{% endblock %}
 
@@ -185,7 +197,7 @@
 </style>
 {% endblock %}
 
-{% block content %}
+{% block student_main %}
 <div class="recommendations-header">
   <div class="container text-center">
     <h1 class="mb-3">

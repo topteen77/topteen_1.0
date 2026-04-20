@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}{{ folder.title }} | Top Teen{% endblock %}
 {% block description_content %}View and manage files in your folder.{% endblock %}
 
-{% block bodyclass %}{{ super() }} folder-files-page{% endblock %}
+{% block student_bodyclass %}folder-files-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .folder-files-page {
     padding-top: 47px;
@@ -49,18 +48,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="folder-files-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Folder files' %}
+{% endblock %}
 
-      <!-- Right Part - Files Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}folder-files-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container{% endblock %}
+{% block student_row_class %}row g-4 pt-4{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -131,11 +128,7 @@
         <i class='bx bx-plus me-2'></i> Upload New File
       </button>
     </div>
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
+{% endblock %}
 
 <!-- Add File Modal -->
 <div class="modal fade" id="addFileModal" tabindex="-1" aria-hidden="true">

@@ -36,6 +36,7 @@ from django.urls import reverse,reverse_lazy
 from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
 from colleges.models import College,CollegeShortlist
@@ -3605,7 +3606,32 @@ class ResumeStudioSetupView(TemplateView):
         ctx["wizard_restore_json"] = resume.wizard_draft_json or "{}"
         from users.resume_studio_html import studio_html_template_catalog_rows
 
-        ctx["admitcv_studio_template_catalog"] = studio_html_template_catalog_rows()
+        rows = studio_html_template_catalog_rows()
+        ctx["admitcv_studio_template_catalog"] = rows
+        ctx["resume_has_generated"] = bool((resume.generated_html or "").strip())
+        # Real mini previews for Step-6 tiles (server render, then scale down in CSS).
+        try:
+            from users.resume_studio_html import ADMIN_STUDIO_HTML_PREVIEW_SAMPLE
+            from users.resume_studio_pdf_html import studio_proto_pack_to_mount_html
+            from users.resume_payload import DEFAULT_STUDIO_EMBED_FONT
+
+            previews = []
+            for r in rows:
+                tid = (r.get("id") or "").strip().lower()
+                if not tid:
+                    continue
+                pack = {
+                    "resume": ADMIN_STUDIO_HTML_PREVIEW_SAMPLE,
+                    "template": tid,
+                    "color": "teal",
+                    "font": DEFAULT_STUDIO_EMBED_FONT,
+                    "textAlign": "start",
+                }
+                mount_html, _ = studio_proto_pack_to_mount_html(pack)
+                previews.append({"id": tid, "html": mount_html})
+            ctx["admitcv_studio_template_previews"] = previews
+        except Exception:
+            ctx["admitcv_studio_template_previews"] = []
         return ctx
 
     def get(self, request, resume_id, *args, **kwargs):
@@ -3728,6 +3754,8 @@ class ResumeGuidedGenerateView(View):
                         else:
                             ur.generated_html = html_clean
                             draft_save[WIZARD_PREFER_GENERATED_PDF_KEY] = True
+                        # Gate UI behavior: allow skipping steps once generated at least once.
+                        draft_save["generated_once"] = True
                         ur.about = plain
                         ur.wizard_draft_json = json.dumps(
                             draft_save, ensure_ascii=False, default=str
@@ -4058,6 +4086,39 @@ class ResumeTemplateStudioEmbedView(View):
             "studio_template_row": None,
         }
         return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeStudioPhotoUploadView(View):
+    """POST multipart {photo=<file>} → store on UserResume.image (S3-backed ImageField)."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        f = request.FILES.get("photo")
+        if not f:
+            return JsonResponse({"error": "Missing photo file"}, status=400)
+        # Basic sanity checks (content type + size).
+        ctype = (getattr(f, "content_type", "") or "").lower()
+        if ctype and not ctype.startswith("image/"):
+            return JsonResponse({"error": "Only image uploads are supported."}, status=400)
+        try:
+            max_mb = int(getattr(settings, "S3_MAX_FILE_SIZE_MB", 2) or 2)
+        except Exception:
+            max_mb = 2
+        if getattr(f, "size", 0) and f.size > max_mb * 1024 * 1024:
+            return JsonResponse({"error": f"Image too large (max {max_mb}MB)."}, status=413)
+
+        resume.image = f
+        resume.save(update_fields=["image", "modified"])
+        try:
+            url = resume.image.url if resume.image else ""
+            abs_url = request.build_absolute_uri(url) if url and url.startswith("/") else url
+        except Exception:
+            abs_url = ""
+        return JsonResponse({"ok": True, "url": abs_url})
 
 
 @staff_member_required

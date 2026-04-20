@@ -1,9 +1,16 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Profile Basic Details | Top Teen{% endblock %}
 {% block description_content %}Complete your profile to get personalized career recommendations and content.{% endblock %}
 
-{% block bodyclass %}{{ super() }} profile-onboarding{% endblock %}
+{% block student_bodyclass %}profile-onboarding{% endblock %}
+
+{# Header-only layout (no sidebar) #}
+{% block student_section_class %}profile-onboarding std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-0 pt-3 pt-lg-4{% endblock %}
+{% block student_sidebar %}{% endblock %}
+{% block student_main_col_class %}col-12{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -211,7 +218,7 @@ label.hobbiesTab img {
 </style>
 {% endblock %}
 
-{% block content %}
+{% block student_main %}
 
 <div class="container"> 
 <section class="profile-onboarding pb-5">

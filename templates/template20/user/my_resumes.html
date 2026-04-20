@@ -1,22 +1,11 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My resumes | Top Teen{% endblock %}
 {% block description_content %}View and manage your profile resume.{% endblock %}
-{% block bodyclass %}logged-in user-dashboard user-dashboard-fullscreen student-dashboard-shell{% endblock %}
-
-{% block header %}{% endblock %}
-{% block footer %}{% endblock %}
-{% block chatbot_css %}{% endblock %}
-{% block chatbot %}{% endblock %}
-{% block chatbot_js %}{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
-{% include 'template20/user/includes/student_shell_styles.html' %}
 <style>
   .my-resumes-page {
     padding-top: 0;
@@ -34,29 +23,14 @@
 </style>
 {% endblock %}
 
-{% block additionaljs %}
+{% block student_shell_vars %}
 {{ super() }}
-<script src="{{ static('js/student-shell.js') }}?v=1" defer></script>
+{% set student_shell_subtitle = 'My resumes' %}
 {% endblock %}
 
-{% block content %}
-{% set shell_user = profile_user or request.user %}
-{% set student_shell_subtitle = 'My resumes' %}
-{% include 'template20/user/includes/student_shell_topbar.html' %}
+{% block student_section_class %}my-resumes-page pb-5 std-shell-main{% endblock %}
 
-<section class="my-resumes-page pb-5 std-shell-main">
-  <div class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3 mb-0" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-
-    <div class="row g-4 pt-3 pt-lg-4 student-dash-shell" id="studentDashboardShell">
-      {% include 'template20/user/includes/student_shell_sidebar_column.html' %}
-
-      <div class="col-12 col-lg-9 student-dash-main-col">
+{% block student_main %}
         <h1 class="fs-24 fw-semibold mb-2">My resumes</h1>
         <p class="text-muted fs-14 mb-4">Add as many resumes as you need. Use <strong>Resume studio</strong> for the guided flow. Open <strong>Template library</strong> for the full layout grid (filters, preview, apply). Export with <strong>View PDF</strong> or <strong>PDF download</strong>.</p>
 
@@ -110,10 +84,4 @@
           <p class="fs-14 text-muted mb-0">Use <strong>+ Add resume</strong> above to create one and open Resume studio.</p>
         </div>
         {% endif %}
-      </div>
-    </div>
-  </div>
-</section>
-
-{% include 'template20/user/includes/student_shell_offcanvas.html' %}
 {% endblock %}

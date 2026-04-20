@@ -29,8 +29,11 @@
     </div>
     {% endif %}
     <div class="std-shell-spacer" aria-hidden="true"></div>
+    <div class="d-flex align-items-center gap-2 me-1">
+      {% include 'notifications/includes/notification_bell.html' %}
+    </div>
     <div class="dropdown">
-      <button type="button" class="std-shell-avatar-btn dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static"
+      <button type="button" class="std-shell-avatar-btn dropdown-toggle"
         aria-expanded="false" aria-label="Account menu">
         {% if _u.image %}
         <img src="{{ _u.image.url }}" class="std-shell-avatar-img" alt=""
@@ -41,18 +44,26 @@
         {% endif %}
         <span class="std-shell-avatar-name d-none d-sm-inline">{{ _u.name|default(_u.username) }}</span>
       </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 220px; border-color: var(--dash-border-soft) !important;">
-        <li class="px-3 py-2 border-bottom mb-1" style="border-color: var(--dash-border-soft) !important;">
-          <p class="mb-0 fw-semibold fs-14 text-truncate">{{ _u.name|default(_u.username) }}</p>
-          <p class="mb-0 fs-12 text-muted text-truncate">{{ _u.email }}</p>
-        </li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:userdashboard') }}"><i class='bx bx-customize me-2'></i>Dashboard</a></li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:viewprofile') }}"><i class='bx bx-user me-2'></i>My profile</a></li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:profiledetails') }}"><i class='bx bx-cog me-2'></i>Settings</a></li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:userhistory') }}"><i class='bx bx-receipt me-2'></i>Invoices</a></li>
-        <li><hr class="dropdown-divider my-1"></li>
-        <li><a class="dropdown-item py-2 text-danger" href="{{ url('users:logout') }}"><i class='bx bx-log-out me-2'></i>Sign out</a></li>
-      </ul>
+      <div class="dropdown-content login-content" style="min-width: 240px; z-index: 2000;">
+        {% if request and request.user and request.user.is_authenticated %}
+          <h6>Dashboard</h6>
+          <p class="text-gray fs-14">Welcome, {{ _u.name|default(_u.username) }}</p>
+          {% if request.user.get_display_student_id() %}
+            <p class="text-gray fs-12 mb-0">Student ID: <strong>{{ request.user.get_display_student_id() }}</strong></p>
+          {% endif %}
+          <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+            <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+            <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
+          </div>
+        {% else %}
+          <h6>Dashboard</h6>
+          <p class="text-gray fs-14">Login and Sign Up to access your dashboard</p>
+          <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+            <a href="{{ url('student_login') }}" class="btn custom-button purple-button me-3" role="button">Sign In</a>
+            <a href="{{ url('student_signup') }}" class="btn custom-button blue-button d-flex align-items-center">Sign Up</a>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 </header>

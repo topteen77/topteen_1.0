@@ -1,9 +1,9 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Payment History | Top Teen{% endblock %}
 {% block description_content %}View your payment and transaction history.{% endblock %}
 
-{% block bodyclass %}{{ super() }} user-history-page{% endblock %}
+{% block student_bodyclass %}user-history-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -44,9 +44,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="user-history-page pb-5">
-  <div class="container">
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Payment history' %}
+{% endblock %}
+
+{% block student_section_class %}user-history-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+
+{% block student_main %}
     <!-- Breadcrumb -->
     {% if breadcrumb %}
     {% include 'template20/includes/breadcrumb.html' %}
@@ -156,8 +163,6 @@
       <p class="text-gray fs-14 mb-0">You haven't made any payments yet.</p>
     </div>
     {% endif %}
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}

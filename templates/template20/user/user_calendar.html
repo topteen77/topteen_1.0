@@ -1,15 +1,14 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Your Calendar | Top Teen{% endblock %}
 {% block description_content %}Manage your events and calendar. Create and organize your important dates.{% endblock %}
 
-{% block bodyclass %}{{ super() }} user-calendar-page{% endblock %}
+{% block student_bodyclass %}user-calendar-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <!-- FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet" />
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr:first-child .fc-prev-button.fc-button.fc-button-primary {
     background: #3f37c9;
@@ -361,18 +360,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="user-calendar-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Calendar' %}
+{% endblock %}
 
-      <!-- Right Part - Calendar Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}user-calendar-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -382,15 +379,6 @@
         <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
           <h1 class="fs-24 fw-semibold mb-0">Your Calendar</h1>
         </div>
-        {% if messages %}
-        <div class="mb-3">
-          {% for message in messages %}
-          <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} mb-2" role="alert">
-            {{ message }}
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
 
         <!-- Mobile Header -->
         <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
@@ -403,11 +391,6 @@
 
         <!-- Calendar Container -->
         <div id="calendar" class="mb-4"></div>
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 
 <!-- Add Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">

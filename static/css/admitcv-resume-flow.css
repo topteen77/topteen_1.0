@@ -251,6 +251,7 @@ body::after {
 ───────────────────────────────────────────────────────── */
 #pg-build { padding:76px 0 100px; }
 .bld-wrap { max-width:840px; margin:0 auto; padding:0 18px; }
+.bld-wrap.bld-wrap--wide { max-width: min(1480px, calc(100vw - 40px)); }
 
 /* Stepper */
 .stepper {
@@ -666,6 +667,45 @@ html[data-theme="light"] .tpltile-mock--none{
   font-size:10.5px; padding:3px 8px; border-radius:100px;
   border:1px solid var(--line); background:rgba(var(--accent-rgb),.06);
   color:var(--prose3); font-weight:600; letter-spacing:.2px; text-transform:capitalize;
+}
+
+/* Real mini preview (server-rendered tpl-* markup) */
+.tpltile-mini{
+  position:absolute;
+  inset:0;
+  padding:10px;
+  overflow:hidden;
+}
+.tpltile-mini .tpl{
+  transform-origin:top left;
+  transform:scale(.17);
+  width:820px; /* match studio/pdf max width */
+  pointer-events:none;
+}
+
+/* Inline template picker iframe (Step 6) */
+.rtlp{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.rtlp-frame{
+  display:block;
+  width:100%;
+  height:min(640px, 62vh);
+  border:0;
+  background:#fff;
+}
+
+.rtlp-full{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.rtlp-frame--full{
+  height:min(860px, 82vh);
 }
 
 /* Step nav bar */
