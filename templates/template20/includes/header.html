@@ -99,7 +99,7 @@
           {% include "notifications/includes/notification_bell.html" %}
         </li>
         <li class="menu-item dropdown">
-          <span class="dropdown-toggle menu-link float-end">
+          <span class="dropdown-toggle menu-link float-end" role="button" tabindex="0" aria-label="Account menu">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
           </span>
           <div class="dropdown-content login-content">
@@ -170,7 +170,7 @@
         </li>
         {% else %}
         <li class="menu-item dropdown">
-          <span class="dropdown-toggle menu-link float-end">
+          <span class="dropdown-toggle menu-link float-end" role="button" tabindex="0" aria-label="Account menu">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
           </span>
           <div class="dropdown-content login-content">

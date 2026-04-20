@@ -31,6 +31,37 @@
     box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
   }
 
+  /* Hover-open account dropdown (Dashboard/Logout) */
+  @media (hover: hover) and (pointer: fine) {
+    /* Keep dropdown open when hovering the trigger OR the menu itself. */
+    .std-shell-topbar .dropdown {
+      position: relative;
+    }
+    .std-shell-topbar .dropdown > .dropdown-content.login-content {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      height: auto !important;
+      overflow: visible;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 140ms ease, visibility 0s linear 140ms;
+    }
+    .std-shell-topbar .dropdown:hover > .dropdown-content.login-content,
+    .std-shell-topbar .dropdown:focus-within > .dropdown-content.login-content {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 140ms ease;
+    }
+    .std-shell-topbar .dropdown:hover > .std-shell-avatar-btn,
+    .std-shell-topbar .dropdown:focus-within > .std-shell-avatar-btn {
+      border-color: rgba(92, 84, 212, 0.35);
+      background: #fff;
+    }
+  }
+
   .std-shell-inner {
     width: 100%;
     max-width: 1600px;
