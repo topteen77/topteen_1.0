@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My Notepad | Top Teen{% endblock %}
 {% block description_content %}View and manage your notes, reminders, and post-its.{% endblock %}
 
-{% block bodyclass %}{{ super() }} notepad-page{% endblock %}
+{% block student_bodyclass %}notepad-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .notepad-page {
     padding-top: 47px;
@@ -120,18 +119,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="notepad-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'My notepad' %}
+{% endblock %}
 
-      <!-- Right Part - Notepad Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}notepad-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container{% endblock %}
+{% block student_row_class %}row g-4 pt-4{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -216,11 +213,6 @@
             <i class='bx bx-plus me-2'></i> Add New Note
           </a>
         </div>
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}

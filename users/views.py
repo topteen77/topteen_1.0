@@ -36,6 +36,7 @@ from django.urls import reverse,reverse_lazy
 from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
 from colleges.models import College,CollegeShortlist
@@ -4085,6 +4086,39 @@ class ResumeTemplateStudioEmbedView(View):
             "studio_template_row": None,
         }
         return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeStudioPhotoUploadView(View):
+    """POST multipart {photo=<file>} → store on UserResume.image (S3-backed ImageField)."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        f = request.FILES.get("photo")
+        if not f:
+            return JsonResponse({"error": "Missing photo file"}, status=400)
+        # Basic sanity checks (content type + size).
+        ctype = (getattr(f, "content_type", "") or "").lower()
+        if ctype and not ctype.startswith("image/"):
+            return JsonResponse({"error": "Only image uploads are supported."}, status=400)
+        try:
+            max_mb = int(getattr(settings, "S3_MAX_FILE_SIZE_MB", 2) or 2)
+        except Exception:
+            max_mb = 2
+        if getattr(f, "size", 0) and f.size > max_mb * 1024 * 1024:
+            return JsonResponse({"error": f"Image too large (max {max_mb}MB)."}, status=413)
+
+        resume.image = f
+        resume.save(update_fields=["image", "modified"])
+        try:
+            url = resume.image.url if resume.image else ""
+            abs_url = request.build_absolute_uri(url) if url and url.startswith("/") else url
+        except Exception:
+            abs_url = ""
+        return JsonResponse({"ok": True, "url": abs_url})
 
 
 @staff_member_required

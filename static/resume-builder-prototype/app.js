@@ -923,9 +923,18 @@
 
     const photoInput = document.getElementById("photoInput");
     if (photoInput) {
-      photoInput.addEventListener("change", () => {
+      photoInput.addEventListener("change", async () => {
         const f = photoInput.files && photoInput.files[0];
         if (!f) return;
+        // Upload to S3-backed ImageField so templates show the stored resume photo.
+        const url = await uploadResumePhoto(f);
+        if (url) {
+          resumeData.photo = url;
+          scheduleSave();
+          renderPreview();
+          return;
+        }
+        // Fallback: local preview only (not persisted to DB).
         const r = new FileReader();
         r.onload = () => {
           resumeData.photo = r.result;
@@ -1275,6 +1284,37 @@
         "*"
       );
     } catch (_) {}
+  }
+
+  function getCookie(name) {
+    try {
+      const m = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+      return m ? decodeURIComponent(m[2]) : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function uploadResumePhoto(file) {
+    try {
+      if (!file || !window.__TT_RESUME_PK) return null;
+      const u = `/user/resume-builder/studio/${window.__TT_RESUME_PK}/photo/`;
+      const fd = new FormData();
+      fd.append("photo", file);
+      const r = await fetch(u, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: fd,
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return null;
+      return j && j.url ? String(j.url) : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   function persistState() {

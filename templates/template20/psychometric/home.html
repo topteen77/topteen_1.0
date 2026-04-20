@@ -1,4 +1,13 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Psychometric' %}
+{% endblock %}
+
+{% block student_section_class %}psychometric-home-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
 
 {% block title_content %}Psychometric Assessment | Top Teen{% endblock %}
 
@@ -7,7 +16,7 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 {% endblock %}
 
-{% block content %}
+{% block student_main %}
 <style>
 p{margin-bottom: 0px;}
 
@@ -177,38 +186,15 @@ p{margin-bottom: 0px;}
 }
 </style>
 
-<div class="container my-md-8 mt-3 pt-md-10 pt-8" >
-  <!-- Mobile profile drawer trigger -->
-  <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
-    <button
-      class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
-      style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
-      type="button"
-      data-bs-toggle="offcanvas"
-      data-bs-target="#mobileProfileDrawer"
-      aria-controls="mobileProfileDrawer"
-      aria-label="Open profile">
-      <i class='bx bxs-user-detail fs-22'></i>
-    </button>
-  </div>
-
-  <div class="row g-4">
-    <!-- Left Sidebar - Same as user dashboard (Desktop) -->
-    <div class="col-lg-4 d-none d-lg-block">
-      {% include 'template20/user/includes/profile_sidebar.html' %}
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+    <div class="alert alert-danger" role="alert">
+      {{ message }}
     </div>
-
-    <!-- Right Content - Test List -->
-    <div class="col-lg-8 col-md-12">
-      {% if messages %}
-        <div class="mb-4">
-          {% for message in messages %}
-          <div class="alert alert-danger" role="alert">
-            {{ message }}
-          </div>
-          {% endfor %}
-        </div>
-      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
 
       <h2 class="title-test-info mb-0 mt-md-0 mt-3">Psychometric Assessment</h2>
 
@@ -296,23 +282,6 @@ p{margin-bottom: 0px;}
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- Mobile profile drawer (reuses desktop sidebar content) -->
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    {% include 'template20/user/includes/profile_sidebar.html' %}
-  </div>
-</div>
-
 {% endblock %}
 
 {% block additionaljs %}

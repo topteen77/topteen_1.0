@@ -1,30 +1,33 @@
 {# Centralized breadcrumb: breadcrumb is a list of {text, url, title?}. First item = Home, last = current. #}
 {% if breadcrumb %}
-<div class="col-md-12">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb ps-0">
-      {% if breadcrumb is iterable and breadcrumb is not string and breadcrumb is not mapping %}
-        {% for item in breadcrumb %}
-          {% set item_text = item['text'] if item is mapping and 'text' in item else (item['title'] if item is mapping and 'title' in item else '') %}
-          {% set item_url = item['url'] if item is mapping and 'url' in item else '' %}
-          {% if not loop.last and item_url %}
-            <li class="breadcrumb-item"><a href="{{ item_url }}">{{ item_text }}</a></li>
-          {% else %}
-            <li class="breadcrumb-item active" aria-current="page">{{ item_text }}</li>
-          {% endif %}
-        {% endfor %}
-      {% elif breadcrumb is mapping %}
-        {# Backward compat: single dict = Home + this link #}
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        {% set bc_text = breadcrumb['text'] if 'text' in breadcrumb else (breadcrumb['title'] if 'title' in breadcrumb else '') %}
-        {% set bc_url = breadcrumb['url'] if 'url' in breadcrumb else '' %}
-        {% if bc_url %}
-          <li class="breadcrumb-item"><a href="{{ bc_url }}">{{ bc_text }}</a></li>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb ps-0 mb-3">
+    {% if breadcrumb is iterable and breadcrumb is not string and breadcrumb is not mapping %}
+      {% for item in breadcrumb %}
+        {% set item_text = item['text'] if item is mapping and 'text' in item else (item['title'] if item is mapping and 'title' in item else '') %}
+        {% set item_url = item['url'] if item is mapping and 'url' in item else '' %}
+        {# After login, "Home" should go to the student dashboard (not public site home). #}
+        {% set _home_txt = (item_text or '')|trim|lower %}
+        {% set _is_home_crumb = loop.first and _home_txt == 'home' %}
+        {% set _auth = request and request.user and request.user.is_authenticated %}
+        {% set item_href = (url('users:userdashboard') if (_is_home_crumb and _auth) else item_url) %}
+        {% if not loop.last and item_url %}
+          <li class="breadcrumb-item"><a href="{{ item_href }}">{{ item_text }}</a></li>
         {% else %}
-          <li class="breadcrumb-item active" aria-current="page">{{ bc_text }}</li>
+          <li class="breadcrumb-item active" aria-current="page">{{ item_text }}</li>
         {% endif %}
+      {% endfor %}
+    {% elif breadcrumb is mapping %}
+      {# Backward compat: single dict = Home + this link #}
+      <li class="breadcrumb-item"><a href="{{ url('users:userdashboard') if (request and request.user and request.user.is_authenticated) else '/' }}">Home</a></li>
+      {% set bc_text = breadcrumb['text'] if 'text' in breadcrumb else (breadcrumb['title'] if 'title' in breadcrumb else '') %}
+      {% set bc_url = breadcrumb['url'] if 'url' in breadcrumb else '' %}
+      {% if bc_url %}
+        <li class="breadcrumb-item"><a href="{{ bc_url }}">{{ bc_text }}</a></li>
+      {% else %}
+        <li class="breadcrumb-item active" aria-current="page">{{ bc_text }}</li>
       {% endif %}
-    </ol>
-  </nav>
-</div>
+    {% endif %}
+  </ol>
+</nav>
 {% endif %}

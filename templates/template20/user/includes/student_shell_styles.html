@@ -125,17 +125,17 @@
     }
   }
 
-  .student-dash-shell {
+  #studentDashboardShell {
     --std-sidebar-open: 25%;
   }
 
   @media (min-width: 992px) {
-    .student-dash-shell .student-dash-sidebar-col {
+    #studentDashboardShell .student-dash-sidebar-col {
       transition: flex 0.28s ease, max-width 0.28s ease, opacity 0.22s ease, padding 0.22s ease;
       overflow: hidden;
     }
 
-    .student-dash-shell.sidebar-collapsed .student-dash-sidebar-col {
+    #studentDashboardShell.sidebar-collapsed .student-dash-sidebar-col {
       flex: 0 0 0% !important;
       max-width: 0 !important;
       opacity: 0;
@@ -144,7 +144,7 @@
       pointer-events: none;
     }
 
-    .student-dash-shell.sidebar-collapsed .student-dash-main-col {
+    #studentDashboardShell.sidebar-collapsed .student-dash-main-col {
       flex: 0 0 100% !important;
       max-width: 100% !important;
     }

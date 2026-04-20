@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My Folders | Top Teen{% endblock %}
 {% block description_content %}View and manage your folders to organize your saved content.{% endblock %}
 
-{% block bodyclass %}{{ super() }} user-folder-page{% endblock %}
+{% block student_bodyclass %}user-folder-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .user-folder-page {
     padding-top: 80px;
@@ -50,18 +49,17 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="user-folder-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-4 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Folders' %}
+{% endblock %}
 
-      <!-- Right Part - Folders Content -->
-      <div class="col-lg-8">
+{% block student_section_class %}user-folder-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container{% endblock %}
+{% block student_row_class %}row g-4 pt-4{% endblock %}
+{% block student_main_col_class %}col-12 col-lg-9{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -122,11 +120,7 @@
       </button>
     </div>
     {% endif %}
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
+{% endblock %}
 
 <!-- Add Folder Modal -->
 <div class="modal fade" id="addFolderModal" tabindex="-1" aria-hidden="true">

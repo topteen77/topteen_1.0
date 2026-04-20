@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Resume Builder | Top Teen{% endblock %}
 {% block description_content %}Build your professional resume by adding your skills, certifications, internships, and more.{% endblock %}
 
-{% block bodyclass %}{{ super() }} resume-builder-page{% endblock %}
+{% block student_bodyclass %}resume-builder-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .resume-builder-page {
     padding-top: 47px;
@@ -90,18 +89,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="resume-builder-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Resume builder' %}
+{% endblock %}
 
-      <!-- Right Part - Resume Builder Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}resume-builder-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container{% endblock %}
+{% block student_row_class %}row g-4 pt-4{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -530,11 +527,7 @@
         </a>
       </div>
     </div>
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
+{% endblock %}
 
 <!-- About Modal -->
 <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">

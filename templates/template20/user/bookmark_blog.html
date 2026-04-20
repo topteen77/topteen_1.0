@@ -1,15 +1,14 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My Blogs | Top Teen{% endblock %}
 {% block description_content %}View your bookmarked blogs.{% endblock %}
 
-{% block bodyclass %}{{ super() }} bookmark-blog-page{% endblock %}
+{% block student_bodyclass %}bookmark-blog-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
-  .bookmark-blog-page { padding-top: 80px; }
+  .bookmark-blog-page { padding-top: 47px; }
   .blog-bookmark-card {
     background: #fff;
     border: 1px solid #efefee;
@@ -30,15 +29,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="bookmark-blog-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Blogs' %}
+{% endblock %}
 
-      <div class="col-lg-9">
+{% block student_section_class %}bookmark-blog-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+
+{% block student_main %}
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}

@@ -1,9 +1,9 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}User Feeds | Top Teen{% endblock %}
 {% block description_content %}Discover personalized content including careers, videos, courses, exams, and blogs tailored to your interests.{% endblock %}
 
-{% block bodyclass %}{{ super() }} user-feeds{% endblock %}
+{% block student_bodyclass %}user-feeds{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -60,58 +60,16 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="user-feeds pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        <!-- Checklist -->
-        <div class="border rounded p-3 mb-4">
-          <h5 class="fs-16 fw-semibold mb-3">Your Checklist</h5>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="d-flex align-items-center">
-              <input type="checkbox" class="form-check-input me-2">
-              <label class="form-check-label fs-12 text-gray">Take psychometric test</label>
-            </div>
-            <div class="d-flex align-items-center gap-1 bg-light rounded-pill px-2 py-1">
-              <i class='bx bx-star text-warning fs-12'></i>
-              <span class="fs-10 fw-semibold text-gray">300</span>
-            </div>
-          </div>
-        </div>
-        <!-- End Checklist -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Feeds' %}
+{% endblock %}
 
-        <!-- Scrapbook -->
-        <div class="border rounded p-3">
-          <div class="d-flex align-items-center mb-3">
-            <i class='bx bx-book fs-16 me-2 text-purple'></i>
-            <h5 class="fs-12 fw-semibold mb-0">My Scrapbook</h5>
-          </div>
-          <div class="d-flex flex-wrap gap-2 mb-3" id="addfolder">
-            {% if folders %}
-              {% for folder in folders[:3] %}
-              <a href="{{ url('users:userfolder', args=[folder.id]) }}" class="badge bg-light text-dark px-3 py-2">
-                {{ folder.title }}
-              </a>
-              {% endfor %}
-            {% endif %}
-          </div>
-          <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-sm btn-outline-secondary addFolderPopBtn">
-              <i class='bx bx-plus me-1'></i> Add Folder
-            </button>
-            <a href="{{ url('users:userfolders') }}" class="btn btn-sm btn-outline-secondary">
-              View All
-            </a>
-          </div>
-        </div>
-        <!-- End Scrapbook -->
-      </div>
-      <!-- End Left Sidebar -->
+{% block student_section_class %}user-feeds pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container{% endblock %}
+{% block student_row_class %}row g-4 pt-4{% endblock %}
 
-      <!-- Main Feed Content -->
-      <div class="col-lg-9">
+{% block student_main %}
         <!-- Story Updates -->
         {% if story_subject and is_story %}
         <div class="mb-4">
@@ -380,11 +338,7 @@
         </div>
         {% endif %}
         <!-- End Trending Content -->
-      </div>
-      <!-- End Main Feed Content -->
-    </div>
-  </div>
-</section>
+{% endblock %}
 
 <!-- Add Folder Modal -->
 <div class="modal fade" id="addFolderModal" tabindex="-1" aria-hidden="true">

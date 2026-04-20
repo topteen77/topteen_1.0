@@ -1,9 +1,9 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Saved Media | Top Teen{% endblock %}
 {% block description_content %}View and organize your saved videos, articles, and courses.{% endblock %}
 
-{% block bodyclass %}{{ super() }} save-media-page{% endblock %}
+{% block student_bodyclass %}save-media-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -64,9 +64,18 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="save-media-page pb-5">
-  <div class="container">
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Saved media' %}
+{% endblock %}
+
+{% block student_section_class %}save-media-page pb-5 std-shell-main{% endblock %}
+{% block student_container_class %}container{% endblock %}
+{% block student_row_class %}row{% endblock %}
+{% block student_sidebar %}{% endblock %}
+{% block student_main_col_class %}col-12{% endblock %}
+
+{% block student_main %}
     <!-- Breadcrumb -->
     {% if breadcrumb %}
     {% include 'template20/includes/breadcrumb.html' %}
@@ -156,8 +165,6 @@
         <p class="text-gray fs-14">You haven't saved any courses yet.</p>
       </div>
     </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}
