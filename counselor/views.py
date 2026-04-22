@@ -42,6 +42,8 @@ from django.views.decorators.cache import never_cache
 
 User = get_user_model()
 
+from core.models import Configuration
+
 
 def _counselor_course_access_for_user(user, counselor_course):
     """
@@ -1914,11 +1916,14 @@ def Counselorenrolledcourse(request):
     return render(request, 'topteenfrontend/user/app/counselor-enrolled-course.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))
-def CounselorDashboard(request, coun_id=None):
+def CounselorDashboard(request, coun_id=None, initial_view=None):
     from core import choices
     from django.http import Http404, JsonResponse
     
     counselor = get_object_or_404(Counselor, id=coun_id)
+
+    # Get counselor's associated institute (needed for AJAX and full page)
+    counselor_institute = counselor.counselor_admin
     
     # Security check: Ensure counselors can only access their own dashboard
     if request.user.user_type == choices.UserType.COUNSELOR:
@@ -1933,15 +1938,62 @@ def CounselorDashboard(request, coun_id=None):
         if data_type == 'students':
             # Optimized AJAX handler for student table only
             return _get_counselor_student_table_ajax(request, counselor, coun_id)
+        elif data_type == 'students_analytics':
+            # Lightweight analytics for counselor v2 Students charts
+            students_qs = get_students_by_role(
+                request.user, counselor=counselor, institute=counselor_institute
+            )
+            # Apply simple filters (class_and_section may be id or name)
+            class_filter = (request.GET.get("class_and_section", "") or "").strip()
+            if class_filter:
+                if class_filter.isdigit():
+                    students_qs = students_qs.filter(class_and_section_id=int(class_filter))
+                else:
+                    students_qs = students_qs.filter(class_and_section__class_and_section=class_filter)
+
+            # Stream distribution
+            stream_counts_qs = (
+                students_qs.filter(class_and_section__stream__isnull=False)
+                .exclude(class_and_section__stream="")
+                .values("class_and_section__stream")
+                .annotate(count=Count("id"))
+                .order_by("class_and_section__stream")
+            )
+            stream_counts = {
+                row["class_and_section__stream"]: int(row["count"]) for row in stream_counts_qs
+            }
+
+            # Class enrollment (counts by class name label)
+            class_counts = get_class_counts(students_qs)
+
+            # Convenience metrics commonly used on the Students view
+            total = students_qs.count() if hasattr(students_qs, "count") else len(students_qs)
+            class10 = 0
+            class11 = 0
+            for k, v in (class_counts or {}).items():
+                ks = (k or "").strip()
+                if ks.startswith("10"):
+                    class10 += int(v)
+                if ks.startswith("11"):
+                    class11 += int(v)
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "total": total,
+                    "class10": class10,
+                    "class11": class11,
+                    "unassigned": max(0, total - class10 - class11),
+                    "stream_counts": stream_counts,
+                    "class_counts": class_counts,
+                }
+            )
         elif data_type == 'stats':
             # AJAX handler for statistics
             return _get_counselor_stats_ajax(counselor)
         elif data_type == 'sessions':
             # AJAX handler for session chart data
             return _get_counselor_sessions_ajax(counselor, coun_id)
-    
-    # Get counselor's associated institute
-    counselor_institute = counselor.counselor_admin
     
     # Lightweight initial page load - only essential data
     # Use optimized queries with select_related and prefetch_related
@@ -2076,6 +2128,12 @@ def CounselorDashboard(request, coun_id=None):
         'counselor_course_progress_pct': counselor_course_progress_pct,
         'counselor_course_certificate_url': counselor_course_certificate_url,
     }
+
+    # For v2: allow separate routes to pre-select a section (dashboard/students/etc.)
+    if initial_view:
+        context["ttv2_initial_view"] = str(initial_view)
+    if getattr(request, "ttv2_auto_print", False):
+        context["ttv2_auto_print"] = True
     
     # Only load student table data if explicitly requested (not on initial page load)
     # This will be loaded via AJAX after page loads
@@ -2083,7 +2141,50 @@ def CounselorDashboard(request, coun_id=None):
         # Load full table data
         context.update(_get_counselor_full_table_context(request, counselor, students_to_display, follow_ups, per_page))
     
-    return render(request, 'template20/counselor/counselor_dashboard.html', context)
+    # Global dashboard template switch (v1/v2). Defaults to v1 for safety.
+    try:
+        template_version = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
+    except Exception:
+        template_version = "v1"
+    tpl = (
+        "template_v2/counselor/counselor_dashboard.html"
+        if template_version == "v2"
+        else "template20/counselor/counselor_dashboard.html"
+    )
+
+    # v2 partial rendering for fast AJAX shell boot
+    if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+        return render(request, "template_v2/counselor/counselor_dashboard_body.html", context)
+    return render(request, tpl, context)
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def CounselorDashboardSection(request, coun_id: int, section: str):
+    """
+    Separate pages for each counselor sidebar item (v2 uses the same shell/body,
+    but opens the requested section by default).
+    """
+    section = (section or "").strip().lower()
+    view_map = {
+        "dashboard": "dashboard",
+        "students": "students",
+        "assessments": "assessments",
+        "journey-tracker": "progress",
+        "career-analytics": "career",
+        "interest-matrix": "matrix",
+        "streams-capacity": "streams",
+        "credits": "credits",
+        "counselors": "counselors",
+        "session-report": "sessions",
+        "session-plan": "plan",
+        "kira": "kira",
+        "best-practices": "bestpractices",
+        "print-report": "dashboard",
+    }
+    initial_view = view_map.get(section, "dashboard")
+    if section == "print-report":
+        request.ttv2_auto_print = True
+    return CounselorDashboard(request, coun_id=coun_id, initial_view=initial_view)
 
 
 def _get_counselor_student_table_ajax(request, counselor, coun_id):

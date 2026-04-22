@@ -149,6 +149,16 @@ class WebsiteSettingsForm(forms.Form):
         help_text='JSON array of rules. Example: [{"match":"exact","pattern":"/","mode":"career_counsellor"},{"match":"prefix","pattern":"/four-pillars-of-learning/","mode":"chat_this_page"}]',
     )
 
+    DASHBOARD_TEMPLATE_VERSION = forms.ChoiceField(
+        choices=[
+            ("v1", "Template v1 (current)"),
+            ("v2", "Template v2 (new)"),
+        ],
+        required=True,
+        label="Dashboard template version",
+        help_text="Global switch for Institute/Group/Marketing/Counselor dashboards layout templates.",
+    )
+
 
 DEFAULT_MINDMAP_CONFIG_KEY = 'DEFAULT_MINDMAP_TYPE'
 DEFAULT_COURSE_MINDMAP_CONFIG_KEY = 'DEFAULT_course_MINDMAP_TYPE'
@@ -404,6 +414,16 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = val
                 config.save()
+
+                # DASHBOARD_TEMPLATE_VERSION
+                key = 'DASHBOARD_TEMPLATE_VERSION'
+                val = (form.cleaned_data.get(key) or 'v1').strip() or 'v1'
+                if val not in ('v1', 'v2'):
+                    val = 'v1'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
+
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
@@ -411,6 +431,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
             )
             default_course_mm = Configuration.get('DEFAULT_course_MINDMAP_TYPE', '7', editable=True) or '7'
+            dashboard_template_version = (Configuration.get('DASHBOARD_TEMPLATE_VERSION', 'v1', editable=True) or 'v1').strip() or 'v1'
+            if dashboard_template_version not in ('v1', 'v2'):
+                dashboard_template_version = 'v1'
             form = WebsiteSettingsForm(initial={
                 'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),
                 'ENABLE_COUNSELOR_COURSE_MINDMAP': _config_bool('ENABLE_COUNSELOR_COURSE_MINDMAP'),
@@ -418,6 +441,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 'DEFAULT_course_MINDMAP_TYPE': default_course_mm,
                 'CHATBOT_DEFAULT_MODE': Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default',
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
+                'DASHBOARD_TEMPLATE_VERSION': dashboard_template_version,
             })
 
         context = {

@@ -1,0 +1,30 @@
+{# Reusable v2 sidebar profile card #}
+{% set _name = (profile_name|default('') or '').strip() %}
+{% set _joined = (profile_joined|default('') or '').strip() %}
+{% set _badge = (profile_badge|default('Active member') or '').strip() %}
+{% set _initials = (profile_initials|default('') or '').strip() %}
+{% if not _initials and _name %}
+  {% set _parts = _name.split() %}
+  {% if _parts|length >= 2 %}
+    {% set _initials = (_parts[0][0] ~ _parts[1][0]).upper() %}
+  {% else %}
+    {% set _initials = (_name[0:2]).upper() %}
+  {% endif %}
+{% endif %}
+
+<div class="ttv2-sidebar-profile-card">
+  <div class="ttv2-sidebar-profile-row">
+    <div class="ttv2-sidebar-profile-avatar">{{ _initials|default('U') }}</div>
+    <div class="min-w-0">
+      <div class="ttv2-sidebar-profile-name text-truncate">{{ _name|default('User') }}</div>
+      {% if _joined %}
+        <div class="ttv2-sidebar-profile-sub text-truncate">Joined {{ _joined }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="ttv2-sidebar-profile-badge">
+    <span class="dot" aria-hidden="true"></span>
+    <span>{{ _badge }}</span>
+  </div>
+</div>
+

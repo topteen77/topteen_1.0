@@ -1,0 +1,51 @@
+{# Footer markup + ALL script loading for template_v2. #}
+{% include 'template20/includes/footer.html' %}
+
+<!-- Scripts (moved here so JS is controlled from footer include) -->
+<script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"
+  integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ static('js_new/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ static('js_new/main.js') }}?v=20260324-2"></script>
+<script src="{{ static('js_new/search.js') }}"></script>
+
+<script>
+  // v2 theme toggle behavior
+  (function () {
+    var key = 'ttv2_theme';
+    function getTheme() {
+      var t = (document.documentElement.getAttribute('data-ttv2-theme') || '').toLowerCase();
+      return (t === 'dark' || t === 'light') ? t : 'light';
+    }
+    function setTheme(next) {
+      document.documentElement.setAttribute('data-ttv2-theme', next);
+      try { localStorage.setItem(key, next); } catch (e) {}
+      var btn = document.getElementById('ttv2ThemeToggle');
+      if (btn) btn.innerHTML = next === 'dark' ? '<i class=\"bx bx-sun\"></i>' : '<i class=\"bx bx-moon\"></i>';
+    }
+    document.addEventListener('click', function (e) {
+      var btn = e.target && (e.target.id === 'ttv2ThemeToggle' ? e.target : (e.target.closest ? e.target.closest('#ttv2ThemeToggle') : null));
+      if (!btn) return;
+      var next = getTheme() === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+    });
+    // Set correct icon on load
+    setTheme(getTheme());
+  })();
+</script>
+
+{% if show_page_chat_widget and show_ai_counsellor_bot %}
+<script src="{{ static('js_new/page-chat-widget.js') }}"></script>
+<script src="{{ static('js_new/chatbot-widget.js') }}"></script>
+{% else %}
+{% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
+{% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}"></script>{% endif %}
+{% endif %}
+
+{% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+{# Per-page scripts are appended by the base template right after this include. #}
+

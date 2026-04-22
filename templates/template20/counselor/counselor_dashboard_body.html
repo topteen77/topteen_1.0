@@ -1,0 +1,471 @@
+
+<section class="counselor-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="counselor-sidebar-panel sticky-top" style="top: 100px;">
+          <!-- Counselor Profile -->
+          <div class="text-center border-bottom pb-3 mb-3">
+            <div class="mb-3 position-relative d-inline-block">
+              {% if counselors.coun_user.image %}
+              <img src="/media/upload/users/{{counselors.coun_user.id}}/user_{{counselors.coun_user.id}}.jpg" 
+                   class="rounded-circle" 
+                   style="width: 104px; height: 104px; object-fit: cover;" 
+                   alt="Counselor Image"
+                   data-fallback-src="{{ static('images_new/icons/user-icon.svg') }}">
+              {% else %}
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
+                <i class='bx bx-user fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+              {# Certified Badge #}
+              {% set counselor_cert = counselors.coun_user.counselorcertification_set.first() if counselors.coun_user.counselorcertification_set.exists() else None %}
+              {% if counselor_cert %}
+              <div class="certified-badge" title="Certified Counselor - Grade: {{ counselor_cert.grade }}">
+                <i class='bx bx-check-circle fs-24'></i>
+              </div>
+              {% endif %}
+            </div>
+            <h5 class="fs-16 fw-semibold mb-3">{{ counselors.counselor_name }}</h5>
+            <div class="d-flex flex-column gap-2 text-start">
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-calendar fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">Joined {{ counselors.created.strftime("%B, %Y") }}</span>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-book fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">
+                  {% if counselors.counselor_education %}{{ counselors.counselor_education }}{% else %}-{% endif %} •
+                  {% if counselors.counselor_address %}{{ counselors.counselor_address }}{% else %}-{% endif %}
+                </span>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-building fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">{{ counselors.counselor_admin }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- My Course Button -->
+          {% if request.user.user_type == 4 %}
+          <a href="{{ url('counselor:course_learning', args=[counselors.id]) }}" 
+             class="btn w-100 mb-3 text-white fw-semibold counselor-btn-fixed" 
+             style="background: #4CC9F0; border-bottom: 4px solid #3CBAE1;">
+            <i class='bx bx-chalkboard me-2'></i> MY COURSE
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <h2 class="fs-24 fw-semibold mb-0 counselor-section-title">Counselor Dashboard</h2>
+        <p class="text-gray fs-14 mb-4">Overview of your assigned students, follow-ups, and session activity.</p>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4 col-6">
+            <div class="stat-card stat-card-assigned">
+              <div>
+                <i class='bx bx-user-check'></i>
+              </div>
+              <div>
+                <p class="stat-value mb-0">{{ students_count }}</p>
+                <p class="text-gray fs-10 mb-0">Assigned students</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 col-6">
+            <div class="stat-card stat-card-followed">
+              <div>
+                <i class='bx bx-check-circle'></i>
+              </div>
+              <div>
+                <p class="stat-value mb-0">{{ total_is_followed_up_count }}</p>
+                <p class="text-gray fs-10 mb-0">Follow-ups completed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if show_counselor_course_on_dashboard %}
+        <div class="mb-4">
+          <h3 class="fs-20 fw-semibold mb-0 counselor-section-title">Enrolled courses</h3>
+          <p class="text-gray fs-13 mb-3 lh-sm">Your career counseling course and quick access to curriculum.</p>
+          <div class="row g-3">
+            <div class="col-md-12">
+              <div class="counselor-course-card-inner border rounded-3 p-2"
+                style="background:#fff;border-color:#e6e8f0;box-shadow:0 2px 10px rgba(32,36,53,0.06);">
+                <div class="counselor-course-card-main">
+                  <div class="counselor-course-card-thumb-wrap" aria-hidden="true">
+                    <img src="{{ static('images_new/counselor/cc-detail-img.png') }}" alt=""
+                         data-show-course-thumb-fallback="1">
+                    <i class="bx bx-chalkboard fs-24 counselor-course-card-thumb-fallback" style="color:#4CC9F0;display:none;" aria-hidden="true"></i>
+                  </div>
+                  <div class="min-w-0 flex-grow-1">
+                    <p class="fs-15 fw-semibold mb-1 text-break" title="{{ counselor_course_title }}">{{ counselor_course_title }}</p>
+                    <p class="text-gray fs-11 mb-0">{% if counselor_course_enrolled %}Career counseling{% else %}Not enrolled yet{% endif %}</p>
+                    <div class="counselor-dashboard-course-progress pt-1">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fs-11 fw-semibold text-uppercase" style="color: var(--dash-muted); letter-spacing: 0.03em;">Course progress</span>
+                        <span class="fs-13 fw-semibold" style="color: #5046e5;">{{ counselor_course_progress_pct|default(0) }}%</span>
+                      </div>
+                      <div class="counselor-dash-progress-bar" role="progressbar" aria-valuenow="{{ counselor_course_progress_pct|default(0) }}" aria-valuemin="0" aria-valuemax="100" aria-label="Course progress">
+                        <div class="counselor-dash-progress-fill" data-progress-pct="{{ counselor_course_progress_pct|default(0) }}"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="counselor-course-actions">
+                  <a href="{{ counselor_course_curriculum_url }}" class="btn fw-semibold counselor-btn-fixed text-center blue-button"
+                    >
+                    <i class='bx bx-list-ul align-middle me-1'></i>Curriculum
+                  </a>
+                  {% if counselor_course_enrolled %}
+                  <a href="{{ counselor_course_start_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
+                    style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>
+                  {% if counselor_course_certificate_url %}
+                  <a href="{{ counselor_course_certificate_url }}" class="btn fw-semibold counselor-btn-fixed text-center counselor-cert-btn"
+                    style="background:#2e9d5c;border-bottom:4px solid #247a48;color:#fff;"
+                    title="View and download certificate"
+                    target="_blank" rel="noopener noreferrer">
+                    <i class="bx bx-award me-1" aria-hidden="true"></i>Certificate
+                  </a>
+                  {% endif %}
+                  {% else %}
+                  <a href="{{ counselor_course_enroll_url }}" class="btn text-white fw-semibold counselor-btn-fixed text-center"
+                    style="background:#5249DF;border-bottom:4px solid #3a30ca;">{{ counselor_course_cta }}</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        <!-- Assigned Students Section -->
+        <div class="w-100 mb-3">
+          <div class="row " >            
+          <div class="col-md-9">
+            <div class="flex-grow-1 min-w-0 mb-md-0 mb-2">
+              <h3 class="fs-20 fw-semibold mb-0 counselor-section-title">Assigned students</h3>
+              <p class="text-gray fs-13 mb-0 lh-sm">Search and filter your roster. Use records per page in the form below.</p>
+            </div>
+          </div>
+          <div class="col-md-3 text-end">
+            <a href="{{ url('counselor:Counselor_follow_up_page', args=[counselors.id]) }}" 
+             class="btn custom-button purple-button counselor-btn-fixed w-100 w-md-auto flex-shrink-0 text-center">
+            <i class='bx bx-history me-1'></i> Follow-up history
+          </a>
+          </div>         
+          
+          </div>    
+         
+        </div>
+
+
+
+        <div class="counsellor-data-show"> 
+
+        <!-- Filter: below-lg = fixed FAB + drawer; lg+ = inline panel (Bootstrap offcanvas-lg) -->
+        <button type="button"
+                class="counselor-filter-fab d-lg-none"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#counselorFilterDrawer"
+                aria-controls="counselorFilterDrawer"
+                aria-label="Filter data"
+                title="Filter data">
+          <i class="bx bx-filter-alt" aria-hidden="true"></i>
+          <span class="counselor-filter-fab-text">Filter data</span>
+        </button>
+
+        <div class="offcanvas offcanvas-end offcanvas-lg counselor-filter-offcanvas mb-4"
+             tabindex="-1"
+             id="counselorFilterDrawer"
+             aria-labelledby="counselorFilterDrawerLabel">
+          <div class="offcanvas-header d-lg-none border-bottom align-items-center py-3">
+            <h2 class="offcanvas-title fs-16 fw-semibold mb-0" id="counselorFilterDrawerLabel">Filter students</h2>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body p-0">
+            <div class="card counselor-filter-card mb-0 w-100 border-0">
+              <div class="card-body p-0">
+                <form id="filter-form" method="get" class="row g-3 align-items-stretch align-items-lg-end">
+                  <div class="col-12 col-sm-6 col-lg-2">
+                    <label for="classes" class="form-label text-gray fs-12 mb-1">Classes</label>
+                    <select name="class_and_section" id="classes" class="form-control custom-input w-100">
+                      <option value="" disabled selected>Classes</option>
+                      {% for cas in class_and_sections %}
+                      <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section') == cas.class_and_section %}selected{% endif %}>
+                        {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }} students){% endif %}
+                      </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12 col-sm-6 col-lg-2">
+                    <label for="assessment" class="form-label text-gray fs-12 mb-1">Assessment</label>
+                    <select name="test_taken" id="assessment" class="form-control custom-input w-100">
+                      <option value="" disabled selected>Assessment</option>
+                      <option value="Yes" {% if request.GET.get('test_taken') == 'Yes' %}selected{% endif %}>Yes</option>
+                      <option value="In Progress" {% if request.GET.get('test_taken') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                      <option value="No" {% if request.GET.get('test_taken') == 'No' %}selected{% endif %}>No</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-lg-3">
+                    <label for="student_name" class="form-label text-gray fs-12 mb-1">Student name</label>
+                    <div class="input-group">
+                      <input type="text"
+                             name="student_name"
+                             id="student_name"
+                             class="form-control custom-input"
+                             placeholder="Search student"
+                             value="{{ request.GET.get('student_name', '') }}">
+                      <span class="input-group-text bg-white border-start-0">
+                        <i class='bx bx-search'></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="col-12 col-lg-2">
+                    <label for="per_page" class="form-label text-gray fs-12 mb-1">Records per page</label>
+                    <select name="per_page" id="per_page" class="form-control custom-input w-100">
+                      <option value="10" {% if request.GET.get('per_page', '10') == '10' %}selected{% endif %}>10</option>
+                      <option value="100" {% if request.GET.get('per_page') == '100' %}selected{% endif %}>100</option>
+                      <option value="all" {% if request.GET.get('per_page') == 'all' %}selected{% endif %}>All</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-lg-3 d-flex flex-column justify-content-end">
+                    <div class="d-none d-lg-block counselor-filter-label-spacer mb-1" aria-hidden="true"></div>
+                    <div class="counselor-filter-actions">
+                      <button type="submit"
+                              class="btn custom-button purple-button counselor-btn-fixed w-100 text-uppercase"
+                              style="font-size: 12px; font-weight: 700; letter-spacing: 0.02em;">
+                        Search
+                      </button>
+                      <a href="{{ url('counselor:CounselorDashboardView', args=[coun_id]) }}"
+                         class="btn btn-secondary counselor-btn-fixed w-100 text-uppercase"
+                         style="font-size: 12px; font-weight: 700; letter-spacing: 0.02em;">
+                        Reset
+                      </a>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="card counselor-table-card">
+          <div class="card-body p-0">
+            <!-- Loader -->
+            <div id="students-loader" class="table-loader-wrap text-center py-5" style="display: none;">
+              <div class="spinner-border text-primary" role="status" style="color: #3f37c9 !important;">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-gray fs-14 mb-0">Loading students…</p>
+            </div>
+            
+            <!-- Table Container -->
+            <div id="students-table-wrapper">
+            <div id="students-table-container">
+            <div class="table-responsive">
+              <table class="table counselor-dash-table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">S.No.</th>
+                    <th scope="col">Class</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Recent follow-up</th>
+                    <th scope="col">Session attended</th>
+                    <th scope="col">Psychometric report</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if students %}
+                    {% for stu_info in students %}
+                    <tr>
+                      <td>
+                        {% if paginator %}
+                          {{ (students.number - 1) * students.paginator.per_page + loop.index0 + 1 }}
+                        {% else %}
+                          {{ loop.index }}
+                        {% endif %}
+                      </td>
+                      <td>{{ stu_info.student.class_and_section.class_and_section }}</td>
+                      <td>{{ stu_info.student.student.name }}</td>
+                      <td>{{ stu_info.student.student.email }}</td>
+                      <td>{{ stu_info.student.student.mobile }}</td>
+                      <td>
+                        {% if stu_info.follow_ups %}
+                          {{ stu_info.follow_ups[0].last_follow_up_date|default('-') }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if stu_info.follow_ups %}
+                          {% if stu_info.follow_ups[0].is_followed_up %}
+                            <span class="badge bg-success">Yes</span>
+                          {% else %}
+                            <span class="badge bg-danger">No</span>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge bg-danger">No</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if results_data %}
+                          {% if stu_info.student.student in results_data %}
+                            {% set result = results_data[stu_info.student.student] %}
+                            {% set test_status = result.get('test_status', 'no_tests') %}
+                            {% set tooltip = result.get('tooltip', '') %}
+                            
+                            {% if test_status == 'completed' %}
+                              <span class="badge bg-success position-relative" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="{{ tooltip or 'All tests completed' }}">
+                                <i class='bx bx-check-circle me-1'></i> Complete
+                              </span>
+                              {% if result.test_link %}
+                                <a href="{{ result.test_link }}" target="_blank" class="btn btn-sm btn-link p-0 ms-2" title="View Report">
+                                  <i class='bx bx-link-external'></i>
+                                </a>
+                              {% endif %}
+                            {% elif test_status == 'in_progress' %}
+                              <span class="badge bg-warning position-relative" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="{{ tooltip or 'Tests in progress' }}">
+                                <i class='bx bx-time-five me-1'></i> In Process
+                              </span>
+                            {% else %}
+                              <span class="badge bg-secondary position-relative" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-placement="top" 
+                                    title="{{ tooltip or 'No tests taken' }}">
+                                <i class='bx bx-hourglass me-1'></i> Pending
+                              </span>
+                            {% endif %}
+                          {% else %}
+                            <span class="badge bg-secondary">
+                              <i class='bx bx-hourglass me-1'></i> Pending
+                            </span>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge bg-secondary">
+                            <i class='bx bx-hourglass me-1'></i> Pending
+                          </span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="counselor-table-empty border-0">
+                        <div class="d-flex flex-column align-items-center justify-content-center text-center px-2">
+                          <img src="{{ static('images_new/general/no-data.png') }}" alt="" width="120" height="120" class="mb-3 opacity-90" loading="lazy">
+                          <p class="fs-16 fw-semibold text-dark mb-1">No data found</p>
+                          <p class="fs-13 text-gray mb-0" style="max-width: 420px;">There are no students assigned to you yet, or no rows match your filters. Try changing the search or reset filters.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="students-pagination">
+            {% if students %}
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 px-3 pb-3">
+              <div class="text-gray fs-13">
+                {% if paginator %}
+                  Showing {{ ((students.number - 1) * students.paginator.per_page) + 1 }} to {% if students.number * students.paginator.per_page < students.paginator.count %}{{ students.number * students.paginator.per_page }}{% else %}{{ students.paginator.count }}{% endif %} of {{ students.paginator.count }} entries
+                {% else %}
+                  Showing all {{ students|length }} entries
+                {% endif %}
+              </div>
+              {% if paginator %}
+              <nav>
+                <ul class="pagination mb-0">
+                  {% if students.has_previous() %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+                      <i class='bx bx-chevron-left'></i>
+                    </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link"><i class='bx bx-chevron-left'></i></span>
+                  </li>
+                  {% endif %}
+
+                  {% for num in students.paginator.page_range %}
+                    {% if students.number == num %}
+                      <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                      </li>
+                    {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 2 and num <= students.number + 2) %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">{{ num }}</a>
+                      </li>
+                    {% elif num == 4 or num == students.paginator.num_pages - 3 %}
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+
+                  {% if students.has_next() %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.class_and_section %}&class_and_section={{ request.GET.class_and_section }}{% endif %}{% if request.GET.student_name %}&student_name={{ request.GET.student_name }}{% endif %}{% if request.GET.test_taken %}&test_taken={{ request.GET.test_taken }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">
+                      <i class='bx bx-chevron-right'></i>
+                    </a>
+                  </li>
+                  {% else %}
+                  <li class="page-item disabled">
+                    <span class="page-link"><i class='bx bx-chevron-right'></i></span>
+                  </li>
+                  {% endif %}
+                </ul>
+              </nav>
+              {% endif %}
+            </div>
+            {% endif %}
+            </div>
+            <!-- End of Pagination Container -->
+            </div>
+            <!-- End students-table-container -->
+          </div>
+            <!-- End students-table-wrapper -->
+          </div>
+          <!-- End card-body -->
+        </div>
+        <!-- End counselor-table-card -->
+
+      </div>
+
+        <!-- Weekly Session Report -->
+        <div class="card counselor-chart-card mt-4">
+          <div class="card-body text-center">
+            <h3 class="fs-20 fw-semibold mb-1 counselor-section-title">Weekly session report</h3>
+            <p class="text-gray fs-13 mb-4">Sessions logged per day for counselors in your scope.</p>
+            <div id="sessions-loader" class="text-center py-3" style="display: none;">
+              <div class="spinner-border spinner-border-sm text-primary" role="status" style="color: #3f37c9 !important;">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="text-gray fs-13 mt-2 mb-0">Loading chart…</p>
+            </div>
+            <canvas id="sessionsChart" width="400" height="200"></canvas>
+            <div id="no-data-container" data-no-data-img="{{ static('images_new/general/no-data.png') }}" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

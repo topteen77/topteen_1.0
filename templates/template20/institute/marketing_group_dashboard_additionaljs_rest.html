@@ -1,29 +1,3 @@
-{% extends 'template20/logged-in-base.html' %}
-
-{% block title_content %}Marketing Group Dashboard | Top Teen{% endblock %}
-{% block description_content %}Marketing group dashboard for managing institutes and analytics.{% endblock %}
-
-{% block bodyclass %}{{ super() }} marketing-group-dashboard{% endblock %}
-
-{% block additionalhead %}
-{{ super() }}
-{% include 'template20/institute/marketing_group_dashboard_assets.html' %}
-{% endblock %}
-
-{% block content %}
-{% include 'template20/institute/marketing_group_dashboard_body.html' %}
-{% endblock %}
-
-{% block additionaljs %}
-{{ super() }}
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
-<script>
-  // Update refresh date
-  document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
-</script>
 <script>
   // Initialize Bootstrap tooltips
   function initTooltips() {
@@ -1245,10 +1219,3 @@
     initializeInstituteRowHover();
   });
 </script>
-{% endblock %}
-
-{# Disable chatbot for marketing group dashboard #}
-{% block chatbot_css %}{% endblock %}
-{% block chatbot %}{% endblock %}
-{% block chatbot_js %}{% endblock %}
-

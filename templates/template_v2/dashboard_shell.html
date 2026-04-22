@@ -1,0 +1,73 @@
+{# Shared v2 dashboard shell (counselor-style) for all roles #}
+{% extends 'template_v2/base_logged_in.html' %}
+
+{# Hide public site header; shell provides its own topbar #}
+{% block header %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}">
+{% endblock %}
+
+{% block bodyclass %}{{ super() }} ttv2-shell{% endblock %}
+
+{% block sidebar %}
+  {% block dashboard_sidebar %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="ttv2-counselor-shell">
+  <div class="ttv2-counselor-topbar">
+    <div>
+      <div class="title">{% block dashboard_title %}Dashboard{% endblock %}</div>
+      <div class="sub">{% block dashboard_subtitle %}{% endblock %}</div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle" aria-label="Toggle theme">
+        <i class="bx bx-moon"></i>
+      </button>
+      <div class="ttv2-topbar-icon">{% include "notifications/includes/notification_bell.html" %}</div>
+      <div class="ttv2-topbar-avatar-dropdown dropdown">
+        <span class="dropdown-toggle menu-link float-end" role="button" aria-label="Open profile menu">
+          <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
+        </span>
+        <div class="dropdown-content login-content">
+          <h6>User Dashboard</h6>
+          <p class="text-gray fs-14">Welcome, {% if user.name and user.name != 'None' %}{{ user.name }}{% elif user.mobile %}{{ user.mobile }}{% elif user.first_name %}{{ user.first_name }}{% elif user.email %}{{ user.email|truncate(20) }}{% else %}User{% endif %}</p>
+          <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+            <a href="{% block dashboard_home_url %}{{ url('users:userdashboard') }}{% endblock %}" class="btn custom-button purple-button me-3">User Dashboard</a>
+            <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ttv2-counselor-content">
+    {% block dashboard_body %}{% endblock %}
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{# Dropdown UX + theme toggle are already in template_v2/includes/footer.html.
+   Role pages can append extra JS after this block. #}
+<script>
+  // Shared: print report link
+  (function(){
+    document.addEventListener('click', function(e){
+      var a = e.target && (e.target.closest ? e.target.closest('a.ttv2-print-link') : null);
+      if (!a) return;
+      e.preventDefault();
+      try { window.print(); } catch(err) {}
+    });
+  })();
+</script>
+{% endblock %}
+
+{# Disable chatbot for dashboards by default #}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+

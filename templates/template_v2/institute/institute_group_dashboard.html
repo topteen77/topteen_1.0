@@ -1,0 +1,61 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}Institute Group Dashboard | Top Teen{% endblock %}
+{% block description_content %}Institute group dashboard for managing institutes and analytics.{% endblock %}
+
+{% block bodyclass %}{{ super() }} institute-group-dashboard ttv2-shell{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/institute/institute_group_dashboard_assets.html' %}
+{% endblock %}
+
+{% block dashboard_title %}Institute Group Dashboard{% endblock %}
+{% block dashboard_subtitle %}Institutes, students, and analytics{% endblock %}
+{% block dashboard_home_url %}{{ url('institute:institutegroupdashboard') }}{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebars/institute_group.html" %}
+{% endblock %}
+
+{% block dashboard_body %}
+  <div id="ttv2AjaxContent"
+       data-ttv2-src="{{ request.path }}?ttv2_partial=1"
+       aria-busy="true"
+       style="min-height:260px">
+    <div class="ttv2-card ttv2-ajax-loading-card">
+      <div class="ttv2-ajax-progress" aria-hidden="true"></div>
+      <div class="card-title">Loading…</div>
+      <div style="font-size:11px;color:var(--c-text3)">Fetching dashboard content.</div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  // Load v2 institute-group body via AJAX (fast shell paint)
+  (function(){
+    function load(){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      if (host.getAttribute('data-ttv2-loaded') === '1') return;
+      var src = host.getAttribute('data-ttv2-src');
+      if (!src) return;
+      host.setAttribute('aria-busy','true');
+      fetch(src, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          host.innerHTML = html;
+          host.setAttribute('data-ttv2-loaded','1');
+          host.setAttribute('aria-busy','false');
+        })
+        .catch(function(){
+          host.setAttribute('aria-busy','false');
+          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load dashboard</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
+        });
+    }
+    document.addEventListener('DOMContentLoaded', load);
+  })();
+</script>
+{% endblock %}

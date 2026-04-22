@@ -1,0 +1,481 @@
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+
+<style>
+  :root {
+    --dash-primary: #3f37c9;
+    --dash-bg: #f6f7fb;
+    --dash-border: #e6e8f0;
+    --dash-muted: #6c7280;
+  }
+
+  .counsellor-data-show {
+	border: 1px solid var(--dash-border) !important;
+	padding: 11px;
+	border-radius: 10px;
+}
+
+
+  .tt-header .navbar {
+  background: rgb(244, 243, 255, .50);
+  border-radius: 0px;
+  box-shadow: none;
+  backdrop-filter: blur(3px);
+  border: none !important;
+}
+
+
+  .header.tt-header{
+  margin-top: 0px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  backdrop-filter: blur(2.15px);
+  background: rgb(244, 243, 255, .80);
+  border: 0px ;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+  border-bottom: 1px solid #5350f72e;
+  transition: all 0.2s;
+}
+
+  .footer-main.border-bottom-t {
+	display: none;
+}
+
+  .counselor-dashboard {
+    padding-top: 37px;
+    background: #fff;
+  }
+
+  @media (max-width: 991px) {
+    .counselor-dashboard {
+      padding-top: 48px;
+  
+    }
+    .counselor-dashboard .container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  .counselor-sidebar-panel {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+  }
+
+  .counselor-dashboard .stat-card {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-height: 88px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .counselor-dashboard .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(32, 36, 53, 0.1);
+  }
+
+  .counselor-dashboard .stat-card > div:first-child {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .counselor-dashboard .stat-card > div:first-child i {
+    font-size: 22px;
+    color: #fff;
+  }
+
+  .stat-card-assigned > div:first-child {
+    background: linear-gradient(135deg, #3f37c9, #6860f6);
+  }
+
+  .stat-card-followed > div:first-child {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+  }
+
+  .counselor-dashboard .stat-card .text-gray.fs-10,
+  .counselor-dashboard .stat-card .stat-label {
+    color: var(--dash-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .counselor-dashboard .stat-card .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 2px 0;
+  }
+
+
+  .counselor-filter-card .card-body {
+    padding: 1rem 1.15rem;
+  }
+
+  .counselor-table-card {
+    background: #fff;
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    overflow: hidden;
+    margin-top: 17px;
+  }
+
+  .counselor-table-card .card-body {
+    padding: 0;
+  }
+
+  .counselor-table-card .card-body > .table-loader-wrap {
+    padding: 1.25rem;
+  }
+
+  .counselor-dash-table {
+    margin-bottom: 0;
+    font-size: 13px;
+  }
+
+  .counselor-dash-table thead th {
+    background: #E1DFFF;
+    color: #3f37c9;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--dash-border);
+    padding: 12px 14px;
+    white-space: nowrap;
+  }
+
+  .counselor-dash-table tbody td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f1f5;
+    color: #374151;
+  }
+
+  .counselor-dash-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .counselor-dash-table tbody tr:hover td {
+    background: rgba(63, 55, 201, 0.04);
+  }
+
+  .counselor-dash-table tbody tr:has(.counselor-table-empty) td {
+    background: #fafbfc !important;
+  }
+
+  .counselor-dash-table tbody tr:has(.counselor-table-empty):hover td {
+    background: #f3f4f6 !important;
+  }
+
+  .counselor-table-empty {
+    padding: 2.5rem 1.5rem !important;
+    background: #fafbfc;
+  }
+
+  .counselor-table-empty img {
+    max-width: 140px;
+    height: auto;
+  }
+
+  .counselor-section-title {
+    color: #111827;
+  }
+
+  .counselor-chart-card {
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(32, 36, 53, 0.06);
+    background: #fff;
+  }
+
+  .counselor-chart-card .card-body {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  /* Unified button sizing (touch-friendly ~44px) */
+  .counselor-dashboard .counselor-btn-fixed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+
+  .counselor-dashboard .counselor-btn-fixed i {
+    line-height: 1;
+  }
+
+  /* Aligns Search/Reset row with labeled fields on md+ */
+  .counselor-dashboard .counselor-filter-label-spacer {
+    height: 1.625rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .counselor-dashboard .counselor-filter-card .form-control.custom-input,
+  .counselor-dashboard .counselor-filter-card select.form-control,
+  .counselor-dashboard .counselor-filter-card .input-group .form-control {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* .form-control sets appearance:none on selects but does not add a caret (unlike .form-select) */
+  .counselor-dashboard .counselor-filter-card select.form-control.custom-input {
+    padding-right: 2.25rem;
+    background-color: #EFF3F6;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+  .counselor-dashboard .counselor-filter-card select.form-control.custom-input:focus {
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+
+  .counselor-dashboard .counselor-filter-card .input-group-text {
+    min-height: 44px;
+    align-items: center;
+    display: flex;
+    border-color: var(--dash-border);
+  }
+
+  .counselor-dashboard .counselor-filter-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 576px) {
+    .counselor-dashboard .counselor-filter-actions {
+      flex-direction: row;
+    }
+    .counselor-dashboard .counselor-filter-actions .counselor-btn-fixed {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .counselor-dashboard .counselor-filter-actions .counselor-btn-fixed {
+      flex: 1 1 auto;
+    }
+  }
+
+  /* Enrolled course card: main row (icon + copy) then actions; md+ actions align right */
+  .counselor-course-card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .counselor-course-card-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  @media (min-width: 768px) {
+    .counselor-course-card-inner {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .counselor-course-card-main {
+      align-items: center;
+    }
+  }
+
+  .counselor-course-card-thumb-wrap {
+    width: 194px;
+    height: 132px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #e8f8fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .counselor-course-card-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .counselor-course-card-thumb-fallback {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .counselor-course-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 576px) {
+    .counselor-course-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .counselor-course-actions .counselor-btn-fixed {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .counselor-course-actions {
+      width: auto;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      max-width: none;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .counselor-course-actions .counselor-btn-fixed {
+      flex: 0 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+    }
+  }
+
+  /* Certificate: match sibling buttons — no extra elevation, same visual weight */
+  .counselor-dashboard .counselor-course-actions .counselor-cert-btn {
+    box-shadow: none !important;
+    text-decoration: none;
+  }
+  .counselor-dashboard .counselor-course-actions .counselor-cert-btn:hover,
+  .counselor-dashboard .counselor-course-actions .counselor-cert-btn:focus-visible {
+    color: #fff !important;
+    filter: brightness(1.05);
+    box-shadow: none !important;
+  }
+
+  /* Match counselor course learning page progress (course_learning.html) */
+  .counselor-dashboard-course-progress .counselor-dash-progress-bar {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .counselor-dashboard-course-progress .counselor-dash-progress-fill {
+    height: 100%;
+    background: #5046e5;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+  }
+
+  /* Mobile: fixed filter FAB opens drawer; hidden on lg+ where filters are inline */
+  .counselor-filter-fab {
+    position: relative;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    right: 1rem;
+    /* Keep below Bootstrap offcanvas (default z-index: 1045) */
+    z-index: 1030;
+    height: 46px;
+    border-radius: 999px;
+    padding: 0 14px 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 18px rgba(63, 55, 201, 0.38);
+    background: var(--dash-primary);
+    color: #fff;
+    border: none;
+    -webkit-tap-highlight-color: transparent;
+    top: 0;
+  left: 1px;
+  }
+  .counselor-filter-fab:hover,
+  .counselor-filter-fab:focus-visible {
+    color: #fff;
+    background: #5248e0;
+  }
+  .counselor-filter-fab i {
+    font-size: 20px;
+    line-height: 1;
+  }
+  .counselor-filter-fab-text {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* Responsive offcanvas: drawer on &lt; lg, normal card at lg+ */
+  #counselorFilterDrawer {
+    /* Prevent "full width" drawer; keep it as a right-side panel */
+    --bs-offcanvas-width: min(393px, 100vw);
+
+  }
+  /* Ensure the drawer is visible on mobile */
+  .counselor-filter-offcanvas {
+    background: #fff;
+    border-left: 1px solid rgba(0,0,0,0.08);
+  }
+  .counselor-filter-offcanvas .offcanvas-body {
+    max-height: calc(100vh - 150px);
+    overflow: auto;
+  }
+  /* lg+: Bootstrap's base .offcanvas keeps visibility:hidden + off-screen transform;
+     offcanvas-lg only tweaks colors/body — reset so the inline filter is visible on desktop */
+  @media (min-width: 992px) {
+    #counselorFilterDrawer.counselor-filter-offcanvas.offcanvas-lg {
+      position: static;
+      visibility: visible;
+      transform: none !important;
+      width: 100%;
+      max-width: none;
+      height: auto;
+      z-index: auto;
+      transition: none;
+      background: transparent;
+      border-left: none;
+    }
+    .counselor-filter-offcanvas.offcanvas-lg .offcanvas-body {
+      overflow: visible;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 420px) {
+    #counselorFilterDrawer {
+      padding: 0 20px;
+    }
+  }
+</style>

@@ -1,0 +1,757 @@
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
+<style>
+  .header.tt-header {
+    margin-top: 0px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    backdrop-filter: blur(2.15px);
+    background: rgb(244, 243, 255, .80);
+    border: 0px;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+    border-bottom-width: 0px;
+    border-bottom-style: none;
+    border-bottom-color: currentcolor;
+    border-bottom: 1px solid #5350f72e;
+    transition: all 0.2s;
+  }
+
+  .tt-header .navbar {
+    background: rgb(244, 243, 255, .50);
+    border-radius: 0px;
+    box-shadow: none;
+    backdrop-filter: blur(3px);
+    border: none !important;
+  }
+
+
+  .institute-dashboard {
+    --id-purple: #5249DF;
+    --id-purple-dark: #4c1d95;
+    --id-purple-soft: #ede9fe;
+    --id-page-bg: #f0f2f7;
+    --id-card: #ffffff;
+    --id-text: #1e1b4b;
+    --id-muted: #64748b;
+    --id-radius: 12px;
+    --id-shadow: 0 4px 24px rgba(91, 33, 182, 0.08);
+    --id-shadow-sm: 0 2px 12px rgba(15, 23, 42, 0.06);
+    padding-top: 46px;
+    background: var(--id-page-bg);
+    min-height: 100vh;
+  }
+
+  .institute-dashboard .id-shell {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .in-student-table,
+  .id-stat-card,
+  .institute-dashboard .id-chart-card {
+    background: var(--id-card);
+    border-radius: var(--id-radius);
+    /* box-shadow: var(--id-shadow-sm); */
+    border: 1px solid #e9eaee !important;
+  }
+
+  .institute-dashboard .id-profile-card {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .institute-dashboard .id-profile-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--id-purple-soft);
+  }
+
+  .institute-dashboard .id-profile-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin: 0.75rem 0 0.5rem;
+    text-align: center;
+  }
+
+  .institute-dashboard .id-profile-meta {
+    font-size: 0.8125rem;
+    color: var(--id-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .institute-dashboard .id-profile-meta .id-meta-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .institute-dashboard .id-profile-meta i {
+    color: var(--id-purple);
+    font-size: 1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .institute-dashboard .id-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .institute-dashboard .id-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--id-text);
+    background: #f8fafc;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .institute-dashboard .id-nav-item:hover {
+    background: var(--id-purple-soft);
+    color: var(--id-purple-dark);
+  }
+
+  .institute-dashboard .id-nav-item.active {
+    background: var(--id-purple);
+    color: #fff;
+    pointer-events: none;
+  }
+
+  .institute-dashboard .id-nav-item.active i {
+    color: #fff;
+  }
+
+  .institute-dashboard .id-nav-item i {
+    font-size: 1.15rem;
+    color: var(--id-purple);
+  }
+
+  .institute-dashboard .id-nav-item:hover i {
+    color: var(--id-purple-dark);
+  }
+
+  .institute-dashboard button.id-nav-item {
+    cursor: pointer;
+  }
+
+  .institute-dashboard .id-btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    border: 2px solid var(--id-purple);
+    color: var(--id-purple);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    background: #fff;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .institute-dashboard .id-btn-logout:hover {
+    background: var(--id-purple);
+    color: #fff;
+  }
+
+  .institute-dashboard .id-sidebar-sticky {
+    position: sticky;
+    top: 96px;
+    background: #fff;
+    padding: 17px 14px;
+    border-radius: 15px;
+  }
+
+  .institute-dashboard .id-mobile-toolbar {
+    display: none;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .institute-dashboard .id-mobile-toggle-btn {
+    border: 1px solid #dbe3ef;
+    background: #fff;
+    color: var(--id-text);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .institute-dashboard .id-mobile-toggle-btn i {
+    color: var(--id-purple);
+    font-size: 1rem;
+  }
+
+  .institute-dashboard .id-sidebar-close,
+  .institute-dashboard .id-filter-close {
+    display: none;
+    margin-left: auto;
+    margin-bottom: 0.5rem;
+    border: none;
+    background: transparent;
+    color: #475569;
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .institute-dashboard .id-sidebar-overlay,
+  .institute-dashboard .id-filter-overlay {
+    display: none;
+  }
+
+  .institute-dashboard .id-main-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin-bottom: 1.25rem;
+  }
+
+  .institute-dashboard .id-stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  @media (max-width: 1199px) {
+    .institute-dashboard .id-stats-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .institute-dashboard .id-stats-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .institute-dashboard .id-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    min-height: 88px;
+  }
+
+  .institute-dashboard .id-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .institute-dashboard .id-stat-icon i {
+    font-size: 1.5rem;
+    color: #fff;
+  }
+
+  .institute-dashboard .id-stat-icon--orange {
+    background: linear-gradient(135deg, #fb923c, #ea580c);
+  }
+
+  .institute-dashboard .id-stat-icon--blue {
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+  }
+
+  .institute-dashboard .id-stat-icon--pink {
+    background: linear-gradient(135deg, #f472b6, #db2777);
+  }
+
+  .institute-dashboard .id-stat-icon--green {
+    background: linear-gradient(135deg, #4ade80, #16a34a);
+  }
+
+  .institute-dashboard .id-stat-icon--purple {
+    background: linear-gradient(135deg, #a78bfa, var(--id-purple));
+  }
+
+  .institute-dashboard .id-stat-body {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .institute-dashboard .id-stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--id-text);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .institute-dashboard .id-stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--id-muted);
+    margin: 0.2rem 0 0;
+  }
+
+  .institute-dashboard .id-panel {
+    padding: 1.15rem 1.25rem;
+  }
+
+  .institute-dashboard .id-panel-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin-bottom: 1rem;
+  }
+
+  .institute-dashboard .id-toolbar .form-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--id-muted);
+  }
+
+  .institute-dashboard .id-toolbar .form-control,
+  .institute-dashboard .id-toolbar .custom-input {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-primary {
+    background: var(--id-purple);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    height: 45px;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-primary:hover {
+    background: var(--id-purple-dark);
+    color: #fff;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-outline {
+    border: 2px solid var(--id-purple);
+    color: var(--id-purple);
+    background: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-outline:hover {
+    background: var(--id-purple-soft);
+    color: var(--id-purple-dark);
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-download {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    color: var(--id-purple);
+    background: #fff;
+  }
+
+  .institute-dashboard .id-toolbar .btn-id-download:hover {
+    background: var(--id-purple-soft);
+  }
+
+  /* Purple header tables (students + static tables) */
+  .institute-dashboard #students-table-wrapper .table thead th,
+  .institute-dashboard #students-table-container .table thead th,
+  .institute-dashboard .id-data-table thead th {
+    background: var(--id-purple) !important;
+    color: #fff !important;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: none;
+    border: none;
+    padding: 0.75rem 0.65rem;
+    vertical-align: middle;
+  }
+
+  .institute-dashboard #students-table-wrapper .table,
+  .institute-dashboard #students-table-container .table,
+  .institute-dashboard .id-data-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .institute-dashboard #students-table-wrapper .table tbody td,
+  .institute-dashboard #students-table-container .table tbody td,
+  .institute-dashboard .id-data-table tbody td {
+    font-size: 0.8125rem;
+    padding: 0.65rem 0.65rem;
+    vertical-align: middle;
+    border-color: #eef2ff;
+  }
+
+  .institute-dashboard #students-table-wrapper .table tbody tr:nth-child(even),
+  .institute-dashboard #students-table-container .table tbody tr:nth-child(even),
+  .institute-dashboard .id-data-table tbody tr:nth-child(even) {
+    background: #fafafa;
+  }
+
+  .institute-dashboard .id-chart-card {
+    padding: 1.15rem 1.25rem;
+    height: 100%;
+  }
+
+  .institute-dashboard .id-chart-card .id-chart-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--id-text);
+    margin-bottom: 0.75rem;
+  }
+
+  .institute-dashboard .id-chart-card .chart-canvas-wrap {
+    height: 300px;
+    position: relative;
+  }
+
+  .institute-dashboard .id-heatmap-shell {
+    background: var(--id-card);
+    border-radius: var(--id-radius);
+    box-shadow: var(--id-shadow-sm);
+    border: 1px solid rgba(91, 33, 182, 0.06);
+    overflow: hidden;
+    margin-top: 1.5rem;
+  }
+
+  .institute-dashboard .id-heatmap-shell .heatmap-dashboard-container {
+    min-height: auto;
+    background: linear-gradient(to bottom, #fafbff, #f1f5f9);
+    padding: 1.25rem;
+  }
+
+  .institute-dashboard .heatmap-header-title-icon {
+    background: var(--id-purple) !important;
+  }
+
+  /* Student Details Panel */
+  .student-details-panel {
+    position: fixed;
+    top: 100px;
+    right: -400px;
+    width: 380px;
+    height: calc(100vh - 120px);
+    background: #fff;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+  }
+
+  /* Ensure modals appear above the student details panel */
+  .modal {
+    z-index: 1200 !important;
+  }
+
+  .modal-backdrop {
+    z-index: 1150 !important;
+  }
+
+  .student-details-panel.show {
+    right: 0;
+  }
+
+  .student-panel-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border-bottom: 1px solid #e9d5ff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .student-panel-header h5 {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .student-panel-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .student-panel-footer {
+    padding: 20px;
+    background: #f7f7fa;
+    border-top: 1px solid #e0e0e0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  .student-panel-footer .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .student-panel-footer .btn:last-child {
+    margin-bottom: 0;
+  }
+
+  .student-panel-footer .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .student-detail-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .student-detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .student-detail-label {
+    font-size: 12px;
+    color: #828282;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .student-detail-value {
+    font-size: 14px;
+    color: #333;
+    word-break: break-word;
+  }
+
+  .institute-dashboard .table tbody tr.student-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .institute-dashboard .table tbody tr.student-row:hover {
+    background-color: #f5f3ff;
+  }
+
+  @media (max-width: 991px) {
+    .student-details-panel {
+      width: 100%;
+      right: -100%;
+      top: 0;
+      height: 100vh;
+      z-index: 9999;
+    }
+
+    .institute-dashboard .id-mobile-toolbar {
+      display: flex;
+    }
+
+    .institute-dashboard .id-sidebar-column {
+      display: contents;
+    }
+
+    .institute-dashboard .id-sidebar-overlay,
+    .institute-dashboard .id-filter-overlay {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 1038;
+    }
+
+    .institute-dashboard .id-sidebar-sticky {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(88vw, 340px);
+      height: 100vh;
+      border-radius: 0;
+      overflow-y: auto;
+      z-index: 1039;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      padding-top: 0.9rem;
+    }
+
+    .institute-dashboard.sidebar-drawer-open .id-sidebar-sticky {
+      transform: translateX(0);
+    }
+
+    .institute-dashboard.sidebar-drawer-open .id-sidebar-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .institute-dashboard .id-sidebar-close,
+    .institute-dashboard .id-filter-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .institute-dashboard .id-toolbar {
+      position: relative;
+    }
+
+    .institute-dashboard .id-filter-toggle {
+      display: inline-flex !important;
+      margin-bottom: 0.8rem;
+    }
+
+    .institute-dashboard .id-filter-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(92vw, 380px);
+      height: 100vh;
+      background: #fff;
+      z-index: 1039;
+      padding: 0.95rem;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      border-left: 1px solid #e2e8f0;
+    }
+
+    .institute-dashboard .id-filter-drawer .id-filter-close {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 2;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid #dbe3ef;
+      margin-bottom: 0.9rem;
+    }
+
+    .institute-dashboard.filters-drawer-open .id-filter-drawer {
+      transform: translateX(0);
+    }
+
+    .institute-dashboard.filters-drawer-open .id-filter-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .institute-dashboard .id-filter-drawer .col-6,
+    .institute-dashboard .id-filter-drawer .col-12,
+    .institute-dashboard .id-filter-drawer .col-md-6,
+    .institute-dashboard .id-filter-drawer .col-lg-2,
+    .institute-dashboard .id-filter-drawer .col-lg-3 {
+      width: 100%;
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .institute-dashboard .id-filter-drawer .justify-content-lg-end {
+      justify-content: stretch !important;
+    }
+
+    .institute-dashboard .id-filter-drawer .btn-id-download,
+    .institute-dashboard .id-filter-drawer .btn-id-primary,
+    .institute-dashboard .id-filter-drawer .btn-id-outline {
+      width: 100%;
+      min-height: 42px;
+      justify-content: center;
+    }
+
+    .institute-dashboard .id-filter-drawer .btn-id-download {
+      border: 1px solid #e2e8f0;
+    }
+
+    .institute-dashboard #students-table-wrapper,
+    .institute-dashboard #students-table-container,
+    .institute-dashboard .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .institute-dashboard #students-table-wrapper table,
+    .institute-dashboard #students-table-container table,
+    .institute-dashboard .id-data-table {
+      min-width: 760px;
+    }
+
+    .institute-dashboard #students-table-wrapper .table th,
+    .institute-dashboard #students-table-wrapper .table td,
+    .institute-dashboard #students-table-container .table th,
+    .institute-dashboard #students-table-container .table td,
+    .institute-dashboard .id-data-table th,
+    .institute-dashboard .id-data-table td {
+      white-space: nowrap;
+    }
+
+    .institute-dashboard .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .institute-dashboard .table-responsive>.table,
+    .institute-dashboard .table-responsive>.table-bordered,
+    .institute-dashboard .table-responsive>.table-striped,
+    .institute-dashboard .table-responsive>.table-hover {
+      min-width: 760px;
+      margin-bottom: 0;
+    }
+
+    .institute-dashboard .table-responsive .table th,
+    .institute-dashboard .table-responsive .table td {
+      white-space: nowrap;
+    }
+  }
+
+  @media (min-width: 992px) {
+    .institute-dashboard .id-filter-toggle {
+      display: none !important;
+    }
+  }
+</style>

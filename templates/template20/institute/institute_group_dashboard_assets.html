@@ -1,0 +1,85 @@
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
+<style>
+  .institute-group-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card i {
+    min-width: 32px;
+  }
+  .stat-card p {
+    margin: 0;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #828282;
+  }
+  @media (min-width: 992px) {
+    .col-lg-2-4 {
+      flex: 0 0 auto;
+      width: 20%;
+    }
+  }
+  .text-purple {
+    color: #6f42c1;
+  }
+  .table-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  .search-box {
+    max-width: 400px;
+  }
+  /* Ensure bottom charts display side by side */
+  #bottom-charts-section {
+    display: flex !important;
+    flex-wrap: wrap;
+  }
+  #bottom-charts-section .col-md-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    display: flex;
+  }
+  #bottom-charts-section .col-md-6 .card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  #bottom-charts-section .col-md-6 .card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+  }
+  #bottom-charts-section .col-md-6 .card .card-body > div:last-child,
+  #bottom-charts-section .col-md-6 .card .card-body #personality-chart-loader,
+  #bottom-charts-section .col-md-6 .card .card-body #streams-chart-loader {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  @media (max-width: 767.98px) {
+    #bottom-charts-section .col-md-6 {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+    }
+  }
+</style>

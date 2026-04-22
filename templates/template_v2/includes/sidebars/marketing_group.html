@@ -1,0 +1,79 @@
+<div class="ttv2-counselor-sidebar">
+  <div class="ttv2-counselor-brand">
+    <div class="ttv2-counselor-brand-row">
+      <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+    </div>
+    <div class="tagline">Marketing Dashboard v2.0</div>
+  </div>
+
+  <div class="ttv2-counselor-nav">
+    <div class="ttv2-counselor-nav-title">Reports</div>
+    <a href="{{ url('institute:marketinggroupdashboard') }}" class="active">
+      <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students2
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Analytics</div>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#fbbf24"></span>Interest matrix
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Guidance</div>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors1
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Documents</div>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Best practices
+    </a>
+    <a href="#" class="ttv2-print-link">
+      <span class="ttv2-counselor-dot" style="background:#94a3b8"></span>Print report
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Other</div>
+    <a href="{{ url('institute:marketinggroupheatmap') }}">
+      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Heatmap
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Quick links</div>
+    <a href="{{ url('institute:marketinggroupdashboard') }}#ql-add-institute" class="ttv2-counselor-quicklink">
+      <i class='bx bx-plus'></i> Add Institute
+    </a>
+    <a href="{{ url('institute:marketinggroupdashboard') }}#ql-pending" class="ttv2-counselor-quicklink">
+      <i class='bx bx-time-five'></i> Pending approval
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Account</div>
+    <a href="{{ url('users:logout') }}" class="ttv2-counselor-quicklink">
+      <i class='bx bx-log-out'></i> Logout
+    </a>
+  </div>
+</div>
+

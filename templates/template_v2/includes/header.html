@@ -1,0 +1,51 @@
+{# Reuse the existing TopTeen header, plus a v2 theme toggle #}
+{% include 'template20/includes/header.html' %}
+
+<script>
+  // Inject theme toggle into existing header (non-invasive)
+  (function () {
+    function ensureToggle() {
+      var header = document.getElementById('header');
+      if (!header) return;
+      if (document.getElementById('ttv2ThemeToggle')) return;
+
+      var menu = header.querySelector('ul.menu');
+      var navbarInner = header.querySelector('.navbar-inner') || header.querySelector('nav.navbar') || header;
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'ttv2ThemeToggle';
+      btn.className = 'ttv2-theme-toggle';
+      btn.setAttribute('aria-label', 'Toggle theme');
+      btn.innerHTML = '<i class=\"bx bx-moon\"></i>';
+
+      if (menu) {
+        var li = document.createElement('li');
+        li.className = 'menu-item single-link';
+        li.appendChild(btn);
+        // Insert near the search icon so bell/profile remain at far-right
+        var searchLi = menu.querySelector('.search-icon');
+        if (searchLi && searchLi.parentNode) {
+          searchLi.parentNode.insertBefore(li, searchLi.nextSibling);
+        } else {
+          menu.appendChild(li);
+        }
+      } else {
+        // Fallback: append to navbar-inner without breaking layout
+        var wrap = document.createElement('div');
+        wrap.style.display = 'flex';
+        wrap.style.alignItems = 'center';
+        wrap.style.gap = '10px';
+        wrap.appendChild(btn);
+        try { navbarInner.appendChild(wrap); } catch (e) { header.appendChild(wrap); }
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ensureToggle);
+    } else {
+      ensureToggle();
+    }
+  })();
+</script>
+

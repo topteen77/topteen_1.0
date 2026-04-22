@@ -6,6 +6,7 @@ app_name="counselor"
 
 urlpatterns = [
     path("counselor_dashboard/<int:coun_id>/",views.CounselorDashboard,name="CounselorDashboardView"),
+    path("counselor_dashboard/<int:coun_id>/<slug:section>/", views.CounselorDashboardSection, name="CounselorDashboardSection"),
     path("Counselor_Course_payment/",views.CounselorCoursepayment,name="CounselorCoursepayment"),
     path("Counselor_Course_detail/", views.CounselorCourseDetailView.as_view(), name="counselor_course_detail"),
     path("Counselor_Course_curriculum/", views.CounselorCourseCurriculumView.as_view(), name="counselor_course_curriculum"),

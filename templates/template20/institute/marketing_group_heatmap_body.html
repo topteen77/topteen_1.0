@@ -1,0 +1,153 @@
+<section class="marketing-group-dashboard pb-5">
+  <div class="container">
+    <div class="row g-4 pt-4">
+      <!-- Left Sidebar (reused from marketing dashboard) -->
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="border rounded-3 p-3 sticky-top" style="top: 100px;">
+          <div class="text-center border-bottom pb-3 mb-3">
+            <div class="mb-3">
+              {% if request.user.image %}
+              <img src="/media/upload/users/{{request.user.id}}/user_{{request.user.id}}.jpg"
+                   class="rounded-circle"
+                   style="width: 104px; height: 104px; object-fit: cover;"
+                   alt="Profile Image"
+                   onerror="this.src='{{ static('images_new/icons/user-icon.svg') }}'">
+              {% else %}
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 104px; height: 104px;">
+                <i class='bx bx-user fs-48 text-gray'></i>
+              </div>
+              {% endif %}
+            </div>
+            <h5 class="fs-16 fw-semibold mb-3">{{ request.user.get_full_name|default(request.user.username) }}</h5>
+            <div class="d-flex flex-column gap-2 text-start">
+              <div class="d-flex gap-2 align-items-center">
+                <i class='bx bx-calendar fs-18 text-gray'></i>
+                <span class="fs-14 text-gray">Joined {{ request.user.created.strftime("%B, %Y") if request.user.created else '-' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mb-3" style="background: #f7f7fa; border: 1px solid #e0e0e0;">
+            <div class="card-body p-3">
+              <h6 class="fs-14 fw-semibold mb-3 text-center">Credits Information</h6>
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Total Credits:</span>
+                  <span class="fs-14 fw-semibold" id="sidebar-total-credits">-</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-12 text-gray">Used Credits:</span>
+                  <span class="fs-14 fw-semibold text-warning" id="sidebar-used-credits">-</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                  <span class="fs-12 text-gray">Remaining:</span>
+                  <span class="fs-14 fw-semibold text-success" id="sidebar-remaining-credits">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <a href="{{ url('institute:marketinggroupdashboard') }}"
+             class="btn w-100 mb-2 text-white fw-bold d-block text-center"
+             style="background: #6c757d; border-bottom: 6px solid #5a6268; text-decoration: none;">
+            <i class='bx bx-home me-2'></i> My Dashboard
+          </a>
+
+          <a href="{{ url('institute:marketinggroupheatmap') }}"
+             class="btn w-100 mb-2 text-white fw-bold d-block text-center"
+             style="background: #5249DF; border-bottom: 6px solid #3f37c9; text-decoration: none;">
+            <i class='bx bx-grid-alt me-2'></i> Heatmap
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <div class="heatmap-dashboard-container">
+          <div class="heatmap-header-card">
+            <div class="heatmap-header-title">
+              <div class="heatmap-header-title-icon">
+                <i class='bx bx-bar-chart-alt-2'></i>
+              </div>
+              <div>
+                <h1>Career Education Analytics</h1>
+                <p>Institute-wide Career Interest & Knowledge Matrix</p>
+              </div>
+            </div>
+            <div class="heatmap-actions">
+              <button id="heatmap-refresh-btn" class="heatmap-btn refresh">
+                <i class='bx bx-refresh'></i>
+                Refreshing...
+              </button>
+              <button id="heatmap-export-btn" class="heatmap-btn export">
+                <i class='bx bx-download'></i>
+                Export
+              </button>
+            </div>
+            <div class="heatmap-stats-grid">
+              <div class="heatmap-stat-card high-risk">
+                <div class="stat-value" id="heatmap-stat-highrisk">0</div>
+                <div class="stat-label">High Risk Areas</div>
+                <div class="stat-desc">Immediate workshops needed</div>
+              </div>
+              <div class="heatmap-stat-card aligned">
+                <div class="stat-value" id="heatmap-stat-aligned">0</div>
+                <div class="stat-label">High Alignment</div>
+                <div class="stat-desc">Students on track</div>
+              </div>
+              <div class="heatmap-stat-card clarity-gap">
+                <div class="stat-value" id="heatmap-stat-claritygap">0%</div>
+                <div class="stat-label">Avg Clarity Gap</div>
+                <div class="stat-desc">Interest-knowledge difference</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="heatmap-controls-card">
+            <div class="heatmap-controls">
+              <button class="heatmap-view-btn active" data-view="grade">By Grade</button>
+              <button class="heatmap-view-btn" data-view="section">By Section</button>
+              <button class="heatmap-view-btn" data-view="stream">By Stream</button>
+            </div>
+          </div>
+
+          <div class="heatmap-legend-card">
+            <div class="heatmap-legend">
+              <div class="heatmap-legend-item">
+                <i class='bx bx-info-circle'></i>
+                <span class="font-medium">Legend:</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="heatmap-legend-color" style="background: #EF4444;"></div>
+                <span class="heatmap-legend-text">High Risk (Interest ↑ Knowledge ↓)</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="heatmap-legend-color" style="background: #F59E0B;"></div>
+                <span class="heatmap-legend-text">Maintenance (Balanced)</span>
+              </div>
+              <div class="heatmap-legend-item">
+                <div class="heatmap-legend-color" style="background: #10B981;"></div>
+                <span class="heatmap-legend-text">High Alignment (Future Ready)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="heatmap-grid-card">
+            <div id="heatmap-grid-container">
+              <div class="text-center p-5 text-muted">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading heatmap...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="heatmap-footer">
+            Career Education Analytics Dashboard v1.0 | Data refreshed: <span id="heatmap-refresh-date"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+

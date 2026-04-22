@@ -1,0 +1,17 @@
+{# v2 dashboard sidebar router (role-based) #}
+{% if request and request.user and request.user.is_authenticated %}
+  {% if request.user.user_type == 4 %}
+    {% include "template_v2/includes/sidebars/counselor.html" %}
+  {% elif request.user.user_type == 5 %}
+    {% include "template_v2/includes/sidebars/marketing_group.html" %}
+  {% elif request.user.user_type == 3 %}
+    {% include "template_v2/includes/sidebars/institute_group.html" %}
+  {% elif request.user.user_type == 2 %}
+    {% include "template_v2/includes/sidebars/institute.html" %}
+  {% else %}
+    {% include "template_v2/includes/sidebars/default.html" %}
+  {% endif %}
+{% else %}
+  {% include "template_v2/includes/sidebars/default.html" %}
+{% endif %}
+

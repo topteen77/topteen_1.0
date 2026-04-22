@@ -1,0 +1,116 @@
+{% include 'template20/user/includes/profile_sidebar_styles.html' %}
+<link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
+<style>
+  .marketing-group-dashboard {
+    padding-top: 80px;
+  }
+  .stat-card {
+    background: #f7f7fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-card i {
+    min-width: 32px;
+  }
+  .stat-card p {
+    margin: 0;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #828282;
+  }
+  @media (min-width: 992px) {
+    .col-lg-2-4 {
+      flex: 0 0 auto;
+      width: 20%;
+    }
+  }
+  .text-purple {
+    color: #6f42c1;
+  }
+  /* Right Side Panel Styles */
+  .institute-details-panel {
+    position: fixed;
+    top: 100px;
+    right: -400px;
+    width: 380px;
+    height: calc(100vh - 120px);
+    background: #fff;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #e0e0e0;
+    overflow-y: auto;
+  }
+  .institute-details-panel.show {
+    right: 0;
+  }
+  .panel-header {
+    padding: 20px;
+    background: #f7f7fa;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .panel-header h5 {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .panel-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .institute-detail-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .institute-detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .institute-detail-label {
+    font-size: 12px;
+    color: #828282;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .institute-detail-value {
+    font-size: 14px;
+    color: #333;
+    word-break: break-word;
+  }
+  .table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  @media (max-width: 991px) {
+    .institute-details-panel {
+      width: 100%;
+      right: -100%;
+      top: 0;
+      height: 100vh;
+      z-index: 9999;
+    }
+  }
+</style>

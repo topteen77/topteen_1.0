@@ -1,0 +1,23 @@
+{% extends 'template_v2/base.html' %}
+
+{% block bodyclass %}logged-in{% endblock %}
+
+{% block additionalhead %}
+<style>
+  /* Keep behavior consistent with template20/logged-in-base.html */
+  body.logged-in .footer-cta,
+  .logged-in .footer-cta,
+  footer.footer-cta {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  .modal-backdrop { z-index: 1040 !important; }
+  .modal { z-index: 1060 !important; }
+  .modal-dialog { z-index: 1065 !important; }
+  .header, .navbar, .tt-header { z-index: 1030 !important; }
+  .swal2-container, .swal2-popup { z-index: 99999 !important; }
+  .swal2-backdrop-show, .swal2-backdrop { z-index: 99998 !important; }
+</style>
+{{ super() }}
+{% endblock %}
+

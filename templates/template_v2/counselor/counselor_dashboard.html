@@ -1,0 +1,727 @@
+{% extends 'template_v2/base_logged_in.html' %}
+
+{% block title_content %}Counselor Dashboard | Top Teen{% endblock %}
+{% block description_content %}Counselor dashboard for managing students and courses.{% endblock %}
+
+{% block bodyclass %}{{ super() }} counselor-dashboard ttv2-shell{% endblock %}
+
+{# Counselor v2 uses its own topbar; hide the global site header nav #}
+{% block header %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}">
+{% include 'template20/counselor/counselor_dashboard_assets.html' %}
+{% endblock %}
+
+{% block sidebar %}
+<div class="ttv2-counselor-sidebar">
+  <div class="ttv2-counselor-brand">
+    <div class="ttv2-counselor-brand-row">
+      <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+    </div>
+    <div class="tagline">Career Counsellor Dashboard v2.0</div>
+  </div>
+
+  {% if counselor_institute %}
+    {% set _jn = counselor_institute.created.strftime("%b %Y") if counselor_institute.created else '' %}
+    {% set profile_name = counselor_institute.name|default('Institute') %}
+    {% set profile_joined = _jn %}
+    {% set profile_badge = 'Active member' %}
+    {% include "template_v2/includes/sidebar_profile_card.html" %}
+  {% endif %}
+
+  {% if request.user and request.user.is_authenticated and request.user.user_type == 4 %}
+    <a href="{{ url('counselor:course_learning', args=[coun_id]) }}"
+       class="ttv2-counselor-mycourse-btn"
+       aria-label="My Course">
+      <i class='bx bx-chalkboard'></i> MY COURSE
+    </a>
+  {% endif %}
+
+  <div class="ttv2-counselor-nav">
+    <div class="ttv2-counselor-nav-title">Reports</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'dashboard']) }}" class="active" data-ttv2-nav="dashboard"><span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'students']) }}" data-ttv2-nav="students"><span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'assessments']) }}" data-ttv2-nav="assessments"><span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'journey-tracker']) }}" data-ttv2-nav="progress"><span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker</a>
+
+    <div class="ttv2-counselor-nav-title">Analytics</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'career-analytics']) }}" data-ttv2-nav="career"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'interest-matrix']) }}" data-ttv2-nav="matrix"><span class="ttv2-counselor-dot" style="background:#fbbf24"></span>Interest matrix</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'streams-capacity']) }}" data-ttv2-nav="streams"><span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'credits']) }}" data-ttv2-nav="credits"><span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits</a>
+
+    <div class="ttv2-counselor-nav-title">Guidance</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'counselors']) }}" data-ttv2-nav="counselors"><span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-report']) }}" data-ttv2-nav="sessions"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-plan']) }}" data-ttv2-nav="plan"><span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'kira']) }}" data-ttv2-nav="kira"><span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant</a>
+
+    <div class="ttv2-counselor-nav-title">Documents</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'best-practices']) }}" data-ttv2-nav="bestpractices"><span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Best practices</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'print-report']) }}" class="ttv2-print-link"><span class="ttv2-counselor-dot" style="background:#94a3b8"></span>Print report</a>
+
+    {# Quick links (shown at end, like screenshot) #}
+    {% if counselor_institute and counselor_institute.slug %}
+      <div class="ttv2-counselor-nav-title">Quick links</div>
+      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-add-multiple">
+        <i class='bx bx-group'></i> Add Multiple Students
+      </a>
+      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-add-single">
+        <i class='bx bx-user-plus'></i> Add Single Student
+      </a>
+      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-add-counselor">
+        <i class='bx bx-user-voice'></i> Add Counselor
+      </a>
+      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-upload-matric">
+        <i class='bx bx-upload'></i> Matric-CSV Upload
+      </a>
+      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-upload-postmatric">
+        <i class='bx bx-upload'></i> Post-Matric-CSV Upload
+      </a>
+      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutehistorylog', args=[counselor_institute.slug]) }}">
+        <i class='bx bx-history'></i> Uploaded History Log
+      </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ttv2-counselor-shell">
+  <div class="ttv2-counselor-topbar">
+    <!-- TTV2_COUNSELOR_MINIMAL_HEADER -->
+    <div>
+      <div class="title" id="ttv2ViewTitle">Dashboard</div>
+      <div class="sub" id="ttv2ViewSub">All key metrics at a glance</div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle" aria-label="Toggle theme">
+        <i class="bx bx-moon"></i>
+      </button>
+      <div class="ttv2-topbar-icon">{% include "notifications/includes/notification_bell.html" %}</div>
+      <div class="ttv2-topbar-avatar-dropdown dropdown">
+        <span class="dropdown-toggle menu-link float-end" role="button" aria-label="Open profile menu">
+          <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
+        </span>
+        <div class="dropdown-content login-content">
+          <h6>User Dashboard</h6>
+          <p class="text-gray fs-14">Welcome, {% if user.name and user.name != 'None' %}{{ user.name }}{% elif user.mobile %}{{ user.mobile }}{% elif user.first_name %}{{ user.first_name }}{% elif user.email %}{{ user.email|truncate(20) }}{% else %}User{% endif %}</p>
+          <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+            <a href="{{ url('counselor:CounselorDashboardView', args=[coun_id]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+            <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ttv2-counselor-content">
+    <div id="ttv2AjaxContent"
+         data-ttv2-src="{{ request.path }}?ttv2_partial=1"
+         aria-busy="true"
+         style="min-height:240px">
+      <div class="ttv2-card ttv2-ajax-loading-card">
+        <div class="ttv2-ajax-progress" aria-hidden="true"></div>
+        <div class="card-title">Loading…</div>
+        <div style="font-size:11px;color:var(--c-text3)">Fetching dashboard content.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Load v2 content body via AJAX (fast shell paint)
+  (function(){
+    function runAfterLoad(){
+      try {
+        if (typeof initTooltips === 'function') initTooltips();
+      } catch(e) {}
+      try {
+        if (typeof loadSessionsChart === 'function') setTimeout(loadSessionsChart, 50);
+      } catch(e) {}
+      try {
+        if (typeof window.ttv2ShowView === 'function') {
+          var initial = '{{ ttv2_initial_view|default("") }}';
+          var hash = (window.location.hash || '').replace('#v-','').replace('#','');
+          window.ttv2ShowView(initial || hash || 'dashboard');
+        }
+      } catch(e) {}
+      try {
+        if (typeof window.ttv2InitStudentsGraphs === 'function') window.ttv2InitStudentsGraphs();
+      } catch(e) {}
+      try {
+        if (typeof window.ttv2InitStudentsTable === 'function') window.ttv2InitStudentsTable();
+      } catch(e) {}
+      try {
+        if ('{{ ttv2_auto_print|default(false) }}' === 'True') setTimeout(function(){ window.print(); }, 350);
+      } catch(e) {}
+    }
+
+    function load(){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      // If server already rendered body (no JS), keep it.
+      if (host.getAttribute('data-ttv2-loaded') === '1') return;
+      var src = host.getAttribute('data-ttv2-src');
+      if (!src) return;
+      host.setAttribute('aria-busy','true');
+      fetch(src, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          host.innerHTML = html;
+          host.setAttribute('data-ttv2-loaded','1');
+          host.setAttribute('aria-busy','false');
+          runAfterLoad();
+        })
+        .catch(function(){
+          host.setAttribute('aria-busy','false');
+          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load dashboard</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', load);
+  })();
+</script>
+<script>
+  // Reference-like view switching (sidebar -> content)
+  (function(){
+    var TITLES = {
+      dashboard: ['Dashboard','All key metrics at a glance'],
+      students: ['Students','Filter, review, and follow up'],
+      assessments: ['Assessments','Psychometric test status and progress'],
+      progress: ['Journey tracker','5-step journey tracker and booking calendar'],
+      career: ['Career analytics','Interest, knowledge gap, clusters and risk'],
+      matrix: ['Interest matrix','Institute-wide interest vs knowledge matrix'],
+      streams: ['Streams & capacity','Stream assignment and seat capacity'],
+      credits: ['Credits','Credit usage and remaining balance'],
+      counselors: ['Counselors','Roster, sessions and performance'],
+      sessions: ['Session report','Weekly session trend'],
+      plan: ['Session plan','Next week plan'],
+      kira: ['KIRA AI assistant','AI-guided suggestions and recommendations'],
+      bestpractices: ['Best practices','Research-backed counselling best practices'],
+    };
+
+    function setTopbar(key){
+      var t = document.getElementById('ttv2ViewTitle');
+      var s = document.getElementById('ttv2ViewSub');
+      var pair = TITLES[key] || [key,''];
+      if (t) t.textContent = pair[0];
+      if (s) s.textContent = pair[1];
+    }
+
+    function showView(key){
+      document.querySelectorAll('.ttv2-view').forEach(function(v){ v.classList.remove('active'); });
+      var target = document.getElementById('v-' + key);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.ttv2-counselor-nav a[data-ttv2-nav]').forEach(function(a){ a.classList.remove('active'); });
+      var nav = document.querySelector('.ttv2-counselor-nav a[data-ttv2-nav=\"'+key+'\"]');
+      if (nav) nav.classList.add('active');
+
+      setTopbar(key);
+      if (key === 'dashboard' || key === 'sessions') {
+        if (typeof loadSessionsChart === 'function') setTimeout(loadSessionsChart, 50);
+      }
+      if (key === 'students') {
+        if (typeof window.ttv2InitStudentsGraphs === 'function') window.ttv2InitStudentsGraphs();
+        if (typeof window.ttv2InitStudentsTable === 'function') window.ttv2InitStudentsTable();
+      }
+    }
+
+    document.addEventListener('click', function(e){
+      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a[data-ttv2-nav]') : null);
+      if (!a) return;
+      e.preventDefault();
+      var key = a.getAttribute('data-ttv2-nav');
+      if (key) showView(key);
+    });
+
+    document.addEventListener('DOMContentLoaded', function(){
+      var initial = '{{ ttv2_initial_view|default("") }}';
+      var hash = (window.location.hash || '').replace('#v-','').replace('#','');
+      var key = initial || hash || 'dashboard';
+      showView(key);
+    });
+
+    // Expose for AJAX-loaded content (so we can re-run after insert)
+    window.ttv2ShowView = showView;
+  })();
+</script>
+<script>
+  // Reference-like dropdown UX for topbar (avatar + notification):
+  // - open on click (handled by existing JS/Bootstrap)
+  // - close on outside click / ESC / scroll
+  // - auto-close after a short delay when not hovering (so it never stays stuck)
+  (function(){
+    var AV_WRAP = document.querySelector('.ttv2-topbar-avatar-dropdown.dropdown');
+    var BELL_BTN = document.getElementById('ttNotificationBellBtn');
+    var closeTimer = null;
+    var CLOSE_DELAY_MS = 3500;
+
+    function clearClose(){ if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } }
+    function closeAvatarNow(){
+      if (!AV_WRAP || !AV_WRAP.classList.contains('dropdown-show')) return;
+      var dd = AV_WRAP.querySelector('.dropdown-content');
+      if (dd) dd.removeAttribute('style');
+      AV_WRAP.classList.remove('dropdown-show');
+    }
+    function startAvatarClose(){
+      clearClose();
+      closeTimer = setTimeout(function(){
+        closeAvatarNow();
+      }, CLOSE_DELAY_MS);
+    }
+
+    if (AV_WRAP) {
+      var AV_MENU = AV_WRAP.querySelector('.dropdown-content');
+      // Do NOT auto-open on hover (match header behavior); only keep it open longer.
+      AV_WRAP.addEventListener('mouseenter', function(){ clearClose(); });
+      AV_WRAP.addEventListener('mouseleave', function(){
+        startAvatarClose();
+      });
+
+      // When moving cursor into the opened menu, don't start closing.
+      if (AV_MENU) {
+        AV_MENU.addEventListener('mouseenter', function(){ clearClose(); });
+        AV_MENU.addEventListener('mouseleave', function(){ startAvatarClose(); });
+      }
+    }
+
+    if (BELL_BTN && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+      var bellWrap = BELL_BTN.closest('.tt-notification-bell-wrap');
+      var bellDd = bootstrap.Dropdown.getOrCreateInstance(BELL_BTN);
+      if (bellWrap) {
+        var bellMenu = bellWrap.querySelector('.dropdown-menu');
+        // Do NOT auto-open on hover (reference behavior). Only cancel close timer.
+        bellWrap.addEventListener('mouseenter', function(){ clearClose(); });
+        bellWrap.addEventListener('mouseleave', function(){
+          clearClose();
+          closeTimer = setTimeout(function(){
+            try { bellDd.hide(); } catch(e) {}
+            }, CLOSE_DELAY_MS);
+        });
+
+        // If user moves from button -> menu, ensure timer cancels.
+        if (bellMenu) {
+          bellMenu.addEventListener('mouseenter', function(){ clearClose(); });
+          bellMenu.addEventListener('mouseleave', function(){
+            clearClose();
+            closeTimer = setTimeout(function(){
+              try { bellDd.hide(); } catch(e) {}
+            }, CLOSE_DELAY_MS);
+          });
+        }
+
+        // Close when clicking outside.
+        document.addEventListener('click', function(e){
+          if (!bellWrap.contains(e.target)) {
+            try { bellDd.hide(); } catch(err) {}
+          }
+        }, true);
+
+        // Close on scroll (topbar dropdowns should not stay open).
+        window.addEventListener('scroll', function(){
+          try { bellDd.hide(); } catch(err) {}
+        }, {passive:true});
+      }
+    }
+
+    // Close avatar on outside click too (same UX as notification).
+    document.addEventListener('click', function(e){
+      if (AV_WRAP && !AV_WRAP.contains(e.target)) closeAvatarNow();
+    }, true);
+
+    // Close both on ESC.
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      closeAvatarNow();
+      if (BELL_BTN && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+        try { bootstrap.Dropdown.getOrCreateInstance(BELL_BTN).hide(); } catch(err) {}
+      }
+    });
+
+    // Close avatar on scroll as well.
+    window.addEventListener('scroll', function(){
+      closeAvatarNow();
+    }, {passive:true});
+  })();
+</script>
+<script>
+  // Load session chart data via AJAX
+  var ttv2SessionsChart = null;
+  function loadSessionsChart() {
+    const loader = document.getElementById('sessions-loader');
+    const canvas = document.getElementById('sessionsChart');
+    
+    if (loader) loader.style.display = 'block';
+    if (canvas) canvas.style.display = 'none';
+    
+    const url = new URL(window.location.href);
+    url.searchParams.set('data_type', 'sessions');
+    
+    fetch(url.toString(), {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (loader) loader.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+      
+      const sessionsData = data.sessions_data || [];
+      const noDataContainer = document.getElementById("no-data-container");
+      const noDataImage = noDataContainer ? noDataContainer.getAttribute("data-no-data-img") : null;
+
+      if (!sessionsData.length || !sessionsData[0].sessions.length) {
+        if (canvas) {
+          canvas.parentElement.innerHTML = `
+            <div class="d-flex justify-content-center align-items-center flex-column py-3">
+              <img width="120" height="120" src="${noDataImage || ''}" alt="" class="opacity-90"/>
+              <p class="fs-16 fw-semibold text-dark mt-3 mb-1">No data found</p>
+              <p class="text-gray fs-13 mb-0 px-3" style="max-width: 360px;">There is no session data for this period yet.</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      const colorPalette = ['#ff758c', '#11998e', '#667eea', '#3357FF', '#89f7fe', '#9B59B6', '#E67E22'];
+      const datasets = sessionsData.map((counselor, index) => ({
+        label: `Counselor: ${counselor.counselor_name}`,
+        data: counselor.sessions.map(session => session.session_count),
+        backgroundColor: colorPalette[index % colorPalette.length],
+        borderColor: colorPalette[index % colorPalette.length],
+        borderWidth: 1
+      }));
+
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        try { if (ttv2SessionsChart) { ttv2SessionsChart.destroy(); ttv2SessionsChart = null; } } catch(e) {}
+        ttv2SessionsChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: sessionsData[0].sessions.map(session => session.day),
+            datasets: datasets
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                  callback: function (value) {
+                    return Number.isInteger(value) ? value : null;
+                  }
+                },
+                title: {
+                  display: true,
+                  text: 'Number of Sessions'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Date'
+                }
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top'
+              }
+            }
+          }
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error loading sessions chart:', error);
+      if (loader) loader.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+    });
+  }
+  
+  // Load sessions chart after page loads
+  document.addEventListener("DOMContentLoaded", function () {
+    // Safe fallback: initial load (views will also trigger this lazily)
+    setTimeout(loadSessionsChart, 700);
+  });
+</script>
+
+<script>
+  // v2 Dashboard extra charts (render only once per page)
+  (function () {
+    var hasInit = false;
+    function cssVar(name, fallback){
+      try {
+        var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+        v = (v || '').trim();
+        return v || fallback;
+      } catch(e) { return fallback; }
+    }
+
+    function init() {
+      if (hasInit) return;
+      hasInit = true;
+      if (typeof Chart === 'undefined') return;
+
+      var fg = cssVar('--c-text', '#F0F2FF');
+      var muted = cssVar('--c-text3', 'rgba(146,153,176,0.85)');
+      var border = cssVar('--c-border', 'rgba(255,255,255,.12)');
+      Chart.defaults.color = muted;
+      Chart.defaults.borderColor = border;
+      Chart.defaults.font.family = 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif';
+
+      function doughnut(id, a, b, colors){
+        var el = document.getElementById(id);
+        if (!el) return;
+        var ctx = el.getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: { labels: ['Completed','Pending'], datasets: [{ data: [a,b], backgroundColor: colors, borderWidth: 0 }]},
+          options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position:'bottom', labels: { boxWidth: 10 }}}}
+        });
+      }
+
+      function lineMini(id, points, color){
+        var el = document.getElementById(id);
+        if (!el) return;
+        var ctx = el.getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: { labels: points.map(function(_,i){ return 'W'+(i+1); }), datasets: [{
+            data: points,
+            borderColor: color,
+            backgroundColor: 'transparent',
+            tension: 0.35,
+            pointRadius: 2,
+            pointHoverRadius: 3,
+          }]},
+          options: { responsive: true, maintainAspectRatio: false, plugins:{ legend:{ display:false }}, scales:{ x:{ display:false }, y:{ display:false } } }
+        });
+      }
+
+      // Use lightweight derived values until backend provides real analytics.
+      var total = Number('{{ students_count|default(0) }}') || 0;
+      var followed = Number('{{ total_is_followed_up_count|default(0) }}') || 0;
+      var completed = Math.min(total, followed);
+      var pending = Math.max(0, total - completed);
+
+      doughnut('ttv2PsychometricChart', completed || 0, pending || 0, [cssVar('--c-accent', '#6c7dff'), 'rgba(255,255,255,.08)']);
+      doughnut('ttv2RiskChart', Math.max(1, Math.round(total*0.2)), Math.max(1, total - Math.round(total*0.2)), ['#34d399','rgba(255,255,255,.08)']);
+      doughnut('ttv2CreditChart', 60, 40, ['#7c83ff','rgba(255,255,255,.08)']);
+      lineMini('ttv2ClarityGapChart', [12, 14, 13, 15, 12, 11, 12], '#fb923c');
+
+      var pdfBtn = document.getElementById('ttv2ExportPdfBtn');
+      if (pdfBtn) {
+        pdfBtn.addEventListener('click', function(){
+          try { window.print(); } catch(e) {}
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+</script>
+
+<script>
+  // Students view graphs (stream distribution + class enrollment)
+  (function () {
+    var done = false;
+    var streamChart = null;
+    var classChart = null;
+    function cssVar(name, fallback){
+      try {
+        var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+        v = (v || '').trim();
+        return v || fallback;
+      } catch(e) { return fallback; }
+    }
+
+    function init() {
+      if (typeof Chart === 'undefined') return;
+      var a = document.getElementById('ttv2StudentsStreamChart');
+      var b = document.getElementById('ttv2StudentsClassChart');
+      if (!a || !b) return; // not in DOM yet (AJAX load)
+      if (done) return;
+      done = true;
+
+      Chart.defaults.color = cssVar('--c-text3', 'rgba(146,153,176,0.85)');
+      Chart.defaults.borderColor = cssVar('--c-border', 'rgba(255,255,255,.12)');
+
+      // Load dynamic values from server (same student queryset as roster)
+      var url = new URL(window.location.href);
+      url.searchParams.set('data_type', 'students_analytics');
+      // show loaders
+      try {
+        a.closest('.ttv2-card') && a.closest('.ttv2-card').classList.add('ttv2-loading');
+        b.closest('.ttv2-card') && b.closest('.ttv2-card').classList.add('ttv2-loading');
+      } catch(e) {}
+      fetch(url.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (!data || !data.success) return;
+
+          // Update KPI numbers if present
+          function setText(id, v){
+            var el = document.getElementById(id);
+            if (el) el.textContent = String(v);
+          }
+          setText('ttv2StudentsKpiTotal', data.total || 0);
+          setText('ttv2StudentsKpiClass10', data.class10 || 0);
+          setText('ttv2StudentsKpiClass11', data.class11 || 0);
+          setText('ttv2StudentsKpiUnassigned', data.unassigned || 0);
+
+          var sc = data.stream_counts || {};
+          var streamLabels = Object.keys(sc);
+          var streamData = streamLabels.map(function(k){ return Number(sc[k] || 0); });
+          if (!streamLabels.length) {
+            streamLabels = ['—'];
+            streamData = [0];
+          }
+
+          if (streamChart) { try { streamChart.destroy(); } catch(e) {} streamChart = null; }
+          if (classChart) { try { classChart.destroy(); } catch(e) {} classChart = null; }
+
+          streamChart = new Chart(a.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: streamLabels, datasets: [{ data: streamData, backgroundColor: ['#a78bfa','#6c7dff','#34d399','#fb923c','#f472b6','#fbbf24'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { position:'left', labels: { boxWidth: 10 }}}}
+          });
+
+          classChart = new Chart(b.getContext('2d'), {
+            type: 'bar',
+            data: { labels: ['Class 10','Class 11','Unassigned'], datasets: [{ label: 'Students', data: [data.class10||0, data.class11||0, data.unassigned||0], backgroundColor: ['#6c7dff','#34d399','#94a3b8'], borderRadius: 10 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }}}}
+          });
+        })
+        .catch(function(){})
+        .finally(function(){
+          try {
+            a.closest('.ttv2-card') && a.closest('.ttv2-card').classList.remove('ttv2-loading');
+            b.closest('.ttv2-card') && b.closest('.ttv2-card').classList.remove('ttv2-loading');
+          } catch(e) {}
+        });
+    }
+
+    window.ttv2InitStudentsGraphs = init;
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+</script>
+
+<script src="{{ static('js_new/student_table_ajax.js') }}"></script>
+<script>
+  function initTooltips() {
+    if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+
+  // Initialize student roster AJAX once body is in DOM (v2 loads via AJAX)
+  (function(){
+    var inited = false;
+    function initStudentsTable() {
+      if (inited) return;
+      var filterForm = document.getElementById('filter-form');
+      var wrapper = document.getElementById('students-table-wrapper');
+      if (!filterForm || !wrapper) return; // not yet injected
+      inited = true;
+
+      function closeCounselorFilterDrawer() {
+        var drawerEl = document.getElementById('counselorFilterDrawer');
+        if (!drawerEl || typeof bootstrap === 'undefined' || !bootstrap.Offcanvas) return;
+        var oc = bootstrap.Offcanvas.getOrCreateInstance(drawerEl);
+        if (oc) oc.hide();
+      }
+
+      filterForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        closeCounselorFilterDrawer();
+        var url = new URL(window.location.href);
+        var formData = new FormData(filterForm);
+        formData.forEach(function (value, key) {
+          if (value) url.searchParams.set(key, value);
+          else url.searchParams.delete(key);
+        });
+        url.searchParams.set('data_type', 'students');
+        url.searchParams.set('page', '1');
+        if (typeof loadStudentsTable === 'function') {
+          loadStudentsTable(url.toString(), {
+            containerId: 'students-table-container',
+            loaderId: 'students-loader',
+            wrapperId: 'students-table-wrapper',
+            onSuccess: function () { initTooltips(); }
+          });
+        }
+      });
+
+      var perPageSelect = document.getElementById('per_page');
+      perPageSelect.addEventListener('change', function () {
+        var url = new URL(window.location.href);
+        url.searchParams.set('per_page', this.value);
+        url.searchParams.delete('page');
+        url.searchParams.set('data_type', 'students');
+        if (typeof loadStudentsTable === 'function') {
+          loadStudentsTable(url.toString(), {
+            containerId: 'students-table-container',
+            loaderId: 'students-loader',
+            wrapperId: 'students-table-wrapper',
+            onSuccess: function () { initTooltips(); }
+          });
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+      var link = e.target && e.target.closest ? e.target.closest('.pagination a.page-link') : null;
+      if (link && link.href) {
+        e.preventDefault();
+        var url = new URL(link.href);
+        url.searchParams.set('data_type', 'students');
+        if (typeof loadStudentsTable === 'function') {
+          loadStudentsTable(url.toString(), {
+            containerId: 'students-table-container',
+            loaderId: 'students-loader',
+            wrapperId: 'students-table-wrapper',
+            onSuccess: function () { initTooltips(); }
+          });
+        }
+      }
+    });
+
+      // Initial load
+      var url = new URL(window.location.href);
+      url.searchParams.set('data_type', 'students');
+      if (typeof loadStudentsTable === 'function') {
+        setTimeout(function () {
+          loadStudentsTable(url.toString(), {
+            containerId: 'students-table-container',
+            loaderId: 'students-loader',
+            wrapperId: 'students-table-wrapper',
+            onSuccess: function () { initTooltips(); }
+          });
+        }, 100);
+      }
+
+      initTooltips();
+    }
+
+    window.ttv2InitStudentsTable = initStudentsTable;
+    document.addEventListener('DOMContentLoaded', initStudentsTable);
+  })();
+</script>
+{% endblock %}
+
+{# Disable chatbot for counselor dashboard #}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

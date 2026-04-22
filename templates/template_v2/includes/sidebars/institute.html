@@ -1,0 +1,108 @@
+{% set _inst_slug = (institute.slug if institute is defined and institute and institute.slug else none) %}
+{% if not _inst_slug and request and request.user %}
+  {% set _inst_obj = request.user.institute_created.last() %}
+  {% if _inst_obj and _inst_obj.slug %}{% set _inst_slug = _inst_obj.slug %}{% endif %}
+{% endif %}
+
+<div class="ttv2-counselor-sidebar">
+  <div class="ttv2-counselor-brand">
+    <div class="ttv2-counselor-brand-row">
+      <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+    </div>
+    <div class="tagline">Institute Dashboard v2.0</div>
+  </div>
+
+  <div class="ttv2-counselor-nav">
+    {% if institute is defined and institute %}
+      {% set _jn = institute.created.strftime("%b %Y") if institute.created else '' %}
+      {% set profile_name = institute.name|default('Institute') %}
+      {% set profile_joined = _jn %}
+      {% set profile_badge = 'Active member' %}
+      {% include "template_v2/includes/sidebar_profile_card.html" %}
+    {% endif %}
+
+    <div class="ttv2-counselor-nav-title">Reports</div>
+    <a href="{{ url('institute:institutedashboard', args=[_inst_slug]) }}" class="active">
+      <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students2
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Analytics</div>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#fbbf24"></span>Interest matrix
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Guidance</div>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors1
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan
+    </a>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Documents</div>
+    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+      <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Best practices
+    </a>
+    <a href="#" class="ttv2-print-link">
+      <span class="ttv2-counselor-dot" style="background:#94a3b8"></span>Print report
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Quick links</div>
+
+    {% if _inst_slug %}
+      <a href="#ql-add-multiple" class="ttv2-counselor-quicklink">
+        <i class='bx bx-group'></i> Add Multiple Students
+      </a>
+      <a href="#ql-add-single" class="ttv2-counselor-quicklink">
+        <i class='bx bx-user-plus'></i> Add Single Student
+      </a>
+      <a href="#ql-add-counselor" class="ttv2-counselor-quicklink">
+        <i class='bx bx-user-voice'></i> Add Counselor
+      </a>
+      <a href="#ql-upload-matric" class="ttv2-counselor-quicklink">
+        <i class='bx bx-upload'></i> Matric-CSV Upload
+      </a>
+      <a href="#ql-upload-postmatric" class="ttv2-counselor-quicklink">
+        <i class='bx bx-upload'></i> Post-Matric-CSV Upload
+      </a>
+      <a href="{{ url('institute:institutehistorylog', args=[_inst_slug]) }}" class="ttv2-counselor-quicklink">
+        <i class='bx bx-history'></i> Uploaded History Log
+      </a>
+      <a href="{{ url('institute:institutedashboard', args=[_inst_slug]) }}" class="ttv2-counselor-quicklink">
+        <i class='bx bx-grid-alt'></i> My Dashboard
+      </a>
+    {% else %}
+      <div class="ttv2-generic-note">Institute dashboard</div>
+    {% endif %}
+
+    <div class="ttv2-counselor-nav-title">Account</div>
+    <a href="{{ url('users:logout') }}" class="ttv2-counselor-quicklink">
+      <i class='bx bx-log-out'></i> Logout
+    </a>
+  </div>
+</div>
+

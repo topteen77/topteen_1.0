@@ -31,6 +31,8 @@ from django.db.models import Count
 from django.utils import timezone
 from app.models import Results, TestCompletion
 from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_institute, get_empty_heatmap_data
+# Dashboard template switch (v1/v2)
+from core.models import Configuration
 # Create your views here.
 
 
@@ -52,6 +54,32 @@ def user_manages_institute_for_api(user, institute):
     if Counselor.objects.filter(coun_user=user, counselor_admin=institute).exists():
         return True
     return False
+
+
+def _dashboard_template(v1_path: str, v2_path: str) -> str:
+    """
+    Global dashboard template switch controlled by core.Configuration key DASHBOARD_TEMPLATE_VERSION.
+    Defaults to v1 for safety.
+    """
+    try:
+        v = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
+    except Exception:
+        v = "v1"
+    return v2_path if v == "v2" else v1_path
+
+
+def _dashboard_primary_template_name(view) -> str:
+    """
+    Several dashboard views override get_template_names() but still render() with self.template_name.
+    Use this helper so the admin v1/v2 switch actually affects those manual render() paths.
+    """
+    try:
+        names = view.get_template_names()
+        if names:
+            return names[0]
+    except Exception:
+        pass
+    return view.template_name
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(only_superuser,name='dispatch')
@@ -397,6 +425,14 @@ class InstituteGroupCreateView(TemplateView):
 class MarketingGroupDashboardView(TemplateView):
     # template_name="topteenfrontend/user/institute_group_dashboard.html"
     template_name="template20/institute/marketing_group_dashboard.html"
+
+    def get_template_names(self):
+        return [
+            _dashboard_template(
+                "template20/institute/marketing_group_dashboard.html",
+                "template_v2/institute/marketing_group_dashboard.html",
+            )
+        ]
 
     def html_head(self):
         name='Institute Group Dashboard'
@@ -800,8 +836,17 @@ class MarketingGroupDashboardView(TemplateView):
                         pass
             return JsonResponse(json_data)
         else:
-            # Regular page load
-            return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+            # Regular page load (support v2 partial for AJAX shell boot)
+            ctx = self.get_context(request, *args, **kwargs)
+            try:
+                template_version = (
+                    Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
+                ).strip()
+            except Exception:
+                template_version = "v1"
+            if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+                return render(request, "template_v2/institute/marketing_group_dashboard_body.html", ctx)
+            return render(request, _dashboard_primary_template_name(self), ctx)
     
     def get_search_parameters(self, request):
         """Extract and validate search parameters from request"""
@@ -969,6 +1014,14 @@ class InstituteGroupDashboardView(TemplateView):
     # template_name="topteenfrontend/user/institute_group_dashboard.html"
     # template_name="topteenfrontend/user/app/institute_group_dashboard.html"
     template_name="template20/institute/institute_group_dashboard.html"
+
+    def get_template_names(self):
+        return [
+            _dashboard_template(
+                "template20/institute/institute_group_dashboard.html",
+                "template_v2/institute/institute_group_dashboard.html",
+            )
+        ]
 
     def html_head(self):
         name='Institute Group Dashboard'
@@ -1342,8 +1395,17 @@ class InstituteGroupDashboardView(TemplateView):
                     json_data[key] = str(value)
             return JsonResponse(json_data)
         else:
-            # Regular page load
-            return render(request,self.template_name,self.get_context(request,*args,**kwargs))
+            # Regular page load (support v2 partial for AJAX shell boot)
+            ctx = self.get_context(request, *args, **kwargs)
+            try:
+                template_version = (
+                    Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
+                ).strip()
+            except Exception:
+                template_version = "v1"
+            if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+                return render(request, "template_v2/institute/institute_group_dashboard_body.html", ctx)
+            return render(request, _dashboard_primary_template_name(self), ctx)
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(marketing_group_user_only,name='dispatch')
@@ -1398,6 +1460,14 @@ class InstituteDashboardView(TemplateView):
     # template_name="topteenfrontend/user/institute_dashboard.html" 
     # template_name="topteenfrontend/user/app/profile_index.html" 
     template_name="template20/institute/institute_dashboard.html"
+
+    def get_template_names(self):
+        return [
+            _dashboard_template(
+                "template20/institute/institute_dashboard.html",
+                "template_v2/institute/institute_dashboard.html",
+            )
+        ]
     
     def html_head(self):
         name='Institute Dashboard'
@@ -2352,8 +2422,16 @@ class InstituteDashboardView(TemplateView):
         if download=="Yes":
             data=ctx.get('stu')
             return self.get_filter_data(request,data)
-        
-        return render(request, self.template_name, ctx )
+
+        # v2 partial rendering for fast AJAX shell boot
+        try:
+            template_version = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
+        except Exception:
+            template_version = "v1"
+        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+            return render(request, "template_v2/institute/institute_dashboard_body.html", ctx)
+
+        return render(request, _dashboard_primary_template_name(self), ctx )
     
     def get_student_table_context_ajax(self, request, *args, **kwargs):
         """
@@ -2478,7 +2556,7 @@ class InstituteDashboardView(TemplateView):
         if getattr(institute, "is_system_demo", False):
             messages.error(request, "Demo institute: cannot add new students.")
             ctx = self.get_context(request, *args, **kwargs)
-            return render(request, self.template_name, ctx)
+            return render(request, _dashboard_primary_template_name(self), ctx)
         import re
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         class_section=request.POST.get("class_section")
@@ -2518,7 +2596,7 @@ class InstituteDashboardView(TemplateView):
                     error_list.append(semail)
         ctx["error_list"]=error_list
         create_institute_log.delay(institute.id,error_list,len(email_list))
-        return render(request, self.template_name, ctx)
+        return render(request, _dashboard_primary_template_name(self), ctx)
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(marketing_group_user_only,name='dispatch')
@@ -3166,7 +3244,46 @@ class InstituteHistoryLogView(TemplateView):
         return ctx
     
     def get(self,request,*args,**kwargs):
-        return render(request,self.template_name,self.get_context(request,*args,**kwargs))
+        return render(request, _dashboard_primary_template_name(self), self.get_context(request, *args, **kwargs))
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(marketing_group_user_only, name='dispatch')
+class MarketingGroupHeatmapView(TemplateView):
+    """
+    Dedicated Heatmap page for Marketing Group users.
+    Reuses the same heatmap UI/JS as the dashboard, but on its own page.
+    """
+    template_name = "template20/institute/marketing_group_heatmap.html"
+
+    def get_template_names(self):
+        return [
+            _dashboard_template(
+                "template20/institute/marketing_group_heatmap.html",
+                "template_v2/institute/marketing_group_heatmap.html",
+            )
+        ]
+
+    def html_head(self):
+        name = "Heatmap | Marketing Group"
+        return build_html_head(title=name, description=name)
+
+    def get(self, request, *args, **kwargs):
+        ctx = self.get_context_data(**kwargs)
+        try:
+            template_version = (
+                Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
+            ).strip()
+        except Exception:
+            template_version = "v1"
+        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+            return render(request, "template_v2/institute/marketing_group_heatmap_body.html", ctx)
+        return render(request, _dashboard_primary_template_name(self), ctx)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["html_head"] = self.html_head()
+        return ctx
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class StudentData(APIView):

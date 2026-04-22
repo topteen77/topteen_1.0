@@ -1,0 +1,71 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}Heatmap | Marketing Group | Top Teen{% endblock %}
+{% block description_content %}Career education analytics heatmap.{% endblock %}
+
+{% block bodyclass %}{{ super() }} marketing-group-dashboard marketing-group-heatmap ttv2-shell{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/institute/marketing_group_dashboard_assets.html' %}
+{% endblock %}
+
+{% block dashboard_title %}Heatmap{% endblock %}
+{% block dashboard_subtitle %}Career education analytics{% endblock %}
+{% block dashboard_home_url %}{{ url('institute:marketinggroupdashboard') }}{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebars/marketing_group.html" %}
+{% endblock %}
+
+{% block dashboard_body %}
+  <div id="ttv2AjaxContent"
+       data-ttv2-src="{{ request.path }}?ttv2_partial=1"
+       aria-busy="true"
+       style="min-height:260px">
+    <div class="ttv2-card ttv2-ajax-loading-card">
+      <div class="ttv2-ajax-progress" aria-hidden="true"></div>
+      <div class="card-title">Loading…</div>
+      <div style="font-size:11px;color:var(--c-text3)">Fetching heatmap.</div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block additionaljs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
+<script>
+  document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
+</script>
+<script>
+  // Load v2 heatmap body via AJAX (fast shell paint)
+  (function(){
+    function load(){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      if (host.getAttribute('data-ttv2-loaded') === '1') return;
+      var src = host.getAttribute('data-ttv2-src');
+      if (!src) return;
+      host.setAttribute('aria-busy','true');
+      fetch(src, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          host.innerHTML = html;
+          host.setAttribute('data-ttv2-loaded','1');
+          host.setAttribute('aria-busy','false');
+        })
+        .catch(function(){
+          host.setAttribute('aria-busy','false');
+          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load heatmap</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
+        });
+    }
+    document.addEventListener('DOMContentLoaded', load);
+  })();
+</script>
+{% endblock %}
+
+{# Disable chatbot for marketing heatmap page #}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+

@@ -1,0 +1,714 @@
+/*
+  Template v2 (Dashboard shell)
+  - Minimal, additive styles to support the new v2 templates
+  - Keeps existing dashboard feature markup/IDs intact
+*/
+
+/* Theme tokens */
+:root{
+  --ttv2-bg: #f6f7fb;
+  --ttv2-fg: #111827;
+  --ttv2-surface: #ffffff;
+  --ttv2-border: rgba(17,24,39,0.12);
+  --ttv2-muted: rgba(17,24,39,0.65);
+  --ttv2-accent: #5249DF;
+}
+
+html[data-ttv2-theme="dark"]{
+  --ttv2-bg: #0D0F1A;
+  --ttv2-fg: #F0F2FF;
+  --ttv2-surface: rgba(255,255,255,0.06);
+  --ttv2-border: rgba(240,242,255,0.12);
+  --ttv2-muted: rgba(240,242,255,0.70);
+  --ttv2-accent: #8B7CFF;
+}
+
+body.ttv2-shell{
+  min-height: 100vh;
+  background: var(--ttv2-bg);
+  color: var(--ttv2-fg);
+}
+
+body.ttv2-shell a{ color: inherit; }
+
+body.ttv2-shell .border,
+body.ttv2-shell .border-top,
+body.ttv2-shell .border-bottom,
+body.ttv2-shell .border-start,
+body.ttv2-shell .border-end{
+  border-color: var(--ttv2-border) !important;
+}
+
+body.ttv2-shell .text-gray,
+body.ttv2-shell .text-muted{
+  color: var(--ttv2-muted) !important;
+}
+
+body.ttv2-shell .card,
+body.ttv2-shell .modal-content{
+  background: var(--ttv2-surface);
+  color: var(--ttv2-fg);
+}
+
+/* Header toggle button */
+.ttv2-theme-toggle{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--ttv2-border);
+  background: var(--ttv2-surface);
+  color: var(--ttv2-fg);
+  cursor: pointer;
+}
+.ttv2-theme-toggle:hover{
+  border-color: var(--ttv2-accent);
+}
+
+/* =========================
+   Counselor v2 (reference-like)
+   ========================= */
+body.ttv2-shell .ttv2-counselor-shell{
+  --c-bg: #0f1117;
+  --c-bg2:#161820;
+  --c-bg3:#1e2030;
+  --c-border: rgba(255,255,255,0.07);
+  --c-border2: rgba(255,255,255,0.12);
+  --c-text:#e8eaf0;
+  --c-text2:#9299b0;
+  --c-text3:#5a6080;
+  --c-accent:#6c7dff;
+  --c-green:#4ade80;
+  --c-amber:#fbbf24;
+  --c-orange:#fb923c;
+  --c-pink:#f472b6;
+  --c-r: 10px;
+  --c-r2: 14px;
+  --c-r3: 18px;
+}
+
+/* Light theme variant for counselor shell */
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-counselor-shell{
+  --c-bg: #f6f7fb;
+  --c-bg2:#ffffff;
+  --c-bg3:#f3f4f6;
+  --c-border: rgba(17,24,39,0.10);
+  --c-border2: rgba(17,24,39,0.14);
+  --c-text:#111827;
+  --c-text2: rgba(17,24,39,0.75);
+  --c-text3: rgba(17,24,39,0.55);
+  --c-accent:#5249DF;
+}
+
+body.ttv2-shell .ttv2-counselor-shell{
+  background: var(--c-bg);
+  color: var(--c-text);
+  min-height: calc(100vh - 58px);
+}
+
+body.ttv2-shell .ttv2-counselor-sidebar{
+  background: var(--c-bg2);
+  border-right: 1px solid var(--c-border);
+  min-height: calc(100vh - 58px);
+  padding: 14px 12px;
+  overflow: auto;
+}
+
+body.ttv2-shell .ttv2-counselor-brand{
+  padding: 12px 10px 10px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 10px;
+}
+body.ttv2-shell .ttv2-counselor-brand-row{
+  display:flex;
+  align-items:center;
+}
+body.ttv2-shell .ttv2-counselor-brand-logo{
+  height: 22px;
+  width: auto;
+  display:block;
+}
+body.ttv2-shell .ttv2-counselor-brand .tagline{
+  font-size: 10px;
+  color: var(--c-text3);
+  margin-top: 2px;
+  letter-spacing: .04em;
+}
+
+body.ttv2-shell .ttv2-counselor-mycourse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width: 100%;
+  margin: 10px 0 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #4CC9F0;
+  border-bottom: 4px solid #3CBAE1;
+  color: #0b1220;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-decoration:none;
+}
+body.ttv2-shell .ttv2-counselor-mycourse-btn:hover{
+  filter: brightness(1.03);
+  text-decoration:none;
+  color: #0b1220;
+}
+
+body.ttv2-shell .ttv2-counselor-nav-title{
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--c-text3);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 14px 10px 6px;
+}
+body.ttv2-shell .ttv2-counselor-nav a{
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-left: 2px solid transparent;
+  color: var(--c-text2);
+  text-decoration: none;
+  border-radius: 8px;
+}
+body.ttv2-shell .ttv2-counselor-nav a:hover{
+  background: rgba(255,255,255,.03);
+  color: var(--c-text);
+}
+body.ttv2-shell .ttv2-counselor-nav a.active{
+  color: var(--c-accent);
+  border-left-color: var(--c-accent);
+  background: rgba(108,125,255,.07);
+}
+
+/* Counselor sidebar quicklinks */
+body.ttv2-shell .ttv2-counselor-quicklink{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--c-border);
+  background: rgba(255,255,255,.02);
+  color: var(--c-text2);
+  text-decoration:none;
+  margin: 8px 6px 0;
+}
+body.ttv2-shell .ttv2-counselor-quicklink i{ font-size: 18px; color: var(--c-text3); }
+body.ttv2-shell .ttv2-counselor-quicklink:hover{
+  color: var(--c-text);
+  background: rgba(108,125,255,.10);
+  border-color: rgba(108,125,255,.22);
+  text-decoration:none;
+}
+
+/* Disabled nav items */
+body.ttv2-shell .ttv2-counselor-nav a.ttv2-nav-disabled{
+  opacity: .55;
+  pointer-events: none;
+}
+body.ttv2-shell .ttv2-counselor-nav a.ttv2-nav-disabled:hover{
+  background: transparent;
+}
+
+/* Sidebar profile card (used by counselor + institute sidebars) */
+body.ttv2-shell .ttv2-sidebar-profile-card{
+  margin: 10px 6px 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border);
+  background: rgba(255,255,255,.02);
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-sidebar-profile-card{
+  background: rgba(17,24,39,.02);
+}
+body.ttv2-shell .ttv2-sidebar-profile-row{
+  display:flex;
+  gap: 12px;
+  align-items:center;
+}
+body.ttv2-shell .ttv2-sidebar-profile-avatar{
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #6c7dff, #5249DF);
+  flex-shrink:0;
+}
+body.ttv2-shell .ttv2-sidebar-profile-name{
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--c-text);
+  max-width: 180px;
+}
+body.ttv2-shell .ttv2-sidebar-profile-sub{
+  font-size: 10px;
+  color: var(--c-text3);
+  margin-top: 2px;
+  max-width: 180px;
+}
+body.ttv2-shell .ttv2-sidebar-profile-badge{
+  margin-top: 10px;
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(34,197,94,.25);
+  background: rgba(34,197,94,.10);
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 10px;
+}
+body.ttv2-shell .ttv2-sidebar-profile-badge .dot{
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.18);
+}
+body.ttv2-shell .ttv2-counselor-dot{
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+body.ttv2-shell .ttv2-counselor-topbar{
+  background: var(--c-bg2);
+  border-bottom: 1px solid var(--c-border);
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  gap: 12px;
+}
+
+/* Topbar icon/avatar (reference: only bell + avatar visible) */
+body.ttv2-shell .ttv2-topbar-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border2);
+  background: rgba(255,255,255,.03);
+}
+body.ttv2-shell .ttv2-topbar-icon a,
+body.ttv2-shell .ttv2-topbar-icon button{
+  color: var(--c-text2) !important;
+}
+
+body.ttv2-shell .ttv2-topbar-avatar{
+  width:38px;
+  height:38px;
+  border-radius: 999px;
+  border: 1px solid var(--c-border2);
+  background: rgba(255,255,255,.03);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  text-decoration:none;
+}
+body.ttv2-shell .ttv2-topbar-avatar img{
+  width:22px;
+  height:22px;
+  object-fit:contain;
+  opacity:.9;
+}
+
+/* Avatar dropdown (reuse header dropdown classes but theme-aware) */
+body.ttv2-shell .ttv2-topbar-avatar-dropdown{
+  position: relative;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  border-radius: 999px;
+  border: 1px solid var(--c-border2);
+  background: rgba(255,255,255,.03);
+  cursor:pointer;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-toggle img{
+  width:22px;
+  height:22px;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content{
+  right: 0;
+  left: auto;
+  top: calc(100% + 8px);
+  background: var(--c-bg2) !important;
+  border: 1px solid var(--c-border2) !important;
+  color: var(--c-text) !important;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown.dropdown-show .dropdown-content.login-content{
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+  border-radius: 14px;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content .btn{
+  border-radius: 999px;
+}
+
+/* Notifications dropdown (Bootstrap) theme fixes */
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-bell{
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--c-text2) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown{
+  background: var(--c-bg2) !important;
+  color: var(--c-text) !important;
+  border: 1px solid var(--c-border2) !important;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .border-bottom,
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .border-top{
+  border-color: var(--c-border) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .text-muted{
+  color: var(--c-text3) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-item:hover{
+  background: rgba(255,255,255,.04) !important;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content h6{
+  color: var(--c-text) !important;
+}
+body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content .text-gray{
+  color: var(--c-text3) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .title{
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+body.ttv2-shell .ttv2-counselor-topbar .sub{
+  font-size: 10px;
+  color: var(--c-text3);
+  margin-top: 1px;
+}
+body.ttv2-shell .ttv2-counselor-content{
+  padding: 16px 18px 22px;
+}
+
+/* Ensure Chart.js canvases render fully in v2 cards */
+body.ttv2-shell .ttv2-card canvas{
+  width: 100% !important;
+  height: 260px !important;
+  display: block;
+}
+
+/* Generic loading state for cards (charts etc.) */
+body.ttv2-shell .ttv2-card.ttv2-loading{
+  position: relative;
+}
+body.ttv2-shell .ttv2-card.ttv2-loading::after{
+  content: "";
+  position:absolute;
+  inset: 0;
+  background: rgba(0,0,0,.18);
+  border-radius: 14px;
+}
+body.ttv2-shell .ttv2-card.ttv2-loading::before{
+  content: "";
+  position:absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  margin-top: -13px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.18);
+  border-top-color: var(--c-accent);
+  animation: ttv2-spin 0.9s linear infinite;
+  z-index: 2;
+}
+@keyframes ttv2-spin { to { transform: rotate(360deg); } }
+
+/* AJAX body initial loading card */
+body.ttv2-shell .ttv2-ajax-loading-card{
+  position: relative;
+  overflow: hidden;
+}
+body.ttv2-shell .ttv2-ajax-progress{
+  position:absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, var(--c-accent), transparent);
+  animation: ttv2-progress 1.1s ease-in-out infinite;
+  opacity: .95;
+}
+@keyframes ttv2-progress{
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+
+/* Embed v1 institute dashboard inside v2 frame: hide its own sidebar */
+body.ttv2-shell .ttv2-institute-embed .id-sidebar-column{
+  display: none !important;
+}
+body.ttv2-shell .ttv2-institute-embed .id-shell{
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+body.ttv2-shell .ttv2-institute-embed .institute-dashboard{
+  padding-top: 0 !important;
+}
+body.ttv2-shell .ttv2-institute-embed .col-12.col-lg-9.col-xl-9{
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 0 0 100% !important;
+}
+
+/* Embed v1 marketing/group dashboards inside v2 frame: hide their left sidebar */
+body.ttv2-shell .ttv2-marketing-embed .col-lg-4.d-none.d-lg-block,
+body.ttv2-shell .ttv2-group-embed .col-lg-4.d-none.d-lg-block{
+  display: none !important;
+}
+body.ttv2-shell .ttv2-marketing-embed .col-lg-8,
+body.ttv2-shell .ttv2-group-embed .col-lg-8{
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 0 0 100% !important;
+}
+body.ttv2-shell .ttv2-marketing-embed .container,
+body.ttv2-shell .ttv2-group-embed .container{
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Generic role sidebar (used by dashboard_sidebar router) */
+body.ttv2-shell .ttv2-generic-sidebar{
+  height: 100%;
+  padding: 14px 12px;
+  background: var(--ttv2-surface);
+  border-right: 1px solid var(--ttv2-border);
+}
+body.ttv2-shell .ttv2-generic-brand img{ height: 22px; width: auto; display:block; }
+body.ttv2-shell .ttv2-generic-note{
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--ttv2-muted);
+}
+body.ttv2-shell .ttv2-generic-link{
+  display:block;
+  margin-top: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  color: var(--ttv2-fg);
+  text-decoration:none;
+  border: 1px solid var(--ttv2-border);
+  background: rgba(255,255,255,.02);
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-generic-link{
+  background: rgba(17,24,39,.02);
+}
+body.ttv2-shell .ttv2-generic-link:hover{
+  text-decoration:none;
+  background: rgba(108,125,255,.10);
+  border-color: rgba(108,125,255,.25);
+}
+
+body.ttv2-shell .ttv2-kpi-grid{
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+@media (max-width: 1200px){
+  body.ttv2-shell .ttv2-kpi-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 768px){
+  body.ttv2-shell .ttv2-kpi-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+body.ttv2-shell .ttv2-kpi{
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--c-r2);
+  padding: 12px 14px;
+  border-top: 2px solid var(--c-accent);
+}
+body.ttv2-shell .ttv2-kpi .val{ font-size: 22px; font-weight: 700; line-height: 1; color: var(--c-text); margin-bottom: 4px; }
+body.ttv2-shell .ttv2-kpi .lbl{ font-size: 10px; color: var(--c-text3); }
+
+body.ttv2-shell .ttv2-card{
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--c-r3);
+  padding: 14px;
+}
+body.ttv2-shell .ttv2-card .card-title{
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: 10px;
+}
+
+/* Compact filter drawer (counselor v2) */
+body.ttv2-shell .ttv2-filter-body{
+  padding: 12px;
+}
+body.ttv2-shell .ttv2-filter-form .form-label{
+  font-size: 11px !important;
+  margin-bottom: 4px !important;
+  color: var(--c-text3);
+}
+body.ttv2-shell .ttv2-filter-form .form-control.custom-input{
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+body.ttv2-shell .ttv2-filter-form .btn{
+  min-height: 38px;
+  padding: 8px 10px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+/* Enrolled courses card (counselor v2 dashboard) */
+body.ttv2-shell .ttv2-course-card{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding: 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.02);
+}
+body.ttv2-shell .ttv2-course-thumb{
+  width: 130px;
+  height: 86px;
+  border-radius: 12px;
+  overflow:hidden;
+  flex-shrink:0;
+  border: 1px solid var(--c-border);
+}
+body.ttv2-shell .ttv2-course-thumb img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+}
+body.ttv2-shell .ttv2-course-title{
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.ttv2-shell .ttv2-course-sub{
+  font-size: 11px;
+  color: var(--c-text3);
+  margin-top: 2px;
+}
+body.ttv2-shell .ttv2-course-progress{
+  margin-top: 10px;
+}
+body.ttv2-shell .ttv2-course-progress-label{
+  font-size: 10px;
+  letter-spacing: .06em;
+  color: var(--c-text3);
+  font-weight: 700;
+}
+body.ttv2-shell .ttv2-course-progress-val{
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--c-accent);
+}
+body.ttv2-shell .ttv2-course-progress-bar{
+  height: 8px;
+  border-radius: 999px;
+  overflow:hidden;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--c-border);
+}
+body.ttv2-shell .ttv2-course-progress-fill{
+  height: 100%;
+  background: var(--c-accent);
+  border-radius: 999px;
+}
+body.ttv2-shell .ttv2-course-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap: wrap;
+  justify-content:flex-end;
+  margin-left: auto;
+}
+@media (max-width: 992px){
+  body.ttv2-shell .ttv2-course-card{ align-items:flex-start; }
+  body.ttv2-shell .ttv2-course-actions{ width: 100%; justify-content:flex-start; margin-left: 0; }
+}
+
+body.ttv2-shell .ttv2-view{ display:none; }
+body.ttv2-shell .ttv2-view.active{ display:block; }
+
+/* Make existing v1 counselor cards blend into v2 */
+body.ttv2-shell .counselor-table-card,
+body.ttv2-shell .counselor-chart-card,
+body.ttv2-shell .counselor-sidebar-panel,
+body.ttv2-shell #counselorFilterDrawer{
+  background: var(--c-bg2) !important;
+  color: var(--c-text) !important;
+  border-color: var(--c-border) !important;
+}
+
+body.ttv2-shell .counselor-dash-table th{
+  background: var(--c-bg3) !important;
+  color: var(--c-text3) !important;
+  border-color: var(--c-border) !important;
+}
+body.ttv2-shell .counselor-dash-table td{
+  color: var(--c-text) !important;
+  border-color: var(--c-border) !important;
+}
+
+/* If we reuse the v1 counselor body inside the v2 shell, hide its internal sidebar column */
+body.ttv2-shell .ttv2-counselor-shell .counselor-dashboard .col-lg-4.d-none.d-lg-block{
+  display: none !important;
+}
+body.ttv2-shell .ttv2-counselor-shell .counselor-dashboard .col-lg-8{
+  width: 100% !important;
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+}
+
+/* v1 dashboard templates assumed a fixed global header (~80px). v2 removes that header,
+   so drop the extra top padding when running under the v2 shell. */
+body.ttv2-shell .institute-dashboard,
+body.ttv2-shell .institute-group-dashboard,
+body.ttv2-shell .marketing-group-dashboard,
+body.ttv2-shell .counselor-dashboard{
+  padding-top: 16px !important;
+}
+
+/* Utility: allow v1 dashboards embedded inside v2 to keep their own background */
+body.ttv2-shell .ttv2-page{
+  padding: 16px 0;
+}
+
