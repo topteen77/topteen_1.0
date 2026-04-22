@@ -7,6 +7,7 @@ var S = {
   STEPS: 7,
   style: 'ivy_league',
   unis: [],
+  studioTemplateId: '',
   fd: null,       /* last collected form data */
   rhtml: '',      /* last resume HTML */
   scores: null,   /* last scores object */
@@ -237,6 +238,8 @@ function applyWizardRestore(){
   if (d.instr) sv('f-instr', d.instr);
   var sp = d.studio_proto_v1;
   if (sp && sp.template) {
+    S.studioTemplateId = String(sp.template);
+    updatePdfDownloadLink(S.studioTemplateId);
     var stSel = document.getElementById('f-studio-template');
     if (stSel) stSel.value = String(sp.template);
   }
@@ -262,6 +265,62 @@ function updateGenerateButtons(){
   if (next) next.style.display = has ? '' : 'none';
   if (again) again.style.display = has ? '' : 'none';
 }
+
+function buildPdfUrlWithTemplate(templateId){
+  var base = typeof window.ADMITCV_RESUME_PDF_URL === 'string' ? window.ADMITCV_RESUME_PDF_URL.trim() : '';
+  if (!base) return '';
+  var tid = String(templateId || '').trim();
+  try {
+    var u = new URL(base, window.location.origin);
+    if (tid) u.searchParams.set('template_id', tid);
+    else u.searchParams.delete('template_id');
+    return u.toString();
+  } catch (e) {
+    if (!tid) return base;
+    var hashAt = base.indexOf('#');
+    var hash = hashAt >= 0 ? base.slice(hashAt) : '';
+    var bare = hashAt >= 0 ? base.slice(0, hashAt) : base;
+    var qAt = bare.indexOf('?');
+    var path = qAt >= 0 ? bare.slice(0, qAt) : bare;
+    var q = qAt >= 0 ? bare.slice(qAt + 1) : '';
+    var out = [];
+    if (q) {
+      var parts = q.split('&');
+      for (var i = 0; i < parts.length; i++) {
+        if (!parts[i]) continue;
+        var kv = parts[i].split('=');
+        if ((kv[0] || '').trim() === 'template_id') continue;
+        out.push(parts[i]);
+      }
+    }
+    out.push('template_id=' + encodeURIComponent(tid));
+    return path + '?' + out.join('&') + hash;
+  }
+}
+
+function updatePdfDownloadLink(templateId){
+  var pdfA = document.getElementById('gen-download-pdf-link');
+  if (!pdfA) return;
+  var href = buildPdfUrlWithTemplate(templateId);
+  if (href) pdfA.href = href;
+}
+
+window.addEventListener('message', function(ev){
+  var data = ev && ev.data ? ev.data : null;
+  if (!data) return;
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch (e) {
+      return;
+    }
+  }
+  if (!data || data.type !== 'TT_STUDIO_TEMPLATE_PICK') return;
+  var tid = String(data.template || '').trim();
+  if (!tid) return;
+  S.studioTemplateId = tid;
+  updatePdfDownloadLink(tid);
+});
 
 function persistStudioResumeToLocal(b){
   if(!b) return;
@@ -310,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function(){
   } catch (e) {}
   updateGenerateButtons();
   var pdfA = document.getElementById('gen-download-pdf-link');
-  var pdfU = typeof window.ADMITCV_RESUME_PDF_URL === 'string' ? window.ADMITCV_RESUME_PDF_URL.trim() : '';
+  var pdfU = buildPdfUrlWithTemplate(S.studioTemplateId);
   var hubU = typeof window.ADMITCV_RESUME_HUB_URL === 'string' ? window.ADMITCV_RESUME_HUB_URL.trim() : '';
   if(pdfA && pdfU) pdfA.href = pdfU;
   if(pdfA){
@@ -1027,6 +1086,59 @@ function getCsrfToken(){
 
 var __genProgTimer = null;
 var __genProgVal = 0;
+var __genOverlayTimer = null;
+
+function stopGenOverlayTimer(){
+  if(__genOverlayTimer){
+    clearTimeout(__genOverlayTimer);
+    __genOverlayTimer = null;
+  }
+}
+
+function setOverlayStep(activeIdx){
+  var steps = document.querySelectorAll('#overlay .ov-step');
+  for(var i=0;i<steps.length;i++){
+    steps[i].classList.remove('show','cur','done');
+    if(i < activeIdx){
+      steps[i].classList.add('show','done');
+    } else if(i === activeIdx){
+      steps[i].classList.add('show','cur');
+    }
+  }
+}
+
+function showGenOverlay(){
+  var ov = document.getElementById('overlay');
+  if(!ov) return;
+  stopGenOverlayTimer();
+  ov.classList.add('on');
+  ov.setAttribute('aria-hidden', 'false');
+  var ttl = document.getElementById('gen-overlay-title');
+  if(ttl) ttl.textContent = 'Generating your resume';
+  var sub = document.getElementById('gen-overlay-sub');
+  if(sub) sub.textContent = 'AI is analyzing your profile and building a polished resume.';
+  setOverlayStep(0);
+  __genOverlayTimer = setTimeout(function(){ setOverlayStep(1); }, 900);
+}
+
+function markGenOverlayNearDone(){
+  var ov = document.getElementById('overlay');
+  if(!ov || !ov.classList.contains('on')) return;
+  stopGenOverlayTimer();
+  setOverlayStep(2);
+  var ttl = document.getElementById('gen-overlay-title');
+  if(ttl) ttl.textContent = 'Almost done';
+  var sub = document.getElementById('gen-overlay-sub');
+  if(sub) sub.textContent = 'Final checks are running before opening the next step.';
+}
+
+function hideGenOverlay(){
+  stopGenOverlayTimer();
+  var ov = document.getElementById('overlay');
+  if(!ov) return;
+  ov.classList.remove('on');
+  ov.setAttribute('aria-hidden', 'true');
+}
 
 function stopGenProgressTimer(){
   if(__genProgTimer){
@@ -1082,6 +1194,7 @@ function finishGenProgressSuccess(){
   var head = document.getElementById('gen-progress-head');
   if(head) head.textContent = 'Almost done';
   pulseGenProgressNearDone();
+  markGenOverlayNearDone();
 }
 
 function hideGenProgressUI(){
@@ -1197,7 +1310,7 @@ function showStudioInlinePreview(htmlClean, raw, d, rid, dest, plain, serverPrev
   var wrap = document.getElementById('gen-preview-wrap');
   if(wrap) wrap.style.display = 'block';
   var pdfA = document.getElementById('gen-download-pdf-link');
-  var pdfU = typeof window.ADMITCV_RESUME_PDF_URL === 'string' ? window.ADMITCV_RESUME_PDF_URL.trim() : '';
+  var pdfU = buildPdfUrlWithTemplate(S.studioTemplateId);
   if(pdfA && pdfU) pdfA.href = pdfU;
   var hubU = typeof window.ADMITCV_RESUME_HUB_URL === 'string' ? window.ADMITCV_RESUME_HUB_URL.trim() : '';
   var fin = document.getElementById('gen-finish-btn');
@@ -1223,7 +1336,7 @@ function doGenerate(rewrite){
   if (!validateForBuild()) return;
 
   var btn = document.getElementById('gen-btn');
-  var btnDefault = '✨ Generate My Resume';
+  var btnDefault = (btn && btn.textContent) ? btn.textContent : 'Generate My Resume';
   if(btn){
     btn.disabled = true;
     btn.textContent = 'Generating…';
@@ -1252,10 +1365,12 @@ function doGenerate(rewrite){
   function onGenFailure(){
     stopGenProgressTimer();
     hideGenProgressUI();
+    hideGenOverlay();
     restoreBtn();
   }
 
   startGenProgressUI();
+  showGenOverlay();
 
   if (!genUrl) {
     toast('Resume AI is not configured (missing generate URL).');
@@ -1305,6 +1420,7 @@ function doGenerate(rewrite){
       var plain = buildPlainResumeSummary(d);
       finishGenProgressSuccess();
       setTimeout(function(){
+        hideGenOverlay();
         showStudioInlinePreview(html, raw, d, rid, dest, plain, previewHtml);
         // After generating, move the user to templates/download step.
         S.generatedOnce = true;

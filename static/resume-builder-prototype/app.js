@@ -22,6 +22,7 @@
   const colorSchemesEl = document.getElementById("colorSchemes");
   const templateGrid = document.getElementById("templateGrid");
   const fontFamily = document.getElementById("fontFamily");
+  const fontSize = document.getElementById("fontSize");
   const textAlignEl = document.getElementById("textAlignOptions");
   const filterNav = document.getElementById("filterNav");
   const btnPdf = document.getElementById("btnPdf");
@@ -63,12 +64,20 @@
     { id: "justify", label: "Justify", css: "justify" },
   ];
 
+  const FONT_SIZES = [
+    { id: "compact", label: "Compact (10.5 pt)", css: "10.5pt", scale: 0.94 },
+    { id: "standard", label: "Standard (11.5 pt)", css: "11.5pt", scale: 1 },
+    { id: "readable", label: "Readable (12.5 pt)", css: "12.5pt", scale: 1.08 },
+    { id: "large", label: "Large (13.5 pt)", css: "13.5pt", scale: 1.16 },
+  ];
+
   const CATEGORIES = [
     { id: "all", label: "All templates" },
     { id: "modern", label: "Modern" },
     { id: "professional", label: "Professional" },
     { id: "creative", label: "Creative" },
     { id: "simple", label: "Simple" },
+    { id: "international", label: "International" },
   ];
 
   const DEFAULT_TEMPLATES = [
@@ -92,6 +101,13 @@
     { id: "horizon", name: "Horizon", category: "modern", mock: "mock-horizon" },
     { id: "folio", name: "Folio", category: "simple", mock: "mock-folio" },
     { id: "vertex", name: "Vertex", category: "creative", mock: "mock-vertex" },
+    { id: "global-elegance", name: "Global Elegance", category: "international", mock: "mock-magazine" },
+    { id: "euro-corporate", name: "Euro Corporate", category: "international", mock: "mock-executive" },
+    { id: "tokyo-minimal", name: "Tokyo Minimal", category: "international", mock: "mock-minimalist" },
+    { id: "nordic-clean", name: "Nordic Clean", category: "international", mock: "mock-horizon" },
+    { id: "atlantic-pro", name: "Atlantic Pro", category: "international", mock: "mock-atlantic-pro" },
+    { id: "zen-column", name: "Zen Column", category: "international", mock: "mock-zen-column" },
+    { id: "global-grid", name: "Global Grid", category: "international", mock: "mock-global-grid" },
   ];
 
   function readStudioTemplatesCatalog() {
@@ -148,7 +164,9 @@
   let activeTemplateId = "classic-sidebar";
   let activeFilterId = "all";
   let activeTextAlignId = "start";
+  let activeFontSizeId = "standard";
   let saveTimer = null;
+  let pdfBusy = false;
 
   function defaultResume() {
     return {
@@ -222,12 +240,39 @@
   }
 
   function contactParts(d) {
+    function contactIconSvg(kind) {
+      const icons = {
+        phone:
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.654 1.328a.678.678 0 0 1 .737-.124l2.522 1.01c.289.116.445.423.365.723l-.547 2.05a.68.68 0 0 1-.59.5l-1.12.112a11.77 11.77 0 0 0 5.38 5.38l.112-1.12a.68.68 0 0 1 .5-.59l2.05-.547a.678.678 0 0 1 .723.365l1.01 2.522a.678.678 0 0 1-.124.737l-1.14 1.14a1.745 1.745 0 0 1-1.81.422c-1.93-.644-4.54-2.382-6.56-4.402-2.02-2.02-3.758-4.63-4.402-6.56a1.745 1.745 0 0 1 .422-1.81l1.14-1.14z"/></svg>',
+        email:
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v.217L8 8.94.001 4.217V4z"/><path d="M0 5.383v6.617a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5.383l-7.445 4.654a1 1 0 0 1-1.11 0L0 5.383z"/></svg>',
+        location:
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16s6-5.686 6-10A6 6 0 1 0 2 6c0 4.314 6 10 6 10zm0-7.5A2.5 2.5 0 1 1 8 3a2.5 2.5 0 0 1 0 5.5z"/></svg>',
+        linkedin:
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175A1.16 1.16 0 0 1 0 14.854V1.146zM4.943 13.5V6.169H2.542V13.5h2.401zM3.742 5.163c.837 0 1.358-.554 1.358-1.248-.015-.71-.52-1.248-1.342-1.248S2.4 3.205 2.4 3.915c0 .694.521 1.248 1.326 1.248h.016zM13.5 13.5V9.359c0-2.217-1.183-3.248-2.762-3.248-1.274 0-1.845.7-2.165 1.193v.026h-.016a5.54 5.54 0 0 1 .016-.026V6.169H6.17c.03.752 0 7.331 0 7.331h2.401V9.405c0-.219.016-.438.08-.594.176-.438.578-.892 1.253-.892.884 0 1.237.673 1.237 1.66V13.5H13.5z"/></svg>',
+        website:
+          '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm5.939 7h-2.027a13.54 13.54 0 0 0-.65-3.145A6.02 6.02 0 0 1 13.939 7zM8 1.018c.655 0 1.58 1.23 2.027 3.982H5.973C6.42 2.248 7.345 1.018 8 1.018zM4.738 3.855A13.54 13.54 0 0 0 4.088 7H2.061a6.02 6.02 0 0 1 2.677-3.145zM2.061 9h2.027c.112 1.118.34 2.19.65 3.145A6.02 6.02 0 0 1 2.061 9zM8 14.982c-.655 0-1.58-1.23-2.027-3.982h4.054C9.58 13.752 8.655 14.982 8 14.982zM10.26 12.145c.31-.955.538-2.027.65-3.145h2.028a6.02 6.02 0 0 1-2.678 3.145z"/></svg>',
+      };
+      return icons[kind] || "";
+    }
+
+    const iconFallback = {
+      phone: "☎",
+      email: "@",
+      location: "•",
+      linkedin: "in",
+      website: "WWW",
+    };
+    function contactIconHtml(kind) {
+      return `<span class="tpl-contact-icon" data-icon-kind="${kind}" aria-hidden="true"><span class="tpl-contact-fallback">${iconFallback[kind] || "•"}</span>${contactIconSvg(kind)}</span>`;
+    }
+
     const out = [];
-    if (d.phone) out.push(esc(d.phone));
-    if (d.email) out.push(esc(d.email));
-    if (d.address) out.push(esc(d.address));
-    if (d.linkedin) out.push(esc(d.linkedin));
-    if (d.website) out.push(esc(d.website));
+    if (d.phone) out.push(`<span class="tpl-contact-item">${contactIconHtml("phone")}<span class="tpl-contact-text">${esc(d.phone)}</span></span>`);
+    if (d.email) out.push(`<span class="tpl-contact-item">${contactIconHtml("email")}<span class="tpl-contact-text">${esc(d.email)}</span></span>`);
+    if (d.address) out.push(`<span class="tpl-contact-item">${contactIconHtml("location")}<span class="tpl-contact-text">${esc(d.address)}</span></span>`);
+    if (d.linkedin) out.push(`<span class="tpl-contact-item">${contactIconHtml("linkedin")}<span class="tpl-contact-text">${esc(d.linkedin)}</span></span>`);
+    if (d.website) out.push(`<span class="tpl-contact-item">${contactIconHtml("website")}<span class="tpl-contact-text">${esc(d.website)}</span></span>`);
     return out;
   }
 
@@ -780,7 +825,74 @@
         </div>
       </div>`;
     },
+
+    "atlantic-pro"(d) {
+      return `<div class="tpl tpl-atlantic-pro">
+        <header class="tpl-ap-head">
+          <h1 class="tpl-ap-name">${esc(d.fullName)}</h1>
+          <p class="tpl-ap-title">${esc(d.headline)}</p>
+          <p class="tpl-ap-contact">${contactParts(d).join(" · ")}</p>
+        </header>
+        <section class="tpl-sec"><h2 class="tpl-ap-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        <div class="tpl-ap-grid">
+          <section class="tpl-sec"><h2 class="tpl-ap-h2">Experience</h2>${experienceHtml(d)}</section>
+          <aside class="tpl-ap-side">
+            <h3 class="tpl-ap-h3">Skills</h3>
+            <ul class="tpl-bullets tpl-bullets--tight">${skillsListHtml(d)}</ul>
+            <h3 class="tpl-ap-h3">Languages</h3>
+            <ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
+            <h3 class="tpl-ap-h3">Certifications</h3>
+            ${certificationsHtml(d)}
+          </aside>
+        </div>
+        <section class="tpl-sec"><h2 class="tpl-ap-h2">Education</h2>${educationHtml(d)}</section>
+        <section class="tpl-sec"><h2 class="tpl-ap-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+      </div>`;
+    },
+
+    "zen-column"(d) {
+      return `<div class="tpl tpl-zen-column">
+        <header class="tpl-zc-head">
+          <h1 class="tpl-zc-name">${esc(d.fullName)}</h1>
+          <p class="tpl-zc-title">${esc(d.headline)}</p>
+          <p class="tpl-zc-contact">${contactParts(d).join(" · ")}</p>
+        </header>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Profile</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--zc")}</section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Education</h2>${educationHtml(d)}</section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Skills</h2><div class="tpl-zc-pills">${skillsPillsHtml(d)}</div></section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Certifications &amp; Languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+      </div>`;
+    },
+
+    "global-grid"(d) {
+      return `<div class="tpl tpl-global-grid">
+        <header class="tpl-gg-head">
+          <div>
+            <h1 class="tpl-gg-name">${esc(d.fullName)}</h1>
+            <p class="tpl-gg-title">${esc(d.headline)}</p>
+          </div>
+          ${photoHtml(d, "tpl-gg-photo")}
+        </header>
+        <p class="tpl-gg-contact">${contactParts(d).join(" · ")}</p>
+        <div class="tpl-gg-layout">
+          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Education</h2>${educationHtml(d)}</section>
+          <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
+          <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
+          <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Certifications</h2>${certificationsHtml(d)}</section>
+          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        </div>
+      </div>`;
+    },
   };
+
+  RENDERERS["global-elegance"] = RENDERERS.magazine;
+  RENDERERS["euro-corporate"] = RENDERERS.executive;
+  RENDERERS["tokyo-minimal"] = RENDERERS.minimalist;
+  RENDERERS["nordic-clean"] = RENDERERS.horizon;
 
   function renderPreview() {
     let tid = activeTemplateId;
@@ -1081,6 +1193,32 @@
     document.documentElement.style.setProperty("--resume-text-align", cssValue);
   }
 
+  function applyBodyFontSize(cssValue) {
+    document.documentElement.style.setProperty("--body-size", cssValue);
+    if (resumeEl) resumeEl.style.fontSize = cssValue;
+    var picked = FONT_SIZES.find(function (s) { return s.css === cssValue; }) || FONT_SIZES[1];
+    document.documentElement.style.setProperty("--font-scale", String(picked.scale || 1));
+  }
+
+  function renderFontSizes() {
+    if (!fontSize) return;
+    fontSize.innerHTML = "";
+    FONT_SIZES.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.label;
+      fontSize.appendChild(opt);
+    });
+    fontSize.value = activeFontSizeId;
+    fontSize.addEventListener("change", () => {
+      const chosen = FONT_SIZES.find((s) => s.id === fontSize.value) || FONT_SIZES[1];
+      activeFontSizeId = chosen.id;
+      applyBodyFontSize(chosen.css);
+      renderPreview();
+      scheduleSave();
+    });
+  }
+
   function renderTextAlignOptions() {
     if (!textAlignEl) return;
     textAlignEl.innerHTML = "";
@@ -1230,37 +1368,114 @@
   }
 
   function downloadPdf() {
+    if (pdfBusy) return;
+    pdfBusy = true;
     if (typeof window.html2pdf === "undefined") {
+      pdfBusy = false;
       alert("PDF library failed to load. Use Print and choose Save as PDF instead.");
       return;
     }
+    // Ensure the latest selected template and edits are painted before export.
+    renderPreview();
     const el = resumeEl;
-    el.classList.add("pdf-exporting");
+    const heavyTemplates = new Set([
+      "aurora",
+      "magazine",
+      "executive",
+      "global-elegance",
+      "euro-corporate",
+      "atlantic-pro",
+    ]);
+    const currentTemplateId = String(activeTemplateId || "");
+    const isHeavyTemplate = heavyTemplates.has(currentTemplateId);
+    const clone = el.cloneNode(true);
+    const pdfMarginMm = 4;
+    const pdfContentWidthMm = 210 - pdfMarginMm * 2;
+    // Avoid cross-origin image failures that can stop html2canvas/PDF generation.
+    clone.querySelectorAll("img").forEach((img) => {
+      try {
+        img.setAttribute("crossorigin", "anonymous");
+        img.setAttribute("referrerpolicy", "no-referrer");
+      } catch (_) {}
+    });
+    const holder = document.createElement("div");
+    holder.style.position = "fixed";
+    holder.style.left = "-99999px";
+    holder.style.top = "0";
+    holder.style.width = `${pdfContentWidthMm}mm`;
+    holder.style.background = "#fff";
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+    clone.classList.add("pdf-exporting");
+    // Keep icon visuals in PDF: convert inline SVGs to data-image nodes for html2canvas.
+    clone.querySelectorAll(".tpl-contact-icon svg").forEach((svg) => {
+      try {
+        const computedColor = getComputedStyle(svg).color || "#111111";
+        const svgClone = svg.cloneNode(true);
+        svgClone.setAttribute("fill", computedColor);
+        svgClone.setAttribute("color", computedColor);
+        svgClone.querySelectorAll("[fill='currentColor']").forEach((el) => {
+          el.setAttribute("fill", computedColor);
+        });
+        const serialized = new XMLSerializer()
+          .serializeToString(svgClone)
+          .replace(/currentColor/g, computedColor);
+        const img = document.createElement("img");
+        img.className = "tpl-contact-icon-img";
+        img.setAttribute("alt", "");
+        img.setAttribute("aria-hidden", "true");
+        img.setAttribute("src", `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`);
+        svg.replaceWith(img);
+      } catch (_) {}
+    });
     const opt = {
-      margin: [6, 6, 6, 6],
+      margin: [pdfMarginMm, pdfMarginMm, pdfMarginMm, pdfMarginMm],
       filename: `${safeFilename(resumeData.fullName)}.pdf`,
       image: { type: "jpeg", quality: 0.93 },
       html2canvas: {
-        scale: 2,
+        scale: isHeavyTemplate ? 1.6 : 2,
         useCORS: true,
         logging: false,
         letterRendering: true,
         scrollY: 0,
       },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      // avoid-all can force large white gaps for complex template blocks
+      pagebreak: { mode: ["css", "legacy"], avoid: [".tpl-sec", ".tpl-job", ".tpl-edu-block", ".tpl-cert"] },
     };
-    const done = () => el.classList.remove("pdf-exporting");
+    const done = () => {
+      if (watchdog) {
+        clearTimeout(watchdog);
+        watchdog = null;
+      }
+      try {
+        clone.classList.remove("pdf-exporting");
+      } catch (_) {}
+      try {
+        holder.remove();
+      } catch (_) {}
+      pdfBusy = false;
+    };
+    const failToPrint = () => {
+      done();
+      try {
+        window.print();
+      } catch (_) {}
+    };
+    let watchdog = setTimeout(() => {
+      failToPrint();
+      alert("PDF generation took too long for this template. Print dialog opened; choose Save as PDF.");
+    }, 25000);
     try {
-      const worker = window.html2pdf().set(opt).from(el).save();
+      const worker = window.html2pdf().set(opt).from(clone).save();
       if (worker && typeof worker.then === "function") {
-        worker.then(done).catch(done);
+        worker.then(done).catch(failToPrint);
       } else {
         setTimeout(done, 1000);
       }
     } catch (e) {
-      done();
-      alert("Could not create PDF. Try Print → Save as PDF.");
+      failToPrint();
+      alert("Could not create PDF directly. Print dialog opened; choose Save as PDF.");
     }
   }
 
@@ -1280,6 +1495,7 @@
           color: activeColorId,
           font: fontVal,
           textAlign: activeTextAlignId,
+          fontSize: activeFontSizeId,
         },
         "*"
       );
@@ -1326,6 +1542,7 @@
             color: activeColorId,
             font: fontVal,
             textAlign: activeTextAlignId,
+            fontSize: activeFontSizeId,
           }
         : {
             resume: resumeData,
@@ -1333,6 +1550,7 @@
             color: activeColorId,
             font: fontVal,
             textAlign: activeTextAlignId,
+            fontSize: activeFontSizeId,
           };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch (_) {}
@@ -1349,6 +1567,14 @@
       if (o.template && RENDERERS[o.template]) activeTemplateId = o.template;
       if (o.color && COLOR_SCHEMES.some((c) => c.id === o.color)) activeColorId = o.color;
       if (o.textAlign && TEXT_ALIGN_OPTIONS.some((a) => a.id === o.textAlign)) activeTextAlignId = o.textAlign;
+      if (o.fontSize) {
+        if (FONT_SIZES.some((s) => s.id === o.fontSize)) {
+          activeFontSizeId = o.fontSize;
+        } else {
+          var byCss = FONT_SIZES.find((s) => s.css === o.fontSize);
+          if (byCss) activeFontSizeId = byCss.id;
+        }
+      }
     } catch (_) {}
   }
 
@@ -1376,6 +1602,9 @@
       if (si.textAlign && TEXT_ALIGN_OPTIONS.some(function (a) { return a.id === si.textAlign; })) {
         activeTextAlignId = si.textAlign;
       }
+      if (si.fontSize && FONT_SIZES.some(function (s) { return s.id === si.fontSize; })) {
+        activeFontSizeId = si.fontSize;
+      }
       if (si.font && fontFamily) {
         var match = false;
         for (var fi = 0; fi < FONTS.length; fi++) {
@@ -1402,11 +1631,14 @@
     applyColorScheme(scheme);
     const alignOpt = TEXT_ALIGN_OPTIONS.find((a) => a.id === activeTextAlignId) || TEXT_ALIGN_OPTIONS[0];
     applyResumeTextAlign(alignOpt.css);
+    const fontSizeOpt = FONT_SIZES.find((s) => s.id === activeFontSizeId) || FONT_SIZES[1];
+    applyBodyFontSize(fontSizeOpt.css);
     renderColorSchemes();
     renderTextAlignOptions();
     renderFilterNav();
     renderTemplateGrid();
     renderFonts();
+    renderFontSizes();
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -1414,6 +1646,12 @@
         if (o.font) {
           fontFamily.value = o.font;
           document.documentElement.style.setProperty("--font-stack", o.font);
+        }
+        if (o.fontSize && FONT_SIZES.some((s) => s.id === o.fontSize)) {
+          activeFontSizeId = o.fontSize;
+          if (fontSize) fontSize.value = o.fontSize;
+          const chosen = FONT_SIZES.find((s) => s.id === o.fontSize);
+          if (chosen) applyBodyFontSize(chosen.css);
         }
       }
     } catch (_) {}
@@ -1433,6 +1671,7 @@
             color: activeColorId,
             font: fontFamily && fontFamily.value ? fontFamily.value : "",
             textAlign: activeTextAlignId,
+            fontSize: activeFontSizeId,
           });
         } catch (_) {
           snapField.value = "";

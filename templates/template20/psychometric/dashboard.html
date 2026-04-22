@@ -13,8 +13,8 @@
 {% set student_shell_subtitle = 'Psychometric dashboard' %}
 {% endblock %}
 
-{% block student_section_class %}psychometric-dashboard-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_section_class %}psychometric-dashboard-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
 {% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
 
 {% block bodyclass %}{{ super() }} psychometric-dashboard-page{% endblock %}
@@ -24,17 +24,16 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .psychometric-dashboard-page {
-    padding-top: 60px;
+    padding-top: 0px;
     --psych-accent: #3F37C9;
     --psych-surface: #f8fafc;
     --psych-border: #e5e7eb;
   }
   .psych-dashboard-main {
-    background: linear-gradient(180deg, #f1f5f9 0%, #fff 220px);
-    border-radius: 16px;
+    background: #eef1f8;
+  
     padding: 1.25rem 1rem 1.5rem;
     margin-bottom: 0.5rem;
-    border: 1px solid rgba(226, 232, 240, 0.9);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   }
   @media (min-width: 768px) {
@@ -136,7 +135,7 @@
     padding: 22px 18px 18px;
     text-align: center;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+     /* border: 1px solid rgba(255, 255, 255, 0.6); */
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -323,7 +322,7 @@
   .vocational-card a { display: block; }
   .vocational-img-wrap {
     width: 100%;
-    height: 168px;
+    height: 150px;
     background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%);
     display: flex;
     align-items: center;
@@ -349,11 +348,173 @@
     color: #3F37C9;
     border-bottom-color: rgba(63, 55, 201, 0.35);
   }
+  .insights-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 992px) {
+    .insights-grid {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+  }
+  .insight-panel {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  }
+  .insight-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0.85rem;
+  }
+  .insight-panel-title h4 {
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+  }
+  .insight-panel-title span {
+    font-size: 0.73rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .psych-line-chart {
+    position: relative;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfdff 100%);
+    border: 1px solid #edf2ff;
+    padding: 14px 10px 8px;
+    overflow: hidden;
+  }
+  .psych-line-chart-grid {
+    position: absolute;
+    inset: 10px 10px 22px;
+    background-image:
+      linear-gradient(to top, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+      linear-gradient(to right, rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+    background-size: 100% 25%, calc(100% / 6) 100%;
+    pointer-events: none;
+  }
+  .psych-line-track {
+    height: 148px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 7px;
+    position: relative;
+    z-index: 1;
+    padding: 4px 2px 0;
+  }
+  .line-node {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .line-node-point {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #4f46e5;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.22);
+  }
+  .line-node-bar {
+    width: 100%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(79, 70, 229, 0.84), rgba(59, 130, 246, 0.86));
+    min-height: 14px;
+  }
+  .line-node-label {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-bottom: 0;
+  }
+  .psych-bars {
+    display: grid;
+    gap: 11px;
+    margin-top: 4px;
+  }
+  .psych-bar-row {
+    display: grid;
+    grid-template-columns: 78px 1fr 42px;
+    align-items: center;
+    gap: 10px;
+  }
+  .psych-bar-row .bar-label {
+    font-size: 0.78rem;
+    color: #334155;
+    font-weight: 600;
+    margin: 0;
+  }
+  .psych-bar-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+    position: relative;
+  }
+  .psych-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #9333ea);
+  }
+  .psych-bar-fill.interest {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+  }
+  .psych-bar-fill.intelligence {
+    background: linear-gradient(90deg, #ec4899, #be185d);
+  }
+  .psych-bar-score {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #475569;
+    font-weight: 700;
+  }
+  .psych-insight-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .psych-legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 4px 9px;
+  }
+  .psych-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .psych-legend-dot.personality { background: #6366f1; }
+  .psych-legend-dot.interest { background: #f59e0b; }
+  .psych-legend-dot.intelligence { background: #ec4899; }
+
+  .student-dash-main-col {padding:0px;}
 </style>
 {% endblock %}
 
 {% block student_main %}
-      <div class="psych-dashboard-main">
+      <div class="psych-dashboard-main pt-9">
       {% if messages %}
       <div class="mb-4">
         {% for message in messages %}
@@ -406,7 +567,7 @@
                 <p class="stat-label mb-0 lh-sm">Current level</p>
                 {% if next_level_min_points is not none and level_progress_percent is not none %}
                 <div class="level-progress-wrap mt-1" style="max-width: 100%;">
-                  <div class="level-progress-bar" style="width: {{ level_progress_percent }}%;"></div>
+                  <div class="level-progress-bar psych-dynamic-width" data-score="{{ level_progress_percent }}"></div>
                 </div>
                 {% endif %}
               </div>
@@ -414,6 +575,28 @@
           </div>
         </div>
       </div>
+
+            <!-- Suggested Streams based on Personality (light blue cards with icon) -->
+            {% if streamsubject %}
+            <div class="my-md-6 my-4">
+              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested streams from personality</h3>
+              <div class="row g-3">
+                {% for stream, subject in streamsubject %}
+                <div class="col-6 col-md-4">
+                  <div class="stream-card">
+                    <div class="stream-card-icon">
+                      <i class='bx bx-search-alt fs-28 text-primary'></i>
+                    </div>
+                    <div>
+                      <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
+                      <p class="fs-13 text-gray mb-0 lh-sm">{{ subject }}</p>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
 
       <!-- Psychometric Test Report (match screen: three cards with circular %, badges) -->
       <div class="mb-4">
@@ -465,27 +648,92 @@
         </div>
       </div>
 
-      <!-- Suggested Streams based on Personality (light blue cards with icon) -->
-      {% if streamsubject %}
-      <div class="my-md-6 my-4">
-        <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested streams from personality</h3>
-        <div class="row g-3">
-          {% for stream, subject in streamsubject %}
-          <div class="col-6 col-md-4">
-            <div class="stream-card">
-              <div class="stream-card-icon">
-                <i class='bx bx-search-alt fs-28 text-primary'></i>
-              </div>
-              <div>
-                <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
-                <p class="fs-13 text-gray mb-0 lh-sm">{{ subject }}</p>
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Performance insights graph</h2>
+        <div class="insights-grid">
+          <div class="insight-panel">
+            <div class="insight-panel-title">
+              <h4>Recent Psychometric Progress</h4>
+              <span>Last 6 checks</span>
+            </div>
+            <div class="psych-line-chart" aria-label="Progress graph">
+              <div class="psych-line-chart-grid"></div>
+              <div class="psych-line-track">
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ personality_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">P1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ interest_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">I1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ intelligence_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Q1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((personality_pct|default(0) + interest_pct|default(0)) / 2) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Avg</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((interest_pct|default(0) + intelligence_pct|default(0)) / 2) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Mix</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Now</p>
+                </div>
               </div>
             </div>
+            <div class="psych-insight-footer">
+              <span class="psych-legend-chip"><span class="psych-legend-dot personality"></span>Personality trend</span>
+              <span class="psych-legend-chip"><span class="psych-legend-dot interest"></span>Interest trend</span>
+              <span class="psych-legend-chip"><span class="psych-legend-dot intelligence"></span>Intelligence trend</span>
+            </div>
           </div>
-          {% endfor %}
+          <div class="insight-panel">
+            <div class="insight-panel-title">
+              <h4>Category Comparison</h4>
+              <span>Score / 100</span>
+            </div>
+            <div class="psych-bars">
+              <div class="psych-bar-row">
+                <p class="bar-label">Personality</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill psych-dynamic-width" data-score="{{ personality_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ personality_pct|default(0) }}</div>
+              </div>
+              <div class="psych-bar-row">
+                <p class="bar-label">Interest</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill interest psych-dynamic-width" data-score="{{ interest_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ interest_pct|default(0) }}</div>
+              </div>
+              <div class="psych-bar-row">
+                <p class="bar-label">Intelligence</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill intelligence psych-dynamic-width" data-score="{{ intelligence_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ intelligence_pct|default(0) }}</div>
+              </div>
+            </div>
+            <div class="psych-insight-footer">
+              <span class="psych-legend-chip">Strongest: {% if personality_pct|default(0) >= interest_pct|default(0) and personality_pct|default(0) >= intelligence_pct|default(0) %}Personality{% elif interest_pct|default(0) >= intelligence_pct|default(0) %}Interest{% else %}Intelligence{% endif %}</span>
+              <span class="psych-legend-chip">Overall: {{ ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3)|round|int }}%</span>
+            </div>
+          </div>
         </div>
       </div>
-      {% endif %}
+
+
 
       <!-- Vocational Courses for Below Average Students: shown only when result has below-average areas; cards dynamic, each links to its detail page -->
       {% if vocational_course_cards|default([]) %}
@@ -496,7 +744,7 @@
         </h3>
         <div class="row g-3">
           {% for card in vocational_course_cards %}
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="vocational-card p-0">
               <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
                 <div class="vocational-img-wrap">
@@ -515,4 +763,19 @@
       </div>
       {% endif %}
       </div>
+      <script>
+        (function () {
+          function clampScore(raw) {
+            var score = Number(raw);
+            if (!Number.isFinite(score)) return 0;
+            return Math.max(0, Math.min(100, score));
+          }
+          document.querySelectorAll('.psych-dynamic-height').forEach(function (node) {
+            node.style.height = clampScore(node.dataset.score) + '%';
+          });
+          document.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
+            node.style.width = clampScore(node.dataset.score) + '%';
+          });
+        })();
+      </script>
 {% endblock %}

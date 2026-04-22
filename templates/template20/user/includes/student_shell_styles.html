@@ -31,32 +31,38 @@
     box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
   }
 
-  /* Hover-open account dropdown (Dashboard/Logout) */
+  /* Hover-open account dropdown (Desktop only) */
   @media (hover: hover) and (pointer: fine) {
-    /* Keep dropdown open when hovering the trigger OR the menu itself. */
     .std-shell-topbar .dropdown {
       position: relative;
     }
-    .std-shell-topbar .dropdown > .dropdown-content.login-content {
+
+    .std-shell-topbar .dropdown > .dropdown-menu {
+      display: block;
       position: absolute;
       right: 0;
       top: calc(100% + 8px);
-      height: auto !important;
-      overflow: visible;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transition: opacity 140ms ease, visibility 0s linear 140ms;
+      transform: translateY(4px);
+      transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+      margin-top: 0 !important;
     }
-    .std-shell-topbar .dropdown:hover > .dropdown-content.login-content,
-    .std-shell-topbar .dropdown:focus-within > .dropdown-content.login-content {
+
+    .std-shell-topbar .dropdown:hover > .dropdown-menu,
+    .std-shell-topbar .dropdown:focus-within > .dropdown-menu,
+    .std-shell-topbar .dropdown > .dropdown-menu.show {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      transition: opacity 140ms ease;
+      transform: translateY(0);
+      transition: opacity 140ms ease, transform 140ms ease;
     }
+
     .std-shell-topbar .dropdown:hover > .std-shell-avatar-btn,
-    .std-shell-topbar .dropdown:focus-within > .std-shell-avatar-btn {
+    .std-shell-topbar .dropdown:focus-within > .std-shell-avatar-btn,
+    .std-shell-topbar .dropdown > .std-shell-avatar-btn[aria-expanded="true"] {
       border-color: rgba(92, 84, 212, 0.35);
       background: #fff;
     }
@@ -64,7 +70,7 @@
 
   .std-shell-inner {
     width: 100%;
-    max-width: 1600px;
+    /* max-width: 1600px; */
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -156,26 +162,66 @@
     }
   }
 
-  #studentDashboardShell {
-    --std-sidebar-open: 25%;
+  /* Fixed-width sidebar + fluid main (all breakpoints); replaces col-lg-3 / col-lg-9 */
+  #studentDashboardShell.student-dash-shell {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    --std-sidebar-width: 280px;
+  }
+
+  @media (max-width: 575.98px) {
+    #studentDashboardShell.student-dash-shell {
+      --std-sidebar-width: 228px;
+    }
+  }
+
+  #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+    flex: 0 0 var(--std-sidebar-width);
+    max-width: var(--std-sidebar-width);
+    width: var(--std-sidebar-width);
+  }
+
+  #studentDashboardShell.student-dash-shell .student-dash-main-col {
+    flex: 1 1 0%;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+  }
+
+  @media (max-width: 991.98px) {
+    /* On mobile/tablet, only offcanvas sidebar should render. */
+    #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+      display: none !important;
+    }
+
+    #studentDashboardShell.student-dash-shell .student-dash-main-col {
+      flex: 1 1 100%;
+      max-width: 100%;
+      width: 100%;
+    }
   }
 
   @media (min-width: 992px) {
-    #studentDashboardShell .student-dash-sidebar-col {
-      transition: flex 0.28s ease, max-width 0.28s ease, opacity 0.22s ease, padding 0.22s ease;
-      overflow: hidden;
+    #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+      transition: flex 0.28s ease, max-width 0.28s ease, width 0.28s ease, opacity 0.22s ease, padding 0.22s ease;
+      /* visible: overflow:hidden here breaks sticky + inner .profile-sidebar scroll */
+      overflow: visible;
     }
 
-    #studentDashboardShell.sidebar-collapsed .student-dash-sidebar-col {
-      flex: 0 0 0% !important;
+    #studentDashboardShell.student-dash-shell.sidebar-collapsed .student-dash-sidebar-col {
+      flex: 0 0 0 !important;
       max-width: 0 !important;
+      width: 0 !important;
       opacity: 0;
       padding-left: 0 !important;
       padding-right: 0 !important;
       pointer-events: none;
+      overflow: hidden !important;
+      height: auto !important;
+      max-height: none !important;
     }
 
-    #studentDashboardShell.sidebar-collapsed .student-dash-main-col {
+    #studentDashboardShell.student-dash-shell.sidebar-collapsed .student-dash-main-col {
       flex: 0 0 100% !important;
       max-width: 100% !important;
     }
@@ -196,8 +242,26 @@
     letter-spacing: -0.02em;
   }
 
+  .std-shell-brand--with-logo {
+    display: inline-flex;
+    align-items: center;
+    line-height: 0;
+  }
+
+  .std-shell-brand-logo {
+    display: block;
+    height: 36px;
+    width: auto;
+    max-width: min(140px, 38vw);
+    object-fit: contain;
+  }
+
   .std-shell-brand:hover {
     color: var(--dash-primary);
+  }
+
+  .std-shell-brand--with-logo:hover .std-shell-brand-logo {
+    opacity: 0.92;
   }
 
   .std-shell-sub {
@@ -300,18 +364,51 @@
     max-width: 100%;
   }
 
-  @media (min-width: 992px) {
-    body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard .row.g-4,
-    body.student-dashboard-shell .student-resume-shell .row.g-4 {
-      min-height: calc(100vh - 100px);
-    }
+  body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard .student-dash-shell.row,
+  body.student-dashboard-shell .student-resume-shell .student-dash-shell.row {
+    min-height: calc(100vh - 100px);
+  }
 
-    body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard .student-dash-sidebar-col,
-    body.student-dashboard-shell .student-resume-shell .student-dash-sidebar-col {
-      position: sticky;
-      top: 64px;
-      align-self: flex-start;
-    }
+  /*
+    Aside: stays in view while main column scrolls (sticky).
+    Fixed viewport height so inner .profile-sidebar always gets a real scrollport.
+  */
+  body.student-dashboard-shell .student-dash-sidebar-col {
+    position: sticky;
+    top: 50px;
+    align-self: flex-start;
+    height: calc(100vh - 50px);
+    max-height: calc(100vh - 50px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  body.student-dashboard-shell .student-dash-sidebar-col > .profile-sidebar {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  /* Mobile drawer: flex column so body scrolls under fixed header */
+  #mobileProfileDrawer.offcanvas {
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    height: 100%;
+  }
+
+  #mobileProfileDrawer .offcanvas-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   /* Resume wizard inside shell: drop fixed admitcv #nav offset assumptions */

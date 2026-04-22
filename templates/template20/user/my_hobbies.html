@@ -8,9 +8,7 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .my-hobbies-page {
-    padding-top: 47px;
-  }
+
   .hobby-card {
     background: #f7f7fa;
     border-radius: 10px;
@@ -40,6 +38,84 @@
   .delete-btn:hover {
     color: #dc3545;
   }
+
+  .app-right-content {
+	background: #eef1f8;
+  min-height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
+
+.hobbies-empty-state {
+  max-width: 760px;
+  margin: 8px auto 0;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e7eaf3;
+  box-shadow: 0 10px 30px rgba(30, 41, 59, 0.06);
+  padding: 34px 26px;
+}
+
+.hobbies-empty-icon {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f3edff 0%, #eef5ff 100%);
+  color: #673ab7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.hobbies-empty-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hobby-suggestions {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed #dee3ef;
+}
+
+.hobby-suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hobby-chip {
+  background: #f7f8fc;
+  border: 1px solid #e3e7f1;
+  color: #475569;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+@media (max-width: 575px) {
+  .hobbies-empty-state {
+    padding: 26px 18px;
+    border-radius: 14px;
+  }
+
+  .hobbies-empty-icon {
+    width: 74px;
+    height: 74px;
+    font-size: 34px;
+  }
+}
+
 </style>
 {% endblock %}
 
@@ -48,11 +124,13 @@
 {% set student_shell_subtitle = 'My hobbies' %}
 {% endblock %}
 
-{% block student_section_class %}my-hobbies-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container{% endblock %}
-{% block student_row_class %}row g-4 pt-4{% endblock %}
+{% block student_section_class %}my-hobbies-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4 student-dash-shell{% endblock %}
 
 {% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -68,7 +146,7 @@
           <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </button>
-          <h2 class="fs-16 fw-normal text-center mb-0">My Hobbies</h2>
+        
         </div>
 
         <!-- Hobbies Content -->
@@ -90,20 +168,33 @@
         </div>
         {% else %}
         <!-- Empty State -->
-        <div class="text-center py-5">
-          <i class='bx bx-heart fs-64 text-gray mb-3'></i>
-          <h3 class="fs-20 fw-semibold text-dark mb-2">No Hobbies Selected</h3>
-          <p class="text-gray fs-14 mb-4">You haven't selected any hobbies yet. Add hobbies to help us personalize your content.</p>
-          <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button">
-            <i class='bx bx-plus me-2'></i> Add Hobbies
-          </a>
+        <div class="hobbies-empty-state text-center">
+          <div class="hobbies-empty-icon">
+            <i class='bx bx-heart'></i>
+          </div>
+          <h3 class="fs-22 fw-semibold text-dark mb-2">Start Building Your Hobby Profile</h3>
+          <p class="text-gray fs-14 mb-3">You have not selected any hobbies yet. Add a few interests so we can personalize recommendations, activities, and opportunities for you.</p>
+          <div class="hobbies-empty-actions">
+            <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button">
+              <i class='bx bx-plus me-2'></i>Add Hobbies
+            </a>
+            <a href="{{ url_('users:viewprofile') }}" class="btn btn-outline-secondary d-flex align-items-center">
+              <i class='bx bx-user me-2'></i>View Profile
+            </a>
+          </div>
+          <div class="hobby-suggestions">
+            <p class="text-gray fs-12 mb-0">Popular ideas you can add:</p>
+            <div class="hobby-suggestions-list">
+              <span class="hobby-chip">Reading</span>
+              <span class="hobby-chip">Music</span>
+              <span class="hobby-chip">Photography</span>
+              <span class="hobby-chip">Coding</span>
+              <span class="hobby-chip">Sports</span>
+              <span class="hobby-chip">Painting</span>
+            </div>
+          </div>
         </div>
         {% endif %}
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteHobbyModal" tabindex="-1" aria-hidden="true">
@@ -127,6 +218,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+
+</div>
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->

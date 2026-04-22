@@ -67,6 +67,30 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
   }
+
+  @media (max-width: 767.98px) {
+    .profile-card > .d-flex.justify-content-between.align-items-center {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 10px;
+    }
+
+    .edit-profile-btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+  }
+
+  .app-right-content {
+	background: #eef1f8;
+  }
+
+.student-dash-main-col {
+	padding: 0px;
+}
 </style>
 {% endblock %}
 
@@ -75,12 +99,14 @@
 {% set student_shell_subtitle = 'My profile' %}
 {% endblock %}
 
-{% block student_section_class %}profile-view pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-3 pt-lg-4{% endblock %}
-{% block student_main_col_class %}col-12 col-lg-9{% endblock %}
+{% block student_section_class %}profile-view  std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container{% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
+{% block student_main_col_class %}student-dash-main-col pt-7{% endblock %}
 
 {% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Personal Information -->
         <div class="profile-card">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -270,6 +296,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+
+</div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const openBtn = document.getElementById('openParentOtpModal');

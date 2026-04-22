@@ -7,6 +7,9 @@
 {% block additionalhead %}
 {{ super() }}
 {% include 'template20/user/includes/admitcv_resume_theme_head.html' %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ static('css/admitcv-resume-flow.css') }}?v=12">
 {# Needed so Step-6 preview can style studio tpl-* markup (tech-focus etc.) #}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=1">
@@ -67,9 +70,9 @@
 {% set student_shell_resume_toolbar_active = 'studio' %}
 {% endblock %}
 
-{% block student_section_class %}user-dashboard pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+{% block student_section_class %}user-dashboard std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
 
 {% block student_main %}
         <p class="fs-13 text-muted mb-2">{{ resume.title|default('Untitled resume') }}

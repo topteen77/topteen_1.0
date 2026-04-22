@@ -8,11 +8,9 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .career-interests-page {
-    padding-top: 47px;
-  }
+
   .career-card {
-    background: #f7f7fa;
+    background: #fff;
     border-radius: 10px;
     padding: 20px;
     min-height: 151px;
@@ -22,6 +20,7 @@
     text-decoration: none;
     display: block;
     color: inherit;
+    border: 1px solid #dcdce1;
   }
   .career-card:hover {
     transform: translateY(-5px);
@@ -106,6 +105,14 @@
   }
 
 
+  .app-right-content {
+	background: #eef1f8;
+  height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
 </style>
 {% endblock %}
 
@@ -114,11 +121,13 @@
 {% set student_shell_subtitle = 'Career interests' %}
 {% endblock %}
 
-{% block student_section_class %}career-interests-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+{% block student_section_class %}career-interests-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
 
 {% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -224,6 +233,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+</div>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- jQuery -->

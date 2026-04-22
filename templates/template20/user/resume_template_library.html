@@ -8,7 +8,7 @@
 {{ super() }}
 {% include 'template20/user/includes/admitcv_resume_theme_head.html' %}
 <style>
-  .rtl-page { padding-top: 0; background: var(--dash-bg); min-height: calc(100vh - 52px); }
+  .rtl-page { padding-top: 0; background: var(--dash-bg); min-height: calc(100vh - 52px); padding-top: 52px; }
   .rtl-proto-wrap {
     border: 1px solid var(--dash-border-soft, #e8e8e8);
     border-radius: 12px;
@@ -27,6 +27,9 @@
   @media (max-width: 991px) {
     .rtl-proto-frame { height: min(800px, calc(100vh - 200px)); }
   }
+
+
+  body.student-dashboard-shell .student-dash-sidebar-col > .profile-sidebar {background-color: #fff !important;}
 </style>
 {% endblock %}
 
@@ -43,12 +46,14 @@
 {% set student_shell_resume_toolbar_active = 'templates' %}
 {% endblock %}
 
-{% block student_section_class %}rtl-page pb-3 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-2 px-lg-3 px-xl-4{% endblock %}
-{% block student_row_class %}row g-0 pt-2 pt-lg-3 student-dash-shell{% endblock %}
+{% block student_section_class %}rtl-page  std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-0{% endblock %}
+{% block student_row_class %}row g-0  student-dash-shell{% endblock %}
 
 {% block student_main %}
-        <p class="fs-13 text-muted mb-2">{{ resume.title|default('Untitled resume') }}</p>
+<div class="app-right-content pt-3 px-3 pb-3">
+
+        <p class="fs-18 fw-semibold text-muted mb-2">{{ resume.title|default('Untitled resume') }}</p>
         <div class="rtl-proto-wrap">
           <div class="rtl-proto-toolbar">
             <p class="mb-0 fs-13 text-muted">Layouts and live preview use your <strong>saved resume</strong> (profile, about, skills, internships, certificates, activities, volunteers). PDF template library rows are not required for this gallery.</p>
@@ -64,4 +69,6 @@
             referrerpolicy="strict-origin-when-cross-origin"
           ></iframe>
         </div>
+
+      </div>
 {% endblock %}

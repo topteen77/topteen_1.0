@@ -6,9 +6,29 @@
   <link rel="stylesheet" href="{{ studio_resume_css_url }}">
   <style>
     {{ studio_root_style|safe }}
+    @page { size: A4 portrait; margin: 0; }
     body { margin: 0; background: #fff; font-family: var(--font-stack, "Inter", system-ui, sans-serif); }
-    .pdf-wrap { max-width: 900px; margin: 0 auto; padding: 16px 20px 24px; }
-    .preview-wrap { background: #fff; }
+    .pdf-wrap {
+      width: 210mm;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 0;
+      box-sizing: border-box;
+      overflow: visible;
+    }
+    .preview-wrap { background: #fff; overflow: visible; }
+    article#resume.resume {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+    article#resume.resume .resume__mount {
+      width: 100%;
+      min-height: auto;
+      zoom: 1 !important;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>

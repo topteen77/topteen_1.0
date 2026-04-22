@@ -95,6 +95,17 @@
   min-height: auto;
  }
   }
+
+
+  .app-right-content {
+	background: #eef1f8;
+  height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
+
   
 </style>
 {% endblock %}
@@ -104,12 +115,14 @@
 {% set student_shell_subtitle = 'Note' %}
 {% endblock %}
 
-{% block student_section_class %}create-note-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container{% endblock %}
-{% block student_row_class %}row g-4 pt-4{% endblock %}
+{% block student_section_class %}create-note-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
 
 {% block student_main %}
     <!-- Header -->
+
+    <div class="app-right-content pt-3 px-3 pb-3">
     <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4 position-relative">
       <button type="button" class="btn btn-outline-secondary text-decoration-none d-flex align-items-center note-back-btn" data-back-url="{{ url('users:mynotepad') }}">
         <i class='bx bx-arrow-back fs-20 me-1'></i> Back
@@ -162,6 +175,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+</div>
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->

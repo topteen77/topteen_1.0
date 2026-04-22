@@ -9,16 +9,95 @@
 {{ super() }}
 <style>
   .skilllab-payment-page {
-    padding-top: 80px;
+    padding-top: 88px;
+    min-height: calc(100vh - 88px);
+    background: radial-gradient(1200px 600px at 10% -10%, #e9f2ff 0%, #f7faff 55%, #ffffff 100%);
+  }
+  .payment-shell {
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 50px rgba(20, 46, 84, 0.12);
+  }
+  .payment-header {
+    padding: 26px 28px;
+    color: #fff;
+    background: linear-gradient(135deg, #1c4ed8 0%, #2460e0 100%);
+  }
+  .payment-title {
+    margin: 0 0 4px 0;
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+  .payment-subtitle {
+    margin: 0;
+    opacity: 0.92;
+    font-size: 0.95rem;
+  }
+  .payment-body {
+    padding: 28px;
+    background: #fff;
   }
   .payment-loading {
     text-align: center;
-    padding: 40px 20px;
+    padding: 14px 8px 10px;
   }
   .spinner-border {
-    width: 3rem;
-    height: 3rem;
+    width: 3.25rem;
+    height: 3.25rem;
     border-width: 0.3em;
+  }
+  .payment-state-title {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #173156;
+  }
+  .payment-state-desc {
+    max-width: 480px;
+    margin: 0 auto 18px;
+    color: #5a6c86;
+  }
+  .payment-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .payment-badge {
+    border: 1px solid #d8e3f6;
+    background: #f5f9ff;
+    color: #35527a;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .payment-note {
+    margin: 0;
+    color: #6f819b;
+    font-size: 13px;
+  }
+  .payment-error-box {
+    display: none;
+    margin: 12px auto 0;
+    max-width: 540px;
+    background: #fff3f3;
+    border: 1px solid #ffd2d2;
+    color: #b42323;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  @media (max-width: 576px) {
+    .payment-header,
+    .payment-body {
+      padding: 20px;
+    }
+    .payment-state-title {
+      font-size: 1.08rem;
+    }
   }
 </style>
 {% endblock %}
@@ -28,15 +107,27 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-8">
-        <div class="card shadow-sm">
-          <div class="card-body p-4">
+        <div class="card payment-shell">
+          <div class="payment-header">
+            <h1 class="payment-title">Secure Checkout</h1>
+            <p class="payment-subtitle">{{ skilllab.name }}</p>
+          </div>
+          <div class="payment-body">
             <div class="payment-loading">
               <div class="spinner-border text-primary mb-3" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
-              <h4 class="mb-2">Processing Payment</h4>
-              <p class="text-gray mb-4">Please wait while we prepare your payment...</p>
-              <p class="text-muted fs-14">Redirecting to payment gateway...</p>
+              <h4 id="paymentStateTitle" class="payment-state-title">Preparing Your Payment</h4>
+              <p id="paymentStateDesc" class="payment-state-desc">
+                Please wait while we connect you to the payment gateway.
+              </p>
+              <div class="payment-badges">
+                <span class="payment-badge">Encrypted Checkout</span>
+                <span class="payment-badge">Trusted Gateway</span>
+                <span class="payment-badge">Instant Confirmation</span>
+              </div>
+              <p class="payment-note">Do not refresh or close this page until payment completes.</p>
+              <div id="paymentErrorBox" class="payment-error-box"></div>
             </div>
           </div>
         </div>
@@ -59,6 +150,20 @@
   const successUrl = "{{ success_url }}";
   const failUrl = "{{ fail_url }}";
   const paymentId = {{ payment_id }};
+  const paymentStateTitleEl = document.getElementById('paymentStateTitle');
+  const paymentStateDescEl = document.getElementById('paymentStateDesc');
+  const paymentErrorBoxEl = document.getElementById('paymentErrorBox');
+
+  function setPaymentState(title, description) {
+    if (paymentStateTitleEl) paymentStateTitleEl.textContent = title;
+    if (paymentStateDescEl) paymentStateDescEl.textContent = description;
+  }
+
+  function showPaymentError(message) {
+    if (!paymentErrorBoxEl) return;
+    paymentErrorBoxEl.textContent = message;
+    paymentErrorBoxEl.style.display = 'block';
+  }
 
   function openRazorpay() {
     if (typeof Razorpay === 'undefined') {
@@ -105,14 +210,16 @@
       // Handle payment failure
       rzp1.on('payment.failed', function (response) {
         capturePaymentStatus('error', (response.error && (response.error.description || response.error.code)) || 'payment_failed');
-        alert('Payment failed: ' + (response.error.description || response.error.code));
+        setPaymentState('Payment Could Not Be Completed', 'We are redirecting you to the retry page.');
+        showPaymentError('Payment failed: ' + (response.error.description || response.error.code));
         window.location.href = failUrl;
       });
 
       // Open Razorpay checkout (checkout start recorded server-side on Payment create)
       rzp1.open();
     } catch (error) {
-      alert('Error opening payment gateway: ' + error.message);
+      setPaymentState('Unable to Open Payment Gateway', 'Please retry after refreshing this page.');
+      showPaymentError('Error opening payment gateway: ' + error.message);
     }
   }
 
@@ -167,7 +274,8 @@
   function initRazorpay() {
     // Check if paymentInfo is valid
     if (!paymentInfo || !paymentInfo.key || !paymentInfo.amount) {
-      alert('Payment information is missing. Please try again.');
+      setPaymentState('Payment Details Missing', 'Required payment information was not received.');
+      showPaymentError('Payment information is missing. Please try again.');
       return;
     }
     
@@ -181,17 +289,20 @@
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.onload = function() {
+      setPaymentState('Opening Secure Checkout', 'Your payment gateway is ready. Launching now...');
       // Wait a tiny bit for Razorpay to initialize
       setTimeout(function() {
         if (typeof Razorpay !== 'undefined') {
           openRazorpay();
         } else {
-          alert('Payment gateway failed to load. Please refresh the page.');
+          setPaymentState('Payment Gateway Unavailable', 'Please refresh and try again.');
+          showPaymentError('Payment gateway failed to load. Please refresh the page.');
         }
       }, 100);
     };
     script.onerror = function() {
-      alert('Failed to load payment gateway. Please check your internet connection and refresh the page.');
+      setPaymentState('Network Issue Detected', 'Please check your internet connection and try again.');
+      showPaymentError('Failed to load payment gateway. Please check your internet connection and refresh the page.');
     };
     document.head.appendChild(script);
   }

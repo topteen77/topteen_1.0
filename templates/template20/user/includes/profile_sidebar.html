@@ -1,8 +1,7 @@
 <div class="profile-sidebar">
   <!-- User -->
-  <div class="text-center border-bottom pb-4 mb-4">
-    <div class="mb-3 position-relative d-inline-block w-100">
-
+  <div class="profile-summary border-bottom pb-4 mb-4">
+    <div class="profile-summary-head mb-3 position-relative d-inline-block w-100">
       <div class="profile-image-wrapper d-flex align-items-center justify-content-start">
       {% if request.user.image %}
       <img src="{{ request.user.image.url }}" class="profile-image me-2" alt="{{ request.user.name }}"
@@ -24,44 +23,44 @@
       {% endif %}
       {% endif %}
 
-      <div class="profile-info d-flex flex-column align-items-start justify-content-center ">  
-    <p class="fs-16 fw-semibold mb-0 text-truncate text-start col-12 text-purple">{{ request.user.name|default(request.user.username) }}</p>
-    {% if request.user.user_type == 1 and request.user.get_display_student_id() %}
-    <p class="fs-12 text-gray mb-0 ">Student ID: <strong>{{ request.user.get_display_student_id() }}</strong></p>
-    {% endif %}
+      <div class="profile-info d-flex flex-column align-items-start justify-content-center">
+        <p class="profile-name mb-0 text-start text-purple">{{ request.user.name|default(request.user.username) }}</p>
+        {% if request.user.user_type == 1 and request.user.get_display_student_id() %}
+        <p class="profile-student-id text-gray mb-0 lh-sm">Student ID: <strong>{{ request.user.get_display_student_id() }}</strong></p>
+        {% endif %}
+      </div>
     </div>
-  </div>
     </div>
-    <div class="d-flex flex-column gap-2">
-      <div class="d-flex align-items-center justify-content-start gap-2">
-        <i class='bx bx-time-five fs-18 text-purple'></i>
-        <p class="text-gray fs-14 mb-0">Joined {{ date_format(request.user.created) }}</p>
+    <div class="profile-meta d-flex flex-column gap-2">
+      <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-time-five fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-14 mb-0">Joined {{ date_format(request.user.created) }}</p>
       </div>
       {% if request.user.user_profile %}
       {% set last_student = request.user.student_management.last() %}
       {% if last_student and last_student.class_and_section %}
-      <div class="d-flex align-items-center justify-content-start gap-2">
-        <i class='bx bx-book fs-18 text-purple'></i>
-        <p class="text-gray fs-14 mb-0">
+      <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm">
           {{ last_student.class_and_section }}
           {% if request.user.user_profile.grade %}
-          • Class {{ request.user.user_profile.grade }}
+          •  {{ request.user.user_profile.grade }}
           {% endif %}
         </p>
       </div>
       {% else %}
       {% if request.user.user_profile.grade %}
-      <div class="d-flex align-items-center justify-content-start gap-2">
-        <i class='bx bx-book fs-18 text-purple'></i>
-        <p class="text-gray fs-14 mb-0">Class {{ request.user.user_profile.grade }}</p>
+      <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm">Class {{ request.user.user_profile.grade }}</p>
       </div>
       {% endif %}
       {% endif %}
 
       {% if request.user.user_profile.schoolname %}
-      <div class="d-flex align-items-center justify-content-start gap-2">
-        <i class='bx bx-buildings fs-18 text-purple'></i>
-        <p class="text-gray fs-14 mb-0 lh-sm text-start">{{ request.user.user_profile.schoolname }}</p>
+      <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-buildings fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm text-start">{{ request.user.user_profile.schoolname }}</p>
       </div>
       {% endif %}
 
@@ -72,15 +71,15 @@
       {% elif last_student and last_student.class_and_section %}
       {# show class row above #}
       {% else %}
-      <div class="d-flex align-items-start justify-content-start gap-2">
-        <i class='bx bx-book fs-18 text-purple'></i>
-        <p class="text-gray fs-16 mb-0">- • -</p>
+      <div class="profile-meta-row d-flex align-items-start justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-16 mb-0">- • -</p>
       </div>
       {% endif %}
       {% else %}
-      <div class="d-flex align-items-start justify-content-start gap-2">
-        <i class='bx bx-book fs-18 text-purple'></i>
-        <p class="text-gray fs-16 mb-0">- • -</p>
+      <div class="profile-meta-row d-flex align-items-start justify-content-start gap-2">
+        <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-16 mb-0">- • -</p>
       </div>
       {% endif %}
     </div>
@@ -115,7 +114,7 @@
     <a href="{{ url_('institute:marketinggroupdashboard') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
         
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
@@ -126,7 +125,7 @@
     <a href="{{ url_('institute:institutegroupdashboard') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
                 </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
@@ -139,7 +138,7 @@
       class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
                  </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
@@ -148,7 +147,7 @@
     <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
          
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
@@ -164,7 +163,7 @@
       class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
          
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
@@ -174,7 +173,7 @@
     <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
          
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
@@ -192,7 +191,7 @@
     <a href="{{ url_('post_matric:tests') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
                  </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
       </div>
@@ -235,7 +234,7 @@
     <a href="{{ url_('users:userdashboard') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"> <i class='bx bx-customize me-2 fs-18'></i> Dashboard</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"> <i class='bx bx-customize me-2 fs-18 text-purple'></i> Dashboard</p>
           <p class="text-gray fs-12 mb-0">Go to your dashboard</p>
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
@@ -243,47 +242,123 @@
     </a>
     {% endif %}
     {% if request.user.user_type == 1 %}
+    {% set quick_links = namespace(urls=[]) %}
     <div class="profile-sidebar-hub-nav mb-2">
-      <p class="profile-sidebar-section-label mb-2">Applications</p>
-      <a href="{{ url_('users:userdashboard') }}#applications-resume-hub" class="d-block text-decoration-none mb-2">
+      <p class="profile-sidebar-section-label mb-2 d-none">Quick Links</p>
+      {% set applications_href = url_('users:userdashboard') ~ '#applications-resume-hub' %}
+      {% if applications_href not in quick_links.urls %}
+      <a href="{{ applications_href }}" class="d-none text-decoration-none mb-2">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
-            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
-              <span aria-hidden="true">🎓</span> Applications
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-edit-alt me-2 fs-18 text-purple" aria-hidden="true"></i> Applications
             </p>
           </div>
           <span class="profile-sidebar-nav-badge">{{ hub_application_count|default(0) }}</span>
         </div>
       </a>
-      <a href="{{ url_('users:mycolleges') }}" class="d-block text-decoration-none mb-2">
+      {% set quick_links.urls = quick_links.urls + [applications_href] %}
+      {% endif %}
+      {% set universities_href = url_('users:mycolleges') %}
+      {% if universities_href not in quick_links.urls %}
+      <a href="{{ universities_href }}" class="d-none text-decoration-none mb-2">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
-            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
-              <span aria-hidden="true">🎯</span> Universities
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-buildings me-2 fs-18 text-purple" aria-hidden="true"></i> Universities
             </p>
           </div>
           <span class="profile-sidebar-nav-badge">{{ hub_shortlist_count|default(0) }}</span>
         </div>
       </a>
+      {% set quick_links.urls = quick_links.urls + [universities_href] %}
+      {% endif %}
       <p class="profile-sidebar-section-label mb-2 mt-3">My Work</p>
-      <a href="{{ url_('users:resumebuilder') }}" class="d-block text-decoration-none mb-2">
+      {% set resumes_href = url_('users:resumebuilder') %}
+      {% if resumes_href not in quick_links.urls %}
+      <a href="{{ resumes_href }}" class="d-block text-decoration-none mb-2">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
-            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
-              <span aria-hidden="true">📄</span> My Resumes
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-file-blank me-2 fs-18 text-purple" aria-hidden="true"></i> My Resumes
             </p>
           </div>
           <span class="profile-sidebar-nav-badge">{{ hub_resume_count|default(0) }}</span>
         </div>
       </a>
-      <a href="{{ url_('users:scrapbook') }}" class="d-block text-decoration-none mb-2">
+      {% set quick_links.urls = quick_links.urls + [resumes_href] %}
+      {% endif %}
+      {% set tasks_href = url_('users:scrapbook') %}
+      {% if tasks_href not in quick_links.urls %}
+      <a href="{{ tasks_href }}" class="d-block text-decoration-none mb-2">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
-            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center flex-wrap gap-1">
-              <span aria-hidden="true">✅</span> Goals &amp; Tasks
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-check-square me-2 fs-18 text-purple" aria-hidden="true"></i> My Scrapbook
             </p>
           </div>
           <span class="profile-sidebar-nav-badge">{{ hub_notes_count|default(0) }}</span>
+        </div>
+      </a>
+      {% set quick_links.urls = quick_links.urls + [tasks_href] %}
+      {% endif %}
+    </div>
+
+    <div class="profile-sidebar-hub-nav mb-2">
+      <p class="profile-sidebar-section-label mb-2">More Quick Links</p>
+
+      <a href="{{ url_('users:usercalender') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-calendar me-2 fs-18 text-purple" aria-hidden="true"></i> Your Calendar
+            </p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+
+      <a href="{{ url_('users:bookmark') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-bookmark me-2 fs-18 text-purple" aria-hidden="true"></i> Bookmarks
+            </p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+
+      <a href="{{ url_('post_matric:career_swipe') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-skip-next-circle me-2 fs-18 text-purple" aria-hidden="true"></i> Start Swiping Careers
+            </p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+
+      <a href="{{ url_('post_matric:view_matches') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-check-circle me-2 fs-18 text-purple" aria-hidden="true"></i> View My Matches
+            </p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+
+      <a href="{{ url_('post_matric:top_recommendations') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-medal me-2 fs-18 text-purple" aria-hidden="true"></i> Top Recommendations
+            </p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
     </div>
@@ -291,7 +366,7 @@
     <a href="{{ url_('users:viewprofile') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-user me-2 fs-18' ></i> My Profile</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-user me-2 fs-18 text-purple' ></i> My Profile</p>
         
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
@@ -309,7 +384,7 @@
     <a href="{{ url_('users:userhistory') }}" class="d-block text-decoration-none mb-2">
       <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
         <div>
-          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-credit-card-front me-2 fs-18' ></i>My Invoices</p>
+          <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-credit-card-front me-2 fs-18 text-purple' ></i>My Invoices</p>
         
         </div>
         <i class="bx bx-right-arrow-alt text-gray fs-18"></i>

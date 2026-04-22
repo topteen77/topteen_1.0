@@ -47,19 +47,19 @@
   }
 
   .stat-card-trophies>div:first-child {
-    background: #fff4e5;
+    background: #e79624;
   }
 
   .stat-card-points>div:first-child {
-    background: #eae8fc;
+    background: #3623e0;
   }
 
   .stat-card-streak>div:first-child {
-    background: #fde8f4;
+    background: #ee2a99;
   }
 
   .stat-card-level>div:first-child {
-    background: #e4f7ec;
+    background: #22e674;
   }
 
   .quick-link-card {
@@ -308,10 +308,6 @@
     background: #eef1fb !important;
   }
 
-  body.logged-in.user-dashboard .profile-complete-card {
-    background: linear-gradient(135deg, #f5f3ff 0%, #fff9f0 100%);
-    border: 1px solid var(--dash-border-soft);
-  }
 
   .user-dashboard .dashboard-light-panel {
     background: var(--dash-surface);
@@ -365,7 +361,7 @@
 {% set student_shell_subtitle = 'Dashboard' %}
 {% endblock %}
 
-{% block student_section_class %}user-dashboard pb-5 std-shell-main{% endblock %}
+{% block student_section_class %}user-dashboard  std-shell-main{% endblock %}
 
 {% block student_main %}
 <!-- Refer friends PopUp -->
@@ -390,7 +386,7 @@
 <!-- End of Refer Friends Popup -->
 
         <!-- Statistics (dynamic: trophies, points, streak, level) -->
-        <div class="mb-4" id="dashboard-stats-section">
+        <div class="mb-4 pt-9" id="dashboard-stats-section ">
           <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
           <div class="row g-3 dashboard-stat-cards">
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">
@@ -455,8 +451,7 @@
         </div>
         <!-- End of Statistics -->
 
-        {% include 'template20/user/includes/dashboard_application_resume_hub.html' %}
-
+        
         {% if dashboard_enrolled_items %}
         <div class="mb-4" id="dashboard-enrolled-section">
           <h2 class="fs-24 fw-semibold mb-3">My courses &amp; tests</h2>
@@ -792,6 +787,9 @@
           </div>
         </div>
         <!-- End of Quick Links -->
+ 
+        {% include 'template20/user/includes/dashboard_application_resume_hub.html' %}
+
 
         {% if show_parent_suggestions %}
         <!-- Suggested by Parent -->
@@ -938,6 +936,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+<script src="{{ static('js/student-shell.js') }}?v=1"></script>
 <script src="{{ static('js/student-shell.js') }}?v=1"></script>
 <script>
   (function () {

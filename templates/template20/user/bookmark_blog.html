@@ -8,24 +8,57 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .bookmark-blog-page { padding-top: 47px; }
+
   .blog-bookmark-card {
-    background: #fff;
-    border: 1px solid #efefee;
-    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #fcfcff 100%);
+    border: 1px solid #ececf4;
+    border-radius: 16px;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+    box-shadow: 0 4px 14px rgba(34, 41, 47, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
   .blog-bookmark-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transform: translateY(-6px);
+    border-color: rgba(95, 56, 189, 0.22);
+    box-shadow: 0 12px 28px rgba(34, 41, 47, 0.12);
   }
   .blog-thumb {
     width: 100%;
-    height: 180px;
-    background: #f7f7fa;
+    height: 170px;
+    background: #f4f5fb;
     object-fit: cover;
   }
+  .blog-bookmark-content {
+    padding: 1rem 1rem 1.1rem;
+  }
+  .blog-bookmark-title {
+    line-height: 1.35;
+    min-height: 2.7em;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .blog-bookmark-summary {
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.45;
+    min-height: 4.2em;
+  }
+
+  .app-right-content {
+	background: #eef1f8;
+
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
 </style>
 {% endblock %}
 
@@ -34,11 +67,12 @@
 {% set student_shell_subtitle = 'Blogs' %}
 {% endblock %}
 
-{% block student_section_class %}bookmark-blog-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+{% block student_section_class %}bookmark-blog-page  std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
 
 {% block student_main %}
+<div class="app-right-content pt-3 px-3 pb-3">
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}
@@ -60,7 +94,7 @@
         {% if blogs %}
         <div class="row g-4">
           {% for blog in blogs %}
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
             <div class="blog-bookmark-card">
               <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}" class="text-decoration-none">
                 {% if blog.image and blog.image.name %}
@@ -71,12 +105,12 @@
                 </div>
                 {% endif %}
               </a>
-              <div class="p-3">
+              <div class="blog-bookmark-content">
                 <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}" class="text-decoration-none">
-                  <h5 class="fs-18 fw-semibold text-dark mb-1">{{ blog.title }}</h5>
+                  <h5 class="blog-bookmark-title fs-18 fw-semibold text-dark mb-2">{{ blog.title }}</h5>
                 </a>
                 {% if blog.summary %}
-                <p class="fs-14 text-gray mb-0">{{ blog.summary|truncate(140) }}</p>
+                <p class="blog-bookmark-summary fs-14 text-gray mb-0">{{ blog.summary|truncate(140) }}</p>
                 {% endif %}
               </div>
             </div>
@@ -97,4 +131,4 @@
 </section>
 {% endblock %}
 
-
+</div>

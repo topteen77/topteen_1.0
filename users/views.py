@@ -3912,6 +3912,7 @@ def resume_pdf_download(request,*args, **kwargs):
     ctx["internships"]=UserResumeInternship.objects.filter(resume=user_resume)
     ctx["activities"]=UserResumeActivity.objects.filter(resume=user_resume)
     ctx["volunteers"]=UserResumeVolunteerInvolvement.objects.filter(resume=user_resume)
+    ctx["resume_contact"] = resume_studio_prototype_payload(user_resume, request)
     user_image = getattr(request.user, "image", None)
     if user_image:
         try:
@@ -3947,10 +3948,21 @@ def resume_pdf_download(request,*args, **kwargs):
     except TemplateDoesNotExist:
         template = get_template(fallback)
     html  = template.render(ctx)
+    pdf_options = {
+        "enable-local-file-access": "",
+        "page-size": "A4",
+        "orientation": "Portrait",
+        "margin-top": "6mm",
+        "margin-right": "6mm",
+        "margin-bottom": "6mm",
+        "margin-left": "6mm",
+        "encoding": "UTF-8",
+        "print-media-type": "",
+    }
     pdf = pdfkit.from_string(
         html,
         False,
-        options={"enable-local-file-access": ""},
+        options=pdf_options,
     )
     response= HttpResponse(pdf, content_type='application/pdf')
     base = (request.user.name or "Student").strip() or "Student"
@@ -3989,6 +4001,7 @@ def resume_html_preview(request, *args, **kwargs):
         "internships": UserResumeInternship.objects.filter(resume=user_resume),
         "activities": UserResumeActivity.objects.filter(resume=user_resume),
         "volunteers": UserResumeVolunteerInvolvement.objects.filter(resume=user_resume),
+        "resume_contact": resume_studio_prototype_payload(user_resume, request),
         "pdf_layout_variant": pdf_lv,
         "pdf_accent_color": pdf_ac,
     }

@@ -50,9 +50,6 @@
   }
 
 
-  .user-calendar-page {
-    padding-top: 47px;
-  }
 
 
   .fc-header-toolbar.fc-toolbar.fc-toolbar-ltr .fc-toolbar-chunk:nth-child(3) .fc-button-group {
@@ -244,6 +241,32 @@
     z-index: 1056 !important;
   }
 
+  .app-right-content {
+	background: #eef1f8;
+}
+
+.calendar-note-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef2ff;
+  border: 1px solid rgba(63, 55, 201, 0.2);
+  color: #2e289d;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.calendar-note-highlight i {
+  font-size: 16px;
+  color: #3f37c9;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
+
   /* Mobile-only calendar layout and text fixes */
   @media (max-width: 767.98px) {
     .user-calendar-page {
@@ -356,7 +379,15 @@
 }
 
 
+.app-right-content {
+height: 100vh;
+}
+
+
   }
+
+ 
+
 </style>
 {% endblock %}
 
@@ -365,11 +396,13 @@
 {% set student_shell_subtitle = 'Calendar' %}
 {% endblock %}
 
-{% block student_section_class %}user-calendar-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+{% block student_section_class %}user-calendar-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container{% endblock %}
+{% block student_row_class %}row g-4 student-dash-shell{% endblock %}
 
 {% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -379,6 +412,10 @@
         <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
           <h1 class="fs-24 fw-semibold mb-0">Your Calendar</h1>
         </div>
+        <div class="calendar-note-highlight" role="note">
+          <i class='bx bx-note'></i>
+          <span>Click any date to add a new note or event.</span>
+        </div>
 
         <!-- Mobile Header -->
         <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
@@ -386,7 +423,7 @@
             class="btn btn-link position-absolute start-0 top-0 text-decoration-none">
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </a>
-          <h2 class="fs-16 fw-normal text-center mb-0">Your Calendar</h2>
+         
         </div>
 
         <!-- Calendar Container -->
@@ -518,6 +555,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+
+</div>
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
 <!-- SweetAlert2 -->

@@ -3,100 +3,96 @@
 {% block title_content %}My Scrapbook | Top Teen{% endblock %}
 {% block description_content %}Access your saved content including notes, resume, bookmarks, and more.{% endblock %}
 
-{% block student_bodyclass %}scrapbook-page{% endblock %}
+{% block student_bodyclass %}user-dashboard scrapbook-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <style>
   .scrapbook-page {
-    padding-top: 47px;
-  }
-  .scrapbook-card {
-    background: #fff;
-  border: 1px solid #DBDBDB;
-  border-radius: 12px;
-  padding: 20px 19px 18px;
-  min-height: 78px;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-  position: relative;
-  overflow: hidden;
-  }
-  .scrapbook-card:hover {
-    transform: translateY(-3px);
-    border-color: #8a88ff;
-    box-shadow: 0 8px 20px rgba(39, 39, 39, 0.12);
-    background: linear-gradient(31.85deg, #EFEEFF 15.96%, #FFF9EF 84.04%);
-
+    padding-top: 0;
+    background: var(--dash-bg);
+    color: var(--dash-heading);
   }
 
-  .scrapbook-card-top {
-    display: flex;
-    align-items: flex-start;
+  .scrapbook-grid {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 14px;
   }
-  .scrapbook-card-icon {
-    width: 44px;
-    height: 44px;
+
+  .scrapbook-card {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border-soft);
     border-radius: 12px;
-    display: inline-flex;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    min-height: 108px;
+    box-shadow: var(--dash-shadow);
+    transition: all 0.25s ease;
+  }
+
+  .scrapbook-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(92, 84, 212, 0.35);
+    box-shadow: var(--dash-shadow-hover);
+    background: linear-gradient(145deg, #f7f6ff 0%, #fffdf8 100%);
+  }
+
+  .scrapbook-card:hover i.bx {
+    color: #6860f6 !important;
+    border-color: #6860f6 !important;
+  }
+
+  .dashboard-quicklinks-icon {
+    min-width: 47px;
+    min-height: 47px;
+    height: 47px;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    border-radius: 5px;
     flex-shrink: 0;
   }
-  .scrapbook-card-icon i {
-    font-size: 23px;
-    color: #2b2b2b;
+
+  .scrapbook-card .text-gray.fs-10.mb-0 {
+    color: var(--dash-muted) !important;
+    font-size: 12px !important;
+    line-height: 1.25;
   }
-  .scrapbook-card-title {
-    font-size: 16px;
-    line-height: 1.2;
-    color: #16161a;
-    margin-bottom: 8px;
-  }
-  .scrapbook-card-desc {
-    color: #63636e;
-    font-size: 12px;
-    line-height: 1.45;
-    margin-bottom: 0;
-    padding-right: 34px;
-  }
-  .scrapbook-card-arrow {
-    position: absolute;
-    right: 14px;
-    bottom:39%;
-    width: 22px;
-    height: 22px;
-    border: 1px solid #b6b6be;
-    border-radius: 50%;
+
+  .scrapbook-card > i.bx {
+    color: #94a0b8 !important;
+    font-size: 20px !important;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--dash-border-soft);
+    border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #777785;
-    font-size: 12px;
+    min-width: 28px;
+    min-height: 28px;
   }
-  @media (max-width: 991.98px) {
-    .scrapbook-card {
-      min-height: 96px;
-      padding: 16px 18px 40px;
-    }
-    .scrapbook-card-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-    }
-    .scrapbook-card-icon i {
-      font-size: 20px;
-    }
-    .scrapbook-card-title {
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
-    .scrapbook-card-desc {
-      font-size: 13px;
-      line-height: 1.35;
-      padding-right: 20px;
+
+  @media (min-width: 768px) {
+    .scrapbook-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
+
+  @media (min-width: 1200px) {
+    .scrapbook-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+
+  body.student-dashboard-shell .student-dash-sidebar-col {
+  margin-top: 59px;
+  background: #fff;
+}
 </style>
 {% endblock %}
 
@@ -105,164 +101,144 @@
 {% set student_shell_subtitle = 'Scrapbook' %}
 {% endblock %}
 
-{% block student_section_class %}scrapbook-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-4{% endblock %}
+{% block student_section_class %}scrapbook-page  std-shell-main{% endblock %}
 
 {% block student_main %}
+
+<div class="app-right-content pt-10 px-3 pb-3">
+
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}
 
-        <!-- Scrapbook Heading -->
-        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3 mb-4">
-          <h1 class="fs-24 fw-semibold mb-0">My Scrapbook</h1>
-            <button type="button" class="btn custom-button purple-button addFolderPopBtn">
+        <div class="mb-4 ">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="fs-24 fw-semibold mb-0">My Scrapbook</h2>
+            <button type="button" class="btn custom-button purple-button addFolderPopBtn d-none d-md-inline-flex">
             <i class='bx bx-plus me-2'></i> New Folder
           </button>
-        </div>
-
-        <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 position-relative">
-          <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
-            <i class='bx bx-arrow-back fs-18 text-gray'></i>
-          </button>
-          <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">My Scrapbook</h2>
-        </div>
-
-        <!-- Content Grid -->
-        <div class="row g-3 g-lg-4">
+          </div>
+          <!-- <button type="button" class="btn custom-button purple-button addFolderPopBtn d-inline-flex d-md-none mb-3">
+            <i class='bx bx-plus me-2'></i> New Folder
+          </button> -->
+          <div class="scrapbook-grid">
       <!-- My Notes -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:mynotepad') }}" class="text-decoration-none">
-          <div class="scrapbook-card is-active">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#c6bbff;">
+      <a href="{{ url('users:mynotepad') }}" class="text-decoration-none">
+          <div class="scrapbook-card">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#c6bbff;">
                 <img src="{{ static('images_new/icons/my-notes.svg') }}" style="width: 26px; height: 26px;"
                       alt="My Notes" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">My Notes</h3>
-                <p class="scrapbook-card-desc">Your notes, reminders and post-its</p>
+                <p class="fs-16 fw-semibold mb-1 text-dark">My Notes</p>
+                <p class="text-gray fs-10 mb-0">Your notes, reminders and post-its</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
+      </a>
 
       <!-- Resume Builder -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:resumebuilder') }}" class="text-decoration-none">
+      <a href="{{ url('users:resumebuilder') }}" class="text-decoration-none">
           <div class="scrapbook-card">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#ef9fd7;">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#ef9fd7;">
                 <img src="{{ static('images_new/icons/resume-builder.svg') }}" style="width: 26px; height: 26px;"
                 alt="Resume Builder" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">Resume Builder</h3>
-                <p class="scrapbook-card-desc">Build your resume from scratch</p>
+                <p class="fs-16 fw-semibold mb-1 text-dark">Resume Builder</p>
+                <p class="text-gray fs-10 mb-0">Build your resume from scratch</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
+      </a>
 
       <!-- Career Interests -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:careerinterest') }}" class="text-decoration-none">
+      <a href="{{ url('users:careerinterest') }}" class="text-decoration-none">
           <div class="scrapbook-card">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#f4cc74;">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#f4cc74;">
                 <img src="{{ static('images_new/icons/career-interest.svg') }}" style="width: 26px; height: 26px;"
                 alt="Career Interests" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">Career Interests</h3>
-                <p class="scrapbook-card-desc">Careers that you have bookmarked</p>
+                <p class="fs-16 fw-semibold mb-1 text-dark">Career Interests</p>
+                <p class="text-gray fs-10 mb-0">Careers that you have bookmarked</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
+      </a>
 
       <!-- Exams & Tests -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:bookmarkexam') }}" class="text-decoration-none">
+      <a href="{{ url('users:bookmarkexam') }}" class="text-decoration-none">
           <div class="scrapbook-card">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#ffc8d5;">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#ffc8d5;">
                 <img src="{{ static('images_new/icons/exam-test.svg') }}" style="width: 26px; height: 26px;"
                 alt="Exam &amp; Tests" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">Exam &amp; Tests</h3>
-                <p class="scrapbook-card-desc">Schools and tests shortlisted by you</p>
+                <p class="fs-16 fw-semibold mb-1 text-dark">Exam &amp; Tests</p>
+                <p class="text-gray fs-10 mb-0">Schools and tests shortlisted by you</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
+      </a>
       <!-- My Videos -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:bookmarkvideo') }}" class="text-decoration-none">
+      <a href="{{ url('users:bookmarkvideo') }}" class="text-decoration-none">
           <div class="scrapbook-card">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#89e5a6;">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#89e5a6;">
                 <img src="{{ static('images_new/icons/my-videos.svg') }}" style="width: 26px; height: 26px;"
                 alt="My Videos" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">My Videos</h3>
-                <p class="scrapbook-card-desc">Videos that you have bookmarked</p>
+                <p class="fs-16 fw-semibold mb-1 text-dark">My Videos</p>
+                <p class="text-gray fs-10 mb-0">Videos that you have bookmarked</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
+      </a>
 
       <!-- My Colleges -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:mycolleges') }}" class="text-decoration-none">
+      <a href="{{ url('users:mycolleges') }}" class="text-decoration-none">
           <div class="scrapbook-card">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#8abff9;">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#8abff9;">
                 <img src="{{ static('images_new/icons/my-colleges.svg') }}" style="width: 26px; height: 26px;"
                 alt="My Colleges" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">My Colleges</h3>
-                <p class="scrapbook-card-desc">College that you have bookmarked</p>
+                <p class="fs-16 fw-semibold mb-1 text-dark">My Colleges</p>
+                <p class="text-gray fs-10 mb-0">College that you have bookmarked</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
+      </a>
       <!-- My Hobbies -->
-      <div class="col-12 col-md-6 col-lg-4">
-        <a href="{{ url('users:myhobbies') }}" class="text-decoration-none">
+      <a href="{{ url('users:myhobbies') }}" class="text-decoration-none">
           <div class="scrapbook-card">
-            <div class="scrapbook-card-top">
-              <span class="scrapbook-card-icon" style="background:#f3d0ae;">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#f3d0ae;">
                 <img src="{{ static('images_new/icons/my-hobbies.svg') }}" style="width: 26px; height: 26px;"
                 alt="My Hobbies" />
               </span>
               <div>
-                <h3 class="scrapbook-card-title fw-semibold">My Hobbies</h3>
+                <p class="fs-16 fw-semibold mb-1 text-dark">My Hobbies</p>
               </div>
             </div>
-            <span class="scrapbook-card-arrow"><i class='bx bx-chevron-right'></i></span>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
           </div>
-        </a>
-      </div>
-        </div>
+      </a>
+          </div>
       </div>
 {% endblock %}
 <!-- Add Folder Modal -->
@@ -292,6 +268,27 @@
 
 {% block additionaljs %}
 {{ super() }}
+
+</div>
+<script>
+  (function () {
+    var ensureSidebarOpen = function () {
+      var shell = document.getElementById('studentDashboardShell');
+      if (shell) {
+        shell.classList.remove('sidebar-collapsed');
+      }
+      try {
+        localStorage.setItem('topteen_student_dash_sidebar_collapsed', '0');
+      } catch (e) {}
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ensureSidebarOpen);
+    } else {
+      ensureSidebarOpen();
+    }
+  })();
+</script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

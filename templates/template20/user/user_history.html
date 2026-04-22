@@ -8,39 +8,52 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-  .user-history-page {
-    padding-top: 47px;
-  }
   .history-card {
     border: 1px solid #6860F64F;
     border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 16px;
-  transition: box-shadow 0.3s;
-  border-top: 7px solid #6860F6;
-  background: linear-gradient(31.85deg, #FBFBFF 15.96%, #FDFCFA 84.04%);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: box-shadow 0.3s;
+    border-top: 7px solid #6860F6;
+    background: linear-gradient(31.85deg, #FBFBFF 15.96%, #FDFCFA 84.04%);
   }
+
   .history-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
+
   .status-badge {
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
   }
+
   .status-success {
     background-color: #d4edda;
     color: #155724;
   }
+
   .status-failed {
     background-color: #f8d7da;
     color: #721c24;
   }
+
   .status-pending {
     background-color: #fff3cd;
     color: #856404;
   }
+
+  .app-right-content {
+	background: #eef1f8;
+	height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
+
+
 </style>
 {% endblock %}
 
@@ -49,124 +62,137 @@
 {% set student_shell_subtitle = 'Payment history' %}
 {% endblock %}
 
-{% block student_section_class %}user-history-page pb-5 std-shell-main{% endblock %}
-{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
-{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+{% block student_section_class %}user-history-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4 student-dash-shell{% endblock %}
 
 {% block student_main %}
-    <!-- Breadcrumb -->
-    {% if breadcrumb %}
-    {% include 'template20/includes/breadcrumb.html' %}
-    {% endif %}
 
-    <!-- History Heading -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
-      <h1 class="fs-24 fw-semibold mb-0 d-flex align-items-center" ><i class='bx bx-spreadsheet text-purple me-2 fs-26'></i> Payment History</h1>
-      <div class="d-none d-lg-block">
-        <select id="filterStatus" class="form-select" style="max-width: 200px;">
-          <option value="">All Payments</option>
-          <option value="success">Successful</option>
-          <option value="failed">Failed</option>
-          <option value="pending">Pending</option>
-        </select>
-      </div>
-    </div>
+<div class="app-right-content pt-3 px-3">
 
-    <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
-      <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.location='{{ url('users:userdashboard') }}'">
-        <i class='bx bx-arrow-left fs-18 text-gray'></i>
-      </button>
-      <h2 class="fs-16 fw-normal text-center mb-0">Payment History</h2>
-      <select id="filterStatusMobile" class="form-select form-select-sm position-absolute end-0 top-0" style="max-width: 120px;">
-        <option value="">All</option>
-        <option value="success">Success</option>
+  <!-- Breadcrumb -->
+  {% if breadcrumb %}
+  {% include 'template20/includes/breadcrumb.html' %}
+  {% endif %}
+
+
+  <!-- History Heading -->
+  <div class="d-flex justify-content-between align-items-center mb-4 pt-4">
+    <h1 class="fs-24 fw-semibold mb-0 d-flex align-items-center"><i
+        class='bx bx-spreadsheet text-purple me-2 fs-26'></i> Payment History</h1>
+    <div class="d-none d-lg-block">
+      <select id="filterStatus" class="form-select" style="max-width: 200px;">
+        <option value="">All Payments</option>
+        <option value="success">Successful</option>
         <option value="failed">Failed</option>
         <option value="pending">Pending</option>
       </select>
     </div>
+  </div>
 
-    <!-- History Content -->
-    {% if payments %}
-    <div id="historyList">
-      {% for payment in payments %}
-      <div class="history-card" data-status="{% if payment.is_success == 1 %}success{% elif payment.is_success == 0 %}pending{% else %}failed{% endif %}">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-          <div>
-            <h5 class="fs-24 fw-semibold text-purple mb-1">
-              {% if payment.obj_type == 10 %}Psychometric Test
-              {% elif payment.obj_type == 20 %}SkillLab Course
-              {% elif payment.obj_type == 30 %}Career Counsellor
-              {% else %}Payment{% endif %}
-            </h5>
-            <p class="fs-14 text-gray mb-0">
-              <i class='bx bx-calendar me-1'></i>
-              {{ date_format(payment.created) }}
-            </p>
-          </div>
-          <span class="status-badge {% if payment.is_success == 1 %}status-success{% elif payment.is_success == 0 %}status-pending{% else %}status-failed{% endif %}">
-            {% if payment.is_success == 1 %}Success
-            {% elif payment.is_success == 0 %}Pending
-            {% else %}Failed{% endif %}
-          </span>
+  <!-- Mobile Header -->
+  <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
+    <button type="button" class="btn btn-link position-absolute start-0 top-0"
+      onclick="window.location='{{ url('users:userdashboard') }}'">
+      <i class='bx bx-arrow-left fs-18 text-gray'></i>
+    </button>
+    <!-- <h2 class="fs-16 fw-normal text-center mb-0">Payment History</h2> -->
+    <select id="filterStatusMobile" class="form-select form-select-sm position-absolute end-0 top-0"
+      style="max-width: 120px;">
+      <option value="">All</option>
+      <option value="success">Success</option>
+      <option value="failed">Failed</option>
+      <option value="pending">Pending</option>
+    </select>
+  </div>
+
+  <!-- History Content -->
+  {% if payments %}
+  <div id="historyList">
+    {% for payment in payments %}
+    <div class="history-card"
+      data-status="{% if payment.is_success == 1 %}success{% elif payment.is_success == 0 %}pending{% else %}failed{% endif %}">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="fs-24 fw-semibold text-purple mb-1">
+            {% if payment.obj_type == 10 %}Psychometric Test
+            {% elif payment.obj_type == 20 %}SkillLab Course
+            {% elif payment.obj_type == 30 %}Career Counsellor
+            {% else %}Payment{% endif %}
+          </h5>
+          <p class="fs-14 text-gray mb-0">
+            <i class='bx bx-calendar me-1'></i>
+            {{ date_format(payment.created) }}
+          </p>
         </div>
-        
-        <div class="row g-3">
-          <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1"><i class='bx bx-money me-1' ></i>Amount</p>
-            <p class="fs-16 fw-semibold text-dark mb-0">₹{{ payment.amount }}</p>
-          </div>
-          {% if payment.gateway_order_id %}
-          <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1"><i class='bx bx-receipt me-1'></i> Order ID</p>
-            <p class="fs-14 text-dark mb-0">{{ payment.gateway_order_id }}</p>
-          </div>
-          {% endif %}
-          {% if payment.gateway_payment_id %}
-          <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1"><i class='bx bx-credit-card-front me-1'></i>Payment ID</p>
-            <p class="fs-14 text-dark mb-0">{{ payment.gateway_payment_id }}</p>
-          </div>
-          {% endif %}
-          {% if payment.transaction_date %}
-          <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1">Transaction Date</p>
-            <p class="fs-14 text-dark mb-0">{{ date_format(payment.transaction_date) }}</p>
-          </div>
-          {% endif %}
-          {% if payment.payment_mode %}
-          <div class="col-md-6">
-            <p class="fs-14 text-gray mb-1">Payment Mode</p>
-            <p class="fs-14 text-dark mb-0">{{ payment.payment_mode }}</p>
-          </div>
-          {% endif %}
-          {% set inv_id = payment_id_to_invoice_id.get(payment.id) if payment_id_to_invoice_id else none %}
-          {% if inv_id %}
-          <div class="col-12 mt-2 d-flex gap-2">
-            <a href="{{ url('users:invoice_download', args=[inv_id]) }}?view=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
-              <i class='bx bx-show me-1'></i>View Invoice
-            </a>
-            <a href="{{ url('users:invoice_download', args=[inv_id]) }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
-              <i class='bx bx-download me-1'></i>Download Invoice
-            </a>
-          </div>
-          {% endif %}
-        </div>
+        <span
+          class="status-badge {% if payment.is_success == 1 %}status-success{% elif payment.is_success == 0 %}status-pending{% else %}status-failed{% endif %}">
+          {% if payment.is_success == 1 %}Success
+          {% elif payment.is_success == 0 %}Pending
+          {% else %}Failed{% endif %}
+        </span>
       </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-5">
-      <i class='bx bx-receipt fs-64 text-gray mb-3'></i>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No Payment History</h3>
-      <p class="text-gray fs-14 mb-0">You haven't made any payments yet.</p>
-    </div>
-    {% endif %}
-{% endblock %}
 
-{% block additionaljs %}
-{{ super() }}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="fs-14 text-gray mb-1"><i class='bx bx-money me-1'></i>Amount</p>
+          <p class="fs-16 fw-semibold text-dark mb-0">₹{{ payment.amount }}</p>
+        </div>
+        {% if payment.gateway_order_id %}
+        <div class="col-md-6">
+          <p class="fs-14 text-gray mb-1"><i class='bx bx-receipt me-1'></i> Order ID</p>
+          <p class="fs-14 text-dark mb-0">{{ payment.gateway_order_id }}</p>
+        </div>
+        {% endif %}
+        {% if payment.gateway_payment_id %}
+        <div class="col-md-6">
+          <p class="fs-14 text-gray mb-1"><i class='bx bx-credit-card-front me-1'></i>Payment ID</p>
+          <p class="fs-14 text-dark mb-0">{{ payment.gateway_payment_id }}</p>
+        </div>
+        {% endif %}
+        {% if payment.transaction_date %}
+        <div class="col-md-6">
+          <p class="fs-14 text-gray mb-1">Transaction Date</p>
+          <p class="fs-14 text-dark mb-0">{{ date_format(payment.transaction_date) }}</p>
+        </div>
+        {% endif %}
+        {% if payment.payment_mode %}
+        <div class="col-md-6">
+          <p class="fs-14 text-gray mb-1">Payment Mode</p>
+          <p class="fs-14 text-dark mb-0">{{ payment.payment_mode }}</p>
+        </div>
+        {% endif %}
+        {% set inv_id = payment_id_to_invoice_id.get(payment.id) if payment_id_to_invoice_id else none %}
+        {% if inv_id %}
+        <div class="col-12 mt-2 d-flex gap-2">
+          <a href="{{ url('users:invoice_download', args=[inv_id]) }}?view=1" class="btn btn-sm btn-outline-secondary"
+            target="_blank" rel="noopener">
+            <i class='bx bx-show me-1'></i>View Invoice
+          </a>
+          <a href="{{ url('users:invoice_download', args=[inv_id]) }}" class="btn btn-sm btn-outline-primary"
+            target="_blank" rel="noopener">
+            <i class='bx bx-download me-1'></i>Download Invoice
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <!-- Empty State -->
+  <div class="text-center py-5">
+    <i class='bx bx-receipt fs-64 text-gray mb-3'></i>
+    <h3 class="fs-20 fw-semibold text-dark mb-2">No Payment History</h3>
+    <p class="text-gray fs-14 mb-0">You haven't made any payments yet.</p>
+  </div>
+  {% endif %}
+  {% endblock %}
+
+  {% block additionaljs %}
+  {{ super() }}
+
+</div>
 <script>
   // Filter functionality
   const filterStatus = document.getElementById('filterStatus');
@@ -191,16 +217,15 @@
   }
 
   if (filterStatus) {
-    filterStatus.addEventListener('change', function() {
+    filterStatus.addEventListener('change', function () {
       filterHistory(this.value);
     });
   }
 
   if (filterStatusMobile) {
-    filterStatusMobile.addEventListener('change', function() {
+    filterStatusMobile.addEventListener('change', function () {
       filterHistory(this.value);
     });
   }
 </script>
 {% endblock %}
-

@@ -15,7 +15,8 @@
       <nav class="filter-nav" id="filterNav" aria-label="Template categories"></nav>
 
       <section class="panel panel--templates">
-        <h2 class="panel__title">All templates</h2>
+        <h2 class="panel__title">Template patterns</h2>
+        <p class="panel__hint">Choose a layout pattern (modern, professional, creative, international).</p>
         <div class="template-grid-wrap">
           <div class="template-grid" id="templateGrid"></div>
         </div>
@@ -32,6 +33,11 @@
           <span class="field__label">Body &amp; headings</span>
           <select id="fontFamily" class="select"></select>
         </label>
+        <label class="field field--spaced">
+          <span class="field__label">Fixed size</span>
+          <select id="fontSize" class="select"></select>
+        </label>
+        <p class="panel__hint">Font size applies to all template patterns and export preview.</p>
       </section>
 
       <section class="panel">
@@ -65,7 +71,7 @@
         <input type="hidden" name="resume_id" value="{{ resume.pk }}">
         <input type="hidden" name="studio_snapshot_json" id="ttStudioSnapshotJson" value="">
       </form>
-      <button type="submit" form="ttDupResumeForm" formtarget="_top" class="btn btn--icon" id="btnSaveCopy" title="Save a new resume row with the same saved data">Save as new copy</button>
+      <button type="submit" form="ttDupResumeForm" formtarget="_top" class="btn btn--icon lh-sm" id="btnSaveCopy" title="Save a new resume row with the same saved data">Save as new copy</button>
       {% endif %}
       <button type="button" class="btn btn--pdf" id="btnPdf" title="Download PDF" aria-label="Download PDF">
         <svg class="btn__icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
