@@ -78,4 +78,42 @@ $(".subDiv").click(function(){
     $(this).toggleClass("selectedDiv activeTab");
 })
 
+const profileImageInput = document.getElementById("profileImageInput");
+const profilePreviewImage = document.getElementById("profilePreviewImage");
+const profilePlaceholderIcon = document.getElementById("profilePlaceholderIcon");
+const cropPhotoBtn = document.getElementById("cropPhotoBtn");
+
+if (profileImageInput && profilePreviewImage && profilePlaceholderIcon && cropPhotoBtn) {
+    profileImageInput.addEventListener("change", function (event) {
+        const selectedFile = event.target.files && event.target.files[0];
+        if (!selectedFile) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (loadEvent) {
+            profilePreviewImage.src = loadEvent.target?.result || "";
+            profilePreviewImage.classList.remove("hidden");
+            profilePlaceholderIcon.classList.add("hidden");
+
+            cropPhotoBtn.disabled = false;
+            cropPhotoBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        };
+        reader.readAsDataURL(selectedFile);
+    });
+
+    cropPhotoBtn.addEventListener("click", function () {
+        if (cropPhotoBtn.disabled || !profilePreviewImage.src) {
+            return;
+        }
+
+        // Hook for integrating a crop modal/tool.
+        document.dispatchEvent(
+            new CustomEvent("onboarding:crop-image-requested", {
+                detail: { imageSrc: profilePreviewImage.src },
+            })
+        );
+    });
+}
+
 

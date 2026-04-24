@@ -31,30 +31,33 @@
     </div>
     {% endif %}
     <div class="std-shell-spacer" aria-hidden="true"></div>
-    <div class="dropdown">
-      <button type="button" class="std-shell-avatar-btn dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static"
-        aria-expanded="false" aria-label="Account menu">
-        {% if _u.image %}
-        <img src="{{ _u.image.url }}" class="std-shell-avatar-img" alt=""
-          onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='flex';" />
-        <span class="std-shell-avatar-initials" style="display:none;" aria-hidden="true">{{ (_u.name or _u.email or '?')[0]|upper }}</span>
-        {% else %}
-        <span class="std-shell-avatar-initials" aria-hidden="true">{{ (_u.name or _u.email or '?')[0]|upper }}</span>
-        {% endif %}
-        <span class="std-shell-avatar-name d-none d-sm-inline">{{ _u.name|default(_u.username) }}</span>
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 220px; border-color: var(--dash-border-soft) !important;">
-        <li class="px-3 py-2 border-bottom mb-1" style="border-color: var(--dash-border-soft) !important;">
-          <p class="mb-0 fw-semibold fs-14 text-truncate">{{ _u.name|default(_u.username) }}</p>
-          <p class="mb-0 fs-12 text-muted text-truncate">{{ _u.email }}</p>
-        </li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:userdashboard') }}"><i class='bx bx-customize me-2'></i>Dashboard</a></li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:viewprofile') }}"><i class='bx bx-user me-2'></i>My profile</a></li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:profiledetails') }}"><i class='bx bx-cog me-2'></i>Settings</a></li>
-        <li><a class="dropdown-item py-2" href="{{ url('users:userhistory') }}"><i class='bx bx-receipt me-2'></i>Invoices</a></li>
-        <li><hr class="dropdown-divider my-1"></li>
-        <li><a class="dropdown-item py-2 text-danger" href="{{ url('users:logout') }}"><i class='bx bx-log-out me-2'></i>Sign out</a></li>
-      </ul>
+    <div class="d-flex align-items-center gap-2">
+      {% include 'notifications/includes/notification_bell.html' %}
+      <div class="dropdown">
+        <button type="button" class="std-shell-avatar-btn dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static"
+          aria-expanded="false" aria-label="Account menu">
+          {% if _u.image %}
+          <img src="{{ _u.image.url }}" class="std-shell-avatar-img" alt=""
+            onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='flex';" />
+          <span class="std-shell-avatar-initials" style="display:none;" aria-hidden="true">{{ (_u.name or _u.email or '?')[0]|upper }}</span>
+          {% else %}
+          <span class="std-shell-avatar-initials" aria-hidden="true">{{ (_u.name or _u.email or '?')[0]|upper }}</span>
+          {% endif %}
+          <span class="std-shell-avatar-name d-none d-sm-inline">{{ _u.name|default(_u.username) }}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 220px; border-color: var(--dash-border-soft) !important;">
+          <li class="px-3 py-2 border-bottom mb-1" style="border-color: var(--dash-border-soft) !important;">
+            <p class="mb-0 fw-semibold fs-14 text-truncate">{{ _u.name|default(_u.username) }}</p>
+            <p class="mb-0 fs-12 text-muted text-truncate">{{ _u.email }}</p>
+          </li>
+          <li><a class="dropdown-item py-2" href="{{ url('users:userdashboard') }}"><i class='bx bx-customize me-2'></i>Dashboard</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url('users:viewprofile') }}"><i class='bx bx-user me-2'></i>My profile</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url('users:profiledetails') }}"><i class='bx bx-cog me-2'></i>Settings</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url('users:userhistory') }}"><i class='bx bx-receipt me-2'></i>Invoices</a></li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item py-2 text-danger" href="{{ url('users:logout') }}"><i class='bx bx-log-out me-2'></i>Sign out</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 </header>

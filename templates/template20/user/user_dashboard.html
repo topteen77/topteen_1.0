@@ -168,6 +168,93 @@
     .quick-link-card {
       min-height: auto;
     }
+
+    .user-dashboard h2.fs-24.fw-semibold {
+      font-size: 20px !important;
+      line-height: 1.3;
+    }
+
+    .stat-card {
+      padding: 12px;
+      gap: 10px;
+      min-height: 78px;
+    }
+
+    .stat-card > div:first-child {
+      width: 36px;
+      height: 36px;
+    }
+
+    .stat-card .stat-value,
+    .stat-card .fs-18.fw-semibold {
+      font-size: 16px !important;
+      line-height: 1.2;
+    }
+
+    .stat-card .text-gray.fs-10.mb-0,
+    .quick-link-card .text-gray.fs-10.mb-0,
+    .quick-link-card p[class*="text-opacity-70"],
+    .smart-bar-head {
+      font-size: 11px !important;
+      line-height: 1.35;
+    }
+
+    .quick-link-card {
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .quick-link-card .d-flex.align-items-center.gap-3 > div:first-child,
+    .quick-link-card .d-flex.align-items-start.gap-3 > div:first-child,
+    .quick-link-card .d-flex.align-items-start.flex-grow-1 > div:first-child,
+    .dashboard-quicklinks-icon {
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      min-height: 38px;
+    }
+
+    .quick-link-card .fw-semibold.mb-1.fs-14 {
+      font-size: 13px !important;
+      line-height: 1.3;
+    }
+
+    .insight-ring {
+      width: 74px;
+      height: 74px;
+    }
+
+    .insight-ring::after {
+      width: 54px;
+      height: 54px;
+    }
+
+    .insight-ring-value {
+      font-size: 12px;
+    }
+
+    .insight-ring-card p.fw-semibold.mb-1 {
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .insight-ring-card .text-gray.fs-12.mb-0 {
+      font-size: 11px !important;
+      line-height: 1.35;
+    }
+
+    .smart-insights-wrap,
+    .smart-bars-card,
+    .insight-ring-card {
+      padding: 12px;
+    }
+
+    .smart-bar-head > span {
+      max-width: 72%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   /* Fix modal z-index to ensure it appears above backdrop */
@@ -353,6 +440,93 @@
     align-items: center;
     border-radius: 5px;
   }
+
+  .smart-insights-wrap {
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border-soft);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--dash-shadow);
+  }
+
+  .insight-ring-card {
+    background: var(--dash-surface-soft);
+    border: 1px solid var(--dash-border-soft);
+    border-radius: 12px;
+    padding: 14px;
+    height: 100%;
+  }
+
+  .insight-ring {
+    --ring-progress: 0;
+    --ring-color: #5c54d4;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    background: conic-gradient(var(--ring-color) calc(var(--ring-progress) * 1%), #e9edf5 0);
+    display: grid;
+    place-items: center;
+    margin-bottom: 10px;
+  }
+
+  .insight-ring::after {
+    content: "";
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #edf1f6;
+  }
+
+  .insight-ring-value {
+    position: absolute;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dash-heading);
+  }
+
+  .smart-bars-card {
+    background: #fff;
+    border: 1px solid var(--dash-border-soft);
+    border-radius: 12px;
+    padding: 14px;
+    height: 100%;
+  }
+
+  .smart-bar-item {
+    margin-bottom: 14px;
+  }
+
+  .smart-bar-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .smart-bar-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--dash-muted);
+  }
+
+  .smart-bar-track {
+    height: 8px;
+    background: #edf1f6;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .smart-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+  }
+
+
+  .alert.alert-success.alert-dismissible.fade.show.mt-3.mb-0 {
+	margin-top: 66px !important;
+}
 </style>
 {% endblock %}
 
@@ -451,6 +625,112 @@
         </div>
         <!-- End of Statistics -->
 
+        {% set activity_max = [hub_shortlist_count|default(0), hub_resume_sections|default(0), hub_notes_count|default(0), 1]|max %}
+        {% set momentum_max = [streak_days|default(0), (hub_upcoming_events|default([])|length), (dashboard_enrolled_items|default([])|length), 1]|max %}
+        <!-- Smart visual insights (TopTeen data only) -->
+        <div class="mb-4">
+          <h2 class="fs-24 fw-semibold mb-3">Smart Progress Snapshot</h2>
+          <div class="smart-insights-wrap">
+            <div class="row g-3">
+              <div class="col-12 col-lg-4">
+                <div class="insight-ring-card d-flex flex-column align-items-center text-center">
+                  <div class="position-relative insight-ring" style="--ring-progress: {{ level_progress_percent|default(0) }}; --ring-color:#5c54d4;">
+                    <span class="insight-ring-value">{{ level_progress_percent|default(0) }}%</span>
+                  </div>
+                  <p class="fw-semibold mb-1">Level Progress</p>
+                  <p class="text-gray fs-12 mb-0">Current level: {{ current_level|default('Rookie') }}</p>
+                </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                <div class="insight-ring-card d-flex flex-column align-items-center text-center">
+                  <div class="position-relative insight-ring" style="--ring-progress: {{ hub_profile_completion|default(0) }}; --ring-color:#1aa6d1;">
+                    <span class="insight-ring-value">{{ hub_profile_completion|default(0) }}%</span>
+                  </div>
+                  <p class="fw-semibold mb-1">Profile Strength</p>
+                  <p class="text-gray fs-12 mb-0">Improve to unlock better matches</p>
+                </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                <div class="insight-ring-card d-flex flex-column align-items-center text-center">
+                  <div class="position-relative insight-ring" style="--ring-progress: {{ [streak_days|default(0) * 10, 100]|min }}; --ring-color:#f08a1c;">
+                    <span class="insight-ring-value">{{ streak_days|default(0) }}d</span>
+                  </div>
+                  <p class="fw-semibold mb-1">Learning Streak</p>
+                  <p class="text-gray fs-12 mb-0">Daily momentum from your activity</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-12 col-lg-6">
+                <div class="smart-bars-card">
+                  <p class="fw-semibold mb-3">Activity Distribution</p>
+                  <div class="smart-bar-item">
+                    <div class="smart-bar-head">
+                      <span>Saved Colleges</span>
+                      <strong class="text-dark">{{ hub_shortlist_count|default(0) }}</strong>
+                    </div>
+                    <div class="smart-bar-track">
+                      <div class="smart-bar-fill" style="width: {{ ((hub_shortlist_count|default(0) / activity_max) * 100)|round|int }}%; background:#5c54d4;"></div>
+                    </div>
+                  </div>
+                  <div class="smart-bar-item">
+                    <div class="smart-bar-head">
+                      <span>Resume Sections</span>
+                      <strong class="text-dark">{{ hub_resume_sections|default(0) }}</strong>
+                    </div>
+                    <div class="smart-bar-track">
+                      <div class="smart-bar-fill" style="width: {{ ((hub_resume_sections|default(0) / activity_max) * 100)|round|int }}%; background:#2ab0dd;"></div>
+                    </div>
+                  </div>
+                  <div class="smart-bar-item">
+                    <div class="smart-bar-head">
+                      <span>Scrapbook Notes</span>
+                      <strong class="text-dark">{{ hub_notes_count|default(0) }}</strong>
+                    </div>
+                    <div class="smart-bar-track">
+                      <div class="smart-bar-fill" style="width: {{ ((hub_notes_count|default(0) / activity_max) * 100)|round|int }}%; background:#35bf7a;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-lg-6">
+                <div class="smart-bars-card">
+                  <p class="fw-semibold mb-3">Current Momentum</p>
+                  <div class="smart-bar-item">
+                    <div class="smart-bar-head">
+                      <span>Streak Days</span>
+                      <strong class="text-dark">{{ streak_days|default(0) }}</strong>
+                    </div>
+                    <div class="smart-bar-track">
+                      <div class="smart-bar-fill" style="width: {{ ((streak_days|default(0) / momentum_max) * 100)|round|int }}%; background:#f08a1c;"></div>
+                    </div>
+                  </div>
+                  <div class="smart-bar-item">
+                    <div class="smart-bar-head">
+                      <span>Upcoming Calendar Events</span>
+                      <strong class="text-dark">{{ hub_upcoming_events|default([])|length }}</strong>
+                    </div>
+                    <div class="smart-bar-track">
+                      <div class="smart-bar-fill" style="width: {{ (((hub_upcoming_events|default([])|length) / momentum_max) * 100)|round|int }}%; background:#5f77ff;"></div>
+                    </div>
+                  </div>
+                  <div class="smart-bar-item">
+                    <div class="smart-bar-head">
+                      <span>My Courses & Tests</span>
+                      <strong class="text-dark">{{ dashboard_enrolled_items|default([])|length }}</strong>
+                    </div>
+                    <div class="smart-bar-track">
+                      <div class="smart-bar-fill" style="width: {{ (((dashboard_enrolled_items|default([])|length) / momentum_max) * 100)|round|int }}%; background:#7a5cff;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End Smart visual insights -->
+
         
         {% if dashboard_enrolled_items %}
         <div class="mb-4" id="dashboard-enrolled-section">
@@ -481,8 +761,9 @@
                     <p class="text-gray fs-11 mb-0 text-truncate" title="{{ item.subtitle }}">{{ item.subtitle }}</p>
                   </div>
                 </div>
-                <a href="{{ item.start_url }}" class="btn btn-sm custom-button purple-button flex-shrink-0 px-3 ms-lg-2">
-                  Start
+                <a href="{{ item.start_url }}"
+                  class="btn btn-sm custom-button {% if item.action_variant == 'report' %}blue-button{% else %}purple-button{% endif %} flex-shrink-0 px-3 ms-lg-2">
+                  {{ item.action_label|default('Start') }}
                 </a>
               </div>
             </div>

@@ -2727,6 +2727,7 @@ class UserDashboard(TemplateView):
         ctx['test_dashboard_url'] = None
         ctx['test_name'] = None
         ctx['has_test_payment'] = False
+        ctx['combined_report_url'] = None
 
         # Institute students are exempt from payment: allow access to test dashboard even if
         # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
@@ -2792,6 +2793,21 @@ class UserDashboard(TemplateView):
                     )
                     if all_subtests:
                         ctx['test_dashboard_url'] = reverse('app:dashboard')
+            except Exception:
+                pass
+
+        # If Career Direction and all 4 tests are completed, link to combined report
+        if ctx.get('test_name') == 'Career Direction' and ctx.get('test_dashboard_url'):
+            try:
+                from app_post_matric.models import TestSession
+                test1_completed = TestSession.objects.filter(user=profile_user, test__id=1, is_completed=True).exists()
+                test2_completed = TestSession.objects.filter(user=profile_user, test__id=2, is_completed=True).exists()
+                test3_completed = TestSession.objects.filter(user=profile_user, test__id=3, is_completed=True).exists()
+                test4_completed = TestSession.objects.filter(user=profile_user, test__id=4, is_completed=True).exists()
+                if test1_completed and test2_completed and test3_completed and test4_completed:
+                    combined_report_url = reverse('post_matric:combined_report', kwargs={'user_id': profile_user.id})
+                    ctx['combined_report_url'] = combined_report_url
+                    ctx['test_dashboard_url'] = combined_report_url
             except Exception:
                 pass
 
@@ -2966,11 +2982,24 @@ class UserDashboard(TemplateView):
                         "start_url": reverse(
                             "skilllabcourse:course_learning", args=[c.slug]
                         ),
+                        "action_label": "Start",
+                        "action_variant": "start",
                     }
                 )
         except Exception:
             pass
         if ctx.get("has_test_payment") and ctx.get("test_dashboard_url"):
+            psychometric_action_label = "Start"
+            psychometric_action_variant = "start"
+            try:
+                if ctx["test_dashboard_url"] == reverse("app:dashboard"):
+                    psychometric_action_label = "View report"
+                    psychometric_action_variant = "report"
+                elif ctx.get("combined_report_url") and ctx["test_dashboard_url"] == ctx["combined_report_url"]:
+                    psychometric_action_label = "View combined report"
+                    psychometric_action_variant = "report"
+            except Exception:
+                pass
             ctx["dashboard_enrolled_items"].insert(
                 0,
                 {
@@ -2978,6 +3007,8 @@ class UserDashboard(TemplateView):
                     "title": ctx.get("test_name") or "Psychometric test",
                     "subtitle": "Assessment",
                     "start_url": ctx["test_dashboard_url"],
+                    "action_label": psychometric_action_label,
+                    "action_variant": psychometric_action_variant,
                 },
             )
 

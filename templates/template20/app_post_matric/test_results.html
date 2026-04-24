@@ -278,7 +278,7 @@
         <h1>Your Results</h1>
         <p class="completion-info">
           <i class="fas fa-calendar me-2"></i>
-          {% if completed_at %}Completed on {{ completed_at }}{% endif %}
+          {% if completed_at_display %}Completed on {{ completed_at_display }}{% elif completed_at %}Completed on {{ completed_at }}{% endif %}
         </p>
       </div>
 

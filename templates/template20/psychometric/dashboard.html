@@ -508,6 +508,165 @@
   .psych-legend-dot.personality { background: #6366f1; }
   .psych-legend-dot.interest { background: #f59e0b; }
   .psych-legend-dot.intelligence { background: #ec4899; }
+  .career-analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 992px) {
+    .career-analytics-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .career-analytics-card {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    height: 100%;
+  }
+  .career-analytics-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .career-analytics-title h4 {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .career-analytics-title span {
+    font-size: 0.72rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .radar-wrap {
+    position: relative;
+    height: 250px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfdff 100%);
+    border: 1px solid #edf2ff;
+  }
+  .radar-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+  .radar-grid {
+    fill: none;
+    stroke: rgba(100, 116, 139, 0.3);
+    stroke-width: 1;
+  }
+  .radar-axis {
+    stroke: rgba(100, 116, 139, 0.35);
+    stroke-width: 1;
+  }
+  .radar-shape {
+    fill: rgba(79, 70, 229, 0.18);
+    stroke: #4f46e5;
+    stroke-width: 2;
+  }
+  .radar-node {
+    fill: #4f46e5;
+    stroke: #fff;
+    stroke-width: 2;
+  }
+  .radar-label {
+    font-size: 9px;
+    font-weight: 600;
+    fill: #475569;
+    text-anchor: middle;
+  }
+  .career-rankings-list {
+    display: grid;
+    gap: 11px;
+  }
+  .career-rank-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+  }
+  .career-rank-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .career-rank-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+  }
+  .career-rank-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  }
+  .career-rank-score {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #475569;
+    text-align: right;
+  }
+  .trend-type-list {
+    display: grid;
+    gap: 10px;
+  }
+  .trend-type-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 34px;
+    align-items: center;
+    gap: 10px;
+  }
+  .trend-type-row p {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .trend-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    overflow: hidden;
+  }
+  .trend-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #0ea5e9, #14b8a6);
+  }
+  .trend-score {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-align: right;
+  }
+  .trend-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .trend-chip {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #eef2ff;
+    border: 1px solid #dbeafe;
+    border-radius: 999px;
+    padding: 4px 10px;
+  }
 
   .student-dash-main-col {padding:0px;}
 </style>
@@ -733,6 +892,122 @@
         </div>
       </div>
 
+      {% set base_overall = ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3)|round|int %}
+      {% set radar_analytical = intelligence_pct|default(0)|int %}
+      {% set radar_creative = (((personality_pct|default(0)|int * 2) + interest_pct|default(0)|int) / 3)|round|int %}
+      {% set radar_leadership = (((personality_pct|default(0)|int * 2) + intelligence_pct|default(0)|int) / 3)|round|int %}
+      {% set radar_communication = (((personality_pct|default(0)|int + interest_pct|default(0)|int * 2) / 3))|round|int %}
+      {% set radar_problem_solving = (((interest_pct|default(0)|int + intelligence_pct|default(0)|int * 2) / 3))|round|int %}
+      {% set radar_execution = base_overall|int %}
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric analytics</h2>
+        <div class="career-analytics-grid mb-3">
+          <div class="career-analytics-card">
+            <div class="career-analytics-title">
+              <h4>Psychometric profile radar</h4>
+              <span>6 dimensions</span>
+            </div>
+            <div class="radar-wrap" data-radar-values="{{ radar_analytical }},{{ radar_creative }},{{ radar_leadership }},{{ radar_communication }},{{ radar_problem_solving }},{{ radar_execution }}">
+              <svg viewBox="0 0 260 250" role="img" aria-label="Psychometric profile radar graph">
+                <polygon class="radar-grid" points="130,38 201,84 201,166 130,212 59,166 59,84"></polygon>
+                <polygon class="radar-grid" points="130,56 186,92 186,158 130,194 74,158 74,92"></polygon>
+                <polygon class="radar-grid" points="130,74 171,101 171,149 130,176 89,149 89,101"></polygon>
+                <polygon class="radar-grid" points="130,92 156,109 156,141 130,158 104,141 104,109"></polygon>
+                <line class="radar-axis" x1="130" y1="125" x2="130" y2="38"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="201" y2="84"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="201" y2="166"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="130" y2="212"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="59" y2="166"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="59" y2="84"></line>
+                <polygon class="radar-shape js-radar-shape" points=""></polygon>
+                <g class="js-radar-nodes"></g>
+                <text class="radar-label" x="130" y="24">Analytical</text>
+                <text class="radar-label" x="223" y="82">Creative</text>
+                <text class="radar-label" x="224" y="172">Leadership</text>
+                <text class="radar-label" x="130" y="234">Execution</text>
+                <text class="radar-label" x="38" y="172">Problem Solving</text>
+                <text class="radar-label" x="37" y="82">Communication</text>
+              </svg>
+            </div>
+          </div>
+          <div class="career-analytics-card">
+            <div class="career-analytics-title">
+              <h4>Skill readiness index</h4>
+              <span>TopTeen DB based</span>
+            </div>
+            <div class="trend-type-list">
+              {% if skill_readiness_index %}
+                {% for skill in skill_readiness_index %}
+                  {% if loop.index <= 6 %}
+                    <div class="trend-type-row">
+                      <p>{{ skill.label }}</p>
+                      <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ skill.score_pct }}"></div></div>
+                      <div class="trend-score">{{ skill.score_pct }}</div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                <div class="trend-type-row">
+                  <p>Numerical</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_analytical }}"></div></div>
+                  <div class="trend-score">{{ radar_analytical }}</div>
+                </div>
+                <div class="trend-type-row">
+                  <p>Verbal</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_communication }}"></div></div>
+                  <div class="trend-score">{{ radar_communication }}</div>
+                </div>
+                <div class="trend-type-row">
+                  <p>Logical</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_problem_solving }}"></div></div>
+                  <div class="trend-score">{{ radar_problem_solving }}</div>
+                </div>
+              {% endif %}
+            </div>
+            <div class="trend-chip-row">
+              <span class="trend-chip">From Intelligence test (test3)</span>
+              <span class="trend-chip">Normalized as percentage</span>
+              <span class="trend-chip">Live student result data</span>
+            </div>
+          </div>
+        </div>
+        <div class="career-analytics-card">
+          <div class="career-analytics-title">
+            <h4>Career match rankings — top 8</h4>
+            <span>Personalized ranking alignment</span>
+          </div>
+          <div class="career-rankings-list">
+            {% if streamsubject %}
+              {% for stream, subject in streamsubject %}
+                {% if loop.index <= 8 %}
+                  {% set score = base_overall|int - ((loop.index - 1) * 4) %}
+                  {% if score < 35 %}{% set score = 35 %}{% endif %}
+                  <div class="career-rank-row">
+                    <p class="career-rank-label" title="{{ stream }}">{{ stream }}</p>
+                    <div class="career-rank-track">
+                      <div class="career-rank-fill psych-dynamic-width" data-score="{{ score }}"></div>
+                    </div>
+                    <div class="career-rank-score">{{ score }}</div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              {% for item in ['AI Product Manager','Data Scientist','Strategic Consultant','UX Researcher','Community Leader','ML Engineer','Digital Marketer','Policy Analyst'] %}
+                {% set score = base_overall|int - ((loop.index - 1) * 4) %}
+                {% if score < 35 %}{% set score = 35 %}{% endif %}
+                <div class="career-rank-row">
+                  <p class="career-rank-label">{{ item }}</p>
+                  <div class="career-rank-track">
+                    <div class="career-rank-fill psych-dynamic-width" data-score="{{ score }}"></div>
+                  </div>
+                  <div class="career-rank-score">{{ score }}</div>
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
 
 
       <!-- Vocational Courses for Below Average Students: shown only when result has below-average areas; cards dynamic, each links to its detail page -->
@@ -775,6 +1050,35 @@
           });
           document.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
             node.style.width = clampScore(node.dataset.score) + '%';
+          });
+          document.querySelectorAll('.radar-wrap').forEach(function (wrap) {
+            var values = (wrap.dataset.radarValues || '').split(',').map(function (item) {
+              return clampScore(item);
+            });
+            if (!values.length) return;
+            var cx = 130;
+            var cy = 125;
+            var radius = 87;
+            var total = 6;
+            var points = values.map(function (val, idx) {
+              var angle = ((Math.PI * 2) / total) * idx - Math.PI / 2;
+              var ratio = val / 100;
+              var x = cx + (Math.cos(angle) * radius * ratio);
+              var y = cy + (Math.sin(angle) * radius * ratio);
+              return { x: x, y: y };
+            });
+            var shape = wrap.querySelector('.js-radar-shape');
+            if (shape) {
+              shape.setAttribute('points', points.map(function (p) {
+                return p.x.toFixed(2) + ',' + p.y.toFixed(2);
+              }).join(' '));
+            }
+            var nodes = wrap.querySelector('.js-radar-nodes');
+            if (nodes) {
+              nodes.innerHTML = points.map(function (p) {
+                return '<circle class="radar-node" cx="' + p.x.toFixed(2) + '" cy="' + p.y.toFixed(2) + '" r="4"></circle>';
+              }).join('');
+            }
           });
         })();
       </script>

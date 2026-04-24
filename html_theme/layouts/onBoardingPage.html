@@ -362,17 +362,49 @@
           </div>
 
           <!-- center portion -->
-          <div class="flex justify-center items-center w-full h-full mt-[88px] lg:mt-[50px]">
+          <div class="flex flex-col justify-center items-center w-full h-full mt-[70px] lg:mt-[45px]">
             <div
-              class="h-[230px] w-[230px] bg-[#F7F7FA] rounded-full flex justify-center items-center"
+              class="h-[230px] w-[230px] bg-[#F7F7FA] rounded-full flex justify-center items-center overflow-hidden"
             >
-              <img src="../assets/images/person.fill (1).png" />
+              <img
+                id="profilePreviewImage"
+                class="h-full w-full object-cover hidden"
+                src=""
+                alt="Profile preview"
+              />
+              <img
+                id="profilePlaceholderIcon"
+                src="../assets/images/person.fill (1).png"
+                alt="Profile placeholder"
+              />
+            </div>
+            <input
+              id="profileImageInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+            />
+            <div class="flex items-center gap-[12px] mt-[22px]">
+              <label
+                for="profileImageInput"
+                class="cursor-pointer h-[40px] px-[18px] rounded-[10px] border border-[#3F37C9] text-[#3F37C9] text-[14px] font-semibold flex items-center justify-center"
+              >
+                UPDATE IMAGE
+              </label>
+              <button
+                id="cropPhotoBtn"
+                type="button"
+                class="h-[40px] px-[18px] rounded-[10px] bg-[#E8E7FF] text-[#3F37C9] text-[14px] font-semibold flex items-center justify-center opacity-50 cursor-not-allowed"
+                disabled
+              >
+                CROP IMAGE
+              </button>
             </div>
           </div>
 
           <!-- button -->
           <div
-            class="w-full flex justify-center items-center mt-[100px] lg:mt-[95px]"
+            class="w-full flex justify-center items-center mt-[58px] lg:mt-[60px]"
           >
             <button
               class="w-[344px] h-[48px] bg-[#3F37C9] rounded-xl text-white font-bold slideOnButton" id="thirdButton"

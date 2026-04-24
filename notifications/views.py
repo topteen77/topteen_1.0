@@ -79,7 +79,7 @@ def notifications_page(request):
 def notifications_latest_api(request):
     # Show all notifications regardless of stored environment (dev / production / etc.).
     rows = Notification.objects.filter(recipient=request.user).order_by('-created')[:10]
-    unread_count = Notification.objects.filter(recipient=request.user).count()
+    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
     return JsonResponse(
         {
             'success': True,
