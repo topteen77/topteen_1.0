@@ -2139,6 +2139,8 @@ def career_rate_delete_view(request,id):
     return redirect(url)
 
 def shortlist_video_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "Authentication required"}, status=401)
     id=request.GET.get("id")
     video=get_object_or_404(Videos,id=id)
     data=Videos.objects.filter(id=id,shortlist=request.user).exists()

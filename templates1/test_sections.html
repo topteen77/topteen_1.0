@@ -345,7 +345,7 @@
 
                 startButton.addEventListener('click', () => {
                     // Redirect to results or review page
-                    window.location.href = `/api/web/test_results/${sectionSession.id}/`;
+                    window.location.href = `/api/web/results/?test_id=${testId}`;
                 });
             } else {
                 // Section is not completed

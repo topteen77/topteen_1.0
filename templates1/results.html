@@ -4029,10 +4029,14 @@
                 cursor: pointer;
                 transition: transform 0.15s ease, filter 0.15s ease;
             ">
-            <i class="fas fa-download"></i> Download Full Report
+            <i class="fas fa-download"></i> Download PDF
         </button>
         {% if all_tests_completed %}
-            <a href="{% url 'post_matric:combined_report' user.id %}" style="text-decoration: none;">
+            {% if request.GET.user_id %}
+              <a href="/api/web/combined_report/{{ request.GET.user_id }}/" style="text-decoration: none;">
+            {% else %}
+              <a href="javascript:history.back()" style="text-decoration: none;">
+            {% endif %}
                 <button class="btn-download" style="
                     background-image:linear-gradient(135deg, #6059d9 0%, #3f37c9 100%);
                     color: #ffffff;
@@ -4045,7 +4049,7 @@
                     cursor: pointer;
                     transition: transform 0.15s ease, filter 0.15s ease;
                 ">
-                    <i class="fas fa-download"></i> View Combined Full Report
+                    <i class="fas fa-arrow-left"></i> Back
                 </button>
             </a>
         {% endif %}
@@ -4228,6 +4232,16 @@
             // Load results when page loads
             await loadTestResults(); // Ensure this function is async or returns a Promise
             document.getElementById('downloadPDF').disabled = false; // Enable button after loading
+
+            // Allow direct "Download report" deep-link.
+            // Example: /api/web/results/?test_id=1#download
+            try {
+                if (window.location.hash === '#download') {
+                    await downloadPDF();
+                }
+            } catch (e) {
+                console.error('Auto-download failed:', e);
+            }
         });
     </script>
     <div id="test-results-data"
