@@ -1,0 +1,30 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Heatmap | Institute Group | Top Teen{% endblock %}
+{% block description_content %}Career education analytics heatmap.{% endblock %}
+
+{% block bodyclass %}{{ super() }} institute-group-dashboard institute-group-heatmap{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/institute/institute_group_dashboard_assets.html' %}
+{% endblock %}
+
+{% block content %}
+<section class="institute-group-dashboard pb-5">
+  <div class="container pt-4">
+    {% set heatmap_subtitle = 'Institute group — School-wide Career Interest & Knowledge Matrix' %}
+    {% include 'template20/shared/career_heatmap_panel.html' %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

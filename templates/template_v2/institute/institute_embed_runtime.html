@@ -1,0 +1,170 @@
+{# Institute v2: scripts at bottom of institute_dashboard_body.html do not run when
+   the body is injected. This provides the missing runtime: global stubs, move
+   modals/panel to document.body (correct fixed positioning + clicks), mobile drawers. #}
+<script>
+(function () {
+  if (window._ttv2InstituteEmbedRuntimeLoaded) {
+    return;
+  }
+  window._ttv2InstituteEmbedRuntimeLoaded = true;
+
+  /**
+   * students_table: onclick="student('id')" on edit. Legacy body also defines
+   * student() but that script does not run in v2 AJAX inject — keep a global
+   * so the click never throws, and when the per-row modal is missing
+   * (e.g. paginated AJAX rows) open the same path as the panel "Edit" button.
+   */
+  window.student = function (studentId) {
+    if (!studentId) {
+      return;
+    }
+    if (document.getElementById('updateStudentModal' + studentId)) {
+      return;
+    }
+    if (typeof window.ttv2OpenEditStudentModalFromPanel === 'function') {
+      window.ttv2OpenEditStudentModalFromPanel(String(studentId));
+    }
+  };
+
+  /**
+   * Update buttons use data-bs-target="#updateStudentModal{numericId}". If that
+   * modal was never rendered (another page of students), Bootstrap can fail or
+   * do nothing. Catch in capture and use the single-modal fetch path.
+   * When the element exists, let Bootstrap + inline student() work as usual.
+   */
+  (function ttv2InterceptInstituteUpdateStudentClicks() {
+    if (window._ttv2UpdateStudentClicksIntercept) {
+      return;
+    }
+    window._ttv2UpdateStudentClicksIntercept = true;
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) {
+        return;
+      }
+      var btn = t.closest('button[data-bs-target^="#updateStudentModal"]');
+      if (!btn) {
+        return;
+      }
+      var raw = (btn.getAttribute('data-bs-target') || '').replace('#updateStudentModal', '');
+      if (!raw || /[^0-9]/.test(String(raw)) || String(raw) === 'Single') {
+        return;
+      }
+      if (document.getElementById('updateStudentModal' + raw)) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (typeof window.ttv2OpenEditStudentModalFromPanel === 'function') {
+        window.ttv2OpenEditStudentModalFromPanel(raw);
+      }
+    }, true);
+  })();
+
+  /**
+   * Move modals and the student slide-out panel to <body> so position:fixed and
+   * backdrop/stacking work (avoid transformed/overflow ancestors under #ttv2AjaxContent).
+   */
+  window.ttv2RelocateInstituteOverlaysToBody = function () {
+    var root = document.querySelector('.ttv2-institute-embed');
+    if (!root) {
+      return;
+    }
+    var modals = root.querySelectorAll('.modal');
+    for (var i = 0; i < modals.length; i++) {
+      var m = modals[i];
+      if (m.getAttribute('data-ttv2-body-moved') === '1') {
+        continue;
+      }
+      m.setAttribute('data-ttv2-body-moved', '1');
+      document.body.appendChild(m);
+    }
+    var panel = document.getElementById('studentDetailsPanel');
+    if (panel && root.contains(panel) && panel.getAttribute('data-ttv2-body-moved') !== '1') {
+      panel.setAttribute('data-ttv2-body-moved', '1');
+      document.body.appendChild(panel);
+    }
+  };
+
+  /**
+   * Mobile sidebar / filter drawers (original code used DOMContentLoaded in the body).
+   */
+  window.ttv2InitInstituteMobileDrawersOnce = function () {
+    if (window._ttv2InstituteDrawersInited) {
+      return;
+    }
+    var dashboardRoot = document.querySelector('.ttv2-institute-embed .institute-dashboard');
+    if (!dashboardRoot) {
+      return;
+    }
+    window._ttv2InstituteDrawersInited = true;
+
+    var sidebarOpenBtn = document.getElementById('idSidebarOpenBtn');
+    var sidebarCloseBtn = document.getElementById('idSidebarCloseBtn');
+    var sidebarOverlay = document.getElementById('idSidebarOverlay');
+    var filterOpenBtn = document.getElementById('idFilterOpenBtn');
+    var filterCloseBtn = document.getElementById('idFilterCloseBtn');
+    var filterOverlay = document.getElementById('idFilterOverlay');
+
+    function isMobileViewport() {
+      return window.innerWidth < 992;
+    }
+
+    function openSidebarDrawer() {
+      if (!isMobileViewport()) {
+        return;
+      }
+      dashboardRoot.classList.add('sidebar-drawer-open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebarDrawer() {
+      dashboardRoot.classList.remove('sidebar-drawer-open');
+      if (!dashboardRoot.classList.contains('filters-drawer-open')) {
+        document.body.style.overflow = '';
+      }
+    }
+
+    function openFilterDrawer() {
+      if (!isMobileViewport()) {
+        return;
+      }
+      dashboardRoot.classList.add('filters-drawer-open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeFilterDrawer() {
+      dashboardRoot.classList.remove('filters-drawer-open');
+      if (!dashboardRoot.classList.contains('sidebar-drawer-open')) {
+        document.body.style.overflow = '';
+      }
+    }
+
+    if (sidebarOpenBtn) {
+      sidebarOpenBtn.addEventListener('click', openSidebarDrawer);
+    }
+    if (sidebarCloseBtn) {
+      sidebarCloseBtn.addEventListener('click', closeSidebarDrawer);
+    }
+    if (sidebarOverlay) {
+      sidebarOverlay.addEventListener('click', closeSidebarDrawer);
+    }
+    if (filterOpenBtn) {
+      filterOpenBtn.addEventListener('click', openFilterDrawer);
+    }
+    if (filterCloseBtn) {
+      filterCloseBtn.addEventListener('click', closeFilterDrawer);
+    }
+    if (filterOverlay) {
+      filterOverlay.addEventListener('click', closeFilterDrawer);
+    }
+    window.addEventListener('resize', function () {
+      if (!isMobileViewport()) {
+        dashboardRoot.classList.remove('sidebar-drawer-open', 'filters-drawer-open');
+        document.body.style.overflow = '';
+      }
+    });
+  };
+})();
+</script>

@@ -1,0 +1,104 @@
+{# Shared counselor table — set counselor_component_* before include (see institute / marketing / group bodies). #}
+{% set _wrap = counselor_component_wrap|default('institute') %}
+{% set _show_inst = counselor_component_show_institute_column|default(false) %}
+{% set _manage = counselor_component_show_manage_actions|default(true) %}
+{% set _allow_add = counselor_component_allow_add|default(false) %}
+{% set _sec_id = counselor_component_section_id|default('sec-counselors-details') %}
+{% set _title = counselor_component_title|default('Counselors Details') %}
+{% set _colspan = 6 + (1 if _show_inst else 0) + (2 if _manage else 0) %}
+{% set _rows = counselor_data_list if counselor_data_list is defined else [] %}
+
+{% if _wrap == 'institute' %}
+<div class="in-student-table mb-4 p-3" id="{{ _sec_id }}">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="id-panel-title mb-0">{{ _title }}</h2>
+    {% if _allow_add %}
+    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
+      <i class="bx bx-user-plus me-1"></i> Add counselor
+    </button>
+    {% endif %}
+  </div>
+  <div class="table-responsive rounded-bottom overflow-hidden">
+    <table class="table table-hover id-data-table mb-0">
+{% else %}
+<div class="card mb-4" id="{{ _sec_id }}">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <h2 class="card-title fs-18 mb-0">{{ _title }}</h2>
+      {% if _allow_add %}
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
+        <i class="bx bx-user-plus me-1"></i> Add counselor
+      </button>
+      {% endif %}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+{% endif %}
+        <thead>
+          <tr>
+            <th>Sr.no.</th>
+            {% if _show_inst %}<th>Institute</th>{% endif %}
+            <th>Name</th>
+            <th>Email</th>
+            <th>Students Followed up</th>
+            <th>Created</th>
+            <th>Students Counselled</th>
+            {% if _manage %}<th>Action</th>
+            <th>Block/Unblock</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for coun in _rows %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            {% if _show_inst %}<td>{{ coun.institute_name|default('—') }}</td>{% endif %}
+            <td>
+              <a href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}">{{ coun.name }}</a>
+            </td>
+            <td>{{ coun.email }}</td>
+            <td>{{ coun.sessions }}</td>
+            <td>{% if coun.created %}{{ coun.created.strftime('%d-%m-%Y') }}{% else %}-{% endif %}</td>
+            <td>{{ coun.students_counseled }}</td>
+            {% if _manage %}
+            <td>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal"
+                  data-bs-target="#editCounselorModal{{ coun.id }}" title="Edit Profile">
+                  <i class="bx bx-edit text-primary"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal"
+                  data-bs-target="#changeCounselorPasswordModal"
+                  onclick="document.getElementById('coun_password_id').value='{{ coun.id }}'"
+                  title="Change Password">
+                  <i class="bx bx-key text-info"></i>
+                </button>
+              </div>
+            </td>
+            <td>
+              <button type="button" class="btn btn-sm btn-link p-0" title="Block Profile">
+                <i class="bx bx-block text-success"></i>
+              </button>
+            </td>
+            {% endif %}
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="{{ _colspan }}" class="text-center py-5">
+              <div class="d-flex flex-column align-items-center">
+                <i class="bx bx-user-plus fs-48 text-gray mb-3"></i>
+                <h4 class="fs-18 fw-semibold mb-2">No Counselors Found</h4>
+                <p class="text-gray text-center mb-0">There are no counselors registered in the system.<br>
+                  {% if _allow_add %}Use <strong>Add counselor</strong> above to register one.{% else %}Counselors will appear here when assigned to institutes in your scope.{% endif %}</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+{% if _wrap == 'institute' %}
+</div>
+{% else %}
+  </div>
+</div>
+{% endif %}

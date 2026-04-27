@@ -20,23 +20,17 @@
 
 {% block dashboard_body %}
   <div id="ttv2AjaxContent"
+       class="ttv2-ajax-content-host"
        data-ttv2-src="{{ request.path }}?ttv2_partial=1"
-       aria-busy="true"
-       style="min-height:260px">
-    <div class="ttv2-card ttv2-ajax-loading-card">
-      <div class="ttv2-ajax-progress" aria-hidden="true"></div>
-      <div class="card-title">Loading…</div>
-      <div style="font-size:11px;color:var(--c-text3)">Fetching heatmap.</div>
-    </div>
+       aria-busy="true">
+    {% include "template_v2/includes/ttv2_ajax_content_placeholder.html" %}
   </div>
 {% endblock %}
 
 {% block additionaljs %}
+{{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script src="{{ static('js/heatmap-dashboard.js') }}"></script>
-<script>
-  document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
-</script>
 <script>
   // Load v2 heatmap body via AJAX (fast shell paint)
   (function(){
@@ -53,6 +47,9 @@
           host.innerHTML = html;
           host.setAttribute('data-ttv2-loaded','1');
           host.setAttribute('aria-busy','false');
+          if (typeof window.ttv2HeatmapReinitAfterPartialLoad === 'function') {
+            window.ttv2HeatmapReinitAfterPartialLoad();
+          }
         })
         .catch(function(){
           host.setAttribute('aria-busy','false');

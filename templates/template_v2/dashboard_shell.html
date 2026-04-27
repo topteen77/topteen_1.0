@@ -51,8 +51,11 @@
 
 {% block additionaljs %}
 {{ super() }}
-{# Dropdown UX + theme toggle are already in template_v2/includes/footer.html.
-   Role pages can append extra JS after this block. #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ static('js_new/ttv2_dashboard_analytics.js') }}"></script>
+<script src="{{ static('js_new/ttv2_students_insights.js') }}"></script>
+<script src="{{ static('js_new/ttv2_week_dropdown.js') }}"></script>
+{# Theme toggle + Bootstrap scripts: template_v2/base_logged_in.html → logged_in_footer_scripts.html #}
 <script>
   // Shared: print report link
   (function(){
@@ -62,6 +65,24 @@
       e.preventDefault();
       try { window.print(); } catch(err) {}
     });
+  })();
+</script>
+
+<script>
+  // Shared: sidebar SPA-style section switch (no URL update)
+  (function(){
+    document.addEventListener('click', function(e){
+      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a[data-ttv2-nav]') : null);
+      if (!a) return;
+      e.preventDefault();
+      var key = (a.getAttribute('data-ttv2-nav') || '').trim();
+      if (!key) return;
+      try {
+        if (typeof window.ttv2OnNavSectionChange === 'function') {
+          window.ttv2OnNavSectionChange(key);
+        }
+      } catch(err) {}
+    }, true);
   })();
 </script>
 {% endblock %}

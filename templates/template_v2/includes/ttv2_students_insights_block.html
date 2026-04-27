@@ -1,0 +1,48 @@
+{# KPIs + stream donut + class bar chart; data from ?data_type=students_analytics on current dashboard URL #}
+<div class="ttv2-students-insights mb-4" data-ttv2-students-insights="1"{% if section_id %} id="{{ section_id }}"{% endif %}>
+  <div class="ttv2-card mb-3">
+    <div class="card-title">Students</div>
+    <div style="font-size:11px;color:var(--c-text3);line-height:1.4;">Enrollment, class and stream breakdown</div>
+  </div>
+
+  <div class="ttv2-kpi-grid mb-3">
+    <div class="ttv2-kpi" style="border-top-color:#f472b6">
+      <div class="val" data-kpi="total">—</div>
+      <div class="lbl" data-kpi-lbl="total">Total enrolled</div>
+    </div>
+    <div class="ttv2-kpi" style="border-top-color:#6c7dff">
+      <div class="val" data-kpi="class10">—</div>
+      <div class="lbl" data-kpi-lbl="class10">Class 10</div>
+      <div class="sub" data-kpi-sub="class10" style="font-size:10px;color:var(--c-text3);min-height:14px;"></div>
+    </div>
+    <div class="ttv2-kpi" style="border-top-color:#34d399">
+      <div class="val" data-kpi="senior">—</div>
+      <div class="lbl" data-kpi-lbl="senior">Class 11–12</div>
+      <div class="sub" data-kpi-sub="senior" style="font-size:10px;color:var(--c-text3);min-height:14px;"></div>
+    </div>
+    <div class="ttv2-kpi" style="border-top-color:#fbbf24">
+      <div class="val" data-kpi="unassigned">—</div>
+      <div class="lbl" data-kpi-lbl="unassigned">Unassigned stream / section</div>
+      <div class="sub" data-kpi-sub="unassigned" style="font-size:10px;color:var(--c-text3);min-height:14px;"></div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-xl-6">
+      <div class="ttv2-card ttv2-si-chart-card" data-chart-card="stream">
+        <div class="card-title">Stream distribution</div>
+        <div class="ttv2-si-chart-wrap">
+          <canvas data-chart="stream" aria-label="Stream distribution chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="ttv2-card ttv2-si-chart-card" data-chart-card="class">
+        <div class="card-title">Class enrollment</div>
+        <div class="ttv2-si-chart-wrap">
+          <canvas data-chart="class" aria-label="Class enrollment chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

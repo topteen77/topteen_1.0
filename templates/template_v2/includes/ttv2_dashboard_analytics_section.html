@@ -1,0 +1,124 @@
+{# Shared KPIs + charts for v2 marketing / institute / institute-group / (optional) counselor bodies.
+   Expects: ttv2_analytics (dict) from core.ttv2_dashboard_analytics.build_ttv2_analytics #}
+{% if ttv2_analytics is defined and ttv2_analytics %}
+<script type="application/json" id="ttv2-analytics-payload">{{ ttv2_analytics|tojson }}</script>
+<div class="ttv2-dashboard-analytics mb-3" data-ttv2-analytics-root>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+      <div class="card-title mb-0">Dashboard</div>
+      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
+        {{ ttv2_analytics.banners.week_summary|default('Key metrics for your scope') }}
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="dropdown">
+        <button type="button"
+                class="ttv2-week-pill dropdown-toggle"
+                id="ttv2WeekDropdownBtn"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style="border:1px solid var(--c-border2);color:var(--c-text2);background:rgba(255,255,255,.04);border-radius:999px;padding:6px 10px;font-size:11px;">
+          {{ ttv2_analytics.date_range_label|default('Select week') }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" id="ttv2WeekDropdownMenu" aria-labelledby="ttv2WeekDropdownBtn">
+          <li><span class="dropdown-item-text" style="font-size:11px;color:var(--c-text3);">Loading…</span></li>
+        </ul>
+      </div>
+      <button type="button" class="btn btn-sm d-none" id="ttv2ExportPdfBtnFooter" aria-hidden="true" tabindex="-1"
+              style="border:1px solid var(--c-border2);color:var(--c-text2);background:transparent;border-radius:999px;padding:6px 10px;">
+        Export PDF
+      </button>
+    </div>
+  </div>
+
+  {# Stat strip: same structure / Boxicons as legacy institute dashboard (see institute_dashboard_body) #}
+  <div class="id-stats-row ttv2-stat-strip" aria-label="Key statistics">
+    <div class="id-stat-card">
+      <div class="id-stat-icon id-stat-icon--orange"><i class="bx bx-user" aria-hidden="true"></i></div>
+      <div class="id-stat-body">
+        <p class="id-stat-value">{{ ttv2_analytics.kpi.total_students|default(0) }}</p>
+        <p class="id-stat-label lh-sm">Total Students</p>
+      </div>
+    </div>
+    <div class="id-stat-card">
+      <div class="id-stat-icon id-stat-icon--blue"><i class="bx bx-brain" aria-hidden="true"></i></div>
+      <div class="id-stat-body">
+        <p class="id-stat-value">{{ ttv2_analytics.kpi.psychometric_count|default(0) }}</p>
+        <p class="id-stat-label lh-sm">{% if request.GET.get('ttv2_week_start') %}Psychometric attempts{% else %}Psychometric{% endif %}</p>
+      </div>
+    </div>
+    <div class="id-stat-card">
+      <div class="id-stat-icon id-stat-icon--pink"><i class="bx bx-credit-card" aria-hidden="true"></i></div>
+      <div class="id-stat-body">
+        <p class="id-stat-value">{{ ttv2_analytics.kpi.total_credits|default(0) }}</p>
+        <p class="id-stat-label lh-sm">Total Credits</p>
+      </div>
+    </div>
+    <div class="id-stat-card">
+      <div class="id-stat-icon id-stat-icon--green"><i class="bx bx-wallet" aria-hidden="true"></i></div>
+      <div class="id-stat-body">
+        <p class="id-stat-value">{{ ttv2_analytics.kpi.credits_remaining|default(0) }}</p>
+        <p class="id-stat-label lh-sm">Remaining Credits</p>
+        {% if ttv2_analytics.kpi.credit_topup %}
+        <p class="mb-0" style="margin-top:2px"><span class="badge bg-warning text-dark" style="font-size:9px">Top-up</span></p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="id-stat-card">
+      <div class="id-stat-icon id-stat-icon--purple"><i class="bx bx-user-pin" aria-hidden="true"></i></div>
+      <div class="id-stat-body">
+        <p class="id-stat-value">{{ ttv2_analytics.kpi.counselor_count|default(0) }}</p>
+        <p class="id-stat-label lh-sm">Counselors</p>
+      </div>
+    </div>
+  </div>
+
+  {# Chart rows: KPI strip above stays visible; overlay until Chart.js init completes. #}
+  <div class="ttv2-da-charts-area ttv2-da-charts-area--loading" data-ttv2-charts-area>
+  <div class="row g-3">
+    <div class="col-12 col-xl-6">
+      <div class="ttv2-card">
+        <div class="card-title">{% if request.GET.get('ttv2_week_start') %}Psychometric — this week{% else %}Psychometric completion{% endif %}</div>
+        <div style="position:relative;height:220px">
+          <canvas id="ttv2DaPsych" aria-label="Psychometric chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="ttv2-card">
+        <div class="card-title">Sessions trend</div>
+        <div style="position:relative;height:220px">
+          <canvas id="ttv2DaSess" aria-label="Sessions trend"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3 mt-0">
+    <div class="col-12 col-xl-4">
+      <div class="ttv2-card">
+        <div class="card-title">Clarity gap trend</div>
+        <div style="position:relative;height:200px">
+          <canvas id="ttv2DaClarity" aria-label="Clarity gap"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-4">
+      <div class="ttv2-card">
+        <div class="card-title">Student risk status</div>
+        <div style="position:relative;height:200px">
+          <canvas id="ttv2DaRisk" aria-label="Risk"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-4">
+      <div class="ttv2-card">
+        <div class="card-title">Credit utilisation</div>
+        <div style="position:relative;height:200px">
+          <canvas id="ttv2DaCredit" aria-label="Credits"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+{% endif %}

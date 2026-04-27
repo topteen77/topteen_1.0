@@ -1,0 +1,65 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}Heatmap | Institute Group | Top Teen{% endblock %}
+{% block description_content %}Career education analytics heatmap.{% endblock %}
+
+{% block bodyclass %}{{ super() }} institute-group-dashboard institute-group-heatmap ttv2-shell{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{% include 'template20/institute/institute_group_dashboard_assets.html' %}
+{% endblock %}
+
+{% block dashboard_title %}Heatmap{% endblock %}
+{% block dashboard_subtitle %}Career education analytics{% endblock %}
+{% block dashboard_home_url %}{{ url('institute:institutegroupdashboard') }}{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebars/institute_group.html" %}
+{% endblock %}
+
+{% block dashboard_body %}
+  <div id="ttv2AjaxContent"
+       class="ttv2-ajax-content-host"
+       data-ttv2-src="{{ request.path }}?ttv2_partial=1"
+       aria-busy="true">
+    {% include "template_v2/includes/ttv2_ajax_content_placeholder.html" %}
+  </div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
+<script>
+  (function(){
+    function load(){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      if (host.getAttribute('data-ttv2-loaded') === '1') return;
+      var src = host.getAttribute('data-ttv2-src');
+      if (!src) return;
+      host.setAttribute('aria-busy','true');
+      fetch(src, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          host.innerHTML = html;
+          host.setAttribute('data-ttv2-loaded','1');
+          host.setAttribute('aria-busy','false');
+          if (typeof window.ttv2HeatmapReinitAfterPartialLoad === 'function') {
+            window.ttv2HeatmapReinitAfterPartialLoad();
+          }
+        })
+        .catch(function(){
+          host.setAttribute('aria-busy','false');
+          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load heatmap</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
+        });
+    }
+    document.addEventListener('DOMContentLoaded', load);
+  })();
+</script>
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

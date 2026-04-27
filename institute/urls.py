@@ -18,6 +18,7 @@ urlpatterns = [
 
     path("marketing_group_dashboard/",views.MarketingGroupDashboardView.as_view(),name="marketinggroupdashboard"),
     path("marketing_group_heatmap/", views.MarketingGroupHeatmapView.as_view(), name="marketinggroupheatmap"),
+    path("institute_group_heatmap/", views.InstituteGroupHeatmapView.as_view(), name="institutegroupheatmap"),
     path("marketing_profile_edit/",views.InstituteMarketingProfileEditView.as_view(),name="marketingprofileedit"),
     path("update_seat_capacity/",views.UpdateSeatCapacityView.as_view(),name="updateseatcapacity"),
     path("institute_approve/<int:id>/", views.InstituteApproveView.as_view(), name="instituteapprove"),
@@ -58,5 +59,7 @@ urlpatterns = [
     path("auth/register/", views.InstituteRegisterView.as_view(), name="register"),
     path("auth/login/", views.InstituteLoginView.as_view(), name="login"),
     path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
+    # Must be before <slug:slug>/ so "heatmap" is not captured as an institute slug
+    path("<slug:slug>/heatmap/", views.InstituteHeatmapView.as_view(), name="instituteheatmap"),
     path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),
 ]

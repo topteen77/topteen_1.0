@@ -5,11 +5,19 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.views.generic import TemplateView,View
 from counselor.models import Counselor, FollowUpStatus
-from counselor.views import get_students_by_role, apply_student_filters, get_class_and_sections_by_role, get_class_counts, get_results_data_for_students, get_unique_streams_by_role
+from counselor.views import (
+    get_students_by_role,
+    apply_student_filters,
+    get_class_and_sections_by_role,
+    get_class_counts,
+    get_results_data_for_students,
+    get_unique_streams_by_role,
+    build_students_analytics_payload,
+)
 from users.models import User, UserProfile
 from core import choices
 from psychometric_tests.models import PsychometricTestResult,CentralTestCandidate
-from django.core.paginator import Paginator
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from core.utils import build_html_head
 from django.contrib import messages
 from .task import send_new_student_credential,institute_deletion_request,create_student_and_send_mail,send_institute_mail
@@ -34,6 +42,19 @@ from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_ins
 # Dashboard template switch (v1/v2)
 from core.models import Configuration
 # Create your views here.
+
+def _ttv2_week_start_from_request(request):
+    """
+    Parse ?ttv2_week_start=YYYY-MM-DD (Monday) into a date, or None.
+    Used by template-v2 analytics to show a selected week range.
+    """
+    raw = (request.GET.get("ttv2_week_start") or "").strip()
+    if not raw:
+        return None
+    try:
+        return datetime.strptime(raw, "%Y-%m-%d").date()
+    except Exception:
+        return None
 
 
 def user_manages_institute_for_api(user, institute):
@@ -626,13 +647,38 @@ class MarketingGroupDashboardView(TemplateView):
         # Check what data is being requested
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         data_type = request.GET.get('data_type', '')  # 'institutes', 'stats', 'charts', 'seat_capacity'
-        
+        # Template v2 loads this HTML via fetch(XHR) + ?ttv2_partial=1 — must use full dashboard context
+        # (otherwise we hit the "default AJAX" branch and omit ttv2_analytics / counselor_data_list).
+        is_v2_shell_partial = (
+            is_ajax
+            and request.GET.get("ttv2_partial") == "1"
+            and data_type not in ("institutes", "stats", "charts")
+        )
+
         # For initial page load, use lightweight mode
-        if not is_ajax:
+        if (not is_ajax) or is_v2_shell_partial:
             # Lightweight initial load — scope all institute metrics to this user's marketing admin
             group_admin = request.user
             _scoped = Institute.objects.filter(
                 marketing_group__marketing_group_admin=group_admin
+            )
+            from core.ttv2_dashboard_analytics import build_ttv2_analytics, empty_ttv2_analytics
+            from institute.counselor_component_data import build_counselor_data_list_for_institute_ids
+
+            _sm_mkt = StudentManagement.objects.filter(
+                institute__marketing_group__marketing_group_admin=group_admin
+            )
+            try:
+                ctx["ttv2_analytics"] = build_ttv2_analytics(
+                    "marketing_group",
+                    student_management_qs=_sm_mkt,
+                    week_start=_ttv2_week_start_from_request(request),
+                )
+            except Exception:
+                ctx["ttv2_analytics"] = empty_ttv2_analytics()
+            _mkt_counselor_iids = list(_scoped.values_list("id", flat=True))
+            ctx["counselor_data_list"] = build_counselor_data_list_for_institute_ids(
+                _mkt_counselor_iids, include_institute_name=True
             )
             ctx.update({
                 'total_institute_count': _scoped.count(),
@@ -771,8 +817,8 @@ class MarketingGroupDashboardView(TemplateView):
                 'streams_chart_data': streams_chart_data,
                 'seat_capacity_institutes': seat_capacity_institutes,
             })
-        else:
-            # Default AJAX - just institute table
+        elif is_ajax and not data_type and request.GET.get("ttv2_partial") != "1":
+            # Default AJAX — institute table only (not Template v2 partial fetch)
             group_admin = request.user
             info = self.get_institute_group_info(group_admin, search_params, load_full_data=False)
             institutes_list = info['institutes']
@@ -800,6 +846,14 @@ class MarketingGroupDashboardView(TemplateView):
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         data_type = request.GET.get('data_type', '')
         
+        if is_ajax and data_type == 'students_analytics':
+            group_admin = request.user
+            qs = StudentManagement.objects.filter(
+                institute__marketing_group__marketing_group_admin=group_admin
+            )
+            return JsonResponse(
+                build_students_analytics_payload(qs, week_start=_ttv2_week_start_from_request(request))
+            )
         if is_ajax and data_type == 'institutes':
             # Return institute table partial
             context = self.get_context(request, *args, **kwargs)
@@ -1318,6 +1372,33 @@ class InstituteGroupDashboardView(TemplateView):
             except:
                 institutes_paginations = pages.get_page(1)
             
+            from core.ttv2_dashboard_analytics import build_ttv2_analytics, empty_ttv2_analytics
+            from institute.counselor_component_data import build_counselor_data_list_for_institute_ids
+
+            _sm_ig = (
+                StudentManagement.objects.filter(institute__institute_group=institute_group)
+                if institute_group
+                else StudentManagement.objects.none()
+            )
+            try:
+                ctx["ttv2_analytics"] = build_ttv2_analytics(
+                    "institute_group",
+                    student_management_qs=_sm_ig,
+                    week_start=_ttv2_week_start_from_request(request),
+                )
+            except Exception:
+                ctx["ttv2_analytics"] = empty_ttv2_analytics()
+            if institute_group:
+                _ig_counselor_iids = list(
+                    Institute.objects.filter(institute_group=institute_group).values_list(
+                        "id", flat=True
+                    )
+                )
+            else:
+                _ig_counselor_iids = []
+            ctx["counselor_data_list"] = build_counselor_data_list_for_institute_ids(
+                _ig_counselor_iids, include_institute_name=True
+            )
             ctx.update({
                 'institutes_paginations': institutes_paginations,
                 'total_institute_count': institutes_list.count() if institutes_list else 0,
@@ -1365,6 +1446,19 @@ class InstituteGroupDashboardView(TemplateView):
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         data_type = request.GET.get('data_type', '')
         
+        if is_ajax and data_type == 'students_analytics':
+            institute_group = InstituteGroup.objects.filter(institute_group_admin=request.user).first()
+            if not institute_group:
+                return JsonResponse(
+                    build_students_analytics_payload(
+                        StudentManagement.objects.none(),
+                        week_start=_ttv2_week_start_from_request(request),
+                    )
+                )
+            qs = StudentManagement.objects.filter(institute__institute_group=institute_group)
+            return JsonResponse(
+                build_students_analytics_payload(qs, week_start=_ttv2_week_start_from_request(request))
+            )
         if is_ajax and data_type == 'institutes':
             # Return institute table partial
             context = self.get_context(request, *args, **kwargs)
@@ -2056,12 +2150,8 @@ class InstituteDashboardView(TemplateView):
                 test_completion.spatial_complete
             )
             
-            # Correct test3_complete if it's incorrectly set
-            if test_completion.test3_complete != all_test3_subtests_complete:
-                test_completion.test3_complete = all_test3_subtests_complete
-                test_completion.save()
-            
-            test3_complete = test_completion.test3_complete
+            # Use computed subtest state for display; do not write on dashboard read.
+            test3_complete = all_test3_subtests_complete
             
             # Count completed tests
             completed_tests = sum([test1_complete, test2_complete, test3_complete])
@@ -2183,39 +2273,45 @@ class InstituteDashboardView(TemplateView):
         test_taken_filter = request.GET.get('test_taken', '')
         stream_filter = request.GET.get('stream', '')
 
-        # Optimize: Batch fetch psychometric results for all students
+        # Batch psychometric + Results without materializing all StudentManagement rows
         from psychometric_tests.models import PsychometricTestResult
-        student_users = [stu.student for stu in stu_manage if stu.student]
+        from app.models import Results
+        student_user_ids = list(
+            stu_manage.values_list("student_id", flat=True).filter(student__isnull=False)
+        )
         psychometric_results_map = {}
-        if student_users:
+        if student_user_ids:
             psychometric_results = PsychometricTestResult.objects.filter(
-                assessment__central_test_candidate__user__in=student_users
-            ).select_related('assessment__central_test_candidate__user')
+                assessment__central_test_candidate__user_id__in=student_user_ids
+            ).select_related("assessment__central_test_candidate__user")
             for result in psychometric_results:
                 user = result.assessment.central_test_candidate.user
                 if user not in psychometric_results_map:
                     psychometric_results_map[user] = []
                 psychometric_results_map[user].append(result)
-        
-        # Count students with psychometric results (for this specific institute)
-        ptr_count = len([r for r in stu_manage if r.student and r.student in psychometric_results_map])
-        
-        # Optimize: Batch fetch test results for all students (for this specific institute)
-        from app.models import Results
+
+        psych_stu_ids = set(psychometric_results_map.keys())
+        ptr_count = stu_manage.filter(student_id__in=[u.id for u in psych_stu_ids]).count()
+
         test_results_map = {}
-        if student_users:
-            all_results = Results.objects.filter(user__in=student_users).select_related('user')
+        all_results = []
+        if student_user_ids:
+            all_results = list(
+                Results.objects.filter(
+                    user_id__in=student_user_ids
+                ).select_related("user")
+            )
             for result in all_results:
                 if result.user not in test_results_map:
                     test_results_map[result.user] = []
                 test_results_map[result.user].append(result)
-        
-        # Count students with test results (for this specific institute)
-        ptr_count1 = len([
-            r1 for r1 in stu_manage 
-            if r1.student and r1.student in test_results_map and 
-            any(res.is_test_successful for res in test_results_map[r1.student])
-        ])
+
+        success_user_ids = {
+            r.user_id
+            for r in all_results
+            if getattr(r, "is_test_successful", False)
+        }
+        ptr_count1 = stu_manage.filter(student_id__in=success_user_ids).count()
         
         # Use centralized function to get class_and_sections based on role
         class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
@@ -2233,23 +2329,16 @@ class InstituteDashboardView(TemplateView):
         completed_students_count = []
         higher_class_results = {}
         
-        # Lightweight: Don't convert to list - keep as QuerySet for initial load
-        # Only get count for statistics
-        student_user_ids = stu_manage.values_list('student_id', flat=True).filter(student__isnull=False)
-        
-        # Lightweight streams calculation for chart - only process sample of students with results
-        from app.models import Results
+        # Lightweight streams chart: sample first 200 students, batch Results by user_id
         streams = {}
         if student_user_ids:
-            # Get a sample of students with test3 results for stream calculation (limit to 200 for performance)
             sample_students = list(stu_manage[:200])
-            student_users = [stu.student for stu in sample_students if stu.student]
-            
-            if student_users:
+            sample_user_ids = [s.student_id for s in sample_students if s.student_id]
+            if sample_user_ids:
                 test_results_queryset = Results.objects.filter(
-                    user__in=student_users,
-                    test_paper='test3'
-                ).select_related('user')[:200]
+                    user_id__in=sample_user_ids,
+                    test_paper="test3",
+                ).select_related("user")[:200]
                 
                 # Process streams from sample results - use same format as marketing dashboard
                 test_results = []
@@ -2399,6 +2488,19 @@ class InstituteDashboardView(TemplateView):
         ctx['streams'] = streams  # Empty for initial load
         ctx['higher_class_results'] = {}  # Empty for initial load
         ctx['Testsession'] = TestSession
+        try:
+            from core.ttv2_dashboard_analytics import build_ttv2_analytics, empty_ttv2_analytics
+
+            ctx["ttv2_analytics"] = build_ttv2_analytics(
+                "institute",
+                institute=institute,
+                student_management_qs=stu_manage,
+                week_start=_ttv2_week_start_from_request(request),
+            )
+        except Exception:
+            from core.ttv2_dashboard_analytics import empty_ttv2_analytics
+
+            ctx["ttv2_analytics"] = empty_ttv2_analytics()
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -2416,7 +2518,16 @@ class InstituteDashboardView(TemplateView):
                 # Map total_students to students for template compatibility
                 ctx['students'] = ctx.get('total_students')
                 return render(request, 'template20/shared/students_table.html', ctx)
-        
+            if data_type == 'students_analytics':
+                slug = kwargs.get("slug")
+                institute = get_object_or_404(Institute, slug=slug)
+                stu_manage = get_students_by_role(request.user, institute=institute)
+                return JsonResponse(
+                    build_students_analytics_payload(
+                        stu_manage, week_start=_ttv2_week_start_from_request(request)
+                    )
+                )
+
         # Full context for initial page load
         ctx=self.get_context(request, *args, **kwargs)
         if download=="Yes":
@@ -2433,121 +2544,161 @@ class InstituteDashboardView(TemplateView):
 
         return render(request, _dashboard_primary_template_name(self), ctx )
     
-    def get_student_table_context_ajax(self, request, *args, **kwargs):
-        """
-        Lightweight context method for AJAX student table requests.
-        Only processes student-related data, skipping heavy operations like counselor data, charts, etc.
-        """
-        slug=kwargs.get("slug")
-        institute=get_object_or_404(Institute,slug=slug)
-        
-        # Use centralized function to get students based on role
-        stu_manage = get_students_by_role(request.user, institute=institute).select_related(
-            'student', 
-            'class_and_section',
-            'institute'
-        )
-        
-        # Get filter parameters
-        stream_filter = request.GET.get('stream', '')
-        
-        # Get class and sections for filter dropdown
-        class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
-        class_counts = get_class_counts(stu_manage)
-        
-        # Get unique streams using centralized function
-        unique_streams = get_unique_streams_by_role(request.user, stu_manage)
-        
-        # Optimize: Batch fetch all test-related data for all students at once
+    def _results_aux_maps_by_user_id(self, user_ids):
+        """Batch-fetch test rows for institute student table; dict keys are user_id (int)."""
+        tcm, pmm, rmap = {}, {}, {}
+        if not user_ids:
+            return tcm, pmm, rmap
         from app.models import TestCompletion, Results
         from app_post_matric.models import TestSession as PostMatricTestSession
-        
-        student_users = [stu.student for stu in stu_manage if stu.student]
-        
-        # Batch fetch TestCompletion records
-        test_completion_map = {}
-        if student_users:
-            test_completions = TestCompletion.objects.filter(user__in=student_users).select_related('user')
-            test_completion_map = {tc.user: tc for tc in test_completions}
-        
-        # Batch fetch post-matric TestSession records
-        post_matric_sessions_map = {}
-        if student_users:
-            post_matric_sessions = PostMatricTestSession.objects.filter(
-                user__in=student_users
-            ).select_related('user', 'test')
-            for session in post_matric_sessions:
-                if session.user not in post_matric_sessions_map:
-                    post_matric_sessions_map[session.user] = []
-                post_matric_sessions_map[session.user].append(session)
-        
-        # Batch fetch Results for psychometric students
-        results_queryset_map = {}
-        if student_users:
-            results_queryset = Results.objects.filter(user__in=student_users).select_related('user')
-            for result in results_queryset:
-                if result.user not in results_queryset_map:
-                    results_queryset_map[result.user] = []
-                results_queryset_map[result.user].append(result)
-        
-        # Now fetch results for each student using batch-fetched data
-        results_data = {}
-        for stu in stu_manage:
-            if not stu.student:
+        try:
+            uids = list({int(x) for x in user_ids if x is not None})
+        except (TypeError, ValueError):
+            uids = []
+        if not uids:
+            return tcm, pmm, rmap
+        for tc in TestCompletion.objects.filter(user_id__in=uids).select_related("user"):
+            tcm[tc.user_id] = tc
+        for s in PostMatricTestSession.objects.filter(user_id__in=uids).select_related("user", "test"):
+            pmm.setdefault(s.user_id, []).append(s)
+        for r in Results.objects.filter(user_id__in=uids).select_related("user"):
+            rmap.setdefault(r.user_id, []).append(r)
+        return tcm, pmm, rmap
+
+    def _build_results_data_for_managements(self, sm_list, tcm, pmm, rmap):
+        out = {}
+        for stu in sm_list:
+            if not stu.student_id or not stu.student:
                 continue
             user = stu.student
-            student_result = self._get_student_test_result_optimized(
-                user, 
+            out[user.id] = self._get_student_test_result_optimized(
+                user,
                 stu,
-                test_completion_map.get(user),
-                post_matric_sessions_map.get(user, []),
-                results_queryset_map.get(user, [])
+                tcm.get(stu.student_id),
+                pmm.get(stu.student_id) or [],
+                rmap.get(stu.student_id) or [],
             )
-            results_data[user.id] = student_result
-        
-        # Apply filters using centralized function
-        filtered_students = apply_student_filters(stu_manage, request, results_data=results_data)
-        
-        # Handle stream filter separately if needed
+        return out
+
+    def get_student_table_context_ajax(self, request, *args, **kwargs):
+        """
+        Lightweight context for the AJAX student table.
+        When the "Test taken" filter is off, paginate first and only build test/result
+        data for the current page (avoids N× work for large institutes).
+        """
+        slug = kwargs.get("slug")
+        institute = get_object_or_404(Institute, slug=slug)
+        stu_manage = get_students_by_role(request.user, institute=institute).select_related(
+            "student",
+            "class_and_section",
+            "institute",
+        )
+
+        stream_filter = request.GET.get("stream", "")
+        test_taken_filter = request.GET.get("test_taken", "").strip()
+
+        class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
+        class_counts = get_class_counts(stu_manage)
+        unique_streams = get_unique_streams_by_role(request.user, stu_manage)
+
+        # Class / name: DB; do not require results_data yet.
+        filtered_students = apply_student_filters(stu_manage, request, results_data=None)
         if stream_filter:
-            if hasattr(filtered_students, 'filter'):
-                filtered_students = filtered_students.filter(class_and_section__stream=stream_filter)
+            if hasattr(filtered_students, "filter"):
+                filtered_students = filtered_students.filter(
+                    class_and_section__stream=stream_filter
+                )
             else:
                 filtered_students = [
-                    s for s in filtered_students
-                    if hasattr(s, 'class_and_section') and s.class_and_section and
-                    s.class_and_section.stream == stream_filter
+                    s
+                    for s in filtered_students
+                    if hasattr(s, "class_and_section")
+                    and s.class_and_section
+                    and s.class_and_section.stream == stream_filter
                 ]
-        
-        # Handle per_page parameter
-        per_page_param = request.GET.get('per_page', '10')
-        if per_page_param == 'all':
+
+        per_page_param = request.GET.get("per_page", "10")
+        if per_page_param == "all":
             per_page_value = 10000
         else:
             try:
                 per_page_value = int(per_page_param)
             except (ValueError, TypeError):
                 per_page_value = 10
-        
-        # Pagination
-        if isinstance(filtered_students, list):
-            sorted_students = sorted(filtered_students, key=lambda x: x.created, reverse=True)
-            pages = Paginator(sorted_students, per_page_value)
+
+        page_number = request.GET.get("page", 1)
+        if test_taken_filter:
+            if hasattr(filtered_students, "order_by"):
+                sm_all = list(
+                    filtered_students.select_related(
+                        "student", "class_and_section", "institute"
+                    ).order_by("-created")
+                )
+            else:
+                sm_all = sorted(
+                    list(filtered_students), key=lambda x: x.created, reverse=True
+                )
+            uids_all = [sm.student_id for sm in sm_all if sm.student_id]
+            tcm, pmm, rmap = self._results_aux_maps_by_user_id(uids_all)
+            full_results = self._build_results_data_for_managements(
+                sm_all, tcm, pmm, rmap
+            )
+            kept = []
+            for sm in sm_all:
+                if not sm.student:
+                    continue
+                tr = full_results.get(sm.student_id, {})
+                ts = tr.get("test_status", "no_tests")
+                if test_taken_filter == "Yes" and ts == "completed":
+                    kept.append(sm)
+                elif test_taken_filter == "No" and ts == "no_tests":
+                    kept.append(sm)
+                elif test_taken_filter == "In Progress" and ts == "in_progress":
+                    kept.append(sm)
+            pages = Paginator(kept, per_page_value)
         else:
-            pages = Paginator(filtered_students.order_by('-created'), per_page_value)
-        
-        page_number = request.GET.get('page', 1)
-        total_students = pages.get_page(page_number)
-        
+            if isinstance(filtered_students, list):
+                pages = Paginator(
+                    sorted(filtered_students, key=lambda x: x.created, reverse=True),
+                    per_page_value,
+                )
+            else:
+                pages = Paginator(filtered_students.order_by("-created"), per_page_value)
+
+        try:
+            total_students = pages.get_page(page_number)
+        except (EmptyPage, PageNotAnInteger):
+            total_students = pages.get_page(1)
+
+        if test_taken_filter:
+            page_list = list(total_students.object_list)
+            results_data = {
+                sm.student_id: full_results[sm.student_id]
+                for sm in page_list
+                if sm.student_id in full_results
+            }
+        else:
+            page_list = list(total_students.object_list)
+            page_uids = [sm.student_id for sm in page_list if sm.student_id]
+            tcm, pmm, rmap = self._results_aux_maps_by_user_id(page_uids)
+            results_data = self._build_results_data_for_managements(
+                page_list, tcm, pmm, rmap
+            )
+
+        stu_value = (
+            filtered_students
+            if hasattr(filtered_students, "filter")
+            else filtered_students
+        )
         return {
-            'total_students': total_students,
-            'total_students_count': list(stu_manage),
-            'class_and_sections': class_and_sections,
-            'class_counts': class_counts,
-            'unique_streams': unique_streams,
-            'results_data': results_data,
-            'stu': filtered_students if hasattr(filtered_students, 'filter') else filtered_students,
-            'institute': institute,
+            "total_students": total_students,
+            "total_students_count": stu_manage.count(),
+            "class_and_sections": class_and_sections,
+            "class_counts": class_counts,
+            "unique_streams": unique_streams,
+            "results_data": results_data,
+            "stu": stu_value,
+            "institute": institute,
         }
     
     def post(self, request, *args, **kwargs):
@@ -3284,6 +3435,85 @@ class MarketingGroupHeatmapView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx["html_head"] = self.html_head()
         return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+@method_decorator(institute_group_user_only, name="dispatch")
+class InstituteGroupHeatmapView(TemplateView):
+    """Dedicated heatmap page for institute-group admins (aggregated group data)."""
+
+    template_name = "template20/institute/institute_group_heatmap.html"
+
+    def get_template_names(self):
+        return [
+            _dashboard_template(
+                "template20/institute/institute_group_heatmap.html",
+                "template_v2/institute/institute_group_heatmap.html",
+            )
+        ]
+
+    def html_head(self):
+        name = "Heatmap | Institute Group"
+        return build_html_head(title=name, description=name)
+
+    def get(self, request, *args, **kwargs):
+        ctx = self.get_context_data(**kwargs)
+        try:
+            template_version = (
+                Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
+            ).strip()
+        except Exception:
+            template_version = "v1"
+        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+            return render(request, "template_v2/institute/institute_group_heatmap_body.html", ctx)
+        return render(request, _dashboard_primary_template_name(self), ctx)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["html_head"] = self.html_head()
+        return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+@method_decorator(institute_authenticated_user_only, name="dispatch")
+class InstituteHeatmapView(TemplateView):
+    """Dedicated heatmap page for a single institute (scoped by URL slug)."""
+
+    template_name = "template20/institute/institute_heatmap.html"
+
+    def get_template_names(self):
+        return [
+            _dashboard_template(
+                "template20/institute/institute_heatmap.html",
+                "template_v2/institute/institute_heatmap.html",
+            )
+        ]
+
+    def html_head(self):
+        return build_html_head(
+            title="Heatmap | Institute",
+            description="Career education analytics heatmap.",
+        )
+
+    def get(self, request, *args, **kwargs):
+        ctx = self.get_context_data(**kwargs)
+        try:
+            template_version = (
+                Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
+            ).strip()
+        except Exception:
+            template_version = "v1"
+        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+            return render(request, "template_v2/institute/institute_heatmap_body.html", ctx)
+        return render(request, _dashboard_primary_template_name(self), ctx)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        slug = kwargs.get("slug")
+        ctx["institute"] = get_object_or_404(Institute, slug=slug)
+        ctx["html_head"] = self.html_head()
+        return ctx
+
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class StudentData(APIView):

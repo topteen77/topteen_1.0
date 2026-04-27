@@ -374,13 +374,17 @@
     
     const total = typeof totalStudents === 'number' ? totalStudents : (totalStudents || 0);
     const completed = typeof testResults === 'number' ? testResults : (testResults || 0);
-    const pending = total - completed;
+    const pending = Math.max(0, total - completed);
     
     if (total > 0) {
       loader.style.display = 'none';
       canvas.style.display = 'block';
+      if (window.personalityChartInstance) {
+        try { window.personalityChartInstance.destroy(); } catch (e) {}
+        window.personalityChartInstance = null;
+      }
       
-      new Chart(canvas, {
+      window.personalityChartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
           labels: ['Completed', 'Pending'],
@@ -415,7 +419,8 @@
             }
           },
           animation: {
-            duration: 1000
+            duration: 750,
+            easing: 'easeOutQuart'
           }
         }
       });
@@ -737,33 +742,36 @@
     const url = urlObj.pathname + urlObj.search;
     loadInstitutesTable(url);
   }
-  
-  // Handle form submissions with AJAX
-  document.addEventListener('DOMContentLoaded', function() {
-    // Load data sequentially to avoid browser hang
-    setTimeout(function() {
-      loadInstituteCount();
-    }, 100);
-    
-    setTimeout(function() {
-      loadStatistics();
-    }, 200);
-    
-    setTimeout(function() {
-      loadInstitutesOnPageLoad();
-    }, 300);
-    
-    setTimeout(function() {
-      loadCharts();
-    }, 1000); // Load charts last as they require most data (includes seat capacity data)
-    
-    // Show streams chart section after charts load
-    setTimeout(function() {
-      const streamsSection = document.getElementById('streams-chart-section');
-      if (streamsSection) {
-        // Section visibility is handled by loadStreamsChart function
+
+  /** Show chart card shells + spinners immediately; data fills when loadCharts() completes. */
+  function ttv2RevealMarketingChartShells() {
+    try {
+      var bottom = document.getElementById('bottom-charts-section');
+      if (bottom) {
+        bottom.style.display = 'flex';
+        bottom.style.visibility = 'visible';
       }
-    }, 1200);
+      var topCharts = document.getElementById('charts-section');
+      if (topCharts) {
+        topCharts.style.display = 'block';
+        topCharts.style.visibility = 'visible';
+      }
+    } catch (e) {}
+  }
+  
+  // Boot all dashboard loaders + delegated listeners. For Template v2 the body is
+  // injected into #ttv2AjaxContent after this script runs, so we also expose this
+  // on window and call it from the v2 shell after the partial HTML is inserted.
+  function ttv2BootMarketingGroupDashboard() {
+    if (window._ttv2MarketingGroupDashboardBooted) {
+      return;
+    }
+    window._ttv2MarketingGroupDashboardBooted = true;
+    loadInstituteCount();
+    ttv2RevealMarketingChartShells();
+    loadStatistics();
+    loadInstitutesOnPageLoad();
+    loadCharts();
     
     const sidebarPendingBtn = document.getElementById('sidebar-pending-institutes-btn');
     if (sidebarPendingBtn) {
@@ -1041,6 +1049,13 @@
     
     // Initialize tooltips for non-AJAX content
     initTooltips();
+  }
+
+  window.ttv2BootMarketingGroupDashboard = ttv2BootMarketingGroupDashboard;
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!document.getElementById('ttv2AjaxContent')) {
+      ttv2BootMarketingGroupDashboard();
+    }
   });
 
 </script>

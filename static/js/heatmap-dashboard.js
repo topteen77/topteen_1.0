@@ -59,43 +59,55 @@
                 return container.dataset.instituteSlug;
             }
             
-            // Try to extract from URL (e.g., /institute/slug-name/)
-            const urlMatch = window.location.pathname.match(/\/institute\/([^\/]+)\/?$/);
-            if (urlMatch && urlMatch[1] && urlMatch[1] !== 'marketing_group_dashboard' && urlMatch[1] !== 'institute_group_dashboard') {
-                return urlMatch[1];
+            const path = window.location.pathname || '';
+            const heatmapMatch = path.match(/\/institute\/([^/]+)\/heatmap\/?$/);
+            if (heatmapMatch && heatmapMatch[1]) {
+                return heatmapMatch[1];
             }
-            
+            const dashMatch = path.match(/\/institute\/([^/]+)\/?$/);
+            if (dashMatch && dashMatch[1]) {
+                const seg = dashMatch[1];
+                const reserved = {
+                    marketing_group_dashboard: 1,
+                    institute_group_dashboard: 1,
+                    marketing_group_heatmap: 1,
+                    institute_group_heatmap: 1,
+                };
+                if (!reserved[seg]) {
+                    return seg;
+                }
+            }
             return null;
         },
 
-        // Bind event listeners
+        // Bind event listeners (delegated — supports v2 AJAX-injected heatmap markup)
         bindEvents: function() {
             const self = this;
-            
-            // View switching buttons
-            const viewButtons = document.querySelectorAll('.heatmap-view-btn');
-            viewButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const view = this.dataset.view;
-                    self.switchView(view);
-                });
-            });
-
-            // Refresh button
-            const refreshBtn = document.getElementById('heatmap-refresh-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', function() {
+            if (window.__ttv2HeatmapEventsBound) {
+                return;
+            }
+            window.__ttv2HeatmapEventsBound = true;
+            document.body.addEventListener('click', function(e) {
+                const t = e.target;
+                if (!t || !t.closest) {
+                    return;
+                }
+                if (t.closest('#heatmap-refresh-btn')) {
+                    e.preventDefault();
                     self.loadData();
-                });
-            }
-
-            // Export button
-            const exportBtn = document.getElementById('heatmap-export-btn');
-            if (exportBtn) {
-                exportBtn.addEventListener('click', function() {
+                    return;
+                }
+                if (t.closest('#heatmap-export-btn')) {
+                    e.preventDefault();
                     self.exportData();
-                });
-            }
+                    return;
+                }
+                const vb = t.closest('.heatmap-view-btn');
+                if (vb && vb.dataset && vb.dataset.view) {
+                    e.preventDefault();
+                    self.switchView(vb.dataset.view);
+                }
+            });
         },
 
         // Load data from API
@@ -459,6 +471,24 @@
 
     // Make it globally accessible if needed
     window.HeatmapDashboard = HeatmapDashboard;
+
+    /** Call after v2 AJAX injects heatmap HTML (scripts in injected HTML do not run). */
+    window.ttv2HeatmapReinitAfterPartialLoad = function() {
+        if (!window.HeatmapDashboard) {
+            return;
+        }
+        try {
+            const el = document.getElementById('heatmap-refresh-date');
+            if (el) {
+                el.textContent = new Date().toLocaleDateString();
+            }
+        } catch (e) {}
+        try {
+            HeatmapDashboard.loadData();
+        } catch (e2) {
+            console.warn('ttv2HeatmapReinitAfterPartialLoad', e2);
+        }
+    };
 
 })();
 

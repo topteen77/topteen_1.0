@@ -1,0 +1,198 @@
+{# Institute v2: inline JS in the AJAX body does not run; this bridge wires the
+   student side panel (close / edit / set password) after the partial is loaded. #}
+<template id="ttv2-institute-class-select-options" style="display:none">
+  {% if class_and_sections is defined and class_and_sections %}
+  {% for cas in class_and_sections %}
+  <option value="{{ cas.id }}">{{ cas.class_and_section|e }}</option>
+  {% endfor %}
+  {% endif %}
+</template>
+<script>
+(function () {
+  if (window._ttv2InstitutePanelBridgeLoaded) {
+    return;
+  }
+  window._ttv2InstitutePanelBridgeLoaded = true;
+
+  var STUDENT_DATA_URL = {{ url('institute:studentdata')|tojson }};
+  var STUDENT_UPDATE_ACTION = {{ url('institute:institutestudentupdate')|tojson }};
+
+  function ttv2ReadCookie(name) {
+    var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return m ? decodeURIComponent(m[2]) : '';
+  }
+
+  function ttv2GetCsrfToken() {
+    var el = document.querySelector('.ttv2-institute-embed input[name="csrfmiddlewaretoken"]') ||
+      document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (el && el.value) {
+      return el.value;
+    }
+    return ttv2ReadCookie('csrftoken') || '';
+  }
+
+  function ttv2EscapeAttr(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  window.ttv2OpenEditStudentModalFromPanel = function (studentId) {
+    if (!studentId) {
+      return;
+    }
+    if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+      return;
+    }
+    var existingModal = document.getElementById('updateStudentModal' + studentId);
+    if (existingModal) {
+      bootstrap.Modal.getOrCreateInstance(existingModal).show();
+      return;
+    }
+    var singleModal = document.getElementById('updateStudentModalSingle');
+    if (!singleModal) {
+      var optTpl = document.getElementById('ttv2-institute-class-select-options');
+      var classOpts = optTpl ? optTpl.innerHTML : '';
+      var tok = ttv2EscapeAttr(ttv2GetCsrfToken());
+      var modalHTML =
+        '<div class="modal fade" id="updateStudentModalSingle" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">' +
+        '<div class="modal-dialog modal-dialog-centered" role="document">' +
+        '<div class="modal-content">' +
+        '<div class="modal-header">' +
+        '<h5 class="modal-title" id="updateStudentModalSingleLabel">Update Student</h5>' +
+        '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="updateStudentModalSingleClose"></button>' +
+        '</div>' +
+        '<form method="POST" action="' + STUDENT_UPDATE_ACTION + '">' +
+        '<input type="hidden" name="csrfmiddlewaretoken" value="' + tok + '">' +
+        '<input type="hidden" name="user_id" id="single_modal_user_id" value="">' +
+        '<div class="modal-body">' +
+        '<div class="mb-3"><label class="form-label">Email</label>' +
+        '<input type="email" name="upd_email" id="single_modal_email" class="form-control" readonly></div>' +
+        '<div class="mb-3"><label class="form-label">Name</label>' +
+        '<input type="text" name="upd_name" id="single_modal_name" class="form-control" value=""></div>' +
+        '<div class="mb-3"><label class="form-label">Mobile</label>' +
+        '<input type="text" name="upd_mobile" id="single_modal_mobile" class="form-control" value=""></div>' +
+        '<div class="mb-3"><label class="form-label">Class Section</label>' +
+        '<select name="class_section" id="single_modal_class_section" class="form-control">' +
+        '<option value="">Select Class</option>' + classOpts + '</select></div>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+        '<button type="submit" class="btn custom-button purple-button">Update</button>' +
+        '</div></form></div></div></div>';
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      singleModal = document.getElementById('updateStudentModalSingle');
+    }
+
+    var formData = new FormData();
+    formData.append('id', studentId);
+    var csrfToken = ttv2GetCsrfToken();
+    fetch(STUDENT_DATA_URL, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRFToken': csrfToken }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && String(data.success) === 'true') {
+          document.getElementById('single_modal_user_id').value = studentId;
+          document.getElementById('single_modal_email').value = data.email || '';
+          document.getElementById('single_modal_name').value = data.name || '';
+          document.getElementById('single_modal_mobile').value = data.mobile || '';
+          if (data.class_id) {
+            document.getElementById('single_modal_class_section').value = data.class_id;
+          }
+          bootstrap.Modal.getOrCreateInstance(singleModal).show();
+        } else {
+          alert('Failed to load student data. Please try again.');
+        }
+      })
+      .catch(function () {
+        alert('Error loading student data. Please try again.');
+      });
+  };
+
+  window.ttv2OpenChangePasswordModalFromPanel = function (studentId) {
+    if (!studentId) {
+      return;
+    }
+    if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+      return;
+    }
+    var passwordModal = document.getElementById('changeStudentPasswordModal');
+    if (!passwordModal) {
+      console.error('changeStudentPasswordModal not found (institute v2 body not loaded yet?)');
+      return;
+    }
+    var passwordIdEl = document.getElementById('password_id');
+    if (passwordIdEl) {
+      passwordIdEl.value = studentId;
+    }
+    bootstrap.Modal.getOrCreateInstance(passwordModal).show();
+  };
+
+  /**
+   * Run once per page after #ttv2AjaxContent receives the institute body (student panel in DOM).
+   */
+  window.ttv2BindInstituteStudentPanelControlsOnce = function () {
+    if (window._ttv2InstitutePanelControlsBound) {
+      return;
+    }
+    var panel = document.getElementById('studentDetailsPanel');
+    if (!panel) {
+      return;
+    }
+    var closeBtn = document.getElementById('closeStudentPanelBtn');
+    var editBtn = document.getElementById('panel-edit-student-btn');
+    var passwordBtn = document.getElementById('panel-change-password-btn');
+
+    function closePanel() {
+      panel.classList.remove('show');
+      panel.setAttribute('data-student-id', '');
+      if (editBtn) {
+        editBtn.disabled = true;
+      }
+      if (passwordBtn) {
+        passwordBtn.disabled = true;
+      }
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        closePanel();
+      });
+    }
+    if (editBtn) {
+      editBtn.addEventListener('click', function () {
+        var sid = panel.getAttribute('data-student-id');
+        if (sid) {
+          window.ttv2OpenEditStudentModalFromPanel(sid);
+        } else {
+          alert('No student selected');
+        }
+      });
+    }
+    if (passwordBtn) {
+      passwordBtn.addEventListener('click', function () {
+        var sid = panel.getAttribute('data-student-id');
+        if (sid) {
+          window.ttv2OpenChangePasswordModalFromPanel(sid);
+        } else {
+          alert('No student selected');
+        }
+      });
+    }
+
+    if (!window._ttv2InstitutePanelModalHideListener) {
+      document.addEventListener('show.bs.modal', function () {
+        try {
+          if (panel && panel.classList.contains('show')) {
+            closePanel();
+          }
+        } catch (err) {}
+      });
+      window._ttv2InstitutePanelModalHideListener = true;
+    }
+    window._ttv2InstitutePanelControlsBound = true;
+  };
+})();
+</script>

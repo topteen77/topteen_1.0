@@ -44,10 +44,64 @@ body.ttv2-shell .text-muted{
   color: var(--ttv2-muted) !important;
 }
 
-body.ttv2-shell .card,
-body.ttv2-shell .modal-content{
+body.ttv2-shell .card{
   background: var(--ttv2-surface);
   color: var(--ttv2-fg);
+}
+/*
+  Modals: do NOT use --ttv2-surface in dark (it is ~6% white and looks “broken”:
+  page content shows through the header, close button appears misaligned).
+*/
+body.ttv2-shell .modal-content{
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(17, 24, 39, 0.1);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-content{
+  background: var(--c-bg2, #161820) !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+  border: 1px solid var(--c-border, var(--ttv2-border)) !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.55) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-header{
+  background: var(--c-bg2, #161820) !important;
+  border-bottom: 1px solid var(--c-border, var(--ttv2-border)) !important;
+  align-items: center;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-header .modal-title{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+/* Default BS close is dark; invert on solid dark header */
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-header .btn-close{
+  filter: invert(1) grayscale(1);
+  opacity: 0.85;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-body .form-control,
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-body .form-select{
+  background: var(--c-bg3, #1e2030) !important;
+  color: var(--c-text) !important;
+  border-color: var(--c-border, var(--ttv2-border)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-body label{
+  color: var(--c-text2, var(--ttv2-muted)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .modal-footer{
+  background: var(--c-bg2, #161820) !important;
+  border-top: 1px solid var(--c-border, var(--ttv2-border)) !important;
+}
+
+/*
+  Stacking: base_logged_in sets .modal (1060) above .modal-backdrop (1040), but
+  custom-min.css has .modal-backdrop.fade.show { z-index: 8888 !important } (higher
+  specificity + value), so the dimmer ends up on top of the dialog and blocks
+  clicks. Match the intended 1040 / 1060 pairing with v2 body specificity.
+*/
+body.ttv2-shell .modal-backdrop.fade.show {
+  z-index: 1040 !important;
+}
+body.ttv2-shell .modal {
+  z-index: 1060 !important;
 }
 
 /* Header toggle button */
@@ -289,6 +343,9 @@ body.ttv2-shell .ttv2-counselor-topbar{
   background: var(--c-bg2);
   border-bottom: 1px solid var(--c-border);
   height: 58px;
+  position: sticky;
+  top: 0;
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -357,6 +414,7 @@ body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content{
   background: var(--c-bg2) !important;
   border: 1px solid var(--c-border2) !important;
   color: var(--c-text) !important;
+  z-index: 2100;
 }
 body.ttv2-shell .ttv2-topbar-avatar-dropdown.dropdown-show .dropdown-content.login-content{
   box-shadow: 0 16px 40px rgba(0,0,0,.35);
@@ -466,6 +524,77 @@ body.ttv2-shell .ttv2-ajax-progress{
   100% { transform: translateX(320%); }
 }
 
+/* v2 AJAX host: empty shell until partial HTML is injected (no “Loading…” card) */
+body.ttv2-shell .ttv2-ajax-content-host{
+  min-height: 120px;
+}
+body.ttv2-shell .ttv2-ajax-content-pending{
+  min-height: 200px;
+  border-radius: 14px;
+  border: 1px dashed var(--c-border2, rgba(255,255,255,.12));
+  background: rgba(255,255,255,.02);
+}
+
+/* v2 analytics: chart block overlay until Chart.js renders */
+body.ttv2-shell .ttv2-da-charts-area{
+  position: relative;
+}
+body.ttv2-shell .ttv2-da-charts-area--loading::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 12px;
+  background: rgba(6, 8, 14, 0.28);
+  pointer-events: none;
+}
+body.ttv2-shell .ttv2-da-charts-area--loading::before{
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  z-index: 3;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.12);
+  border-top-color: var(--c-accent, #6c7dff);
+  animation: ttv2-spin 0.85s linear infinite;
+  pointer-events: none;
+}
+
+/* Counselor students table: quiet placeholder until AJAX fills rows */
+body.ttv2-shell .ttv2-tbody-pending-cell{
+  position: relative;
+  height: 140px;
+  padding: 0 !important;
+  border: none !important;
+  vertical-align: middle;
+}
+body.ttv2-shell .ttv2-tbody-pending-cell::after{
+  content: "";
+  display: block;
+  margin: 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.12);
+  border-top-color: var(--c-accent, #6c7dff);
+  animation: ttv2-spin 0.85s linear infinite;
+}
+body.ttv2-shell .ttv2-sr-only{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Embed v1 institute dashboard inside v2 frame: hide its own sidebar */
 body.ttv2-shell .ttv2-institute-embed .id-sidebar-column{
   display: none !important;
@@ -554,6 +683,123 @@ body.ttv2-shell .ttv2-kpi{
 }
 body.ttv2-shell .ttv2-kpi .val{ font-size: 22px; font-weight: 700; line-height: 1; color: var(--c-text); margin-bottom: 4px; }
 body.ttv2-shell .ttv2-kpi .lbl{ font-size: 10px; color: var(--c-text3); }
+body.ttv2-shell .ttv2-kpi .sub{ margin-top: 4px; line-height: 1.3; }
+body.ttv2-shell .ttv2-dashboard-analytics .ttv2-card{ min-height: 0; }
+body.ttv2-shell .ttv2-dashboard-analytics canvas{ max-height: 100%; }
+
+/* Icon stat strip (legacy institute id-stat-*), used in analytics above embedded v1 body */
+body.ttv2-shell .ttv2-dashboard-analytics .id-stats-row.ttv2-stat-strip{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 1199px){
+  body.ttv2-shell .ttv2-dashboard-analytics .id-stats-row.ttv2-stat-strip{
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 767px){
+  body.ttv2-shell .ttv2-dashboard-analytics .id-stats-row.ttv2-stat-strip{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stats-row .id-stat-card{
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  min-height: 88px;
+  background: var(--c-bg2, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--c-border, var(--ttv2-border));
+  border-radius: 12px;
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon{
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon i{
+  font-size: 1.5rem;
+  color: #fff;
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon--orange{
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon--blue{
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon--pink{
+  background: linear-gradient(135deg, #f472b6, #db2777);
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon--green{
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-icon--purple{
+  background: linear-gradient(135deg, #a78bfa, var(--c-accent, #7c3aed));
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-body{
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-value{
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--c-text, var(--ttv2-fg));
+  line-height: 1.2;
+  margin: 0;
+}
+body.ttv2-shell .ttv2-dashboard-analytics .id-stat-label{
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text3, var(--ttv2-muted));
+  margin: 0.2rem 0 0;
+}
+
+/* v2 shell: KPI strip lives in analytics; hide duplicate title + stat row in embedded template20 */
+body.ttv2-shell .ttv2-institute-embed section.institute-dashboard h1.id-main-title,
+body.ttv2-shell .ttv2-institute-embed section.institute-dashboard .id-stats-row{
+  display: none !important;
+}
+body.ttv2-shell .ttv2-marketing-embed #main-content-area > .row.g-3.mb-4{
+  display: none !important;
+}
+body.ttv2-shell .ttv2-group-embed .col-lg-8 > .row.g-3.mb-4{
+  display: none !important;
+}
+
+/* Marketing / institute-group: psychometric + streams charts — force one row in v2 embed */
+body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section.ttv2-bottom-charts-row,
+body.ttv2-shell .ttv2-group-embed #bottom-charts-section.ttv2-bottom-charts-row{
+  display: flex !important;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 1rem;
+}
+body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section.ttv2-bottom-charts-row > [class*="col-"],
+body.ttv2-shell .ttv2-group-embed #bottom-charts-section.ttv2-bottom-charts-row > [class*="col-"]{
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none !important;
+}
+@media (max-width: 991.98px){
+  body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section.ttv2-bottom-charts-row,
+  body.ttv2-shell .ttv2-group-embed #bottom-charts-section.ttv2-bottom-charts-row{
+    flex-wrap: wrap;
+  }
+  body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section.ttv2-bottom-charts-row > [class*="col-"],
+  body.ttv2-shell .ttv2-group-embed #bottom-charts-section.ttv2-bottom-charts-row > [class*="col-"]{
+    flex: 1 1 100%;
+    max-width: 100% !important;
+  }
+}
 
 body.ttv2-shell .ttv2-card{
   background: var(--c-bg2);
@@ -566,6 +812,14 @@ body.ttv2-shell .ttv2-card .card-title{
   font-weight: 600;
   color: var(--c-text);
   margin-bottom: 10px;
+}
+
+/* Students insights (shared KPI + charts) */
+body.ttv2-shell .ttv2-si-chart-wrap{
+  position: relative;
+  width: 100%;
+  height: 260px;
+  max-width: 100%;
 }
 
 /* Compact filter drawer (counselor v2) */
@@ -712,3 +966,173 @@ body.ttv2-shell .ttv2-page{
   padding: 16px 0;
 }
 
+/* =========================
+   Dark mode: v1 dashboard bodies embedded in v2 (AJAX partials use light CSS vars)
+   ========================= */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard{
+  /* Inherit counselor shell surface tokens so the embed matches sidebar/topbar */
+  --id-purple: var(--c-accent, var(--ttv2-accent));
+  --id-purple-dark: #c4b5fd;
+  --id-purple-soft: rgba(139, 124, 255, 0.2);
+  --id-page-bg: var(--c-bg, var(--ttv2-bg));
+  --id-card: var(--c-bg2, rgba(255, 255, 255, 0.06));
+  --id-text: var(--c-text, var(--ttv2-fg));
+  --id-muted: var(--c-text2, var(--ttv2-muted));
+  --id-shadow: none;
+  --id-shadow-sm: none;
+  background: var(--c-bg, var(--ttv2-bg)) !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-main-title{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-panel-title,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-chart-title{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .btn-secondary{
+  background: var(--c-bg3, rgba(255,255,255,0.08)) !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+  border-color: var(--c-border, var(--ttv2-border)) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .in-student-table,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-stat-card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-chart-card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-panel{
+  background: var(--c-bg2, var(--ttv2-surface)) !important;
+  border-color: var(--c-border, var(--ttv2-border)) !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-stat-value{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-stat-label{
+  color: var(--c-text3, var(--ttv2-muted)) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-toolbar .form-control,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-toolbar .custom-input,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard select.form-control{
+  background: var(--c-bg3, rgba(255, 255, 255, 0.05)) !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+  border-color: var(--c-border, var(--ttv2-border)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .input-group-text{
+  background: var(--c-bg3, rgba(255, 255, 255, 0.06)) !important;
+  color: var(--c-text3, var(--ttv2-muted)) !important;
+  border-color: var(--c-border, var(--ttv2-border)) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-mobile-toggle-btn{
+  background: var(--ttv2-surface) !important;
+  color: var(--ttv2-fg) !important;
+  border-color: var(--ttv2-border) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard #students-table-container .table tbody tr:nth-child(even),
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard #students-table-wrapper .table tbody tr:nth-child(even),
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-data-table tbody tr:nth-child(even){
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard #students-table-container .table tbody td,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard #students-table-wrapper .table tbody td,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .institute-dashboard .id-data-table tbody td{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+  border-color: var(--c-border, var(--ttv2-border)) !important;
+}
+
+/* Heatmap + analytics block inside institute body */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-heatmap-shell,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .id-heatmap-shell .heatmap-dashboard-container{
+  background: transparent !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .heatmap-header-card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .heatmap-controls-card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .heatmap-legend-card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .heatmap-grid-card{
+  background: var(--c-bg2, var(--ttv2-surface)) !important;
+  border: 1px solid var(--c-border, var(--ttv2-border)) !important;
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+
+/* Student side panel (institute) */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-details-panel{
+  background: #12141c !important;
+  border-left-color: var(--ttv2-border) !important;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5) !important;
+}
+/* Bootstrap .btn-close uses a dark X; invert on dark panel header so the close control is visible */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-panel-header .btn-close{
+  filter: invert(1);
+  opacity: 0.85;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-panel-header{
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-bottom-color: var(--ttv2-border) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-panel-header h5{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-panel-body,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-panel-footer{
+  background: transparent !important;
+  border-color: var(--ttv2-border) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-detail-label{
+  color: var(--c-text3, var(--ttv2-muted)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-embed .student-detail-value{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+
+/* Marketing + institute-group embedded bodies (same light cards issue) */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .marketing-group-dashboard,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .institute-group-dashboard{
+  color: var(--ttv2-fg);
+  background: transparent;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .stat-card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .stat-card{
+  background: var(--ttv2-surface) !important;
+  border: 1px solid var(--ttv2-border);
+  color: var(--ttv2-fg) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .stat-value,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .stat-value{
+  color: var(--ttv2-fg) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .stat-label,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .stat-label{
+  color: var(--ttv2-muted) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .card,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .card{
+  background: var(--ttv2-surface) !important;
+  color: var(--ttv2-fg) !important;
+  border-color: var(--ttv2-border) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .form-control,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .form-control{
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--ttv2-fg) !important;
+  border-color: var(--ttv2-border) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .institute-details-panel,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .institute-details-panel{
+  background: #12141c !important;
+  border-left-color: var(--ttv2-border) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .institute-details-panel .panel-header,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .institute-details-panel .panel-header{
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--ttv2-border) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .institute-details-panel .panel-header h5,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .institute-details-panel .panel-header h5{
+  color: var(--ttv2-fg) !important;
+}

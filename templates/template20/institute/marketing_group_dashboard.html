@@ -19,11 +19,6 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
-<script>
-  // Update refresh date
-  document.getElementById('heatmap-refresh-date').textContent = new Date().toLocaleDateString();
-</script>
 <script>
   // Initialize Bootstrap tooltips
   function initTooltips() {
@@ -400,13 +395,17 @@
     
     const total = typeof totalStudents === 'number' ? totalStudents : (totalStudents || 0);
     const completed = typeof testResults === 'number' ? testResults : (testResults || 0);
-    const pending = total - completed;
+    const pending = Math.max(0, total - completed);
     
     if (total > 0) {
       loader.style.display = 'none';
       canvas.style.display = 'block';
+      if (window.personalityChartInstance) {
+        try { window.personalityChartInstance.destroy(); } catch (e) {}
+        window.personalityChartInstance = null;
+      }
       
-      new Chart(canvas, {
+      window.personalityChartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
           labels: ['Completed', 'Pending'],
@@ -766,30 +765,16 @@
   
   // Handle form submissions with AJAX
   document.addEventListener('DOMContentLoaded', function() {
-    // Load data sequentially to avoid browser hang
-    setTimeout(function() {
-      loadInstituteCount();
-    }, 100);
-    
-    setTimeout(function() {
-      loadStatistics();
-    }, 200);
-    
-    setTimeout(function() {
-      loadInstitutesOnPageLoad();
-    }, 300);
-    
-    setTimeout(function() {
-      loadCharts();
-    }, 1000); // Load charts last as they require most data (includes seat capacity data)
-    
-    // Show streams chart section after charts load
-    setTimeout(function() {
-      const streamsSection = document.getElementById('streams-chart-section');
-      if (streamsSection) {
-        // Section visibility is handled by loadStreamsChart function
-      }
-    }, 1200);
+    try {
+      var _bch = document.getElementById('bottom-charts-section');
+      if (_bch) { _bch.style.display = 'flex'; _bch.style.visibility = 'visible'; }
+      var _csec = document.getElementById('charts-section');
+      if (_csec) { _csec.style.display = 'block'; _csec.style.visibility = 'visible'; }
+    } catch (e) {}
+    loadInstituteCount();
+    loadStatistics();
+    loadInstitutesOnPageLoad();
+    loadCharts();
     
     const sidebarPendingBtn = document.getElementById('sidebar-pending-institutes-btn');
     if (sidebarPendingBtn) {

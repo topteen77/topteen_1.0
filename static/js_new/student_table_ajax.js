@@ -73,6 +73,9 @@ function loadStudentsTable(url, options = {}) {
       if (typeof initializeStudentRowHover === 'function') {
         initializeStudentRowHover();
       }
+      if (typeof initializeStudentRowHandlers === 'function') {
+        initializeStudentRowHandlers();
+      }
 
       // Re-initialize tooltips if function exists
       if (typeof initTooltips === 'function') {
@@ -188,6 +191,109 @@ function initStudentTableAJAX() {
       }, 100);
     }
   }
+}
+
+/**
+ * Institute dashboard (Template v2): student table + side panel live inside HTML
+ * injected by AJAX, so scripts embedded in that HTML do not execute. The v2 shell
+ * loads student_table_ajax.js once, then must call this after the partial is
+ * inserted to bind filters and fetch rows via data_type=students.
+ */
+function ttv2BindInstituteStudentPanelOnce() {
+  const wrapper = document.getElementById('students-table-wrapper');
+  const panel = document.getElementById('studentDetailsPanel');
+  if (!wrapper || !panel || wrapper.getAttribute('data-ttv2-panel-delegation') === '1') {
+    return;
+  }
+  wrapper.setAttribute('data-ttv2-panel-delegation', '1');
+  wrapper.addEventListener('click', function (ev) {
+    const row = ev.target.closest('.student-row');
+    if (!row) {
+      return;
+    }
+    try {
+      const studentId = row.getAttribute('data-student-id') || '';
+      const name = row.getAttribute('data-student-name') || '-';
+      const email = row.getAttribute('data-student-email') || '-';
+      const contact = row.getAttribute('data-student-contact') || '-';
+      const studentClass = row.getAttribute('data-student-class') || '-';
+      const stream = row.getAttribute('data-student-stream') || '-';
+      const created = row.getAttribute('data-student-created') || '-';
+
+      panel.setAttribute('data-student-id', studentId);
+      panel.setAttribute('data-student-class-id', row.getAttribute('data-student-class-id') || '');
+
+      const editBtn = document.getElementById('panel-edit-student-btn');
+      const passwordBtn = document.getElementById('panel-change-password-btn');
+      if (editBtn) {
+        editBtn.disabled = !studentId;
+      }
+      if (passwordBtn) {
+        passwordBtn.disabled = !studentId;
+      }
+
+      const ne = document.getElementById('panel-student-name');
+      const ee = document.getElementById('panel-student-email');
+      const ce = document.getElementById('panel-student-contact');
+      const cle = document.getElementById('panel-student-class');
+      const se = document.getElementById('panel-student-stream');
+      const cr = document.getElementById('panel-student-created');
+      if (ne) {
+        ne.textContent = name;
+      }
+      if (ee) {
+        ee.textContent = email;
+      }
+      if (ce) {
+        ce.textContent = contact;
+      }
+      if (cle) {
+        cle.textContent = studentClass;
+      }
+      if (se) {
+        se.textContent = stream;
+      }
+      if (cr) {
+        cr.textContent = created;
+      }
+
+      panel.classList.add('show');
+    } catch (err) {
+      console.error('Error handling institute student row click', err);
+    }
+  });
+}
+
+function ttv2InitStudentTableAfterBodyInject() {
+  const filterForm = document.getElementById('filter-form');
+  if (filterForm && !filterForm.dataset.ttv2StudentAjaxBound) {
+    filterForm.dataset.ttv2StudentAjaxBound = '1';
+    filterForm.addEventListener('submit', function (e) {
+      handleStudentFilterSubmit(e, 'filter-form');
+    });
+  }
+  const perPageSelect = document.getElementById('per_page');
+  if (perPageSelect && !perPageSelect.dataset.ttv2StudentAjaxBound) {
+    perPageSelect.dataset.ttv2StudentAjaxBound = '1';
+    perPageSelect.addEventListener('change', function () {
+      updatePerPage(this.value);
+    });
+  }
+  if (!document.getElementById('students-table-wrapper') && !document.getElementById('students-table-container')) {
+    return;
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set('data_type', 'students');
+  loadStudentsTable(url.toString(), {
+    onSuccess: function () {
+      ttv2BindInstituteStudentPanelOnce();
+    }
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.ttv2BindInstituteStudentPanelOnce = ttv2BindInstituteStudentPanelOnce;
+  window.ttv2InitStudentTableAfterBodyInject = ttv2InitStudentTableAfterBodyInject;
 }
 
 // Auto-initialize on DOM ready

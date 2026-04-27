@@ -441,6 +441,74 @@ const toggleDropdownItem = (item) => {
   }
 };
 
+// v2 dashboard topbar: delay-hide avatar dropdown on hover-out
+// (Institute/marketing/group dashboards use this shared script; counselor has its own.)
+(function () {
+  var CLOSE_DELAY_MS = 6000;
+  var timer = null;
+
+  function clearT() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+
+  function closeNow(wrap) {
+    try {
+      if (!wrap || !wrap.classList.contains("dropdown-show")) return;
+      var dd = wrap.querySelector(".dropdown-content");
+      if (dd) dd.removeAttribute("style");
+      wrap.classList.remove("dropdown-show");
+    } catch (e) {}
+  }
+
+  function scheduleClose(wrap) {
+    clearT();
+    timer = setTimeout(function () {
+      closeNow(wrap);
+    }, CLOSE_DELAY_MS);
+  }
+
+  function bindOnce() {
+    var wrap = document.querySelector(".ttv2-topbar-avatar-dropdown.dropdown");
+    if (!wrap || wrap.getAttribute("data-ttv2-hoverbound") === "1") return;
+    wrap.setAttribute("data-ttv2-hoverbound", "1");
+
+    var menu = wrap.querySelector(".dropdown-content");
+    wrap.addEventListener("mouseenter", function () {
+      clearT();
+    });
+    wrap.addEventListener("mouseleave", function () {
+      scheduleClose(wrap);
+    });
+    if (menu) {
+      menu.addEventListener("mouseenter", function () {
+        clearT();
+      });
+      menu.addEventListener("mouseleave", function () {
+        scheduleClose(wrap);
+      });
+    }
+
+    // If opened and user scrolls away, still close quickly.
+    window.addEventListener(
+      "scroll",
+      function () {
+        // keep the delay behavior; don't instant-close on minor scroll
+        if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
+      },
+      { passive: true }
+    );
+  }
+
+  document.addEventListener("DOMContentLoaded", bindOnce);
+  // In case scripts run after DOMContentLoaded in some shells
+  try {
+    bindOnce();
+  } catch (e) {}
+})();
+
 // Fixed dropdown menu on window resizing
 window.addEventListener("resize", () => {
   if (window.innerWidth > 992) {

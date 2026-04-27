@@ -11,8 +11,8 @@
     <a href="{{ url('institute:marketinggroupdashboard') }}" class="active">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students2
+    <a href="{{ url('institute:marketinggroupdashboard') }}?ttv2_section=students">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students
     </a>
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
@@ -22,6 +22,9 @@
     </a>
 
     <div class="ttv2-counselor-nav-title">Analytics</div>
+    <a href="{{ url('institute:marketinggroupheatmap') }}">
+      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Career heatmap
+    </a>
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics
     </a>
@@ -55,11 +58,6 @@
     </a>
     <a href="#" class="ttv2-print-link">
       <span class="ttv2-counselor-dot" style="background:#94a3b8"></span>Print report
-    </a>
-
-    <div class="ttv2-counselor-nav-title">Other</div>
-    <a href="{{ url('institute:marketinggroupheatmap') }}">
-      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Heatmap
     </a>
 
     <div class="ttv2-counselor-nav-title">Quick links</div>

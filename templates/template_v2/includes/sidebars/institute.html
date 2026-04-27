@@ -25,46 +25,45 @@
     <a href="{{ url('institute:institutedashboard', args=[_inst_slug]) }}" class="active">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students2
+    <a href="#" data-ttv2-nav="students">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="psychometric">
       <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="journey">
       <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker
     </a>
 
     <div class="ttv2-counselor-nav-title">Analytics</div>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics
+    {% if _inst_slug %}
+    <a href="{{ url('institute:instituteheatmap', args=[_inst_slug]) }}">
+      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Career heatmap
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#fbbf24"></span>Interest matrix
-    </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    {% endif %}
+    <a href="#" data-ttv2-nav="streams_capacity">
       <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="credits">
       <span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits
     </a>
 
     <div class="ttv2-counselor-nav-title">Guidance</div>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="counselors">
       <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors1
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="sessions">
       <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="session_plan">
       <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="kira_assistant">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant
     </a>
 
     <div class="ttv2-counselor-nav-title">Documents</div>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
+    <a href="#" data-ttv2-nav="best_practices">
       <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Best practices
     </a>
     <a href="#" class="ttv2-print-link">

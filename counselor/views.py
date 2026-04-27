@@ -23,7 +23,7 @@ from .models import (
 )
 from .course_completion import is_course_fully_completed as _is_course_fully_completed
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView
@@ -696,7 +696,9 @@ def apply_student_filters(students_data, request, results_data=None):
             filtered_list = []
             for student_mgmt in student_list:
                 student_user = student_mgmt.student
-                student_result = results_data.get(student_user, {})
+                if not student_user:
+                    continue
+                student_result = results_data.get(student_user.id, results_data.get(student_user, {}))
                 test_status = student_result.get('test_status', 'no_tests')
                 
                 if test_taken_filter == 'Yes' and test_status == 'completed':
@@ -767,29 +769,142 @@ def get_class_counts(students_queryset):
         Dict with class names as keys and student counts as values
     """
     class_counts = {}
-    
-    # Handle QuerySet
-    if hasattr(students_queryset, 'values_list'):
-        for student in students_queryset:
-            if student.class_and_section:
-                class_name = student.class_and_section.class_and_section
-                class_counts[class_name] = class_counts.get(class_name, 0) + 1
-    # Handle list
-    else:
-        for student_item in students_queryset:
-            # Handle both StudentManagement objects and dict format
-            if hasattr(student_item, 'class_and_section'):
-                student = student_item
-            elif isinstance(student_item, dict) and 'student' in student_item:
-                student = student_item['student']
-            else:
-                continue
-            
-            if student.class_and_section:
-                class_name = student.class_and_section.class_and_section
-                class_counts[class_name] = class_counts.get(class_name, 0) + 1
-    
+
+    if hasattr(students_queryset, "filter") and hasattr(students_queryset, "values"):
+        rows = (
+            students_queryset.filter(class_and_section__isnull=False)
+            .values("class_and_section__class_and_section")
+            .annotate(n=Count("id"))
+        )
+        for row in rows:
+            name = row.get("class_and_section__class_and_section")
+            if name:
+                class_counts[name] = row["n"]
+        return class_counts
+
+    for student_item in students_queryset:
+        if hasattr(student_item, "class_and_section"):
+            student = student_item
+        elif isinstance(student_item, dict) and "student" in student_item:
+            student = student_item["student"]
+        else:
+            continue
+
+        if student.class_and_section:
+            class_name = student.class_and_section.class_and_section
+            class_counts[class_name] = class_counts.get(class_name, 0) + 1
+
     return class_counts
+
+
+def build_students_analytics_payload(students_qs, week_start=None):
+    """
+    Lightweight JSON for v2 Students insights (stream donut + class bars) on all dashboards.
+    students_qs: scoped StudentManagement queryset.
+    week_start: optional calendar date; metrics are restricted to StudentManagement rows
+    created Mon–Sun of that week when provided.
+    """
+    from core.ttv2_dashboard_analytics import _monday_of_week
+
+    if students_qs is None:
+        students_qs = StudentManagement.objects.none()
+    if not hasattr(students_qs, "filter"):
+        return {
+            "success": True,
+            "total": 0,
+            "class10": 0,
+            "class11": 0,
+            "class12": 0,
+            "class_other": 0,
+            "no_section": 0,
+            "stream_unassigned": 0,
+            "stream_counts": {},
+            "class_counts": {},
+            "top_stream_label": "",
+            "week_start": None,
+        }
+
+    scoped_qs = students_qs
+    wk_iso = None
+    if week_start:
+        w0 = _monday_of_week(week_start)
+        w1 = w0 + timedelta(days=6)
+        scoped_qs = students_qs.filter(created__date__gte=w0, created__date__lte=w1)
+        wk_iso = w0.isoformat()
+
+    stream_counts_qs = (
+        scoped_qs.filter(class_and_section__stream__isnull=False)
+        .exclude(class_and_section__stream="")
+        .values("class_and_section__stream")
+        .annotate(count=Count("id"))
+        .order_by("class_and_section__stream")
+    )
+    stream_counts = {
+        row["class_and_section__stream"]: int(row["count"]) for row in stream_counts_qs
+    }
+
+    class_counts = get_class_counts(scoped_qs) or {}
+    total = scoped_qs.count()
+    no_section = scoped_qs.filter(class_and_section__isnull=True).count()
+    stream_unassigned = (
+        scoped_qs.filter(class_and_section__isnull=False)
+        .filter(Q(class_and_section__stream__isnull=True) | Q(class_and_section__stream=""))
+        .count()
+    )
+
+    import re
+
+    def _level_from_class_label(label):
+        if not label:
+            return None
+        s = str(label).strip().lower()
+        for pat in (
+            r"\bclass\s*(\d{1,2})\b",
+            r"\b(\d{1,2})(?:st|nd|rd|th)\s*(?:std|standard)?\b",
+            r"\b(\d{1,2})\b",
+        ):
+            m = re.search(pat, s)
+            if m:
+                n = int(m.group(1))
+                if 1 <= n <= 12:
+                    return n
+        return None
+
+    by_level = {i: 0 for i in range(1, 13)}
+    other_keys = 0
+    for k, v in class_counts.items():
+        lvl = _level_from_class_label(k)
+        if lvl is not None:
+            by_level[lvl] = by_level.get(lvl, 0) + int(v)
+        else:
+            other_keys += int(v)
+
+    class10 = by_level.get(10, 0)
+    class11 = by_level.get(11, 0)
+    class12 = by_level.get(12, 0)
+    lower = sum(by_level.get(i, 0) for i in range(1, 10))
+    class_other = lower + other_keys
+
+    top_stream_label = ""
+    if stream_counts:
+        top_stream_label = max(stream_counts, key=lambda k: stream_counts[k])
+
+    return {
+        "success": True,
+        "total": total,
+        "class10": class10,
+        "class11": class11,
+        "class12": class12,
+        "class_other": class_other,
+        "no_section": no_section,
+        "stream_unassigned": stream_unassigned,
+        "stream_counts": stream_counts,
+        "class_counts": class_counts,
+        "top_stream_label": top_stream_label,
+        "week_start": wk_iso,
+        # Back-compat for older chart scripts (Class 10 / 11 / bucket)
+        "unassigned": max(0, no_section + stream_unassigned),
+    }
 
 
 def get_unique_streams_by_role(user, students_queryset):
@@ -1930,7 +2045,16 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
         # If user is a counselor, they must be the owner of this counselor record
         if counselor.coun_user != request.user:
             raise Http404("You don't have permission to access this counselor's dashboard.")
-    
+
+    # Optional: week selector (v2 analytics header). Monday date: YYYY-MM-DD.
+    _week_start = None
+    _raw_week = (request.GET.get("ttv2_week_start") or "").strip()
+    if _raw_week:
+        try:
+            _week_start = datetime.strptime(_raw_week, "%Y-%m-%d").date()
+        except Exception:
+            _week_start = None
+
     # Check if this is an AJAX request for specific data
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         data_type = request.GET.get('data_type', '')
@@ -1939,11 +2063,9 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
             # Optimized AJAX handler for student table only
             return _get_counselor_student_table_ajax(request, counselor, coun_id)
         elif data_type == 'students_analytics':
-            # Lightweight analytics for counselor v2 Students charts
             students_qs = get_students_by_role(
                 request.user, counselor=counselor, institute=counselor_institute
             )
-            # Apply simple filters (class_and_section may be id or name)
             class_filter = (request.GET.get("class_and_section", "") or "").strip()
             if class_filter:
                 if class_filter.isdigit():
@@ -1951,42 +2073,8 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
                 else:
                     students_qs = students_qs.filter(class_and_section__class_and_section=class_filter)
 
-            # Stream distribution
-            stream_counts_qs = (
-                students_qs.filter(class_and_section__stream__isnull=False)
-                .exclude(class_and_section__stream="")
-                .values("class_and_section__stream")
-                .annotate(count=Count("id"))
-                .order_by("class_and_section__stream")
-            )
-            stream_counts = {
-                row["class_and_section__stream"]: int(row["count"]) for row in stream_counts_qs
-            }
-
-            # Class enrollment (counts by class name label)
-            class_counts = get_class_counts(students_qs)
-
-            # Convenience metrics commonly used on the Students view
-            total = students_qs.count() if hasattr(students_qs, "count") else len(students_qs)
-            class10 = 0
-            class11 = 0
-            for k, v in (class_counts or {}).items():
-                ks = (k or "").strip()
-                if ks.startswith("10"):
-                    class10 += int(v)
-                if ks.startswith("11"):
-                    class11 += int(v)
-
             return JsonResponse(
-                {
-                    "success": True,
-                    "total": total,
-                    "class10": class10,
-                    "class11": class11,
-                    "unassigned": max(0, total - class10 - class11),
-                    "stream_counts": stream_counts,
-                    "class_counts": class_counts,
-                }
+                build_students_analytics_payload(students_qs, week_start=_week_start)
             )
         elif data_type == 'stats':
             # AJAX handler for statistics
@@ -2134,6 +2222,21 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
         context["ttv2_initial_view"] = str(initial_view)
     if getattr(request, "ttv2_auto_print", False):
         context["ttv2_auto_print"] = True
+
+    try:
+        from core.ttv2_dashboard_analytics import build_ttv2_analytics, empty_ttv2_analytics
+
+        context["ttv2_analytics"] = build_ttv2_analytics(
+            "counselor",
+            institute=counselor_institute,
+            student_management_qs=students_to_display,
+            counselor=counselor,
+            week_start=_week_start,
+        )
+    except Exception:
+        from core.ttv2_dashboard_analytics import empty_ttv2_analytics
+
+        context["ttv2_analytics"] = empty_ttv2_analytics()
     
     # Only load student table data if explicitly requested (not on initial page load)
     # This will be loaded via AJAX after page loads

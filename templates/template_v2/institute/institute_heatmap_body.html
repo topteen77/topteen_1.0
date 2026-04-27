@@ -1,0 +1,8 @@
+{# v2 single-institute heatmap body partial (AJAX into dashboard shell) #}
+<div class="ttv2-institute-embed institute-dashboard">
+  <div class="container-fluid px-0">
+    {% set heatmap_subtitle = 'Institute-wide Career Interest & Knowledge Matrix' %}
+    {% set heatmap_institute_slug = institute.slug %}
+    {% include 'template20/shared/career_heatmap_panel.html' %}
+  </div>
+</div>

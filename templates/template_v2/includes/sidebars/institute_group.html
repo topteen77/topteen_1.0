@@ -11,8 +11,8 @@
     <a href="{{ url('institute:institutegroupdashboard') }}" class="active">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students2
+    <a href="{{ url('institute:institutegroupdashboard') }}?ttv2_section=students">
+      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students
     </a>
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
@@ -22,6 +22,9 @@
     </a>
 
     <div class="ttv2-counselor-nav-title">Analytics</div>
+    <a href="{{ url('institute:institutegroupheatmap') }}">
+      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Career heatmap
+    </a>
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics
     </a>

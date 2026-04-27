@@ -1,0 +1,131 @@
+{# Create / edit / password modals for institute dashboard only (requires counselor_component_institute + counselor_data_list). #}
+{% if counselor_component_institute is defined and counselor_component_institute %}
+{% set _inst = counselor_component_institute %}
+{% set _rows = counselor_data_list if counselor_data_list is defined else [] %}
+
+<!-- Add Counselor Modal -->
+<div class="modal fade" id="addCounselorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Counselor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:createcounselor', args=[_inst.slug]) }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="counselor_admin" value="{{ _inst.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Counselor Name <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Email <span class="text-danger">*</span></label>
+            <input type="email" name="counselor_email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Address <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_address" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Contact Info <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_contact_info" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Education <span class="text-danger">*</span></label>
+            <select name="c_education" class="form-control" required>
+              <option value="">Select...</option>
+              <option value="PHD">PHD</option>
+              <option value="Bachelor's Degree">Bachelor's Degree</option>
+              <option value="Master's Degree">Master's Degree</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Gender</label>
+            <select name="counselor_gender" class="form-control">
+              <option value="">Select...</option>
+              <option value="20">Male</option>
+              <option value="30">Female</option>
+              <option value="10">Unknown</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Create Counselor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Change Counselor Password Modal -->
+<div class="modal fade" id="changeCounselorPasswordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Counselor Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:counselorchangepassword') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="counselor_id" id="coun_password_id" value="">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">New Password <span class="text-danger">*</span></label>
+            <input type="password" name="new_password" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+            <input type="password" name="confirm_password" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Change Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Counselor Modals (one per row) -->
+{% for coun in _rows %}
+<div class="modal fade" id="editCounselorModal{{ coun.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Counselor Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="#" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Counselor Name</label>
+            <input type="text" name="counselor_name" class="form-control" value="{{ coun.name }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Email</label>
+            <input type="email" name="counselor_email" class="form-control" value="{{ coun.email }}" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Address</label>
+            <input type="text" name="counselor_address" class="form-control" value="">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Contact Info</label>
+            <input type="text" name="counselor_contact_info" class="form-control" value="">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endif %}

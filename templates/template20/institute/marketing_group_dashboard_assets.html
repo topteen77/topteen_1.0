@@ -113,4 +113,18 @@
       z-index: 9999;
     }
   }
+  /* Bottom charts: psychometric + streams side by side (v1 full page) */
+  #bottom-charts-section.ttv2-bottom-charts-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  #bottom-charts-section.ttv2-bottom-charts-row > [class*="col-"] {
+    display: flex;
+  }
+  @media (min-width: 992px) {
+    #bottom-charts-section.ttv2-bottom-charts-row > [class*="col-"] {
+      flex: 0 0 calc(50% - 0.5rem);
+      max-width: calc(50% - 0.5rem);
+    }
+  }
 </style>

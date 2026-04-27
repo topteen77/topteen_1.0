@@ -1,54 +1,7 @@
 {# Counselor v2 body: reference-style multi-view shell while preserving existing IDs/JS hooks #}
 
 <div id="v-dashboard" class="ttv2-view active">
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-    <div>
-      <div class="card-title mb-0">Dashboard</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
-        All key metrics at a glance — {{ counselor_institute|default('') }}
-      </div>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <button type="button" class="btn btn-sm" style="border:1px solid var(--c-border2);color:var(--c-text2);background:transparent;border-radius:999px;padding:6px 10px;">
-        Week overview
-      </button>
-      <button type="button" class="btn btn-sm" id="ttv2ExportPdfBtn"
-              style="border:1px solid var(--c-border2);color:var(--c-text2);background:transparent;border-radius:999px;padding:6px 10px;">
-        Export PDF
-      </button>
-    </div>
-  </div>
-
-  <div class="ttv2-card mb-3" style="padding:10px 12px;background:linear-gradient(90deg, rgba(16,185,129,.10), rgba(59,130,246,.08));border-color:rgba(16,185,129,.22);">
-    <div style="font-size:11px;color:var(--c-text2);line-height:1.5;">
-      <strong style="color:var(--c-text)">Week 4 breakthrough:</strong>
-      All sessions completed. Both students contacted.
-      Psychometric completion <strong>—</strong>. Clarity gap <strong>—</strong>. First roadmap milestone set.
-    </div>
-  </div>
-
-  <div class="ttv2-kpi-grid">
-    <div class="ttv2-kpi" style="border-top-color:#6c7dff">
-      <div class="val">{{ students_count|default(0) }}</div>
-      <div class="lbl">Total students</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#4ade80">
-      <div class="val">{{ total_is_followed_up_count|default(0) }}</div>
-      <div class="lbl">Follow-ups logged</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#fbbf24">
-      <div class="val">—</div>
-      <div class="lbl">Psychometric completion</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#fb923c">
-      <div class="val">—</div>
-      <div class="lbl">Clarity gap trend</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#a78bfa">
-      <div class="val">—</div>
-      <div class="lbl">Credit utilisation</div>
-    </div>
-  </div>
+  {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
 
   {% if show_counselor_course_on_dashboard %}
   <div class="ttv2-card mt-3">
@@ -94,61 +47,7 @@
     </div>
   </div>
   {% endif %}
-
-  <div class="row g-3">
-    <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="card-title">Psychometric completion</div>
-        <canvas id="ttv2PsychometricChart"></canvas>
-      </div>
-    </div>
-    <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="card-title">Sessions trend</div>
-        <div id="sessions-loader" class="text-center py-3" style="display: none;">
-          <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-          <p class="mt-2 mb-0" style="color:var(--c-text3);font-size:11px;">Loading chart…</p>
-        </div>
-        <canvas id="sessionsChart"></canvas>
-        <div id="no-data-container" data-no-data-img="{{ static('images_new/general/no-data.png') }}" style="display: none;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3 mt-0">
-    <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="card-title">Clarity gap trend</div>
-        <canvas id="ttv2ClarityGapChart"></canvas>
-      </div>
-    </div>
-    <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="card-title">Student risk status</div>
-        <canvas id="ttv2RiskChart"></canvas>
-      </div>
-    </div>
-    <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="card-title">Credit utilisation</div>
-        <canvas id="ttv2CreditChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <div class="ttv2-card mt-3" style="padding:10px 12px;background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.24);">
-    <div style="font-size:11px;color:var(--c-text2);line-height:1.5;">
-      <strong style="color:var(--c-text)">Credit alert:</strong>
-      4 credits remaining. May Week 1 plan requires 4 sessions. Request top-up from institute admin before 30 April 2026.
-    </div>
-  </div>
-
-  <div class="ttv2-card mt-2" style="padding:10px 12px;background:rgba(99,102,241,.10);border-color:rgba(99,102,241,.24);">
-    <div style="font-size:11px;color:var(--c-text2);line-height:1.5;">
-      <strong style="color:var(--c-text)">KIRA insight:</strong>
-      Both students have converging interest in technology and product management. A joint career workshop in May could reduce both clarity gaps to below 8% in a single session.
-    </div>
-  </div>
+  {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
 </div>
 
 <div id="v-students" class="ttv2-view">
@@ -157,40 +56,7 @@
     <div style="font-size:11px;color:rgba(146,153,176,0.85)">Filter, review, and follow up with assigned students.</div>
   </div>
 
-  {# Students analytics (graphs + KPIs) #}
-  <div class="ttv2-kpi-grid mb-3">
-    <div class="ttv2-kpi" style="border-top-color:#f472b6">
-      <div class="val" id="ttv2StudentsKpiTotal">{{ students_count|default(0) }}</div>
-      <div class="lbl">Total students</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#6c7dff">
-      <div class="val" id="ttv2StudentsKpiClass10">—</div>
-      <div class="lbl">Class 10</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#4ade80">
-      <div class="val" id="ttv2StudentsKpiClass11">—</div>
-      <div class="lbl">Class 11</div>
-    </div>
-    <div class="ttv2-kpi" style="border-top-color:#fbbf24">
-      <div class="val" id="ttv2StudentsKpiUnassigned">—</div>
-      <div class="lbl">Unassigned</div>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-3">
-    <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="card-title">Stream distribution</div>
-        <canvas id="ttv2StudentsStreamChart"></canvas>
-      </div>
-    </div>
-    <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="card-title">Class enrollment</div>
-        <canvas id="ttv2StudentsClassChart"></canvas>
-      </div>
-    </div>
-  </div>
+  {% include "template_v2/includes/ttv2_students_insights_block.html" %}
 
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
     <button type="button"
@@ -283,10 +149,10 @@
                 <th scope="col">Psychometric report</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="ttv2-counselor-table-pending">
               <tr>
-                <td colspan="8" style="color:rgba(146,153,176,0.85);font-size:11px;padding:18px;">
-                  Loading…
+                <td colspan="8" class="ttv2-tbody-pending-cell">
+                  <span class="ttv2-sr-only">Preparing student list</span>
                 </td>
               </tr>
             </tbody>
@@ -328,42 +194,76 @@
   <div class="ttv2-card">
     <div class="card-title">{{ _title }}</div>
     {% if _id == 'progress' %}
-      <div style="font-size:11px;color:rgba(146,153,176,0.85);margin-bottom:10px">5-step TopTeen journey tracker</div>
-      <div class="ttv2-card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          {% for step in [1,2,3,4,5] %}
-            {% set is_done = (step <= 2) %}
-            {% set is_active = (step == 3) %}
-            <div style="display:flex;flex-direction:column;align-items:center;min-width:64px">
-              <div style="
-                width:28px;height:28px;border-radius:50%;
-                display:flex;align-items:center;justify-content:center;
-                font-size:10px;font-weight:700;
-                {% if is_done %}
-                  background:#4ade80;color:#000;border:2px solid #4ade80;
-                {% elif is_active %}
-                  background:#6c7dff;color:#fff;border:2px solid #6c7dff;
-                {% else %}
-                  background:transparent;color:rgba(146,153,176,0.9);border:2px solid rgba(255,255,255,.12);
-                {% endif %}
-              ">{{ step }}</div>
-              <div style="margin-top:6px;font-size:9px;color:rgba(146,153,176,0.85);text-align:center;white-space:nowrap">
-                {% if step == 1 %}Sign‑up{% endif %}
-                {% if step == 2 %}Take test{% endif %}
-                {% if step == 3 %}View report{% endif %}
-                {% if step == 4 %}Dream career{% endif %}
-                {% if step == 5 %}Roadmap{% endif %}
+      <div style="font-size:11px;color:rgba(146,153,176,0.85);margin-bottom:10px">5-step TopTeen journey — activity for the week selected in the dashboard header.</div>
+      {% if ttv2_analytics is defined and ttv2_analytics.week_activity %}
+        {% set wa = ttv2_analytics.week_activity %}
+        <div class="ttv2-card mb-3" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
+          <div class="row g-2" style="font-size:11px;color:rgba(232,234,240,0.92);">
+            <div class="col-6 col-md-3"><strong>New enrolments</strong><div class="fs-18 fw-semibold" style="color:#f472b6">{{ wa.enrollments }}</div></div>
+            <div class="col-6 col-md-3"><strong>Psych attempts</strong><div class="fs-18 fw-semibold" style="color:#6c7dff">{{ wa.psych_attempts }}</div></div>
+            <div class="col-6 col-md-3"><strong>Report updates</strong><div class="fs-18 fw-semibold" style="color:#34d399">{{ wa.psych_completed }}</div></div>
+            <div class="col-6 col-md-3"><strong>Counseling touches</strong><div class="fs-18 fw-semibold" style="color:#fbbf24">{{ wa.journey_touchpoints }}</div></div>
+          </div>
+        </div>
+        <div class="ttv2-card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            {% for step in [1,2,3,4,5] %}
+              {% set is_done = (
+                (step == 1 and wa.enrollments > 0) or
+                (step == 2 and wa.psych_attempts > 0) or
+                (step == 3 and wa.psych_completed > 0) or
+                (step == 4 and wa.journey_touchpoints > 0) or
+                (step == 5 and wa.journey_touchpoints > 1)
+              ) %}
+              {% set is_active = (
+                (step == 1 and wa.enrollments > 0 and wa.psych_attempts == 0) or
+                (step == 2 and wa.psych_attempts > 0 and wa.psych_completed == 0) or
+                (step == 3 and wa.psych_completed > 0 and wa.journey_touchpoints == 0) or
+                (step == 4 and wa.journey_touchpoints > 0 and wa.journey_touchpoints <= 1)
+              ) %}
+              <div style="display:flex;flex-direction:column;align-items:center;min-width:64px">
+                <div style="
+                  width:28px;height:28px;border-radius:50%;
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:10px;font-weight:700;
+                  {% if is_done %}
+                    background:#4ade80;color:#000;border:2px solid #4ade80;
+                  {% elif is_active %}
+                    background:#6c7dff;color:#fff;border:2px solid #6c7dff;
+                  {% else %}
+                    background:transparent;color:rgba(146,153,176,0.9);border:2px solid rgba(255,255,255,.12);
+                  {% endif %}
+                ">{{ step }}</div>
+                <div style="margin-top:6px;font-size:9px;color:rgba(146,153,176,0.85);text-align:center;white-space:nowrap">
+                  {% if step == 1 %}Sign‑up{% endif %}
+                  {% if step == 2 %}Take test{% endif %}
+                  {% if step == 3 %}View report{% endif %}
+                  {% if step == 4 %}Dream career{% endif %}
+                  {% if step == 5 %}Roadmap{% endif %}
+                </div>
               </div>
-            </div>
-            {% if step < 5 %}
-              <div style="flex:1;min-width:24px;height:2px;background:{% if step < 2 %}#4ade80{% else %}rgba(255,255,255,.08){% endif %};margin-bottom:18px"></div>
-            {% endif %}
-          {% endfor %}
+              {% if step < 5 %}
+                {% set conn_green = (
+                  (step == 1 and wa.enrollments > 0) or
+                  (step == 2 and wa.psych_attempts > 0) or
+                  (step == 3 and wa.psych_completed > 0) or
+                  (step == 4 and wa.journey_touchpoints > 0)
+                ) %}
+                <div style="flex:1;min-width:24px;height:2px;background:{% if conn_green %}#4ade80{% else %}rgba(255,255,255,.08){% endif %};margin-bottom:18px"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div style="margin-top:10px;font-size:10px;color:rgba(146,153,176,0.85)">
+            Steps light up when there was matching activity in the selected week (enrolments, psychometric attempts, report saves, and logged counseling touchpoints).
+          </div>
         </div>
-        <div style="margin-top:10px;font-size:10px;color:rgba(146,153,176,0.85)">
-          **Step 3 (View report card)** is highlighted here. Next, we’ll wire this to real per-student progress data.
+      {% else %}
+        <div class="ttv2-card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
+          <div style="font-size:11px;color:rgba(146,153,176,0.9);line-height:1.5">
+            Choose a week from the <strong>Week of …</strong> dropdown above (Dashboard header). Journey activity, psychometric attempts, and student enrolments for that week will appear here.
+          </div>
         </div>
-      </div>
+      {% endif %}
     {% else %}
       <div style="font-size:11px;color:rgba(146,153,176,0.85)">Coming soon — this section will be wired to live data next.</div>
     {% endif %}
