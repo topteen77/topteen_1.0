@@ -477,9 +477,31 @@ class LoginView(TemplateView):
         else:
             ctx['login_embed_heading'] = None
             ctx['login_embed_subtitle'] = None
-        # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
-        from .demo_accounts import get_demo_login_context
-        ctx.update(get_demo_login_context(request))
+        # Demo accounts toggle (controlled by Core Configuration)
+        # Uses existing keys:
+        # - SHOW_DEMO_ACCOUNT_ON_PRODUCTION
+        # - SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT
+        try:
+            from core.models import Configuration
+            from django.conf import settings
+            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
+            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
+            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+
+            # Backward compatible fallback (older key some environments may still have)
+            if not show_demo:
+                show_demo = str(Configuration.get("SHOW_DEMO_ACCOUNTS", default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+        except Exception:
+            show_demo = False
+
+        if show_demo:
+            from .demo_accounts import get_demo_login_context
+            ctx.update(get_demo_login_context(request))
+        else:
+            ctx['demo_accounts'] = []
+            ctx['demo_login_url'] = ''
+            ctx['demo_csrf_token'] = ''
         ctx['show_demo_credentials'] = False
         ctx['demo_credentials'] = []
         return ctx
@@ -577,8 +599,20 @@ class StudentLoginView(LoginView):
 
     def get_context(self, request, enc_id=None, *args, **kwargs):
         ctx = super().get_context(request, enc_id, *args, **kwargs)
-        from .demo_accounts import get_demo_login_context
-        ctx.update(get_demo_login_context(request, user_types=[choices.UserType.STUDENT]))
+        try:
+            from core.models import Configuration
+            from django.conf import settings
+            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
+            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
+            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+            if not show_demo:
+                show_demo = str(Configuration.get("SHOW_DEMO_ACCOUNTS", default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+        except Exception:
+            show_demo = False
+        if show_demo:
+            from .demo_accounts import get_demo_login_context
+            ctx.update(get_demo_login_context(request, user_types=[choices.UserType.STUDENT]))
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -613,8 +647,20 @@ class ParentsLoginView(LoginView):
 
     def get_context(self, request, enc_id=None, *args, **kwargs):
         ctx = super().get_context(request, enc_id, *args, **kwargs)
-        from .demo_accounts import get_demo_login_context
-        ctx.update(get_demo_login_context(request, user_types=[choices.UserType.PARENT]))
+        try:
+            from core.models import Configuration
+            from django.conf import settings
+            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
+            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
+            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+            if not show_demo:
+                show_demo = str(Configuration.get("SHOW_DEMO_ACCOUNTS", default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+        except Exception:
+            show_demo = False
+        if show_demo:
+            from .demo_accounts import get_demo_login_context
+            ctx.update(get_demo_login_context(request, user_types=[choices.UserType.PARENT]))
         return ctx
 
     def get(self, request, *args, **kwargs):
