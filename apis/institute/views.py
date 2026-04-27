@@ -261,7 +261,7 @@ class InstituteLoginAPI(APIView):
                 
                 data['success'] = True
                 data['message'] = 'Login successful'
-                data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
+                data['redirect_url'] = reverse('institute:institute_masterdashboard', args=[institute.slug])
                 return Response(data, status=status.HTTP_200_OK)
 
         except Exception as e:

@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from re import template
 from django.contrib.auth import authenticate, login,logout as auth_logout
 from django.contrib.auth import login
@@ -8,7 +9,16 @@ from django.shortcuts import render, redirect
 from communication.models import OTP
 from counselor.models import Counselor
 from .backends import CustomUserBackend
-from .models import User, UserResume,UserResumeCertificate,UserResumeInternship,UserResumeActivity,UserResumeSkill,UserResumeVolunteerInvolvement
+from .models import (
+    User,
+    UserResume,
+    UserResumeCertificate,
+    UserResumeInternship,
+    UserResumeActivity,
+    UserResumeSkill,
+    UserResumeVolunteerInvolvement,
+    ResumeStudioHtmlTemplate,
+)
 from communication.com_service import ComService
 from rest_framework.response import Response
 from rest_framework import status
@@ -26,6 +36,7 @@ from django.urls import reverse,reverse_lazy
 from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
 from colleges.models import College,CollegeShortlist
@@ -59,9 +70,33 @@ from institute.models import (
     resolve_marketing_group_for_public_registration,
 )
 from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
 # from .forms import InstituteRegistrationForm
+import json
 import re
+from django.utils.safestring import mark_safe
 from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
+from .resume_guided_ai import strip_markdown_fences
+from .resume_payload import (
+    STUDIO_PROTO_V1_KEY,
+    apply_studio_resume_to_userresume_children,
+    ensure_studio_proto_v1_defaults_saved,
+    resume_editor_payload as _resume_editor_payload,
+    resume_studio_embed_finish_pdf_urls,
+    resume_studio_prototype_payload,
+    studio_prefs_from_resume_record,
+    studio_v1_pack_to_generated_html,
+    wizard_prefers_generated_pdf,
+)
+from .resume_studio_html import (
+    admin_studio_html_preview_initial_json,
+    studio_html_template_catalog_json,
+)
+from .resume_studio_pdf_html import (
+    studio_pack_root_css_block,
+    studio_proto_pack_from_resume,
+    studio_proto_pack_to_mount_html,
+)
 
 
 def _link_current_analytics_session(request, user):
@@ -545,7 +580,7 @@ class DemoLoginView(View):
             if user.user_type == choices.UserType.INSTITUTE:
                 institute = Institute.objects.filter(created_by=user).last()
                 if institute:
-                    return reverse('institute:institutedashboard', args=[institute.slug])
+                    return reverse('institute:institute_masterdashboard', args=[institute.slug])
             if user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
                 if InstituteGroup.objects.filter(institute_group_admin=user).exists():
                     return reverse('institute:institutegroupdashboard')
@@ -1651,7 +1686,7 @@ class SignUpPassword(APIView):
                         from institute.models import Institute
                         institute = Institute.objects.filter(created_by=user).last()
                         if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institutedashboard', args=[institute.slug]))
+                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institute_masterdashboard', args=[institute.slug]))
                         else:
                             data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
@@ -1878,7 +1913,7 @@ class LoginPassword(APIView):
                     from institute.models import Institute
                     institute = Institute.objects.filter(created_by=user).last()
                     if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                        data['redirect_url'] = reverse('institute:institutedashboard', args=[institute.slug])
+                        data['redirect_url'] = reverse('institute:institute_masterdashboard', args=[institute.slug])
                     else:
                         data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 # Check for parent users - redirect to parents dashboard
@@ -1985,7 +2020,7 @@ class GetUserDashboardUrl(APIView):
             if user.user_type == choices.UserType.INSTITUTE:
                 institute = Institute.objects.filter(created_by=user).last()
                 if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                    redirect_url = reverse('institute:institutedashboard', args=[institute.slug])
+                    redirect_url = reverse('institute:institute_masterdashboard', args=[institute.slug])
             
             # Check for institute group admin
             elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
@@ -2692,6 +2727,7 @@ class UserDashboard(TemplateView):
         ctx['test_dashboard_url'] = None
         ctx['test_name'] = None
         ctx['has_test_payment'] = False
+        ctx['combined_report_url'] = None
 
         # Institute students are exempt from payment: allow access to test dashboard even if
         # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
@@ -2757,6 +2793,21 @@ class UserDashboard(TemplateView):
                     )
                     if all_subtests:
                         ctx['test_dashboard_url'] = reverse('app:dashboard')
+            except Exception:
+                pass
+
+        # If Career Direction and all 4 tests are completed, link to combined report
+        if ctx.get('test_name') == 'Career Direction' and ctx.get('test_dashboard_url'):
+            try:
+                from app_post_matric.models import TestSession
+                test1_completed = TestSession.objects.filter(user=profile_user, test__id=1, is_completed=True).exists()
+                test2_completed = TestSession.objects.filter(user=profile_user, test__id=2, is_completed=True).exists()
+                test3_completed = TestSession.objects.filter(user=profile_user, test__id=3, is_completed=True).exists()
+                test4_completed = TestSession.objects.filter(user=profile_user, test__id=4, is_completed=True).exists()
+                if test1_completed and test2_completed and test3_completed and test4_completed:
+                    combined_report_url = reverse('post_matric:combined_report', kwargs={'user_id': profile_user.id})
+                    ctx['combined_report_url'] = combined_report_url
+                    ctx['test_dashboard_url'] = combined_report_url
             except Exception:
                 pass
 
@@ -2931,11 +2982,24 @@ class UserDashboard(TemplateView):
                         "start_url": reverse(
                             "skilllabcourse:course_learning", args=[c.slug]
                         ),
+                        "action_label": "Start",
+                        "action_variant": "start",
                     }
                 )
         except Exception:
             pass
         if ctx.get("has_test_payment") and ctx.get("test_dashboard_url"):
+            psychometric_action_label = "Start"
+            psychometric_action_variant = "start"
+            try:
+                if ctx["test_dashboard_url"] == reverse("app:dashboard"):
+                    psychometric_action_label = "View report"
+                    psychometric_action_variant = "report"
+                elif ctx.get("combined_report_url") and ctx["test_dashboard_url"] == ctx["combined_report_url"]:
+                    psychometric_action_label = "View combined report"
+                    psychometric_action_variant = "report"
+            except Exception:
+                pass
             ctx["dashboard_enrolled_items"].insert(
                 0,
                 {
@@ -2943,8 +3007,32 @@ class UserDashboard(TemplateView):
                     "title": ctx.get("test_name") or "Psychometric test",
                     "subtitle": "Assessment",
                     "start_url": ctx["test_dashboard_url"],
+                    "action_label": psychometric_action_label,
+                    "action_variant": psychometric_action_variant,
                 },
             )
+
+        # Applications & resume hub (AdmitCV-inspired KPIs + planner widgets)
+        ctx.update(_hub_nav_counts(profile_user))
+        try:
+            hub_pc = int(profile_user.get_profile_completion_percentage() or 0)
+        except Exception:
+            hub_pc = 0
+        # Tracked applications (separate from shortlist); reserved for future use
+        ctx["hub_application_count"] = 0
+        ctx["hub_profile_completion"] = max(0, min(100, hub_pc))
+        hub_upcoming = []
+        try:
+            today = timezone.now().date()
+            for ev in (
+                UserCalender.objects.filter(user=profile_user, start_date__gte=today)
+                .order_by("start_date")[:5]
+            ):
+                hub_upcoming.append({"title": ev.event_name, "start": ev.start_date, "end": ev.end_date})
+        except Exception:
+            pass
+        ctx["hub_upcoming_events"] = hub_upcoming
+
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -3083,6 +3171,28 @@ class CreateNote(TemplateView):
     def get(self, request,id=None,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request, id,*args, **kwargs))
 
+    def post(self, request, id=None, *args, **kwargs):
+        """
+        Save note and redirect to My Notepad.
+        """
+        obj_id = (request.POST.get("obj_id") or "").strip()
+        title = (request.POST.get("title") or "").strip()
+        content = (request.POST.get("content") or "").strip()
+
+        # Prefer POST obj_id, then URL id, else create a new draft note
+        note = None
+        if obj_id:
+            note = get_object_or_404(UserNote, id=obj_id, user=request.user)
+        elif id:
+            note = get_object_or_404(UserNote, id=id, user=request.user)
+        else:
+            note = UserNote.objects.create(user=request.user)
+
+        note.title = title
+        note.content = content
+        note.save()
+        return redirect(reverse_lazy("users:mynotepad"))
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserHobbies(TemplateView):
     template_name="template20/user/my_hobbies.html"
@@ -3208,56 +3318,518 @@ class SaveMedia(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-class ResumeBuilder(TemplateView):
-    template_name="template20/user/resume_builder.html"
+def _resume_section_count(ur):
+    if not ur:
+        return 0
+    return (
+        (1 if (ur.about or "").strip() else 0)
+        + UserResumeSkill.objects.filter(resume=ur).count()
+        + UserResumeCertificate.objects.filter(resume=ur).count()
+        + UserResumeInternship.objects.filter(resume=ur).count()
+        + UserResumeActivity.objects.filter(resume=ur).count()
+        + UserResumeVolunteerInvolvement.objects.filter(resume=ur).count()
+    )
 
-    def __breadcrumb(self):
-        l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Resume builder','text':'Resume builder','url':''}]
-        return get_breadcrumb(l)
+
+def _hub_nav_counts(user):
+    """Sidebar badge counts (mirrors UserDashboard resume/shortlist/notes slice)."""
+    ctx = {
+        "hub_shortlist_count": 0,
+        "hub_resume_exists": False,
+        "hub_resume_sections": 0,
+        "hub_resume_count": 0,
+        "hub_application_count": 0,
+        "hub_notes_count": 0,
+    }
+    try:
+        ctx["hub_shortlist_count"] = CollegeShortlist.objects.filter(user=user).count()
+    except Exception:
+        pass
+    try:
+        resumes = list(UserResume.objects.filter(user=user))
+        ctx["hub_resume_count"] = len(resumes)
+        ctx["hub_resume_exists"] = len(resumes) > 0
+        ctx["hub_resume_sections"] = sum(_resume_section_count(ur) for ur in resumes)
+    except Exception:
+        pass
+    try:
+        ctx["hub_notes_count"] = UserNote.objects.filter(user=user).count()
+    except Exception:
+        pass
+    return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class MyResumesHubView(TemplateView):
+    """Lists all resumes for the account; links to Resume studio and classic editor."""
+
+    template_name = "template20/user/my_resumes.html"
 
     def html_head(self):
-        name='Resume builder'
+        name = "My resumes"
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args,**kwargs):
-        ctx={}
+    def get_context(self, request, *args, **kwargs):
+        ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx['breadcrumb']=self.__breadcrumb()
-        resume,_=UserResume.objects.get_or_create(user=request.user)
-        ctx['resume']=resume
-        ctx['resumeskill']=UserResumeSkill.objects.filter(resume=resume)
-        ctx['resumecertificate']=UserResumeCertificate.objects.filter(resume=resume)
-        ctx['resumeinternship']=UserResumeInternship.objects.filter(resume=resume)
-        ctx['resumeactivity']=UserResumeActivity.objects.filter(resume=resume)
-        ctx['resumevolunteer']=UserResumeVolunteerInvolvement.objects.filter(resume=resume)
+        profile_user = request.user
+        ctx["profile_user"] = profile_user
+        UserProfile.objects.get_or_create(user=profile_user)
+        ctx.update(_hub_nav_counts(profile_user))
+        resumes = list(UserResume.objects.filter(user=profile_user).order_by("-modified"))
+        ctx["resumes"] = resumes
+        ctx["resume_rows"] = [{"resume": r, "sections": _resume_section_count(r)} for r in resumes]
         return ctx
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
-@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-class ResumeBuilderWelcome(TemplateView):
-    template_name="template20/user/resume_builder_welcome.html"
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class ResumeHubCreateView(View):
+    """POST: create a new UserResume; optional ?next=studio|edit (default studio)."""
 
-    def __breadcrumb(self):
-        l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'Scrapbook','text':'Scrapbook','url':reverse_lazy('users:scrapbook')},{'title':'Resume builder welcome ','text':'Resume builder welcome','url':''}]
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        title = (request.POST.get("title") or "").strip()[:120] or "Untitled resume"
+        nxt = (request.POST.get("next") or "studio").strip().lower()
+        resume = UserResume.objects.create(user=request.user, title=title)
+        messages.success(request, "Resume created.")
+        if nxt == "edit":
+            return redirect("users:resumebuilder_edit", resume_id=resume.pk)
+        return redirect("users:resumebuilder_studio", resume_id=resume.pk)
+
+
+def _duplicate_user_resume_children(source_resume, new_resume):
+    """Copy active section rows from source_resume onto new_resume (same user)."""
+    for s in UserResumeSkill.objects.filter(resume=source_resume):
+        UserResumeSkill.objects.create(
+            resume=new_resume,
+            title=s.title,
+            description=s.description,
+            profficiency=s.profficiency,
+        )
+    for c in UserResumeCertificate.objects.filter(resume=source_resume):
+        UserResumeCertificate.objects.create(
+            resume=new_resume,
+            title=c.title,
+            description=c.description,
+            issue_date=c.issue_date,
+        )
+    for i in UserResumeInternship.objects.filter(resume=source_resume):
+        UserResumeInternship.objects.create(
+            resume=new_resume,
+            provider=i.provider,
+            role=i.role,
+            description=i.description,
+            start_date=i.start_date,
+            end_date=i.end_date,
+        )
+    for a in UserResumeActivity.objects.filter(resume=source_resume):
+        UserResumeActivity.objects.create(
+            resume=new_resume,
+            title=a.title,
+            description=a.description,
+            issue_date=a.issue_date,
+        )
+    for v in UserResumeVolunteerInvolvement.objects.filter(resume=source_resume):
+        UserResumeVolunteerInvolvement.objects.create(
+            resume=new_resume,
+            title=v.title,
+            role=v.role,
+            description=v.description,
+            start_date=v.start_date,
+            end_date=v.end_date,
+        )
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class ResumeHubDuplicateView(View):
+    """POST: duplicate this UserResume (DB-backed sections + studio fields) as a new row."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        from django.db import transaction
+
+        rid = request.POST.get("resume_id")
+        try:
+            pk = int(rid)
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid resume.")
+            return redirect("users:resumebuilder")
+        src = UserResume.objects.filter(pk=pk, user=request.user).first()
+        if not src:
+            messages.error(request, "Resume not found.")
+            return redirect("users:resumebuilder")
+        title = (request.POST.get("title") or "").strip()[:120]
+        raw_snap = (request.POST.get("studio_snapshot_json") or "").strip()
+        if raw_snap:
+            try:
+                snap = json.loads(raw_snap)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                snap = None
+            if isinstance(snap, dict) and isinstance(snap.get("resume"), dict):
+                rd = snap["resume"]
+                if not title:
+                    th = (rd.get("headline") or "").strip()[:100]
+                    base = th or (src.title or "My resume").strip()[:100]
+                    title = f"{base} (copy)"[:120]
+                pack = {
+                    "resume": rd,
+                    "template": (snap.get("template") or "")[:80],
+                    "color": (snap.get("color") or "")[:40],
+                    "font": (snap.get("font") or "")[:240],
+                    "textAlign": (snap.get("textAlign") or "")[:20],
+                }
+                wiz_out = json.dumps({STUDIO_PROTO_V1_KEY: pack}, ensure_ascii=False, default=str)
+                about = (rd.get("summary") or "").strip()[:10000] or (src.about or "")
+                gen_html = studio_v1_pack_to_generated_html(pack)
+                with transaction.atomic():
+                    nr = UserResume.objects.create(
+                        user=request.user,
+                        title=title,
+                        about=about,
+                        generated_html=gen_html,
+                        wizard_draft_json=wiz_out,
+                    )
+                    apply_studio_resume_to_userresume_children(nr, rd)
+                messages.success(
+                    request,
+                    "Saved a new copy with your studio layout and content.",
+                )
+                return redirect("users:resumebuilder_templates", resume_id=nr.pk)
+
+        if not title:
+            base = (src.title or "My resume").strip()[:100]
+            title = f"{base} (copy)"[:120]
+
+        with transaction.atomic():
+            nr = UserResume.objects.create(
+                user=request.user,
+                title=title,
+                about=src.about,
+                generated_html=src.generated_html,
+                wizard_draft_json=src.wizard_draft_json,
+            )
+            _duplicate_user_resume_children(src, nr)
+        messages.success(request, "Saved a fresh copy of your resume. You can edit it below.")
+        return redirect("users:resumebuilder_templates", resume_id=nr.pk)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class ResumeHubDeleteView(View):
+    """POST: permanently remove one resume (resume_id) and its sections."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        rid = request.POST.get("resume_id")
+        try:
+            pk = int(rid)
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid resume.")
+            return redirect("users:resumebuilder")
+        resume = UserResume.objects.filter(pk=pk, user=request.user).first()
+        if resume:
+            resume.delete(hard_delete=True)
+            messages.success(request, "That resume was deleted.")
+        else:
+            messages.info(request, "Resume not found.")
+        return redirect("users:resumebuilder")
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class ResumeBuilderEditView(TemplateView):
+    """Classic section-based resume editor (skills, certificates, etc.)."""
+
+    template_name = "template20/user/resume_builder.html"
+
+    def __breadcrumb(self, resume):
+        l = [
+            {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
+            {"title": "My resumes", "text": "My resumes", "url": reverse_lazy("users:resumebuilder")},
+            {
+                "title": "Edit resume",
+                "text": resume.title or "Edit resume",
+                "url": "",
+            },
+        ]
         return get_breadcrumb(l)
 
-    def html_head(self):
-        name='Resume builder'
+    def html_head(self, resume):
+        name = resume.title or "Edit resume"
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args,**kwargs):
-        ctx={}
-        ctx["html_head"] = self.html_head()
-        ctx['breadcrumb']=self.__breadcrumb()
+    def get_context(self, request, resume_id, *args, **kwargs):
+        ctx = {}
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        ctx["html_head"] = self.html_head(resume)
+        ctx["breadcrumb"] = self.__breadcrumb(resume)
+        ctx["profile_user"] = request.user
+        ctx["resume"] = resume
+        ctx.update(_hub_nav_counts(request.user))
+        ctx["resumeskill"] = UserResumeSkill.objects.filter(resume=resume)
+        ctx["resumecertificate"] = UserResumeCertificate.objects.filter(resume=resume)
+        ctx["resumeinternship"] = UserResumeInternship.objects.filter(resume=resume)
+        ctx["resumeactivity"] = UserResumeActivity.objects.filter(resume=resume)
+        ctx["resumevolunteer"] = UserResumeVolunteerInvolvement.objects.filter(resume=resume)
+        ctx["resume_editor_payload"] = _resume_editor_payload(resume)
         return ctx
 
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
-    
+    def get(self, request, resume_id, *args, **kwargs):
+        return render(
+            request,
+            self.template_name,
+            self.get_context(request, resume_id, *args, **kwargs),
+        )
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeGeneratedPreviewView(TemplateView):
+    """Read-only HTML preview of the AI-generated resume (same tab / new tab)."""
+
+    template_name = "template20/user/resume_generated_preview.html"
+
+    def html_head(self, resume):
+        return build_html_head(
+            title=resume.title or "Resume preview",
+            description="Preview generated resume",
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        resume = get_object_or_404(
+            UserResume, pk=self.kwargs["resume_id"], user=self.request.user
+        )
+        ctx["html_head"] = self.html_head(resume)
+        ctx["resume"] = resume
+        ctx["profile_user"] = self.request.user
+        ctx.update(_hub_nav_counts(self.request.user))
+        if wizard_prefers_generated_pdf(resume):
+            ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
+        else:
+            studio_pack = studio_proto_pack_from_resume(resume)
+            if studio_pack:
+                mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
+                ctx["resume_html_display"] = get_template(
+                    "mail/user/userresumepdf_studio_prototype.html"
+                ).render(
+                    {
+                        "studio_resume_css_url": _studio_resume_pdf_stylesheet_url(self.request),
+                        "studio_root_style": studio_pack_root_css_block(studio_pack),
+                        "studio_mount_html": mount_html,
+                        "studio_template_id": template_id,
+                    }
+                )
+            else:
+                ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
+        return ctx
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeStudioSetupView(TemplateView):
+    """AdmitCV-style guided resume studio for a specific UserResume row."""
+
+    template_name = "template20/user/resume_studio_setup.html"
+
+    def html_head(self, resume):
+        name = "Resume studio"
+        return build_html_head(title=name, description=name)
+
+    def get_context(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        ctx = {}
+        ctx["html_head"] = self.html_head(resume)
+        profile = getattr(request.user, "user_profile", None)
+        ctx["resume"] = resume
+        ctx["profile_user"] = request.user
+        UserProfile.objects.get_or_create(user=request.user)
+        ctx.update(_hub_nav_counts(request.user))
+        ctx["admitcv_prefill"] = {
+            "name": (request.user.name or "")[:200],
+            "email": (request.user.email or "")[:200],
+            "phone": str(getattr(request.user, "mobile", "") or "")[:80],
+            "country": "",
+            "school": (profile.schoolname or "")[:300] if profile else "",
+            "grade": (profile.grade or "")[:120] if profile else "",
+        }
+        ctx["wizard_restore_json"] = resume.wizard_draft_json or "{}"
+        from users.resume_studio_html import studio_html_template_catalog_rows
+
+        rows = studio_html_template_catalog_rows()
+        ctx["admitcv_studio_template_catalog"] = rows
+        ctx["resume_has_generated"] = bool((resume.generated_html or "").strip())
+        # Real mini previews for Step-6 tiles (server render, then scale down in CSS).
+        try:
+            from users.resume_studio_html import ADMIN_STUDIO_HTML_PREVIEW_SAMPLE
+            from users.resume_studio_pdf_html import studio_proto_pack_to_mount_html
+            from users.resume_payload import DEFAULT_STUDIO_EMBED_FONT
+
+            previews = []
+            for r in rows:
+                tid = (r.get("id") or "").strip().lower()
+                if not tid:
+                    continue
+                pack = {
+                    "resume": ADMIN_STUDIO_HTML_PREVIEW_SAMPLE,
+                    "template": tid,
+                    "color": "teal",
+                    "font": DEFAULT_STUDIO_EMBED_FONT,
+                    "textAlign": "start",
+                }
+                mount_html, _ = studio_proto_pack_to_mount_html(pack)
+                previews.append({"id": tid, "html": mount_html})
+            ctx["admitcv_studio_template_previews"] = previews
+        except Exception:
+            ctx["admitcv_studio_template_previews"] = []
+        return ctx
+
+    def get(self, request, resume_id, *args, **kwargs):
+        return render(
+            request,
+            self.template_name,
+            self.get_context(request, resume_id, *args, **kwargs),
+        )
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeGuidedGenerateView(View):
+    """POST JSON { draft, resume_id?, studio_template_id? } — AI HTML + optional studio RESUME_DATA merge."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        import json
+
+        from django.db import transaction
+
+        from users.resume_guided_ai import (
+            build_plain_resume_summary_py,
+            extract_resume_data_json,
+            generate_resume_raw,
+            sanitize_draft,
+            split_generated_html,
+            sync_user_fields_from_wizard,
+        )
+        from users.resume_payload import (
+            DEFAULT_STUDIO_EMBED_FONT,
+            STUDIO_PROTO_V1_KEY,
+            WIZARD_PREFER_GENERATED_PDF_KEY,
+            apply_studio_resume_to_userresume_children,
+            guided_wizard_payload_for_studio,
+            merge_studio_resume_ai_overlay,
+            studio_v1_pack_to_generated_html,
+        )
+        from users.resume_studio_pdf_html import studio_proto_pack_to_mount_html
+        from users.resume_studio_html import ALLOWED_STUDIO_HTML_TEMPLATE_KEYS
+
+        try:
+            body = json.loads(request.body.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+        raw_draft = body.get("draft")
+        if not isinstance(raw_draft, dict):
+            return JsonResponse({"error": 'Missing or invalid "draft" object'}, status=400)
+
+        try:
+            draft = sanitize_draft(raw_draft)
+        except ValueError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
+
+        st_raw = body.get("studio_template_id")
+        studio_tid = str(st_raw).strip().lower() if st_raw not in (None, "", b"") else ""
+        if studio_tid and studio_tid not in ALLOWED_STUDIO_HTML_TEMPLATE_KEYS:
+            studio_tid = ""
+
+        raw, err = generate_resume_raw(draft, studio_template_id=studio_tid or None)
+        if err:
+            logger.warning("resume_guided_generate failed: %s", err[:500])
+            return JsonResponse({"error": err}, status=503)
+
+        html_clean = split_generated_html(raw)
+        rd_raw = extract_resume_data_json(raw)
+        rid = body.get("resume_id")
+        client_preview = html_clean
+        pk = None
+        if rid not in (None, "", b""):
+            try:
+                pk = int(rid)
+            except (TypeError, ValueError):
+                pk = None
+            if pk:
+                try:
+                    with transaction.atomic():
+                        ur = get_object_or_404(
+                            UserResume.objects.select_for_update(),
+                            pk=pk,
+                            user=request.user,
+                        )
+                        plain = build_plain_resume_summary_py(draft)
+                        fallback_resume = guided_wizard_payload_for_studio(ur, request, draft)
+                        merged_resume = merge_studio_resume_ai_overlay(
+                            fallback_resume,
+                            rd_raw if isinstance(rd_raw, dict) else None,
+                        )
+                        has_pack_content = bool(
+                            merged_resume
+                            and (
+                                (merged_resume.get("fullName") or "").strip()
+                                or (merged_resume.get("headline") or "").strip()
+                                or (merged_resume.get("summary") or "").strip()
+                                or (merged_resume.get("experience") or [])
+                                or (merged_resume.get("education") or [])
+                                or (merged_resume.get("skills") or [])
+                            )
+                        )
+                        pack = None
+                        if has_pack_content:
+                            pack = {
+                                "resume": merged_resume,
+                                "template": studio_tid or "classic-sidebar",
+                                "color": "teal",
+                                "font": DEFAULT_STUDIO_EMBED_FONT,
+                                "textAlign": "start",
+                            }
+                        draft_save = dict(draft)
+                        if pack:
+                            draft_save[STUDIO_PROTO_V1_KEY] = pack
+                            apply_studio_resume_to_userresume_children(ur, pack["resume"])
+                        if studio_tid and pack:
+                            # Use the same renderer as the template library / PDF so the generated preview
+                            # matches the selected layout (e.g. Tech Focus).
+                            mount_html, _template_id = studio_proto_pack_to_mount_html(pack)
+                            ur.generated_html = mount_html
+                            draft_save.pop(WIZARD_PREFER_GENERATED_PDF_KEY, None)
+                        else:
+                            ur.generated_html = html_clean
+                            draft_save[WIZARD_PREFER_GENERATED_PDF_KEY] = True
+                        # Gate UI behavior: allow skipping steps once generated at least once.
+                        draft_save["generated_once"] = True
+                        ur.about = plain
+                        ur.wizard_draft_json = json.dumps(
+                            draft_save, ensure_ascii=False, default=str
+                        )
+                        ur.save(
+                            update_fields=[
+                                "generated_html",
+                                "about",
+                                "wizard_draft_json",
+                                "modified",
+                            ]
+                        )
+                        client_preview = (ur.generated_html or html_clean).strip() or html_clean
+                        sync_user_fields_from_wizard(request.user, draft)
+                except Exception as exc:
+                    logger.exception("resume persist after generate failed: %s", exc)
+                    return JsonResponse({"error": "Could not save resume to your account."}, status=500)
+
+        return JsonResponse({"html": raw, "preview_html": client_preview})
+
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserFolders(TemplateView):
     template_name="template20/user/user_folder.html"
@@ -3302,26 +3874,336 @@ class UserFolderDetail(TemplateView):
 
     def get(self, request,id,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request, id,*args, **kwargs))
-    
+
+
+AI_DYNAMIC_GENERATED_SHELL = "mail/user/userresumepdf_gen_ai_dynamic_shell.html"
+
+
+def _ai_shell_ctx_from_row(row):
+    from users.resume_template_ai import google_font_context_for_template
+
+    if not row:
+        return {
+            "ai_dynamic_css": "",
+            "use_ai_dynamic_shell": False,
+            "ai_google_font_url": "",
+            "ai_google_font_stack": "",
+        }
+    css = (getattr(row, "ai_dynamic_css", None) or "").strip()
+    use = bool(css)
+    ctx = {"ai_dynamic_css": css if use else "", "use_ai_dynamic_shell": use}
+    if use:
+        ctx.update(google_font_context_for_template(row))
+    else:
+        ctx["ai_google_font_url"] = ""
+        ctx["ai_google_font_stack"] = ""
+    return ctx
+
+
+def _choose_generated_mail_template(row, generated_path):
+    if row and (getattr(row, "ai_dynamic_css", None) or "").strip():
+        return AI_DYNAMIC_GENERATED_SHELL, AI_DYNAMIC_GENERATED_SHELL
+    return generated_path, "mail/user/userresumepdf_generated.html"
+
+
+def _resume_pdf_template_row_paths_and_style(
+    user_resume,
+    preview_template_id=None,
+    force_template_row=None,
+    restrict_template_user=None,
+):
+    """Return fixed PDF mail template paths and default layout/accent (no DB template rows)."""
+    return (
+        None,
+        "mail/user/userresumepdf.html",
+        "mail/user/userresumepdf_generated.html",
+        "v01",
+        "#19718c",
+    )
+
+
+def _studio_resume_pdf_stylesheet_url(request) -> str:
+    """Prefer file:// for wkhtmltopdf; else absolute URL to static."""
+    from pathlib import Path
+
+    from django.contrib.staticfiles import finders
+    from django.templatetags.static import static
+
+    p = finders.find("resume-builder-prototype/styles.css")
+    if p and Path(p).is_file():
+        return Path(p).as_uri()
+    return request.build_absolute_uri(static("resume-builder-prototype/styles.css"))
+
+
 @login_required
 def resume_pdf_download(request,*args, **kwargs):
-    template = get_template("mail/user/userresumepdf.html")
-    user_resume=request.user.user_resume
+    rid = request.GET.get("resume_id")
+    qs = UserResume.objects.filter(user=request.user)
+    if rid:
+        try:
+            user_resume = get_object_or_404(qs, pk=int(rid))
+        except ValueError:
+            user_resume = None
+    else:
+        user_resume = qs.order_by("-modified").first()
+    if not user_resume:
+        messages.info(request, "Create or pick a resume before downloading a PDF.")
+        return redirect("users:resumebuilder")
+    preview_tid = request.GET.get("template_id")
+    _tpl_row, classic_path, generated_path, pdf_lv, pdf_ac = _resume_pdf_template_row_paths_and_style(
+        user_resume, preview_template_id=preview_tid, restrict_template_user=request.user
+    )
     ctx={}
     ctx["request"]=request
     ctx["profile"]=get_object_or_404(UserProfile,user=request.user)
+    ctx["user_resume"] = user_resume
+    ctx["pdf_layout_variant"] = pdf_lv
+    ctx["pdf_accent_color"] = pdf_ac
+    ctx.update(_ai_shell_ctx_from_row(_tpl_row))
     ctx["skills"]=UserResumeSkill.objects.filter(resume=user_resume)
     ctx["certificates"]=UserResumeCertificate.objects.filter(resume=user_resume).order_by("issue_date")
     ctx["internships"]=UserResumeInternship.objects.filter(resume=user_resume)
     ctx["activities"]=UserResumeActivity.objects.filter(resume=user_resume)
     ctx["volunteers"]=UserResumeVolunteerInvolvement.objects.filter(resume=user_resume)
-    ctx["image_url"]="https://www.topteen.in{}".format(request.user.image.url)
+    ctx["resume_contact"] = resume_studio_prototype_payload(user_resume, request)
+    user_image = getattr(request.user, "image", None)
+    if user_image:
+        try:
+            ctx["image_url"] = "https://www.topteen.in{}".format(user_image.url)
+        except ValueError:
+            ctx["image_url"] = ""
+    else:
+        ctx["image_url"] = ""
+    from django.template import TemplateDoesNotExist
+
+    studio_pack = (
+        None
+        if wizard_prefers_generated_pdf(user_resume)
+        else studio_proto_pack_from_resume(user_resume)
+    )
+    if studio_pack:
+        mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
+        ctx["studio_resume_css_url"] = _studio_resume_pdf_stylesheet_url(request)
+        ctx["studio_root_style"] = studio_pack_root_css_block(studio_pack)
+        ctx["studio_mount_html"] = mount_html
+        ctx["studio_template_id"] = template_id
+        ctx["generated_resume_html"] = mount_html
+        chosen = "mail/user/userresumepdf_studio_prototype.html"
+        fallback = "mail/user/userresumepdf_studio_prototype.html"
+    elif (user_resume.generated_html or "").strip():
+        ctx["generated_resume_html"] = strip_markdown_fences(user_resume.generated_html)
+        chosen, fallback = _choose_generated_mail_template(_tpl_row, generated_path)
+    else:
+        chosen = classic_path
+        fallback = "mail/user/userresumepdf.html"
+    try:
+        template = get_template(chosen)
+    except TemplateDoesNotExist:
+        template = get_template(fallback)
     html  = template.render(ctx)
-    pdf=pdfkit.from_string(html,False)
+    pdf_options = {
+        "enable-local-file-access": "",
+        "page-size": "A4",
+        "orientation": "Portrait",
+        "margin-top": "6mm",
+        "margin-right": "6mm",
+        "margin-bottom": "6mm",
+        "margin-left": "6mm",
+        "encoding": "UTF-8",
+        "print-media-type": "",
+    }
+    pdf = pdfkit.from_string(
+        html,
+        False,
+        options=pdf_options,
+    )
     response= HttpResponse(pdf, content_type='application/pdf')
-    name="{}resume.pdf".format( request.user.name if request.user.name else "Student")
-    response['Content-Disposition']='attachment; filename="' +name+ '"'
+    base = (request.user.name or "Student").strip() or "Student"
+    safe = re.sub(r"[^\w\-. ]+", "_", base, flags=re.UNICODE).strip(" .-_") or "Student"
+    filename = f"{safe}-resume.pdf"
+    inline = (request.GET.get("inline") or "").strip().lower() in ("1", "true", "yes")
+    disp = "inline" if inline else "attachment"
+    response["Content-Disposition"] = '{}; filename="{}"'.format(disp, filename)
     return response
+
+
+@login_required
+def resume_html_preview(request, *args, **kwargs):
+    """Same render as PDF but HTML for iframe preview (template library)."""
+    rid = request.GET.get("resume_id")
+    qs = UserResume.objects.filter(user=request.user)
+    if rid:
+        try:
+            user_resume = get_object_or_404(qs, pk=int(rid))
+        except ValueError:
+            user_resume = None
+    else:
+        user_resume = qs.order_by("-modified").first()
+    if not user_resume:
+        return HttpResponse("<p>Resume not found.</p>", status=404)
+    preview_tid = request.GET.get("template_id")
+    _tpl_row, classic_path, generated_path, pdf_lv, pdf_ac = _resume_pdf_template_row_paths_and_style(
+        user_resume, preview_template_id=preview_tid, restrict_template_user=request.user
+    )
+    ctx = {
+        "request": request,
+        "profile": get_object_or_404(UserProfile, user=request.user),
+        "user_resume": user_resume,
+        "skills": UserResumeSkill.objects.filter(resume=user_resume),
+        "certificates": UserResumeCertificate.objects.filter(resume=user_resume).order_by("issue_date"),
+        "internships": UserResumeInternship.objects.filter(resume=user_resume),
+        "activities": UserResumeActivity.objects.filter(resume=user_resume),
+        "volunteers": UserResumeVolunteerInvolvement.objects.filter(resume=user_resume),
+        "resume_contact": resume_studio_prototype_payload(user_resume, request),
+        "pdf_layout_variant": pdf_lv,
+        "pdf_accent_color": pdf_ac,
+    }
+    ctx.update(_ai_shell_ctx_from_row(_tpl_row))
+    user_image = getattr(request.user, "image", None)
+    if user_image:
+        try:
+            ctx["image_url"] = "https://www.topteen.in{}".format(user_image.url)
+        except ValueError:
+            ctx["image_url"] = ""
+    else:
+        ctx["image_url"] = ""
+    from django.template import TemplateDoesNotExist
+
+    studio_pack = (
+        None
+        if wizard_prefers_generated_pdf(user_resume)
+        else studio_proto_pack_from_resume(user_resume)
+    )
+    if studio_pack:
+        mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
+        ctx["studio_resume_css_url"] = _studio_resume_pdf_stylesheet_url(request)
+        ctx["studio_root_style"] = studio_pack_root_css_block(studio_pack)
+        ctx["studio_mount_html"] = mount_html
+        ctx["studio_template_id"] = template_id
+        ctx["generated_resume_html"] = mount_html
+        chosen = "mail/user/userresumepdf_studio_prototype.html"
+        fallback = "mail/user/userresumepdf_studio_prototype.html"
+    elif (user_resume.generated_html or "").strip():
+        ctx["generated_resume_html"] = strip_markdown_fences(user_resume.generated_html)
+        chosen, fallback = _choose_generated_mail_template(_tpl_row, generated_path)
+    else:
+        chosen = classic_path
+        fallback = "mail/user/userresumepdf.html"
+    try:
+        template = get_template(chosen)
+    except TemplateDoesNotExist:
+        template = get_template(fallback)
+    html = template.render(ctx)
+    return HttpResponse(html, content_type="text/html; charset=utf-8")
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeTemplateLibraryView(TemplateView):
+    """Screen 2–style template picker: library grid, live preview, apply layout to this resume."""
+
+    template_name = "template20/user/resume_template_library.html"
+
+    def html_head(self, resume):
+        return build_html_head(title="Resume templates", description="Choose a PDF layout for your resume.")
+
+    def get_context(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        ctx = {}
+        ctx["html_head"] = self.html_head(resume)
+        ctx["resume"] = resume
+        ctx["profile_user"] = request.user
+        UserProfile.objects.get_or_create(user=request.user)
+        ctx.update(_hub_nav_counts(request.user))
+        # Template gallery is the static resume-builder prototype (no DB PDF template rows).
+        ctx["library_templates"] = []
+        ctx["library_templates_catalog"] = []
+        ctx["library_templates_catalog_json"] = mark_safe("[]")
+        return ctx
+
+    def get(self, request, resume_id, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, resume_id, *args, **kwargs))
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeTemplateStudioEmbedView(View):
+    """Minimal HTML document for iframe: resume-builder prototype + DB-backed initial data."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        if ensure_studio_proto_v1_defaults_saved(resume, request):
+            resume.refresh_from_db()
+        payload = resume_studio_prototype_payload(resume, request)
+        raw = json.dumps(payload, ensure_ascii=False, default=str).translate(
+            str.maketrans({"<": "\\u003c", ">": "\\u003e"})
+        )
+        finish, _pdf = resume_studio_embed_finish_pdf_urls(request, resume)
+        ctx = {
+            "resume": resume,
+            "resume_initial_json": mark_safe(raw),
+            "studio_prefs_initial_json": mark_safe(json.dumps(studio_prefs_from_resume_record(resume))),
+            "storage_key": f"resume-builder-proto-{resume.pk}",
+            "finish_url": finish,
+            "duplicate_resume_url": reverse("users:resumebuilder_duplicate"),
+            "studio_templates_catalog_json": studio_html_template_catalog_json(),
+            "studio_force_template": "",
+            "studio_template_row": None,
+        }
+        return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeStudioPhotoUploadView(View):
+    """POST multipart {photo=<file>} → store on UserResume.image (S3-backed ImageField)."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        f = request.FILES.get("photo")
+        if not f:
+            return JsonResponse({"error": "Missing photo file"}, status=400)
+        # Basic sanity checks (content type + size).
+        ctype = (getattr(f, "content_type", "") or "").lower()
+        if ctype and not ctype.startswith("image/"):
+            return JsonResponse({"error": "Only image uploads are supported."}, status=400)
+        try:
+            max_mb = int(getattr(settings, "S3_MAX_FILE_SIZE_MB", 2) or 2)
+        except Exception:
+            max_mb = 2
+        if getattr(f, "size", 0) and f.size > max_mb * 1024 * 1024:
+            return JsonResponse({"error": f"Image too large (max {max_mb}MB)."}, status=413)
+
+        resume.image = f
+        resume.save(update_fields=["image", "modified"])
+        try:
+            url = resume.image.url if resume.image else ""
+            abs_url = request.build_absolute_uri(url) if url and url.startswith("/") else url
+        except Exception:
+            abs_url = ""
+        return JsonResponse({"ok": True, "url": abs_url})
+
+
+@staff_member_required
+def admin_resume_studio_html_template_preview(request, template_pk):
+    """Staff: open the HTML resume studio with sample data and this layout selected (same prototype as students)."""
+    tpl = get_object_or_404(ResumeStudioHtmlTemplate.objects.complete(), pk=template_pk)
+    ctx = {
+        "resume": None,
+        "resume_initial_json": admin_studio_html_preview_initial_json(),
+        "studio_prefs_initial_json": mark_safe(json.dumps({})),
+        "storage_key": f"admin-studio-html-{tpl.pk}",
+        "finish_url": "",
+        "duplicate_resume_url": reverse("users:resumebuilder_duplicate"),
+        "studio_templates_catalog_json": studio_html_template_catalog_json(),
+        "studio_force_template": tpl.template_key,
+        "studio_template_row": tpl,
+    }
+    return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
+
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserCalenderView(TemplateView):

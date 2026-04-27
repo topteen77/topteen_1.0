@@ -1,6 +1,15 @@
 from django.contrib import admin
 from django.contrib.admin.decorators import action
-from .models import User,UserProfile,UserCalender, UserNote, UserResume, UserFolder, UserSearchHistory
+from .models import (
+    User,
+    UserProfile,
+    UserCalender,
+    UserNote,
+    UserResume,
+    UserFolder,
+    UserSearchHistory,
+    ResumeStudioHtmlTemplate,
+)
 from django.urls import reverse, path
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -196,6 +205,58 @@ class PsychometricTestPaymentInline(admin.TabularInline):
         return format_html('<span style="color: red;">✗</span>')
 
     is_success_display.short_description = 'Success'
+
+
+@admin.register(ResumeStudioHtmlTemplate)
+class ResumeStudioHtmlTemplateAdmin(admin.ModelAdmin):
+    """HTML resume studio gallery (student /templates/embed iframe); keys map to app.js RENDERERS."""
+
+    list_display = (
+        "name",
+        "template_key",
+        "studio_html_preview_link",
+        "category",
+        "mock_class",
+        "is_active",
+        "sort_order",
+    )
+    list_filter = ("is_active", "category")
+    search_fields = ("name", "template_key", "description")
+    ordering = ("sort_order", "id")
+    readonly_fields = ("studio_html_preview_link_detail",)
+    actions = ("activate_selected_studio_templates", "deactivate_selected_studio_templates")
+
+    @action(description="Activate selected templates", permissions=["change"])
+    def activate_selected_studio_templates(self, request, queryset):
+        n = queryset.update(is_active=True)
+        self.message_user(request, "Activated %d template(s)." % n, messages.SUCCESS)
+
+    @action(description="Deactivate selected templates", permissions=["change"])
+    def deactivate_selected_studio_templates(self, request, queryset):
+        n = queryset.update(is_active=False)
+        self.message_user(request, "Deactivated %d template(s)." % n, messages.SUCCESS)
+
+    @admin.display(description="Preview")
+    def studio_html_preview_link(self, obj):
+        if not obj.pk:
+            return "—"
+        url = reverse("users:admin_resume_studio_html_template_preview", kwargs={"template_pk": obj.pk})
+        return format_html(
+            '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Preview</a>',
+            url,
+        )
+
+    @admin.display(description="HTML studio preview")
+    def studio_html_preview_link_detail(self, obj):
+        if not obj.pk:
+            return "Save this row first, then use Preview."
+        url = reverse("users:admin_resume_studio_html_template_preview", kwargs={"template_pk": obj.pk})
+        return format_html(
+            '<a class="button" href="{}" target="_blank" rel="noopener noreferrer">Open studio preview</a>'
+            '<p class="help" style="margin-top:8px">Opens the same student resume studio with sample data and this layout. '
+            "Changing <strong>template key</strong> only works for keys implemented in the prototype JavaScript.</p>",
+            url,
+        )
 
 
 def _user_admin_inlines():
@@ -538,11 +599,11 @@ class UserAdmin(admin.ModelAdmin):
                 for note in UserNote.objects.complete().filter(user=user):
                     note.delete(hard_delete=True)
                 
-                # Delete UserResume and related
-                if hasattr(user, 'user_resume'):
+                # Delete UserResume rows and related sections
+                for ur in UserResume.objects.complete().filter(user=user):
                     try:
-                        user.user_resume.delete(hard_delete=True)
-                    except:
+                        ur.delete(hard_delete=True)
+                    except Exception:
                         pass
                 
                 # Delete UserFolders (BaseModel - need to hard delete each instance)

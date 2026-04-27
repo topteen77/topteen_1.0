@@ -1,239 +1,836 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Combined Report - Assessment Dashboard | Top Teen{% endblock %}
 {% block description_content %}View your comprehensive assessment report combining all test results.{% endblock %}
 
-{% block chatbot %}{% endblock %}
-{% block chatbot_css %}{% endblock %}
-{% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}{{ super() }} combined-report-page{% endblock %}
+{% block student_bodyclass %}combined-report-page user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Combined report' %}
+{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <style>
+  .std-shell-main {
+    padding-top: 0px;
+  }
+
+  .profile-sidebar {
+    background: #fff;
+  }
+
   .combined-report-page {
-    padding-top: 80px;
+    padding-top: 0;
+    background: #f4f6fb;
+    min-height: 100vh;
+    color: var(--dash-heading, #1f2937);
   }
+
   .hero-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 60px 0;
-    color: white;
+    background: linear-gradient(135deg, #3f37c9 0%, #5147d6 45%, #20a4f3 100%);
+    padding: 56px 0 92px;
+    color: #fff;
   }
-  .report-card {
-    background: white;
-    border-radius: 12px;
-    padding: 32px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 24px;
-  }
-  .report-header {
-    text-align: center;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 2px solid #e9ecef;
-  }
-  .report-header h1 {
-    font-size: 2.5rem;
+
+  .hero-title {
+    font-size: 2.1rem;
     font-weight: 700;
-    color: #333;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
+
+  .hero-subtitle {
+    max-width: 760px;
+    margin: 0 auto;
+    opacity: .95;
+  }
+
+  .report-hero {
+    background: linear-gradient(135deg, #3f37c9 0%, #5147d6 48%, #0ea5e9 100%);
+    border-radius: 18px;
+    padding: 28px 22px;
+    box-shadow: 0 14px 35px rgba(63, 55, 201, 0.24);
+    position: relative;
+    overflow: hidden;
+  }
+
+
+
+  .report-hero-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-chip-row {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hero-chip {
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.17);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hero-meta-grid {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-meta-item {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: left;
+    backdrop-filter: blur(6px);
+  }
+
+  .hero-meta-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    opacity: .82;
+  }
+
+  .hero-meta-value {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+
+  .report-shell {
+    margin-top: -56px;
+  }
+
+  /* .report-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 10px 32px rgba(51, 62, 129, 0.12);
+    margin-bottom: 20px;
+  } */
+
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #21243d;
+    margin-bottom: 18px;
+  }
+
   .student-info {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
   }
+
   .info-item {
+    background: #f7f8ff;
+    border: 1px solid #e6e8fb;
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+
+  .info-label {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .info-value {
+    font-size: 15px;
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+  }
+
+  .kpi-card {
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::after {
+    content: "";
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .15);
+  }
+
+  .kpi-tests {
+    background: linear-gradient(135deg, #3f37c9, #5147d6);
+  }
+
+  .kpi-careers {
+    background: linear-gradient(135deg, #00897b, #00a680);
+  }
+
+  .kpi-strengths {
+    background: linear-gradient(135deg, #1565c0, #1e88e5);
+  }
+
+  .kpi-improve {
+    background: linear-gradient(135deg, #c24e4e, #d96a6a);
+  }
+
+  .kpi-label {
+    font-size: 12px;
+    opacity: .9;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .kpi-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .chart-card {
+    background: #fff;
+    border: 1px solid #e6e8fb;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #34495e;
+    margin-bottom: 8px;
+  }
+
+  .chart-wrap {
+    height: 220px;
+    position: relative;
+  }
+
+  .deep-dive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .data-note {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 8px;
+  }
+
+  .data-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+  }
+
+  .data-status-item {
+    background: linear-gradient(145deg, #fff 0%, #f1f4ff 100%);
+    border: 1px solid #e1e5fb;
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+  }
+
+  .data-status-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .data-status-icon.source {
+    background: linear-gradient(135deg, #3f37c9, #5b52dc);
+  }
+
+  .data-status-icon.reports {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  }
+
+  .data-status-icon.visuals {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+
+  .data-status-meta {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    line-height: 1.25;
   }
-  .info-label {
-    font-size: 12px;
-    color: #666;
+
+  .data-status-label {
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    font-weight: 600;
+    letter-spacing: .4px;
+    color: #6b7280;
   }
-  .info-value {
-    font-size: 16px;
-    color: #333;
-    font-weight: 600;
+
+  .data-status-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-top: 2px;
   }
-  .test-summary-section {
-    margin-bottom: 32px;
+
+  .test-list {
+    display: grid;
+    gap: 12px;
   }
-  .section-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #e9ecef;
+
+  .test-list.timeline-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+
   .test-card {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border-left: 4px solid #3f37c9;
+    background: #f8f9ff;
+    border: 1px solid #e6e8fb;
+    border-radius: 12px;
+    padding: 14px;
   }
+
   .test-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-  }
-  .test-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #333;
-  }
-  .test-date {
-    font-size: 14px;
-    color: #666;
-  }
-  .test-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
-  }
-  .detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .detail-label {
-    font-size: 12px;
-    color: #666;
-    text-transform: uppercase;
-  }
-  .detail-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: #3f37c9;
-  }
-  .careers-section {
-    margin-bottom: 32px;
-  }
-  .career-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-  }
-  .career-item {
-    background: #f8f9fa;
-    padding: 12px 16px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 600;
-    color: #333;
-    transition: all 0.3s;
-  }
-  .career-item:hover {
-    background: #e9ecef;
-    transform: translateY(-2px);
-  }
-  .career-item.recommended {
-    background: #d4edda;
-    color: #155724;
-  }
-  .actions-section {
-    display: flex;
-    gap: 12px;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 2px solid #e9ecef;
+    gap: 10px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
   }
+
+  .test-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #21243d;
+  }
+
+  .test-date {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .timeline-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .timeline-card-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mini-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    border: 1px solid #d7dbef;
+    background: #fff;
+    color: #25314f;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    text-decoration: none;
+    transition: .2s ease;
+  }
+
+  .mini-btn:hover {
+    background: #f1f4ff;
+    color: #1c2650;
+    border-color: #c7cff2;
+  }
+
+  .mini-btn.pdf {
+    background: #3f37c9;
+    border-color: #3f37c9;
+    color: #fff;
+  }
+
+  .mini-btn.pdf:hover {
+    background: #2f29a5;
+    color: #fff;
+    border-color: #2f29a5;
+  }
+
+  .status-pill {
+    background: #e6f8ee;
+    color: #138a4b;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .subsection-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 8px 0 10px;
+    color: #21243d;
+  }
+
+  .career-grid,
+  .list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+  }
+
+  .career-item,
+  .list-item {
+    background: #eef2ff;
+    border: 1px solid #dde3ff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #2f365f;
+  }
+
+  .career-item.recommended {
+    background: #e8f8ef;
+    border-color: #c5ebd4;
+    color: #17663d;
+  }
+
+  .career-spotlight {
+    background: #fff;
+    border: 1px solid #e1e8ff;
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .career-spotlight .section-title {
+    margin-bottom: 6px;
+  }
+
+  .career-spotlight-subtitle {
+    font-size: 13px;
+    color: #5b647f;
+    margin-bottom: 14px;
+  }
+
+  .career-spotlight .career-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .recommendation-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .career-spotlight .career-item.recommended {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: linear-gradient(140deg, #f2fff7 0%, #e8fff3 100%);
+    border: 1px solid #bfead4;
+    border-left: 4px solid #1f9d63;
+    border-radius: 12px;
+    color: #0f5f38;
+    font-weight: 700;
+    padding: 12px 14px;
+    box-shadow: 0 5px 14px rgba(31, 157, 99, 0.14);
+    transition: transform .2s ease, box-shadow .2s ease;
+    font-size:13px;
+  }
+
+  .career-spotlight .career-item.recommended .career-icon,
+  .career-spotlight .career-item.recommended .career-text {
+    display: inline-flex;
+  }
+
+  .career-spotlight .career-item.recommended .career-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d8f8e8;
+    color: #1f9d63;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .career-spotlight .career-item.recommended .career-text {
+    line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .career-spotlight .career-item.recommended:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(31, 157, 99, 0.2);
+  }
+
+  .list-item.warning {
+    background: #fff5f5;
+    border-color: #ffd7d7;
+    color: #8d2f2f;
+  }
+
+  .aptitude-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size:13px;
+  }
+
+  .aptitude-item-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    background: #dbe7ff;
+    color: #3d5aa8;
+  }
+
+  .aptitude-item.warning .aptitude-item-icon {
+    background: #ffe2e2;
+    color: #b24040;
+  }
+
+  .empty-state-card {
+    background: linear-gradient(145deg, #f8fbff 0%, #eef4ff 100%);
+    border: 1px dashed #c9d8ff;
+    border-radius: 14px;
+    padding: 24px 18px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 170px;
+  }
+
+  .empty-state-card .empty-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dfe9ff;
+    color: #3f37c9;
+    font-size: 18px;
+  }
+
+  .empty-state-card .empty-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #223056;
+  }
+
+  .empty-state-card .empty-subtitle {
+    margin: 0;
+    max-width: 540px;
+    color: #5f6b89;
+    font-size: 13px;
+  }
+
+  .mapping-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 14px;
+  }
+
+  .mapping-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+  }
+
+  .mapping-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #1f2937;
+  }
+
+  .link-list {
+    list-style: disc;
+    list-style-position: outside;
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .mapping-card .link-list li {
+    color: #374151;
+    line-height: 1.45;
+    padding-left: 2px;
+    font-size: 13px;
+  line-height: 18px;
+  }
+
+  .mapping-card .link-list li::marker {
+    color: #5b67c7;
+    font-size: 13px;
+  }
+
+  .link-list a {
+    color: #3f37c9;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .link-list a:hover {
+    text-decoration: underline;
+  }
+
+  .card-empty-state {
+    min-height: 140px;
+    border: 1px dashed #d7deee;
+    border-radius: 10px;
+    background: #f8faff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+    padding: 14px 12px;
+  }
+
+  .card-empty-state .icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #5966a6;
+    background: #e8eeff;
+  }
+
+  .card-empty-state .label {
+    color: #616c8c;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .text-block {
+    color: #4b5563;
+    line-height: 1.75;
+    margin-bottom: 0;
+  }
+
+  .insight-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .insight-list li {
+    padding: 10px 11px;
+    border-radius: 10px;
+    background: #f8faff;
+    border: 1px solid #e8ecff;
+    color: #374151;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .insight-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 3px 9px;
+    background: #e9ecff;
+    color: #3f37c9;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .insight-note {
+    display: block;
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  .actions-section {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 11px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: .2s ease;
+  }
+
   .btn-primary {
     background: #3f37c9;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    color: #fff;
   }
+
   .btn-primary:hover {
-    background: #2d28a0;
-    color: white;
-    transform: translateY(-2px);
+    color: #fff;
+    transform: translateY(-1px);
+    background: #2f29a5;
   }
+
   .btn-secondary {
-    background: #e9ecef;
-    color: #333;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    background: #e5e7eb;
+    color: #202536;
   }
+
   .btn-secondary:hover {
-    background: #dee2e6;
-    color: #333;
-    transform: translateY(-2px);
+    color: #202536;
+    transform: translateY(-1px);
+    background: #d9dde2;
   }
+
   .no-results {
     text-align: center;
     padding: 60px 20px;
   }
+
   .no-results-icon {
-    font-size: 4rem;
-    color: #ccc;
-    margin-bottom: 20px;
+    font-size: 3rem;
+    color: #b9bfd4;
+    margin-bottom: 16px;
   }
-  .no-results h3 {
-    color: #666;
-    margin-bottom: 12px;
+
+  .muted-small {
+    font-size: 12px;
+    color: #6b7280;
   }
-  .no-results p {
-    color: #999;
+
+  @media (max-width: 767px) {
+    .hero-title {
+      font-size: 1.65rem;
+    }
+
+    .report-card {
+      padding: 18px;
+    }
+
+    .chart-wrap {
+      height: 200px;
+    }
   }
-  .chart-container {
-    margin: 24px 0;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
+
+  @media (max-width: 1199px) {
+    .test-list.timeline-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .test-list.timeline-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="combined-report-page">
-  <!-- Hero Section -->
-  <section class="hero-gradient">
-    <div class="container">
-      <div class="row">
-        <div class="col-12 text-center text-white">
-          <h2 class="mb-3">Combined Assessment Report</h2>
-          <p class="text-white fs-18">Comprehensive overview of all your test results</p>
-        </div>
-      </div>
-    </div>
-  </section>
+{% block student_main %}
+<div class="mt-8 combined-report-wrap">
 
-  <!-- Breadcrumb -->
-  <div class="container mt-4">
+
+  <div class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5 mt-4">
     {% include 'template20/includes/breadcrumb.html' %}
   </div>
 
-  <!-- Report Container -->
-  <main class="container py-4">
+  <main class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5 py-4 report-shell">
+    <div class="row justify-content-center mt-5">
+      <div class="col-12">
+        <div class="report-hero text-center text-white">
+          <div class="report-hero-content">
+            <h1 class="hero-title mb-2">Comprehensive Assessment Report</h1>
+            <p class="hero-subtitle mb-0 text-white">Your complete progress view across personality, career interests, motivation, and aptitude.</p>
+            <div class="hero-chip-row">
+              <span class="hero-chip"><i class="fas fa-chart-line"></i> Performance overview</span>
+              <span class="hero-chip"><i class="fas fa-lightbulb"></i> Career insights</span>
+              <span class="hero-chip"><i class="fas fa-bullseye"></i> Improvement focus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
     {% if no_results %}
     <div class="report-card">
       <div class="no-results">
@@ -249,193 +846,447 @@
       </div>
     </div>
     {% else %}
-    <div class="report-card">
-      <div class="report-header">
-        <h1>Comprehensive Assessment Report</h1>
-        <p class="text-muted">Comprehensive Assessment Report</p>
-      </div>
+    <div class="report-card mt-5">
+      {% if student_name or grade or schoolname or gender %}
 
-      <!-- Student Information -->
-      {% if student_name or grade or schoolname %}
-      <div class="student-info">
-        {% if student_name %}
-        <div class="info-item">
-          <span class="info-label">Student Name</span>
-          <span class="info-value">{{ student_name }}</span>
-        </div>
-        {% endif %}
-        {% if grade %}
-        <div class="info-item">
-          <span class="info-label">Grade/Class</span>
-          <span class="info-value">{{ grade }}</span>
-        </div>
-        {% endif %}
-        {% if schoolname %}
-        <div class="info-item">
-          <span class="info-label">School</span>
-          <span class="info-value">{{ schoolname }}</span>
-        </div>
-        {% endif %}
-        {% if gender %}
-        <div class="info-item">
-          <span class="info-label">Gender</span>
-          <span class="info-value">{{ gender }}</span>
-        </div>
-        {% endif %}
-      </div>
+
       {% endif %}
 
-      <!-- Test Summary -->
-      <div class="test-summary-section">
-        <h3 class="section-title">Test Summary</h3>
+      <div id="report-stats" data-total-tests="4" data-completed-tests="{{ completed_tests|default([], true)|length }}"
+        data-career-personality="{{ careers_to_opt|default([], true)|length }}"
+        data-career-riasec="{{ riasec_careers_to_opt|default([], true)|length }}"
+        data-career-motivation="{{ motivation_careers_to_opt|default([], true)|length }}"
+        data-above="{{ above_list|default([], true)|length }}"
+        data-average="{{ average_list|default([], true)|length }}"
+        data-below="{{ below_list|default([], true)|length }}">
+      </div>
+      <script id="test-results-json"
+        type="application/json">{% if test_results_json %}{{ test_results_json|safe }}{% else %}[]{% endif %}</script>
+
+      <div class="kpi-grid mt-4">
+        <div class="kpi-card kpi-tests">
+          <div class="kpi-label">Completed Assessments</div>
+          <div class="kpi-value">{{ completed_tests|default([], true)|length }}/4</div>
+        </div>
+        <div class="kpi-card kpi-careers">
+          <div class="kpi-label">Recommended Career Options</div>
+          <div class="kpi-value" id="careerTotalCount">0</div>
+        </div>
+        <div class="kpi-card kpi-strengths">
+          <div class="kpi-label">Aptitude Strength Areas</div>
+          <div class="kpi-value">{{ above_list|default([], true)|length }}</div>
+        </div>
+        <div class="kpi-card kpi-improve">
+          <div class="kpi-label">Aptitude Improvement Areas</div>
+          <div class="kpi-value">{{ below_list|default([], true)|length }}</div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="timeline-head">
+          <h3 class="section-title mb-0">Assessment Timeline</h3>
+        </div>
         {% if completed_tests %}
-        {% for test in completed_tests %}
-        <div class="test-card">
-          <div class="test-card-header">
-            <div class="test-title">{{ test.title }}</div>
+        <div class="test-list timeline-grid">
+          {% for test in completed_tests %}
+          <div class="test-card bg-white">
+            <div class="test-card-header">
+
+              <div class="d-flex align-items-center justify-content-between w-100">
+              <div class="test-title">{{ test.title }}</div>
+              <div class="status-pill"><i class="fas fa-check-circle"></i> Completed</div>
+
+              </div>
+              
+          
+            </div>
+
             <div class="test-date">
-              <i class="fas fa-calendar me-2"></i>
-              {% if test.completed_at %}{{ test.completed_at }}{% endif %}
+              <i class="fas fa-calendar me-1"></i>
+              {% if test.completed_at_display %}{{ test.completed_at_display }}{% elif test.completed_at %}{{ test.completed_at }}{% else %}Date unavailable{% endif %}
+            </div>
+    
+            <!-- <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div> -->
+            <div class="timeline-card-actions">
+              <a href="/api/web/results/?test_id={{ test.test_id }}{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}" class="mini-btn">
+                <i class="fas fa-eye"></i>
+                View Report
+              </a>
             </div>
           </div>
-          <div class="test-details">
-            <div class="detail-item">
-              <span class="detail-label">Status</span>
-              <span class="detail-value" style="color: #28a745; font-size: 14px;">Completed</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Test ID</span>
-              <span class="detail-value" style="font-size: 14px;">{{ test.test_id }}</span>
-            </div>
-          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
         {% else %}
-        <p class="text-muted">No tests completed yet.</p>
+        <p class="text-muted mb-0">No tests completed yet.</p>
         {% endif %}
       </div>
 
-      <!-- Recommended Careers -->
-      {% if riasec_careers_to_opt %}
-      <div class="careers-section">
-        <h3 class="section-title">Recommended Career Paths</h3>
-        <div class="career-grid">
-          {% for career in riasec_careers_to_opt %}
-          <div class="career-item recommended">{{ career }}</div>
-          {% endfor %}
+      <div class="chart-grid mt-4">
+        <div class="chart-card">
+          <div class="chart-title">Assessment Completion Overview</div>
+          <div class="chart-wrap"><canvas id="completionChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Aptitude Performance Distribution</div>
+          <div class="chart-wrap"><canvas id="aptitudeDistributionChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Career Recommendation Sources</div>
+          <div class="chart-wrap"><canvas id="recommendationSourceChart"></canvas></div>
         </div>
       </div>
-      {% endif %}
-      {% if careers_to_opt %}
-      <div class="careers-section">
-        <h3 class="section-title">Recommended Career Paths</h3>
-        <div class="career-grid">
+
+      <div class="mt-4">
+        <h3 class="section-title">Assessment Deep Dive</h3>
+        <div class="data-status mb-3">
+          <div class="data-status-item">
+            <span class="data-status-icon source"><i class='bx bx-data'></i></span>
+            <span class="data-status-meta">
+              <span class="data-status-label">Data Source</span>
+              <span class="data-status-value">Assessment Results</span>
+            </span>
+          </div>
+          <div class="data-status-item">
+            <span class="data-status-icon reports"><i class='bx bx-file'></i></span>
+            <span class="data-status-meta">
+              <span class="data-status-label">Reports Loaded</span>
+              <span class="data-status-value" id="jsonRecordCount">0</span>
+            </span>
+          </div>
+          <div class="data-status-item">
+            <span class="data-status-icon visuals"><i class='bx bx-pie-chart-alt-2'></i></span>
+            <span class="data-status-meta">
+              <span class="data-status-label">Visuals Rendered</span>
+              <span class="data-status-value" id="jsonChartsCount">0</span>
+            </span>
+          </div>
+        </div>
+        <div class="deep-dive-grid">
+          <div class="chart-card">
+            <div class="chart-title">Personality Traits Profile</div>
+            <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
+            <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Career Interest Dimensions</div>
+            <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
+            <div class="data-note" id="careerDeepNote">Loading assessment details...</div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Motivation Driver Mix</div>
+            <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
+            <div class="data-note" id="motivationDeepNote">Loading assessment details...</div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Aptitude Section Scores</div>
+            <div class="chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
+            <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
+          </div>
+        </div>
+      </div>
+
+      {% if riasec_careers_to_opt or careers_to_opt or motivation_careers_to_opt %}
+      <div class="mt-4">
+        <div class="career-spotlight">
+          <h3 class="section-title">Recommended Career Paths</h3>
+          <p class="career-spotlight-subtitle mt-1">Personalized options based on your aptitude, interest profile, and motivation analysis.</p>
+          <ul class="career-grid recommendation-list">
+          {% set career_ns = namespace(items=[]) %}
           {% for career in careers_to_opt %}
-          <div class="career-item recommended">{{ career }}</div>
+          {% if career and career not in career_ns.items %}
+          {% set _ = career_ns.items.append(career) %}
+          <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+          {% endif %}
           {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-      {% if motivation_careers_to_opt %}
-      <div class="careers-section">
-        <h3 class="section-title">Recommended Career Paths</h3>
-        <div class="career-grid">
+          {% for career in riasec_careers_to_opt %}
+          {% if career and career not in career_ns.items %}
+          {% set _ = career_ns.items.append(career) %}
+          <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+          {% endif %}
+          {% endfor %}
           {% for career in motivation_careers_to_opt %}
-          <div class="career-item recommended">{{ career }}</div>
+          {% if career and career not in career_ns.items %}
+          {% set _ = career_ns.items.append(career) %}
+          <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+          {% endif %}
           {% endfor %}
+          </ul>
         </div>
       </div>
       {% endif %}
       {% if aptitude_Recommended_College_Courses %}
-      <div class="careers-section">
-        <h3 class="section-title">Recommended College Courses</h3>
-        <div class="career-grid">
-          {% for course in aptitude_Recommended_College_Courses %}
-          <div class="career-item recommended">{{ course }}</div>
-          {% endfor %}
+      <div class="mt-4">
+        <div class="career-spotlight">
+          <h3 class="section-title">Recommended College Courses</h3>
+          <p class="career-spotlight-subtitle mt-1">Curated course options aligned with your aptitude profile and career direction.</p>
+          {% set course_ns = namespace(items=[], has_courses=false) %}
+          <ul class="career-grid recommendation-list">
+            {% for course in aptitude_Recommended_College_Courses %}
+            {% if course is mapping and course.Recommended_College %}
+            {% for course_name in course.Recommended_College %}
+            {% set clean_course_name = (course_name|string)|trim %}
+            {% if clean_course_name and clean_course_name not in course_ns.items %}
+            {% set _ = course_ns.items.append(clean_course_name) %}
+            {% set course_ns.has_courses = true %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
+            {% endif %}
+            {% endfor %}
+            {% else %}
+            {% set clean_course_name = (course|string)|trim %}
+            {% if clean_course_name and clean_course_name not in course_ns.items %}
+            {% set _ = course_ns.items.append(clean_course_name) %}
+            {% set course_ns.has_courses = true %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+          </ul>
+          {% if not course_ns.has_courses %}
+          <div class="empty-state-card mt-2">
+            <span class="empty-icon"><i class='bx bx-book-reader'></i></span>
+            <div class="empty-title">Recommended courses are not available yet</div>
+            <p class="empty-subtitle">Course recommendations will appear here once complete aptitude mapping data is available.</p>
+          </div>
+          {% endif %}
         </div>
       </div>
       {% endif %}
 
-      <!-- Aptitude Analysis -->
-      {% if above_list or average_list or below_list %}
-      <div class="test-summary-section">
+      <div class="mt-4">
         <h3 class="section-title">Aptitude Analysis</h3>
-        {% if above_list %}
-        <div class="test-card" style="border-left-color: #28a745;">
-          <div class="test-card-header">
-            <div class="test-title" style="color: #28a745;">Above Average</div>
+        {% if above_list or average_list or below_list %}
+        <div class="mapping-grid">
+          <div class="mapping-card">
+            <h4>Above Average</h4>
+            {% if above_list %}
+            <div class="list-grid">
+              {% set above_ns = namespace(items=[]) %}
+              {% for item in above_list %}
+              {% if item and item not in above_ns.items %}
+              {% set _ = above_ns.items.append(item) %}
+              <div class="list-item aptitude-item"><span class="aptitude-item-icon"><i class='bx bx-right-arrow-alt' ></i></span><span>{{ item }}</span></div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-empty-state"> 
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <p class="label">No above-average areas yet.</p></div>
+          
+            {% endif %}
           </div>
-          <div class="career-grid">
-            {% for item in above_list %}
-            <div class="career-item recommended">{{ item }}</div>
-            {% endfor %}
+          <div class="mapping-card">
+            <h4>Average</h4>
+            {% if average_list %}
+            <div class="list-grid">
+              {% set average_ns = namespace(items=[]) %}
+              {% for item in average_list %}
+              {% if item and item not in average_ns.items %}
+              {% set _ = average_ns.items.append(item) %}
+              <div class="list-item aptitude-item"><span class="aptitude-item-icon"><i class='bx bx-crosshair'></i></span><span>{{ item }}</span></div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-empty-state"> 
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <p class="label">No average areas available.</p></div>
+            {% endif %}
+          </div>
+          <div class="mapping-card">
+            <h4>Below Average</h4>
+            {% if below_list %}
+            <div class="list-grid">
+              {% set below_ns = namespace(items=[]) %}
+              {% for item in below_list %}
+              {% if item and item not in below_ns.items %}
+              {% set _ = below_ns.items.append(item) %}
+              <div class="list-item warning aptitude-item"><span class="aptitude-item-icon"><i class='bx bx-down-arrow-alt' ></i></span><span>{{ item }}</span></div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-empty-state"> 
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <p class="label">No below-average areas identified.</p></div>
+ 
+            {% endif %}
           </div>
         </div>
-        {% endif %}
-        {% if average_list %}
-        <div class="test-card" style="border-left-color: #ffc107;">
-          <div class="test-card-header">
-            <div class="test-title" style="color: #ffc107;">Average</div>
-          </div>
-          <div class="career-grid">
-            {% for item in average_list %}
-            <div class="career-item">{{ item }}</div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        {% if below_list %}
-        <div class="test-card" style="border-left-color: #dc3545;">
-          <div class="test-card-header">
-            <div class="test-title" style="color: #dc3545;">Below Average</div>
-          </div>
-          <div class="career-grid">
-            {% for item in below_list %}
-            <div class="career-item" style="background: #f8d7da; color: #721c24;">{{ item }}</div>
-            {% endfor %}
-          </div>
+        {% else %}
+        <div class="empty-state-card">
+          <span class="empty-icon"><i class="fas fa-chart-line"></i></span>
+          <div class="empty-title">Aptitude analysis is not available yet</div>
+          <p class="empty-subtitle">Please complete your aptitude assessments to unlock personalized insights for above average, average, and below average skill areas.</p>
         </div>
         {% endif %}
       </div>
+
+      {% if aptitude_mapping and (aptitude_mapping.clusters or aptitude_mapping.roles or aptitude_mapping.pathways) %}
+      <div class="mt-4">
+        <h3 class="section-title">Aptitude Mapped Opportunities</h3>
+        <p class="muted-small mb-3">Combination Code: {{ aptitude_mapping.aptitude_code }}{% if
+          aptitude_mapping.aptitude_areas %} | Areas: {{ aptitude_mapping.aptitude_areas }}{% endif %}</p>
+        <div class="mapping-grid">
+          <div class="mapping-card">
+            <h4>Career Clusters</h4>
+            {% set cluster_ns = namespace(items=[], has_items=false) %}
+            <ul class="link-list">
+              {% for item in aptitude_mapping.clusters %}
+              {% if item.name and item.name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(item.name) %}
+              {% set cluster_ns.has_items = true %}
+              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+            </ul>
+            {% if not cluster_ns.has_items %}
+            <div class="card-empty-state">
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <div class="label">No career clusters available right now.</div>
+            </div>
+            {% endif %}
+          </div>
+          <div class="mapping-card">
+            <h4>Recommended Roles</h4>
+            {% set role_ns = namespace(items=[], has_items=false) %}
+            <ul class="link-list">
+              {% for item in aptitude_mapping.roles %}
+              {% if item.name and item.name not in role_ns.items %}
+              {% set _ = role_ns.items.append(item.name) %}
+              {% set role_ns.has_items = true %}
+              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+            </ul>
+            {% if not role_ns.has_items %}
+            <div class="card-empty-state">
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <div class="label">No recommended roles available right now.</div>
+            </div>
+            {% endif %}
+          </div>
+          <div class="mapping-card">
+            <h4>Suggested Pathways</h4>
+            {% set pathway_ns = namespace(items=[], has_items=false) %}
+            <ul class="link-list">
+              {% for item in aptitude_mapping.pathways %}
+              {% if item.name and item.name not in pathway_ns.items %}
+              {% set _ = pathway_ns.items.append(item.name) %}
+              {% set pathway_ns.has_items = true %}
+              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+            </ul>
+            {% if not pathway_ns.has_items %}
+            <div class="card-empty-state">
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <div class="label">No suggested pathways available right now.</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
       {% endif %}
 
-      <!-- Additional Insights -->
       {% if aptitude_strength_narrative or aptitude_improvement_plan or career_code_discription %}
-      <div class="test-summary-section">
+      <div class="mt-4">
         <h3 class="section-title">Additional Insights</h3>
-        {% if aptitude_strength_narrative %}
-        <div class="test-card">
-          <div class="test-card-header">
-            <div class="test-title">Your Strengths</div>
+        <div class="mapping-grid">
+          {% if aptitude_strength_narrative %}
+          <div class="mapping-card">
+            <div class="subsection-title">Your Strengths</div>
+            <ul class="insight-list">
+              {% for item in aptitude_strength_narrative %}
+              <li>
+                {% if item.Area %}
+                <span class="insight-label">{{ item.Area }}</span>
+                {% endif %}
+                {% if item.Major_points %}
+                  {% if item.Major_points is string %}
+                  <div>{{ item.Major_points }}</div>
+                  {% else %}
+                    {% for point in item.Major_points %}
+                    <div>• {{ point }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% elif item %}
+                <div>{{ item }}</div>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
           </div>
-          <p style="color: #666; line-height: 1.8;">{{ aptitude_strength_narrative }}</p>
-        </div>
-        {% endif %}
-        {% if aptitude_improvement_plan %}
-        <div class="test-card">
-          <div class="test-card-header">
-            <div class="test-title">Improvement Plan</div>
+          {% endif %}
+          {% if aptitude_improvement_plan %}
+          <div class="mapping-card">
+            <div class="subsection-title">Improvement Plan</div>
+            <ul class="insight-list">
+              {% for item in aptitude_improvement_plan %}
+              <li>
+                {% if item.Area %}
+                <span class="insight-label">{{ item.Area }}</span>
+                {% endif %}
+                {% if item.Remarks %}
+                  {% if item.Remarks is string %}
+                  <div>{{ item.Remarks }}</div>
+                  {% else %}
+                    {% for remark in item.Remarks %}
+                    <div>• {{ remark }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% elif item %}
+                <div>{{ item }}</div>
+                {% endif %}
+                {% if item.Duration %}
+                <span class="insight-note"><strong>Recommended duration:</strong> {{ item.Duration }}</span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
           </div>
-          <p style="color: #666; line-height: 1.8;">{{ aptitude_improvement_plan }}</p>
-        </div>
-        {% endif %}
-        {% if career_code_discription %}
-        <div class="test-card">
-          <div class="test-card-header">
-            <div class="test-title">Career Interest Profile</div>
+          {% endif %}
+          {% if career_code_discription %}
+          <div class="mapping-card">
+            <div class="subsection-title">Career Interest Profile</div>
+            <ul class="insight-list">
+              {% for item in career_code_discription %}
+                {% if item.items %}
+                  {% for code, desc in item.items() %}
+                  <li>
+                    <span class="insight-label">{{ code }}</span>
+                    {% if desc.items %}
+                      {% if desc.Description %}
+                      <div>{{ desc.Description }}</div>
+                      {% endif %}
+                      {% for trait, trait_text in desc.items() %}
+                        {% if trait != 'Description' %}
+                        <span class="insight-note"><strong>{{ trait }}:</strong> {{ trait_text }}</span>
+                        {% endif %}
+                      {% endfor %}
+                    {% elif desc is string %}
+                    <div>{{ desc }}</div>
+                    {% else %}
+                    <div>{{ desc }}</div>
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                {% else %}
+                <li>{{ item }}</li>
+                {% endif %}
+              {% endfor %}
+            </ul>
           </div>
-          <p style="color: #666; line-height: 1.8;">{{ career_code_discription }}</p>
+          {% endif %}
         </div>
-        {% endif %}
       </div>
       {% endif %}
 
       <div class="actions-section">
-        <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
+        <!-- <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
           <i class="fas fa-arrow-left"></i>
           Back to Results
-        </a>
+        </a> -->
         <a href="{{ url('post_matric:tests') }}" class="btn-primary">
           <i class="fas fa-list"></i>
           View All Tests
@@ -444,10 +1295,238 @@
     </div>
     {% endif %}
   </main>
-</section>
+</div>
 {% endblock %}
 
-{% block additionaljs %}
-{{ super() }}
-{% endblock %}
+{% block student_additionaljs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function () {
+    const statsEl = document.getElementById('report-stats');
+    if (!statsEl || typeof Chart === 'undefined') return;
+    const chartInstances = [];
 
+    const totalTests = Number(statsEl.dataset.totalTests || 4);
+    const completedTests = Number(statsEl.dataset.completedTests || 0);
+    const pendingTests = Math.max(totalTests - completedTests, 0);
+
+    const above = Number(statsEl.dataset.above || 0);
+    const average = Number(statsEl.dataset.average || 0);
+    const below = Number(statsEl.dataset.below || 0);
+
+    const sourcePersonality = Number(statsEl.dataset.careerPersonality || 0);
+    const sourceRiasec = Number(statsEl.dataset.careerRiasec || 0);
+    const sourceMotivation = Number(statsEl.dataset.careerMotivation || 0);
+    const renderedCareerItems = Array.from(document.querySelectorAll('.career-grid .career-item.recommended'))
+      .map((el) => (el.textContent || '').trim())
+      .filter(Boolean);
+    const totalCareers = new Set(renderedCareerItems).size || (sourcePersonality + sourceRiasec + sourceMotivation);
+
+    const totalCareersEl = document.getElementById('careerTotalCount');
+    if (totalCareersEl) totalCareersEl.textContent = String(totalCareers);
+
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } }
+      }
+    };
+
+    const completionCtx = document.getElementById('completionChart');
+    if (completionCtx) {
+      chartInstances.push(new Chart(completionCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completed', 'Pending'],
+          datasets: [{
+            data: [completedTests, pendingTests],
+            backgroundColor: ['#3f37c9', '#d1d5db'],
+            borderWidth: 0
+          }]
+        },
+        options: { ...commonOptions, cutout: '68%' }
+      }));
+    }
+
+    const aptitudeCtx = document.getElementById('aptitudeDistributionChart');
+    if (aptitudeCtx) {
+      chartInstances.push(new Chart(aptitudeCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Above Average', 'Average', 'Below Average'],
+          datasets: [{
+            label: 'Areas',
+            data: [above, average, below],
+            backgroundColor: ['#16a34a', '#0284c7', '#dc2626'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          ...commonOptions,
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      }));
+    }
+
+    const sourceCtx = document.getElementById('recommendationSourceChart');
+    if (sourceCtx) {
+      chartInstances.push(new Chart(sourceCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Personality', 'Career Interest', 'Motivation'],
+          datasets: [{
+            data: [sourcePersonality, sourceRiasec, sourceMotivation],
+            backgroundColor: ['#4f46e5', '#0ea5e9', '#10b981'],
+            borderWidth: 0
+          }]
+        },
+        options: commonOptions
+      }));
+    }
+
+    function parseResultsJson() {
+      const el = document.getElementById('test-results-json');
+      if (!el) return [];
+      try {
+        const parsed = JSON.parse(el.textContent || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function extractSeries(input) {
+      if (!input || typeof input !== 'object') return { labels: [], values: [] };
+      const labels = [];
+      const values = [];
+      Object.keys(input).forEach((key) => {
+        const raw = input[key];
+        let value = null;
+        if (typeof raw === 'number') value = raw;
+        else if (raw && typeof raw === 'object' && typeof raw.score === 'number') value = raw.score;
+        if (value !== null && Number.isFinite(value)) {
+          labels.push(String(key));
+          values.push(Number(value));
+        }
+      });
+      return { labels, values };
+    }
+
+    function updateDataNote(id, text) {
+      const noteEl = document.getElementById(id);
+      if (noteEl) noteEl.textContent = text;
+    }
+
+    const resultRecords = parseResultsJson();
+    const recordCountEl = document.getElementById('jsonRecordCount');
+    if (recordCountEl) recordCountEl.textContent = String(resultRecords.length);
+
+    const personalityData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('personality'));
+    const careerData = resultRecords.find((row) => {
+      const title = (row.test_title || '').toLowerCase();
+      return title.includes('career') || title.includes('interest');
+    });
+    const motivationData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('motivation'));
+    const aptitudeData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('aptitude'));
+
+    const personalitySeries = extractSeries(personalityData ? personalityData.result_data : null);
+    if (personalitySeries.labels.length) {
+      const ctx = document.getElementById('personalityDeepChart');
+      if (ctx) {
+        chartInstances.push(new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: personalitySeries.labels,
+            datasets: [{
+              label: 'Trait score',
+              data: personalitySeries.values,
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.2)',
+              pointBackgroundColor: '#4f46e5'
+            }]
+          },
+          options: { ...commonOptions, scales: { r: { beginAtZero: true } } }
+        }));
+        updateDataNote('personalityDeepNote', 'Loaded from personality result_data.');
+      }
+    } else {
+      updateDataNote('personalityDeepNote', 'Personality scores are not available yet.');
+    }
+
+    const careerSeries = extractSeries(careerData ? careerData.result_data : null);
+    if (careerSeries.labels.length) {
+      const ctx = document.getElementById('careerDeepChart');
+      if (ctx) {
+        chartInstances.push(new Chart(ctx, {
+          type: 'polarArea',
+          data: {
+            labels: careerSeries.labels,
+            datasets: [{
+              data: careerSeries.values,
+              backgroundColor: ['#1e3a8a', '#0ea5e9', '#10b981', '#22c55e', '#f59e0b', '#ef4444']
+            }]
+          },
+          options: commonOptions
+        }));
+        updateDataNote('careerDeepNote', 'Loaded from career interest result_data.');
+      }
+    } else {
+      updateDataNote('careerDeepNote', 'Career interest scores are not available yet.');
+    }
+
+    const motivationSource = motivationData ? (motivationData.category_counts || motivationData.result_data) : null;
+    const motivationSeries = extractSeries(motivationSource);
+    if (motivationSeries.labels.length) {
+      const ctx = document.getElementById('motivationDeepChart');
+      if (ctx) {
+        chartInstances.push(new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: motivationSeries.labels,
+            datasets: [{
+              data: motivationSeries.values,
+              backgroundColor: ['#22c55e', '#6366f1', '#f59e0b', '#ef4444']
+            }]
+          },
+          options: { ...commonOptions, cutout: '62%' }
+        }));
+        updateDataNote('motivationDeepNote', 'Loaded from motivation category_counts/result_data.');
+      }
+    } else {
+      updateDataNote('motivationDeepNote', 'Motivation scores are not available yet.');
+    }
+
+    const aptitudeSeries = extractSeries(aptitudeData ? aptitudeData.result_data : null);
+    if (aptitudeSeries.labels.length) {
+      const ctx = document.getElementById('aptitudeDeepChart');
+      if (ctx) {
+        chartInstances.push(new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: aptitudeSeries.labels,
+            datasets: [{
+              label: 'Section score',
+              data: aptitudeSeries.values,
+              borderRadius: 8,
+              backgroundColor: '#0ea5e9'
+            }]
+          },
+          options: {
+            ...commonOptions,
+            indexAxis: 'y',
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+          }
+        }));
+        updateDataNote('aptitudeDeepNote', 'Loaded from aptitude result_data.');
+      }
+    } else {
+      updateDataNote('aptitudeDeepNote', 'Aptitude scores are not available yet.');
+    }
+
+    const chartCountEl = document.getElementById('jsonChartsCount');
+    if (chartCountEl) chartCountEl.textContent = String(chartInstances.length);
+
+  })();
+</script>
+{% endblock %}

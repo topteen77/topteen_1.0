@@ -1,9 +1,16 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Profile Basic Details | Top Teen{% endblock %}
 {% block description_content %}Complete your profile to get personalized career recommendations and content.{% endblock %}
 
-{% block bodyclass %}{{ super() }} profile-onboarding{% endblock %}
+{% block student_bodyclass %}profile-onboarding{% endblock %}
+
+{# Header-only layout (no sidebar) #}
+{% block student_section_class %}profile-onboarding std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-0 pt-3 pt-lg-4{% endblock %}
+{% block student_sidebar %}{% endblock %}
+{% block student_main_col_class %}col-12{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -49,12 +56,12 @@ label.hobbiesTab img {
 <style>
   .profile-onboarding {
     overflow-x: hidden;
-    padding-top: 42px;
+    padding-top: 0;
   }
   /* Mobile: minimal top space under fixed header */
   @media (max-width: 991px) {
     .profile-onboarding {
-      padding-top: 48px;
+      padding-top: 0;
     }
     .profile-onboarding .page {
       padding: 16px 16px 40px;
@@ -62,7 +69,7 @@ label.hobbiesTab img {
   }
   @media (max-width: 480px) {
     .profile-onboarding {
-      padding-top: 44px;
+      padding-top: 0;
     }
     .profile-onboarding .page {
       padding: 12px 12px 32px;
@@ -72,7 +79,7 @@ label.hobbiesTab img {
     position: relative;
   }
   .page {
-    min-height: 100vh;
+    min-height: calc(100vh - 52px);
     padding: 59px 20px 50px;
     display: flex;
     flex-direction: column;
@@ -177,7 +184,7 @@ label.hobbiesTab img {
   .backArrow {
     position: absolute;
     left: 20px;
-    top: 36px;
+    top: 68px;
     z-index: 10;
     cursor: pointer;
       background: #f3f3f3;
@@ -204,18 +211,18 @@ label.hobbiesTab img {
   @media (max-width: 480px) {
 
     .backArrow {
-    top: 0px;
+    top: 60px;
 }
 
   }
 </style>
 {% endblock %}
 
-{% block content %}
+{% block student_main %}
 
 <div class="container"> 
 <section class="profile-onboarding pb-5">
-  <form class="position-relative w-100 min-vh-100" method="POST" enctype="multipart/form-data" id="profileForm" onsubmit="return validateFormSubmission();">
+  <form class="position-relative w-100" method="POST" enctype="multipart/form-data" id="profileForm" onsubmit="return validateFormSubmission();">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     
     <!-- Validation Error Display Area -->
@@ -501,7 +508,7 @@ label.hobbiesTab img {
     <div class="photo page">
       <div class="w-100" data-index="3">
         <h2 class="fs-24 fw-semibold text-center mt-5 mb-3">Show us how you look</h2>
-        <p class="text-center text-gray fs-16 mb-4" style="">
+        <p class="text-center text-gray fs-16 mb-4">
           Join a community of 10k+ students and discover your true passion.
         </p>
 

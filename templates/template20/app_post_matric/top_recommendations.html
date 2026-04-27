@@ -1,4 +1,5 @@
-{% extends 'template20/logged-in-base.html' %}
+{# Use student shell after student login #}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Top Career Recommendations | Top Teen{% endblock %}
 {% block description_content %}Discover the top career recommendations based on your profile and test results.{% endblock %}
@@ -8,13 +9,22 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Top recommendations' %}
+{% endblock %}
+
+{% block student_section_class %}top-recommendations-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4 student-dash-shell{% endblock %}
+{% block student_main_col_class %}student-dash-main-col{% endblock %}
+
 {% block bodyclass %}{{ super() }} top-recommendations-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <style>
   .top-recommendations-page {
-    padding-top: 80px;
     background: linear-gradient(180deg, #f5f7ff 0%, #f9fafb 40%, #ffffff 100%);
     min-height: 100vh;
     background-repeat: no-repeat;
@@ -26,7 +36,8 @@
     padding: 40px 0 32px;
     margin-bottom: 30px;
     box-shadow: 0 14px 35px rgba(15, 23, 42, 0.35);
-    margin-top: 21px;
+    margin-top: 0;
+    border-radius: 0;
   }
 
   .recommendations-header h1 {
@@ -182,12 +193,75 @@
   .btn-view-details i {
     font-size: 14px;
   }
+
+  .empty-state-card {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.32);
+    box-shadow: 0 20px 44px rgba(15, 23, 42, 0.1);
+    border-radius: 24px;
+    padding: 46px 22px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .empty-state-icon {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff;
+    box-shadow: 0 14px 26px rgba(79, 70, 229, 0.35);
+  }
+
+  .empty-state-icon i {
+    font-size: 42px;
+  }
+
+  .empty-state-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+
+  .empty-state-subtitle {
+    color: #4b5563;
+    font-size: 16px;
+    margin-bottom: 18px;
+  }
+
+  .btn-empty-state {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-weight: 600;
+    box-shadow: 0 10px 24px rgba(67, 56, 202, 0.34);
+  }
+
+  .btn-empty-state:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .app-right-content {
+    background: #eef1f8;
+  }
+
+  .student-dash-main-col {
+    padding: 0;
+  }
 </style>
 {% endblock %}
 
-{% block content %}
+{% block student_main %}
 <div class="recommendations-header">
-  <div class="container text-center">
+  <div class="container-fluid px-3 px-lg-4 text-center">
     <h1 class="mb-3">
       <img class="img-fluid" style="width: 50px;" src="{{ static('images_new/general/career-3d-icon.png') }}" alt="Top Recommendations Icon" />
       Top Career Recommendations
@@ -202,11 +276,11 @@
   </div>
 </div>
 
-<div class="container py-4">
+<div class="container-fluid px-3 px-lg-4 py-4">
   {% if top_careers %}
     <div class="row">
       {% for career, score in top_careers %}
-      <div class="col-md-6 col-lg-4 mb-4">
+      <div class="col-sm-6 col-lg-4 col-xl-4 mb-4">
         <div class="recommendation-card h-100">
           <div class="recommendation-card-inner">
             <div class="recommendation-card-image-wrapper">
@@ -253,10 +327,15 @@
       {% endfor %}
     </div>
   {% else %}
-    <div class="text-center py-5">
-      <i class='bx bx-trophy fs-64 text-muted mb-3'></i>
-      <h3>No recommendations available</h3>
-      <p class="text-muted">Complete your profile or take a test to get personalized recommendations!</p>
+    <div class="empty-state-card text-center">
+      <div class="empty-state-icon mx-auto">
+        <i class='bx bx-trophy'></i>
+      </div>
+      <h3 class="empty-state-title">No recommendations yet</h3>
+      <p class="empty-state-subtitle">Complete your profile or take a test to unlock personalized career suggestions.</p>
+      <a href="{{ url('post_matric:career_swipe') }}" class="btn btn-empty-state">
+        Explore Careers
+      </a>
     </div>
   {% endif %}
 </div>

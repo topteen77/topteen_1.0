@@ -1,0 +1,532 @@
+{# AdmitCV-inspired hub: Top Teen colours (purple / cyan / light cards) #}
+<style>
+  .tt-app-hub {
+    --tt-hub-line: #dde6f5;
+    --tt-hub-muted: #64708b;
+    --tt-hub-card: #ffffff;
+    --tt-hub-purple: #4f46e5;
+    --tt-hub-purple-soft: rgba(79, 70, 229, 0.16);
+    --tt-hub-cyan: #06b6d4;
+    --tt-hub-shadow: 0 12px 28px rgba(31, 41, 55, 0.08);
+    --tt-hub-soft-shadow: 0 4px 16px rgba(31, 41, 55, 0.06);
+  }
+  .tt-app-hub .tt-hub-hero {
+    background: linear-gradient(135deg, #2f26c9 0%, #645cf0 52%, #3785c9 100%);
+    border-radius: 14px;
+    padding: 16px 16px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--tt-hub-shadow);
+  }
+  .tt-app-hub .tt-hub-hero:before {
+    content: "";
+    position: absolute;
+    right: -24px;
+    top: -32px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .tt-app-hub .tt-hub-hero:after {
+    content: "";
+    position: absolute;
+    left: -28px;
+    bottom: -40px;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+  }
+  .tt-app-hub .tt-hub-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+  .tt-app-hub .tt-hub-chip {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tt-app-hub .tt-hub-chip i {
+    font-size: 14px;
+  }
+  .tt-app-hub .tt-hub-hero-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .tt-app-hub .tt-hub-hero-subtitle {
+    font-size: 13px;
+    opacity: 0.95;
+    margin-bottom: 0;
+    max-width: 680px;
+  }
+  .tt-app-hub .tt-hub-kpi {
+    background: var(--tt-hub-card);
+    border: 1px solid var(--tt-hub-line);
+    border-radius: 14px;
+    padding: 16px 15px;
+    min-height: 118px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: var(--tt-hub-soft-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  .tt-app-hub .tt-hub-kpi:hover {
+    transform: translateY(-3px);
+    border-color: rgba(63, 55, 201, 0.35);
+    box-shadow: var(--tt-hub-shadow);
+  }
+  .tt-app-hub .tt-hub-kpi:after {
+    content: "";
+    position: absolute;
+    right: -18px;
+    bottom: -26px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(92, 84, 212, 0.1), rgba(92, 84, 212, 0));
+  }
+  .tt-app-hub .tt-hub-ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 22px;
+  }
+  .tt-app-hub .tt-hub-ico.purple { background: var(--tt-hub-purple-soft); color: var(--tt-hub-purple); }
+  .tt-app-hub .tt-hub-ico.cyan { background: rgba(60, 186, 225, 0.14); color: #1a8bb8; }
+  .tt-app-hub .tt-hub-ico.gold { background: rgba(248, 189, 81, 0.25); color: #b87a12; }
+  .tt-app-hub .tt-hub-ico.green { background: rgba(76, 200, 117, 0.15); color: #1e8f4a; }
+  .tt-app-hub .tt-hub-val {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #2a2f3f;
+    line-height: 1.1;
+  }
+  .tt-app-hub .tt-hub-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tt-hub-muted);
+    margin-bottom: 4px;
+  }
+  .tt-app-hub .tt-hub-meter {
+    margin-top: 8px;
+    height: 6px;
+    border-radius: 999px;
+    background: #ecf0f7;
+    overflow: hidden;
+  }
+  .tt-app-hub .tt-hub-meter > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #06b6d4 100%);
+  }
+  .tt-app-hub .tt-hub-kpi.kpi-cyan .tt-hub-meter > span {
+    background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+  }
+  .tt-app-hub .tt-hub-kpi.kpi-gold .tt-hub-meter > span {
+    background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%);
+  }
+  .tt-app-hub .tt-hub-kpi.kpi-green .tt-hub-meter > span {
+    background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+  }
+  .tt-app-hub .tt-hub-panel {
+    background: var(--tt-hub-card);
+    border: 1px solid var(--tt-hub-line);
+    border-radius: 14px;
+    padding: 18px 16px;
+    height: 100%;
+    min-height: 140px;
+    box-shadow: var(--tt-hub-soft-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tt-app-hub .tt-hub-panel:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--tt-hub-shadow);
+  }
+  .tt-app-hub .tt-hub-panel h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tt-hub-muted);
+    margin-bottom: 12px;
+  }
+  .tt-app-hub .tt-hub-panel p {
+    font-size: 13px;
+    color: #4b5563;
+    margin-bottom: 0;
+    line-height: 1.55;
+  }
+  .tt-app-hub .tt-hub-score-pill {
+    min-width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.65);
+    background: rgba(11, 18, 45, 0.26);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #fff;
+  }
+  .tt-app-hub .tt-hub-score-pill .num {
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 800;
+  }
+  .tt-app-hub .tt-hub-score-pill .lbl {
+    font-size: 10px;
+    opacity: 0.9;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tt-app-hub .tt-hub-analytics {
+    background: #fff;
+    border: 1px solid var(--tt-hub-line);
+    border-radius: 14px;
+    box-shadow: var(--tt-hub-soft-shadow);
+    padding: 16px;
+    height: 100%;
+  }
+  .tt-app-hub .tt-hub-analytics h4 {
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: #1f2a44;
+    font-weight: 700;
+  }
+  .tt-app-hub .tt-hub-dimension {
+    margin-bottom: 10px;
+  }
+  .tt-app-hub .tt-hub-dimension:last-child {
+    margin-bottom: 0;
+  }
+  .tt-app-hub .tt-hub-dimension-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: #52607a;
+  }
+  .tt-app-hub .tt-hub-dimension-track {
+    height: 7px;
+    background: #edf1f7;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .tt-app-hub .tt-hub-dimension-fill {
+    height: 100%;
+    border-radius: inherit;
+  }
+  .tt-app-hub .tt-hub-rank-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tt-app-hub .tt-hub-rank-list li {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #eef2f8;
+  }
+  .tt-app-hub .tt-hub-rank-list li:last-child {
+    border-bottom: 0;
+  }
+  .tt-app-hub .tt-hub-rank-list .idx {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #eef1ff;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tt-app-hub .tt-hub-rank-list .val {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2a3553;
+  }
+  .tt-app-hub .tt-hub-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .tt-app-hub .tt-hub-step {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .tt-app-hub .tt-hub-step:last-child { margin-bottom: 0; }
+  .tt-app-hub a.tt-hub-link { color: var(--tt-hub-purple); font-weight: 600; text-decoration: none; }
+  .tt-app-hub a.tt-hub-link:hover { text-decoration: underline; }
+  .tt-app-hub .tt-hub-event-row:last-child {
+    border-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  @media (max-width: 767px) {
+    .tt-app-hub .tt-hub-hero-title {
+      font-size: 21px;
+    }
+  }
+</style>
+
+<div class="tt-app-hub mb-4 pb-1" id="applications-resume-hub">
+  {% set readiness_score = ((hub_profile_completion|default(0) * 0.5) + ([hub_resume_sections|default(0) * 8, 100]|min * 0.3) + ([hub_shortlist_count|default(0) * 10, 100]|min * 0.2))|round|int %}
+  {% set dim_profile = hub_profile_completion|default(0) %}
+  {% set dim_resume = [hub_resume_sections|default(0) * 10, 100]|min %}
+  {% set dim_shortlist = [hub_shortlist_count|default(0) * 10, 100]|min %}
+  {% set dim_notes = [hub_notes_count|default(0) * 10, 100]|min %}
+  <div class="tt-hub-hero mb-3">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+      <div>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span class="tt-hub-chip"><i class='bx bx-trending-up'></i> Admissions dashboard</span>
+          <span class="tt-hub-chip"><i class='bx bx-star'></i> Top Teen smart view</span>
+        </div>
+        <h2 class="tt-hub-hero-title">Applications &amp; resume hub</h2>
+        <p class="tt-hub-hero-subtitle text-white">
+          Track your shortlist, resume growth, profile readiness, and calendar deadlines in one premium view.
+        </p>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="tt-hub-score-pill">
+          <span class="num">{{ readiness_score }}</span>
+          <span class="lbl">Readiness</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url('users:resumebuilder') }}" class="btn btn-sm custom-button purple-button px-3" style="box-shadow:none;">
+            <i class='bx bx-file-blank me-1'></i> My resumes
+          </a>
+          <a href="{{ url('users:mycolleges') }}" class="btn btn-sm px-3 d-flex align-items-center justify-content-center" style="background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.45);">
+            <i class='bx bx-buildings me-1'></i> My colleges
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:resumebuilder') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi kpi-purple">
+          <div class="tt-hub-ico purple"><i class='bx bx-file-blank'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Resume sections</div>
+            <div class="tt-hub-val">{{ hub_resume_sections|default(0) }}</div>
+            <p class="fs-11 text-gray mb-0 mt-1">About, skills, activities &amp; more</p>
+            <div class="tt-hub-meter"><span style="width: {{ [hub_resume_sections|default(0) * 10, 100]|min }}%;"></span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:mycolleges') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi kpi-cyan">
+          <div class="tt-hub-ico cyan"><i class='bx bxs-graduation'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Colleges saved</div>
+            <div class="tt-hub-val">{{ hub_shortlist_count|default(0) }}</div>
+            <p class="fs-11 text-gray mb-0 mt-1">Shortlist &amp; explore</p>
+            <div class="tt-hub-meter"><span style="width: {{ [hub_shortlist_count|default(0) * 10, 100]|min }}%;"></span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:profiledetails') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi kpi-gold">
+          <div class="tt-hub-ico gold"><i class='bx bx-trophy'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Profile strength</div>
+            <div class="tt-hub-val">{{ hub_profile_completion|default(0) }}%</div>
+            <p class="fs-11 text-gray mb-0 mt-1">Complete your profile</p>
+            <div class="tt-hub-meter"><span style="width: {{ hub_profile_completion|default(0) }}%;"></span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a href="{{ url('users:scrapbook') }}" class="text-decoration-none text-reset d-block h-100">
+        <div class="tt-hub-kpi kpi-green">
+          <div class="tt-hub-ico green"><i class='bx bx-book-content'></i></div>
+          <div>
+            <div class="tt-hub-lbl">Scrapbook notes</div>
+            <div class="tt-hub-val">{{ hub_notes_count|default(0) }}</div>
+            <p class="fs-11 text-gray mb-0 mt-1">Ideas &amp; reminders</p>
+            <div class="tt-hub-meter"><span style="width: {{ [hub_notes_count|default(0) * 10, 100]|min }}%;"></span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-7">
+      <div class="tt-hub-analytics">
+        <h4>Dimension Breakdown</h4>
+        <div class="tt-hub-dimension">
+          <div class="tt-hub-dimension-head">
+            <span>Profile completion</span>
+            <strong>{{ dim_profile }}%</strong>
+          </div>
+          <div class="tt-hub-dimension-track">
+            <div class="tt-hub-dimension-fill" style="width: {{ dim_profile }}%; background: linear-gradient(90deg,#4f46e5,#7c3aed);"></div>
+          </div>
+        </div>
+        <div class="tt-hub-dimension">
+          <div class="tt-hub-dimension-head">
+            <span>Resume strength</span>
+            <strong>{{ dim_resume }}%</strong>
+          </div>
+          <div class="tt-hub-dimension-track">
+            <div class="tt-hub-dimension-fill" style="width: {{ dim_resume }}%; background: linear-gradient(90deg,#0ea5e9,#06b6d4);"></div>
+          </div>
+        </div>
+        <div class="tt-hub-dimension">
+          <div class="tt-hub-dimension-head">
+            <span>College planning</span>
+            <strong>{{ dim_shortlist }}%</strong>
+          </div>
+          <div class="tt-hub-dimension-track">
+            <div class="tt-hub-dimension-fill" style="width: {{ dim_shortlist }}%; background: linear-gradient(90deg,#22c55e,#84cc16);"></div>
+          </div>
+        </div>
+        <div class="tt-hub-dimension">
+          <div class="tt-hub-dimension-head">
+            <span>Notes consistency</span>
+            <strong>{{ dim_notes }}%</strong>
+          </div>
+          <div class="tt-hub-dimension-track">
+            <div class="tt-hub-dimension-fill" style="width: {{ dim_notes }}%; background: linear-gradient(90deg,#f59e0b,#f97316);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="tt-hub-analytics">
+        <h4>Top Priorities</h4>
+        <ul class="tt-hub-rank-list">
+          <li>
+            <span class="idx">1</span>
+            <span>Complete profile</span>
+            <span class="val">{{ hub_profile_completion|default(0) }}%</span>
+          </li>
+          <li>
+            <span class="idx">2</span>
+            <span>Add resume sections</span>
+            <span class="val">{{ hub_resume_sections|default(0) }}</span>
+          </li>
+          <li>
+            <span class="idx">3</span>
+            <span>Shortlist colleges</span>
+            <span class="val">{{ hub_shortlist_count|default(0) }}</span>
+          </li>
+          <li>
+            <span class="idx">4</span>
+            <span>Keep idea notes</span>
+            <span class="val">{{ hub_notes_count|default(0) }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Resume progress</h3>
+        {% if hub_resume_exists and hub_resume_sections > 0 %}
+        <p>You have <strong>{{ hub_resume_sections }}</strong> filled section{{ 's' if hub_resume_sections != 1 else '' }} on your resume. Open the editor to refine wording or export to PDF.</p>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:resumebuilder') }}">Open My resumes →</a>
+        {% else %}
+        <p>No resume sections yet. Open My resumes to create your profile resume, then add sections in the editor.</p>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:resumebuilder') }}">Go to My resumes →</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Recent focus</h3>
+        <p class="mb-2">Keep momentum on applications and career prep.</p>
+        <ul class="list-unstyled mb-0 fs-13 text-gray">
+          <li class="mb-1">• <a class="tt-hub-link" href="{{ url('users:resumebuilder') }}">My resumes</a></li>
+          <li class="mb-1">• <a class="tt-hub-link" href="{{ url('users:mycolleges') }}">My colleges</a></li>
+          <li>• <a class="tt-hub-link" href="{{ url('colleges:college') }}">Browse colleges</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Upcoming dates</h3>
+        {% if hub_upcoming_events %}
+        <ul class="list-unstyled mb-0">
+          {% for ev in hub_upcoming_events %}
+          <li class="tt-hub-event-row d-flex justify-content-between gap-2 fs-13 mb-2 pb-2 border-bottom border-light">
+            <span class="text-dark fw-medium">{{ ev.title }}</span>
+            <span class="text-gray text-nowrap">{{ ev.start.strftime('%d %b') }}{% if ev.end and ev.end != ev.start %} – {{ ev.end.strftime('%d %b') }}{% endif %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:usercalender') }}">Open calendar →</a>
+        {% else %}
+        <p>No upcoming events in your calendar. Add deadlines for tests, applications, or school milestones.</p>
+        <a class="tt-hub-link fs-13 d-inline-block mt-2" href="{{ url('users:usercalender') }}">Add to calendar →</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="tt-hub-panel">
+        <h3>Next steps</h3>
+        <div class="tt-hub-step">
+          <span class="tt-hub-dot" style="background:#f8bd51;"></span>
+          <div>
+            <p class="fw-semibold text-dark mb-0 fs-13">Build your resume</p>
+            <p class="fs-12 text-gray mb-0">Open <a class="tt-hub-link" href="{{ url('users:resumebuilder') }}">My resumes</a> to add resumes, use <strong>Resume studio</strong> (guided), then <strong>PDF download</strong> to export.</p>
+          </div>
+        </div>
+        <div class="tt-hub-step">
+          <span class="tt-hub-dot" style="background:#3cbae1;"></span>
+          <div>
+            <p class="fw-semibold text-dark mb-0 fs-13">Track colleges</p>
+            <p class="fs-12 text-gray mb-0">Save schools from college pages — see them under <a class="tt-hub-link" href="{{ url('users:mycolleges') }}">My colleges</a>.</p>
+          </div>
+        </div>
+        <div class="tt-hub-step">
+          <span class="tt-hub-dot" style="background:#4cc875;"></span>
+          <div>
+            <p class="fw-semibold text-dark mb-0 fs-13">Capture ideas</p>
+            <p class="fs-12 text-gray mb-0">Jot achievements and links in <a class="tt-hub-link" href="{{ url('users:scrapbook') }}">Scrapbook</a> for essays and interviews.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

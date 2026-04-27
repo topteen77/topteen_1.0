@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}{% if note.id %}Edit Note{% else %}Create Note{% endif %} | Top Teen{% endblock %}
 {% block description_content %}Create or edit your note to keep track of your thoughts and reminders.{% endblock %}
 
-{% block bodyclass %}{{ super() }} create-note-page{% endblock %}
+{% block student_bodyclass %}create-note-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .create-note-page {
     padding-top: 47px;
@@ -96,23 +95,34 @@
   min-height: auto;
  }
   }
+
+
+  .app-right-content {
+	background: #eef1f8;
+  height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
+
   
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="create-note-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Note' %}
+{% endblock %}
 
-      <!-- Right Part - Note Editor Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}create-note-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
+
+{% block student_main %}
     <!-- Header -->
+
+    <div class="app-right-content pt-3 px-3 pb-3">
     <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4 position-relative">
       <button type="button" class="btn btn-outline-secondary text-decoration-none d-flex align-items-center note-back-btn" data-back-url="{{ url('users:mynotepad') }}">
         <i class='bx bx-arrow-back fs-20 me-1'></i> Back
@@ -161,15 +171,11 @@
         Save
       </button>
         </div>
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
+</div>
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
@@ -218,8 +224,7 @@
 
   // Save note function
   function saveNoteSubmitForm() {
-    saveNoteData();
-    fireAlert("Note Saved", "success");
+    document.getElementById("createnoteform").submit();
   }
 
   function saveNoteData() {

@@ -1,57 +1,57 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}My Exams | Top Teen{% endblock %}
 {% block description_content %}View your bookmarked entrance exams.{% endblock %}
 
-{% block bodyclass %}{{ super() }} bookmark-exam-page{% endblock %}
+{% block student_bodyclass %}bookmark-exam-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
-  .bookmark-exam-page {
-    padding-top: 47px;
-  }
+
   .exam-card {
-    border: 1px solid #efefee;
-    border-radius: 12px;
-    padding: 14px;
-    box-shadow: 0 7px 32px rgba(0,0,0,0.07);
-    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #e8eaf1;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 28px rgba(17, 24, 39, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   .exam-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+    transform: translateY(-6px);
+    box-shadow: 0 14px 36px rgba(76, 51, 255, 0.14);
+    border-color: #d9d8ff;
   }
   .bookmark-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    background-color: rgba(0, 0, 0, 0.05);
+    top: 10px;
+    right: 10px;
+    background-color: #f1f3f9;
     border-radius: 50%;
-    padding: 8px;
+    padding: 7px;
     cursor: pointer;
-    transition: all 0.3s;
-    width: 32px;
-    height: 32px;
+    transition: all 0.25s ease;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .bookmark-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    transform: scale(1.1);
+    background-color: #ffe8ef;
+    transform: scale(1.08);
   }
   .bookmark-btn i {
     font-size: 18px;
-    color: #666;
+    color: #6b7280;
   }
   .bookmark-btn:hover i {
-    color: #333;
-  }
-  .exam-card {
-    min-height: 280px;
+    color: #d11a2a;
   }
   .exam-description {
     font-size: 13px;
@@ -59,6 +59,7 @@
     line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 12px;
@@ -77,31 +78,70 @@
 	width: 100%;
 }
 
-.exam-card {
-  width: 31.4%;
+.exam-head-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  width: 100%;
 }
 
-@media (max-width: 768px) {
-  .exam-card {
-    width: 100%;
+.exam-head-link .exam-title {
+  margin-bottom: 0;
+  max-height: 48px;
+  overflow: hidden;
+  text-align: left;
+}
+
+  .exam-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
   }
+
+  @media (max-width: 1199.98px) {
+    .exam-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .exam-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .exam-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+.app-right-content {
+	background: #eef1f8;
+  min-height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
 }
 
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="bookmark-exam-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Exams & tests' %}
+{% endblock %}
 
-      <!-- Right Part - Exams Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}bookmark-exam-page  std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4 student-dash-shell{% endblock %}
+
+{% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -133,7 +173,7 @@
 
         <!-- Exams Content -->
         {% if exams %}
-        <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+        <div class="exam-grid">
           {% for exam in exams %}
           <div class="exam-card" >
             <div id="exam_{{ exam.id }}" 
@@ -143,12 +183,12 @@
               <i class='bx bx-x'></i>
             </div>
             <div class="d-flex align-items-center gap-2 mb-3">
-              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="d-flex align-items-center flex-column gap-2 text-decoration-none">
+              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="exam-head-link">
                 <div class="icon-mobile" style="flex-shrink: 0;">
                   {% if exam.image %}<img src="{{ exam.image.url }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />{% else %}<img src="{{ static('images_new/general/visinory-goal.svg') }}" class="w-100 h-100 object-cover" alt="{{ exam.name }}" />{% endif %}
                 </div>
                 <div class="flex-grow-1">
-                  <h5 class="fs-14 fw-semibold text-dark mb-1" style="max-height: 48px; overflow: hidden;">{{ exam.name }}</h5>
+                  <h5 class="fs-14 fw-semibold text-dark exam-title">{{ exam.name }}</h5>
                 </div>
               </a>
             </div>
@@ -159,7 +199,7 @@
             {% endif %}
            
             <div class="text-center">
-              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="btn btn-outline-secondary btn-sm">
+              <a href="{{ url('core:entrance_test_prep_exam_detail', kwargs={'slug': exam.slug}) }}" class="btn btn-sm custom-button purple-button px-3">
                 View Details
               </a>
             </div>
@@ -179,16 +219,15 @@
           </a>
         </div>
         {% endif %}
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
+
+</div>
 <!-- jQuery -->
+
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -17,6 +17,19 @@ from app.templatetags.myfilters_extras import my_url
 from django.utils.timezone import template_localtime
 from core.seo_schema import get_breadcrumb_schema, get_webpage_schema, get_faq_schema
 
+def get_item(dictionary, key):
+    try:
+        return dictionary.get(key)
+    except Exception:
+        return None
+
+
+def starts_with_bullet(value):
+    try:
+        return str(value).startswith('•')
+    except Exception:
+        return False
+
 def img_tag(*args,**kwargs):
     src = kwargs['src']
     # print("src",type(src))
@@ -243,6 +256,13 @@ def tojson_filter(value):
     return mark_safe(json.dumps(value))
 
 
+def tojson_for_script(value):
+    """JSON safe inside <script> tags (avoids premature </script> / markup issues)."""
+    s = json.dumps(value, ensure_ascii=False, default=str)
+    s = s.translate(str.maketrans({"<": "\\u003c", ">": "\\u003e"}))
+    return mark_safe(s)
+
+
 def tojson_pretty(value, indent=2):
     """Convert Python object to well-formatted JSON (for JSON-LD schema in HTML)."""
     return mark_safe(json.dumps(value, indent=indent, ensure_ascii=False))
@@ -310,7 +330,10 @@ def environment(**options):
     env = Environment(**options)
     # Register escapejs first (required by course_learning.html and other Jinja templates)
     env.filters['escapejs'] = _escapejs
+    env.filters['get_item'] = get_item
+    env.filters['starts_with_bullet'] = starts_with_bullet
     env.filters['tojson'] = tojson_filter
+    env.filters['tojson_for_script'] = tojson_for_script
     env.filters['tojson_pretty'] = tojson_pretty
     env.filters['urlencode'] = urlencode_filter
     env.filters['blog_category_display'] = blog_category_display

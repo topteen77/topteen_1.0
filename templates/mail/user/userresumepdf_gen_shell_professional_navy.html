@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume</title>
+  <style>
+    :root {
+      --accent: {{ pdf_accent_color|default('#1e3a5f') }};
+      --ink: #0f172a;
+      --muted: #475569;
+      --rule: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.45;
+      color: var(--ink);
+      background: #eef2f7;
+    }
+    .shell {
+      min-height: 100vh;
+      padding: 20px 18px 32px;
+    }
+    .shell::before {
+      content: "";
+      display: block;
+      height: 5px;
+      background: var(--accent);
+      margin: 0 auto 18px;
+      max-width: 840px;
+      border-radius: 3px;
+    }
+    .gen-wrap {
+      max-width: 840px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 28px 32px 36px;
+      border-radius: 2px;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+      border: 1px solid var(--rule);
+    }
+    /* Harmonise typical AI-generated resume markup */
+    .gen-wrap h1, .gen-wrap h2, .gen-wrap h3 {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--accent);
+      margin: 1.1em 0 0.45em;
+    }
+    .gen-wrap h1 { font-size: 1.65rem; border-bottom: 2px solid var(--rule); padding-bottom: 0.35em; }
+    .gen-wrap h2 { font-size: 1.08rem; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.08em; }
+    .gen-wrap h3 { font-size: 0.95rem; color: var(--ink); }
+    .gen-wrap p { margin: 0.45em 0; color: var(--ink); }
+    .gen-wrap ul, .gen-wrap ol { margin: 0.4em 0 0.6em 1.15em; padding: 0; color: var(--muted); }
+    .gen-wrap li { margin: 0.2em 0; }
+    .gen-wrap strong { color: var(--ink); font-weight: 600; }
+    .gen-wrap a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(30, 58, 95, 0.25); }
+    .gen-wrap table { width: 100%; border-collapse: collapse; font-size: 0.95em; margin: 0.6em 0; }
+    .gen-wrap th, .gen-wrap td { border-bottom: 1px solid var(--rule); padding: 6px 8px; text-align: left; }
+    .gen-wrap th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="shell rlayout--{{ pdf_layout_variant|default('v01') }}">
+    <div class="gen-wrap">
+      {{ generated_resume_html|safe }}
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% for v in resumevolunteer %}
+<div class="added-item d-flex align-items-start justify-content-between gap-2">
+  <div class="flex-grow-1">
+    <p class="fs-15 fw-semibold text-dark mb-1">{{ v.title }}</p>
+    <p class="fs-13 text-gray mb-0">
+      {{ v.role }} •
+      {% if v.start_date %}{{ date_format(v.start_date) }}{% endif %}
+      {% if v.end_date %} - {{ date_format(v.end_date) }}{% endif %}
+    </p>
+  </div>
+  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+            data-bs-toggle="modal" data-bs-target="#volunteerModal" data-edit-kind="volunteer" data-edit-id="{{ v.id }}">
+      <i class="bx bx-edit-alt fs-22"></i>
+    </button>
+    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+            data-id="{{ v.id }}" data-url="/api/v1/user/resume-volunteer" data-mdivid="volunteerm" data-ddivid="volunteerd">
+      <i class="bx bx-x-circle fs-24"></i>
+    </button>
+  </div>
+</div>
+{% endfor %}

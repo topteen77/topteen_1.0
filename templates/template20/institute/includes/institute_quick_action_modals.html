@@ -1,0 +1,190 @@
+{# Shared quick-action modals for institute dashboards (POST targets unchanged). #}
+<div class="modal fade" id="addMultipleStudentsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Multiple Students</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutedashboard', args=[institute.slug]) }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            For multiple students enter comma separated emails<br>
+            eg - email1@gmail.com, email2@gmail.com and so on
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Class Section</label>
+            <select name="class_section" class="form-control" required>
+              <option value="">Select Class</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Student Emails</label>
+            <textarea name="student_email" class="form-control" rows="5" placeholder="Enter comma separated emails"
+              required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Add Students</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addSingleStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Single Student</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutestudentcreate') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" name="student_email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Class Section</label>
+            <select name="class_and_section" class="form-control">
+              <option value="">Select Class</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.id }}">{{ cas.class_and_section }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Add Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addCounselorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Counselor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:createcounselor', args=[institute.slug]) }}"
+        enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="counselor_admin" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Counselor Name <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Email <span class="text-danger">*</span></label>
+            <input type="email" name="counselor_email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Address <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_address" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Counselor Contact Info <span class="text-danger">*</span></label>
+            <input type="text" name="counselor_contact_info" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Education <span class="text-danger">*</span></label>
+            <select name="c_education" class="form-control" required>
+              <option value="">Select...</option>
+              <option value="PHD">PHD</option>
+              <option value="Bachelor's Degree">Bachelor's Degree</option>
+              <option value="Master's Degree">Master's Degree</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Gender</label>
+            <select name="counselor_gender" class="form-control">
+              <option value="">Select...</option>
+              <option value="20">Male</option>
+              <option value="30">Female</option>
+              <option value="10">Unknown</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Create Counselor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addCsvStudentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Students (CSV Upload)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutecsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            CSV file must follow this format <a href="{{ url('institute:download_student_sample_csv') }}"
+              target="_blank" download>Sample CSV</a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addPostMatricCsvModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Students (Post-Matric CSV Upload)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}"
+        enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" value="{{ institute.id }}">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            CSV file must follow this format <a href="{{ url('institute:post_matric_student_sample_csv') }}"
+              target="_blank" download>Post Matric Sample CSV</a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

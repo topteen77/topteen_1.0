@@ -19,6 +19,51 @@ import json
 from skilllab.task import send_skillabcourse_payment_success_mail
 
 
+def _user_resume_for_request(request):
+    """
+    Resolve the target UserResume from resume_id (JSON/form) or the user's most recently
+    modified resume, creating a default row only when they have none yet.
+    """
+    user = request.user
+    rid = None
+    if getattr(request, "data", None) is not None:
+        rid = request.data.get("resume_id")
+    if rid in (None, "", b"") and request.POST:
+        rid = request.POST.get("resume_id")
+    if rid not in (None, "", b""):
+        try:
+            pk = int(rid)
+        except (TypeError, ValueError):
+            pk = None
+        if pk:
+            return get_object_or_404(UserResume, pk=pk, user=user)
+
+    existing = UserResume.objects.filter(user=user).order_by("-modified").first()
+    if existing:
+        return existing
+    return UserResume.objects.create(user=user, title="My resume")
+
+
+def _resume_ui_template20(request):
+    v = (request.POST.get("resume_ui") or "").strip().lower()
+    if not v and getattr(request, "data", None) is not None:
+        try:
+            v = (request.data.get("resume_ui") or "").strip().lower()
+        except Exception:
+            v = ""
+    return v in ("template20", "t20", "1")
+
+
+def _attach_resume_editor_payload(request, resume, data):
+    if _resume_ui_template20(request):
+        try:
+            from users.resume_payload import resume_editor_payload
+
+            data["resume_editor_payload"] = resume_editor_payload(resume)
+        except Exception:
+            pass
+
+
 class ShortlistCourseAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [authentication.SessionAuthentication, authentication.TokenAuthentication]
@@ -158,11 +203,17 @@ class UserResumeAbout(APIView):
         data["message"]="All Fields are required"
         about = request.data.get("about")
         if about:
-            resume,_ = UserResume.objects.get_or_create(user=request.user)
+            resume = _user_resume_for_request(request)
             resume.about = about
             resume.save()
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeaboutd.html",{'resume':resume})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeaboutm.html",{'resume':resume})
+            if _resume_ui_template20(request):
+                td = "template20/user/includes/resume_builder_about_d.html"
+                tm = "template20/user/includes/resume_builder_about_m.html"
+            else:
+                td = "topteenfrontend/includes/resumeaboutd.html"
+                tm = "topteenfrontend/includes/resumeaboutm.html"
+            data["htmld"] = render_to_string(td, {"resume": resume})
+            data["htmlm"] = render_to_string(tm, {"resume": resume})
             data['message']="About added successfully"
             return Response(data, status=status.HTTP_200_OK)
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST)  
@@ -174,32 +225,71 @@ class UserResumeSkillAdd(APIView):
     def post(self, request): 
         data={}
         data["message"]="All Fields are required"
+        resume = _user_resume_for_request(request)
         title = request.data.get("skilltitle")
-        desc = request.data.get('skilldesc')
-        profficiency=request.data.get('skillprofficiency')
-        if title and desc and profficiency:
-            resume,_=UserResume.objects.get_or_create(user=request.user)
-            skiill,_=UserResumeSkill.objects.get_or_create(resume=resume,title=title)
-            skiill.description=desc
-            skiill.profficiency=profficiency
+        desc = request.data.get("skilldesc") or ""
+        profficiency = request.data.get("skillprofficiency")
+        skill_id = request.data.get("skill_id") or request.data.get("skillid")
+
+        if skill_id and title and profficiency:
+            skiill = get_object_or_404(UserResumeSkill, id=int(skill_id), resume=resume)
+            skiill.title = title
+            skiill.description = desc
+            skiill.profficiency = int(profficiency)
+            skiill.save()
+            resumeskill = UserResumeSkill.objects.filter(resume=resume)
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_skill_d.html",
+                    "template20/user/includes/resume_builder_skill_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeskilld.html", "topteenfrontend/includes/resumeskillm.html"
+            data["htmld"] = render_to_string(td, {"resumeskill": resumeskill})
+            data["htmlm"] = render_to_string(tm, {"resumeskill": resumeskill})
+            data["count"] = resumeskill.count()
+            data["message"] = "Skill updated successfully"
+            _attach_resume_editor_payload(request, resume, data)
+            return Response(data, status=status.HTTP_200_OK)
+
+        if title and profficiency:
+            skiill, _ = UserResumeSkill.objects.get_or_create(resume=resume, title=title)
+            skiill.description = desc
+            skiill.profficiency = profficiency
             skiill.save()
 
             resumeskill=UserResumeSkill.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeskilld.html",{'resumeskill':resumeskill})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeskillm.html",{'resumeskill':resumeskill})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_skill_d.html",
+                    "template20/user/includes/resume_builder_skill_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeskilld.html", "topteenfrontend/includes/resumeskillm.html"
+            data['htmld']=render_to_string(td,{'resumeskill':resumeskill})
+            data['htmlm']=render_to_string(tm,{'resumeskill':resumeskill})
             data["count"]=resumeskill.count()
             data["message"]="Skill Added successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         id = request.data.get('id',None)
         if id:
             skiill=get_object_or_404(UserResumeSkill,id=int(id))
             skiill.delete()
-            resume,_=UserResume.objects.get_or_create(user=request.user)
+            resume=_user_resume_for_request(request)
             resumeskill=UserResumeSkill.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeskilld.html",{'resumeskill':resumeskill})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeskillm.html",{'resumeskill':resumeskill})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_skill_d.html",
+                    "template20/user/includes/resume_builder_skill_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeskilld.html", "topteenfrontend/includes/resumeskillm.html"
+            data['htmld']=render_to_string(td,{'resumeskill':resumeskill})
+            data['htmlm']=render_to_string(tm,{'resumeskill':resumeskill})
             data["count"]=resumeskill.count()
             data["message"]="Skill delete successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST)  
 
@@ -210,32 +300,70 @@ class UserResumeCertificationAdd(APIView):
     def post(self, request): 
         data={}
         data["message"]="All Fields are required"
+        resume = _user_resume_for_request(request)
         title = request.POST.get("certificatetitle")
         desc = request.POST.get("certificatedescription")
         date = request.POST.get("issuedate")
+        cert_id = request.POST.get("certificate_id") or request.data.get("certificate_id")
+
+        if cert_id and title and desc and date:
+            certificate = get_object_or_404(UserResumeCertificate, id=int(cert_id), resume=resume)
+            certificate.title = title
+            certificate.description = desc
+            certificate.issue_date = date
+            certificate.save()
+            resumecertificate = UserResumeCertificate.objects.filter(resume=resume)
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_certificate_d.html",
+                    "template20/user/includes/resume_builder_certificate_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumecertificated.html", "topteenfrontend/includes/resumecertificatem.html"
+            data['htmld'] = render_to_string(td, {'resumecertificate': resumecertificate})
+            data['htmlm'] = render_to_string(tm, {'resumecertificate': resumecertificate})
+            data['count'] = resumecertificate.count()
+            data["message"] = "Certificate updated successfully"
+            _attach_resume_editor_payload(request, resume, data)
+            return Response(data, status=status.HTTP_200_OK)
 
         if title and desc and date:
-            resume,_=UserResume.objects.get_or_create(user=request.user)
             certificate,_=UserResumeCertificate.objects.get_or_create(resume=resume,title=title)
             certificate.description=desc
             certificate.issue_date=date
             certificate.save()
             resumecertificate=UserResumeCertificate.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumecertificated.html",{'resumecertificate':resumecertificate})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumecertificatem.html",{'resumecertificate':resumecertificate})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_certificate_d.html",
+                    "template20/user/includes/resume_builder_certificate_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumecertificated.html", "topteenfrontend/includes/resumecertificatem.html"
+            data['htmld']=render_to_string(td,{'resumecertificate':resumecertificate})
+            data['htmlm']=render_to_string(tm,{'resumecertificate':resumecertificate})
             data['count']=resumecertificate.count()
             data["message"]="Certificate Added successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         id = request.data.get('id',None)
         if id:
             certificate=get_object_or_404(UserResumeCertificate,id=int(id))
             certificate.delete()
-            resume,_=UserResume.objects.get_or_create(user=request.user)
+            resume=_user_resume_for_request(request)
             resumecertificate=UserResumeCertificate.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumecertificated.html",{'resumecertificate':resumecertificate})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumecertificatem.html",{'resumecertificate':resumecertificate})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_certificate_d.html",
+                    "template20/user/includes/resume_builder_certificate_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumecertificated.html", "topteenfrontend/includes/resumecertificatem.html"
+            data['htmld']=render_to_string(td,{'resumecertificate':resumecertificate})
+            data['htmlm']=render_to_string(tm,{'resumecertificate':resumecertificate})
             data['count']=resumecertificate.count()
             data["message"]="Certificate Deleted successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST) 
 
@@ -246,14 +374,38 @@ class UserResumeInternshipAdd(APIView):
     def post(self, request): 
         data={}
         data["message"]="All Fields are required"
+        resume = _user_resume_for_request(request)
         provider = request.POST.get("provider")
         role = request.POST.get("role")
         desc = request.POST.get("internshipdescription")
         start_date = request.POST.get("start_date")
         end_date = request.POST.get("end_date")
+        iid = request.POST.get("internship_id") or request.data.get("internship_id")
+
+        if iid and provider and desc and role and start_date and end_date:
+            internship = get_object_or_404(UserResumeInternship, id=int(iid), resume=resume)
+            internship.provider = provider
+            internship.role = role
+            internship.description = desc
+            internship.start_date = start_date
+            internship.end_date = end_date
+            internship.save()
+            resumeinternship = UserResumeInternship.objects.filter(resume=resume)
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_internship_d.html",
+                    "template20/user/includes/resume_builder_internship_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeinternshipd.html", "topteenfrontend/includes/resumeinternshipm.html"
+            data['htmld'] = render_to_string(td, {'resumeinternship': resumeinternship})
+            data['htmlm'] = render_to_string(tm, {'resumeinternship': resumeinternship})
+            data['count'] = resumeinternship.count()
+            data["message"] = "Internship updated successfully"
+            _attach_resume_editor_payload(request, resume, data)
+            return Response(data, status=status.HTTP_200_OK)
 
         if provider and desc and role and start_date and end_date:
-            resume,_=UserResume.objects.get_or_create(user=request.user)
             internship=UserResumeInternship.objects.create(resume=resume)
             internship.provider=provider
             internship.role=role
@@ -262,21 +414,37 @@ class UserResumeInternshipAdd(APIView):
             internship.end_date=end_date
             internship.save()
             resumeinternship=UserResumeInternship.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeinternshipd.html",{'resumeinternship':resumeinternship})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeinternshipm.html",{'resumeinternship':resumeinternship})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_internship_d.html",
+                    "template20/user/includes/resume_builder_internship_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeinternshipd.html", "topteenfrontend/includes/resumeinternshipm.html"
+            data['htmld']=render_to_string(td,{'resumeinternship':resumeinternship})
+            data['htmlm']=render_to_string(tm,{'resumeinternship':resumeinternship})
             data['count']=resumeinternship.count()
             data["message"]="Internship Added successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         id = request.data.get('id',None)
         if id:
             internship=get_object_or_404(UserResumeInternship,id=int(id))
             internship.delete()
-            resume,_=UserResume.objects.get_or_create(user=request.user)
+            resume=_user_resume_for_request(request)
             resumeinternship=UserResumeInternship.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeinternshipd.html",{'resumeinternship':resumeinternship})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeinternshipm.html",{'resumeinternship':resumeinternship})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_internship_d.html",
+                    "template20/user/includes/resume_builder_internship_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeinternshipd.html", "topteenfrontend/includes/resumeinternshipm.html"
+            data['htmld']=render_to_string(td,{'resumeinternship':resumeinternship})
+            data['htmlm']=render_to_string(tm,{'resumeinternship':resumeinternship})
             data['count']=resumeinternship.count()
             data["message"]="Internship deleted successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST) 
 
@@ -287,32 +455,70 @@ class UserResumeActivitiesAdd(APIView):
     def post(self, request): 
         data={}
         data["message"]="All Fields are required"
+        resume = _user_resume_for_request(request)
         title = request.POST.get("activity")
         desc = request.POST.get("activity_description")
         issue_date = request.POST.get("particiopation_date")
+        aid = request.POST.get("activity_id") or request.data.get("activity_id")
+
+        if aid and title and desc and issue_date:
+            activity = get_object_or_404(UserResumeActivity, id=int(aid), resume=resume)
+            activity.title = title
+            activity.description = desc
+            activity.issue_date = issue_date
+            activity.save()
+            resumeactivity = UserResumeActivity.objects.filter(resume=resume)
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_activity_d.html",
+                    "template20/user/includes/resume_builder_activity_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeactivityd.html", "topteenfrontend/includes/resumeactivitym.html"
+            data['htmld'] = render_to_string(td, {'resumeactivity': resumeactivity})
+            data['htmlm'] = render_to_string(tm, {'resumeactivity': resumeactivity})
+            data['count'] = resumeactivity.count()
+            data["message"] = "Activity updated successfully"
+            _attach_resume_editor_payload(request, resume, data)
+            return Response(data, status=status.HTTP_200_OK)
 
         if title and desc and issue_date:
-            resume,_=UserResume.objects.get_or_create(user=request.user)
             activity,_=UserResumeActivity.objects.get_or_create(resume=resume,title=title)
             activity.description=desc
             activity.issue_date=issue_date
             activity.save()
             resumeactivity=UserResumeActivity.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeactivityd.html",{'resumeactivity':resumeactivity})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeactivitym.html",{'resumeactivity':resumeactivity})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_activity_d.html",
+                    "template20/user/includes/resume_builder_activity_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeactivityd.html", "topteenfrontend/includes/resumeactivitym.html"
+            data['htmld']=render_to_string(td,{'resumeactivity':resumeactivity})
+            data['htmlm']=render_to_string(tm,{'resumeactivity':resumeactivity})
             data['count']=resumeactivity.count()
             data["message"]="Activity Added successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         id = request.data.get('id',None)
         if id:
             activity=get_object_or_404(UserResumeActivity,id=int(id))
             activity.delete()
-            resume,_=UserResume.objects.get_or_create(user=request.user)
+            resume=_user_resume_for_request(request)
             resumeactivity=UserResumeActivity.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumeactivityd.html",{'resumeactivity':resumeactivity})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumeactivitym.html",{'resumeactivity':resumeactivity})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_activity_d.html",
+                    "template20/user/includes/resume_builder_activity_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumeactivityd.html", "topteenfrontend/includes/resumeactivitym.html"
+            data['htmld']=render_to_string(td,{'resumeactivity':resumeactivity})
+            data['htmlm']=render_to_string(tm,{'resumeactivity':resumeactivity})
             data['count']=resumeactivity.count()
             data["message"]="Activity Added successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST)
 
@@ -323,14 +529,38 @@ class UserResumeVolunteering(APIView):
     def post(self, request): 
         data={}
         data["message"]="All Fields are required"
+        resume = _user_resume_for_request(request)
         title = request.POST.get("volunteertitle")
         role = request.POST.get("volunteerrole")
         desc = request.POST.get("volunteerdescription")
         start_date = request.POST.get("volunteer_start_date")
         end_date = request.POST.get("volunteer_end_date")
+        vid = request.POST.get("volunteer_id") or request.data.get("volunteer_id")
+
+        if vid and title and desc and role and start_date and end_date:
+            volunteer = get_object_or_404(UserResumeVolunteerInvolvement, id=int(vid), resume=resume)
+            volunteer.title = title
+            volunteer.role = role
+            volunteer.description = desc
+            volunteer.start_date = start_date
+            volunteer.end_date = end_date
+            volunteer.save()
+            resumevolunteer = UserResumeVolunteerInvolvement.objects.filter(resume=resume)
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_volunteer_d.html",
+                    "template20/user/includes/resume_builder_volunteer_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumevolunteerd.html", "topteenfrontend/includes/resumevolunteerm.html"
+            data['htmld'] = render_to_string(td, {'resumevolunteer': resumevolunteer})
+            data['htmlm'] = render_to_string(tm, {'resumevolunteer': resumevolunteer})
+            data['count'] = resumevolunteer.count()
+            data["message"] = "Volunteering updated successfully"
+            _attach_resume_editor_payload(request, resume, data)
+            return Response(data, status=status.HTTP_200_OK)
 
         if title and desc and role and start_date and end_date:
-            resume,_=UserResume.objects.get_or_create(user=request.user)
             volunteer,_=UserResumeVolunteerInvolvement.objects.get_or_create(resume=resume,title=title)
             volunteer.title=title
             volunteer.role=role
@@ -339,21 +569,37 @@ class UserResumeVolunteering(APIView):
             volunteer.end_date=end_date
             volunteer.save()
             resumevolunteer=UserResumeVolunteerInvolvement.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumevolunteerd.html",{'resumevolunteer':resumevolunteer})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumevolunteerm.html",{'resumevolunteer':resumevolunteer})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_volunteer_d.html",
+                    "template20/user/includes/resume_builder_volunteer_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumevolunteerd.html", "topteenfrontend/includes/resumevolunteerm.html"
+            data['htmld']=render_to_string(td,{'resumevolunteer':resumevolunteer})
+            data['htmlm']=render_to_string(tm,{'resumevolunteer':resumevolunteer})
             data['count']=resumevolunteer.count()
             data["message"]="Add Volunteer Certificate successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         id = request.data.get('id',None)
         if id:
             volunteer=get_object_or_404(UserResumeVolunteerInvolvement,id=int(id))
             volunteer.delete()
-            resume,_=UserResume.objects.get_or_create(user=request.user)
+            resume=_user_resume_for_request(request)
             resumevolunteer=UserResumeVolunteerInvolvement.objects.filter(resume=resume)
-            data['htmld']=render_to_string("topteenfrontend/includes/resumevolunteerd.html",{'resumevolunteer':resumevolunteer})
-            data['htmlm']=render_to_string("topteenfrontend/includes/resumevolunteerm.html",{'resumevolunteer':resumevolunteer})
+            if _resume_ui_template20(request):
+                td, tm = (
+                    "template20/user/includes/resume_builder_volunteer_d.html",
+                    "template20/user/includes/resume_builder_volunteer_m.html",
+                )
+            else:
+                td, tm = "topteenfrontend/includes/resumevolunteerd.html", "topteenfrontend/includes/resumevolunteerm.html"
+            data['htmld']=render_to_string(td,{'resumevolunteer':resumevolunteer})
+            data['htmlm']=render_to_string(tm,{'resumevolunteer':resumevolunteer})
             data['count']=resumevolunteer.count()
             data["message"]="Add Volunteer Certificate successfully"
+            _attach_resume_editor_payload(request, resume, data)
             return Response(data, status=status.HTTP_200_OK)
         return Response("Request rejected.", status=status.HTTP_400_BAD_REQUEST) 
 

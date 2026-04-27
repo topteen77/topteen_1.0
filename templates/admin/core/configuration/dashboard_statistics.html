@@ -23,4 +23,37 @@
     <li style="margin-bottom: 12px;"><a href="{{ streak_config_url }}" class="addlink">Streak Config</a> &mdash; How streak is computed (UserActivity vs UserEvent).</li>
   </ul>
 </div>
+
+<div class="module" style="margin-top: 16px;">
+  <h2>Preview</h2>
+  <p style="color:#666; margin-top: 0;">
+    Add <code>?user_id=&lt;id&gt;</code> to preview a specific user.
+    Example: <code>?user_id=2746</code>
+  </p>
+  {% if preview_user and preview_stats %}
+    <p style="margin-bottom: 10px;">
+      <strong>User:</strong> {{ preview_user }} (id={{ preview_user.id }})
+    </p>
+    <ul style="list-style: none; padding-left: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+      <li style="background:#fff; border:1px solid #eee; padding:10px; border-radius:8px;">
+        <div style="font-size:12px; color:#666;">Trophies</div>
+        <div style="font-size:18px; font-weight:700;">{{ preview_stats.trophies_unlocked }}</div>
+      </li>
+      <li style="background:#fff; border:1px solid #eee; padding:10px; border-radius:8px;">
+        <div style="font-size:12px; color:#666;">Points</div>
+        <div style="font-size:18px; font-weight:700;">{{ preview_stats.total_points }}</div>
+      </li>
+      <li style="background:#fff; border:1px solid #eee; padding:10px; border-radius:8px;">
+        <div style="font-size:12px; color:#666;">Streak (days)</div>
+        <div style="font-size:18px; font-weight:700;">{{ preview_stats.streak_days }}</div>
+      </li>
+      <li style="background:#fff; border:1px solid #eee; padding:10px; border-radius:8px;">
+        <div style="font-size:12px; color:#666;">Level</div>
+        <div style="font-size:18px; font-weight:700;">{{ preview_stats.current_level }}</div>
+      </li>
+    </ul>
+  {% else %}
+    <p style="color:#b00;">No preview user/stats available.</p>
+  {% endif %}
+</div>
 {% endblock %}

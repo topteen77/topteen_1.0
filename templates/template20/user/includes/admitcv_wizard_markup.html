@@ -1,0 +1,338 @@
+<style>
+.actions {
+  display: none;
+}
+</style>
+
+
+<!-- ═══════════ BUILDER ═══════════ -->
+<div class="pg" id="pg-build">
+<div class="bld-wrap">
+  <div id="overlay" aria-live="polite" aria-busy="true" aria-hidden="true">
+    <div class="ov-orb" aria-hidden="true">
+      <div class="ov-ring ov-r1"></div>
+      <div class="ov-ring ov-r2"></div>
+      <div class="ov-ring ov-r3"></div>
+      <div class="ov-core"></div>
+    </div>
+    <h3 class="ov-title" id="gen-overlay-title">Generating your resume</h3>
+    <p class="ov-sub" id="gen-overlay-sub">AI is analyzing your profile and building a polished resume.</p>
+    <div class="ov-steps">
+      <div class="ov-step show cur"><span class="ov-dot"></span><span id="gen-overlay-step-1">Reading your profile details</span></div>
+      <div class="ov-step"><span class="ov-dot"></span><span id="gen-overlay-step-2">Writing ATS-ready content</span></div>
+      <div class="ov-step"><span class="ov-dot"></span><span id="gen-overlay-step-3">Finalizing layout and templates</span></div>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="sdot on" id="sd1" onclick="jumpTo(1)"><div class="sdot-c">1</div><div class="sdot-lbl">Profile</div></div>
+    <div class="sdot" id="sd2" onclick="jumpTo(2)"><div class="sdot-c">2</div><div class="sdot-lbl">Academics</div></div>
+    <div class="sdot" id="sd3" onclick="jumpTo(3)"><div class="sdot-c">3</div><div class="sdot-lbl">Leadership</div></div>
+    <div class="sdot" id="sd4" onclick="jumpTo(4)"><div class="sdot-c">4</div><div class="sdot-lbl">Experience</div></div>
+    <div class="sdot" id="sd5" onclick="jumpTo(5)"><div class="sdot-c">5</div><div class="sdot-lbl">Skills</div></div>
+    <div class="sdot" id="sd6" onclick="jumpTo(6)"><div class="sdot-c">6</div><div class="sdot-lbl">Generate</div></div>
+    <div class="sdot" id="sd7" onclick="jumpTo(7)"><div class="sdot-c">7</div><div class="sdot-lbl">Templates</div></div>
+  </div>
+  <div class="step-prog"><div class="step-prog-fill" id="spf"></div></div>
+
+
+ 
+
+  <!-- STEP 1 -->
+  <div class="spanel on" id="sp1">
+    <div class="sph"><div class="sph-tag">Step 1 of 7</div><h2 class="sph-title">Personal Profile</h2><p class="sph-desc">Your identity and application targets — the foundation of your resume strategy.</p></div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.4 0-8 2-8 4.5V20h16v-1.5C20 16 16.4 14 12 14z"/></svg></div><div><div class="fc-title">Identity &amp; Contact</div><div class="fc-sub">How admissions offices will reach you</div></div></div>
+      <div class="fg fg2">
+        <div class="fld"><label class="lbl">Full Name <span class="req">*</span></label><input type="text" id="f-name" placeholder="e.g. Arjun Sharma" autocomplete="name"><span class="ferr" id="e-name">Full name is required</span></div>
+        <div class="fld"><label class="lbl">Email Address</label><input type="email" id="f-email" placeholder="name@email.com" autocomplete="email"></div>
+        <div class="fld"><label class="lbl">Phone / WhatsApp</label><input type="tel" id="f-phone" placeholder="+91 98765 43210"></div>
+        <div class="fld"><label class="lbl">Country / Nationality <span class="req">*</span></label><input type="text" id="f-country" placeholder="e.g. India"><span class="ferr" id="e-country">Country is required</span></div>
+        <div class="fld"><label class="lbl">LinkedIn URL <span class="opt">(optional)</span></label><input type="url" id="f-linkedin" placeholder="https://linkedin.com/in/yourname"></div>
+        <div class="fld"><label class="lbl">Portfolio / GitHub <span class="opt">(optional)</span></label><input type="url" id="f-portfolio" placeholder="https://github.com/yourname"></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 2 9l10 5 8-4v6h2V9L12 4zm-6 8v3.5C6 17.4 8.7 19 12 19s6-1.6 6-3.5V12l-6 3-6-3z"/></svg></div><div><div class="fc-title">Education &amp; Aspirations</div></div></div>
+      <div class="fg fg2">
+        <div class="fld">
+          <label class="lbl">Current Education Level <span class="req">*</span></label>
+          <select id="f-level">
+            <option value="">Select level...</option>
+            <option>Class 10 / O-Levels / GCSE</option>
+            <option>Class 11–12 / A-Levels / IB / CBSE / ICSE</option>
+            <option>Undergraduate — Year 1 or 2</option>
+            <option>Undergraduate — Final Year</option>
+            <option>Graduate / Masters Student</option>
+            <option>Working Professional (MBA / PhD applicant)</option>
+            <option>Gap Year / Deferred Entry</option>
+            <option>Transfer Student</option>
+          </select>
+          <span class="ferr" id="e-level">Please select your education level</span>
+        </div>
+        <div class="fld"><label class="lbl">Current School / College</label><input type="text" id="f-school" placeholder="e.g. Delhi Public School, IIT Bombay"></div>
+        <div class="fld"><label class="lbl">Intended Course of Study <span class="req">*</span></label><input type="text" id="f-course" placeholder="e.g. Economics, Computer Science, Medicine, PPE"><span class="ferr" id="e-course">Intended course is required</span></div>
+        <div class="fld"><label class="lbl">Long-Term Career Goal</label><input type="text" id="f-career" placeholder="e.g. Development economist at the World Bank"></div>
+      </div>
+    </div>
+
+    <div class="fc" id="fc-uni-targets">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm0-6a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/></svg></div><div><div class="fc-title">Target Universities</div><div class="fc-sub">Click to select all institutions you're applying to</div></div></div>
+      <div class="chips" id="uni-chips" aria-describedby="e-unis-target">
+        <span class="chip" onclick="toggleChip(this)">Harvard</span><span class="chip" onclick="toggleChip(this)">Yale</span><span class="chip" onclick="toggleChip(this)">Princeton</span><span class="chip" onclick="toggleChip(this)">Columbia</span><span class="chip" onclick="toggleChip(this)">Penn / Wharton</span><span class="chip" onclick="toggleChip(this)">Brown</span><span class="chip" onclick="toggleChip(this)">Dartmouth</span><span class="chip" onclick="toggleChip(this)">Cornell</span><span class="chip" onclick="toggleChip(this)">MIT</span><span class="chip" onclick="toggleChip(this)">Stanford</span><span class="chip" onclick="toggleChip(this)">Oxford</span><span class="chip" onclick="toggleChip(this)">Cambridge</span><span class="chip" onclick="toggleChip(this)">UCL</span><span class="chip" onclick="toggleChip(this)">LSE</span><span class="chip" onclick="toggleChip(this)">Imperial</span><span class="chip" onclick="toggleChip(this)">Warwick</span><span class="chip" onclick="toggleChip(this)">Edinburgh</span><span class="chip" onclick="toggleChip(this)">King's College London</span><span class="chip" onclick="toggleChip(this)">Melbourne</span><span class="chip" onclick="toggleChip(this)">Sydney</span><span class="chip" onclick="toggleChip(this)">UNSW</span><span class="chip" onclick="toggleChip(this)">ANU</span><span class="chip" onclick="toggleChip(this)">Toronto</span><span class="chip" onclick="toggleChip(this)">McGill</span><span class="chip" onclick="toggleChip(this)">Sciences Po</span><span class="chip" onclick="toggleChip(this)">ETH Zurich</span><span class="chip" onclick="toggleChip(this)">NUS Singapore</span><span class="chip" onclick="toggleChip(this)">HKU</span>
+      </div>
+      <div class="fld" style="margin-top:13px;"><label class="lbl">Other Universities <span class="opt">(type additional targets)</span></label><input type="text" id="f-other-uni" placeholder="e.g. NYU, Boston, HKUST, TU Delft" aria-invalid="false"></div>
+      <span class="ferr" id="e-unis-target">Select at least one university chip above or list targets in Other Universities.</span>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="loadDemo()"><span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4 2 9l10 5 8-4v6h2V9L12 4zm-6 8v3.5C6 17.4 8.7 19 12 19s6-1.6 6-3.5V12l-6 3-6-3z"/></svg></span>Load Demo Profile</button>
+      <button class="btn-gold" onclick="nextS(1)">Academics →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="spanel" id="sp2">
+    <div class="sph"><div class="sph-tag">Step 2 of 7</div><h2 class="sph-title">Academic Profile</h2><p class="sph-desc">Admissions committees scrutinise academic records closely — be thorough and include all grades.</p></div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16v2H2V3h2v16zm3-2V9h3v8H7zm5 0V5h3v12h-3zm5 0v-6h3v6h-3z"/></svg></div><div><div class="fc-title">Grades &amp; Examination</div></div></div>
+      <div class="fg fg2">
+        <div class="fld"><label class="lbl">GPA / Percentage / Predicted Grade <span class="req">*</span></label><input type="text" id="f-gpa" placeholder="e.g. 95.4% / 4.0 GPA / A*A*A Predicted"><span class="ferr" id="e-gpa">Grade information is required</span></div>
+        <div class="fld"><label class="lbl">Grading Board / System</label>
+          <select id="f-board"><option value="">Select...</option><option>CBSE (India)</option><option>ICSE / ISC (India)</option><option>IB (International Baccalaureate)</option><option>A-Levels (UK/Cambridge)</option><option>AP (Advanced Placement, USA)</option><option>HSC / VCE / ATAR (Australia)</option><option>US GPA (4.0 scale)</option><option>German Abitur</option><option>French Baccalaureate</option><option>Nigerian WAEC / NECO</option><option>Kenyan KCSE</option><option>Other National System</option></select></div>
+        <div class="fld s2"><label class="lbl">Key Subjects with Grades</label><input type="text" id="f-subjects" placeholder="e.g. Mathematics (A* / 99%), Economics (A* / 98%), Physics (A / 96%), English (A*)"><span class="fhint">More detail → better AI output</span></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h10l6 6v12H4V3zm10 1.5V10h5.5L14 4.5zM7 13h10v2H7v-2zm0 4h10v2H7v-2z"/></svg></div><div><div class="fc-title">Standardised Test Scores</div><div class="fc-sub">Leave blank for any tests not taken</div></div></div>
+      <div class="fg fg3">
+        <div class="fld"><label class="lbl">SAT</label><input type="text" id="f-sat" placeholder="e.g. 1520 (R:760, M:760)"></div>
+        <div class="fld"><label class="lbl">ACT</label><input type="text" id="f-act" placeholder="e.g. 34"></div>
+        <div class="fld"><label class="lbl">AP Scores</label><input type="text" id="f-ap" placeholder="e.g. Calc BC:5, Econ:5"></div>
+        <div class="fld"><label class="lbl">GRE</label><input type="text" id="f-gre" placeholder="e.g. 328 (V:160, Q:168)"></div>
+        <div class="fld"><label class="lbl">GMAT</label><input type="text" id="f-gmat" placeholder="e.g. 720"></div>
+        <div class="fld"><label class="lbl">LSAT</label><input type="text" id="f-lsat" placeholder="e.g. 174"></div>
+        <div class="fld"><label class="lbl">IELTS</label><input type="text" id="f-ielts" placeholder="e.g. 8.0 (L:8.5 R:8.0 W:7.5 S:8.0)"></div>
+        <div class="fld"><label class="lbl">TOEFL</label><input type="text" id="f-toefl" placeholder="e.g. 112/120"></div>
+        <div class="fld"><label class="lbl">Other Test</label><input type="text" id="f-test-other" placeholder="e.g. BMAT 17.5, UKCAT 2700"></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10v4l-1 5a5 5 0 1 1-8 0L7 6V2zm5 10a3 3 0 1 0 3 3 3 3 0 0 0-3-3zm-2 8h4l1 2H9l1-2z"/></svg></div><div><div class="fc-title">Academic Awards &amp; Honours</div></div></div>
+      <div class="dlist" id="dl-awards"></div>
+      <button class="btn-add" onclick="addSimple('dl-awards','Award / Honour','e.g. National Mathematics Olympiad — Silver Medal, top 50 nationally (2024)')">+ Add Award</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3V3zm4 4v2h2V7H7zm4 0v2h6V7h-6zm-4 4v2h2v-2H7zm4 0v2h6v-2h-6zm-4 4v2h2v-2H7zm4 0v2h6v-2h-6z"/></svg></div><div><div class="fc-title">Olympiads, Competitions &amp; Challenges</div></div></div>
+      <div class="dlist" id="dl-olymp"></div>
+      <button class="btn-add" onclick="addSimple('dl-olymp','Competition','e.g. International Mathematical Olympiad — Honourable Mention')">+ Add Competition</button>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(1)">← Back</button>
+      <button class="btn-gold" onclick="nextS(2)">Leadership →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="spanel" id="sp3">
+    <div class="sph"><div class="sph-tag">Step 3 of 7</div><h2 class="sph-title">Leadership &amp; Activities</h2><p class="sph-desc">Leadership depth differentiates elite applicants. Be specific about scale and measurable impact.</p></div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18 5 7l5 4 2-5 2 5 5-4 2 11H3zm2 2h14v2H5v-2z"/></svg></div><div><div class="fc-title">Leadership Positions</div><div class="fc-sub">Formal roles where you led, organised, or represented</div></div></div>
+      <div class="dlist" id="dl-lead"></div>
+      <button class="btn-add" onclick="addLead()">+ Add Leadership Role</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8v8H4V5zm10 0h6v6h-6V5zM4 15h6v6H4v-6zm8 0h8v6h-8v-6z"/></svg></div><div><div class="fc-title">Extracurricular Activities</div><div class="fc-sub">Clubs, arts, music, debate, creative pursuits</div></div></div>
+      <div class="dlist" id="dl-extra"></div>
+      <button class="btn-add" onclick="addExtra()">+ Add Activity</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm-3 5 4 1 2 3-1.7 1.1-1.5-2.3-2.5-.6-1.1 2.4L13 16v4h-2v-3.3l-2.4-2.4L7 17H5l2-4.8L11 9z"/></svg></div><div><div class="fc-title">Sports &amp; Athletics</div></div></div>
+      <div class="dlist" id="dl-sport"></div>
+      <button class="btn-add" onclick="addSimple('dl-sport','Sport / Achievement','e.g. State Under-19 Cricket Captain — led team to Regional Championship 2024')">+ Add Sport</button>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(2)">← Back</button>
+      <button class="btn-gold" onclick="nextS(3)">Experience →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="spanel" id="sp4">
+    <div class="sph"><div class="sph-tag">Step 4 of 7</div><h2 class="sph-title">Experience &amp; Impact</h2><p class="sph-desc">Professional experience, research, and community contribution. Quantify everything.</p></div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3h5v13H4V7h5V4zm2 3h2V6h-2v1zm-5 5h12v-3H6v3z"/></svg></div><div><div class="fc-title">Internships &amp; Work Experience</div></div></div>
+      <div class="dlist" id="dl-intern"></div>
+      <button class="btn-add" onclick="addWork('dl-intern','Internship')">+ Add Internship</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2h4v2h-1v5.4l5.8 8.7A2 2 0 0 1 17.1 21H6.9a2 2 0 0 1-1.7-3.1L11 9.4V4h-1V2zm1.2 10-4.3 6.5h10.2L12.8 12h-1.6z"/></svg></div><div><div class="fc-title">Research Experience &amp; Publications</div></div></div>
+      <div class="dlist" id="dl-research"></div>
+      <button class="btn-add" onclick="addResearch()">+ Add Research</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm10 0a2 2 0 1 1-2 2 2 2 0 0 1 2-2zM9 10l3 2 3-2 4 3-1.2 1.6-2.8-2.1-3 2-3-2-2.8 2.1L5 13l4-3zm3 5a3 3 0 1 1-3 3 3 3 0 0 1 3-3z"/></svg></div><div><div class="fc-title">Community Service &amp; Social Impact</div></div></div>
+      <div class="dlist" id="dl-community"></div>
+      <button class="btn-add" onclick="addWork('dl-community','Community Initiative')">+ Add Community Service</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2zm2.5 11.5-.5.3V16h-4v-2.2l-.5-.3A5 5 0 1 1 14.5 13.5z"/></svg></div><div><div class="fc-title">Projects, Startups &amp; Entrepreneurship</div></div></div>
+      <div class="dlist" id="dl-projects"></div>
+      <button class="btn-add" onclick="addWork('dl-projects','Project')">+ Add Project</button>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(3)">← Back</button>
+      <button class="btn-gold" onclick="nextS(4)">Skills →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5 — Screen 1 (skills & credentials) -->
+  <div class="spanel" id="sp5">
+    <div class="sph"><div class="sph-tag">Step 5 of 7 — Screen 1</div><h2 class="sph-title">Skills, Languages &amp; Credentials</h2><p class="sph-desc">Round out your profile with capabilities that signal readiness and intellectual breadth.</p></div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></div><div><div class="fc-title">Technical &amp; Specialist Skills</div></div></div>
+      <div class="fg fg1">
+        <div class="fld"><label class="lbl">Hard / Technical Skills</label><input type="text" id="f-tech" placeholder="e.g. Python, R, MATLAB, SPSS, LaTeX, Financial Modelling, AutoCAD, Figma, Bloomberg Terminal"></div>
+        <div class="fld"><label class="lbl">Soft Skills &amp; Competencies</label><input type="text" id="f-soft" placeholder="e.g. Public Speaking, Cross-cultural Communication, Strategic Planning, Research Design"></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm6.9 9h-3a15.8 15.8 0 0 0-1.2-5 8 8 0 0 1 4.2 5zM12 4.1A13.8 13.8 0 0 1 14 11h-4a13.8 13.8 0 0 1 2-6.9zM9.3 6a15.8 15.8 0 0 0-1.2 5h-3a8 8 0 0 1 4.2-5zM5.1 13h3a15.8 15.8 0 0 0 1.2 5 8 8 0 0 1-4.2-5zm6.9 6.9A13.8 13.8 0 0 1 10 13h4a13.8 13.8 0 0 1-2 6.9zm2.7-1.9a15.8 15.8 0 0 0 1.2-5h3a8 8 0 0 1-4.2 5z"/></svg></div><div><div class="fc-title">Languages</div></div></div>
+      <div class="dlist" id="dl-lang"></div>
+      <button class="btn-add" onclick="addLang()">+ Add Language</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12v4a4 4 0 0 1-4 4h-1v2.2l2.8 1.6-.8 1.4L12 14l-3 1.2-.8-1.4L11 12.2V10h-1a4 4 0 0 1-4-4V2zm2 2v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V4H8zm1 16h6v2H9v-2z"/></svg></div><div><div class="fc-title">Certifications &amp; Online Courses</div></div></div>
+      <div class="dlist" id="dl-certs"></div>
+      <button class="btn-add" onclick="addSimple('dl-certs','Certification','e.g. Google Data Analytics Certificate — Coursera (2024)')">+ Add Certification</button>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l1.8 4.2L18 8l-4.2 1.8L12 14l-1.8-4.2L6 8l4.2-1.8L12 2zm7 10 1 2.3L22 15l-2 1-1 2.3-1-2.3-2-1 2-.7 1-2.3zM5 14l1 2.3L8 17l-2 1-1 2.3L4 18l-2-1 2-.7L5 14z"/></svg></div><div><div class="fc-title">Personal Achievements &amp; Other</div><div class="fc-sub">Publications, TEDx talks, media features, unique accomplishments</div></div></div>
+      <div class="fg fg1">
+        <div class="fld"><label class="lbl">Other Notable Achievements</label><textarea id="f-personal" placeholder="e.g.&#10;• Published op-ed in The Hindu reaching 50,000+ readers&#10;• TEDx speaker on economic inequality (2023)&#10;• Founded school startup club — grew to 40 active members"></textarea></div>
+        <div class="fld"><label class="lbl">Hobbies &amp; Interests <span class="opt">(helps personal statement alignment)</span></label><input type="text" id="f-hobbies" placeholder="e.g. Classical tabla (15 years), competitive chess (2100 ELO), astrophotography, development economics literature"></div>
+      </div>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(4)">← Back</button>
+      <button class="btn-gold" onclick="nextS(5)">Save &amp; Review →</button>
+    </div>
+  </div>
+
+  <!-- STEP 6 — Screen 2 (format, preview, generate) -->
+  <div class="spanel" id="sp6">
+    <div class="sph"><div class="sph-tag">Step 6 of 7 — Screen 2</div><h2 class="sph-title">Style &amp; Generate</h2><p class="sph-desc">Choose how your resume should be calibrated. The AI adapts language, structure, and emphasis to each admissions culture.</p></div>
+
+    <div class="fc" id="fc-admissions-style">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18h1a3 3 0 0 0 0-6h-1a1 1 0 0 1 0-2h1a5 5 0 0 1 0 10h-1A11 11 0 1 1 23 12h-2a9 9 0 0 0-9-9zM7 10a1.5 1.5 0 1 0-1.5-1.5A1.5 1.5 0 0 0 7 10zm4-2a1.5 1.5 0 1 0-1.5-1.5A1.5 1.5 0 0 0 11 8zm4 2a1.5 1.5 0 1 0-1.5-1.5A1.5 1.5 0 0 0 15 10z"/></svg></div><div><div class="fc-title">Admissions Style</div><div class="fc-sub">Each style optimises for a different admissions philosophy</div></div></div>
+      <div class="stg" id="style-grid">
+        <div class="stile on" data-style="ivy_league" onclick="pickStyle(this,'ivy_league')"><div class="stile-ck">✓</div><span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18v2H3V9zm2 3h2v6H5v-6zm4 0h2v6H9v-6zm4 0h2v6h-2v-6zm4 0h2v6h-2v-6zM2 19h20v2H2v-2zM12 3l10 5H2l10-5z"/></svg></span><div class="st-nm">Ivy League</div><div class="st-ds">Harvard, Yale, Princeton. Achievement-driven, leadership narrative, intellectual vitality.</div></div>
+        <div class="stile" data-style="oxford_cambridge" onclick="pickStyle(this,'oxford_cambridge')"><div class="stile-ck">✓</div><span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h6v16H5a2 2 0 0 0-2 2V5zm18 0v16a2 2 0 0 0-2-2h-6V3h6a2 2 0 0 1 2 2z"/></svg></span><div class="st-nm">Oxford / Cambridge</div><div class="st-ds">Subject passion, super-curriculars, reading independence, research mindset.</div></div>
+        <div class="stile" data-style="russell_group" onclick="pickStyle(this,'russell_group')"><div class="stile-ck">✓</div><span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 2 9l10 5 8-4v6h2V9L12 4zm-6 8v3.5C6 17.4 8.7 19 12 19s6-1.6 6-3.5V12l-6 3-6-3z"/></svg></span><div class="st-nm">Russell Group UK</div><div class="st-ds">UCL, LSE, Imperial, Warwick. Analytical sharpness, professional ambition.</div></div>
+        <div class="stile" data-style="scholarship" onclick="pickStyle(this,'scholarship')"><div class="stile-ck">✓</div><span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12v4a4 4 0 0 1-4 4h-1v2.2l2.8 1.6-.8 1.4L12 14l-3 1.2-.8-1.4L11 12.2V10h-1a4 4 0 0 1-4-4V2zm2 2v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V4H8zm1 16h6v2H9v-2z"/></svg></span><div class="st-nm">Scholarship</div><div class="st-ds">Chevening, Rhodes, Gates Cambridge. Impact, resilience, leadership in context.</div></div>
+        <div class="stile" data-style="research_cv" onclick="pickStyle(this,'research_cv')"><div class="stile-ck">✓</div><span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2h4v2h-1v5.4l5.8 8.7A2 2 0 0 1 17.1 21H6.9a2 2 0 0 1-1.7-3.1L11 9.4V4h-1V2zm1.2 10-4.3 6.5h10.2L12.8 12h-1.6z"/></svg></span><div class="st-nm">Research / PhD</div><div class="st-ds">Publications, methodology, intellectual lineage, supervisor fit.</div></div>
+        <div class="stile" data-style="mba" onclick="pickStyle(this,'mba')"><div class="stile-ck">✓</div><span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3h5v13H4V7h5V4zm2 3h2V6h-2v1zm-5 5h12v-3H6v3z"/></svg></span><div class="st-nm">MBA / Leadership</div><div class="st-ds">Wharton, INSEAD, LBS. Quantified business impact, team leadership.</div></div>
+      </div>
+      <span class="ferr" id="e-style">Please select an admissions style above.</span>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6V2zm8 1.5V9h5.5L14 3.5zM9 13h6v2H9v-2zm0 4h6v2H9v-2z"/></svg></div><div><div class="fc-title">Format Options</div></div></div>
+      <div class="fg fg2">
+        <div class="fld"><label class="lbl">Resume Format</label>
+          <select id="f-format">
+            <option value="one_page">One-Page Undergraduate Resume</option>
+            <option value="two_page">Two-Page Graduate / Masters CV</option>
+            <option value="scholarship">Scholarship Application Resume</option>
+            <option value="research">Academic / Research CV</option>
+            <option value="mba">MBA Application Resume</option>
+          </select>
+        </div>
+        <div class="fld"><label class="lbl">Resume Tagline <span class="opt">(optional)</span></label><input type="text" id="f-tag" placeholder="e.g. Undergraduate Applicant — Economics | Class of 2029"></div>
+        <div class="fld s2"><label class="lbl">Special Instructions to AI <span class="opt">(optional)</span></label><input type="text" id="f-instr" placeholder="e.g. Emphasise quantitative reasoning, keep tone formal, ensure research is prominent"></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.1 8.5.5 12c1.6 3.5 6 7 11.5 7s9.9-3.5 11.5-7c-1.6-3.5-6-7-11.5-7zm0 11a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg></div><div><div class="fc-title">Profile Preview</div><div class="fc-sub">What the AI will work with</div></div></div>
+      <div id="preview-box" style="font-size:13px;color:var(--prose2);line-height:1.75;">Complete earlier steps to see your profile summary here.</div>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(5)">← Back</button>
+      <a class="btn-gold-lg" id="gen-next-btn" href="javascript:void(0)" onclick="goS(7)" style="display:none;">Next →</a>
+      <button class="btn-dim" id="gen-again-btn" onclick="doGenerate(null)" style="display:none;">Generate again</button>
+      <button class="btn-gold-lg" id="gen-btn" onclick="doGenerate(null)"><span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l1.8 4.2L18 8l-4.2 1.8L12 14l-1.8-4.2L6 8l4.2-1.8L12 2zm7 10 1 2.3L22 15l-2 1-1 2.3-1-2.3-2-1 2-.7 1-2.3zM5 14l1 2.3L8 17l-2 1-1 2.3L4 18l-2-1 2-.7L5 14z"/></svg></span>Generate My Resume</button>
+    </div>
+
+    <div id="gen-progress-wrap" class="gen-progress-wrap" style="display:none;" aria-live="polite" aria-busy="true">
+      <div class="gen-progress-head" id="gen-progress-head">Generating your resume</div>
+      <div class="gen-progress-track" id="gen-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="gen-progress-fill" id="gen-progress-fill"></div>
+      </div>
+      <p class="gen-progress-sub" id="gen-progress-sub">Sending your profile to the AI…</p>
+    </div>
+
+    <div id="gen-preview-wrap" class="gen-preview-wrap" style="display:none;">
+      <div class="gen-preview-banner">
+        <div>
+          <div class="gen-preview-ttl">Your resume is ready</div>
+          <div class="gen-preview-meta" id="gen-preview-meta"></div>
+        </div>
+        <div class="gen-preview-badge" id="gen-preview-badge" style="display:none;"></div>
+      </div>
+      <div class="gen-preview-frame">
+        <div id="gen-preview-body" class="gen-preview-body"></div>
+      </div>
+      <div class="gen-preview-actions gen-preview-actions--three">
+        <a id="gen-download-pdf-link" class="btn-gold-lg" href="#" download>PDF download</a>
+        <button type="button" class="btn-dim" id="gen-print-btn">Print</button>
+        <a id="gen-finish-btn" class="btn-gen-finish" href="#">Finish</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 — Templates + Download -->
+  <div class="spanel bg-white rounded p-3" id="sp7">
+    <div class="sph"><div class="sph-tag">Step 7 of 7</div><h2 class="sph-title">Templates &amp; Download</h2><p class="sph-desc">Download your current AI resume, or apply a template and download the styled PDF.</p></div>
+
+    <div class="rtlp-full">
+      <iframe
+        id="studio-template-picker-frame-step7"
+        title="Resume templates and live preview"
+        class="rtlp-frame rtlp-frame--full"
+        src="about:blank"
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    </div>
+
+    <div class="snav">
+      <button class="btn-dim" onclick="goS(6)">← Back</button>
+      <a class="btn-gold" href="{{ url('users:resumebuilder') }}">Finish</a>
+    </div>
+  </div>
+
+</div><!-- /bld-wrap -->
+</div><!-- /pg-build -->

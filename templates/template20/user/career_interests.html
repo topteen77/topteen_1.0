@@ -1,19 +1,16 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Career Interests | Top Teen{% endblock %}
 {% block description_content %}View and manage your career interests. Careers that you have bookmarked.{% endblock %}
 
-{% block bodyclass %}{{ super() }} career-interests-page{% endblock %}
+{% block student_bodyclass %}career-interests-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
-  .career-interests-page {
-    padding-top: 47px;
-  }
+
   .career-card {
-    background: #f7f7fa;
+    background: #fff;
     border-radius: 10px;
     padding: 20px;
     min-height: 151px;
@@ -23,6 +20,7 @@
     text-decoration: none;
     display: block;
     color: inherit;
+    border: 1px solid #dcdce1;
   }
   .career-card:hover {
     transform: translateY(-5px);
@@ -107,21 +105,29 @@
   }
 
 
+  .app-right-content {
+	background: #eef1f8;
+  height: 100vh;
+}
+
+.student-dash-main-col {
+	padding: 0px;
+}
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="career-interests-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Career interests' %}
+{% endblock %}
 
-      <!-- Right Part - Career Interests Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}career-interests-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
+
+{% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -204,11 +210,6 @@
           </a>
         </div>
         {% endif %}
-      </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 
 <!-- Delete Career Modal -->
 <div class="modal fade" id="deleteCareerModal" tabindex="-1" aria-labelledby="deleteCareerModalLabel" aria-hidden="true">
@@ -232,6 +233,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+</div>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- jQuery -->

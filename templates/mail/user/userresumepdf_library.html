@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume</title>
+  <style>
+    :root {
+      --accent: {{ pdf_accent_color|default('#19718c') }};
+    }
+    * { padding: 0; margin: 0; box-sizing: border-box; }
+    body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f6f6f6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .main { width: 100vw; min-height: 100vh; }
+    .container { width: 100%; max-width: 820px; margin: 0 auto; padding: 28px 48px 40px; }
+    .header { height: 10px; background: var(--accent); opacity: 0.85; }
+    .resume { display: flex; justify-content: space-between; margin-top: 36px; gap: 28px; }
+    .left_container { flex: 1 1 62%; min-width: 0; }
+    .right_container { flex: 0 0 200px; }
+    .person_name { font-size: 34px; line-height: 1.05; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+    .person_summary { display: flex; margin-top: 28px; justify-content: space-between; gap: 12px; }
+    .person_summary_heading p { font-weight: 600; font-size: 15px; color: var(--accent); text-transform: uppercase; }
+    .person_summary_information, .person_education_information { display: flex; flex-direction: column; width: 100%; max-width: 360px; }
+    .person_summary_information hr, .person_education_information hr { height: 4px; background: #d9d9d9; border: none; margin: 6px 0 10px; }
+    .person_summary_information p, .person_education_data { font-size: 12px; line-height: 1.45; color: #2d3748; }
+    .bar { border: 2px solid var(--accent); margin: 14px 0; opacity: 0.9; }
+    .person_education_qualification { text-transform: capitalize; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #1a202c; }
+    .person_img { width: 184px; height: 220px; background: #fff; margin-bottom: 18px; overflow: hidden; border: 1px solid #e2e8f0; }
+    .person_img img { width: 100%; height: 100%; object-fit: cover; }
+    .person_contact_heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .person_contact_heading p { font-weight: 600; font-size: 14px; color: var(--accent); text-transform: uppercase; }
+    .person_contact_heading hr { width: 72px; height: 4px; background: #d9d9d9; border: none; }
+    .person_contact_information { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #2d3748; }
+    .person_contact_box { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+    .person_contact_box p { overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
+    .person_contact_icon { width: 16px; height: 16px; flex: 0 0 16px; display: inline-flex; align-items: center; justify-content: center; color: var(--accent); }
+    .person_contact_icon svg { width: 100%; height: 100%; fill: currentColor; }
+    /* —— layout variants (12) —— */
+    .rlayout--v02 .resume { flex-direction: row-reverse; }
+    .rlayout--v03 .header { height: 18px; border-radius: 0 0 12px 12px; }
+    .rlayout--v04 .left_container { flex-basis: 68%; }
+    .rlayout--v04 .right_container { flex-basis: 180px; }
+    .rlayout--v05 .container { padding-top: 16px; }
+    .rlayout--v05 .header { height: 6px; }
+    .rlayout--v06 .container { background: linear-gradient(180deg, #fff 0%, #eef2f7 100%); border-radius: 10px; }
+    .rlayout--v07 .person_name { text-transform: none; letter-spacing: -0.5px; }
+    .rlayout--v08 .right_container { background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--accent); }
+    .rlayout--v09 .person_summary_heading p { font-size: 12px; letter-spacing: 0.12em; }
+    .rlayout--v10 .right_container { display: none; }
+    .rlayout--v10 .left_container { flex: 1 1 100%; max-width: 100%; }
+    .rlayout--v11 .person_img { height: 160px; }
+    .rlayout--v12 .left_container { border-left: 6px solid var(--accent); padding-left: 16px; }
+  </style>
+</head>
+<body>
+<div class="main rlayout--{{ pdf_layout_variant|default('v01') }}">
+  <div class="container">
+    <div class="header"></div>
+    <div class="resume">
+      <div class="left_container">
+        <div class="person_name_box">
+          <p class="person_name">{{ request.user }}</p>
+        </div>
+        <div class="person_summary">
+          <div class="person_summary_heading"><p>summary</p></div>
+          <div class="person_summary_information">
+            <hr>
+            <p>{{ user_resume.about|default('') }}</p>
+          </div>
+        </div>
+        <div class="bar"></div>
+        <div class="person_summary">
+          <div class="person_summary_heading"><p>Certification</p></div>
+          <div class="person_education_information">
+            <hr>
+            {% for certificate in certificates %}
+            <div>
+              <p class="person_education_qualification">{{ certificate.title }} ({{ certificate.issue_date }})</p>
+              <p class="person_education_data">{{ certificate.description }}</p>
+            </div>
+            <br>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bar"></div>
+        <div class="person_summary">
+          <div class="person_summary_heading"><p>skills</p></div>
+          <div class="person_summary_information">
+            <hr>
+            {% for skill in skills %}
+            <p style="font-size: 14px;font-weight: 500;">{{ skill.title }}
+              ({% if skill.profficiency == 10 %}Beginner{% endif %}{% if skill.profficiency == 20 %}Intermediate{% endif %}{% if skill.profficiency == 30 %}Expert{% endif %})</p>
+            <p class="person_education_data">{{ skill.description }}</p>
+            <br>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bar"></div>
+        <div class="person_summary">
+          <div class="person_summary_heading"><p>INTERNSHIPS</p></div>
+          <div class="person_summary_information">
+            <hr>
+            {% for internship in internships %}
+            <p style="font-size: 14px;font-weight: 500;">{{ internship.role }} ({{ internship.start_date }} - {{ internship.end_date }})</p>
+            <p class="person_education_data">{{ internship.description }}</p>
+            <p class="person_education_data">Provider: {{ internship.provider }}</p>
+            <br>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bar"></div>
+        <div class="person_summary">
+          <div class="person_summary_heading"><p>ACTIVITIES</p></div>
+          <div class="person_summary_information">
+            <hr>
+            {% for activity in activities %}
+            <p style="font-size: 14px;font-weight: 500;">{{ activity.title }} ({{ activity.issue_date }})</p>
+            <p class="person_education_data">{{ activity.description }}</p>
+            <br>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="bar"></div>
+        <div class="person_summary">
+          <div class="person_summary_heading"><p>VOLUNTEERING</p></div>
+          <div class="person_summary_information">
+            <hr>
+            {% for volunteer in volunteers %}
+            <p style="font-size: 14px;font-weight: 500;">{{ volunteer.title }} ({{ volunteer.start_date }} - {{ volunteer.end_date }})</p>
+            <p class="person_education_data">Role: {{ volunteer.role }}</p>
+            <p class="person_education_data">{{ volunteer.description }}</p>
+            <br>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="right_container">
+        <div class="person_img">
+          {% if request.user.image and image_url %}
+          <img alt="" src="{{ image_url }}">
+          {% else %}
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#a0aec0;font-size:11px;text-align:center;padding:8px;">Photo</div>
+          {% endif %}
+        </div>
+        <div class="person_contact">
+          <div class="person_contact_heading"><p>contact</p><hr></div>
+          <div class="person_contact_information">
+            {% if resume_contact.address %}
+            <div class="person_contact_box"><span class="person_contact_icon"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16s6-5.686 6-10A6 6 0 1 0 2 6c0 4.314 6 10 6 10zm0-7.5A2.5 2.5 0 1 1 8 3a2.5 2.5 0 0 1 0 5.5z"/></svg></span><p>{{ resume_contact.address }}</p></div>
+            {% endif %}
+            {% if request.user.email %}
+            <div class="person_contact_box"><span class="person_contact_icon"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v.217L8 8.94.001 4.217V4z"/><path d="M0 5.383v6.617a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5.383l-7.445 4.654a1 1 0 0 1-1.11 0L0 5.383z"/></svg></span><p>{{ request.user.email }}</p></div>
+            {% endif %}
+            {% if request.user.mobile %}
+            <div class="person_contact_box"><span class="person_contact_icon"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.654 1.328a.678.678 0 0 1 .737-.124l2.522 1.01c.289.116.445.423.365.723l-.547 2.05a.68.68 0 0 1-.59.5l-1.12.112a11.77 11.77 0 0 0 5.38 5.38l.112-1.12a.68.68 0 0 1 .5-.59l2.05-.547a.678.678 0 0 1 .723.365l1.01 2.522a.678.678 0 0 1-.124.737l-1.14 1.14a1.745 1.745 0 0 1-1.81.422c-1.93-.644-4.54-2.382-6.56-4.402-2.02-2.02-3.758-4.63-4.402-6.56a1.745 1.745 0 0 1 .422-1.81l1.14-1.14z"/></svg></span><p>{{ request.user.mobile }}</p></div>
+            {% endif %}
+            {% if resume_contact.linkedin %}
+            <div class="person_contact_box"><span class="person_contact_icon"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175A1.16 1.16 0 0 1 0 14.854V1.146zM4.943 13.5V6.169H2.542V13.5h2.401zM3.742 5.163c.837 0 1.358-.554 1.358-1.248-.015-.71-.52-1.248-1.342-1.248S2.4 3.205 2.4 3.915c0 .694.521 1.248 1.326 1.248h.016zM13.5 13.5V9.359c0-2.217-1.183-3.248-2.762-3.248-1.274 0-1.845.7-2.165 1.193v.026h-.016a5.54 5.54 0 0 1 .016-.026V6.169H6.17c.03.752 0 7.331 0 7.331h2.401V9.405c0-.219.016-.438.08-.594.176-.438.578-.892 1.253-.892.884 0 1.237.673 1.237 1.66V13.5H13.5z"/></svg></span><p>{{ resume_contact.linkedin }}</p></div>
+            {% endif %}
+            {% if resume_contact.website %}
+            <div class="person_contact_box"><span class="person_contact_icon"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm5.939 7h-2.027a13.54 13.54 0 0 0-.65-3.145A6.02 6.02 0 0 1 13.939 7zM8 1.018c.655 0 1.58 1.23 2.027 3.982H5.973C6.42 2.248 7.345 1.018 8 1.018zM4.738 3.855A13.54 13.54 0 0 0 4.088 7H2.061a6.02 6.02 0 0 1 2.677-3.145zM2.061 9h2.027c.112 1.118.34 2.19.65 3.145A6.02 6.02 0 0 1 2.061 9zM8 14.982c-.655 0-1.58-1.23-2.027-3.982h4.054C9.58 13.752 8.655 14.982 8 14.982zM10.26 12.145c.31-.955.538-2.027.65-3.145h2.028a6.02 6.02 0 0 1-2.678 3.145z"/></svg></span><p>{{ resume_contact.website }}</p></div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="person_contact" style="margin-top: 28px;">
+          <div class="person_contact_heading"><p>HOBBIES</p><hr></div>
+          <div class="person_contact_information">
+            {% for hobbie in profile.hobbies.all() %}
+            <div class="person_contact_box"><span style="color:var(--accent);">•</span><p>{{ hobbie.name }}</p></div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

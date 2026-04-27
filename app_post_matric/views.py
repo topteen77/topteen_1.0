@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 # from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import UserProfile
+from django.utils.dateparse import parse_datetime
 # from .models import User
 from .models import (
     TestCategory, Test, Question, Answer,
@@ -33,6 +34,23 @@ from django.contrib.auth.decorators import login_required
 from django.template.loader import get_template
 from django.conf import settings
 User = get_user_model()
+
+
+def _format_ui_datetime(value):
+    """Return a UI-friendly local datetime string."""
+    if not value:
+        return None
+    dt_value = value
+    if isinstance(value, str):
+        dt_value = parse_datetime(value)
+        if dt_value is None:
+            return value
+    if timezone.is_naive(dt_value):
+        dt_value = timezone.make_aware(dt_value, timezone.get_current_timezone())
+    local_dt = timezone.localtime(dt_value)
+    return local_dt.strftime("%d %b %Y, %I:%M %p")
+
+
 def logout_view(request):
     logout(request)
     # For API-style logout (you can return JSON or redirect)
@@ -1250,6 +1268,7 @@ def Results(request):
             'test_name': latest_session.test.title,
             'test_type': latest_session.test.title,
             'completed_at': latest_session.end_time,
+            'completed_at_display': _format_ui_datetime(latest_session.end_time),
             'result_data': latest_session.result or {},
             'no_results': False,
             # Add user profile information
@@ -1581,6 +1600,7 @@ def CombinedReport(request, user_id=None):
                 context['completed_tests'].append({
                     'title': test_title,
                     'completed_at': session.end_time,
+                    'completed_at_display': _format_ui_datetime(session.end_time),
                     'test_id': session.test.id
                 })
 
@@ -2641,6 +2661,20 @@ def Test_details(request, id):
 
 @login_required
 def Test_results(request, id):
+    """
+    Legacy endpoint.
+
+    The product's current UX routes "View Result" through `Results`:
+    `/api/web/results/?test_id=<test_id>[&user_id=<student_id>]`
+    so this view now redirects to keep behavior consistent.
+    """
+    from urllib.parse import urlencode
+    params = {"test_id": id}
+    user_id = request.GET.get("user_id")
+    if user_id:
+        params["user_id"] = user_id
+    return redirect(f"{reverse('post_matric:results')}?{urlencode(params)}")
+
     try:
         from institute.models import StudentManagement
         from django.shortcuts import get_object_or_404
@@ -2817,6 +2851,7 @@ def Test_results(request, id):
             'test_name': latest_session.test.title,
             'test_type': latest_session.test.title,
             'completed_at': latest_session.end_time,
+            'completed_at_display': _format_ui_datetime(latest_session.end_time),
             'result_data': latest_session.result or {},
             'no_results': False,
             # Add user profile information
@@ -3074,13 +3109,39 @@ def download_test_results_pdf(request, id):
     try:
         import weasyprint
         import ssl
+        from institute.models import StudentManagement
         
         # Use id from URL as test_id
         test_id = id
+        user_id = request.GET.get('user_id', None)
+        target_user = request.user
+
+        # Support institute/admin users downloading a student's PDF
+        if user_id:
+            try:
+                user_id = int(user_id)
+                is_institute_user = StudentManagement.objects.filter(
+                    student__id=user_id
+                ).filter(
+                    institute__created_by=request.user
+                ).exists() or request.user.is_superuser
+
+                from core import choices
+                is_admin = (
+                    request.user.is_superuser or
+                    request.user.user_type == choices.UserType.INSTITUTE or
+                    request.user.user_type == choices.UserType.MARKETINGGROUPADMIN or
+                    request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+                )
+
+                if is_institute_user or is_admin:
+                    target_user = get_object_or_404(User, id=user_id)
+            except (ValueError, TypeError):
+                target_user = request.user
         
         # Build the query
         query = {
-            'user': request.user,
+            'user': target_user,
             'is_completed': True
         }
         
@@ -3101,14 +3162,14 @@ def download_test_results_pdf(request, id):
             'test_name': latest_session.test.title,
             'test_type': latest_session.test.title,
             'completed_at': latest_session.end_time,
-            'user': request.user,
+            'user': target_user,
             'test_id': test_id,
             'now': datetime.now(),
         }
         
         # Get categories record and build context similar to Test_results
         categories_record = TestTopCategories.objects.filter(
-            user=request.user,
+            user=target_user,
             test_paper=latest_session.test
         ).first()
         
@@ -3160,7 +3221,7 @@ def download_test_results_pdf(request, id):
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
             context.update({
                 'riasec_careers_to_opt': list(hexaco_recommendations.get('riasec_careers_to_opt', {}).values())[0] if hexaco_recommendations.get('riasec_careers_to_opt') else [],
-                'career_code_discription': hexaco_recommendations.get('career_code_discription', ''),
+                'career_code_discription': hexaco_recommendations.get('career_code_discription', []),
             })
         elif latest_session.test.title == 'Motivation Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)

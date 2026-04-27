@@ -1,0 +1,421 @@
+<style>
+  :root {
+    --dash-primary: #5c54d4;
+    --dash-primary-dark: #4338ca;
+    --dash-bg: #eef1f8;
+    --dash-surface: #ffffff;
+    --dash-surface-soft: #f7f8fc;
+    --dash-border: #dfe3ef;
+    --dash-border-soft: #e8ecf4;
+    --dash-muted: #64708b;
+    --dash-heading: #2a2f3f;
+    --dash-shadow: 0 2px 14px rgba(42, 47, 63, 0.06);
+    --dash-shadow-hover: 0 10px 28px rgba(42, 47, 63, 0.08);
+  }
+
+  body.student-dashboard-shell {
+    font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  .std-shell-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1035;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    background: var(--dash-surface);
+    border-bottom: 1px solid var(--dash-border-soft);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  }
+
+  /* Hover-open account dropdown (Desktop only) */
+  @media (hover: hover) and (pointer: fine) {
+    .std-shell-topbar .dropdown {
+      position: relative;
+    }
+
+    .std-shell-topbar .dropdown > .dropdown-menu {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+      margin-top: 0 !important;
+    }
+
+    .std-shell-topbar .dropdown:hover > .dropdown-menu,
+    .std-shell-topbar .dropdown:focus-within > .dropdown-menu,
+    .std-shell-topbar .dropdown > .dropdown-menu.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .std-shell-topbar .dropdown:hover > .std-shell-avatar-btn,
+    .std-shell-topbar .dropdown:focus-within > .std-shell-avatar-btn,
+    .std-shell-topbar .dropdown > .std-shell-avatar-btn[aria-expanded="true"] {
+      border-color: rgba(92, 84, 212, 0.35);
+      background: #fff;
+    }
+  }
+
+  .std-shell-inner {
+    width: 100%;
+    /* max-width: 1600px; */
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+  }
+
+  .std-shell-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--dash-border-soft);
+    border-radius: 10px;
+    background: var(--dash-surface-soft);
+    color: var(--dash-heading);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .std-shell-icon-btn:hover {
+    background: #eef1fb;
+    border-color: var(--dash-border);
+  }
+
+  @media (min-width: 992px) {
+    .std-shell-menu {
+      display: none !important;
+    }
+  }
+
+  .std-shell-sidebar-toggle {
+    display: none;
+  }
+
+  @media (min-width: 992px) {
+    .std-shell-sidebar-toggle {
+      display: inline-flex !important;
+    }
+  }
+
+  .std-shell-nav-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .std-shell-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--dash-border-soft);
+    color: var(--dash-heading);
+    background: var(--dash-surface-soft);
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .std-shell-nav-btn:hover {
+    border-color: rgba(92, 84, 212, 0.35);
+    color: var(--dash-primary);
+    background: #fff;
+  }
+
+  .std-shell-nav-btn--active {
+    background: var(--dash-primary);
+    color: #fff !important;
+    border-color: var(--dash-primary);
+  }
+
+  .std-shell-nav-btn--active:hover {
+    background: var(--dash-primary-dark);
+    border-color: var(--dash-primary-dark);
+    color: #fff !important;
+  }
+
+  @media (max-width: 575px) {
+    .std-shell-nav-btn {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+  }
+
+  /* Fixed-width sidebar + fluid main (all breakpoints); replaces col-lg-3 / col-lg-9 */
+  :root {
+    --std-sidebar-width: 320px;
+  }
+
+  #studentDashboardShell.student-dash-shell {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+
+  #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+    flex: 0 0 var(--std-sidebar-width);
+    max-width: var(--std-sidebar-width);
+    width: var(--std-sidebar-width);
+  }
+
+  #studentDashboardShell.student-dash-shell .student-dash-main-col {
+    flex: 1 1 0%;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+  }
+
+  @media (max-width: 991.98px) {
+    /* On mobile/tablet, only offcanvas sidebar should render. */
+    #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+      display: none !important;
+    }
+
+    #studentDashboardShell.student-dash-shell .student-dash-main-col {
+      flex: 1 1 100%;
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+
+  @media (min-width: 992px) {
+    #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+      transition: flex 0.28s ease, max-width 0.28s ease, width 0.28s ease, opacity 0.22s ease, padding 0.22s ease;
+      /* visible: overflow:hidden here breaks sticky + inner .profile-sidebar scroll */
+      overflow: visible;
+    }
+
+    #studentDashboardShell.student-dash-shell.sidebar-collapsed .student-dash-sidebar-col {
+      flex: 0 0 0 !important;
+      max-width: 0 !important;
+      width: 0 !important;
+      opacity: 0;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      pointer-events: none;
+      overflow: hidden !important;
+      height: auto !important;
+      max-height: none !important;
+    }
+
+    #studentDashboardShell.student-dash-shell.sidebar-collapsed .student-dash-main-col {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  .std-shell-brand-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+  }
+
+  .std-shell-brand {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dash-heading);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .std-shell-brand--with-logo {
+    display: inline-flex;
+    align-items: center;
+    line-height: 0;
+  }
+
+  .std-shell-brand-logo {
+    display: block;
+    height: 36px;
+    width: auto;
+    max-width: min(140px, 38vw);
+    object-fit: contain;
+  }
+
+  .std-shell-brand:hover {
+    color: var(--dash-primary);
+  }
+
+  .std-shell-brand--with-logo:hover .std-shell-brand-logo {
+    opacity: 0.92;
+  }
+
+  .std-shell-sub {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--dash-muted);
+  }
+
+  .std-shell-spacer {
+    flex: 1;
+  }
+
+  .std-shell-avatar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 4px 12px;
+    border: 1px solid var(--dash-border-soft);
+    border-radius: 999px;
+    background: var(--dash-surface);
+    color: var(--dash-heading);
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 220px;
+  }
+
+  .std-shell-avatar-btn:hover {
+    border-color: rgba(92, 84, 212, 0.35);
+    background: var(--dash-surface-soft);
+  }
+
+  .std-shell-avatar-btn.dropdown-toggle::after {
+    display: none !important;
+  }
+
+  .std-shell-avatar-img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .std-shell-avatar-initials {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #5c54d4, #7c6ef2);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .std-shell-avatar-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 480px) {
+    .std-shell-avatar-name {
+      display: none;
+    }
+
+    .std-shell-avatar-btn {
+      padding: 4px;
+    }
+  }
+
+  .std-shell-main {
+    padding-top: 52px;
+  }
+
+  @media (max-width: 991px) {
+
+    .user-dashboard .container,
+    .user-dashboard .container-fluid,
+    .student-resume-shell .container,
+    .student-resume-shell .container-fluid {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard,
+  body.student-dashboard-shell .student-resume-shell {
+    min-height: calc(100vh - 52px);
+    background: var(--dash-bg);
+  }
+
+  body.logged-in.user-dashboard-fullscreen .user-dashboard .user-dashboard-container,
+  body.student-dashboard-shell .student-resume-shell .user-dashboard-container {
+    max-width: 100%;
+  }
+
+  body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard .student-dash-shell.row,
+  body.student-dashboard-shell .student-resume-shell .student-dash-shell.row {
+    min-height: calc(100vh - 100px);
+  }
+
+  /*
+    Aside: stays in view while main column scrolls (sticky).
+    Fixed viewport height so inner .profile-sidebar always gets a real scrollport.
+  */
+  body.student-dashboard-shell .student-dash-sidebar-col {
+    position: sticky;
+    top: 50px;
+    align-self: flex-start;
+    height: calc(100vh - 50px);
+    max-height: calc(100vh - 50px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  body.student-dashboard-shell .student-dash-sidebar-col > .profile-sidebar {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  /* Mobile drawer: flex column so body scrolls under fixed header */
+  #mobileProfileDrawer.offcanvas {
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    height: 100%;
+    width: var(--std-sidebar-width);
+    max-width: 92vw;
+  }
+
+  #mobileProfileDrawer .offcanvas-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Resume wizard inside shell: drop fixed admitcv #nav offset assumptions */
+  body.student-dashboard-shell.admitcv-elite-flow #pg-build {
+    padding-top: 24px;
+  }
+
+  .std-shell-toolbar-extras .btn-theme-toggle {
+    margin: 0;
+  }
+</style>

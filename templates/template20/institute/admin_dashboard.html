@@ -199,7 +199,7 @@
                 <i class='bx bx-calendar me-1'></i> {{ institute.created.strftime('%b %d, %Y') if institute.created else '' }}
               </p>
               <div class="d-flex gap-2 mt-3">
-                <a href="{{ url('institute:institutedashboard', args=[institute.slug]) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                <a href="{{ url('institute:institute_masterdashboard', args=[institute.slug]) }}" class="btn btn-sm btn-outline-primary flex-fill">
                   <i class='bx bx-show me-1'></i> View
                 </a>
                 {% if institute.is_approved %}

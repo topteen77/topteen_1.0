@@ -1,0 +1,250 @@
+/**
+ * Institute sidebar + mobile drawer — shared look for master dashboard
+ * (mirrors institute_dashboard.html inline styles for id-sidebar-* / id-nav-*).
+ * Scoped to .institute-dashboard.institute-master-dashboard only.
+ */
+
+.institute-dashboard.institute-master-dashboard {
+  --id-purple: #5249df;
+  --id-purple-dark: #4c1d95;
+  --id-purple-soft: #ede9fe;
+  --id-text: #1e1b4b;
+  --id-muted: #64748b;
+}
+
+.institute-dashboard.institute-master-dashboard .id-shell {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.institute-dashboard.institute-master-dashboard .id-profile-card {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-profile-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--id-purple-soft);
+}
+
+.institute-dashboard.institute-master-dashboard .id-profile-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--id-text);
+  margin: 0.75rem 0 0.5rem;
+  text-align: center;
+}
+
+.institute-dashboard.institute-master-dashboard .id-profile-meta {
+  font-size: 0.8125rem;
+  color: var(--id-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-profile-meta .id-meta-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.institute-dashboard.institute-master-dashboard .id-profile-meta i {
+  color: var(--id-purple);
+  font-size: 1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.institute-dashboard.institute-master-dashboard .id-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-sec {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--id-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0.75rem 0 0.25rem;
+  padding: 0 0.35rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-sidebar-nav--master-extra {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9eaee;
+}
+
+.institute-dashboard.institute-master-dashboard .id-sidebar-footnote {
+  line-height: 1.35;
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--id-text);
+  background: #f8fafc;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-item:hover {
+  background: var(--id-purple-soft);
+  color: var(--id-purple-dark);
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-item.active {
+  background: var(--id-purple);
+  color: #fff;
+  pointer-events: none;
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-item.active i {
+  color: #fff;
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-item i {
+  font-size: 1.15rem;
+  color: var(--id-purple);
+}
+
+.institute-dashboard.institute-master-dashboard .id-nav-item:hover i {
+  color: var(--id-purple-dark);
+}
+
+.institute-dashboard.institute-master-dashboard button.id-nav-item {
+  cursor: pointer;
+}
+
+.institute-dashboard.institute-master-dashboard .id-btn-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--id-purple);
+  color: var(--id-purple);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  background: #fff;
+  transition: background 0.15s, color 0.15s;
+}
+
+.institute-dashboard.institute-master-dashboard .id-btn-logout:hover {
+  background: var(--id-purple);
+  color: #fff;
+}
+
+.institute-dashboard.institute-master-dashboard .id-sidebar-sticky {
+  position: sticky;
+  top: 96px;
+  background: #fff;
+  padding: 17px 14px;
+  border-radius: 15px;
+}
+
+.institute-dashboard.institute-master-dashboard .id-mobile-toolbar {
+  display: none;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-mobile-toggle-btn {
+  border: 1px solid #dbe3ef;
+  background: #fff;
+  color: var(--id-text);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-mobile-toggle-btn i {
+  color: var(--id-purple);
+  font-size: 1rem;
+}
+
+.institute-dashboard.institute-master-dashboard .id-sidebar-close {
+  display: none;
+  margin-left: auto;
+  margin-bottom: 0.5rem;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.institute-dashboard.institute-master-dashboard .id-sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .institute-dashboard.institute-master-dashboard .id-mobile-toolbar {
+    display: flex;
+  }
+
+  .institute-dashboard.institute-master-dashboard .id-sidebar-column {
+    display: contents;
+  }
+
+  .institute-dashboard.institute-master-dashboard .id-sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1038;
+  }
+
+  .institute-dashboard.institute-master-dashboard .id-sidebar-sticky {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(88vw, 340px);
+    height: 100vh;
+    border-radius: 0;
+    overflow-y: auto;
+    z-index: 1039;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    padding-top: 0.9rem;
+  }
+
+  .institute-master-dashboard[data-institute-shell].sidebar-drawer-open .id-sidebar-sticky {
+    transform: translateX(0);
+  }
+
+  .institute-master-dashboard[data-institute-shell].sidebar-drawer-open .id-sidebar-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .institute-dashboard.institute-master-dashboard .id-sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

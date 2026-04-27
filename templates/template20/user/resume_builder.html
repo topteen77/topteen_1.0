@@ -1,13 +1,12 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Resume Builder | Top Teen{% endblock %}
 {% block description_content %}Build your professional resume by adding your skills, certifications, internships, and more.{% endblock %}
 
-{% block bodyclass %}{{ super() }} resume-builder-page{% endblock %}
+{% block student_bodyclass %}resume-builder-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .resume-builder-page {
     padding-top: 47px;
@@ -19,9 +18,34 @@
   .resume-section:last-child {
     border-bottom: none;
   }
-  .section-icon {
+  .resume-section-icon {
     width: 47px;
     height: 47px;
+    min-width: 47px;
+    border-radius: 12px;
+    background: rgba(63, 55, 201, 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .resume-section-icon i {
+    font-size: 24px;
+    color: #3f37c9;
+  }
+  .resume-modal-icon {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 8px;
+    background: rgba(63, 55, 201, 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .resume-modal-icon i {
+    font-size: 20px;
+    color: #3f37c9;
   }
   .add-btn {
     padding: 12px 24px;
@@ -62,25 +86,30 @@
     min-width: 394px;
     max-width: 400px;
   }
+
+
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="resume-builder-page pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-3 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Resume builder' %}
+{% endblock %}
 
-      <!-- Right Part - Resume Builder Content -->
-      <div class="col-lg-9">
+{% block student_section_class %}resume-builder-page  std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
+
+{% block student_main %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}
+        <div class="d-none d-lg-block mb-3">
+          <a href="{{ url('users:resumebuilder') }}" class="fs-13 text-decoration-none text-muted">← My resumes</a>
+          <span class="text-muted mx-2">·</span>
+          <a href="{{ url('users:resumebuilder_studio', resume_id=resume.pk) }}" class="fs-13 text-decoration-none">Resume studio (guided)</a>
+        </div>
 
         <!-- Mobile Header -->
         <div class="d-lg-none border-bottom pb-3 mb-4 position-relative">
@@ -114,9 +143,16 @@
             {% endif %}
           </div>
         </div>
-        <a href="{{ url('users:resumepdf') }}" download class="btn custom-button purple-button">
-          <i class='bx bx-export me-2'></i> Export Resume
-        </a>
+        <div class="d-flex flex-wrap gap-2 justify-content-end">
+          {% if resume.generated_html and resume.generated_html.strip() %}
+          <a href="{{ url('users:resumebuilder_preview', resume_id=resume.pk) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary">
+            <i class="bx bx-show me-1"></i> View
+          </a>
+          {% endif %}
+          <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" class="btn custom-button purple-button">
+            <i class='bx bx-export me-2'></i> Export Resume
+          </a>
+        </div>
       </div>
     </div>
 
@@ -126,7 +162,7 @@
       <div class="resume-section">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
           <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
-            <img src="{{ static('images_new/icons/man.png') }}" class="section-icon" alt="About" />
+            <span class="resume-section-icon" aria-hidden="true"><i class="bx bx-user-circle"></i></span>
             <div>
               <h4 class="fs-20 fw-semibold text-dark mb-2">About Yourself</h4>
               {% if resume.about %}
@@ -154,46 +190,48 @@
       <div class="resume-section">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
           <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
-            <img src="{{ static('images_new/icons/skills.png') }}" class="section-icon" alt="Skills" />
+            <span class="resume-section-icon" aria-hidden="true"><i class="bx bx-chip"></i></span>
             <div class="flex-grow-1">
               <h4 class="fs-20 fw-semibold text-dark mb-2" id="skillcount">Skills ({{ resumeskill.count() }})</h4>
               <p class="fs-16 text-gray mb-3">Add any relevant skills and your profficiency levels</p>
               {% if resumeskill %}
               <div class="resume-content-box d-none d-lg-block" id="skilld">
                 {% for skill in resumeskill %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ skill.title }}</p>
                     <p class="fs-13 text-gray mb-0">{{ skill.get_profficiency_display() }}</p>
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ skill.id }}" 
-                          data-url="/api/v1/user/resume-skill"
-                          data-mdivid="skillm"
-                          data-ddivid="skilld">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#skillModal" data-edit-kind="skill" data-edit-id="{{ skill.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ skill.id }}" data-url="/api/v1/user/resume-skill" data-mdivid="skillm" data-ddivid="skilld">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
               <div class="d-lg-none" id="skillm">
                 {% for skill in resumeskill %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ skill.title }}</p>
                     <p class="fs-13 text-gray mb-0">{{ skill.get_profficiency_display() }}</p>
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ skill.id }}" 
-                          data-url="/api/v1/user/resume-skill"
-                          data-mdivid="skillm"
-                          data-ddivid="skilld">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#skillModal" data-edit-kind="skill" data-edit-id="{{ skill.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ skill.id }}" data-url="/api/v1/user/resume-skill" data-mdivid="skillm" data-ddivid="skilld">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
@@ -213,50 +251,52 @@
       <div class="resume-section">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
           <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
-            <img src="{{ static('images_new/icons/certificationUser.png') }}" class="section-icon" alt="Certifications" />
+            <span class="resume-section-icon" aria-hidden="true"><i class="bx bx-badge-check"></i></span>
             <div class="flex-grow-1">
               <h4 class="fs-20 fw-semibold text-dark mb-2" id="certificatecount">Certifications ({{ resumecertificate.count() }})</h4>
               <p class="fs-16 text-gray mb-3">Add any relevant Certifications</p>
               {% if resumecertificate %}
               <div class="resume-content-box d-none d-lg-block" id="certificated">
                 {% for c in resumecertificate %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ c.title }}</p>
                     {% if c.issue_date %}
                     <p class="fs-13 text-gray mb-0">{{ date_format(c.issue_date) }}</p>
                     {% endif %}
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ c.id }}" 
-                          data-url="/api/v1/user/resume-certificate"
-                          data-mdivid="certificatem"
-                          data-ddivid="certificated">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#certificateModal" data-edit-kind="certificate" data-edit-id="{{ c.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ c.id }}" data-url="/api/v1/user/resume-certificate" data-mdivid="certificatem" data-ddivid="certificated">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
               <div class="d-lg-none" id="certificatem">
                 {% for c in resumecertificate %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ c.title }}</p>
                     {% if c.issue_date %}
                     <p class="fs-13 text-gray mb-0">{{ date_format(c.issue_date) }}</p>
                     {% endif %}
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ c.id }}" 
-                          data-url="/api/v1/user/resume-certificate"
-                          data-mdivid="certificatem"
-                          data-ddivid="certificated">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#certificateModal" data-edit-kind="certificate" data-edit-id="{{ c.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ c.id }}" data-url="/api/v1/user/resume-certificate" data-mdivid="certificatem" data-ddivid="certificated">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
@@ -276,54 +316,56 @@
       <div class="resume-section">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
           <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
-            <img src="{{ static('images_new/icons/internshipsUser.png') }}" class="section-icon" alt="Internships" />
+            <span class="resume-section-icon" aria-hidden="true"><i class="bx bx-briefcase"></i></span>
             <div class="flex-grow-1">
               <h4 class="fs-20 fw-semibold text-dark mb-2" id="internshipcount">Internships ({{ resumeinternship.count() }})</h4>
               <p class="fs-16 text-gray mb-3">Add any relevant Internships</p>
               {% if resumeinternship %}
               <div class="resume-content-box d-none d-lg-block" id="internshipd">
                 {% for i in resumeinternship %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ i.role }}</p>
                     <p class="fs-13 text-gray mb-0">
-                      {{ i.provider }} • 
+                      {{ i.provider }} •
                       {% if i.start_date %}{{ date_format(i.start_date) }}{% endif %}
                       {% if i.end_date %} - {{ date_format(i.end_date) }}{% endif %}
                     </p>
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ i.id }}" 
-                          data-url="/api/v1/user/resume-internship"
-                          data-mdivid="internshipm"
-                          data-ddivid="internshipd">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#internshipModal" data-edit-kind="internship" data-edit-id="{{ i.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ i.id }}" data-url="/api/v1/user/resume-internship" data-mdivid="internshipm" data-ddivid="internshipd">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
               <div class="d-lg-none" id="internshipm">
                 {% for i in resumeinternship %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ i.role }}</p>
                     <p class="fs-13 text-gray mb-0">
-                      {{ i.provider }} • 
+                      {{ i.provider }} •
                       {% if i.start_date %}{{ date_format(i.start_date) }}{% endif %}
                       {% if i.end_date %} - {{ date_format(i.end_date) }}{% endif %}
                     </p>
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ i.id }}" 
-                          data-url="/api/v1/user/resume-internship"
-                          data-mdivid="internshipm"
-                          data-ddivid="internshipd">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#internshipModal" data-edit-kind="internship" data-edit-id="{{ i.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ i.id }}" data-url="/api/v1/user/resume-internship" data-mdivid="internshipm" data-ddivid="internshipd">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
@@ -343,50 +385,52 @@
       <div class="resume-section">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
           <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
-            <img src="{{ static('images_new/icons/extraCurricular.png') }}" class="section-icon" alt="Activities" />
+            <span class="resume-section-icon" aria-hidden="true"><i class="bx bx-run"></i></span>
             <div class="flex-grow-1">
               <h4 class="fs-20 fw-semibold text-dark mb-2" id="activitycount">Extracurricular Activities ({{ resumeactivity.count() }})</h4>
               <p class="fs-16 text-gray mb-3">Add any relevant Extracurricular Activities</p>
               {% if resumeactivity %}
               <div class="resume-content-box d-none d-lg-block" id="activityd">
                 {% for a in resumeactivity %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ a.title }}</p>
                     {% if a.issue_date %}
                     <p class="fs-13 text-gray mb-0">{{ date_format(a.issue_date) }}</p>
                     {% endif %}
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ a.id }}" 
-                          data-url="/api/v1/user/resume-activity"
-                          data-mdivid="activitym"
-                          data-ddivid="activityd">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#activityModal" data-edit-kind="activity" data-edit-id="{{ a.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ a.id }}" data-url="/api/v1/user/resume-activity" data-mdivid="activitym" data-ddivid="activityd">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
               <div class="d-lg-none" id="activitym">
                 {% for a in resumeactivity %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ a.title }}</p>
                     {% if a.issue_date %}
                     <p class="fs-13 text-gray mb-0">{{ date_format(a.issue_date) }}</p>
                     {% endif %}
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ a.id }}" 
-                          data-url="/api/v1/user/resume-activity"
-                          data-mdivid="activitym"
-                          data-ddivid="activityd">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#activityModal" data-edit-kind="activity" data-edit-id="{{ a.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ a.id }}" data-url="/api/v1/user/resume-activity" data-mdivid="activitym" data-ddivid="activityd">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
@@ -406,54 +450,56 @@
       <div class="resume-section">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
           <div class="d-flex gap-3 align-items-start" style="max-width: 470px;">
-            <img src="{{ static('images_new/icons/volunteering.png') }}" class="section-icon" alt="Volunteering" />
+            <span class="resume-section-icon" aria-hidden="true"><i class="bx bx-heart-circle"></i></span>
             <div class="flex-grow-1">
               <h4 class="fs-20 fw-semibold text-dark mb-2" id="volunteercount">Volunteering ({{ resumevolunteer.count() }})</h4>
               <p class="fs-16 text-gray mb-3">Add any relevant Volunteering Activities</p>
               {% if resumevolunteer %}
               <div class="resume-content-box d-none d-lg-block" id="volunteerd">
                 {% for v in resumevolunteer %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ v.title }}</p>
                     <p class="fs-13 text-gray mb-0">
-                      {{ v.role }} • 
+                      {{ v.role }} •
                       {% if v.start_date %}{{ date_format(v.start_date) }}{% endif %}
                       {% if v.end_date %} - {{ date_format(v.end_date) }}{% endif %}
                     </p>
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ v.id }}" 
-                          data-url="/api/v1/user/resume-volunteer"
-                          data-mdivid="volunteerm"
-                          data-ddivid="volunteerd">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#volunteerModal" data-edit-kind="volunteer" data-edit-id="{{ v.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ v.id }}" data-url="/api/v1/user/resume-volunteer" data-mdivid="volunteerm" data-ddivid="volunteerd">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
               <div class="d-lg-none" id="volunteerm">
                 {% for v in resumevolunteer %}
-                <div class="added-item">
-                  <div>
+                <div class="added-item d-flex align-items-start justify-content-between gap-2">
+                  <div class="flex-grow-1">
                     <p class="fs-15 fw-semibold text-dark mb-1">{{ v.title }}</p>
                     <p class="fs-13 text-gray mb-0">
-                      {{ v.role }} • 
+                      {{ v.role }} •
                       {% if v.start_date %}{{ date_format(v.start_date) }}{% endif %}
                       {% if v.end_date %} - {{ date_format(v.end_date) }}{% endif %}
                     </p>
                   </div>
-                  <button type="button" 
-                          class="data-delete-btn" 
-                          onclick="deleteResumeItem(this)" 
-                          data-id="{{ v.id }}" 
-                          data-url="/api/v1/user/resume-volunteer"
-                          data-mdivid="volunteerm"
-                          data-ddivid="volunteerd">
-                    <i class='bx bx-x-circle fs-24'></i>
-                  </button>
+                  <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <button type="button" class="btn btn-link p-1 text-secondary resume-edit-open" title="Edit"
+                            data-bs-toggle="modal" data-bs-target="#volunteerModal" data-edit-kind="volunteer" data-edit-id="{{ v.id }}">
+                      <i class="bx bx-edit-alt fs-22"></i>
+                    </button>
+                    <button type="button" class="data-delete-btn" onclick="deleteResumeItem(this)"
+                            data-id="{{ v.id }}" data-url="/api/v1/user/resume-volunteer" data-mdivid="volunteerm" data-ddivid="volunteerd">
+                      <i class='bx bx-x-circle fs-24'></i>
+                    </button>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
@@ -470,17 +516,20 @@
       </div>
     </div>
 
-    <!-- Mobile Export Button -->
+    <!-- Mobile Export / View -->
     <div class="d-lg-none fixed-bottom text-center p-3" style="bottom: 80px;">
-      <a href="{{ url('users:resumepdf') }}" download class="btn custom-button purple-button">
-        <i class='bx bx-export me-2'></i> Export Resume
-      </a>
-    </div>
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        {% if resume.generated_html and resume.generated_html.strip() %}
+        <a href="{{ url('users:resumebuilder_preview', resume_id=resume.pk) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary">
+          <i class="bx bx-show me-1"></i> View
+        </a>
+        {% endif %}
+        <a href="{{ url('users:resumepdf') }}?resume_id={{ resume.pk }}" class="btn custom-button purple-button">
+          <i class='bx bx-export me-2'></i> Export Resume
+        </a>
       </div>
-      <!-- End of Right Part -->
     </div>
-  </div>
-</section>
+{% endblock %}
 
 <!-- About Modal -->
 <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
@@ -488,13 +537,15 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <img src="{{ static('images_new/icons/man.png') }}" style="width: 24px; height: 24px;" alt="About" />
+          <span class="resume-modal-icon" aria-hidden="true"><i class="bx bx-user-circle"></i></span>
           Add About Myself
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="aboutform">
+          <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+          <input type="hidden" name="resume_ui" value="template20">
           {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <textarea name="about" 
@@ -521,13 +572,16 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <img src="{{ static('images_new/icons/skills.png') }}" style="width: 24px; height: 24px;" alt="Skill" />
+          <span class="resume-modal-icon" aria-hidden="true"><i class="bx bx-chip"></i></span>
           Add Skill
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="skillform">
+          <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+          <input type="hidden" name="resume_ui" value="template20">
+          <input type="hidden" name="skill_id" id="skill_id_input" value="">
           {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
@@ -551,7 +605,7 @@
                     id="skillprofficiencyid" 
                     class="form-control custom-input" 
                     required>
-              <option value="" disabled selected>Select Profficiency</option>
+              <option value="" disabled>Select Profficiency</option>
               <option value="10">Beginner</option>
               <option value="20">Intermediate</option>
               <option value="30">Expert</option>
@@ -574,13 +628,16 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <img src="{{ static('images_new/icons/certificationUser.png') }}" style="width: 24px; height: 24px;" alt="Certificate" />
+          <span class="resume-modal-icon" aria-hidden="true"><i class="bx bx-badge-check"></i></span>
           Add Certification
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="certificateform">
+          <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+          <input type="hidden" name="resume_ui" value="template20">
+          <input type="hidden" name="certificate_id" id="certificate_id_input" value="">
           {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
@@ -625,17 +682,21 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <img src="{{ static('images_new/icons/internshipsUser.png') }}" style="width: 24px; height: 24px;" alt="Internship" />
+          <span class="resume-modal-icon" aria-hidden="true"><i class="bx bx-briefcase"></i></span>
           Add an Internship
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="internshipform">
+          <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+          <input type="hidden" name="resume_ui" value="template20">
+          <input type="hidden" name="internship_id" id="internship_id_input" value="">
           {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="provider" 
+                   id="internshipproviderid"
                    class="form-control custom-input" 
                    placeholder="Company" 
                    required>
@@ -644,6 +705,7 @@
           <div class="mb-3">
             <input type="text" 
                    name="role" 
+                   id="internshiproleid"
                    class="form-control custom-input" 
                    placeholder="Role" 
                    required>
@@ -651,7 +713,7 @@
           </div>
           <div class="mb-3">
             <textarea name="internshipdescription" 
-                      id="description" 
+                      id="internshipdescriptionid" 
                       class="form-control custom-input" 
                       rows="3" 
                       placeholder="Description" 
@@ -662,6 +724,7 @@
             <div class="col-6">
               <input type="date" 
                      name="start_date" 
+                     id="internshipstartdateid"
                      class="form-control custom-input" 
                      placeholder="Start" 
                      required>
@@ -670,6 +733,7 @@
             <div class="col-6">
               <input type="date" 
                      name="end_date" 
+                     id="internshipenddateid"
                      class="form-control custom-input" 
                      placeholder="End" 
                      required>
@@ -692,17 +756,21 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <img src="{{ static('images_new/icons/extraCurricular.png') }}" style="width: 24px; height: 24px;" alt="Activity" />
+          <span class="resume-modal-icon" aria-hidden="true"><i class="bx bx-run"></i></span>
           Add an Activity
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="activityform">
+          <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+          <input type="hidden" name="resume_ui" value="template20">
+          <input type="hidden" name="activity_id" id="activity_id_input" value="">
           {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="activity" 
+                   id="activitytitleid"
                    class="form-control custom-input" 
                    placeholder="Activity" 
                    required>
@@ -710,6 +778,7 @@
           </div>
           <div class="mb-3">
             <textarea name="activity_description" 
+                      id="activitydescriptionid"
                       class="form-control custom-input" 
                       rows="3" 
                       placeholder="Description" 
@@ -719,6 +788,7 @@
           <div class="mb-3">
             <input type="date" 
                    name="particiopation_date" 
+                   id="activityparticipationdateid"
                    class="form-control custom-input" 
                    placeholder="Participation Date" 
                    required>
@@ -740,17 +810,21 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <img src="{{ static('images_new/icons/volunteering.png') }}" style="width: 24px; height: 24px;" alt="Volunteer" />
+          <span class="resume-modal-icon" aria-hidden="true"><i class="bx bx-heart-circle"></i></span>
           Add Volunteer Involvement
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="volunteerform">
+          <input type="hidden" name="resume_id" value="{{ resume.pk }}">
+          <input type="hidden" name="resume_ui" value="template20">
+          <input type="hidden" name="volunteer_id" id="volunteer_id_input" value="">
           {{ csrf_input_tag()|safe }}
           <div class="mb-3">
             <input type="text" 
                    name="volunteertitle" 
+                   id="volunteertitleid"
                    class="form-control custom-input" 
                    placeholder="Title" 
                    required>
@@ -759,6 +833,7 @@
           <div class="mb-3">
             <input type="text" 
                    name="volunteerrole" 
+                   id="volunteerroleid"
                    class="form-control custom-input" 
                    placeholder="Role" 
                    required>
@@ -766,6 +841,7 @@
           </div>
           <div class="mb-3">
             <textarea name="volunteerdescription" 
+                      id="volunteerdescriptionid"
                       class="form-control custom-input" 
                       rows="3" 
                       placeholder="Description" 
@@ -776,6 +852,7 @@
             <div class="col-6">
               <input type="date" 
                      name="volunteer_start_date" 
+                     id="volunteerstartdateid"
                      class="form-control custom-input" 
                      placeholder="Start" 
                      required>
@@ -784,6 +861,7 @@
             <div class="col-6">
               <input type="date" 
                      name="volunteer_end_date" 
+                     id="volunteerenddateid"
                      class="form-control custom-input" 
                      placeholder="End" 
                      required>
@@ -822,6 +900,22 @@
 
 {% block additionaljs %}
 {{ super() }}
+<script>window.TOPTEEN_RESUME_ID = "{{ resume.pk }}";</script>
+<script type="application/json" id="resume-editor-payload-json">{{ resume_editor_payload|tojson }}</script>
+<script>
+(function () {
+  var el = document.getElementById('resume-editor-payload-json');
+  if (!el) {
+    window.__resumeEditorPayload = { skills: [], certificates: [], internships: [], activities: [], volunteers: [] };
+    return;
+  }
+  try {
+    window.__resumeEditorPayload = JSON.parse(el.textContent || '{}');
+  } catch (e) {
+    window.__resumeEditorPayload = { skills: [], certificates: [], internships: [], activities: [], volunteers: [] };
+  }
+})();
+</script>
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
@@ -854,6 +948,37 @@
     }
   };
 
+  /* Guided wizard: apply built profile summary when landing from setup */
+  (function () {
+    try {
+      var sp = new URLSearchParams(window.location.search);
+      if (sp.get('from_guided') !== '1') return;
+      var rid = (typeof window.TOPTEEN_RESUME_ID !== 'undefined' && window.TOPTEEN_RESUME_ID !== null && window.TOPTEEN_RESUME_ID !== '')
+        ? String(window.TOPTEEN_RESUME_ID) : '0';
+      var plain = localStorage.getItem('topteen_admitcv_about_plain_' + rid);
+      if (!plain) return;
+      if (window.history && history.replaceState) {
+        history.replaceState({}, '', window.location.pathname + window.location.hash);
+      }
+      var ta = document.getElementById('aboutid');
+      if (ta && !String(ta.value || '').trim()) {
+        ta.value = plain;
+      }
+      var wrap = document.querySelector('.resume-builder-page .container');
+      var row = wrap && wrap.querySelector('.row');
+      if (wrap && row) {
+        var note = document.createElement('div');
+        note.className = 'alert alert-info border-0 shadow-sm mb-4';
+        note.setAttribute('role', 'status');
+        note.innerHTML =
+          '<strong>Guided setup complete.</strong> A structured summary from your 6-step profile was added to ' +
+          '<strong>About Yourself</strong> (open <em>Edit</em> to review, then click <strong>Done</strong> to save). ' +
+          'You can still add skills, internships, and other sections below.';
+        wrap.insertBefore(note, row);
+      }
+    } catch (e) {}
+  })();
+
   // URL variables for AJAX calls
   const resumeabout = "/api/v1/user/resume-about";
   const resumeskill = "/api/v1/user/resume-skill";
@@ -861,6 +986,140 @@
   const resumeinternship = "/api/v1/user/resume-internship";
   const resumeactivity = "/api/v1/user/resume-activity";
   const resumevolunteer = "/api/v1/user/resume-volunteer";
+
+  function editorPayload() {
+    return window.__resumeEditorPayload || { skills: [], certificates: [], internships: [], activities: [], volunteers: [] };
+  }
+
+  function mergeEditorPayload(data) {
+    if (data && data.resume_editor_payload) {
+      window.__resumeEditorPayload = data.resume_editor_payload;
+    }
+  }
+
+  document.getElementById('aboutModal').addEventListener('show.bs.modal', function () {
+    var ta = document.getElementById('aboutid');
+    if (!ta) return;
+    var p = document.querySelector('#aboutd > p') || document.querySelector('#aboutm > p');
+    if (p) ta.value = (p.textContent || '').trim();
+  });
+
+  document.getElementById('skillModal').addEventListener('show.bs.modal', function (ev) {
+    var rel = ev.relatedTarget;
+    var editId = rel && rel.getAttribute && rel.getAttribute('data-edit-id');
+    var form = document.getElementById('skillform');
+    if (!form) return;
+    if (editId) {
+      var id = parseInt(editId, 10);
+      var row = editorPayload().skills.find(function (s) { return s.id === id; });
+      if (row) {
+        var hid = document.getElementById('skill_id_input');
+        if (hid) hid.value = String(id);
+        document.getElementById('skilltitleid').value = row.title || '';
+        document.getElementById('skilldescid').value = row.description || '';
+        var sel = document.getElementById('skillprofficiencyid');
+        if (sel) sel.value = String(row.profficiency);
+      }
+    } else {
+      form.reset();
+      var hid = document.getElementById('skill_id_input');
+      if (hid) hid.value = '';
+      var sel = document.getElementById('skillprofficiencyid');
+      if (sel) sel.value = '';
+    }
+  });
+
+  document.getElementById('certificateModal').addEventListener('show.bs.modal', function (ev) {
+    var rel = ev.relatedTarget;
+    var editId = rel && rel.getAttribute && rel.getAttribute('data-edit-id');
+    var form = document.getElementById('certificateform');
+    if (!form) return;
+    if (editId) {
+      var id = parseInt(editId, 10);
+      var row = editorPayload().certificates.find(function (c) { return c.id === id; });
+      if (row) {
+        var hid = document.getElementById('certificate_id_input');
+        if (hid) hid.value = String(id);
+        document.getElementById('certificatetitleid').value = row.title || '';
+        document.getElementById('certificatedescriptionid').value = row.description || '';
+        document.getElementById('issuedateid').value = row.issue_date || '';
+      }
+    } else {
+      form.reset();
+      var hid = document.getElementById('certificate_id_input');
+      if (hid) hid.value = '';
+    }
+  });
+
+  document.getElementById('internshipModal').addEventListener('show.bs.modal', function (ev) {
+    var rel = ev.relatedTarget;
+    var editId = rel && rel.getAttribute && rel.getAttribute('data-edit-id');
+    var form = document.getElementById('internshipform');
+    if (!form) return;
+    if (editId) {
+      var id = parseInt(editId, 10);
+      var row = editorPayload().internships.find(function (x) { return x.id === id; });
+      if (row) {
+        var hid = document.getElementById('internship_id_input');
+        if (hid) hid.value = String(id);
+        document.getElementById('internshipproviderid').value = row.provider || '';
+        document.getElementById('internshiproleid').value = row.role || '';
+        document.getElementById('internshipdescriptionid').value = row.description || '';
+        document.getElementById('internshipstartdateid').value = row.start_date || '';
+        document.getElementById('internshipenddateid').value = row.end_date || '';
+      }
+    } else {
+      form.reset();
+      var hid = document.getElementById('internship_id_input');
+      if (hid) hid.value = '';
+    }
+  });
+
+  document.getElementById('activityModal').addEventListener('show.bs.modal', function (ev) {
+    var rel = ev.relatedTarget;
+    var editId = rel && rel.getAttribute && rel.getAttribute('data-edit-id');
+    var form = document.getElementById('activityform');
+    if (!form) return;
+    if (editId) {
+      var id = parseInt(editId, 10);
+      var row = editorPayload().activities.find(function (x) { return x.id === id; });
+      if (row) {
+        var hid = document.getElementById('activity_id_input');
+        if (hid) hid.value = String(id);
+        document.getElementById('activitytitleid').value = row.title || '';
+        document.getElementById('activitydescriptionid').value = row.description || '';
+        document.getElementById('activityparticipationdateid').value = row.issue_date || '';
+      }
+    } else {
+      form.reset();
+      var hid = document.getElementById('activity_id_input');
+      if (hid) hid.value = '';
+    }
+  });
+
+  document.getElementById('volunteerModal').addEventListener('show.bs.modal', function (ev) {
+    var rel = ev.relatedTarget;
+    var editId = rel && rel.getAttribute && rel.getAttribute('data-edit-id');
+    var form = document.getElementById('volunteerform');
+    if (!form) return;
+    if (editId) {
+      var id = parseInt(editId, 10);
+      var row = editorPayload().volunteers.find(function (x) { return x.id === id; });
+      if (row) {
+        var hid = document.getElementById('volunteer_id_input');
+        if (hid) hid.value = String(id);
+        document.getElementById('volunteertitleid').value = row.title || '';
+        document.getElementById('volunteerroleid').value = row.role || '';
+        document.getElementById('volunteerdescriptionid').value = row.description || '';
+        document.getElementById('volunteerstartdateid').value = row.start_date || '';
+        document.getElementById('volunteerenddateid').value = row.end_date || '';
+      }
+    } else {
+      form.reset();
+      var hid = document.getElementById('volunteer_id_input');
+      if (hid) hid.value = '';
+    }
+  });
 
   // Clear error tags
   function clearAllErrorTag() {
@@ -917,8 +1176,13 @@
           $('#skilld').html(data.htmld);
           $('#skillm').html(data.htmlm);
           document.getElementById("skillform").reset();
+          var sid = document.getElementById("skill_id_input");
+          if (sid) sid.value = "";
+          var sprof = document.getElementById("skillprofficiencyid");
+          if (sprof) sprof.value = "";
           document.getElementById("skillcount").textContent = "Skills (" + data.count + ")";
-          fireAlert("Skill added successfully!", "success");
+          mergeEditorPayload(data);
+          fireAlert(data.message || "Skill saved successfully!", "success");
           const modal = bootstrap.Modal.getInstance(document.getElementById('skillModal'));
           if (modal) modal.hide();
         },
@@ -954,8 +1218,11 @@
           $('#certificated').html(data.htmld);
           $('#certificatem').html(data.htmlm);
           document.getElementById("certificateform").reset();
+          var cid = document.getElementById("certificate_id_input");
+          if (cid) cid.value = "";
           document.getElementById("certificatecount").textContent = "Certifications (" + data.count + ")";
-          fireAlert("Certification added successfully!", "success");
+          mergeEditorPayload(data);
+          fireAlert(data.message || "Certification saved successfully!", "success");
           const modal = bootstrap.Modal.getInstance(document.getElementById('certificateModal'));
           if (modal) modal.hide();
         },
@@ -994,8 +1261,11 @@
           $('#internshipd').html(data.htmld);
           $('#internshipm').html(data.htmlm);
           document.getElementById("internshipform").reset();
+          var iid = document.getElementById("internship_id_input");
+          if (iid) iid.value = "";
           document.getElementById("internshipcount").textContent = "Internships (" + data.count + ")";
-          fireAlert("Internship added successfully!", "success");
+          mergeEditorPayload(data);
+          fireAlert(data.message || "Internship saved successfully!", "success");
           const modal = bootstrap.Modal.getInstance(document.getElementById('internshipModal'));
           if (modal) modal.hide();
         },
@@ -1034,8 +1304,11 @@
           $('#activityd').html(data.htmld);
           $('#activitym').html(data.htmlm);
           document.getElementById("activityform").reset();
+          var aid = document.getElementById("activity_id_input");
+          if (aid) aid.value = "";
           document.getElementById("activitycount").textContent = "Extracurricular Activities (" + data.count + ")";
-          fireAlert("Activity added successfully!", "success");
+          mergeEditorPayload(data);
+          fireAlert(data.message || "Activity saved successfully!", "success");
           const modal = bootstrap.Modal.getInstance(document.getElementById('activityModal'));
           if (modal) modal.hide();
         },
@@ -1074,8 +1347,11 @@
           $('#volunteerd').html(data.htmld);
           $('#volunteerm').html(data.htmlm);
           document.getElementById("volunteerform").reset();
+          var vid = document.getElementById("volunteer_id_input");
+          if (vid) vid.value = "";
           document.getElementById("volunteercount").textContent = "Volunteering (" + data.count + ")";
-          fireAlert("Volunteering added successfully!", "success");
+          mergeEditorPayload(data);
+          fireAlert(data.message || "Volunteering saved successfully!", "success");
           const modal = bootstrap.Modal.getInstance(document.getElementById('volunteerModal'));
           if (modal) modal.hide();
         },
@@ -1126,6 +1402,18 @@
       idField.setAttribute("name", "id");
       idField.setAttribute("value", itemToDelete.id);
       form.appendChild(idField);
+
+      const ridField = document.createElement("input");
+      ridField.setAttribute("type", "hidden");
+      ridField.setAttribute("name", "resume_id");
+      ridField.setAttribute("value", String(window.TOPTEEN_RESUME_ID || ""));
+      form.appendChild(ridField);
+
+      const uiField = document.createElement("input");
+      uiField.setAttribute("type", "hidden");
+      uiField.setAttribute("name", "resume_ui");
+      uiField.setAttribute("value", "template20");
+      form.appendChild(uiField);
       
       const formData = new FormData(form);
       
@@ -1136,6 +1424,7 @@
         success: function (data) {
           $('#' + itemToDelete.mdivid).html(data.htmlm);
           $('#' + itemToDelete.ddivid).html(data.htmld);
+          mergeEditorPayload(data);
           if (data.count !== undefined) {
             // Update count if provided
             const countElement = document.querySelector('[id$="count"]');

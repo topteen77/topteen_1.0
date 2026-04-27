@@ -2749,6 +2749,68 @@ class InstituteDashboardView(TemplateView):
         create_institute_log.delay(institute.id,error_list,len(email_list))
         return render(request, _dashboard_primary_template_name(self), ctx)
 
+
+class InstituteMasterDashboardView(InstituteDashboardView):
+    """Institute master dashboard at /institute/<slug>/dashboard/ (heatmap + shell)."""
+
+    template_name = "template20/institute/institute_master_dashboard.html"
+
+    def html_head(self):
+        name = "Institute Master Dashboard"
+        return build_html_head(title=name, description=name)
+
+    def get_context(self, request, *args, **kwargs):
+        ctx = super().get_context(request, *args, **kwargs)
+        stu_q = ctx.get("stu")
+        rows = []
+        if stu_q is not None:
+            try:
+                rows = list(
+                    stu_q.select_related("student", "class_and_section").order_by("-created")[:40]
+                )
+            except Exception:
+                rows = []
+        ctx["master_student_rows"] = rows
+
+        tsc = ctx.get("total_students_count")
+        n_total = tsc if isinstance(tsc, int) else (len(tsc) if tsc is not None else 0)
+        ctx["master_n_students"] = n_total
+
+        sessions_week = 0
+        try:
+            for block in json.loads(ctx.get("sessions_data_json") or "[]"):
+                for day in block.get("sessions") or []:
+                    sessions_week += int(day.get("session_count") or 0)
+        except (TypeError, ValueError, KeyError):
+            sessions_week = 0
+        ctx["master_sessions_week_total"] = sessions_week
+
+        trc = ctx.get("test_result_count") or 0
+        if n_total:
+            ctx["master_psychometric_pct"] = min(100, int(round(100 * float(trc) / float(n_total))))
+        else:
+            ctx["master_psychometric_pct"] = 0
+
+        cc = ctx.get("class_counts") or {}
+        ctx["master_active_classes"] = len(cc) if isinstance(cc, dict) else 0
+
+        inst = ctx.get("institute")
+        if inst:
+            try:
+                ctx["master_credits_remaining"] = int(inst.get_current_credits_count())
+            except Exception:
+                ctx["master_credits_remaining"] = 0
+            ctx["master_credits_total"] = int(inst.credit_counts or 0)
+        else:
+            ctx["master_credits_remaining"] = 0
+            ctx["master_credits_total"] = 0
+
+        streams = ctx.get("streams") or {}
+        ctx["master_stream_keys"] = list(streams.keys()) if isinstance(streams, dict) else []
+        ctx["master_stream_vals"] = list(streams.values()) if isinstance(streams, dict) else []
+        return ctx
+
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(marketing_group_user_only,name='dispatch')
 class InstituteApproveView(View):

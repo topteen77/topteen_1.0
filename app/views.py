@@ -265,6 +265,39 @@ def dashboard(request, student_id=None):
         except (TypeError, ValueError):
             intelligence_pct = 0
 
+        # Skill readiness index from TopTeen DB (test3 intelligence scores)
+        # test3 section scores are usually on a 0-15 scale, convert to percentage for UI bars.
+        skill_readiness_index = []
+        try:
+            scale_max = 15.0
+            label_map = {
+                'NUMERICAL': 'Numerical',
+                'VERBAL': 'Verbal',
+                'LOGICAL': 'Logical',
+                'MECHANICAL': 'Mechanical',
+                'SPATIAL': 'Spatial',
+                'LANGUAGE': 'Language',
+                'CRITICAL': 'Critical',
+                'EMOTIONAL': 'Emotional',
+            }
+            for raw_label, raw_score in (sorted_test3_result or {}).items():
+                code = str(raw_label).split('_')[0].upper().strip()
+                label = label_map.get(code, code.title())
+                try:
+                    numeric_score = float(raw_score)
+                except (TypeError, ValueError):
+                    numeric_score = 0.0
+                score_pct = int(round(max(0.0, min(100.0, (numeric_score / scale_max) * 100.0))))
+                skill_readiness_index.append({
+                    'code': code,
+                    'label': label,
+                    'raw_score': numeric_score,
+                    'score_pct': score_pct,
+                })
+            skill_readiness_index.sort(key=lambda item: item['score_pct'], reverse=True)
+        except Exception:
+            skill_readiness_index = []
+
         # Vocational courses for "Below Average" section: only when student has below-average areas;
         # cards are dynamic from result; each card links to its actual detail page only.
         vocational_course_cards = []
@@ -348,6 +381,7 @@ def dashboard(request, student_id=None):
             'next_level_min_points': next_level_min_points,
             'level_progress_percent': level_progress_percent,
             'vocational_course_cards': vocational_course_cards,
+            'skill_readiness_index': skill_readiness_index,
             'report_user_id': request.user.id,
         }
 

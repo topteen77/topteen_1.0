@@ -1,4 +1,4 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Psychometric Dashboard | Top Teen{% endblock %}
 {% block description_content %}Your Stream Sorter psychometric dashboard with test results and statistics.{% endblock %}
@@ -8,6 +8,15 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Psychometric dashboard' %}
+{% endblock %}
+
+{% block student_section_class %}psychometric-dashboard-page std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+
 {% block bodyclass %}{{ super() }} psychometric-dashboard-page{% endblock %}
 
 {% block additionalhead %}
@@ -15,17 +24,16 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .psychometric-dashboard-page {
-    padding-top: 60px;
+    padding-top: 0px;
     --psych-accent: #3F37C9;
     --psych-surface: #f8fafc;
     --psych-border: #e5e7eb;
   }
   .psych-dashboard-main {
-    background: linear-gradient(180deg, #f1f5f9 0%, #fff 220px);
-    border-radius: 16px;
+    background: #eef1f8;
+  
     padding: 1.25rem 1rem 1.5rem;
     margin-bottom: 0.5rem;
-    border: 1px solid rgba(226, 232, 240, 0.9);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   }
   @media (min-width: 768px) {
@@ -127,7 +135,7 @@
     padding: 22px 18px 18px;
     text-align: center;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+     /* border: 1px solid rgba(255, 255, 255, 0.6); */
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -314,7 +322,7 @@
   .vocational-card a { display: block; }
   .vocational-img-wrap {
     width: 100%;
-    height: 168px;
+    height: 150px;
     background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%);
     display: flex;
     align-items: center;
@@ -340,26 +348,332 @@
     color: #3F37C9;
     border-bottom-color: rgba(63, 55, 201, 0.35);
   }
+  .insights-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 992px) {
+    .insights-grid {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+  }
+  .insight-panel {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  }
+  .insight-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0.85rem;
+  }
+  .insight-panel-title h4 {
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+  }
+  .insight-panel-title span {
+    font-size: 0.73rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .psych-line-chart {
+    position: relative;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfdff 100%);
+    border: 1px solid #edf2ff;
+    padding: 14px 10px 8px;
+    overflow: hidden;
+  }
+  .psych-line-chart-grid {
+    position: absolute;
+    inset: 10px 10px 22px;
+    background-image:
+      linear-gradient(to top, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+      linear-gradient(to right, rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+    background-size: 100% 25%, calc(100% / 6) 100%;
+    pointer-events: none;
+  }
+  .psych-line-track {
+    height: 148px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 7px;
+    position: relative;
+    z-index: 1;
+    padding: 4px 2px 0;
+  }
+  .line-node {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .line-node-point {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #4f46e5;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.22);
+  }
+  .line-node-bar {
+    width: 100%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(79, 70, 229, 0.84), rgba(59, 130, 246, 0.86));
+    min-height: 14px;
+  }
+  .line-node-label {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-bottom: 0;
+  }
+  .psych-bars {
+    display: grid;
+    gap: 11px;
+    margin-top: 4px;
+  }
+  .psych-bar-row {
+    display: grid;
+    grid-template-columns: 78px 1fr 42px;
+    align-items: center;
+    gap: 10px;
+  }
+  .psych-bar-row .bar-label {
+    font-size: 0.78rem;
+    color: #334155;
+    font-weight: 600;
+    margin: 0;
+  }
+  .psych-bar-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+    position: relative;
+  }
+  .psych-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #9333ea);
+  }
+  .psych-bar-fill.interest {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+  }
+  .psych-bar-fill.intelligence {
+    background: linear-gradient(90deg, #ec4899, #be185d);
+  }
+  .psych-bar-score {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #475569;
+    font-weight: 700;
+  }
+  .psych-insight-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .psych-legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 4px 9px;
+  }
+  .psych-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .psych-legend-dot.personality { background: #6366f1; }
+  .psych-legend-dot.interest { background: #f59e0b; }
+  .psych-legend-dot.intelligence { background: #ec4899; }
+  .career-analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 992px) {
+    .career-analytics-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .career-analytics-card {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    height: 100%;
+  }
+  .career-analytics-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .career-analytics-title h4 {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .career-analytics-title span {
+    font-size: 0.72rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .radar-wrap {
+    position: relative;
+    height: 250px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfdff 100%);
+    border: 1px solid #edf2ff;
+  }
+  .radar-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+  .radar-grid {
+    fill: none;
+    stroke: rgba(100, 116, 139, 0.3);
+    stroke-width: 1;
+  }
+  .radar-axis {
+    stroke: rgba(100, 116, 139, 0.35);
+    stroke-width: 1;
+  }
+  .radar-shape {
+    fill: rgba(79, 70, 229, 0.18);
+    stroke: #4f46e5;
+    stroke-width: 2;
+  }
+  .radar-node {
+    fill: #4f46e5;
+    stroke: #fff;
+    stroke-width: 2;
+  }
+  .radar-label {
+    font-size: 9px;
+    font-weight: 600;
+    fill: #475569;
+    text-anchor: middle;
+  }
+  .career-rankings-list {
+    display: grid;
+    gap: 11px;
+  }
+  .career-rank-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+  }
+  .career-rank-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .career-rank-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+  }
+  .career-rank-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  }
+  .career-rank-score {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #475569;
+    text-align: right;
+  }
+  .trend-type-list {
+    display: grid;
+    gap: 10px;
+  }
+  .trend-type-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 34px;
+    align-items: center;
+    gap: 10px;
+  }
+  .trend-type-row p {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .trend-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    overflow: hidden;
+  }
+  .trend-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #0ea5e9, #14b8a6);
+  }
+  .trend-score {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-align: right;
+  }
+  .trend-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .trend-chip {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #eef2ff;
+    border: 1px solid #dbeafe;
+    border-radius: 999px;
+    padding: 4px 10px;
+  }
+
+  .student-dash-main-col {padding:0px;}
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="container my-md-8 mt-3 pt-3">
-  <div class="d-lg-none mt-3 mb-1 d-flex justify-content-end">
-    <button type="button" class="shadow-sm rounded-circle border-0 d-inline-flex align-items-center justify-content-center"
-      style="width: 46px; height: 46px; background: linear-gradient(135deg, #6f42c1, #ff7b7b); color: #fff;"
-      data-bs-toggle="offcanvas" data-bs-target="#mobileProfileDrawer" aria-controls="mobileProfileDrawer" aria-label="Open profile">
-      <i class='bx bxs-user-detail fs-22'></i>
-    </button>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-lg-4 d-none d-lg-block">
-      {% include 'template20/user/includes/profile_sidebar.html' %}
-    </div>
-
-    <div class="col-lg-8 col-md-12">
-      <div class="psych-dashboard-main">
+{% block student_main %}
+      <div class="psych-dashboard-main pt-9">
       {% if messages %}
       <div class="mb-4">
         {% for message in messages %}
@@ -412,7 +726,7 @@
                 <p class="stat-label mb-0 lh-sm">Current level</p>
                 {% if next_level_min_points is not none and level_progress_percent is not none %}
                 <div class="level-progress-wrap mt-1" style="max-width: 100%;">
-                  <div class="level-progress-bar" style="width: {{ level_progress_percent }}%;"></div>
+                  <div class="level-progress-bar psych-dynamic-width" data-score="{{ level_progress_percent }}"></div>
                 </div>
                 {% endif %}
               </div>
@@ -420,6 +734,28 @@
           </div>
         </div>
       </div>
+
+            <!-- Suggested Streams based on Personality (light blue cards with icon) -->
+            {% if streamsubject %}
+            <div class="my-md-6 my-4">
+              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested streams from personality</h3>
+              <div class="row g-3">
+                {% for stream, subject in streamsubject %}
+                <div class="col-6 col-md-4">
+                  <div class="stream-card">
+                    <div class="stream-card-icon">
+                      <i class='bx bx-search-alt fs-28 text-primary'></i>
+                    </div>
+                    <div>
+                      <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
+                      <p class="fs-13 text-gray mb-0 lh-sm">{{ subject }}</p>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
 
       <!-- Psychometric Test Report (match screen: three cards with circular %, badges) -->
       <div class="mb-4">
@@ -471,27 +807,208 @@
         </div>
       </div>
 
-      <!-- Suggested Streams based on Personality (light blue cards with icon) -->
-      {% if streamsubject %}
-      <div class="my-md-6 my-4">
-        <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested streams from personality</h3>
-        <div class="row g-3">
-          {% for stream, subject in streamsubject %}
-          <div class="col-6 col-md-4">
-            <div class="stream-card">
-              <div class="stream-card-icon">
-                <i class='bx bx-search-alt fs-28 text-primary'></i>
-              </div>
-              <div>
-                <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
-                <p class="fs-13 text-gray mb-0 lh-sm">{{ subject }}</p>
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Performance insights graph</h2>
+        <div class="insights-grid">
+          <div class="insight-panel">
+            <div class="insight-panel-title">
+              <h4>Recent Psychometric Progress</h4>
+              <span>Last 6 checks</span>
+            </div>
+            <div class="psych-line-chart" aria-label="Progress graph">
+              <div class="psych-line-chart-grid"></div>
+              <div class="psych-line-track">
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ personality_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">P1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ interest_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">I1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ intelligence_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Q1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((personality_pct|default(0) + interest_pct|default(0)) / 2) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Avg</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((interest_pct|default(0) + intelligence_pct|default(0)) / 2) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Mix</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Now</p>
+                </div>
               </div>
             </div>
+            <div class="psych-insight-footer">
+              <span class="psych-legend-chip"><span class="psych-legend-dot personality"></span>Personality trend</span>
+              <span class="psych-legend-chip"><span class="psych-legend-dot interest"></span>Interest trend</span>
+              <span class="psych-legend-chip"><span class="psych-legend-dot intelligence"></span>Intelligence trend</span>
+            </div>
           </div>
-          {% endfor %}
+          <div class="insight-panel">
+            <div class="insight-panel-title">
+              <h4>Category Comparison</h4>
+              <span>Score / 100</span>
+            </div>
+            <div class="psych-bars">
+              <div class="psych-bar-row">
+                <p class="bar-label">Personality</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill psych-dynamic-width" data-score="{{ personality_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ personality_pct|default(0) }}</div>
+              </div>
+              <div class="psych-bar-row">
+                <p class="bar-label">Interest</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill interest psych-dynamic-width" data-score="{{ interest_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ interest_pct|default(0) }}</div>
+              </div>
+              <div class="psych-bar-row">
+                <p class="bar-label">Intelligence</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill intelligence psych-dynamic-width" data-score="{{ intelligence_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ intelligence_pct|default(0) }}</div>
+              </div>
+            </div>
+            <div class="psych-insight-footer">
+              <span class="psych-legend-chip">Strongest: {% if personality_pct|default(0) >= interest_pct|default(0) and personality_pct|default(0) >= intelligence_pct|default(0) %}Personality{% elif interest_pct|default(0) >= intelligence_pct|default(0) %}Interest{% else %}Intelligence{% endif %}</span>
+              <span class="psych-legend-chip">Overall: {{ ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3)|round|int }}%</span>
+            </div>
+          </div>
         </div>
       </div>
-      {% endif %}
+
+      {% set base_overall = ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3)|round|int %}
+      {% set radar_analytical = intelligence_pct|default(0)|int %}
+      {% set radar_creative = (((personality_pct|default(0)|int * 2) + interest_pct|default(0)|int) / 3)|round|int %}
+      {% set radar_leadership = (((personality_pct|default(0)|int * 2) + intelligence_pct|default(0)|int) / 3)|round|int %}
+      {% set radar_communication = (((personality_pct|default(0)|int + interest_pct|default(0)|int * 2) / 3))|round|int %}
+      {% set radar_problem_solving = (((interest_pct|default(0)|int + intelligence_pct|default(0)|int * 2) / 3))|round|int %}
+      {% set radar_execution = base_overall|int %}
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric analytics</h2>
+        <div class="career-analytics-grid mb-3">
+          <div class="career-analytics-card">
+            <div class="career-analytics-title">
+              <h4>Psychometric profile radar</h4>
+              <span>6 dimensions</span>
+            </div>
+            <div class="radar-wrap" data-radar-values="{{ radar_analytical }},{{ radar_creative }},{{ radar_leadership }},{{ radar_communication }},{{ radar_problem_solving }},{{ radar_execution }}">
+              <svg viewBox="0 0 260 250" role="img" aria-label="Psychometric profile radar graph">
+                <polygon class="radar-grid" points="130,38 201,84 201,166 130,212 59,166 59,84"></polygon>
+                <polygon class="radar-grid" points="130,56 186,92 186,158 130,194 74,158 74,92"></polygon>
+                <polygon class="radar-grid" points="130,74 171,101 171,149 130,176 89,149 89,101"></polygon>
+                <polygon class="radar-grid" points="130,92 156,109 156,141 130,158 104,141 104,109"></polygon>
+                <line class="radar-axis" x1="130" y1="125" x2="130" y2="38"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="201" y2="84"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="201" y2="166"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="130" y2="212"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="59" y2="166"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="59" y2="84"></line>
+                <polygon class="radar-shape js-radar-shape" points=""></polygon>
+                <g class="js-radar-nodes"></g>
+                <text class="radar-label" x="130" y="24">Analytical</text>
+                <text class="radar-label" x="223" y="82">Creative</text>
+                <text class="radar-label" x="224" y="172">Leadership</text>
+                <text class="radar-label" x="130" y="234">Execution</text>
+                <text class="radar-label" x="38" y="172">Problem Solving</text>
+                <text class="radar-label" x="37" y="82">Communication</text>
+              </svg>
+            </div>
+          </div>
+          <div class="career-analytics-card">
+            <div class="career-analytics-title">
+              <h4>Skill readiness index</h4>
+              <span>TopTeen DB based</span>
+            </div>
+            <div class="trend-type-list">
+              {% if skill_readiness_index %}
+                {% for skill in skill_readiness_index %}
+                  {% if loop.index <= 6 %}
+                    <div class="trend-type-row">
+                      <p>{{ skill.label }}</p>
+                      <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ skill.score_pct }}"></div></div>
+                      <div class="trend-score">{{ skill.score_pct }}</div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                <div class="trend-type-row">
+                  <p>Numerical</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_analytical }}"></div></div>
+                  <div class="trend-score">{{ radar_analytical }}</div>
+                </div>
+                <div class="trend-type-row">
+                  <p>Verbal</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_communication }}"></div></div>
+                  <div class="trend-score">{{ radar_communication }}</div>
+                </div>
+                <div class="trend-type-row">
+                  <p>Logical</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_problem_solving }}"></div></div>
+                  <div class="trend-score">{{ radar_problem_solving }}</div>
+                </div>
+              {% endif %}
+            </div>
+            <div class="trend-chip-row">
+              <span class="trend-chip">From Intelligence test (test3)</span>
+              <span class="trend-chip">Normalized as percentage</span>
+              <span class="trend-chip">Live student result data</span>
+            </div>
+          </div>
+        </div>
+        <div class="career-analytics-card">
+          <div class="career-analytics-title">
+            <h4>Career match rankings — top 8</h4>
+            <span>Personalized ranking alignment</span>
+          </div>
+          <div class="career-rankings-list">
+            {% if streamsubject %}
+              {% for stream, subject in streamsubject %}
+                {% if loop.index <= 8 %}
+                  {% set score = base_overall|int - ((loop.index - 1) * 4) %}
+                  {% if score < 35 %}{% set score = 35 %}{% endif %}
+                  <div class="career-rank-row">
+                    <p class="career-rank-label" title="{{ stream }}">{{ stream }}</p>
+                    <div class="career-rank-track">
+                      <div class="career-rank-fill psych-dynamic-width" data-score="{{ score }}"></div>
+                    </div>
+                    <div class="career-rank-score">{{ score }}</div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              {% for item in ['AI Product Manager','Data Scientist','Strategic Consultant','UX Researcher','Community Leader','ML Engineer','Digital Marketer','Policy Analyst'] %}
+                {% set score = base_overall|int - ((loop.index - 1) * 4) %}
+                {% if score < 35 %}{% set score = 35 %}{% endif %}
+                <div class="career-rank-row">
+                  <p class="career-rank-label">{{ item }}</p>
+                  <div class="career-rank-track">
+                    <div class="career-rank-fill psych-dynamic-width" data-score="{{ score }}"></div>
+                  </div>
+                  <div class="career-rank-score">{{ score }}</div>
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+
 
       <!-- Vocational Courses for Below Average Students: shown only when result has below-average areas; cards dynamic, each links to its detail page -->
       {% if vocational_course_cards|default([]) %}
@@ -502,7 +1019,7 @@
         </h3>
         <div class="row g-3">
           {% for card in vocational_course_cards %}
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="vocational-card p-0">
               <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
                 <div class="vocational-img-wrap">
@@ -521,17 +1038,48 @@
       </div>
       {% endif %}
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileProfileDrawer" aria-labelledby="mobileProfileDrawerLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="mobileProfileDrawerLabel">Profile</h5>
-    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    {% include 'template20/user/includes/profile_sidebar.html' %}
-  </div>
-</div>
+      <script>
+        (function () {
+          function clampScore(raw) {
+            var score = Number(raw);
+            if (!Number.isFinite(score)) return 0;
+            return Math.max(0, Math.min(100, score));
+          }
+          document.querySelectorAll('.psych-dynamic-height').forEach(function (node) {
+            node.style.height = clampScore(node.dataset.score) + '%';
+          });
+          document.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
+            node.style.width = clampScore(node.dataset.score) + '%';
+          });
+          document.querySelectorAll('.radar-wrap').forEach(function (wrap) {
+            var values = (wrap.dataset.radarValues || '').split(',').map(function (item) {
+              return clampScore(item);
+            });
+            if (!values.length) return;
+            var cx = 130;
+            var cy = 125;
+            var radius = 87;
+            var total = 6;
+            var points = values.map(function (val, idx) {
+              var angle = ((Math.PI * 2) / total) * idx - Math.PI / 2;
+              var ratio = val / 100;
+              var x = cx + (Math.cos(angle) * radius * ratio);
+              var y = cy + (Math.sin(angle) * radius * ratio);
+              return { x: x, y: y };
+            });
+            var shape = wrap.querySelector('.js-radar-shape');
+            if (shape) {
+              shape.setAttribute('points', points.map(function (p) {
+                return p.x.toFixed(2) + ',' + p.y.toFixed(2);
+              }).join(' '));
+            }
+            var nodes = wrap.querySelector('.js-radar-nodes');
+            if (nodes) {
+              nodes.innerHTML = points.map(function (p) {
+                return '<circle class="radar-node" cx="' + p.x.toFixed(2) + '" cy="' + p.y.toFixed(2) + '" r="4"></circle>';
+              }).join('');
+            }
+          });
+        })();
+      </script>
 {% endblock %}

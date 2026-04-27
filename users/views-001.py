@@ -766,10 +766,22 @@ class UserFolderDetail(TemplateView):
 @login_required
 def resume_pdf_download(request,*args, **kwargs):
     template = get_template("mail/user/userresumepdf.html")
-    user_resume=request.user.user_resume
+    rid = request.GET.get("resume_id")
+    qs = UserResume.objects.filter(user=request.user)
+    if rid:
+        try:
+            user_resume = get_object_or_404(qs, pk=int(rid))
+        except ValueError:
+            user_resume = None
+    else:
+        user_resume = qs.order_by("-modified").first()
+    if not user_resume:
+        messages.info(request, "Create or pick a resume before downloading a PDF.")
+        return redirect("users:resumebuilder")
     ctx={}
     ctx["request"]=request
     ctx["profile"]=get_object_or_404(UserProfile,user=request.user)
+    ctx["user_resume"] = user_resume
     ctx["skills"]=UserResumeSkill.objects.filter(resume=user_resume)
     ctx["certificates"]=UserResumeCertificate.objects.filter(resume=user_resume).order_by("issue_date")
     ctx["internships"]=UserResumeInternship.objects.filter(resume=user_resume)

@@ -1,0 +1,19 @@
+{% set v0 = url('institute:institutedashboard', args=[institute.slug]) %}
+<section id="im-screen-assessments" class="im-screen im-screen--compact" aria-labelledby="im-screen-assessments-title">
+  <header class="im-screen-head">
+    <h2 id="im-screen-assessments-title" class="im-screen-title">Assessments</h2>
+    <p class="im-screen-sub">Psychometric completion and test participation</p>
+  </header>
+  <div class="im-compact-grid">
+    <div class="im-compact-card">
+      <p class="im-compact-val">{{ master_psychometric_pct }}%</p>
+      <p class="im-compact-lbl">Students with completed tests</p>
+      <a class="im-compact-link" href="{{ v0 }}#institute-assessments">Charts on classic dashboard →</a>
+    </div>
+    <div class="im-compact-card">
+      <p class="im-compact-val">{{ n_assess }}</p>
+      <p class="im-compact-lbl">Successful test records (count)</p>
+      <a class="im-compact-link" href="#career-interest-matrix">Interest matrix →</a>
+    </div>
+  </div>
+</section>

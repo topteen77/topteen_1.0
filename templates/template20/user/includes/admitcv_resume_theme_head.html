@@ -1,0 +1,24 @@
+{# Sync theme before paint to avoid flash; key must match admitcv-resume-theme.js #}
+<script>
+(function () {
+  var KEY = 'topteen_resume_studio_theme';
+  function readStored() {
+    try { return localStorage.getItem(KEY); } catch (e) { return null; }
+  }
+  function systemDefault() {
+    try {
+      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  }
+  function initialMode() {
+    var s = readStored();
+    if (s === 'light' || s === 'dark') return s;
+    return systemDefault();
+  }
+  if (!document.documentElement.hasAttribute('data-theme')) {
+    document.documentElement.setAttribute('data-theme', initialMode());
+  }
+})();
+</script>

@@ -1,16 +1,15 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}View Profile | Top Teen{% endblock %}
 {% block description_content %}View your complete profile information.{% endblock %}
 
-{% block bodyclass %}{{ super() }} profile-view{% endblock %}
+{% block student_bodyclass %}profile-view{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-{% include 'template20/user/includes/profile_sidebar_styles.html' %}
 <style>
   .profile-view {
-    padding-top: 80px;
+    padding-top: 0;
   }
   .profile-card {
     background: white;
@@ -68,21 +67,46 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
   }
+
+  @media (max-width: 767.98px) {
+    .profile-card > .d-flex.justify-content-between.align-items-center {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 10px;
+    }
+
+    .edit-profile-btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+  }
+
+  .app-right-content {
+	background: #eef1f8;
+  }
+
+.student-dash-main-col {
+	padding: 0px;
+}
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="profile-view pb-5">
-  <div class="container">
-    <div class="row g-4 pt-4">
-      <!-- Left part Desktop - Sidebar -->
-      <div class="col-lg-4 d-none d-lg-block">
-        {% include 'template20/user/includes/profile_sidebar.html' %}
-      </div>
-      <!-- End of Left part Desktop -->
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'My profile' %}
+{% endblock %}
 
-      <!-- Right Part - Profile Content -->
-      <div class="col-lg-8">
+{% block student_section_class %}profile-view  std-shell-main{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container{% endblock %}
+{% block student_row_class %}row g-4  student-dash-shell{% endblock %}
+{% block student_main_col_class %}student-dash-main-col pt-7{% endblock %}
+
+{% block student_main %}
+
+<div class="app-right-content pt-3 px-3 pb-3">
         <!-- Personal Information -->
         <div class="profile-card">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -268,14 +292,12 @@
         {% endif %}
         {% endif %}
       </div>
-      <!-- End of Right Part -->
-    </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
+
+</div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const openBtn = document.getElementById('openParentOtpModal');

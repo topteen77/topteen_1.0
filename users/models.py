@@ -453,9 +453,102 @@ class UserNote(BaseModel):
     title=models.CharField(max_length=250,null=True,blank=True)
     content=RichTextField(null=True,blank=True)
 
+
+class ResumeStudioHtmlTemplate(BaseModel):
+    """
+    Admin-managed gallery rows for the student HTML resume studio (static/js prototype).
+    Each template_key must match a renderer in static/resume-builder-prototype/app.js.
+    """
+
+    name = models.CharField(max_length=120)
+    template_key = models.SlugField(
+        max_length=64,
+        unique=True,
+        help_text="Layout id implemented in the studio prototype, e.g. classic-sidebar, minimalist.",
+    )
+    category = models.CharField(
+        max_length=32,
+        default="professional",
+        db_index=True,
+        help_text="Gallery filter: professional, modern, creative, simple",
+    )
+    mock_class = models.CharField(
+        max_length=80,
+        blank=True,
+        default="",
+        help_text="Thumbnail mock CSS class, e.g. mock-classic-sidebar. Auto-filled as mock-<key> when empty.",
+    )
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    description = models.TextField(blank=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("sort_order", "id")
+        verbose_name = "Resume studio HTML template"
+        verbose_name_plural = "Resume studio HTML templates"
+
+    def __str__(self):
+        return self.name or self.template_key or "Studio template"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        from users.resume_studio_html import ALLOWED_STUDIO_HTML_TEMPLATE_KEYS
+
+        k = (self.template_key or "").strip()
+        if k and k not in ALLOWED_STUDIO_HTML_TEMPLATE_KEYS:
+            raise ValidationError(
+                {
+                    "template_key": (
+                        "This layout is not implemented in the studio prototype. "
+                        "Choose a key from the documented list (same as app.js RENDERERS)."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        tid = (self.template_key or "").strip()
+        if tid and not (self.mock_class or "").strip():
+            self.mock_class = f"mock-{tid}"
+        super().save(*args, **kwargs)
+
+
 class UserResume(BaseModel):
-    user=models.OneToOneField(User,null=True,blank=True,on_delete=models.CASCADE,related_name="user_resume")
-    about= models.TextField(null=True,blank=True)
+    user = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="user_resumes",
+    )
+    title = models.CharField(max_length=120, default="My resume", blank=True)
+    about = models.TextField(null=True, blank=True)
+    # AI-guided studio: full HTML from OpenAI + last wizard payload for restore / audit
+    generated_html = models.TextField(null=True, blank=True)
+    wizard_draft_json = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to="upload/resume_images/", null=True, blank=True, max_length=250)
+
+    class Meta(BaseModel.Meta):
+        ordering = ("-modified",)
+
+    def __str__(self):
+        return self.title or "Resume"
+
+    def delete(self, hard_delete=False):
+        """Hard-delete related sections first so CASCADE does not soft-delete child rows only."""
+        if hard_delete and self.pk is not None:
+            rid = self.pk
+            # `.complete()` returns a plain QuerySet (no `hard_delete`); use SoftDeletionQuerySet directly.
+            for model in (
+                UserResumeSkill,
+                UserResumeCertificate,
+                UserResumeInternship,
+                UserResumeActivity,
+                UserResumeVolunteerInvolvement,
+            ):
+                SoftDeletionQuerySet(model).filter(resume_id=rid).hard_delete()
+        super().delete(hard_delete=hard_delete)
+
 
 class UserResumeChild(BaseModel):
     resume = models.ForeignKey(UserResume,null=True,blank=True,on_delete=models.CASCADE)

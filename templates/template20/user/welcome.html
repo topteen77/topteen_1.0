@@ -1,9 +1,9 @@
-{% extends 'template20/logged-in-base.html' %}
+{% extends 'template20/user/student_base.html' %}
 
 {% block title_content %}Welcome | Top Teen{% endblock %}
 {% block description_content %}Welcome to TopTeen! Join a community of 10k+ students and discover your true passion.{% endblock %}
 
-{% block bodyclass %}{{ super() }} welcome-page{% endblock %}
+{% block student_bodyclass %}welcome-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -159,9 +159,14 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<section class="welcome-page position-relative pt-md-12 pt-8">
-  <div class="container">
+{# Use the standard student shell so sidebar + toggles work everywhere #}
+
+{% block student_section_class %}welcome-page position-relative pt-md-12 pt-8{% endblock %}
+{% block student_container_class %}container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5{% endblock %}
+{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}
+{% block student_main_col_class %}student-dash-main-col pt-md-10{% endblock %}
+
+{% block student_main %}
     <div class="welcome-container mx-auto">
       <!-- Back Button -->
       <div class="text-start mb-4 d-none">
@@ -225,8 +230,6 @@
 
    
     </div>
-  </div>
-</section>
 {% endblock %}
 
 {% block additionaljs %}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume</title>
+  {% if ai_google_font_url %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="{{ ai_google_font_url }}" rel="stylesheet">
+  {% endif %}
+  <style>
+    :root {
+      --accent: {{ pdf_accent_color|default('#19718c') }};
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f6f8;
+      color: #1a202c;
+    }
+    .ai-shell {
+      min-height: 100vh;
+      padding: 18px 20px 28px;
+    }
+    .ai-shell .gen-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 24px 28px 32px;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+      border-top: 4px solid var(--accent);
+    }
+    {{ ai_dynamic_css|safe }}
+    {% if ai_google_font_stack %}
+    .ai-shell .gen-wrap,
+    .ai-shell .gen-wrap * {
+      font-family: {{ ai_google_font_stack|safe }} !important;
+    }
+    {% endif %}
+  </style>
+</head>
+<body>
+  <div class="ai-shell rlayout--{{ pdf_layout_variant|default('v01') }}">
+    <div class="gen-wrap">
+      {{ generated_resume_html|safe }}
+    </div>
+  </div>
+</body>
+</html>

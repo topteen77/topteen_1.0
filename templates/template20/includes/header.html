@@ -90,71 +90,75 @@
           </a>
         </li>
         
-        {% if user.is_authenticated %}
+        {% set hdr_user = user %}
+        {% if (not hdr_user.is_authenticated) and request and request.user and request.user.is_authenticated %}
+          {% set hdr_user = request.user %}
+        {% endif %}
+        {% if hdr_user.is_authenticated %}
         <li class="menu-item single-link">
           {% include "notifications/includes/notification_bell.html" %}
         </li>
         <li class="menu-item dropdown">
-          <span class="dropdown-toggle menu-link float-end">
+          <span class="dropdown-toggle menu-link float-end" role="button" tabindex="0" aria-label="Account menu">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
           </span>
           <div class="dropdown-content login-content">
-            <h6>User Dashboard</h6>
-            <p class="text-gray fs-14">Welcome, {% if user.name and user.name != 'None' %}{{ user.name }}{% elif user.mobile %}{{ user.mobile }}{% elif user.first_name %}{{ user.first_name }}{% elif user.email %}{{ user.email|truncate(20) }}{% else %}User{% endif %}</p>
-            {% if user.user_type == 1 and user.get_display_student_id() %}
-            <p class="text-gray fs-12 mb-0">Student ID: <strong>{{ user.get_display_student_id() }}</strong></p>
+            <h6>{% if hdr_user.user_type == 1 %}Dashboard{% else %}User Dashboard{% endif %}</h6>
+            <p class="text-gray fs-14">Welcome, {% if hdr_user.name and hdr_user.name != 'None' %}{{ hdr_user.name }}{% elif hdr_user.mobile %}{{ hdr_user.mobile }}{% elif hdr_user.first_name %}{{ hdr_user.first_name }}{% elif hdr_user.email %}{{ hdr_user.email|truncate(20) }}{% else %}User{% endif %}</p>
+            {% if hdr_user.user_type == 1 and hdr_user.get_display_student_id() %}
+            <p class="text-gray fs-12 mb-0">Student ID: <strong>{{ hdr_user.get_display_student_id() }}</strong></p>
             {% endif %}
             <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
-              {% if user.is_superuser %}
+              {% if hdr_user.is_superuser %}
                 {# Superuser - Link to Admin Analytics Dashboard #}
                 <a href="{{ url('user_analytics:admin_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
-              {% elif user.is_staff %}
+              {% elif hdr_user.is_staff %}
                 {# Staff - Link to Business Analytics Dashboard #}
                 <a href="{{ url('user_analytics:business_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
-              {% elif user.user_type == 5 %}
+              {% elif hdr_user.user_type == 5 %}
                 {# Marketing Group Admin #}
                 <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
-              {% elif user.user_type == 3 %}
+              {% elif hdr_user.user_type == 3 %}
                 {# Institute Group Admin #}
                 <a href="{{ url('institute:institutegroupdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
-              {% elif user.user_type == 2 %}
+              {% elif hdr_user.user_type == 2 %}
                 {# Institute #}
-                {% set institute_obj = user.institute_created.last() %}
+                {% set institute_obj = hdr_user.institute_created.last() %}
                 {% if institute_obj and institute_obj.slug %}
-                  <a href="{{ url('institute:institutedashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                  <a href="{{ url('institute:institute_masterdashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                 {% else %}
                   <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                 {% endif %}
-              {% elif user.user_type == 4 %}
+              {% elif hdr_user.user_type == 4 %}
                 {# Counselor #}
-                {% set counselor_list = user.counselor.all() %}
+                {% set counselor_list = hdr_user.counselor.all() %}
                 {% if counselor_list|length > 0 %}
                   {% set counselor_obj = counselor_list[0] %}
                   <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                 {% else %}
                   <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
                 {% endif %}
-              {% elif user.user_type == 6 %}
+              {% elif hdr_user.user_type == 6 %}
                 {# Parent #}
                 <a href="{{ url('parents_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
-              {% elif user.user_type == 1 %}
+              {% elif hdr_user.user_type == 1 %}
                 {# Student - 12th class students should link to user dashboard #}
-                {% set student_management = user.student_management.all() %}
+                {% set student_management = hdr_user.student_management.all() %}
                 {% if student_management|length > 0 %}
                   {% set sm = student_management[0] %}
                   {% if sm.class_and_section %}
                     {% set class_name = sm.class_and_section.class_and_section %}
                     {% if class_name and (class_name[:2].strip() == "11" or class_name[:2].strip() == "12") %}
                       {# 12th class student - link to user dashboard #}
-                      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
                     {% else %}
-                      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
                     {% endif %}
                   {% else %}
-                    <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                    <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
                   {% endif %}
                 {% else %}
-                  <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+                  <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
                 {% endif %}
               {% else %}
                 {# Default - Student or other #}
@@ -166,7 +170,7 @@
         </li>
         {% else %}
         <li class="menu-item dropdown">
-          <span class="dropdown-toggle menu-link float-end">
+          <span class="dropdown-toggle menu-link float-end" role="button" tabindex="0" aria-label="Account menu">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
           </span>
           <div class="dropdown-content login-content">
