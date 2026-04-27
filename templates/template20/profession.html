@@ -12,54 +12,107 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
 
 {% block additionalhead %}
 <style>
+  .profession-page {
+    background: linear-gradient(180deg, #f6f8ff 0%, #ffffff 32%);
+  }
+
+  .profession-hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profession-hero::after {
+    content: "";
+    position: absolute;
+    right: -80px;
+    top: -30px;
+    width: 260px;
+    height: 260px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(80, 70, 229, 0.12) 0%, rgba(80, 70, 229, 0) 70%);
+    pointer-events: none;
+  }
+
+  .profession-section {
+    padding-top: 0.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .profession-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .profession-count {
+    font-size: 0.9rem;
+    color: #5f6470;
+    background: #f3f5ff;
+    border: 1px solid #e4e7fb;
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-weight: 600;
+  }
+
   .profession-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
   }
 
   .profession-card {
-    background: white;
+    background: #fff;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #eceff8;
+    box-shadow: 0 8px 18px rgba(20, 22, 33, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     display: flex;
     flex-direction: column;
+    height: 100%;
   }
 
   .profession-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(20, 22, 33, 0.12);
+    border-color: #dadff7;
   }
 
   .profession-image-wrapper {
     width: 100%;
-    height: 200px;
+    height: 188px;
     position: relative;
     overflow: hidden;
+    background: #f2f4fb;
   }
 
   .profession-image-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.35s ease;
+  }
+
+  .profession-card:hover .profession-image-wrapper img {
+    transform: scale(1.04);
   }
 
   .profession-content {
-    padding: 1.25rem;
+    padding: 1rem 1rem 1.15rem;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
   }
 
   .profession-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: #333;
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
+    color: #25273d;
+    margin-bottom: 0.65rem;
+    line-height: 1.35;
   }
 
   .profession-title a {
@@ -74,7 +127,7 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
 
   .profession-summary {
     font-size: 0.875rem;
-    color: #666;
+    color: #595f6e;
     line-height: 1.6;
     margin-bottom: 0;
     flex-grow: 1;
@@ -99,8 +152,15 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
     color: #362f78;
   }
 
+  .empty-professions {
+    border: 1px dashed #d9def3;
+    background: #f9faff;
+    border-radius: 14px;
+    padding: 2rem 1rem;
+  }
+
   .pagination-wrapper {
-    margin-top: 3rem;
+    margin-top: 2.25rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -116,11 +176,12 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
 
   .pagination a,
   .pagination span.current {
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.95rem;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    font-size: 0.9rem;
   }
 
   .pagination a {
@@ -142,6 +203,18 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
   }
 
   @media (max-width: 768px) {
+    .profession-hero::after {
+      width: 190px;
+      height: 190px;
+      right: -70px;
+    }
+
+    .profession-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 0.15rem;
+    }
+
     .profession-grid {
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap: 1rem;
@@ -168,6 +241,10 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
     .profession-grid {
       grid-template-columns: 1fr;
     }
+
+    .profession-section {
+      padding-bottom: 2.5rem;
+    }
   }
 </style>
 {% endblock %}
@@ -175,7 +252,7 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
 {% block content %}
 
 <!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner profession-hero pt-md-18 pt-14  profession-page">
   <div class="container">
     <div class="row">
       <!--breadcrumb-->
@@ -188,7 +265,7 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
         <span class="highlighter">
           <img src="{{ static('images_new/icons/lens-icon.svg') }}" alt="icon" /> {{ career.name }}
         </span>
-        <h1 class="heading-title mt-md-9 mt-8 mb-3">
+        <h1 class="heading-title mt-4 mb-0">
           Leading Professions
         </h1>
         <p class="sub-heading mb-4">
@@ -200,9 +277,21 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
 </section>
 
 <!-- Professions Grid Section -->
-<section class="py-10">
+<section class="profession-page profession-section">
   <div class="container">
     {% if professions %}
+    <div class="profession-topbar">
+      <p class="sub-heading mb-0">
+        Browse curated professions and find the direction that fits your interests.
+      </p>
+      <span class="profession-count">
+        {% if professions.paginator %}
+        {{ professions.paginator.count }} total
+        {% else %}
+        {{ professions|length }} total
+        {% endif %}
+      </span>
+    </div>
     <div class="profession-grid">
       {% for profession in professions %}
       <div class="profession-card">
@@ -222,7 +311,7 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
           </h3>
           {% if profession.summary %}
           <div class="profession-summary">
-            <p class="profSummarypage text-[12px] text-[#4f4f4f] regularFont" style="font-size: 0.9rem; color: #666; line-height: 1.5;">
+            <p class="profSummarypage regularFont mb-0">
               {{ profession.summary }}
             </p>
           </div>
@@ -254,7 +343,7 @@ Explore leading professions in {{ career.name }}. Discover various career paths 
     {% endif %}
 
     {% else %}
-    <div class="text-center py-5">
+    <div class="text-center py-5 empty-professions">
       <p class="text-muted">No professions available for this career.</p>
     </div>
     {% endif %}

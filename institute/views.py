@@ -3730,8 +3730,24 @@ class InstituteLoginView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['html_head'] = self.html_head()
-        from users.demo_accounts import get_demo_institute_login_context
-        context.update(get_demo_institute_login_context(self.request))
+        # Demo accounts toggle (controlled by existing Core Configuration keys)
+        try:
+            from core.models import Configuration
+            from django.conf import settings
+            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
+            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
+            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+        except Exception:
+            show_demo = False
+
+        if show_demo:
+            from users.demo_accounts import get_demo_institute_login_context
+            context.update(get_demo_institute_login_context(self.request))
+        else:
+            context["demo_accounts"] = []
+            context["demo_login_url"] = ""
+            context["demo_csrf_token"] = ""
         return context
 
 
@@ -3768,12 +3784,28 @@ class MarketingLoginView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['html_head'] = self.html_head()
-        from users.demo_accounts import get_demo_login_context
-        from core import choices
-        context.update(get_demo_login_context(
-            self.request,
-            user_types=[choices.UserType.MARKETINGGROUPADMIN],
-        ))
+        # Demo accounts toggle (controlled by existing Core Configuration keys)
+        try:
+            from core.models import Configuration
+            from django.conf import settings
+            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
+            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
+            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+        except Exception:
+            show_demo = False
+
+        if show_demo:
+            from users.demo_accounts import get_demo_login_context
+            from core import choices
+            context.update(get_demo_login_context(
+                self.request,
+                user_types=[choices.UserType.MARKETINGGROUPADMIN],
+            ))
+        else:
+            context["demo_accounts"] = []
+            context["demo_login_url"] = ""
+            context["demo_csrf_token"] = ""
         return context
 
 

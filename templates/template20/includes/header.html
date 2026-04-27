@@ -259,13 +259,19 @@
 
     function closeMenu() {
       if (burger) burger.classList.remove('is-active');
-      if (menu) menu.classList.remove('is-open');
+      if (menu) {
+        menu.classList.remove('is-active');
+        menu.classList.remove('is-open');
+      }
       document.body.classList.remove('no-scroll');
     }
 
     function openMenu() {
       if (burger) burger.classList.add('is-active');
-      if (menu) menu.classList.add('is-open');
+      if (menu) {
+        menu.classList.add('is-active');
+        menu.classList.add('is-open');
+      }
       document.body.classList.add('no-scroll');
     }
 
