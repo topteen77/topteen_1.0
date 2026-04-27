@@ -163,16 +163,13 @@
   }
 
   /* Fixed-width sidebar + fluid main (all breakpoints); replaces col-lg-3 / col-lg-9 */
+  :root {
+    --std-sidebar-width: 320px;
+  }
+
   #studentDashboardShell.student-dash-shell {
     flex-wrap: nowrap;
     align-items: flex-start;
-    --std-sidebar-width: 280px;
-  }
-
-  @media (max-width: 575.98px) {
-    #studentDashboardShell.student-dash-shell {
-      --std-sidebar-width: 228px;
-    }
   }
 
   #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
@@ -401,6 +398,8 @@
     flex-direction: column;
     max-height: 100vh;
     height: 100%;
+    width: var(--std-sidebar-width);
+    max-width: 92vw;
   }
 
   #mobileProfileDrawer .offcanvas-body {
