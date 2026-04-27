@@ -4216,10 +4216,26 @@ class CounselorLoginView(TemplateView):
         except Exception:
             # Fallback if build_html_head is not available
             context['html_head'] = None
-        from users.demo_accounts import get_demo_login_context
-        from core import choices
-        context.update(get_demo_login_context(
-            self.request,
-            user_types=[choices.UserType.COUNSELOR],
-        ))
+        # Demo accounts toggle (controlled by existing Core Configuration keys)
+        try:
+            from core.models import Configuration
+            from django.conf import settings
+            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
+            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
+            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
+            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
+        except Exception:
+            show_demo = False
+
+        if show_demo:
+            from users.demo_accounts import get_demo_login_context
+            from core import choices
+            context.update(get_demo_login_context(
+                self.request,
+                user_types=[choices.UserType.COUNSELOR],
+            ))
+        else:
+            context["demo_accounts"] = []
+            context["demo_login_url"] = ""
+            context["demo_csrf_token"] = ""
         return context
