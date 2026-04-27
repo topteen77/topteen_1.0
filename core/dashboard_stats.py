@@ -140,13 +140,20 @@ def _get_streak_days(user):
     except Exception:
         pass
 
-    if use_events:
-        qs = UserEvent.objects.filter(user=user)
-        if event_types_filter:
-            qs = qs.filter(event_type__in=event_types_filter)
-        dates = list(qs.dates('created', 'day', order='DESC')[:500])
-    else:
-        dates = list(UserActivity.objects.filter(user=user).dates('created', 'day', order='DESC')[:500])
+    def _fetch_dates_from_source(use_events_flag: bool):
+        if use_events_flag:
+            qs = UserEvent.objects.filter(user=user)
+            if event_types_filter:
+                qs = qs.filter(event_type__in=event_types_filter)
+            return list(qs.dates('created', 'day', order='DESC')[:500])
+        return list(UserActivity.objects.filter(user=user).dates('created', 'day', order='DESC')[:500])
+
+    # Primary configured source
+    dates = _fetch_dates_from_source(use_events)
+
+    # Fallback: if configured source has no rows, try the other one (helps demos where only one table is populated)
+    if not dates:
+        dates = _fetch_dates_from_source(not use_events)
 
     if not dates:
         return 0
@@ -155,7 +162,8 @@ def _get_streak_days(user):
     if first_date != today and first_date != today - timedelta(days=1):
         return 0
     streak = 0
-    expect = today
+    # If latest activity is yesterday, streak should start at yesterday (not today).
+    expect = first_date
     for d in dates:
         if d != expect:
             break

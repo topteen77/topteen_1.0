@@ -430,6 +430,23 @@ class ConfigurationAdmin(admin.ModelAdmin):
 
     def dashboard_statistics_view(self, request):
         """Landing page for Dashboard Statistics (gamification) section with links to Level Bands, Point Rules, Trophies, Streak Config."""
+        from users.models import User
+        preview_user = None
+        preview_stats = None
+        try:
+            from core.dashboard_stats import get_student_dashboard_stats
+
+            user_id = request.GET.get("user_id")
+            if user_id:
+                preview_user = User.objects.filter(id=int(user_id)).first()
+            if not preview_user:
+                preview_user = User.objects.order_by("-id").first()
+            if preview_user:
+                preview_stats = get_student_dashboard_stats(preview_user)
+        except Exception:
+            preview_user = None
+            preview_stats = None
+
         context = {
             **self.admin_site.each_context(request),
             'title': 'Dashboard Statistics (Student dashboard)',
@@ -438,6 +455,8 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'point_rules_url': reverse('admin:core_dashboardpointrule_changelist'),
             'trophy_defs_url': reverse('admin:core_dashboardtrophydefinition_changelist'),
             'streak_config_url': reverse('admin:core_dashboardstreakconfig_changelist'),
+            'preview_user': preview_user,
+            'preview_stats': preview_stats,
         }
         return render(request, 'admin/core/configuration/dashboard_statistics.html', context)
 

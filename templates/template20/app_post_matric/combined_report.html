@@ -882,6 +882,45 @@
         </div>
       </div>
 
+      <div class="mt-4">
+        <div class="timeline-head">
+          <h3 class="section-title mb-0">Assessment Timeline</h3>
+        </div>
+        {% if completed_tests %}
+        <div class="test-list timeline-grid">
+          {% for test in completed_tests %}
+          <div class="test-card bg-white">
+            <div class="test-card-header">
+
+              <div class="d-flex align-items-center justify-content-between w-100">
+              <div class="test-title">{{ test.title }}</div>
+              <div class="status-pill"><i class="fas fa-check-circle"></i> Completed</div>
+
+              </div>
+              
+          
+            </div>
+
+            <div class="test-date">
+              <i class="fas fa-calendar me-1"></i>
+              {% if test.completed_at_display %}{{ test.completed_at_display }}{% elif test.completed_at %}{{ test.completed_at }}{% else %}Date unavailable{% endif %}
+            </div>
+    
+            <!-- <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div> -->
+            <div class="timeline-card-actions">
+              <a href="/api/web/results/?test_id={{ test.test_id }}{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}" class="mini-btn">
+                <i class="fas fa-eye"></i>
+                View Report
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No tests completed yet.</p>
+        {% endif %}
+      </div>
+
       <div class="chart-grid mt-4">
         <div class="chart-card">
           <div class="chart-title">Assessment Completion Overview</div>
@@ -944,45 +983,6 @@
             <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
           </div>
         </div>
-      </div>
-
-      <div class="mt-4">
-        <div class="timeline-head">
-          <h3 class="section-title mb-0">Assessment Timeline</h3>
-          <button type="button" class="mini-btn pdf" id="fullReportPdfBtn">
-            <i class="fas fa-file-pdf"></i>
-            Full Report PDF
-          </button>
-        </div>
-        {% if completed_tests %}
-        <div class="test-list timeline-grid">
-          {% for test in completed_tests %}
-          <div class="test-card bg-white">
-            <div class="test-card-header">
-              <div class="test-title">{{ test.title }}</div>
-              <div class="test-date">
-                <i class="fas fa-calendar me-1"></i>
-                {% if test.completed_at_display %}{{ test.completed_at_display }}{% elif test.completed_at %}{{ test.completed_at }}{% else %}Date unavailable{% endif %}
-              </div>
-            </div>
-            <div class="status-pill"><i class="fas fa-check-circle"></i> Completed</div>
-            <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div>
-            <div class="timeline-card-actions">
-              <a href="{{ url('post_matric:test_results', id=test.test_id) }}{% if viewing_as_admin %}?user_id={{ user.id }}{% endif %}" class="mini-btn">
-                <i class="fas fa-eye"></i>
-                View Report
-              </a>
-              <a href="{{ url('post_matric:download_test_results_pdf', id=test.test_id) }}{% if viewing_as_admin %}?user_id={{ user.id }}{% endif %}" class="mini-btn pdf">
-                <i class="fas fa-download"></i>
-                PDF
-              </a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p class="text-muted mb-0">No tests completed yet.</p>
-        {% endif %}
       </div>
 
       {% if riasec_careers_to_opt or careers_to_opt or motivation_careers_to_opt %}
@@ -1283,10 +1283,10 @@
       {% endif %}
 
       <div class="actions-section">
-        <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
+        <!-- <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
           <i class="fas fa-arrow-left"></i>
           Back to Results
-        </a>
+        </a> -->
         <a href="{{ url('post_matric:tests') }}" class="btn-primary">
           <i class="fas fa-list"></i>
           View All Tests
@@ -1527,12 +1527,6 @@
     const chartCountEl = document.getElementById('jsonChartsCount');
     if (chartCountEl) chartCountEl.textContent = String(chartInstances.length);
 
-    const fullReportPdfBtn = document.getElementById('fullReportPdfBtn');
-    if (fullReportPdfBtn) {
-      fullReportPdfBtn.addEventListener('click', function () {
-        window.print();
-      });
-    }
   })();
 </script>
 {% endblock %}

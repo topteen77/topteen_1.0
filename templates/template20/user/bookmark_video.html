@@ -298,12 +298,8 @@
   // Shortlist/Bookmark functionality
   function shortlist(videoId) {
     $.ajax({
-      url: "/api/v1/user/shortlistcareer",
-      type: 'POST',
-      data: {
-        'careerslug': videoId,
-        'csrfmiddlewaretoken': '{{ csrf_token }}'
-      },
+      url: "{{ url('careers:shortlist_video') }}?id=" + encodeURIComponent(videoId),
+      type: 'GET',
       success: function (data) {
         const bookmarkBtn = document.getElementById('video_' + videoId);
         if (bookmarkBtn) {
@@ -321,7 +317,7 @@
       },
       error: function(data) {
         try {
-          fireAlert(data.responseJSON?.message || "Error updating bookmark", "error");
+          fireAlert(data.responseJSON?.message || "Error updating bookmarks", "error");
         } catch(e) {
           fireAlert("Internal Server Error", "error");
         }

@@ -2661,6 +2661,20 @@ def Test_details(request, id):
 
 @login_required
 def Test_results(request, id):
+    """
+    Legacy endpoint.
+
+    The product's current UX routes "View Result" through `Results`:
+    `/api/web/results/?test_id=<test_id>[&user_id=<student_id>]`
+    so this view now redirects to keep behavior consistent.
+    """
+    from urllib.parse import urlencode
+    params = {"test_id": id}
+    user_id = request.GET.get("user_id")
+    if user_id:
+        params["user_id"] = user_id
+    return redirect(f"{reverse('post_matric:results')}?{urlencode(params)}")
+
     try:
         from institute.models import StudentManagement
         from django.shortcuts import get_object_or_404

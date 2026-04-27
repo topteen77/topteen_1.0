@@ -17,6 +17,19 @@ from app.templatetags.myfilters_extras import my_url
 from django.utils.timezone import template_localtime
 from core.seo_schema import get_breadcrumb_schema, get_webpage_schema, get_faq_schema
 
+def get_item(dictionary, key):
+    try:
+        return dictionary.get(key)
+    except Exception:
+        return None
+
+
+def starts_with_bullet(value):
+    try:
+        return str(value).startswith('•')
+    except Exception:
+        return False
+
 def img_tag(*args,**kwargs):
     src = kwargs['src']
     # print("src",type(src))
@@ -317,6 +330,8 @@ def environment(**options):
     env = Environment(**options)
     # Register escapejs first (required by course_learning.html and other Jinja templates)
     env.filters['escapejs'] = _escapejs
+    env.filters['get_item'] = get_item
+    env.filters['starts_with_bullet'] = starts_with_bullet
     env.filters['tojson'] = tojson_filter
     env.filters['tojson_for_script'] = tojson_for_script
     env.filters['tojson_pretty'] = tojson_pretty

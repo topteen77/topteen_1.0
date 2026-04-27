@@ -3171,6 +3171,28 @@ class CreateNote(TemplateView):
     def get(self, request,id=None,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request, id,*args, **kwargs))
 
+    def post(self, request, id=None, *args, **kwargs):
+        """
+        Save note and redirect to My Notepad.
+        """
+        obj_id = (request.POST.get("obj_id") or "").strip()
+        title = (request.POST.get("title") or "").strip()
+        content = (request.POST.get("content") or "").strip()
+
+        # Prefer POST obj_id, then URL id, else create a new draft note
+        note = None
+        if obj_id:
+            note = get_object_or_404(UserNote, id=obj_id, user=request.user)
+        elif id:
+            note = get_object_or_404(UserNote, id=id, user=request.user)
+        else:
+            note = UserNote.objects.create(user=request.user)
+
+        note.title = title
+        note.content = content
+        note.save()
+        return redirect(reverse_lazy("users:mynotepad"))
+
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserHobbies(TemplateView):
     template_name="template20/user/my_hobbies.html"
