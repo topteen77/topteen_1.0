@@ -681,8 +681,17 @@ def apply_student_filters(students_data, request, results_data=None):
         queryset = students_data
         
         # Apply class filter
+        # Support both:
+        # - numeric class_and_section_id (legacy counselor filter UI)
+        # - class_and_section string label (institute v2 students page)
         if class_filter:
-            queryset = queryset.filter(class_and_section__class_and_section=class_filter)
+            if class_filter.isdigit():
+                try:
+                    queryset = queryset.filter(class_and_section_id=int(class_filter))
+                except Exception:
+                    queryset = queryset.filter(class_and_section__class_and_section=class_filter)
+            else:
+                queryset = queryset.filter(class_and_section__class_and_section=class_filter)
         
         # Apply name filter
         if name_filter:
@@ -719,12 +728,26 @@ def apply_student_filters(students_data, request, results_data=None):
         
         # Apply class filter
         if class_filter:
+            _cid = None
+            if class_filter.isdigit():
+                try:
+                    _cid = int(class_filter)
+                except Exception:
+                    _cid = None
             filtered_data = [
-                s for s in filtered_data
-                if hasattr(s, 'get') and s.get('student') and 
-                hasattr(s['student'], 'class_and_section') and
-                s['student'].class_and_section and
-                str(s['student'].class_and_section.class_and_section) == class_filter
+                s
+                for s in filtered_data
+                if (
+                    hasattr(s, "get")
+                    and s.get("student")
+                    and hasattr(s["student"], "class_and_section")
+                    and s["student"].class_and_section
+                    and (
+                        (getattr(s["student"], "class_and_section_id", None) == _cid)
+                        if _cid is not None
+                        else (str(s["student"].class_and_section.class_and_section) == class_filter)
+                    )
+                )
             ]
         
         # Apply name filter
@@ -2293,13 +2316,22 @@ def CounselorDashboardSection(request, coun_id: int, section: str):
 def _get_counselor_student_table_ajax(request, counselor, coun_id):
     """Optimized AJAX handler for student table with pagination."""
     from django.core.paginator import Paginator
+    from core import choices
     
     # Get counselor's associated institute
     counselor_institute = counselor.counselor_admin
     
-    # Get students with optimized query - ONLY assigned students (matching production code)
-    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
-    students_to_display = get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+    # v2 uses a shared, institute-style table layout (no follow-up columns).
+    # Keep v1 response unchanged for safety.
+    try:
+        template_version = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
+    except Exception:
+        template_version = "v1"
+
+    # Get students with optimized query - ONLY assigned students
+    students_to_display = get_students_by_role(
+        request.user, counselor=counselor, institute=counselor_institute
+    )
     
     # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
     assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
@@ -2310,54 +2342,35 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
         student_id__in=assigned_student_ids
     ).select_related('student', 'student__student')
     
-    # Build follow_up_data efficiently
-    follow_up_data = {}
-    for follow_up in follow_ups:
-        student_id = follow_up.student.id
-        if student_id not in follow_up_data:
-            follow_up_data[student_id] = {'follow_ups': []}
-        follow_up_data[student_id]['follow_ups'].append({
-            'is_followed_up': follow_up.is_followed_up,
-            'message': follow_up.message,
-            'last_follow_up_date': follow_up.last_follow_up_date,
-            'next_follow_up_date': follow_up.next_follow_up_date,
-        })
-    
-    # Build merged_data only for current page
-    merged_data = []
-    for student in students_to_display:
-        merged_data.append({
-            'student': student,
-            'follow_ups': follow_up_data.get(student.id, {'follow_ups': []})['follow_ups'],
-        })
-    
-    # Sort only once
-    merged_data = sorted(merged_data, key=lambda x: x['student'].student.name.lower())
-    
-    # Get results_data only for filtered students (optimize this)
-    # Limit to first 100 students for results_data to avoid N+1
-    students_for_results = students_to_display[:100] if hasattr(students_to_display, '__getitem__') else list(students_to_display)[:100]
-    results_data = get_results_data_for_students(students_for_results)
-    
-    # Apply filters
-    merged_data = apply_student_filters(merged_data, request, results_data)
-    
+    # Apply filters on queryset (shared with institute filtering behavior)
+    students_filtered = apply_student_filters(students_to_display, request)
+
     # Pagination
-    per_page = request.GET.get('per_page', '10')
-    if per_page == 'all':
-        students_page = merged_data
+    per_page = request.GET.get("per_page", "10")
+    if per_page == "all":
+        students_page = students_filtered
         paginator = None
     else:
         try:
             per_page_int = int(per_page)
-            if per_page_int not in [10, 100]:
+            if per_page_int not in [10, 25, 50, 100]:
                 per_page_int = 10
         except (ValueError, TypeError):
             per_page_int = 10
-        
-        paginator = Paginator(merged_data, per_page_int)
-        page_number = request.GET.get('page', 1)
+        paginator = Paginator(students_filtered, per_page_int)
+        page_number = request.GET.get("page", 1)
         students_page = paginator.get_page(page_number)
+
+    # Results data for visible rows only (so report badges resolve)
+    try:
+        students_for_results = (
+            list(students_page)
+            if hasattr(students_page, "__iter__")
+            else []
+        )
+    except Exception:
+        students_for_results = []
+    results_data = get_results_data_for_students(students_for_results)
     
     # Get class counts and sections for filters
     class_and_sections = get_class_and_sections_by_role(request.user, students_to_display)
@@ -2374,10 +2387,16 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
         'class_counts': class_counts,
         'unique_streams': unique_streams,
         'coun_id': coun_id,
-        'follow_up_data': follow_up_data,
-        'merged_data': merged_data,
+        'follow_up_data': {},
+        'merged_data': [],
     }
     
+    if template_version == "v2":
+        return render(
+            request,
+            "template_v2/counselor/pages/counselor_students_table.html",
+            context,
+        )
     return render(request, 'template20/counselor/counselor_dashboard_table.html', context)
 
 

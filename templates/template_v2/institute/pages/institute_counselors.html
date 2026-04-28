@@ -1,0 +1,146 @@
+{# Institute v2 Counselors page (partial, injected via ?ttv2_partial=1) #}
+<div id="sec-institute-counselors" class="ttv2-counselors-page">
+  {# Header #}
+  <div class="ttv2-counselors-head">
+    <div>
+      <div class="ttv2-sp-title">Counselor performance</div>
+      <div class="ttv2-sp-sub">
+        Metrics below are a snapshot; you can add follow-ups, track sessions, and review weekly trends.
+      </div>
+    </div>
+  </div>
+
+  {# KPI strip (dummy for now) #}
+  {% set kpis = [
+    ('Session score', '4.46', 'Avg daily follow-up sessions (90 days)'),
+    ('Session coverage', '117', 'Sessions logged (90 days)'),
+    ('Opt-in rate', '88%', 'Students opted-in for counselor slots'),
+    ('Follow-up rate', '80%', 'Students with 1+ follow-up logged'),
+    ('Assigned seats', '99', 'Capacity in active slots (quarterly)')
+  ] %}
+  <div class="ttv2-counselor-kpis">
+    {% for title, val, sub in kpis %}
+      <div class="ttv2-counselor-kpi">
+        <div class="ttv2-counselor-kpi-top">
+          <div class="ttv2-counselor-kpi-title">{{ title }}</div>
+          <div class="ttv2-counselor-kpi-ico"><i class="bx bx-info-circle" aria-hidden="true"></i></div>
+        </div>
+        <div class="ttv2-counselor-kpi-val">{{ val }}</div>
+        <div class="ttv2-counselor-kpi-sub">{{ sub }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# Session plan (dummy) #}
+  <div class="ttv2-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="card-title mb-0">Session plan (next week)</div>
+      <div class="ttv2-pill-select">
+        <span>Campus</span>
+        <span class="ttv2-pill-select-val">Demo Institute</span>
+        <i class="bx bx-chevron-down" aria-hidden="true"></i>
+      </div>
+    </div>
+    <div class="ttv2-counselor-table mt-2">
+      <div class="ttv2-counselor-table-row ttv2-counselor-table-head">
+        <div>Day</div><div>Time</div><div>Counselor</div><div>Type</div><div>Batch</div><div>Room</div>
+      </div>
+      {% set plan = [
+        ('Mon','08:00–10:00','Dr. Priya Sordar','Follow-ups','Batch 9 (all schools)','Counselor hall'),
+        ('Tue','11:00–12:00','Dr. Priya Sordar','Group workshop','Do right skills (goal setting)','Seminar hall'),
+        ('Wed','10:00–12:00','Dr. Priya Sordar','Career talk','Stream exploration (9–10)','Hall A'),
+        ('Thu','11:00–13:00','Dr. Priya Sordar','1:1 slots','Open slots (pre-counsel)','Counselor room'),
+        ('Fri','09:00–11:00','Dr. Priya Sordar','Parent session','Quarterly progress (invite)','Meeting room B'),
+      ] %}
+      {% for d,t,c,ty,b,r in plan %}
+        <div class="ttv2-counselor-table-row">
+          <div>{{ d }}</div><div>{{ t }}</div><div class="min-w-0">{{ c }}</div>
+          <div><span class="badge bg-light text-dark">{{ ty }}</span></div>
+          <div class="min-w-0">{{ b }}</div><div>{{ r }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# Counselor cards (real data when available; else dummy) #}
+  {% set cards = [] %}
+  {% if counselor_data_list is defined and counselor_data_list %}
+    {% set cards = counselor_data_list %}
+  {% else %}
+    {% set cards = [
+      {'name':'Dr. Priya Sordar','email':'priya@example.com','sessions':32,'students':48,'opt_in':'88%','followup':'80%','avg_risk':'99'},
+      {'name':'Arvind Srikham','email':'arvind@example.com','sessions':20,'students':36,'opt_in':'81%','followup':'73%','avg_risk':'78'},
+      {'name':'Sneha Mahotra','email':'sneha@example.com','sessions':28,'students':44,'opt_in':'86%','followup':'82%','avg_risk':'65'},
+    ] %}
+  {% endif %}
+
+  <div class="ttv2-counselor-cards-grid">
+    {% for c in cards %}
+      {% set nm = c.name|default(c.get('counselor_name') if c is mapping else '')|default('Counselor') %}
+      {% set em = c.email|default(c.get('email') if c is mapping else '')|default('') %}
+      {% set sessions = c.sessions|default(c.get('sessions') if c is mapping else 0)|default(0) %}
+      {% set students = c.students|default(c.get('students') if c is mapping else 0)|default(0) %}
+      {% set opt_in = c.opt_in|default(c.get('opt_in') if c is mapping else '—')|default('—') %}
+      {% set followup = c.followup|default(c.get('followup') if c is mapping else '—')|default('—') %}
+      <div class="ttv2-counselor-card">
+        <div class="ttv2-counselor-card-top">
+          <div class="ttv2-counselor-avatar">{{ (nm[0] if nm else 'C')|upper }}</div>
+          <div class="min-w-0">
+            <div class="ttv2-counselor-name" title="{{ nm }}">{{ nm }}</div>
+            <div class="ttv2-counselor-meta">{{ em }}</div>
+          </div>
+          <div class="ttv2-counselor-cta">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Details</button>
+          </div>
+        </div>
+        <div class="ttv2-counselor-metrics">
+          <div class="m"><div class="k">Sessions</div><div class="v">{{ sessions }}</div></div>
+          <div class="m"><div class="k">Students</div><div class="v">{{ students }}</div></div>
+          <div class="m"><div class="k">Opt-in</div><div class="v">{{ opt_in }}</div></div>
+          <div class="m"><div class="k">Follow-up</div><div class="v">{{ followup }}</div></div>
+        </div>
+        <div class="ttv2-counselor-mini">
+          <div class="lbl">Follow-up coverage</div>
+          <div class="bar"><span style="width:72%"></span></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# Dummy charts/heatmap/leaderboard sections (placeholders) #}
+  <div class="row g-3">
+    <div class="col-12 col-xl-6">
+      <div class="ttv2-card">
+        <div class="card-title">Volume vs satisfaction index</div>
+        <div class="ttv2-dummy-chart" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="ttv2-card">
+        <div class="card-title">Session volume trend</div>
+        <div class="ttv2-dummy-chart ttv2-dummy-chart--line" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ttv2-card">
+    <div class="card-title">Weekly activity heatmap</div>
+    <div class="ttv2-dummy-heat" aria-hidden="true"></div>
+  </div>
+
+  <div class="ttv2-card">
+    <div class="card-title">Full leaderboard</div>
+    <div class="ttv2-dummy-table">
+      <div class="ttv2-dummy-table-row ttv2-dummy-table-head">
+        <div>Counselor</div><div>Impact</div><div>Sessions</div><div>Opt-in</div><div>Follow-up</div><div>Avg risk</div>
+      </div>
+      {% for c in cards[:6] %}
+        {% set nm = c.name|default(c.get('counselor_name') if c is mapping else '')|default('Counselor') %}
+        <div class="ttv2-dummy-table-row">
+          <div class="min-w-0">{{ nm }}</div><div>—</div><div>{{ c.sessions|default(0) }}</div><div>{{ c.opt_in|default('—') }}</div><div>{{ c.followup|default('—') }}</div><div>{{ c.avg_risk|default('—') }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+

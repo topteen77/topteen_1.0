@@ -1,0 +1,124 @@
+{# AJAX fragment: student roster as cards. Expects `students` Page + `results_data` dict. #}
+<div id="students-table-container">
+  <div class="ttv2-student-cards-grid">
+    {% if students %}
+      {% for sm in students %}
+        {% set u = sm.student %}
+        {% set cas = sm.class_and_section %}
+        {% set r = (results_data.get(u.id) if (results_data and u) else none) %}
+        {% set td = (r.test_details if (r and r.test_details) else {}) %}
+        {% set has4 = (td.get('test4') is not none) %}
+        {% set track = (r.track if (r and r.track) else '') %}
+        {% set match = (r.match_pct if (r and r.match_pct) else '') %}
+        {% set risk = (r.risk_score if (r and r.risk_score) else '') %}
+        {% set mi = (r.mi_attempted if (r and r.mi_attempted) else false) %}
+        {% set eq = (r.eq_attempted if (r and r.eq_attempted) else false) %}
+        {% set abroad = (r.abroad_exploring if (r and r.abroad_exploring) else false) %}
+      <div class="ttv2-student-card"
+           role="button"
+           tabindex="0"
+           data-ttv2-student-id="{{ u.id if u else '' }}"
+           data-ttv2-student-name="{{ u.name if (u and u.name) else '' }}"
+           data-ttv2-report-url="{{ r.test_link if (r and r.test_status == 'completed' and r.test_link) else '' }}">
+          <div class="ttv2-student-card-head">
+            <div class="ttv2-student-avatar">{{ (u.name[0] if (u and u.name) else 'S')|upper }}</div>
+            <div class="min-w-0">
+              <div class="ttv2-student-name">{{ u.name if (u and u.name) else '-' }}</div>
+              <div class="ttv2-student-meta">
+                {{ cas.class_and_section if (cas and cas.class_and_section) else '-' }}
+                {% if cas and cas.stream %} · {{ cas.stream }}{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="ttv2-student-chips">
+            <span class="ttv2-chip {% if track %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
+              {{ track if track else 'Track' }}
+            </span>
+            <span class="ttv2-chip {% if abroad %}ttv2-chip--blue{% else %}ttv2-chip--disabled{% endif %}">
+              Abroad exploring
+            </span>
+            <span class="ttv2-chip {% if match %}ttv2-chip--purple{% else %}ttv2-chip--disabled{% endif %}">
+              Match {{ match if match else '—' }}{% if match %}%{% endif %}
+            </span>
+            <span class="ttv2-chip {% if risk %}ttv2-chip--risk{% else %}ttv2-chip--disabled{% endif %}">
+              Risk {{ risk if risk else '—' }}
+            </span>
+            <span class="ttv2-chip {% if mi %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">MI</span>
+            <span class="ttv2-chip {% if eq %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">EQ</span>
+          </div>
+
+          <div class="ttv2-student-hr" aria-hidden="true"></div>
+
+          <div class="ttv2-student-bars">
+            {% set items = [
+              ('Test 1', td.get('test1')),
+              ('Test 2', td.get('test2')),
+              ('Test 3', td.get('test3')),
+            ] %}
+            {% if has4 %}
+              {% set items = items + [('Test 4', td.get('test4'))] %}
+            {% endif %}
+            {% for label, done in items %}
+              <div class="ttv2-student-barrow">
+                <div class="ttv2-student-barlabel">{{ label }}</div>
+                <div class="ttv2-student-bartrack" aria-hidden="true">
+                  <div class="ttv2-student-barfill" style="width:{% if done %}100{% else %}12{% endif %}%"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="ttv2-student-actions">
+            <a class="btn btn-sm btn-outline-primary {% if not (r and r.test_status == 'completed' and r.test_link) %}disabled{% endif %}"
+               {% if r and r.test_status == 'completed' and r.test_link %}target="_blank" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
+              Single PDF
+            </a>
+            <a class="btn btn-sm btn-outline-secondary disabled" href="#" aria-disabled="true">Profile</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="ttv2-card" style="grid-column:1/-1;">
+        <div class="card-title">No students found</div>
+        <div style="font-size:12px;color:var(--c-text3);">Try adjusting filters.</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# Pagination (same querystring strategy as table) #}
+  {% if students and students.paginator and students.paginator.num_pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-3">
+      <ul class="pagination justify-content-center">
+        {% if students.has_previous() %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for num in range(1, students.paginator.num_pages + 1) %}
+          {% if num == students.number %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 1 and num <= students.number + 1) %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">{{ num }}</a>
+            </li>
+          {% elif num == 4 or num == students.paginator.num_pages - 2 %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if students.has_next() %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">Next</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+

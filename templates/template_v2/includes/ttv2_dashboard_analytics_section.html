@@ -7,44 +7,67 @@
 
   {# Stat strip: same structure / Boxicons as legacy institute dashboard (see institute_dashboard_body) #}
   <div class="id-stats-row ttv2-stat-strip" aria-label="Key statistics">
-    <div class="id-stat-card">
+    {# Link targets (role-aware). For institute dashboards we always have `institute.slug`. #}
+    {% set _inst_slug = (institute.slug if (institute is defined and institute and institute.slug) else '') %}
+    {% set _is_counselor = (request.user and request.user.is_authenticated and request.user.user_type == 4) %}
+    {% set _ttv2_role = (ttv2_analytics.role if (ttv2_analytics is defined and ttv2_analytics and ttv2_analytics.role is defined) else '') %}
+    {% set _students_href = (
+      url('counselor:CounselorDashboardSection', args=[coun_id, 'students'])
+      if (_is_counselor and coun_id is defined and coun_id)
+      else (url('institute:institutedashboard_page', args=[_inst_slug, 'students']) if _inst_slug else '')
+    ) %}
+    {% set _psych_graph_href = '#ttv2DaPsych' %}
+    {% set _couns_href = (url('institute:institutedashboard_page', args=[_inst_slug, 'counselors']) if _inst_slug else '') %}
+
+    <a class="id-stat-card ttv2-stat-link {% if not _students_href %}ttv2-stat-link--disabled{% endif %}"
+       href="{{ _students_href if _students_href else '#' }}"
+       {% if not _students_href %}aria-disabled="true"{% endif %}>
       <div class="id-stat-icon id-stat-icon--orange"><i class="bx bx-user" aria-hidden="true"></i></div>
       <div class="id-stat-body">
         <p class="id-stat-value">{{ ttv2_analytics.kpi.total_students|default(0) }}</p>
         <p class="id-stat-label lh-sm">Total Students</p>
       </div>
-    </div>
-    <div class="id-stat-card">
+    </a>
+
+    <a class="id-stat-card ttv2-stat-link"
+       href="{{ _psych_graph_href }}"
+       data-no-ttv2-ajax="1">
       <div class="id-stat-icon id-stat-icon--blue"><i class="bx bx-brain" aria-hidden="true"></i></div>
       <div class="id-stat-body">
         <p class="id-stat-value">{{ ttv2_analytics.kpi.psychometric_count|default(0) }}</p>
         <p class="id-stat-label lh-sm">{% if request.GET.get('ttv2_week_start') %}Psychometric attempts{% else %}Psychometric{% endif %}</p>
       </div>
-    </div>
-    <div class="id-stat-card">
-      <div class="id-stat-icon id-stat-icon--pink"><i class="bx bx-credit-card" aria-hidden="true"></i></div>
-      <div class="id-stat-body">
-        <p class="id-stat-value">{{ ttv2_analytics.kpi.total_credits|default(0) }}</p>
-        <p class="id-stat-label lh-sm">Total Credits</p>
+    </a>
+
+    {# Credits + counselors KPI cards should be hidden only for counselor dashboards. #}
+    {% if _ttv2_role != 'counselor' %}
+      <div class="id-stat-card">
+        <div class="id-stat-icon id-stat-icon--pink"><i class="bx bx-credit-card" aria-hidden="true"></i></div>
+        <div class="id-stat-body">
+          <p class="id-stat-value">{{ ttv2_analytics.kpi.total_credits|default(0) }}</p>
+          <p class="id-stat-label lh-sm">Total Credits</p>
+        </div>
       </div>
-    </div>
-    <div class="id-stat-card">
-      <div class="id-stat-icon id-stat-icon--green"><i class="bx bx-wallet" aria-hidden="true"></i></div>
-      <div class="id-stat-body">
-        <p class="id-stat-value">{{ ttv2_analytics.kpi.credits_remaining|default(0) }}</p>
-        <p class="id-stat-label lh-sm">Remaining Credits</p>
-        {% if ttv2_analytics.kpi.credit_topup %}
-        <p class="mb-0" style="margin-top:2px"><span class="badge bg-warning text-dark" style="font-size:9px">Top-up</span></p>
-        {% endif %}
+      <div class="id-stat-card">
+        <div class="id-stat-icon id-stat-icon--green"><i class="bx bx-wallet" aria-hidden="true"></i></div>
+        <div class="id-stat-body">
+          <p class="id-stat-value">{{ ttv2_analytics.kpi.credits_remaining|default(0) }}</p>
+          <p class="id-stat-label lh-sm">Remaining Credits</p>
+          {% if ttv2_analytics.kpi.credit_topup %}
+          <p class="mb-0" style="margin-top:2px"><span class="badge bg-warning text-dark" style="font-size:9px">Top-up</span></p>
+          {% endif %}
+        </div>
       </div>
-    </div>
-    <div class="id-stat-card">
-      <div class="id-stat-icon id-stat-icon--purple"><i class="bx bx-user-pin" aria-hidden="true"></i></div>
-      <div class="id-stat-body">
-        <p class="id-stat-value">{{ ttv2_analytics.kpi.counselor_count|default(0) }}</p>
-        <p class="id-stat-label lh-sm">Counselors</p>
-      </div>
-    </div>
+      <a class="id-stat-card ttv2-stat-link {% if not _couns_href %}ttv2-stat-link--disabled{% endif %}"
+         href="{{ _couns_href if _couns_href else '#' }}"
+         {% if not _couns_href %}aria-disabled="true"{% endif %}>
+        <div class="id-stat-icon id-stat-icon--purple"><i class="bx bx-user-pin" aria-hidden="true"></i></div>
+        <div class="id-stat-body">
+          <p class="id-stat-value">{{ ttv2_analytics.kpi.counselor_count|default(0) }}</p>
+          <p class="id-stat-label lh-sm">Counselors</p>
+        </div>
+      </a>
+    {% endif %}
   </div>
 
   {# Chart rows: KPI strip above stays visible; overlay until Chart.js init completes. #}

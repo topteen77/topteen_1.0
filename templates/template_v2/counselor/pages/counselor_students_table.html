@@ -1,0 +1,16 @@
+{# Counselor v2: reuse centralized students table component #}
+{% set table_config = {
+  'show_stream': True,
+  'show_email': False,
+  'show_contact': False,
+  'show_created': True,
+  'show_report': True,
+  'show_actions': False,
+  'show_block': False,
+  'show_followup': False,
+  'show_institute': False,
+  'role': 'institute'
+} %}
+{% set action_urls = {} %}
+{% include 'template20/shared/students_table.html' %}
+

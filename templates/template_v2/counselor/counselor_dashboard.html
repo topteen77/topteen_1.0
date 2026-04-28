@@ -31,60 +31,24 @@
     {% include "template_v2/includes/sidebar_profile_card.html" %}
   {% endif %}
 
-  {% if request.user and request.user.is_authenticated and request.user.user_type == 4 %}
-    <a href="{{ url('counselor:course_learning', args=[coun_id]) }}"
-       class="ttv2-counselor-mycourse-btn"
-       aria-label="My Course">
-      <i class='bx bx-chalkboard'></i> MY COURSE
-    </a>
-  {% endif %}
+  
 
   <div class="ttv2-counselor-nav">
-    <div class="ttv2-counselor-nav-title">Reports</div>
+    <div class="ttv2-counselor-nav-title">Report</div>
     <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'dashboard']) }}" class="active" data-ttv2-nav="dashboard"><span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard</a>
     <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'students']) }}" data-ttv2-nav="students"><span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'assessments']) }}" data-ttv2-nav="assessments"><span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'journey-tracker']) }}" data-ttv2-nav="progress"><span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker</a>
 
     <div class="ttv2-counselor-nav-title">Analytics</div>
     <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'career-analytics']) }}" data-ttv2-nav="career"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'interest-matrix']) }}" data-ttv2-nav="matrix"><span class="ttv2-counselor-dot" style="background:#fbbf24"></span>Interest matrix</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'streams-capacity']) }}" data-ttv2-nav="streams"><span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'credits']) }}" data-ttv2-nav="credits"><span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits</a>
 
     <div class="ttv2-counselor-nav-title">Guidance</div>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'counselors']) }}" data-ttv2-nav="counselors"><span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors</a>
     <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-report']) }}" data-ttv2-nav="sessions"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report</a>
     <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-plan']) }}" data-ttv2-nav="plan"><span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'kira']) }}" data-ttv2-nav="kira"><span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant</a>
-
-    <div class="ttv2-counselor-nav-title">Documents</div>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'best-practices']) }}" data-ttv2-nav="bestpractices"><span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Best practices</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'print-report']) }}" class="ttv2-print-link"><span class="ttv2-counselor-dot" style="background:#94a3b8"></span>Print report</a>
-
-    {# Quick links (shown at end, like screenshot) #}
-    {% if counselor_institute and counselor_institute.slug %}
-      <div class="ttv2-counselor-nav-title">Quick links</div>
-      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-add-multiple">
-        <i class='bx bx-group'></i> Add Multiple Students
-      </a>
-      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-add-single">
-        <i class='bx bx-user-plus'></i> Add Single Student
-      </a>
-      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-add-counselor">
-        <i class='bx bx-user-voice'></i> Add Counselor
-      </a>
-      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-upload-matric">
-        <i class='bx bx-upload'></i> Matric-CSV Upload
-      </a>
-      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutedashboard', args=[counselor_institute.slug]) }}#ql-upload-postmatric">
-        <i class='bx bx-upload'></i> Post-Matric-CSV Upload
-      </a>
-      <a class="ttv2-counselor-quicklink" href="{{ url('institute:institutehistorylog', args=[counselor_institute.slug]) }}">
-        <i class='bx bx-history'></i> Uploaded History Log
-      </a>
-    {% endif %}
+    <div class="ttv2-counselor-nav-title">Courses</div>
+    <a href="{{ url('counselor:course_learning', args=[coun_id]) }}"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>My Enrolled Courses</a>
   </div>
+  
+  
 </div>
 {% endblock %}
 
@@ -201,17 +165,9 @@
     var TITLES = {
       dashboard: ['Dashboard','All key metrics at a glance'],
       students: ['Students','Enrollment, class and stream breakdown'],
-      assessments: ['Assessments','Psychometric test status and progress'],
-      progress: ['Journey tracker','5-step journey tracker and booking calendar'],
       career: ['Career analytics','Interest, knowledge gap, clusters and risk'],
-      matrix: ['Interest matrix','Institute-wide interest vs knowledge matrix'],
-      streams: ['Streams & capacity','Stream assignment and seat capacity'],
-      credits: ['Credits','Credit usage and remaining balance'],
-      counselors: ['Counselors','Roster, sessions and performance'],
       sessions: ['Session report','Weekly session trend'],
       plan: ['Session plan','Next week plan'],
-      kira: ['KIRA AI assistant','AI-guided suggestions and recommendations'],
-      bestpractices: ['Best practices','Research-backed counselling best practices'],
     };
 
     function setTopbar(key){
@@ -363,7 +319,7 @@
   })();
 </script>
 
-<script src="{{ static('js_new/student_table_ajax.js') }}"></script>
+<script src="{{ staticv('js_new/student_table_ajax.js') }}"></script>
 <script>
   function initTooltips() {
     if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;

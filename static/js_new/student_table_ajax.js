@@ -272,6 +272,113 @@ function ttv2InitStudentTableAfterBodyInject() {
       handleStudentFilterSubmit(e, 'filter-form');
     });
   }
+
+  // Auto-apply filters:
+  // - Search: debounce; submit only after >=3 chars, or when cleared.
+  // - Selects: submit immediately on change.
+  (function(){
+    if (!filterForm || filterForm.dataset.ttv2AutoApplyBound === '1') return;
+    filterForm.dataset.ttv2AutoApplyBound = '1';
+
+    var searchEl = document.getElementById('student_name');
+    var t = null;
+    function submitIfOk() {
+      try {
+        // Use the same AJAX submit path
+        handleStudentFilterSubmit(new Event('submit'), 'filter-form');
+      } catch (e) {
+        try { filterForm.requestSubmit ? filterForm.requestSubmit() : filterForm.submit(); } catch(e2) {}
+      }
+    }
+    function onSearchChange() {
+      if (!searchEl) return;
+      var v = (searchEl.value || '').trim();
+      if (t) { clearTimeout(t); t = null; }
+      t = setTimeout(function(){
+        // Only search after 3+ chars; or reset when empty.
+        if (v.length === 0 || v.length >= 3) {
+          submitIfOk();
+        }
+      }, 350);
+    }
+    if (searchEl && !searchEl.dataset.ttv2Bound) {
+      searchEl.dataset.ttv2Bound = '1';
+      searchEl.addEventListener('input', onSearchChange);
+    }
+
+    ['classes', 'streams', 'assessment'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el || el.dataset.ttv2Bound) return;
+      el.dataset.ttv2Bound = '1';
+      el.addEventListener('change', function(){
+        submitIfOk();
+      });
+    });
+  })();
+
+  // Display toggle (cards/list): buttons can be outside the filter form.
+  if (!document.body.dataset.ttv2DisplayToggleBound) {
+    document.body.dataset.ttv2DisplayToggleBound = '1';
+    document.addEventListener('click', function (e) {
+      const btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-display]') : null;
+      if (!btn) return;
+      const form = document.getElementById('filter-form');
+      if (!form) return;
+      e.preventDefault();
+      const mode = (btn.getAttribute('data-ttv2-display') || '').trim();
+      if (!mode) return;
+      const inp = document.getElementById('ttv2DisplayInput');
+      if (inp) inp.value = mode;
+      try {
+        form.requestSubmit ? form.requestSubmit() : form.submit();
+      } catch (err) {
+        try { form.submit(); } catch(e2) {}
+      }
+    }, true);
+  }
+
+  // Card click → open popup (student dashboard/report) if URL available.
+  const wrapper = document.getElementById('students-table-wrapper');
+  if (wrapper && !wrapper.dataset.ttv2CardPopupBound) {
+    wrapper.dataset.ttv2CardPopupBound = '1';
+    wrapper.addEventListener('click', function (e) {
+      // Ignore explicit clicks on links/buttons inside the card.
+      if (e.target && e.target.closest && e.target.closest('a,button,input,select,textarea')) {
+        return;
+      }
+      const card = e.target && e.target.closest ? e.target.closest('.ttv2-student-card[data-ttv2-report-url]') : null;
+      if (!card) return;
+      const url = (card.getAttribute('data-ttv2-report-url') || '').trim();
+      if (!url) return;
+      e.preventDefault();
+      try {
+        if (typeof window.ttv2OpenStudentReportModal === 'function') {
+          window.ttv2OpenStudentReportModal(url, card.getAttribute('data-ttv2-student-name') || 'Student report');
+        } else {
+          window.open(url, '_blank', 'noopener');
+        }
+      } catch (err) {
+        window.open(url, '_blank', 'noopener');
+      }
+    });
+    wrapper.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target && e.target.closest ? e.target.closest('.ttv2-student-card[data-ttv2-report-url]') : null;
+      if (!card) return;
+      const url = (card.getAttribute('data-ttv2-report-url') || '').trim();
+      if (!url) return;
+      e.preventDefault();
+      try {
+        if (typeof window.ttv2OpenStudentReportModal === 'function') {
+          window.ttv2OpenStudentReportModal(url, card.getAttribute('data-ttv2-student-name') || 'Student report');
+        } else {
+          window.open(url, '_blank', 'noopener');
+        }
+      } catch (err) {
+        window.open(url, '_blank', 'noopener');
+      }
+    });
+  }
   const perPageSelect = document.getElementById('per_page');
   if (perPageSelect && !perPageSelect.dataset.ttv2StudentAjaxBound) {
     perPageSelect.dataset.ttv2StudentAjaxBound = '1';
@@ -284,6 +391,14 @@ function ttv2InitStudentTableAfterBodyInject() {
   }
   const url = new URL(window.location.href);
   url.searchParams.set('data_type', 'students');
+  // Default view: cards (server falls back to list when param missing)
+  try {
+    if (!url.searchParams.get('display')) {
+      const inp = document.getElementById('ttv2DisplayInput');
+      const mode = (inp && inp.value ? String(inp.value) : 'cards').trim() || 'cards';
+      url.searchParams.set('display', mode);
+    }
+  } catch (e) {}
   loadStudentsTable(url.toString(), {
     onSuccess: function () {
       ttv2BindInstituteStudentPanelOnce();

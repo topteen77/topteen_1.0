@@ -22,7 +22,9 @@
 {% endblock %}
 
 {% block dashboard_body %}
-  {% include "template_v2/includes/ttv2_week_header_bar.html" %}
+  {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+    {% include "template_v2/includes/ttv2_week_header_bar.html" %}
+  {% endif %}
   <div id="ttv2AjaxContent"
        class="ttv2-ajax-content-host"
        data-ttv2-src="{{ request.get_full_path() }}{% if '?' in request.get_full_path() %}&{% else %}?{% endif %}ttv2_partial=1"
@@ -40,6 +42,16 @@
   // Page-specific boot after the v2 shell injects ?ttv2_partial=1 into #ttv2AjaxContent
   (function(){
     window.ttv2AfterAjaxContentLoad = function(){
+      // Load the roster via AJAX on dashboard + students pages (if the wrapper exists).
+      try {
+        var host = document.getElementById('ttv2AjaxContent');
+        var marker = host ? host.querySelector('[data-ttv2-page]') : null;
+        var page = marker ? (marker.getAttribute('data-ttv2-page') || '').trim().toLowerCase() : '';
+        if ((page === 'students' || page === 'dashboard') && typeof window.ttv2InitStudentTableAfterBodyInject === 'function') {
+          window.ttv2InitStudentTableAfterBodyInject();
+        }
+      } catch (e0) {}
+
       /* Modals + slide panel under AJAX host break fixed positioning; move to <body> first */
       try {
         if (typeof window.ttv2RelocateInstituteOverlaysToBody === 'function') {

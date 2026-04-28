@@ -1,8 +1,19 @@
 {# v2 institute body partial (loaded via AJAX into the v2 frame) #}
 <div class="ttv2-institute-embed">
   <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
-  {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
-  {% include "template20/institute/institute_dashboard_body.html" %}
-  {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
+  {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+    {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
+    {% include "template20/institute/institute_dashboard_body.html" %}
+    {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'students' %}
+    {% include "template_v2/institute/pages/institute_students.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'counselors' %}
+    {% include "template_v2/institute/pages/institute_counselors.html" %}
+  {% else %}
+    <div class="ttv2-card">
+      <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>
+      <div style="font-size:12px;color:var(--c-text3);">{{ ttv2_page|default('This') }} page content here.</div>
+    </div>
+  {% endif %}
 </div>
 

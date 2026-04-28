@@ -1,0 +1,141 @@
+{# Institute v2 Students page (partial, injected via ?ttv2_partial=1) #}
+<div id="sec-institute-students" class="ttv2-students-page">
+  <div class="ttv2-students-page-head">
+    <h1 class="ttv2-sp-title">Student intelligence</h1>
+    <p class="ttv2-sp-sub">
+      Student view — search by name, class, email, then refine with filters.
+    </p>
+  </div>
+
+  <div class="ttv2-sp-card">
+    <div class="ttv2-sp-block">
+      <div class="ttv2-sp-labelrow">
+        <div class="ttv2-sp-label">Search students</div>
+      </div>
+    </div>
+
+    <div class="ttv2-sp-divider" aria-hidden="true"></div>
+
+    <form method="GET" id="filter-form" class="ttv2-sp-filters">
+      <input type="hidden" name="display" id="ttv2DisplayInput" value="{{ request.GET.get('display','cards') }}">
+      <div class="ttv2-sp-search">
+        <i class="bx bx-search" aria-hidden="true"></i>
+        <input type="search"
+               name="student_name"
+               id="student_name"
+               class="form-control"
+               placeholder="Name, class, email, or school…"
+               value="{{ request.GET.get('student_name','') }}">
+      </div>
+      <div class="ttv2-sp-tip">
+        Tip: try an email domain or school short name when scope is all schools.
+      </div>
+      <div class="ttv2-sp-hr" aria-hidden="true"></div>
+      <div class="ttv2-sp-filterrow">
+        <div class="ttv2-sp-filterlabel">Filters</div>
+        <select name="class_and_section" id="classes" class="form-control custom-input">
+          <option value="">All classes</option>
+          {% for cas in class_and_sections %}
+          <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section')==cas.class_and_section %}selected{% endif %}>
+            {{ cas.class_and_section }}
+          </option>
+          {% endfor %}
+        </select>
+
+        <select name="stream" id="streams" class="form-control custom-input">
+          <option value="">All streams</option>
+          {% if unique_streams %}
+            {% for stream in unique_streams %}
+              <option value="{{ stream }}" {% if request.GET.get('stream')==stream %}selected{% endif %}>{{ stream }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+
+        <select name="test_taken" id="assessment" class="form-control custom-input">
+          <option value="">Assessment: all</option>
+          <option value="Yes" {% if request.GET.get('test_taken')=='Yes' %}selected{% endif %}>Completed</option>
+          <option value="In Progress" {% if request.GET.get('test_taken')=='In Progress' %}selected{% endif %}>In progress</option>
+          <option value="No" {% if request.GET.get('test_taken')=='No' %}selected{% endif %}>Not started</option>
+        </select>
+
+        <a class="ttv2-sp-reset-icon"
+           href="{{ request.path }}"
+           title="Reset filters"
+           aria-label="Reset filters">
+          <i class="bx bx-refresh" aria-hidden="true"></i>
+        </a>
+        <!-- <a href="{{ request.path }}?{% if request.GET %}{% for key, value in request.GET.items() %}{{ key }}={{ value }}&{% endfor %}{% endif %}download=Yes"
+           class="btn btn-sm btn-outline-primary ttv2-sp-download" title="Download CSV">
+          <i class="bx bx-download me-1" aria-hidden="true"></i> Download
+        </a> -->
+      </div>
+
+      <!-- <div class="ttv2-sp-pdfrow">
+        <div class="min-w-0">
+          <div class="ttv2-sp-pdftitle">Psychometric assessment PDF</div>
+          <div class="ttv2-sp-pdfsub">
+            One page per student who has a logged MI/EI attempt in the current school scope
+            ({% if ttv2_psych_pdf is defined and ttv2_psych_pdf %}{{ ttv2_psych_pdf.attempted }} of {{ ttv2_psych_pdf.total }}{% else %}—{% endif %}). Ignores search filters.
+          </div>
+        </div>
+        <a class="btn btn-sm btn-outline-primary ttv2-sp-download"
+           href="{{ request.path }}?psychometric_pdf=1"
+           target="_blank" rel="noopener">
+          <i class="bx bx-download me-1" aria-hidden="true"></i> Download PDF
+        </a>
+      </div> -->
+    </form>
+  </div>
+
+  <div class="ttv2-card">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      {% set _students_total = (total_students_count if (total_students_count is defined and total_students_count) else (stu.count() if (stu is defined and stu) else 0)) %}
+      <div class="card-title mb-0">{{ _students_total }} students</div>
+      <div class="btn-group" role="group" aria-label="Display">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-display="cards">Grid</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-display="list">List</button>
+      </div>
+    </div>
+    <div id="students-loader" class="text-center py-5" style="display: none;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-gray">Loading students...</p>
+    </div>
+    <div id="students-table-wrapper">
+      {# Normalize students variable for the shared students_table include. #}
+      {% if students is not defined and stu is defined %}
+        {% set students = stu %}
+      {% endif %}
+      {% if ttv2_students_table_config is defined and ttv2_students_table_config %}
+        {% set table_config = ttv2_students_table_config %}
+      {% else %}
+        {% set table_config = {
+          'show_stream': True,
+          'show_email': False,
+          'show_contact': False,
+          'show_created': True,
+          'show_report': True,
+          'show_actions': True,
+          'show_block': True,
+          'show_followup': False,
+          'show_institute': False,
+          'role': (ttv2_students_role if (ttv2_students_role is defined and ttv2_students_role) else 'institute')
+        } %}
+      {% endif %}
+
+      {% if ttv2_students_action_urls is defined and ttv2_students_action_urls %}
+        {% set action_urls = ttv2_students_action_urls %}
+      {% else %}
+        {% set action_urls = {
+          'update': 'institute:update_student',
+          'delete': 'institute:delete_student',
+          'block': 'institute:institutestudentblock',
+          'change_password': 'institute:change_student_password'
+        } %}
+      {% endif %}
+      {% include 'template20/shared/students_table.html' %}
+    </div>
+  </div>
+</div>
+

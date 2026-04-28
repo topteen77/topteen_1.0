@@ -2506,10 +2506,109 @@ class InstituteDashboardView(TemplateView):
             ctx["ttv2_analytics"] = empty_ttv2_analytics()
         # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
         ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
+
+        # Students page: Psychometric assessment PDF stats (MI/EI attempts in scope)
+        try:
+            from core.models import MIAssessmentResult, EQAssessmentResult
+            uids = list(stu_manage.values_list("student_id", flat=True))
+            uids = [int(x) for x in uids if x]
+            mi_uids = set(MIAssessmentResult.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct())
+            eq_uids = set(EQAssessmentResult.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct())
+            attempted = len(mi_uids.union(eq_uids))
+            ctx["ttv2_psych_pdf"] = {"attempted": attempted, "total": len(set(uids))}
+        except Exception:
+            ctx["ttv2_psych_pdf"] = {"attempted": 0, "total": 0}
         return ctx
 
     def get(self, request, *args, **kwargs):
         download=request.GET.get("download")
+
+        # Students page: Psychometric assessment PDF download (MI/EI attempts in current scope; ignores search filters)
+        if (request.GET.get("psychometric_pdf") or "").strip() == "1":
+            slug = kwargs.get("slug")
+            institute = get_object_or_404(Institute, slug=slug)
+            stu_manage = get_students_by_role(request.user, institute=institute).select_related(
+                "student", "class_and_section", "institute"
+            )
+            uids = [int(x) for x in stu_manage.values_list("student_id", flat=True) if x]
+            try:
+                from core.models import MIAssessmentResult, EQAssessmentResult
+                mi_latest = {}
+                for r in MIAssessmentResult.objects.filter(user_id__in=uids).order_by("user_id", "-updated_at"):
+                    if r.user_id not in mi_latest:
+                        mi_latest[r.user_id] = r
+                eq_latest = {}
+                for r in EQAssessmentResult.objects.filter(user_id__in=uids).order_by("user_id", "-updated_at"):
+                    if r.user_id not in eq_latest:
+                        eq_latest[r.user_id] = r
+                keep = []
+                for sm in stu_manage:
+                    uid = getattr(sm, "student_id", None)
+                    if uid and (uid in mi_latest or uid in eq_latest):
+                        keep.append(sm)
+
+                # Build a simple 1-page-per-student PDF (page breaks)
+                def esc(s):
+                    return (str(s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+                pages = []
+                for sm in keep:
+                    u = sm.student
+                    cas = sm.class_and_section
+                    uid = sm.student_id
+                    mi = mi_latest.get(uid)
+                    eq = eq_latest.get(uid)
+                    mi_line = "MI: —"
+                    if mi:
+                        mi_line = "MI: %s (%s)" % (esc(mi.style_name), esc(mi.primary_style))
+                    eq_line = "EI: —"
+                    if eq:
+                        eq_line = "EI: %.1f (%s)" % (float(eq.ei_total or 0), esc(eq.band_label))
+                    pages.append(
+                        """
+                        <div class="page">
+                          <div class="h1">%s</div>
+                          <div class="meta">%s%s</div>
+                          <div class="meta">%s</div>
+                          <div class="box">
+                            <div class="row">%s</div>
+                            <div class="row">%s</div>
+                          </div>
+                          <div class="foot">Generated for %s</div>
+                        </div>
+                        """ % (
+                            esc(getattr(u, "name", "") or "-"),
+                            esc(getattr(cas, "class_and_section", "") or "-"),
+                            (" · " + esc(getattr(cas, "stream", "") or "")) if cas and getattr(cas, "stream", None) else "",
+                            esc(getattr(u, "email", "") or ""),
+                            mi_line,
+                            eq_line,
+                            esc(getattr(institute, "name", "") or "School"),
+                        )
+                    )
+
+                full_html = """<!doctype html>
+                <html><head><meta charset="utf-8">
+                <title>Psychometric assessment PDF</title>
+                <style>
+                  @page { size: A4; margin: 18mm; }
+                  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color:#111827; }
+                  .page { page-break-after: always; }
+                  .h1 { font-size: 18px; font-weight: 800; margin: 0 0 4px; }
+                  .meta { font-size: 11px; color:#4b5563; margin: 0 0 2px; }
+                  .box { margin-top: 14px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 12px; }
+                  .row { font-size: 12px; margin: 0 0 6px; }
+                  .foot { margin-top: 18px; font-size: 10px; color:#6b7280; }
+                </style></head><body>%s</body></html>""" % ("\n".join(pages) if pages else "<p>No students with MI/EI attempts found.</p>")
+                try:
+                    import weasyprint
+                    pdf_bytes = weasyprint.HTML(string=full_html, base_url=request.build_absolute_uri("/")).write_pdf()
+                except Exception as e:
+                    return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+                resp = HttpResponse(pdf_bytes, content_type="application/pdf")
+                resp["Content-Disposition"] = 'attachment; filename="Psychometric-assessment.pdf"'
+                return resp
+            except Exception as e:
+                return HttpResponse("PDF generation failed: %s" % str(e), status=500)
         
         # Check if this is an AJAX request for student table - process only student data
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -2522,7 +2621,84 @@ class InstituteDashboardView(TemplateView):
                 ctx['action_urls'] = get_student_action_urls('institute')
                 # Map total_students to students for template compatibility
                 ctx['students'] = ctx.get('total_students')
-                return render(request, 'template20/shared/students_table.html', ctx)
+
+                # Enrich results_data for card UI (best-effort; missing data stays empty/disabled).
+                try:
+                    from colleges.models import CollegeShortlist
+                    from core.models import MIAssessmentResult, EQAssessmentResult
+                    uids = []
+                    for sm in (ctx.get("students") or []):
+                        try:
+                            if sm and getattr(sm, "student_id", None):
+                                uids.append(int(sm.student_id))
+                        except Exception:
+                            continue
+                    uids = list({x for x in uids if x})
+                    abroad_uids = set()
+                    if uids:
+                        # Abroad exploring: user has at least 1 shortlisted college outside India.
+                        qs = (
+                            CollegeShortlist.objects.filter(user_id__in=uids)
+                            .select_related("college", "college__country")
+                        )
+                        for cs in qs:
+                            try:
+                                c = cs.college
+                                country = getattr(c, "country", None) if c else None
+                                name = (getattr(country, "name", "") or "").strip().lower()
+                                short = (getattr(country, "short_name", "") or "").strip().lower()
+                                if country and name and name != "india" and short != "in":
+                                    abroad_uids.add(int(cs.user_id))
+                            except Exception:
+                                continue
+                    mi_uids = set()
+                    eq_uids = set()
+                    try:
+                        if uids:
+                            mi_uids = set(
+                                MIAssessmentResult.objects.filter(user_id__in=uids)
+                                .values_list("user_id", flat=True)
+                                .distinct()
+                            )
+                            eq_uids = set(
+                                EQAssessmentResult.objects.filter(user_id__in=uids)
+                                .values_list("user_id", flat=True)
+                                .distinct()
+                            )
+                    except Exception:
+                        mi_uids, eq_uids = set(), set()
+                    results_data = ctx.get("results_data") or {}
+                    for sm in (ctx.get("students") or []):
+                        try:
+                            uid = int(sm.student_id) if sm and sm.student_id else None
+                        except Exception:
+                            uid = None
+                        if not uid:
+                            continue
+                        rd = results_data.get(uid) or {}
+                        # Stream/track: prefer class_and_section.stream, fallback to "-" (report-derived not available reliably)
+                        try:
+                            cas = getattr(sm, "class_and_section", None)
+                            rd.setdefault("track", (getattr(cas, "stream", "") or "").strip() or "")
+                        except Exception:
+                            rd.setdefault("track", "")
+                        # Match / Risk: if present in rd keep it; otherwise blank
+                        rd.setdefault("match_pct", rd.get("match_pct") or "")
+                        rd.setdefault("risk_score", rd.get("risk_score") or "")
+                        # MI/EI attempted flags (from core assessment results)
+                        rd["mi_attempted"] = True if uid in mi_uids else False
+                        rd["eq_attempted"] = True if uid in eq_uids else False
+                        rd["abroad_exploring"] = True if uid in abroad_uids else False
+                        results_data[uid] = rd
+                    ctx["results_data"] = results_data
+                except Exception:
+                    pass
+
+                display = (request.GET.get("display") or "").strip().lower()
+                if display == "cards":
+                    return render(request, "template_v2/institute/pages/student_roster_cards.html", ctx)
+                # default: list/table
+                return render(request, "template20/shared/students_table.html", ctx)
             if data_type == 'students_analytics':
                 slug = kwargs.get("slug")
                 institute = get_object_or_404(Institute, slug=slug)
