@@ -3,33 +3,7 @@
 {% if ttv2_analytics is defined and ttv2_analytics %}
 <script type="application/json" id="ttv2-analytics-payload">{{ ttv2_analytics|tojson }}</script>
 <div class="ttv2-dashboard-analytics mb-3" data-ttv2-analytics-root>
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-    <div>
-      <div class="card-title mb-0">Dashboard</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
-        {{ ttv2_analytics.banners.week_summary|default('Key metrics for your scope') }}
-      </div>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <div class="dropdown">
-        <button type="button"
-                class="ttv2-week-pill dropdown-toggle"
-                id="ttv2WeekDropdownBtn"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                style="border:1px solid var(--c-border2);color:var(--c-text2);background:rgba(255,255,255,.04);border-radius:999px;padding:6px 10px;font-size:11px;">
-          {{ ttv2_analytics.date_range_label|default('Select week') }}
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" id="ttv2WeekDropdownMenu" aria-labelledby="ttv2WeekDropdownBtn">
-          <li><span class="dropdown-item-text" style="font-size:11px;color:var(--c-text3);">Loading…</span></li>
-        </ul>
-      </div>
-      <button type="button" class="btn btn-sm d-none" id="ttv2ExportPdfBtnFooter" aria-hidden="true" tabindex="-1"
-              style="border:1px solid var(--c-border2);color:var(--c-text2);background:transparent;border-radius:999px;padding:6px 10px;">
-        Export PDF
-      </button>
-    </div>
-  </div>
+  {# Header bar (week dropdown) moved OUTSIDE the AJAX host. #}
 
   {# Stat strip: same structure / Boxicons as legacy institute dashboard (see institute_dashboard_body) #}
   <div class="id-stats-row ttv2-stat-strip" aria-label="Key statistics">

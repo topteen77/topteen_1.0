@@ -53,6 +53,23 @@ def img_tag(*args,**kwargs):
     return mark_safe(full_tag)
 
 
+def staticv(path: str) -> str:
+    """
+    Static URL with a per-request cache buster.
+    Use sparingly (e.g., dashboards) when StaticFilesStorage is used and browsers cache aggressively.
+    """
+    try:
+        base = staticfiles_storage.url(path)
+    except Exception:
+        base = static(path)
+    try:
+        v = str(int(timezone.now().timestamp()))
+    except Exception:
+        v = str(int(datetime.now().timestamp()))
+    sep = "&" if ("?" in base) else "?"
+    return f"{base}{sep}v={v}"
+
+
 one = ["", "one ", "two ", "three ", "four ",
        "five ", "six ", "seven ", "eight ",
        "nine ", "ten ", "eleven ", "twelve ",
@@ -350,6 +367,7 @@ def environment(**options):
     env.globals.update({
         'master_classes': _master_classes_fn,
         'static': staticfiles_storage.url,
+        'staticv': staticv,
         'url': jinja_url,
         'url_':custom_reverse,
         'img_tag':img_tag,

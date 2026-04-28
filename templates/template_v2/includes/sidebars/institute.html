@@ -22,16 +22,16 @@
     {% endif %}
 
     <div class="ttv2-counselor-nav-title">Reports</div>
-    <a href="{{ url('institute:institutedashboard', args=[_inst_slug]) }}" class="active">
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}" class="active">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
     </a>
-    <a href="#" data-ttv2-nav="students">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'students']) }}">
       <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students
     </a>
-    <a href="#" data-ttv2-nav="psychometric">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'assessments']) }}">
       <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
     </a>
-    <a href="#" data-ttv2-nav="journey">
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker
     </a>
 
@@ -41,29 +41,29 @@
       <span class="ttv2-counselor-dot" style="background:#34d399"></span>Career heatmap
     </a>
     {% endif %}
-    <a href="#" data-ttv2-nav="streams_capacity">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'streams_capacity']) }}">
       <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity
     </a>
-    <a href="#" data-ttv2-nav="credits">
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits
     </a>
 
     <div class="ttv2-counselor-nav-title">Guidance</div>
-    <a href="#" data-ttv2-nav="counselors">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'counselors']) }}">
       <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors1
     </a>
-    <a href="#" data-ttv2-nav="sessions">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'sessions']) }}">
       <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report
     </a>
-    <a href="#" data-ttv2-nav="session_plan">
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan
     </a>
-    <a href="#" data-ttv2-nav="kira_assistant">
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant
     </a>
 
     <div class="ttv2-counselor-nav-title">Documents</div>
-    <a href="#" data-ttv2-nav="best_practices">
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Best practices
     </a>
     <a href="#" class="ttv2-print-link">

@@ -52,9 +52,9 @@
 {% block additionaljs %}
 {{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ static('js_new/ttv2_dashboard_analytics.js') }}"></script>
-<script src="{{ static('js_new/ttv2_students_insights.js') }}"></script>
-<script src="{{ static('js_new/ttv2_week_dropdown.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_dashboard_analytics.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_students_insights.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_week_dropdown.js') }}"></script>
 {# Theme toggle + Bootstrap scripts: template_v2/base_logged_in.html → logged_in_footer_scripts.html #}
 <script>
   // Shared: print report link
@@ -83,6 +83,157 @@
         }
       } catch(err) {}
     }, true);
+  })();
+</script>
+
+<script>
+  // Shared: AJAX page navigation into #ttv2AjaxContent (PJAX-style).
+  // - Sidebar links are real URLs (so refresh/deeplink works)
+  // - Click loads ?ttv2_partial=1 into the content host, shows loader, updates URL via history.pushState
+  (function(){
+    function sameOrigin(url){
+      try { return new URL(url, window.location.href).origin === window.location.origin; } catch(e) { return false; }
+    }
+    function shouldAjaxifyLink(a){
+      if (!a) return false;
+      if (a.classList && a.classList.contains('ttv2-print-link')) return false;
+      if (a.classList && a.classList.contains('ttv2-nav-disabled')) return false;
+      if (a.getAttribute('aria-disabled') === 'true') return false;
+      if ((a.getAttribute('target') || '').toLowerCase() === '_blank') return false;
+      if (a.getAttribute('data-no-ttv2-ajax') === '1') return false;
+      var href = (a.getAttribute('href') || '').trim();
+      if (!href || href === '#' || href.indexOf('javascript:') === 0) return false;
+      // Allow hash quicklinks to behave normally
+      if (href[0] === '#') return false;
+      // Don't intercept logout
+      try { if (href.indexOf('/logout') !== -1) return false; } catch(e) {}
+      return sameOrigin(href);
+    }
+    function withPartial(url){
+      var u = new URL(url, window.location.href);
+      if (u.searchParams.get('ttv2_partial') !== '1') u.searchParams.set('ttv2_partial', '1');
+      return u;
+    }
+    function setBusy(host, isBusy){
+      try { host.setAttribute('aria-busy', isBusy ? 'true' : 'false'); } catch(e) {}
+    }
+    function setPlaceholder(host){
+      try {
+        host.innerHTML = host.getAttribute('data-ttv2-placeholder-html') || host.innerHTML;
+      } catch(e) {}
+    }
+    function afterInject(){
+      try { if (typeof initTooltips === 'function') initTooltips(); } catch(e) {}
+      try { if (typeof window.ttv2InitWeekDropdown === 'function') window.ttv2InitWeekDropdown(); } catch(e) {}
+      try { if (typeof window.ttv2InitDashboardAnalyticsCharts === 'function') window.ttv2InitDashboardAnalyticsCharts(); } catch(e) {}
+      try { if (typeof window.ttv2InitStudentsInsightsBlocks === 'function') window.ttv2InitStudentsInsightsBlocks(true); } catch(e) {}
+      try {
+        var host = document.getElementById('ttv2AjaxContent');
+        if (host) {
+          var marker = host.querySelector('[data-ttv2-page]');
+          var page = marker ? (marker.getAttribute('data-ttv2-page') || '').trim().toLowerCase() : '';
+          if (page && page !== 'dashboard') {
+            // Hide other legacy sections; do NOT scroll (separate page UX)
+            var all = host.querySelectorAll('[id^="sec-"]');
+            all.forEach(function(el){ try { el.style.display = 'none'; } catch(e) {} });
+            var map = {
+              students: ['sec-institute-students','sec-group-students','sec-marketing-students'],
+              assessments: ['sec-institute-charts','sec-institute-psychometric'],
+              streams: ['sec-institute-streams-capacity'],
+              streams_capacity: ['sec-institute-streams-capacity'],
+              counselors: ['sec-institute-counselors','sec-group-counselors','sec-marketing-counselors'],
+              sessions: ['sec-institute-sessions'],
+            };
+            var ids = map[page] || [];
+            var shown = false;
+            ids.forEach(function(id){
+              var el = document.getElementById(id);
+              if (el) { try { el.style.display = ''; shown = true; } catch(e) {} }
+            });
+            // Fallback: if page matches a section id suffix, try direct id
+            if (!shown) {
+              var fallback = host.querySelector('#sec-' + page);
+              if (fallback) { try { fallback.style.display = ''; } catch(e) {} }
+            }
+          } else {
+            // Dashboard: ensure all sections are visible
+            var all2 = host.querySelectorAll('[id^="sec-"]');
+            all2.forEach(function(el){ try { el.style.display = ''; } catch(e) {} });
+          }
+        }
+      } catch(e) {}
+      try {
+        // Optional hook for page-specific boot (defined by the current page template)
+        if (typeof window.ttv2AfterAjaxContentLoad === 'function') window.ttv2AfterAjaxContentLoad();
+      } catch(e) {}
+      try { document.dispatchEvent(new CustomEvent('ttv2:content:loaded')); } catch(e) {}
+    }
+
+    function loadHostFromUrl(url, push){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      var u = withPartial(url);
+      setBusy(host, true);
+      // store placeholder first time (so we can reuse for subsequent navigations)
+      if (!host.getAttribute('data-ttv2-placeholder-html')) {
+        try { host.setAttribute('data-ttv2-placeholder-html', host.innerHTML); } catch(e) {}
+      }
+      setPlaceholder(host);
+      fetch(u.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          host.innerHTML = html;
+          host.setAttribute('data-ttv2-loaded','1');
+          setBusy(host, false);
+          if (push) {
+            try { window.history.pushState({ttv2:1}, '', new URL(url, window.location.href).toString()); } catch(e) {}
+          }
+          afterInject();
+          // optional section deep-link: ?ttv2_section=<key>
+          try {
+            var params = new URLSearchParams(window.location.search || '');
+            var sec = (params.get('ttv2_section') || '').trim();
+            // kept for backwards-compat; but separate pages should not scroll
+            if (sec && typeof window.ttv2OnNavSectionChange === 'function') window.ttv2OnNavSectionChange(sec);
+          } catch(e) {}
+        })
+        .catch(function(){
+          setBusy(host, false);
+          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load page</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
+        });
+    }
+
+    // Initial boot: load current page partial into host
+    document.addEventListener('DOMContentLoaded', function(){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      if (host.getAttribute('data-ttv2-loaded') === '1') return;
+      var src = host.getAttribute('data-ttv2-src') || '';
+      if (!src) {
+        // fallback: current URL
+        src = window.location.href;
+      }
+      loadHostFromUrl(src, false);
+    });
+
+    // Sidebar link interception
+    document.addEventListener('click', function(e){
+      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a') : null);
+      if (!a) return;
+      if (!shouldAjaxifyLink(a)) return;
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      e.preventDefault();
+      var href = a.getAttribute('href');
+      loadHostFromUrl(href, true);
+    }, true);
+
+    // Back/forward
+    window.addEventListener('popstate', function(){
+      var host = document.getElementById('ttv2AjaxContent');
+      if (!host) return;
+      loadHostFromUrl(window.location.href, false);
+    });
   })();
 </script>
 {% endblock %}

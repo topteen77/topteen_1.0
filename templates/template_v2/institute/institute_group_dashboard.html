@@ -19,6 +19,7 @@
 {% endblock %}
 
 {% block dashboard_body %}
+  {% include "template_v2/includes/ttv2_week_header_bar.html" %}
   <div id="ttv2AjaxContent"
        class="ttv2-ajax-content-host"
        data-ttv2-src="{{ request.get_full_path() }}{% if '?' in request.get_full_path() %}&{% else %}?{% endif %}ttv2_partial=1"
@@ -31,57 +32,24 @@
 {{ super() }}
 <script src="{{ static('js_new/institute_group_dashboard_boot.js') }}"></script>
 <script>
-  // Load v2 institute-group body via AJAX (fast shell paint)
+  // Page-specific boot after the v2 shell injects ?ttv2_partial=1 into #ttv2AjaxContent
   (function(){
-    function load(){
-      var host = document.getElementById('ttv2AjaxContent');
-      if (!host) return;
-      if (host.getAttribute('data-ttv2-loaded') === '1') return;
-      var src = host.getAttribute('data-ttv2-src');
-      if (!src) return;
-      host.setAttribute('aria-busy','true');
-      fetch(src, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-        .then(function(r){ return r.text(); })
-        .then(function(html){
-          host.innerHTML = html;
-          host.setAttribute('data-ttv2-loaded','1');
-          host.setAttribute('aria-busy','false');
-          try {
-            if (typeof window.ttv2InitDashboardAnalyticsCharts === 'function') {
-              window.ttv2InitDashboardAnalyticsCharts();
-            }
-          } catch (e) {}
-          try {
-            if (typeof window.ttv2InitWeekDropdown === 'function') {
-              window.ttv2InitWeekDropdown();
-            }
-          } catch (e) {}
-          try {
-            window._ttv2InstituteGroupDashboardBooted = false;
-            if (typeof window.ttv2BootInstituteGroupDashboard === 'function') {
-              window.ttv2BootInstituteGroupDashboard();
-            }
-          } catch (e2) {}
-          try {
-            if (typeof window.ttv2InitStudentsInsightsBlocks === 'function') {
-              window.ttv2InitStudentsInsightsBlocks(true);
-            }
-          } catch (e3) {}
-          try {
-            var params = new URLSearchParams(window.location.search || '');
-            var sec = (params.get('ttv2_section') || '').trim();
-            if (sec === 'students') {
-              var el = document.getElementById('sec-group-students');
-              if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
-            }
-          } catch (e4) {}
-        })
-        .catch(function(){
-          host.setAttribute('aria-busy','false');
-          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load dashboard</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
-        });
-    }
-    document.addEventListener('DOMContentLoaded', load);
+    window.ttv2AfterAjaxContentLoad = function(){
+      try {
+        window._ttv2InstituteGroupDashboardBooted = false;
+        if (typeof window.ttv2BootInstituteGroupDashboard === 'function') {
+          window.ttv2BootInstituteGroupDashboard();
+        }
+      } catch (e) {}
+      try {
+        var params = new URLSearchParams(window.location.search || '');
+        var sec = (params.get('ttv2_section') || '').trim();
+        if (sec === 'students') {
+          var el = document.getElementById('sec-group-students');
+          if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+      } catch (e2) {}
+    };
   })();
 </script>
 {% endblock %}

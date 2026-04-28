@@ -12,6 +12,10 @@
   --ttv2-border: rgba(17,24,39,0.12);
   --ttv2-muted: rgba(17,24,39,0.65);
   --ttv2-accent: #5249DF;
+  --ttv2-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+               "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --ttv2-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ttv2-shadow-md: 0 10px 26px rgba(15, 23, 42, 0.10);
 }
 
 html[data-ttv2-theme="dark"]{
@@ -27,9 +31,62 @@ body.ttv2-shell{
   min-height: 100vh;
   background: var(--ttv2-bg);
   color: var(--ttv2-fg);
+  font-family: var(--ttv2-font);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body.ttv2-shell a{ color: inherit; }
+
+/* Week dropdown pill (matches reference screenshot) */
+body.ttv2-shell .ttv2-week-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--c-border2, var(--ttv2-border));
+  color: var(--c-text2, var(--ttv2-muted));
+  background: rgba(255,255,255,.04);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.1;
+  box-shadow: var(--ttv2-shadow-sm);
+  white-space: nowrap;
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-week-pill{
+  background: rgba(17,24,39,0.02);
+}
+body.ttv2-shell .ttv2-week-pill:hover{
+  border-color: var(--c-accent, var(--ttv2-accent));
+  color: var(--c-text, var(--ttv2-fg));
+}
+body.ttv2-shell .ttv2-week-pill.dropdown-toggle::after{
+  margin-left: 8px;
+  opacity: 0.8;
+}
+body.ttv2-shell .ttv2-week-pill:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108,125,255,0.18);
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-week-pill:focus{
+  box-shadow: 0 0 0 3px rgba(82,73,223,0.16);
+}
+
+/* Consistent typography scale inside shell */
+body.ttv2-shell .ttv2-counselor-shell .title{
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+body.ttv2-shell .ttv2-counselor-shell .sub{
+  font-size: 12px;
+  color: var(--c-text3, var(--ttv2-muted));
+}
+body.ttv2-shell .ttv2-counselor-shell .card-title{
+  letter-spacing: -0.005em;
+}
 
 body.ttv2-shell .border,
 body.ttv2-shell .border-top,
@@ -47,6 +104,7 @@ body.ttv2-shell .text-muted{
 body.ttv2-shell .card{
   background: var(--ttv2-surface);
   color: var(--ttv2-fg);
+  box-shadow: var(--ttv2-shadow-sm);
 }
 /*
   Modals: do NOT use --ttv2-surface in dark (it is ~6% white and looks “broken”:
@@ -168,6 +226,25 @@ body.ttv2-shell .ttv2-counselor-sidebar{
   min-height: calc(100vh - 58px);
   padding: 14px 12px;
   overflow: auto;
+}
+
+/* Sidebar polish */
+body.ttv2-shell .ttv2-counselor-nav-title{
+  letter-spacing: .08em;
+}
+body.ttv2-shell .ttv2-counselor-nav a{
+  font-size: 13px;
+  padding: 10px 10px;
+  border-radius: 12px;
+}
+body.ttv2-shell .ttv2-counselor-nav a:hover{
+  background: rgba(108, 125, 255, 0.08);
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-counselor-nav a:hover{
+  background: rgba(82, 73, 223, 0.08);
+}
+body.ttv2-shell .ttv2-counselor-nav a.active{
+  box-shadow: var(--ttv2-shadow-sm);
 }
 
 body.ttv2-shell .ttv2-counselor-brand{
@@ -806,12 +883,40 @@ body.ttv2-shell .ttv2-card{
   border: 1px solid var(--c-border);
   border-radius: var(--c-r3);
   padding: 14px;
+  box-shadow: var(--ttv2-shadow-sm);
 }
 body.ttv2-shell .ttv2-card .card-title{
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--c-text);
   margin-bottom: 10px;
+}
+
+/* Dropdown menu readability */
+body.ttv2-shell .dropdown-menu{
+  border-radius: 14px;
+  border: 1px solid var(--c-border2, var(--ttv2-border));
+  box-shadow: var(--ttv2-shadow-md);
+  padding: 8px;
+}
+body.ttv2-shell .dropdown-item{
+  font-size: 12px;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+body.ttv2-shell .dropdown-item.active,
+body.ttv2-shell .dropdown-item:active{
+  background: rgba(108, 125, 255, 0.18);
+  color: var(--c-text);
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .dropdown-item.active,
+html[data-ttv2-theme="light"] body.ttv2-shell .dropdown-item:active{
+  background: rgba(82, 73, 223, 0.14);
+}
+
+/* Content spacing: less cramped, more consistent */
+body.ttv2-shell .ttv2-counselor-content{
+  padding: 18px 18px 28px;
 }
 
 /* Students insights (shared KPI + charts) */

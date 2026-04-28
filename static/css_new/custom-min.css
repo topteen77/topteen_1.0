@@ -7500,7 +7500,7 @@ a:hover {
   /* right: 33px; */
   left: inherit;
   padding: 8px 13px;
-  top: 65px !important;
+  top: 35px !important;
   border-radius: 0 0 6px 6px;
 }
 
@@ -7666,7 +7666,7 @@ a:hover {
 
 .purple-button {
   background: #3F37C9;
-  color: #fff;
+  color: #fff !important;
 }
 
 .bg-light-pruple {
@@ -7675,7 +7675,7 @@ a:hover {
 
 .blue-button {
   background: #25A4F2;
-  color: #fff;
+  color: #fff !important;
 }
 
 .stat-box {

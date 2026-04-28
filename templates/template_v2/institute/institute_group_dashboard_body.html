@@ -1,5 +1,6 @@
 {# v2 institute group body partial (loaded via AJAX into the v2 frame) #}
 <div class="ttv2-group-embed">
+  <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
   {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
   {% include "template20/institute/institute_group_dashboard_body.html" %}
   {% include "template_v2/includes/ttv2_dashboard_banners.html" %}

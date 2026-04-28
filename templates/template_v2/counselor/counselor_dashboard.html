@@ -130,9 +130,9 @@
 
 {% block additionaljs %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ static('js_new/ttv2_dashboard_analytics.js') }}"></script>
-<script src="{{ static('js_new/ttv2_students_insights.js') }}"></script>
-<script src="{{ static('js_new/ttv2_week_dropdown.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_dashboard_analytics.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_students_insights.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_week_dropdown.js') }}"></script>
 <script>
   // Load v2 content body via AJAX (fast shell paint)
   (function(){
@@ -141,13 +141,13 @@
         if (typeof initTooltips === 'function') initTooltips();
       } catch(e) {}
       try {
-        if (typeof window.ttv2InitDashboardAnalyticsCharts === 'function') {
-          setTimeout(function () { window.ttv2InitDashboardAnalyticsCharts(); }, 50);
+        if (typeof window.ttv2InitWeekDropdown === 'function') {
+          window.ttv2InitWeekDropdown();
         }
       } catch(e) {}
       try {
-        if (typeof window.ttv2InitWeekDropdown === 'function') {
-          window.ttv2InitWeekDropdown();
+        if (typeof window.ttv2InitDashboardAnalyticsCharts === 'function') {
+          setTimeout(function () { window.ttv2InitDashboardAnalyticsCharts(); }, 50);
         }
       } catch(e) {}
       try {

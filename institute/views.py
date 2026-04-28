@@ -835,7 +835,8 @@ class MarketingGroupDashboardView(TemplateView):
                     _qs[_k] = _v
             _qs['per_page'] = '10'
             ctx['institute_table_query_string'] = urlencode(_qs)
-        
+        # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
+        ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
         return ctx
     
     def get(self, request, *args, **kwargs):
@@ -1414,6 +1415,8 @@ class InstituteGroupDashboardView(TemplateView):
                 "institute_groups": InstituteGroup.objects.all(),
                 "institute_types": choices.InstituteType.CHOICES
             })
+        # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
+        ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
         return ctx
     
     def get_search_parameters(self, request):
@@ -2501,6 +2504,8 @@ class InstituteDashboardView(TemplateView):
             from core.ttv2_dashboard_analytics import empty_ttv2_analytics
 
             ctx["ttv2_analytics"] = empty_ttv2_analytics()
+        # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
+        ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
         return ctx
 
     def get(self, request, *args, **kwargs):

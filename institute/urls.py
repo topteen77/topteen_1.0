@@ -17,6 +17,7 @@ urlpatterns = [
     path("counselor_changepassword/",views.CounselorChangePasswordView.as_view(),name="counselorchangepassword"),
 
     path("marketing_group_dashboard/",views.MarketingGroupDashboardView.as_view(),name="marketinggroupdashboard"),
+    path("marketing_group_dashboard/<str:page>/", views.MarketingGroupDashboardView.as_view(), name="marketinggroupdashboard_page"),
     path("marketing_group_heatmap/", views.MarketingGroupHeatmapView.as_view(), name="marketinggroupheatmap"),
     path("institute_group_heatmap/", views.InstituteGroupHeatmapView.as_view(), name="institutegroupheatmap"),
     path("marketing_profile_edit/",views.InstituteMarketingProfileEditView.as_view(),name="marketingprofileedit"),
@@ -33,6 +34,7 @@ urlpatterns = [
 
     path("create_institute_group/",views.InstituteGroupCreateView.as_view(),name="createinstitutegroup"),
     path("institute_group_dashboard/",views.InstituteGroupDashboardView.as_view(),name="institutegroupdashboard"),
+    path("institute_group_dashboard/<str:page>/", views.InstituteGroupDashboardView.as_view(), name="institutegroupdashboard_page"),
     path("institute_profile_edit/",views.InstituteProfileEditView.as_view(),name="instituteprofileedit"),
     path("institute_student_create/",views.InstituteStudentCreateView.as_view(),name="institutestudentcreate"),
     path("institute_csv_student_create/",views.InstituteCsvStudentCreateView.as_view(),name="institutecsvstudentcreate"),
@@ -61,5 +63,8 @@ urlpatterns = [
     path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
     # Must be before <slug:slug>/ so "heatmap" is not captured as an institute slug
     path("<slug:slug>/heatmap/", views.InstituteHeatmapView.as_view(), name="instituteheatmap"),
+    # Backwards-compatible name used across templates/APIs
+    path("<slug:slug>/dashboard/", views.InstituteDashboardView.as_view(), name="institute_masterdashboard"),
+    path("<slug:slug>/<str:page>/", views.InstituteDashboardView.as_view(), name="institutedashboard_page"),
     path("<slug:slug>/",views.InstituteDashboardView.as_view(),name="institutedashboard"),
 ]
