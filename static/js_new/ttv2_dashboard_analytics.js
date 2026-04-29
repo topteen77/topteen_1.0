@@ -178,32 +178,48 @@
       });
     }
 
-    // Risk
+    // Risk (stacked bar)
     var r = ch.risk_donut || {};
     var onT = Number(r.on_track || 0);
     var atR = Number(r.at_risk || 0);
-    if (onT < 1 && atR < 1) {
-      atR = 1;
-    }
     var elR = document.getElementById("ttv2DaRisk");
     if (elR) {
       _charts.risk = new Chart(elR.getContext("2d"), {
-        type: "doughnut",
+        type: "bar",
         data: {
-          labels: ["On track", "At risk"],
+          labels: ["Students"],
           datasets: [
             {
-              data: [onT, atR],
-              backgroundColor: [ok, "rgba(248,113,113,0.55)"],
+              label: "On track",
+              data: [onT],
+              backgroundColor: ok,
               borderWidth: 0,
+              borderRadius: 10,
+              barThickness: 28,
+              maxBarThickness: 32,
+            },
+            {
+              label: "At risk",
+              data: [atR],
+              backgroundColor: "rgba(248,113,113,0.55)",
+              borderWidth: 0,
+              borderRadius: 10,
+              barThickness: 28,
+              maxBarThickness: 32,
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "70%",
-          plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } },
+          plugins: {
+            legend: { position: "bottom", labels: { boxWidth: 10 } },
+            tooltip: { enabled: true },
+          },
+          scales: {
+            x: { stacked: true, ticks: { color: muted } },
+            y: { stacked: true, beginAtZero: true, ticks: { color: muted } },
+          },
         },
       });
     }

@@ -1,11 +1,6 @@
-{# Counselor v2 body: for now only dashboard has content. #}
-{% if ttv2_initial_view is defined and ttv2_initial_view and ttv2_initial_view != 'dashboard' %}
-  <div class="ttv2-card">
-    <div class="card-title text-capitalize">{{ ttv2_initial_view }}</div>
-    <div style="font-size:12px;color:var(--c-text3);">{{ ttv2_initial_view }} page content here.</div>
-  </div>
-{% else %}
-<div id="v-dashboard" class="ttv2-view active">
+{# Counselor v2 body: unified shell is page-based (ttv2_page) like institute. #}
+{% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+<div class="ttv2-counselor-embed">
   {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
 
   {% if show_counselor_course_on_dashboard %}
@@ -54,12 +49,14 @@
   {% endif %}
   {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
 </div>
-{% endif %}
-
-<div id="v-students" class="ttv2-view">
+{% elif (ttv2_page|default('dashboard')) == 'students' %}
+<div class="ttv2-counselor-embed">
   {# Reuse institute v2 Students page for counselor (role-based table config). #}
   {% set total_students_count = students_count|default(0) %}
+  {% set ttv2_assigned_students_count = students_count|default(0) %}
+  {% set ttv2_new_assigned_count = ttv2_new_assigned_count|default(0) %}
   {% set ttv2_students_role = 'counselor' %}
+  {% set ttv2_students_ajax_only = true %}
   {% set ttv2_students_table_config = {
     'show_stream': True,
     'show_email': False,
@@ -70,116 +67,14 @@
     'show_block': False,
     'show_followup': False,
     'show_institute': False,
-    'role': 'counselor'
+    'role': 'institute'
   } %}
   {% set ttv2_students_action_urls = {} %}
   {% include "template_v2/institute/pages/institute_students.html" %}
 </div>
-
-<div id="v-sessions" class="ttv2-view">
-  <div class="ttv2-card mb-3">
-    <div class="card-title">Session report</div>
-    <div style="font-size:11px;color:rgba(146,153,176,0.85)">Sessions logged per day for counselors in your scope.</div>
-  </div>
+{% else %}
   <div class="ttv2-card">
-    <div class="card-title">Weekly session report</div>
-    <div style="font-size:11px;color:rgba(146,153,176,0.85)">
-      This chart is shown on the Dashboard view. Use the sidebar to navigate back.
-    </div>
+    <div class="card-title">Coming soon</div>
+    <div style="font-size:12px;color:var(--c-text3);">This page will be wired next.</div>
   </div>
-</div>
-
-{# Placeholder views to match reference navigation (can be wired later) #}
-{% for _id, _title in [
-  ('assessments','Assessments'),
-  ('progress','Journey tracker'),
-  ('career','Career analytics'),
-  ('matrix','Interest matrix'),
-  ('streams','Streams & capacity'),
-  ('credits','Credits'),
-  ('counselors','Counselors'),
-  ('plan','Session plan'),
-  ('kira','KIRA AI assistant'),
-  ('bestpractices','Best practices'),
-] %}
-<div id="v-{{ _id }}" class="ttv2-view">
-  <div class="ttv2-card">
-    <div class="card-title">{{ _title }}</div>
-    {% if _id == 'progress' %}
-      <div style="font-size:11px;color:rgba(146,153,176,0.85);margin-bottom:10px">5-step TopTeen journey — activity for the week selected in the dashboard header.</div>
-      {% if ttv2_analytics is defined and ttv2_analytics.week_activity %}
-        {% set wa = ttv2_analytics.week_activity %}
-        <div class="ttv2-card mb-3" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
-          <div class="row g-2" style="font-size:11px;color:rgba(232,234,240,0.92);">
-            <div class="col-6 col-md-3"><strong>New enrolments</strong><div class="fs-18 fw-semibold" style="color:#f472b6">{{ wa.enrollments }}</div></div>
-            <div class="col-6 col-md-3"><strong>Psych attempts</strong><div class="fs-18 fw-semibold" style="color:#6c7dff">{{ wa.psych_attempts }}</div></div>
-            <div class="col-6 col-md-3"><strong>Report updates</strong><div class="fs-18 fw-semibold" style="color:#34d399">{{ wa.psych_completed }}</div></div>
-            <div class="col-6 col-md-3"><strong>Counseling touches</strong><div class="fs-18 fw-semibold" style="color:#fbbf24">{{ wa.journey_touchpoints }}</div></div>
-          </div>
-        </div>
-        <div class="ttv2-card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            {% for step in [1,2,3,4,5] %}
-              {% set is_done = (
-                (step == 1 and wa.enrollments > 0) or
-                (step == 2 and wa.psych_attempts > 0) or
-                (step == 3 and wa.psych_completed > 0) or
-                (step == 4 and wa.journey_touchpoints > 0) or
-                (step == 5 and wa.journey_touchpoints > 1)
-              ) %}
-              {% set is_active = (
-                (step == 1 and wa.enrollments > 0 and wa.psych_attempts == 0) or
-                (step == 2 and wa.psych_attempts > 0 and wa.psych_completed == 0) or
-                (step == 3 and wa.psych_completed > 0 and wa.journey_touchpoints == 0) or
-                (step == 4 and wa.journey_touchpoints > 0 and wa.journey_touchpoints <= 1)
-              ) %}
-              <div style="display:flex;flex-direction:column;align-items:center;min-width:64px">
-                <div style="
-                  width:28px;height:28px;border-radius:50%;
-                  display:flex;align-items:center;justify-content:center;
-                  font-size:10px;font-weight:700;
-                  {% if is_done %}
-                    background:#4ade80;color:#000;border:2px solid #4ade80;
-                  {% elif is_active %}
-                    background:#6c7dff;color:#fff;border:2px solid #6c7dff;
-                  {% else %}
-                    background:transparent;color:rgba(146,153,176,0.9);border:2px solid rgba(255,255,255,.12);
-                  {% endif %}
-                ">{{ step }}</div>
-                <div style="margin-top:6px;font-size:9px;color:rgba(146,153,176,0.85);text-align:center;white-space:nowrap">
-                  {% if step == 1 %}Sign‑up{% endif %}
-                  {% if step == 2 %}Take test{% endif %}
-                  {% if step == 3 %}View report{% endif %}
-                  {% if step == 4 %}Dream career{% endif %}
-                  {% if step == 5 %}Roadmap{% endif %}
-                </div>
-              </div>
-              {% if step < 5 %}
-                {% set conn_green = (
-                  (step == 1 and wa.enrollments > 0) or
-                  (step == 2 and wa.psych_attempts > 0) or
-                  (step == 3 and wa.psych_completed > 0) or
-                  (step == 4 and wa.journey_touchpoints > 0)
-                ) %}
-                <div style="flex:1;min-width:24px;height:2px;background:{% if conn_green %}#4ade80{% else %}rgba(255,255,255,.08){% endif %};margin-bottom:18px"></div>
-              {% endif %}
-            {% endfor %}
-          </div>
-          <div style="margin-top:10px;font-size:10px;color:rgba(146,153,176,0.85)">
-            Steps light up when there was matching activity in the selected week (enrolments, psychometric attempts, report saves, and logged counseling touchpoints).
-          </div>
-        </div>
-      {% else %}
-        <div class="ttv2-card" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);padding:12px">
-          <div style="font-size:11px;color:rgba(146,153,176,0.9);line-height:1.5">
-            Choose a week from the <strong>Week of …</strong> dropdown above (Dashboard header). Journey activity, psychometric attempts, and student enrolments for that week will appear here.
-          </div>
-        </div>
-      {% endif %}
-    {% else %}
-      <div style="font-size:11px;color:rgba(146,153,176,0.85)">Coming soon — this section will be wired to live data next.</div>
-    {% endif %}
-  </div>
-</div>
-{% endfor %}
-
+{% endif %}

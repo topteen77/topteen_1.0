@@ -1,0 +1,7 @@
+{# Unified v2 sidebar router: uses `ttv2_role_ctx` computed per request. #}
+{% if ttv2_role_ctx is defined and ttv2_role_ctx.role is defined %}
+  {% include "template_v2/includes/sidebar_from_config.html" %}
+{% else %}
+  {% include "template_v2/includes/sidebars/default.html" %}
+{% endif %}
+

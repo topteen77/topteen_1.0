@@ -1,0 +1,113 @@
+{# Payments page: show institute payments if any, else no payments. #}
+<div id="ttv2PaymentsRoot">
+<div class="ttv2-card">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="card-title mb-0">Payments</div>
+    <div style="font-size:11px;color:var(--c-text3);">Showing payments for this institute only.</div>
+  </div>
+
+  {% set _st = (request.GET.get('status') if request is defined else '') %}
+  {% set _st = (_st|string)|lower %}
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    <button type="button"
+            class="btn btn-sm {% if not _st %}btn-primary{% else %}btn-outline-primary{% endif %}"
+            data-ttv2-pay-status="">All</button>
+    <button type="button"
+            class="btn btn-sm {% if _st in ['success','successful'] %}btn-success{% else %}btn-outline-success{% endif %}"
+            data-ttv2-pay-status="success">Successful</button>
+    <button type="button"
+            class="btn btn-sm {% if _st in ['failed','fail'] %}btn-danger{% else %}btn-outline-danger{% endif %}"
+            data-ttv2-pay-status="failed">Failed</button>
+    <button type="button"
+            class="btn btn-sm {% if _st == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}"
+            data-ttv2-pay-status="pending">Pending</button>
+  </div>
+</div>
+
+<div class="ttv2-card p-0 mt-3">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>User</th>
+          <th>Type</th>
+          <th class="text-end">Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if ttv2_institute_payments is defined and ttv2_institute_payments %}
+          {% for p in ttv2_institute_payments %}
+            <tr>
+              <td>{{ p.when|default('-') }}</td>
+              <td class="text-truncate" style="max-width:260px">{{ p.user|default('-') }}</td>
+              <td class="text-truncate" style="max-width:220px">{{ p.kind|default('-') }}</td>
+              <td class="text-end">₹{{ p.amount|default(0) }}</td>
+              <td>
+                {% if (p.status|default('')) == 'Successful' %}
+                  <span class="badge bg-success">Successful</span>
+                {% elif (p.status|default('')) == 'Failed' %}
+                  <span class="badge bg-danger">Failed</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ p.status|default('—') }}</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+              No payments found for this institute.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+  (function () {
+    function initPaymentsFilters() {
+      var root = document.getElementById('ttv2PaymentsRoot');
+      if (!root) return;
+
+      root.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-pay-status]') : null;
+        if (!btn) return;
+        e.preventDefault();
+
+        var status = btn.getAttribute('data-ttv2-pay-status');
+        var url = new URL(window.location.href);
+
+        if (status) url.searchParams.set('status', status);
+        else url.searchParams.delete('status');
+
+        url.searchParams.set('ttv2_payments_partial', '1');
+
+        fetch(url.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function (r) { return r.text(); })
+          .then(function (html) {
+            root.outerHTML = html;
+            // keep URL in sync without reload
+            url.searchParams.delete('ttv2_payments_partial');
+            window.history.replaceState({}, '', url.toString());
+          })
+          .catch(function () { /* ignore */ });
+      });
+    }
+
+    // initial load + after unified dashboard AJAX inject
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPaymentsFilters);
+    else initPaymentsFilters();
+    window.ttv2AfterAjaxContentLoad = (function (prev) {
+      return function () {
+        try { if (typeof prev === 'function') prev(); } catch (e) {}
+        try { initPaymentsFilters(); } catch (e) {}
+      };
+    })(window.ttv2AfterAjaxContentLoad);
+  })();
+</script>

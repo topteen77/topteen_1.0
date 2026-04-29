@@ -1,0 +1,67 @@
+{# Unassigned students block (dashboard): list + assign to counselor. #}
+{% set rows = (ttv2_unassigned_students if ttv2_unassigned_students is defined else []) %}
+{% set counselors = (ttv2_counselor_options if ttv2_counselor_options is defined else []) %}
+{% set _assign_url = '#' %}
+{% if institute is defined and institute and institute.slug %}
+  {% set _assign_url = url('institute:assign_student_counselor', institute.slug) %}
+{% endif %}
+
+<div class="ttv2-card mt-3" id="ttv2UnassignedStudents" data-assign-url="{{ _assign_url }}">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="card-title mb-0">Unassigned students</div>
+    <div style="font-size:11px;color:var(--c-text3);">Students not assigned to any counselor.</div>
+  </div>
+
+  {% if not counselors %}
+    <div class="mt-3" style="font-size:12px;color:var(--c-text3);">
+      No counselors found. Create a counselor to assign students.
+    </div>
+  {% endif %}
+
+  <div class="table-responsive mt-3">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Class</th>
+          <th>Stream</th>
+          <th style="width:260px;">Assign to counselor</th>
+          <th style="width:120px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if rows %}
+          {% for r in rows %}
+            <tr data-sm-id="{{ r.sm_id }}">
+              <td class="min-w-0">
+                <div style="font-weight:700;">{{ r.name }}</div>
+                <div style="font-size:12px;color:var(--c-text3);">{{ r.email }}</div>
+              </td>
+              <td>{{ r.class }}</td>
+              <td>{{ r.stream }}</td>
+              <td>
+                <select class="form-select form-select-sm" data-ttv2-counselor>
+                  <option value="">Select counselor</option>
+                  {% for c in counselors %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm btn-primary" data-ttv2-assign {% if not counselors %}disabled{% endif %}>
+                  Assign
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center py-4" style="font-size:12px;color:var(--c-text3);">
+              No unassigned students.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -82,6 +82,14 @@ function loadStudentsTable(url, options = {}) {
         initTooltips();
       }
 
+      // Institute v2: re-bind advisor change/unassign controls after AJAX inject.
+      // (Injected HTML scripts won't run; bindings must happen here.)
+      try {
+        if (typeof window !== 'undefined' && typeof window.ttv2InitAdvisorChangeControls === 'function') {
+          window.ttv2InitAdvisorChangeControls();
+        }
+      } catch (e0) {}
+
       // Call success callback
       if (config.onSuccess) {
         config.onSuccess(html);
@@ -329,10 +337,16 @@ function ttv2InitStudentTableAfterBodyInject() {
       if (!mode) return;
       const inp = document.getElementById('ttv2DisplayInput');
       if (inp) inp.value = mode;
+      // Use AJAX path (same as filters) so the page doesn't reload.
       try {
-        form.requestSubmit ? form.requestSubmit() : form.submit();
+        handleStudentFilterSubmit(new Event('submit'), 'filter-form');
       } catch (err) {
-        try { form.submit(); } catch(e2) {}
+        try {
+          // Fallback: full submit if something fails
+          form.requestSubmit ? form.requestSubmit() : form.submit();
+        } catch (e2) {
+          try { form.submit(); } catch (e3) {}
+        }
       }
     }, true);
   }

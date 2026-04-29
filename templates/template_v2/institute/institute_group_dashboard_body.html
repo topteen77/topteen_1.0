@@ -5,6 +5,26 @@
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
     {% include "template20/institute/institute_group_dashboard_body.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'students' %}
+    {% set ttv2_students_role = 'institute_group' %}
+    {% set ttv2_students_table_config = {
+      'show_stream': True,
+      'show_email': False,
+      'show_contact': False,
+      'show_created': True,
+      'show_report': True,
+      'show_actions': False,
+      'show_block': False,
+      'show_followup': False,
+      'show_institute': True,
+      'role': 'institute'
+    } %}
+    {% set ttv2_students_action_urls = {} %}
+    {% include "template_v2/institute/pages/institute_students.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
+    {% include "template_v2/institute/pages/institute_accounts.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'payments' %}
+    {% include "template_v2/institute/pages/institute_payments.html" %}
   {% else %}
     <div class="ttv2-card">
       <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>

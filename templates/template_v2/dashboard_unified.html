@@ -1,0 +1,81 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}Dashboard | Top Teen{% endblock %}
+{% block description_content %}Role-based unified dashboard shell.{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+{# Role-specific asset includes (keep existing v2 behavior) #}
+{% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}
+  {% include 'template20/counselor/counselor_dashboard_assets.html' %}
+{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+  {% include 'template20/institute/marketing_group_dashboard_assets.html' %}
+{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+  {% include 'template20/institute/institute_group_dashboard_assets.html' %}
+{% else %}
+  {% include 'template20/institute/institute_dashboard_assets.html' %}
+{% endif %}
+{% endblock %}
+
+{% block dashboard_title %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}Marketing Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}Institute Group Dashboard{% else %}Institute Dashboard{% endif %}
+{% endblock %}
+{% block dashboard_subtitle %}All key metrics at a glance{% endblock %}
+
+{% block dashboard_home_url %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' and ttv2_role_ctx.counselor %}
+    {{ url('counselor:CounselorDashboardView', args=[ttv2_role_ctx.counselor.id]) }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+    {{ url('institute:marketinggroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+    {{ url('institute:institutegroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.institute and ttv2_role_ctx.institute.slug %}
+    {{ url('institute:institute_masterdashboard', args=[ttv2_role_ctx.institute.slug]) }}
+  {% else %}
+    {{ url('users:userdashboard') }}
+  {% endif %}
+{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebar_router.html" %}
+{% endblock %}
+
+{% block dashboard_body %}
+  {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+    {% include "template_v2/includes/ttv2_week_header_bar.html" %}
+  {% endif %}
+  <div id="ttv2AjaxContent"
+       class="ttv2-ajax-content-host"
+       data-ttv2-src="{{ request.get_full_path() }}{% if '?' in request.get_full_path() %}&{% else %}?{% endif %}ttv2_partial=1"
+       aria-busy="true">
+    {% include "template_v2/includes/ttv2_ajax_content_placeholder.html" %}
+  </div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+
+{# Shared table loader #}
+<script src="{{ staticv('js_new/student_table_ajax.js') }}"></script>
+
+{% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute' %}
+  {% include "template_v2/institute/institute_embed_runtime.html" %}
+  {% include "template_v2/institute/institute_dashboard_panel_bridge.html" %}
+  {% include "template_v2/includes/role_boot/institute.html" %}
+{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  {% include 'template20/institute/marketing_group_dashboard_additionaljs_rest.html' %}
+  {% include "template_v2/includes/role_boot/marketing_group.html" %}
+{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+  <script src="{{ staticv('js_new/institute_group_dashboard_boot.js') }}"></script>
+  {% include "template_v2/includes/role_boot/institute_group.html" %}
+{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}
+  {% include "template_v2/includes/role_boot/counselor.html" %}
+{% endif %}
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+

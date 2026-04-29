@@ -1,0 +1,202 @@
+{# Accounts page: institute-scoped accounts analytics (layout similar to screenshot). #}
+{% set a = (ttv2_accounts if ttv2_accounts is defined else {}) %}
+{% set time_period = a.get('time_period', '30days') %}
+{% set _role = (ttv2_role_ctx.role if (ttv2_role_ctx is defined and ttv2_role_ctx and ttv2_role_ctx.role) else '') %}
+
+{# Resolve page links for institute/group/marketing dashboards #}
+{% set payments_href = '#' %}
+{% set students_href = '#' %}
+{% if _role == 'institute_group' %}
+  {% set payments_href = url('institute:institutegroupdashboard_page', 'payments') %}
+  {% set students_href = url('institute:institutegroupdashboard_page', 'students') %}
+{% elif _role == 'marketing_group' %}
+  {% set payments_href = url('institute:marketinggroupdashboard_page', 'payments') %}
+  {% set students_href = url('institute:marketinggroupdashboard_page', 'students') %}
+{% else %}
+  {% if institute is defined and institute and institute.slug %}
+    {% set payments_href = url('institute:institutedashboard_page', institute.slug, 'payments') %}
+    {% set students_href = url('institute:institutedashboard_page', institute.slug, 'students') %}
+  {% endif %}
+{% endif %}
+
+<div class="d-flex justify-content-end align-items-center mb-3">
+  <div style="min-width:200px">
+    <select class="form-select" onchange="(function(v){var u=new URL(window.location.href);u.searchParams.set('period',v);window.location=u.toString();})(this.value)">
+      <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+      <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+      <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+      <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+      <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+      <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
+    </select>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="ttv2-card">
+      <div style="font-size:12px;color:var(--c-text3);">Total Registrations</div>
+      <div style="font-size:22px;font-weight:800;">
+        {% if a.get('total_registrations', 0) and students_href != '#' %}
+          <a href="{{ students_href }}" style="color:#2563eb;text-decoration:none;">{{ a.get('total_registrations', 0) }}</a>
+        {% else %}
+          <span style="color:#2563eb;">{{ a.get('total_registrations', 0) }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="ttv2-card">
+      <div style="font-size:12px;color:var(--c-text3);">Total Revenue</div>
+      <div style="font-size:22px;font-weight:800;">
+        {% if a.get('total_revenue', 0) and payments_href != '#' %}
+          <a href="{{ payments_href }}?period={{ time_period }}" style="color:#16a34a;text-decoration:none;">₹{{ "%.2f"|format(a.get('total_revenue', 0)) }}</a>
+        {% else %}
+          <span style="color:#16a34a;">₹{{ "%.2f"|format(a.get('total_revenue', 0)) }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="ttv2-card">
+      <div style="font-size:12px;color:var(--c-text3);">Total Prospects</div>
+      <div style="font-size:22px;font-weight:800;color:#0ea5e9;">{{ a.get('total_prospects', 0) }}</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="ttv2-card">
+      <div style="font-size:12px;color:var(--c-text3);">Converted Prospects</div>
+      <div style="font-size:22px;font-weight:800;color:#f59e0b;">{{ a.get('converted_prospects', 0) }}</div>
+    </div>
+  </div>
+</div>
+
+{% set ps = a.get('payment_status', {}) %}
+<div class="ttv2-card mb-3">
+  <div class="card-title">Payment Status Breakdown</div>
+  <div class="row mt-2">
+    <div class="col-md-4">
+      <div style="font-size:13px;">
+        Successful:
+        {% if ps.get('success', 0) and payments_href != '#' %}
+          <a href="{{ payments_href }}?period={{ time_period }}&status=success" style="font-weight:800;color:#16a34a;text-decoration:none;">{{ ps.get('success', 0) }}</a>
+        {% else %}
+          <span style="font-weight:800;color:#16a34a;">{{ ps.get('success', 0) }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div style="font-size:13px;">
+        Failed:
+        {% if ps.get('failed', 0) and payments_href != '#' %}
+          <a href="{{ payments_href }}?period={{ time_period }}&status=failed" style="font-weight:800;color:#dc2626;text-decoration:none;">{{ ps.get('failed', 0) }}</a>
+        {% else %}
+          <span style="font-weight:800;color:#dc2626;">{{ ps.get('failed', 0) }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div style="font-size:13px;">
+        Pending:
+        {% if ps.get('pending', 0) and payments_href != '#' %}
+          <a href="{{ payments_href }}?period={{ time_period }}&status=pending" style="font-weight:800;color:#f59e0b;text-decoration:none;">{{ ps.get('pending', 0) }}</a>
+        {% else %}
+          <span style="font-weight:800;color:#f59e0b;">{{ ps.get('pending', 0) }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="ttv2-card h-100">
+      <div class="card-title">Prospects Overview</div>
+      <div style="font-size:13px;line-height:1.9;">
+        <div>Total Prospects: <strong>{{ a.get('total_prospects', 0) }}</strong></div>
+        <div>Converted: <strong>{{ a.get('converted_prospects', 0) }}</strong></div>
+        <div>Pending: <strong>{{ a.get('pending_prospects', 0) }}</strong></div>
+        <div>Conversion Rate:
+          <strong>
+            {% set tp = a.get('total_prospects', 0) %}
+            {% if tp and tp > 0 %}
+              {{ "%.2f"|format((a.get('converted_prospects', 0) / tp * 100)) }}%
+            {% else %}
+              0%
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="ttv2-card h-100">
+      <div class="card-title">Revenue by Source</div>
+      <div class="table-responsive mt-2">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr><th>Source</th><th>Revenue</th><th>Count</th></tr>
+          </thead>
+          <tbody>
+            {% for item in a.get('revenue_by_source', []) %}
+              <tr>
+                <td>{{ item.get('metadata__source', 'Unknown') }}</td>
+                <td>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</td>
+                <td>{{ item.get('count', 0) }}</td>
+              </tr>
+            {% endfor %}
+            {% if not a.get('revenue_by_source', []) %}
+              <tr><td colspan="3" class="text-center" style="color:var(--c-text3);">No data available</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ttv2-card mb-3">
+  <div class="card-title">Failed Payments Analysis</div>
+  <div class="table-responsive mt-2">
+    <table class="table mb-0">
+      <thead><tr><th>Payment Type</th><th>Failure Count</th></tr></thead>
+      <tbody>
+        {% for item in a.get('failed_payments', []) %}
+          <tr><td>{{ item.get('event_name', 'Unknown') }}</td><td>{{ item.get('count', 0) }}</td></tr>
+        {% endfor %}
+        {% if not a.get('failed_payments', []) %}
+          <tr><td colspan="2" class="text-center" style="color:var(--c-text3);">No failed payments</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="ttv2-card">
+  <div class="card-title">Pending Payments</div>
+  <div class="table-responsive mt-2">
+    <table class="table mb-0">
+      <thead><tr><th>User</th><th>Event</th><th>Value</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for p in a.get('pending_payments_list', []) %}
+          <tr>
+            <td>{{ (p.get('user').email if p.get('user') else '-') }}</td>
+            <td>{{ p.get('event_name', 'Payment Pending') }}</td>
+            <td>₹{{ "%.2f"|format(p.get('amount', 0)) }}</td>
+            <td>
+              {% if p.get('created') %}
+                {{ p.get('created').strftime("%Y-%m-%d %H:%M") }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        {% if not a.get('pending_payments_list', []) %}
+          <tr><td colspan="4" class="text-center" style="color:var(--c-text3);">No pending payments</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+

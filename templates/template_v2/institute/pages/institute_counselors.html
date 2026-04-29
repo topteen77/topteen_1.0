@@ -82,6 +82,8 @@
       {% set students = c.students|default(c.get('students') if c is mapping else 0)|default(0) %}
       {% set opt_in = c.opt_in|default(c.get('opt_in') if c is mapping else '—')|default('—') %}
       {% set followup = c.followup|default(c.get('followup') if c is mapping else '—')|default('—') %}
+      {% set cid = c.id|default(c.get('id') if c is mapping else None) %}
+      {% set details_href = (url('counselor:CounselorDashboardView', cid) if cid else '#') %}
       <div class="ttv2-counselor-card">
         <div class="ttv2-counselor-card-top">
           <div class="ttv2-counselor-avatar">{{ (nm[0] if nm else 'C')|upper }}</div>
@@ -90,7 +92,11 @@
             <div class="ttv2-counselor-meta">{{ em }}</div>
           </div>
           <div class="ttv2-counselor-cta">
-            <button type="button" class="btn btn-sm btn-outline-secondary">Details</button>
+            {% if details_href != '#' %}
+              <a href="{{ details_href }}" class="btn btn-sm btn-outline-secondary">Details</a>
+            {% else %}
+              <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Details</button>
+            {% endif %}
           </div>
         </div>
         <div class="ttv2-counselor-metrics">

@@ -1,0 +1,17 @@
+<script>
+  // Counselor: bind student roster AJAX after partial inject
+  (function(){
+    window.ttv2AfterAjaxContentLoad = function(){
+      try {
+        // Prefer the v2 student-page initializer (binds Grid/List toggle + loads rows)
+        if (typeof window.ttv2InitStudentTableAfterBodyInject === 'function') {
+          window.ttv2InitStudentTableAfterBodyInject();
+        } else if (typeof initStudentTableAJAX === 'function') {
+          // Fallback (older initializer)
+          initStudentTableAJAX();
+        }
+      } catch (e) {}
+    };
+  })();
+</script>
+

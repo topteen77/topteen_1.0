@@ -1,0 +1,63 @@
+{# Sessions page: institute follow-ups (sessions). If no data, show disabled dummy rows. #}
+{% set rows = (ttv2_sessions if ttv2_sessions is defined else []) %}
+{% set is_dummy = (ttv2_sessions_is_dummy if ttv2_sessions_is_dummy is defined else False) %}
+
+<div class="ttv2-card">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="card-title mb-0">Sessions</div>
+    {% if is_dummy %}
+      <div style="font-size:11px;color:var(--c-text3);">No session data found. Showing sample rows (disabled).</div>
+    {% else %}
+      <div style="font-size:11px;color:var(--c-text3);">Showing recent counselor follow-ups.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="ttv2-card p-0 mt-3" {% if is_dummy %}style="opacity:.55"{% endif %}>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Counselor</th>
+          <th>Student</th>
+          <th>Mode</th>
+          <th>Status</th>
+          <th>Next follow-up</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if rows %}
+          {% for r in rows %}
+            <tr {% if is_dummy %}style="pointer-events:none"{% endif %}>
+              <td>{{ r.get('when', '-') }}</td>
+              <td class="text-truncate" style="max-width:220px">{{ r.get('counselor', '-') }}</td>
+              <td class="text-truncate" style="max-width:260px">{{ r.get('student', '-') }}</td>
+              <td>{{ r.get('mode', '-') }}</td>
+              <td>
+                {% set st = r.get('status','') %}
+                {% if st in ['completed','Completed'] %}
+                  <span class="badge bg-success">Completed</span>
+                {% elif st in ['pending','Pending'] %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% elif st in ['follow-up','Follow-up'] %}
+                  <span class="badge bg-info text-dark">Follow-up</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ st if st else '—' }}</span>
+                {% endif %}
+              </td>
+              <td>{{ r.get('next', '-') }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+              No sessions found.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+

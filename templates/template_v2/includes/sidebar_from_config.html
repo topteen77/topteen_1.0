@@ -1,0 +1,46 @@
+{# Render sidebar from `ttv2_role_ctx.nav.sections` config #}
+<div class="ttv2-counselor-sidebar">
+  <div class="ttv2-counselor-brand">
+    <div class="ttv2-counselor-brand-row">
+      <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+    </div>
+    <div class="tagline">{{ ttv2_role_ctx.tagline|default('Dashboard v2.0') }}</div>
+  </div>
+
+  {% if ttv2_role_ctx.profile is defined and ttv2_role_ctx.profile %}
+    {% set profile_name = ttv2_role_ctx.profile.name|default('') %}
+    {% set profile_joined = ttv2_role_ctx.profile.joined|default('') %}
+    {% set profile_badge = ttv2_role_ctx.profile.badge|default('') %}
+    {% include "template_v2/includes/sidebar_profile_card.html" %}
+  {% endif %}
+
+  <div class="ttv2-counselor-nav">
+    {% for sec in (ttv2_role_ctx.nav.sections if (ttv2_role_ctx is defined and ttv2_role_ctx.nav is defined and ttv2_role_ctx.nav.sections is defined) else []) %}
+      {% set _sec_title = (sec.get('title') if sec is mapping else (sec.title if sec.title is defined else '')) %}
+      {% if _sec_title %}<div class="ttv2-counselor-nav-title">{{ _sec_title }}</div>{% endif %}
+      {% set _items = (sec.get('items') if sec is mapping else (sec.items if sec.items is defined else [])) %}
+      {% for item in (_items or []) %}
+        {% set _href = (item.get('href') if item is mapping else (item.href if item.href is defined else '#')) %}
+        {% set _key = (item.get('key') if item is mapping else (item.key if item.key is defined else '')) %}
+        {% set _active = (item.get('active') if item is mapping else (item.active if item.active is defined else false)) %}
+        {% set _disabled = (item.get('disabled') if item is mapping else (item.disabled if item.disabled is defined else false)) %}
+        {% set _no_ajax = (item.get('no_ajax') if item is mapping else (item.no_ajax if item.no_ajax is defined else false)) %}
+        {% set _dot = (item.get('dot') if item is mapping else (item.dot if item.dot is defined else '#6c7dff')) %}
+        {% set _label = (item.get('label') if item is mapping else (item.label if item.label is defined else 'Link')) %}
+        <a href="{{ _href|default('#') }}"
+           {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}
+           class="{% if _active %}active{% endif %} {% if _disabled %}ttv2-nav-disabled{% endif %}"
+           {% if _disabled %}aria-disabled="true"{% endif %}
+           {% if _no_ajax %}data-no-ttv2-ajax="1"{% endif %}>
+          <span class="ttv2-counselor-dot" style="background:{{ _dot|default('#6c7dff') }}"></span>{{ _label|default('Link') }}
+        </a>
+      {% endfor %}
+    {% endfor %}
+
+    <div class="ttv2-counselor-nav-title">Account</div>
+    <a href="{{ url('users:logout') }}" class="ttv2-counselor-quicklink">
+      <i class='bx bx-log-out'></i> Logout
+    </a>
+  </div>
+</div>
+

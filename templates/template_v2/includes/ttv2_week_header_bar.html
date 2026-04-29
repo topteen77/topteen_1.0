@@ -1,5 +1,8 @@
-{# Week header bar: render OUTSIDE AJAX host so dropdown is always clickable. #}
-{% if ttv2_analytics is defined and ttv2_analytics %}
+{# Week header bar: render OUTSIDE AJAX host so dropdown is always clickable.
+   Should appear ONLY on dashboard pages. #}
+{% if ttv2_analytics is defined and ttv2_analytics and (ttv2_page|default('dashboard')) == 'dashboard' %}
+{# Extra guard: if page context is missing/mis-set, avoid showing on non-dashboard routes. #}
+{% if request is not defined or not request.path or (('/students/' not in request.path) and ('/counselors/' not in request.path) and ('/sessions/' not in request.path)) %}
 <div class="ttv2-week-header mb-3" data-ttv2-week-header>
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
@@ -24,5 +27,6 @@
     </div>
   </div>
 </div>
+{% endif %}
 {% endif %}
 

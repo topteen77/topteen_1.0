@@ -3,12 +3,21 @@
   <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
   {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
+    {% include "template_v2/institute/pages/institute_unassigned_students.html" %}
     {% include "template20/institute/institute_dashboard_body.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'students' %}
     {% include "template_v2/institute/pages/institute_students.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'counselors' %}
     {% include "template_v2/institute/pages/institute_counselors.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
+    {% include "template_v2/institute/pages/institute_accounts.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'payments' %}
+    {% include "template_v2/institute/pages/institute_payments.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'sessions' %}
+    {% include "template_v2/institute/pages/institute_sessions.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'streams_capacity' %}
+    {% include "template_v2/institute/pages/institute_streams_capacity.html" %}
   {% else %}
     <div class="ttv2-card">
       <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>

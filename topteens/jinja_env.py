@@ -175,6 +175,27 @@ def seo_year(request):
     abv= globals(request)
     return abv['seo_year']
 def custom_reverse(viewname, *args, **kwargs):
+    """
+    Backwards-compatible reverse helper used by older templates as `url_()`.
+    Historically some templates call: url_('view', args=[...]) which is NOT a valid
+    `django.urls.reverse()` signature. Normalize those inputs here.
+    """
+    # Old style: url_('view', args=[...])
+    if 'args' in kwargs:
+        args_value = kwargs.pop('args')
+        if isinstance(args_value, (list, tuple)):
+            args = tuple(args_value)
+        elif args_value is None:
+            args = tuple(args)
+        else:
+            args = tuple([args_value])
+    # Old style: url_('view', kwargs={...})
+    if 'kwargs' in kwargs:
+        kw = kwargs.pop('kwargs') or {}
+        if isinstance(kw, dict):
+            # Don't clobber explicit kwargs passed alongside
+            for k, v in kw.items():
+                kwargs.setdefault(k, v)
     return reverse(viewname, args=args, kwargs=kwargs)
 
 def jinja_url(viewname, *args, **kwargs):
@@ -369,7 +390,7 @@ def environment(**options):
         'static': staticfiles_storage.url,
         'staticv': staticv,
         'url': jinja_url,
-        'url_':custom_reverse,
+        'url_': custom_reverse,
         'img_tag':img_tag,
         'MEDIA_URL': settings.MEDIA_URL,
         'now':datetime.now(),

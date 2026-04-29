@@ -1,0 +1,22 @@
+<script>
+  // Institute group: boot hooks after AJAX inject
+  (function(){
+    window.ttv2AfterAjaxContentLoad = function(){
+      try {
+        window._ttv2InstituteGroupDashboardBooted = false;
+        if (typeof window.ttv2BootInstituteGroupDashboard === 'function') {
+          window.ttv2BootInstituteGroupDashboard();
+        }
+      } catch (e) {}
+      try {
+        var params = new URLSearchParams(window.location.search || '');
+        var sec = (params.get('ttv2_section') || '').trim();
+        if (sec === 'students') {
+          var el = document.getElementById('sec-group-students');
+          if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+      } catch (e2) {}
+    };
+  })();
+</script>
+

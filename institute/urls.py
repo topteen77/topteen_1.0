@@ -63,6 +63,10 @@ urlpatterns = [
     path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
     # Must be before <slug:slug>/ so "heatmap" is not captured as an institute slug
     path("<slug:slug>/heatmap/", views.InstituteHeatmapView.as_view(), name="instituteheatmap"),
+    # Assign institute student to counselor (AJAX)
+    path("<slug:slug>/assign-counselor/", views.AssignStudentToCounselorView.as_view(), name="assign_student_counselor"),
+    # Change/unassign counselor for a student (AJAX)
+    path("<slug:slug>/set-counselor/", views.SetStudentCounselorView.as_view(), name="set_student_counselor"),
     # Backwards-compatible name used across templates/APIs
     path("<slug:slug>/dashboard/", views.InstituteDashboardView.as_view(), name="institute_masterdashboard"),
     path("<slug:slug>/<str:page>/", views.InstituteDashboardView.as_view(), name="institutedashboard_page"),

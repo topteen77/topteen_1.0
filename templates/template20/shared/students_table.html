@@ -25,7 +25,11 @@
 #}
 
 <!-- Students Table Container (for AJAX loading) -->
-<div id="students-table-container">
+{% set _set_counselor_url = '#' %}
+{% if institute is defined and institute and institute.slug %}
+  {% set _set_counselor_url = url('institute:set_student_counselor', institute.slug) %}
+{% endif %}
+<div id="students-table-container" data-ttv2-set-counselor-url="{{ _set_counselor_url }}">
 <div class="table-responsive">
   <table class="table table-hover">
     <thead>
@@ -36,6 +40,7 @@
         <th>Stream</th>
         {% endif %}
         <th>Name</th>
+        <th>Advisor</th>
         {% if table_config and table_config.show_email %}
         <th>Email</th>
         {% endif %}
@@ -76,6 +81,7 @@
           {% endif %}
           
           <tr class="student-row"
+              data-sm-id="{{ ts.id if ts is defined else '' }}"
               data-student-id="{{ ts.student.id if ts.student else '' }}"
               data-student-name="{{ ts.student.name if (ts.student and ts.student.name) else '-' }}"
               data-student-email="{{ ts.student.email if ts.student else '-' }}"
@@ -98,6 +104,41 @@
               {% if ts.student and ts.student.name %}
               <a href="#">{{ ts.student.name }}</a>
               {% else %}-{% endif %}
+            </td>
+            <td>
+              {% set _adv_name = '-' %}
+              {% if ts and ts.counselors is defined %}
+                {% set _adv_list = ts.counselors.all() %}
+                {% if _adv_list and (_adv_list|length) > 0 %}
+                  {% set _adv_name = _adv_list[0].counselor_name|default('-') %}
+                {% endif %}
+              {% endif %}
+
+              {% if table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined) %}
+                <div class="d-flex flex-column gap-1">
+                  <div style="font-weight:600;">{{ _adv_name }}</div>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select form-select-sm" style="max-width:180px" data-ttv2-adv-select>
+                      <option value="">Unassigned</option>
+                      {% for c in ttv2_counselor_options %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                      {% endfor %}
+                    </select>
+                    <a href="#"
+                       class="btn btn-sm btn-link p-0 text-danger"
+                       style="text-decoration:none"
+                       data-ttv2-adv-unassign
+                       title="Unassign counselor">
+                      Unassign
+                    </a>
+                  </div>
+                  <div style="font-size:11px;color:var(--c-text3);">
+                    Changing the dropdown saves automatically.
+                  </div>
+                </div>
+              {% else %}
+                {{ _adv_name }}
+              {% endif %}
             </td>
             {% if table_config and table_config.show_email %}
             <td>{{ ts.student.email if ts.student else '-' }}</td>

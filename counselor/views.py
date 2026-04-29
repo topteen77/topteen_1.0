@@ -1307,7 +1307,11 @@ def Students_follow_up(request, coun_id):
     
     # Use centralized role-based function to get students - ALL students from counselor's institute (if associated)
     # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
-    students_to_display = get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+    students_to_display = (
+        get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+        .select_related("student", "class_and_section", "institute")
+        .prefetch_related("counselors")
+    )
     
     # Get assigned student IDs separately for follow-up filtering
     # Follow-ups should only be shown for students actually assigned to this counselor
@@ -2110,7 +2114,11 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
     # Use optimized queries with select_related and prefetch_related
     # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
     # This returns ONLY assigned students (matching production code)
-    students_to_display = get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+    students_to_display = (
+        get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+        .select_related("student", "class_and_section", "institute")
+        .prefetch_related("counselors")
+    )
     
     # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
     assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
@@ -2220,7 +2228,8 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
     context = {
         'counselors': counselor,
         'coun_id': coun_id,
-        'counselor_institute': counselor_institute,  # Add institute to context for verification
+        'counselor_institute': counselor_institute,  # counselor-scoped institute
+        'institute': counselor_institute,  # v2 templates expect `institute`
         'per_page': per_page,
         'class_and_sections': class_and_sections,
         'class_counts': class_counts,
@@ -2240,9 +2249,53 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
         'counselor_course_certificate_url': counselor_course_certificate_url,
     }
 
+    # New assigned students: derive from notifications emitted by institute assignment.
+    try:
+        from notifications.models import Notification
+
+        counselor_user = getattr(counselor, "coun_user", None)
+        if counselor_user and getattr(counselor_user, "id", None):
+            qs = Notification.objects.filter(
+                recipient=counselor_user,
+                event_type="institute.student_assigned",
+            ).order_by("-created")
+            # Consider last 7 days as "new" (and also covers unread if you don't dismiss).
+            cutoff = timezone.now() - timedelta(days=7)
+            new_qs = qs.filter(created__gte=cutoff)
+            context["ttv2_new_assigned_count"] = int(new_qs.count())
+            # For filtering on Students page (?new_assigned=1)
+            try:
+                ids = []
+                for p in new_qs.values_list("payload", flat=True)[:500]:
+                    if isinstance(p, dict):
+                        sid = p.get("student_id")
+                        if sid:
+                            try:
+                                ids.append(int(sid))
+                            except Exception:
+                                pass
+                context["ttv2_new_assigned_student_ids"] = list({x for x in ids if x})
+            except Exception:
+                context["ttv2_new_assigned_student_ids"] = []
+        else:
+            context["ttv2_new_assigned_count"] = 0
+            context["ttv2_new_assigned_student_ids"] = []
+    except Exception:
+        context["ttv2_new_assigned_count"] = 0
+        context["ttv2_new_assigned_student_ids"] = []
+
     # For v2: allow separate routes to pre-select a section (dashboard/students/etc.)
     if initial_view:
         context["ttv2_initial_view"] = str(initial_view)
+        # Unified v2 shell is page-based (like institute). Map initial view -> page slug.
+        try:
+            _iv = str(initial_view).strip().lower()
+        except Exception:
+            _iv = ""
+        if _iv in ("students",):
+            context["ttv2_page"] = "students"
+        else:
+            context["ttv2_page"] = "dashboard"
     if getattr(request, "ttv2_auto_print", False):
         context["ttv2_auto_print"] = True
 
@@ -2273,14 +2326,14 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
     except Exception:
         template_version = "v1"
     tpl = (
-        "template_v2/counselor/counselor_dashboard.html"
+        "template_v2/dashboard_unified.html"
         if template_version == "v2"
         else "template20/counselor/counselor_dashboard.html"
     )
 
     # v2 partial rendering for fast AJAX shell boot
     if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
-        return render(request, "template_v2/counselor/counselor_dashboard_body.html", context)
+        return render(request, "template_v2/dashboard_unified_body.html", context)
     return render(request, tpl, context)
 
 
@@ -2332,6 +2385,34 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
     students_to_display = get_students_by_role(
         request.user, counselor=counselor, institute=counselor_institute
     )
+
+    # Filter: only newly assigned students (based on assignment notifications, last 7 days)
+    if (request.GET.get("new_assigned") or "").strip() == "1":
+        try:
+            from notifications.models import Notification
+
+            counselor_user = getattr(counselor, "coun_user", None)
+            if counselor_user and getattr(counselor_user, "id", None):
+                cutoff = timezone.now() - timedelta(days=7)
+                qs = Notification.objects.filter(
+                    recipient=counselor_user,
+                    event_type="institute.student_assigned",
+                    created__gte=cutoff,
+                ).order_by("-created")
+                ids = []
+                for p in qs.values_list("payload", flat=True)[:500]:
+                    if isinstance(p, dict):
+                        sid = p.get("student_id")
+                        if sid:
+                            try:
+                                ids.append(int(sid))
+                            except Exception:
+                                pass
+                ids = list({x for x in ids if x})
+                if ids and hasattr(students_to_display, "filter"):
+                    students_to_display = students_to_display.filter(student_id__in=ids)
+        except Exception:
+            pass
     
     # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
     assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
@@ -2392,6 +2473,13 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
     }
     
     if template_version == "v2":
+        display = (request.GET.get("display") or "").strip().lower() or "cards"
+        if display == "cards":
+            return render(
+                request,
+                "template_v2/institute/pages/student_roster_cards.html",
+                context,
+            )
         return render(
             request,
             "template_v2/counselor/pages/counselor_students_table.html",

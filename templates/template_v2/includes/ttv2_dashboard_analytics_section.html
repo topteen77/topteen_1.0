@@ -18,6 +18,12 @@
     ) %}
     {% set _psych_graph_href = '#ttv2DaPsych' %}
     {% set _couns_href = (url('institute:institutedashboard_page', args=[_inst_slug, 'counselors']) if _inst_slug else '') %}
+    {% set _new_assigned = (ttv2_new_assigned_count|default(0) if (ttv2_new_assigned_count is defined) else 0) %}
+    {% set _new_assigned_href = (
+      (url('counselor:CounselorDashboardSection', args=[coun_id, 'students']) ~ '?new_assigned=1')
+      if (_is_counselor and coun_id is defined and coun_id)
+      else ''
+    ) %}
 
     <a class="id-stat-card ttv2-stat-link {% if not _students_href %}ttv2-stat-link--disabled{% endif %}"
        href="{{ _students_href if _students_href else '#' }}"
@@ -38,6 +44,19 @@
         <p class="id-stat-label lh-sm">{% if request.GET.get('ttv2_week_start') %}Psychometric attempts{% else %}Psychometric{% endif %}</p>
       </div>
     </a>
+
+    {# Counselor-only: New assigned KPI card #}
+    {% if _ttv2_role == 'counselor' %}
+      <a class="id-stat-card ttv2-stat-link {% if not _new_assigned_href %}ttv2-stat-link--disabled{% endif %}"
+         href="{{ _new_assigned_href if _new_assigned_href else '#' }}"
+         {% if not _new_assigned_href %}aria-disabled="true"{% endif %}>
+        <div class="id-stat-icon id-stat-icon--green"><i class="bx bx-bell" aria-hidden="true"></i></div>
+        <div class="id-stat-body">
+          <p class="id-stat-value">{{ _new_assigned }}</p>
+          <p class="id-stat-label lh-sm">New assigned</p>
+        </div>
+      </a>
+    {% endif %}
 
     {# Credits + counselors KPI cards should be hidden only for counselor dashboards. #}
     {% if _ttv2_role != 'counselor' %}

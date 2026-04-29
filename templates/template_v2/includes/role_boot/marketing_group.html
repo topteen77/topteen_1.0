@@ -1,0 +1,21 @@
+<script>
+  // Marketing group: boot hooks after AJAX inject
+  (function(){
+    window.ttv2AfterAjaxContentLoad = function(){
+      try {
+        if (typeof window.ttv2BootMarketingGroupDashboard === 'function') {
+          window.ttv2BootMarketingGroupDashboard();
+        }
+      } catch (e) {}
+      try {
+        var params = new URLSearchParams(window.location.search || '');
+        var sec = (params.get('ttv2_section') || '').trim();
+        if (sec === 'students') {
+          var el = document.getElementById('sec-marketing-students');
+          if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+      } catch (e2) {}
+    };
+  })();
+</script>
+

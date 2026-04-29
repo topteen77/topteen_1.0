@@ -173,6 +173,22 @@
 
           <div class="id-panel id-toolbar ">
             <h2 class="id-panel-title mb-3">Total Students</h2>
+              <input type="hidden" name="display" id="ttv2DisplayInput" form="filter-form" value="{{ request.GET.get('display','cards') }}">
+              {% set _display_mode = (request.GET.get('display','cards') or 'cards') %}
+              <div class="btn-group ms-auto" role="group" aria-label="Display" style="margin-bottom:12px;">
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary {% if _display_mode == 'cards' %}active{% endif %}"
+                        data-ttv2-display="cards"
+                        aria-pressed="{% if _display_mode == 'cards' %}true{% else %}false{% endif %}">
+                  Grid
+                </button>
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary {% if _display_mode == 'list' %}active{% endif %}"
+                        data-ttv2-display="list"
+                        aria-pressed="{% if _display_mode == 'list' %}true{% else %}false{% endif %}">
+                  List
+                </button>
+              </div>
             <button type="button" class="id-mobile-toggle-btn id-filter-toggle" id="idFilterOpenBtn">
               <i class='bx bx-filter-alt'></i> Filters
             </button>

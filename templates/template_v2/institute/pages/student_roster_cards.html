@@ -14,6 +14,18 @@
         {% set mi = (r.mi_attempted if (r and r.mi_attempted) else false) %}
         {% set eq = (r.eq_attempted if (r and r.eq_attempted) else false) %}
         {% set abroad = (r.abroad_exploring if (r and r.abroad_exploring) else false) %}
+        {# Advisor / counselor name (first assigned) #}
+        {% set _adv = '' %}
+        {% if sm and sm.counselors is defined %}
+          {% set _adv_list = sm.counselors.all() %}
+          {% if _adv_list and (_adv_list|length) > 0 %}
+            {% set _adv = _adv_list[0].counselor_name|default('') %}
+          {% endif %}
+        {% endif %}
+        {% set _set_counselor_url = '#' %}
+        {% if institute is defined and institute and institute.slug %}
+          {% set _set_counselor_url = url('institute:set_student_counselor', institute.slug) %}
+        {% endif %}
       <div class="ttv2-student-card"
            role="button"
            tabindex="0"
@@ -27,6 +39,7 @@
               <div class="ttv2-student-meta">
                 {{ cas.class_and_section if (cas and cas.class_and_section) else '-' }}
                 {% if cas and cas.stream %} · {{ cas.stream }}{% endif %}
+                {% if _adv %} · Advisor: {{ _adv }}{% endif %}
               </div>
             </div>
           </div>
@@ -75,6 +88,15 @@
               Single PDF
             </a>
             <a class="btn btn-sm btn-outline-secondary disabled" href="#" aria-disabled="true">Profile</a>
+            {% if _adv and _set_counselor_url != '#' %}
+              <button type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      data-ttv2-adv-card-unassign
+                      data-set-url="{{ _set_counselor_url }}"
+                      data-sm-id="{{ sm.id }}">
+                Unassign
+              </button>
+            {% endif %}
           </div>
         </div>
       {% endfor %}

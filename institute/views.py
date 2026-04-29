@@ -451,7 +451,7 @@ class MarketingGroupDashboardView(TemplateView):
         return [
             _dashboard_template(
                 "template20/institute/marketing_group_dashboard.html",
-                "template_v2/institute/marketing_group_dashboard.html",
+                "template_v2/dashboard_unified.html",
             )
         ]
 
@@ -900,7 +900,7 @@ class MarketingGroupDashboardView(TemplateView):
             except Exception:
                 template_version = "v1"
             if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
-                return render(request, "template_v2/institute/marketing_group_dashboard_body.html", ctx)
+                return render(request, "template_v2/dashboard_unified_body.html", ctx)
             return render(request, _dashboard_primary_template_name(self), ctx)
     
     def get_search_parameters(self, request):
@@ -1074,7 +1074,7 @@ class InstituteGroupDashboardView(TemplateView):
         return [
             _dashboard_template(
                 "template20/institute/institute_group_dashboard.html",
-                "template_v2/institute/institute_group_dashboard.html",
+                "template_v2/dashboard_unified.html",
             )
         ]
 
@@ -1501,7 +1501,7 @@ class InstituteGroupDashboardView(TemplateView):
             except Exception:
                 template_version = "v1"
             if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
-                return render(request, "template_v2/institute/institute_group_dashboard_body.html", ctx)
+                return render(request, "template_v2/dashboard_unified_body.html", ctx)
             return render(request, _dashboard_primary_template_name(self), ctx)
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -1562,7 +1562,7 @@ class InstituteDashboardView(TemplateView):
         return [
             _dashboard_template(
                 "template20/institute/institute_dashboard.html",
-                "template_v2/institute/institute_dashboard.html",
+                "template_v2/dashboard_unified.html",
             )
         ]
     
@@ -2365,6 +2365,38 @@ class InstituteDashboardView(TemplateView):
         # Optimize: Batch fetch counselor data and FollowUpStatus records
         counselors = Counselor.objects.filter(counselor_admin=institute).select_related('counselor_admin')
         counselor_ids = [c.id for c in counselors]
+
+        # v2 dashboard: Unassigned students (not mapped to any counselor)
+        ttv2_unassigned_rows = []
+        ttv2_counselor_options = []
+        try:
+            unassigned_qs = (
+                stu_manage.filter(counselors__isnull=True)
+                .select_related("student", "class_and_section")
+                .order_by("-created")
+            )
+            unassigned_rows = []
+            for sm in list(unassigned_qs[:25]):
+                u = getattr(sm, "student", None)
+                cas = getattr(sm, "class_and_section", None)
+                unassigned_rows.append(
+                    {
+                        "sm_id": sm.id,
+                        "student_id": getattr(sm, "student_id", None),
+                        "name": getattr(u, "name", None) or getattr(u, "email", None) or "Student",
+                        "email": getattr(u, "email", None) or "",
+                        "class": getattr(cas, "class_and_section", None) or "",
+                        "stream": getattr(cas, "stream", None) or "",
+                    }
+                )
+            ttv2_unassigned_rows = unassigned_rows
+            ttv2_counselor_options = [
+                {"id": c.id, "name": getattr(c, "counselor_name", "") or f"Counselor {c.id}"}
+                for c in counselors
+            ]
+        except Exception:
+            ttv2_unassigned_rows = []
+            ttv2_counselor_options = []
         
         # Batch fetch all FollowUpStatus records for all counselors at once
         all_followups = FollowUpStatus.objects.filter(counselor_id__in=counselor_ids).select_related('counselor')
@@ -2487,6 +2519,8 @@ class InstituteDashboardView(TemplateView):
         ctx['test_result_count']=ptr_count1  # Just count
         ctx['counselor_list']= counselors     
         ctx['counselor_data_list']= counselor_data_list
+        ctx["ttv2_unassigned_students"] = ttv2_unassigned_rows
+        ctx["ttv2_counselor_options"] = ttv2_counselor_options
         ctx['sessions_data_json']= sessions_data_json 
         ctx['streams'] = streams  # Empty for initial load
         ctx['higher_class_results'] = {}  # Empty for initial load
@@ -2527,8 +2561,10 @@ class InstituteDashboardView(TemplateView):
         if (request.GET.get("psychometric_pdf") or "").strip() == "1":
             slug = kwargs.get("slug")
             institute = get_object_or_404(Institute, slug=slug)
-            stu_manage = get_students_by_role(request.user, institute=institute).select_related(
-                "student", "class_and_section", "institute"
+            stu_manage = (
+                get_students_by_role(request.user, institute=institute)
+                .select_related("student", "class_and_section", "institute")
+                .prefetch_related("counselors")
             )
             uids = [int(x) for x in stu_manage.values_list("student_id", flat=True) if x]
             try:
@@ -2715,13 +2751,427 @@ class InstituteDashboardView(TemplateView):
             data=ctx.get('stu')
             return self.get_filter_data(request,data)
 
+        # v2 "Payments" page: show payments scoped to this institute's students.
+        if (ctx.get("ttv2_page") or "").strip().lower() == "payments":
+            try:
+                stu_qs = ctx.get("stu")
+                if hasattr(stu_qs, "values_list"):
+                    uids = [int(x) for x in stu_qs.values_list("student_id", flat=True) if x]
+                else:
+                    uids = []
+
+                uids = list({x for x in uids if x})
+                payments_rows = []
+                status_filter = (request.GET.get("status") or "").strip().lower()
+                # allow: success / failed / pending
+                if uids:
+                    from payments.models import Payment
+                    from psychometric_tests.models import PsychometricTestPayment
+                    from skilllab.models import SkilllabCoursePayment
+                    from core import choices as core_choices
+
+                    def _yesno_to_status(v):
+                        try:
+                            return "Successful" if int(v) == int(core_choices.YesNoChoices.YES) else "Failed"
+                        except Exception:
+                            return "—"
+
+                    # Psychometric test payments
+                    for p in (
+                        PsychometricTestPayment.objects.filter(user_id__in=uids)
+                        .select_related("user")
+                        .order_by("-created")[:500]
+                    ):
+                        st = _yesno_to_status(getattr(p, "is_success", None))
+                        if status_filter in ("success", "successful") and st != "Successful":
+                            continue
+                        if status_filter in ("failed", "fail") and st != "Failed":
+                            continue
+                        payments_rows.append(
+                            {
+                                "when": getattr(p, "created", None).strftime("%Y-%m-%d %H:%M") if getattr(p, "created", None) else "-",
+                                "user": (getattr(getattr(p, "user", None), "email", "") or "-"),
+                                "kind": getattr(p, "get_test_name", lambda: "Psychometric Test")(),
+                                "amount": getattr(p, "amount", 0) or 0,
+                                "status": st,
+                            }
+                        )
+
+                    # Skilllab course payments
+                    for p in (
+                        SkilllabCoursePayment.objects.filter(user_id__in=uids)
+                        .select_related("user", "skilllab_course")
+                        .order_by("-created")[:500]
+                    ):
+                        course = getattr(p, "skilllab_course", None)
+                        st = _yesno_to_status(getattr(p, "is_success", None))
+                        if status_filter in ("success", "successful") and st != "Successful":
+                            continue
+                        if status_filter in ("failed", "fail") and st != "Failed":
+                            continue
+                        payments_rows.append(
+                            {
+                                "when": getattr(p, "created", None).strftime("%Y-%m-%d %H:%M") if getattr(p, "created", None) else "-",
+                                "user": (getattr(getattr(p, "user", None), "email", "") or "-"),
+                                "kind": ("Skilllab: %s" % (getattr(course, "name", "") or "Course")),
+                                "amount": getattr(p, "amount", 0) or 0,
+                                "status": st,
+                            }
+                        )
+
+                    # Generic gateway payments (if used elsewhere)
+                    for p in (
+                        Payment.objects.filter(user_id__in=uids)
+                        .select_related("user")
+                        .order_by("-created")[:500]
+                    ):
+                        st = _yesno_to_status(getattr(p, "is_success", None))
+                        # "pending" filter: failed rows that look like pending attempt (order id exists, payment id missing)
+                        if status_filter in ("pending",):
+                            if not (
+                                getattr(p, "gateway_order_id", None)
+                                and not getattr(p, "gateway_payment_id", None)
+                                and st == "Failed"
+                            ):
+                                continue
+                            st = "Pending"
+                        elif status_filter in ("success", "successful") and st != "Successful":
+                            continue
+                        elif status_filter in ("failed", "fail") and st != "Failed":
+                            continue
+                        payments_rows.append(
+                            {
+                                "when": getattr(p, "created", None).strftime("%Y-%m-%d %H:%M") if getattr(p, "created", None) else "-",
+                                "user": (getattr(getattr(p, "user", None), "email", "") or "-"),
+                                "kind": getattr(p, "get_obj_type_display", lambda: "Payment")(),
+                                "amount": getattr(p, "amount", 0) or 0,
+                                "status": st,
+                            }
+                        )
+
+                # Sort combined rows newest-first (string date format is sortable here).
+                payments_rows.sort(key=lambda r: r.get("when") or "", reverse=True)
+                ctx["ttv2_institute_payments"] = payments_rows
+            except Exception:
+                ctx["ttv2_institute_payments"] = []
+
+        # v2 "Accounts" page: institute-scoped accounts analytics (similar to user_analytics accounts dashboard).
+        if (ctx.get("ttv2_page") or "").strip().lower() == "accounts":
+            try:
+                from django.utils import timezone
+                from datetime import timedelta
+                from django.db.models import Sum
+                from core import choices as core_choices
+                from users.models import User
+                from payments.models import Payment
+                from psychometric_tests.models import PsychometricTestPayment
+                from skilllab.models import SkilllabCoursePayment
+
+                def _date_range_from_period(period, default_days=30):
+                    end = timezone.now()
+                    p = (period or "").strip()
+                    if p == "today":
+                        start = end.replace(hour=0, minute=0, second=0, microsecond=0)
+                    elif p == "yesterday":
+                        start = (end - timedelta(days=1)).replace(
+                            hour=0, minute=0, second=0, microsecond=0
+                        )
+                        end = start + timedelta(days=1)
+                    elif p == "7days":
+                        start = end - timedelta(days=7)
+                    elif p == "30days":
+                        start = end - timedelta(days=30)
+                    elif p == "90days":
+                        start = end - timedelta(days=90)
+                    elif p == "alltime":
+                        return None, None
+                    else:
+                        start = end - timedelta(days=default_days)
+                    return start, end
+
+                def _status_label(is_success):
+                    try:
+                        return (
+                            "Successful"
+                            if int(is_success) == int(core_choices.YesNoChoices.YES)
+                            else "Failed"
+                        )
+                    except Exception:
+                        return "—"
+
+                stu_qs = ctx.get("stu")
+                if hasattr(stu_qs, "values_list"):
+                    uids = [int(x) for x in stu_qs.values_list("student_id", flat=True) if x]
+                else:
+                    uids = []
+                uids = list({x for x in uids if x})
+
+                time_period = (request.GET.get("period") or "30days").strip()
+                start_date, end_date = _date_range_from_period(time_period, default_days=30)
+
+                # Registrations: count institute students created in the selected period.
+                reg_qs = User.objects.filter(id__in=uids)
+                if start_date is not None:
+                    reg_qs = reg_qs.filter(created__gte=start_date, created__lte=end_date)
+                total_registrations = reg_qs.count()
+
+                # Payments / revenue across models.
+                def _filter_by_date(qs):
+                    if start_date is None:
+                        return qs
+                    return qs.filter(created__gte=start_date, created__lte=end_date)
+
+                ptp_s = _filter_by_date(
+                    PsychometricTestPayment.objects.filter(
+                        user_id__in=uids, is_success=core_choices.YesNoChoices.YES
+                    )
+                )
+                ptp_f = _filter_by_date(
+                    PsychometricTestPayment.objects.filter(
+                        user_id__in=uids, is_success=core_choices.YesNoChoices.NO
+                    )
+                )
+                slp_s = _filter_by_date(
+                    SkilllabCoursePayment.objects.filter(
+                        user_id__in=uids, is_success=core_choices.YesNoChoices.YES
+                    )
+                )
+                slp_f = _filter_by_date(
+                    SkilllabCoursePayment.objects.filter(
+                        user_id__in=uids, is_success=core_choices.YesNoChoices.NO
+                    )
+                )
+                pay_s = _filter_by_date(
+                    Payment.objects.filter(user_id__in=uids, is_success=core_choices.YesNoChoices.YES)
+                )
+                pay_f = _filter_by_date(
+                    Payment.objects.filter(user_id__in=uids, is_success=core_choices.YesNoChoices.NO)
+                )
+
+                total_revenue = 0
+                for qs in (ptp_s, slp_s, pay_s):
+                    try:
+                        total_revenue += float(qs.aggregate(total=Sum("amount"))["total"] or 0)
+                    except Exception:
+                        pass
+
+                payment_status = {
+                    "success": int(ptp_s.count() + slp_s.count() + pay_s.count()),
+                    "failed": int(ptp_f.count() + slp_f.count() + pay_f.count()),
+                    "pending": 0,
+                }
+
+                # Pending: best-effort from gateway Payment rows without payment id (order created, not completed).
+                pending_qs = Payment.objects.filter(user_id__in=uids, is_success=core_choices.YesNoChoices.NO)
+                pending_qs = pending_qs.exclude(gateway_order_id__isnull=True).exclude(gateway_order_id__exact="")
+                pending_qs = pending_qs.filter(gateway_payment_id__isnull=True)
+                if start_date is not None:
+                    pending_qs = pending_qs.filter(created__gte=start_date, created__lte=end_date)
+                payment_status["pending"] = int(pending_qs.count())
+
+                # Prospects: not tracked per institute here (set to 0 for institute dashboards).
+                total_prospects = 0
+                converted_prospects = 0
+                pending_prospects = 0
+
+                # Revenue by source: not reliably available per institute (no UTM/source on payment models).
+                # Show a single "Unknown" bucket for now so UI matches.
+                success_count = payment_status["success"]
+                revenue_by_source = []
+                if success_count > 0 and total_revenue > 0:
+                    revenue_by_source = [
+                        {"metadata__source": "Unknown", "revenue": float(total_revenue), "count": int(success_count)}
+                    ]
+
+                failed_payments = []
+                if payment_status["failed"] > 0:
+                    if int(ptp_f.count()) > 0:
+                        failed_payments.append({"event_name": "Psychometric Test Payment", "count": int(ptp_f.count())})
+                    if int(slp_f.count()) > 0:
+                        failed_payments.append({"event_name": "Skilllab Course Payment", "count": int(slp_f.count())})
+                    if int(pay_f.count()) > 0:
+                        failed_payments.append({"event_name": "Gateway Payment", "count": int(pay_f.count())})
+
+                pending_payments_list = []
+                for p in pending_qs.select_related("user").order_by("-created")[:20]:
+                    pending_payments_list.append(
+                        {
+                            "user": getattr(p, "user", None),
+                            "event_name": "Payment Pending",
+                            "amount": getattr(p, "amount", 0) or 0,
+                            "created": getattr(p, "created", None),
+                        }
+                    )
+
+                ctx["ttv2_accounts"] = {
+                    "time_period": time_period,
+                    "total_registrations": int(total_registrations),
+                    "total_revenue": float(total_revenue),
+                    "total_prospects": int(total_prospects),
+                    "converted_prospects": int(converted_prospects),
+                    "pending_prospects": int(pending_prospects),
+                    "payment_status": payment_status,
+                    "revenue_by_source": revenue_by_source,
+                    "failed_payments": failed_payments,
+                    "pending_payments_list": pending_payments_list,
+                }
+            except Exception:
+                ctx["ttv2_accounts"] = {
+                    "time_period": (request.GET.get("period") or "30days").strip(),
+                    "total_registrations": 0,
+                    "total_revenue": 0,
+                    "total_prospects": 0,
+                    "converted_prospects": 0,
+                    "pending_prospects": 0,
+                    "payment_status": {"success": 0, "failed": 0, "pending": 0},
+                    "revenue_by_source": [],
+                    "failed_payments": [],
+                    "pending_payments_list": [],
+                }
+
+        # v2 "Sessions" page: show counselor follow-ups for this institute.
+        if (ctx.get("ttv2_page") or "").strip().lower() == "sessions":
+            try:
+                from counselor.models import FollowUpStatus
+
+                slug = kwargs.get("slug")
+                institute = get_object_or_404(Institute, slug=slug) if slug else ctx.get("institute")
+                qs = (
+                    FollowUpStatus.objects.filter(counselor__counselor_admin=institute)
+                    .select_related("counselor", "student", "student__student")
+                    .order_by("-last_follow_up_date", "-created")[:200]
+                )
+                rows = []
+                for fu in qs:
+                    sm = getattr(fu, "student", None)
+                    u = getattr(sm, "student", None) if sm else None
+                    rows.append(
+                        {
+                            "when": getattr(fu, "last_follow_up_date", None).strftime("%Y-%m-%d")
+                            if getattr(fu, "last_follow_up_date", None)
+                            else (getattr(fu, "created", None).strftime("%Y-%m-%d") if getattr(fu, "created", None) else "-"),
+                            "counselor": getattr(getattr(fu, "counselor", None), "counselor_name", None) or "-",
+                            "student": getattr(u, "name", None)
+                            or getattr(u, "email", None)
+                            or (getattr(sm, "student_name", None) if sm else None)
+                            or "-",
+                            "mode": getattr(fu, "mode_of_follow_up", None) or "-",
+                            "status": getattr(fu, "follow_up_status", None) or "-",
+                            "next": getattr(fu, "next_follow_up_date", None).strftime("%Y-%m-%d")
+                            if getattr(fu, "next_follow_up_date", None)
+                            else "-",
+                        }
+                    )
+                if not rows:
+                    ctx["ttv2_sessions_is_dummy"] = True
+                    ctx["ttv2_sessions"] = [
+                        {"when": "2026-04-28", "counselor": "Counselor A", "student": "Student One", "mode": "Call", "status": "completed", "next": "—"},
+                        {"when": "2026-04-27", "counselor": "Counselor B", "student": "Student Two", "mode": "Meeting", "status": "pending", "next": "2026-04-30"},
+                        {"when": "2026-04-26", "counselor": "Counselor A", "student": "Student Three", "mode": "Email", "status": "follow-up", "next": "2026-05-02"},
+                    ]
+                else:
+                    ctx["ttv2_sessions_is_dummy"] = False
+                    ctx["ttv2_sessions"] = rows
+            except Exception:
+                ctx["ttv2_sessions_is_dummy"] = True
+                ctx["ttv2_sessions"] = [
+                    {"when": "2026-04-28", "counselor": "Counselor A", "student": "Student One", "mode": "Call", "status": "completed", "next": "—"},
+                    {"when": "2026-04-27", "counselor": "Counselor B", "student": "Student Two", "mode": "Meeting", "status": "pending", "next": "2026-04-30"},
+                    {"when": "2026-04-26", "counselor": "Counselor A", "student": "Student Three", "mode": "Email", "status": "follow-up", "next": "2026-05-02"},
+                ]
+
+        # v2 "Streams & capacity" page: counts per stream vs configured seat capacity on Institute.
+        if (ctx.get("ttv2_page") or "").strip().lower() == "streams_capacity":
+            try:
+                inst = ctx.get("institute")
+                stu_qs = ctx.get("stu")
+                stream_counts = {}
+                if hasattr(stu_qs, "exclude"):
+                    for row in (
+                        stu_qs.exclude(class_and_section__stream__isnull=True)
+                        .exclude(class_and_section__stream__exact="")
+                        .values("class_and_section__stream")
+                        .annotate(n=Count("id"))
+                    ):
+                        key = (row.get("class_and_section__stream") or "").strip().upper()
+                        if key:
+                            stream_counts[key] = int(row.get("n") or 0)
+
+                # Default known streams with capacities from Institute model
+                cap_map = {
+                    "PCM": int(getattr(inst, "pcm", 0) or 0),
+                    "CBM": int(getattr(inst, "cbm", 0) or 0),
+                    "COMM": int(getattr(inst, "comm", 0) or 0),
+                    "HME": int(getattr(inst, "hme", 0) or 0),
+                    "HMB": int(getattr(inst, "hmb", 0) or 0),
+                }
+
+                rows = []
+                seen = set()
+                for code, cap in cap_map.items():
+                    enrolled = int(stream_counts.get(code, 0))
+                    rows.append(
+                        {
+                            "code": code,
+                            "label": code,
+                            "enrolled": enrolled,
+                            "capacity": cap,
+                            "remaining": max(0, int(cap) - enrolled) if cap else 0,
+                        }
+                    )
+                    seen.add(code)
+
+                # Include any other streams present in data (capacity unknown -> 0)
+                for code, enrolled in sorted(stream_counts.items(), key=lambda x: x[0]):
+                    if code in seen:
+                        continue
+                    rows.append(
+                        {
+                            "code": code,
+                            "label": code,
+                            "enrolled": int(enrolled),
+                            "capacity": 0,
+                            "remaining": 0,
+                        }
+                    )
+
+                # If no data at all, show dummy disabled rows
+                if not rows or all(int(r.get("enrolled", 0)) == 0 for r in rows):
+                    ctx["ttv2_streams_capacity_is_dummy"] = True
+                    ctx["ttv2_streams_capacity"] = [
+                        {"code": "PCM", "label": "PCM", "enrolled": 30, "capacity": 100, "remaining": 70},
+                        {"code": "CBM", "label": "CBM", "enrolled": 45, "capacity": 100, "remaining": 55},
+                        {"code": "COMM", "label": "COMM", "enrolled": 60, "capacity": 100, "remaining": 40},
+                        {"code": "HME", "label": "HME", "enrolled": 20, "capacity": 100, "remaining": 80},
+                        {"code": "HMB", "label": "HMB", "enrolled": 10, "capacity": 100, "remaining": 90},
+                    ]
+                else:
+                    ctx["ttv2_streams_capacity_is_dummy"] = False
+                    ctx["ttv2_streams_capacity"] = rows
+            except Exception:
+                ctx["ttv2_streams_capacity_is_dummy"] = True
+                ctx["ttv2_streams_capacity"] = [
+                    {"code": "PCM", "label": "PCM", "enrolled": 30, "capacity": 100, "remaining": 70},
+                    {"code": "CBM", "label": "CBM", "enrolled": 45, "capacity": 100, "remaining": 55},
+                    {"code": "COMM", "label": "COMM", "enrolled": 60, "capacity": 100, "remaining": 40},
+                    {"code": "HME", "label": "HME", "enrolled": 20, "capacity": 100, "remaining": 80},
+                    {"code": "HMB", "label": "HMB", "enrolled": 10, "capacity": 100, "remaining": 90},
+                ]
+
+        # v2: allow AJAX refresh of payments page without full reload
+        if (
+            (ctx.get("ttv2_page") or "").strip().lower() == "payments"
+            and (request.GET.get("ttv2_payments_partial") or "").strip() == "1"
+        ):
+            return render(request, "template_v2/institute/pages/institute_payments.html", ctx)
+
         # v2 partial rendering for fast AJAX shell boot
         try:
             template_version = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
         except Exception:
             template_version = "v1"
         if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
-            return render(request, "template_v2/institute/institute_dashboard_body.html", ctx)
+            return render(request, "template_v2/dashboard_unified_body.html", ctx)
 
         return render(request, _dashboard_primary_template_name(self), ctx )
     
@@ -2769,10 +3219,10 @@ class InstituteDashboardView(TemplateView):
         """
         slug = kwargs.get("slug")
         institute = get_object_or_404(Institute, slug=slug)
-        stu_manage = get_students_by_role(request.user, institute=institute).select_related(
-            "student",
-            "class_and_section",
-            "institute",
+        stu_manage = (
+            get_students_by_role(request.user, institute=institute)
+            .select_related("student", "class_and_section", "institute")
+            .prefetch_related("counselors")
         )
 
         stream_filter = request.GET.get("stream", "")
@@ -2880,6 +3330,10 @@ class InstituteDashboardView(TemplateView):
             "results_data": results_data,
             "stu": stu_value,
             "institute": institute,
+            "ttv2_counselor_options": [
+                {"id": c.id, "name": getattr(c, "counselor_name", "") or f"Counselor {c.id}"}
+                for c in Counselor.objects.filter(counselor_admin=institute).only("id", "counselor_name")
+            ],
         }
     
     def post(self, request, *args, **kwargs):
@@ -2929,6 +3383,213 @@ class InstituteDashboardView(TemplateView):
         ctx["error_list"]=error_list
         create_institute_log.delay(institute.id,error_list,len(email_list))
         return render(request, _dashboard_primary_template_name(self), ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(institute_authenticated_user_only, name='dispatch')
+class AssignStudentToCounselorView(View):
+    """
+    AJAX endpoint: assign a StudentManagement row to a counselor (M2M Counselor.students).
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            payload = json.loads((request.body or b"{}").decode("utf-8"))
+        except Exception:
+            payload = {}
+
+        sm_id = payload.get("student_management_id")
+        counselor_id = payload.get("counselor_id")
+        slug = kwargs.get("slug")
+
+        try:
+            sm_id = int(sm_id)
+            counselor_id = int(counselor_id)
+        except Exception:
+            return JsonResponse({"ok": False, "error": "invalid_params"}, status=400)
+
+        institute = get_object_or_404(Institute, slug=slug)
+        counselor = get_object_or_404(Counselor, id=counselor_id, counselor_admin=institute)
+        sm = get_object_or_404(StudentManagement, id=sm_id, institute=institute)
+
+        try:
+            counselor.students.add(sm)
+        except Exception:
+            return JsonResponse({"ok": False, "error": "assign_failed"}, status=500)
+
+        # Notify counselor (in-app + email) about assignment.
+        try:
+            counselor_user = getattr(counselor, "coun_user", None)
+            if counselor_user and getattr(counselor_user, "email", None):
+                from notifications.services import emit_notification
+                from notifications.models import NotificationCategory
+                from communication.com_service import ComService
+
+                student_user = getattr(sm, "student", None)
+                student_name = getattr(student_user, "name", None) or getattr(student_user, "email", None) or "Student"
+                student_email = getattr(student_user, "email", None) or ""
+                inst_name = getattr(institute, "name", None) or "Institute"
+
+                emit_notification(
+                    event_type="institute.student_assigned",
+                    title="New student assigned",
+                    body=f"A new student {student_name} ({student_email}) was assigned to you by {inst_name}.",
+                    recipients=[counselor_user],
+                    category=NotificationCategory.INSTITUTE,
+                    payload={
+                        "student_management_id": sm.id,
+                        "student_id": getattr(sm, "student_id", None),
+                        "institute_id": institute.id,
+                        "counselor_id": counselor.id,
+                    },
+                    source_obj=sm,
+                    dedupe_key=f"institute.student_assigned:{sm.id}:{counselor.id}",
+                )
+
+                # Email (best-effort)
+                try:
+                    cs = ComService()
+                    subject = cs.build_email_subject("New student assigned")
+                    html = (
+                        f"<p>Hello {getattr(counselor, 'counselor_name', '') or 'Counselor'},</p>"
+                        f"<p><strong>{student_name}</strong> ({student_email}) has been assigned to you by <strong>{inst_name}</strong>.</p>"
+                        f"<p>Please login to your counselor dashboard to view details.</p>"
+                    )
+                    to_list = []
+                    try:
+                        if counselor_user.email:
+                            to_list.append(str(counselor_user.email).strip())
+                    except Exception:
+                        pass
+                    try:
+                        if getattr(counselor, "counselor_email", None):
+                            to_list.append(str(getattr(counselor, "counselor_email")).strip())
+                    except Exception:
+                        pass
+                    # de-dupe
+                    to_list = [x for i, x in enumerate(to_list) if x and x not in to_list[:i]]
+                    if to_list:
+                        cs.send_mail(subject, to_list, html, html)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        return JsonResponse({"ok": True})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(institute_authenticated_user_only, name='dispatch')
+class SetStudentCounselorView(View):
+    """
+    AJAX endpoint: change/unassign counselor for a StudentManagement row.
+
+    Payload:
+      - student_management_id: int
+      - counselor_id: int | null | ''   (if empty -> unassign)
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            payload = json.loads((request.body or b"{}").decode("utf-8"))
+        except Exception:
+            payload = {}
+
+        sm_id = payload.get("student_management_id")
+        counselor_id = payload.get("counselor_id")
+        slug = kwargs.get("slug")
+
+        try:
+            sm_id = int(sm_id)
+        except Exception:
+            return JsonResponse({"ok": False, "error": "invalid_params"}, status=400)
+
+        # counselor_id can be empty for unassign
+        counselor_id_int = None
+        try:
+            if counselor_id is not None and str(counselor_id).strip() != "":
+                counselor_id_int = int(counselor_id)
+        except Exception:
+            return JsonResponse({"ok": False, "error": "invalid_params"}, status=400)
+
+        institute = get_object_or_404(Institute, slug=slug)
+        sm = get_object_or_404(StudentManagement, id=sm_id, institute=institute)
+
+        # Remove from any counselors of this institute (avoid cross-institute bleed)
+        try:
+            for c in Counselor.objects.filter(counselor_admin=institute, students=sm):
+                c.students.remove(sm)
+        except Exception:
+            return JsonResponse({"ok": False, "error": "unassign_failed"}, status=500)
+
+        # Assign to new counselor if provided
+        if counselor_id_int is not None:
+            counselor = get_object_or_404(
+                Counselor, id=counselor_id_int, counselor_admin=institute
+            )
+            try:
+                counselor.students.add(sm)
+            except Exception:
+                return JsonResponse({"ok": False, "error": "assign_failed"}, status=500)
+
+            # Notify counselor about assignment (same as assign endpoint)
+            try:
+                counselor_user = getattr(counselor, "coun_user", None)
+                if counselor_user and getattr(counselor_user, "email", None):
+                    from notifications.services import emit_notification
+                    from notifications.models import NotificationCategory
+                    from communication.com_service import ComService
+
+                    student_user = getattr(sm, "student", None)
+                    student_name = getattr(student_user, "name", None) or getattr(student_user, "email", None) or "Student"
+                    student_email = getattr(student_user, "email", None) or ""
+                    inst_name = getattr(institute, "name", None) or "Institute"
+
+                    emit_notification(
+                        event_type="institute.student_assigned",
+                        title="New student assigned",
+                        body=f"A new student {student_name} ({student_email}) was assigned to you by {inst_name}.",
+                        recipients=[counselor_user],
+                        category=NotificationCategory.INSTITUTE,
+                        payload={
+                            "student_management_id": sm.id,
+                            "student_id": getattr(sm, "student_id", None),
+                            "institute_id": institute.id,
+                            "counselor_id": counselor.id,
+                        },
+                        source_obj=sm,
+                        dedupe_key=f"institute.student_assigned:{sm.id}:{counselor.id}",
+                    )
+
+                    # Email (best-effort)
+                    try:
+                        cs = ComService()
+                        subject = cs.build_email_subject("New student assigned")
+                        html = (
+                            f"<p>Hello {getattr(counselor, 'counselor_name', '') or 'Counselor'},</p>"
+                            f"<p><strong>{student_name}</strong> ({student_email}) has been assigned to you by <strong>{inst_name}</strong>.</p>"
+                            f"<p>Please login to your counselor dashboard to view details.</p>"
+                        )
+                        to_list = []
+                        try:
+                            if counselor_user.email:
+                                to_list.append(str(counselor_user.email).strip())
+                        except Exception:
+                            pass
+                        try:
+                            if getattr(counselor, "counselor_email", None):
+                                to_list.append(str(getattr(counselor, "counselor_email")).strip())
+                        except Exception:
+                            pass
+                        to_list = [x for i, x in enumerate(to_list) if x and x not in to_list[:i]]
+                        if to_list:
+                            cs.send_mail(subject, to_list, html, html)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        return JsonResponse({"ok": True})
 
 
 class InstituteMasterDashboardView(InstituteDashboardView):

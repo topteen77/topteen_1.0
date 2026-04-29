@@ -1,0 +1,19 @@
+{# Unified v2 body partial (loaded via ?ttv2_partial=1 into the v2 frame) #}
+{% set _role = (ttv2_role_ctx.role if (ttv2_role_ctx is defined and ttv2_role_ctx.role is defined) else '') %}
+<div class="ttv2-unified-embed">
+  <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
+
+  {% if _role == 'counselor' %}
+    {% include "template_v2/counselor/counselor_dashboard_body.html" %}
+
+  {% elif _role == 'marketing_group' %}
+    {% include "template_v2/institute/marketing_group_dashboard_body.html" %}
+
+  {% elif _role == 'institute_group' %}
+    {% include "template_v2/institute/institute_group_dashboard_body.html" %}
+
+  {% else %}
+    {% include "template_v2/institute/institute_dashboard_body.html" %}
+  {% endif %}
+</div>
+

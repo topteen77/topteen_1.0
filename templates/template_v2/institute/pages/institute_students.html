@@ -90,10 +90,33 @@
   <div class="ttv2-card">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       {% set _students_total = (total_students_count if (total_students_count is defined and total_students_count) else (stu.count() if (stu is defined and stu) else 0)) %}
-      <div class="card-title mb-0">{{ _students_total }} students</div>
+      <div class="card-title mb-0">
+        {{ _students_total }} students
+        {% if ttv2_assigned_students_count is defined %}
+          <span style="font-size:11px;color:var(--c-text3);font-weight:600;margin-left:8px;">
+            Assigned: {{ ttv2_assigned_students_count|default(0) }}
+          </span>
+        {% endif %}
+        {% if ttv2_new_assigned_count is defined and (ttv2_new_assigned_count|default(0)) %}
+          <span class="badge bg-info text-dark" style="margin-left:8px;">
+            New assigned: {{ ttv2_new_assigned_count|default(0) }}
+          </span>
+        {% endif %}
+      </div>
+      {% set _display_mode = (request.GET.get('display','cards') or 'cards') %}
       <div class="btn-group" role="group" aria-label="Display">
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-display="cards">Grid</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-display="list">List</button>
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary {% if _display_mode == 'cards' %}active{% endif %}"
+                data-ttv2-display="cards"
+                aria-pressed="{% if _display_mode == 'cards' %}true{% else %}false{% endif %}">
+          Grid
+        </button>
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary {% if _display_mode == 'list' %}active{% endif %}"
+                data-ttv2-display="list"
+                aria-pressed="{% if _display_mode == 'list' %}true{% else %}false{% endif %}">
+          List
+        </button>
       </div>
     </div>
     <div id="students-loader" class="text-center py-5" style="display: none;">
@@ -107,34 +130,39 @@
       {% if students is not defined and stu is defined %}
         {% set students = stu %}
       {% endif %}
-      {% if ttv2_students_table_config is defined and ttv2_students_table_config %}
-        {% set table_config = ttv2_students_table_config %}
+      {% if ttv2_students_ajax_only is defined and ttv2_students_ajax_only %}
+        {# Counselor and other roles can choose to always load rows via AJAX. #}
+        <div id="students-table-container"></div>
       {% else %}
-        {% set table_config = {
-          'show_stream': True,
-          'show_email': False,
-          'show_contact': False,
-          'show_created': True,
-          'show_report': True,
-          'show_actions': True,
-          'show_block': True,
-          'show_followup': False,
-          'show_institute': False,
-          'role': (ttv2_students_role if (ttv2_students_role is defined and ttv2_students_role) else 'institute')
-        } %}
-      {% endif %}
+        {% if ttv2_students_table_config is defined and ttv2_students_table_config %}
+          {% set table_config = ttv2_students_table_config %}
+        {% else %}
+          {% set table_config = {
+            'show_stream': True,
+            'show_email': False,
+            'show_contact': False,
+            'show_created': True,
+            'show_report': True,
+            'show_actions': True,
+            'show_block': True,
+            'show_followup': False,
+            'show_institute': False,
+            'role': (ttv2_students_role if (ttv2_students_role is defined and ttv2_students_role) else 'institute')
+          } %}
+        {% endif %}
 
-      {% if ttv2_students_action_urls is defined and ttv2_students_action_urls %}
-        {% set action_urls = ttv2_students_action_urls %}
-      {% else %}
-        {% set action_urls = {
-          'update': 'institute:update_student',
-          'delete': 'institute:delete_student',
-          'block': 'institute:institutestudentblock',
-          'change_password': 'institute:change_student_password'
-        } %}
+        {% if ttv2_students_action_urls is defined and ttv2_students_action_urls %}
+          {% set action_urls = ttv2_students_action_urls %}
+        {% else %}
+          {% set action_urls = {
+            'update': 'institute:update_student',
+            'delete': 'institute:delete_student',
+            'block': 'institute:institutestudentblock',
+            'change_password': 'institute:change_student_password'
+          } %}
+        {% endif %}
+        {% include 'template20/shared/students_table.html' %}
       {% endif %}
-      {% include 'template20/shared/students_table.html' %}
     </div>
   </div>
 </div>

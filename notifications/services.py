@@ -51,6 +51,12 @@ DEFAULT_TYPE_CONFIGS = {
     'course.allocated': dict(category=NotificationCategory.COURSE, description='Course allocated', requires_celery=False, requires_email=False),
     'institute.student_registered': dict(category=NotificationCategory.INSTITUTE, description='Institute student registration', requires_celery=False, requires_email=False),
     'marketing.new_lead': dict(category=NotificationCategory.MARKETING, description='New lead for marketing team', requires_celery=False, requires_email=False),
+    'institute.student_assigned': dict(
+        category=NotificationCategory.INSTITUTE,
+        description='Student assigned to counselor',
+        requires_celery=False,
+        requires_email=False,
+    ),
 }
 
 
@@ -96,6 +102,10 @@ DEFAULT_NOTIFICATION_MESSAGE_TEMPLATES = {
     'payment.status_updated': {
         'title': 'Payment status updated',
         'body': 'Payment {payment_id} for {item} ({amount_display}) marked {status}. {extra}',
+    },
+    'institute.student_assigned': {
+        'title': 'New student assigned',
+        'body': 'A new student {student_name} ({student_email}) was assigned to you by {institute_name}.',
     },
 }
 
@@ -640,10 +650,21 @@ def emit_notification(
     enabled, _cfg = _event_enabled(event_type)
     if not enabled:
         return []
-    deps = check_notification_dependencies()
-    if not deps.get('all_required_ok', False):
-        logger.warning('Notification emit skipped (deps unhealthy) event=%s deps=%s', event_type, deps)
-        return []
+    # Dependency gating: only enforce runtime health for services the event actually requires.
+    # Many in-app notifications should work even when celery/redis/gunicorn/email monitors are "unhealthy"
+    # in development environments.
+    try:
+        requires_celery = bool(getattr(_cfg, 'requires_celery', False))
+        requires_email = bool(getattr(_cfg, 'requires_email', False))
+        requires_redis = bool(getattr(_cfg, 'requires_redis', False))
+    except Exception:
+        requires_celery = requires_email = requires_redis = False
+
+    if requires_celery or requires_email or requires_redis:
+        deps = check_notification_dependencies()
+        if not deps.get('all_required_ok', False):
+            logger.warning('Notification emit skipped (deps unhealthy) event=%s deps=%s', event_type, deps)
+            return []
 
     payload = payload or {}
     recipients = [u for u in recipients if getattr(u, 'id', None)]
