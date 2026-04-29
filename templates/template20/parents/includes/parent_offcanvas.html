@@ -1,0 +1,59 @@
+<div class="offcanvas offcanvas-start parent-mobile-drawer d-lg-none" tabindex="-1" id="mobileProfileDrawer"
+  aria-labelledby="mobileProfileDrawerLabel">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-700" id="mobileProfileDrawerLabel">Parent Menu</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body pt-3">
+    <div class="parent-mobile-profile mb-3">
+      <div class="d-flex align-items-center gap-2">
+        {% if request.user.image %}
+        <img src="{{ request.user.image.url }}" class="parent-mobile-avatar" alt="{{ request.user.name }}"
+          onerror="this.style.display='none'; var f=this.nextElementSibling; if(f){ f.style.display='inline-flex'; }" />
+        <span class="parent-mobile-avatar parent-mobile-avatar-fallback" style="display:none;" aria-label="User avatar">
+          {{ (request.user.name or request.user.email or "?")[0]|upper }}
+        </span>
+        {% else %}
+        <span class="parent-mobile-avatar parent-mobile-avatar-fallback" aria-label="User avatar">
+          {{ (request.user.name or request.user.email or "?")[0]|upper }}
+        </span>
+        {% endif %}
+        <div>
+          <p class="mb-0 fw-700 text-purple lh-sm">{{ request.user.name|default(request.user.username) }}</p>
+          <p class="mb-0 fs-12 text-muted">Parent account</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="d-flex flex-column gap-2" aria-label="Parent mobile menu">
+      <a href="{{ url('parents_dashboard') }}" class="parent-mobile-nav-item">
+        <span class="parent-mobile-nav-icon">
+          <i class='bx bx-home'></i>
+        </span>
+        <span class="parent-mobile-nav-label">Dashboard</span>
+        <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
+      </a>
+      <a href="{{ url('careers:career') }}" class="parent-mobile-nav-item">
+        <span class="parent-mobile-nav-icon">
+          <i class='bx bx-briefcase'></i>
+        </span>
+        <span class="parent-mobile-nav-label">Careers</span>
+        <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
+      </a>
+      <a href="{{ url('blog:blogs') }}" class="parent-mobile-nav-item">
+        <span class="parent-mobile-nav-icon">
+          <i class='bx bx-news'></i>
+        </span>
+        <span class="parent-mobile-nav-label">Blogs</span>
+        <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
+      </a>
+      <a href="{{ url('users:logout') }}" class="parent-mobile-nav-item parent-mobile-nav-item-logout">
+        <span class="parent-mobile-nav-icon">
+          <i class='bx bx-log-out-circle'></i>
+        </span>
+        <span class="parent-mobile-nav-label">Sign Out</span>
+        <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
+      </a>
+    </nav>
+  </div>
+</div>

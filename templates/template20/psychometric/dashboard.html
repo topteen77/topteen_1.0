@@ -327,8 +327,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
-  .vocational-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain;  }
+  .vocational-img-wrap img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+  }
   .vocational-card .vocational-label {
     font-size: 0.875rem;
     font-weight: 600;
@@ -969,41 +976,6 @@
               <span class="trend-chip">Normalized as percentage</span>
               <span class="trend-chip">Live student result data</span>
             </div>
-          </div>
-        </div>
-        <div class="career-analytics-card">
-          <div class="career-analytics-title">
-            <h4>Career match rankings — top 8</h4>
-            <span>Personalized ranking alignment</span>
-          </div>
-          <div class="career-rankings-list">
-            {% if streamsubject %}
-              {% for stream, subject in streamsubject %}
-                {% if loop.index <= 8 %}
-                  {% set score = base_overall|int - ((loop.index - 1) * 4) %}
-                  {% if score < 35 %}{% set score = 35 %}{% endif %}
-                  <div class="career-rank-row">
-                    <p class="career-rank-label" title="{{ stream }}">{{ stream }}</p>
-                    <div class="career-rank-track">
-                      <div class="career-rank-fill psych-dynamic-width" data-score="{{ score }}"></div>
-                    </div>
-                    <div class="career-rank-score">{{ score }}</div>
-                  </div>
-                {% endif %}
-              {% endfor %}
-            {% else %}
-              {% for item in ['AI Product Manager','Data Scientist','Strategic Consultant','UX Researcher','Community Leader','ML Engineer','Digital Marketer','Policy Analyst'] %}
-                {% set score = base_overall|int - ((loop.index - 1) * 4) %}
-                {% if score < 35 %}{% set score = 35 %}{% endif %}
-                <div class="career-rank-row">
-                  <p class="career-rank-label">{{ item }}</p>
-                  <div class="career-rank-track">
-                    <div class="career-rank-fill psych-dynamic-width" data-score="{{ score }}"></div>
-                  </div>
-                  <div class="career-rank-score">{{ score }}</div>
-                </div>
-              {% endfor %}
-            {% endif %}
           </div>
         </div>
       </div>

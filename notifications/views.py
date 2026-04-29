@@ -9,6 +9,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+from core import choices
+
 from .models import Notification, NotificationTypeConfig
 from .services import (
     check_notification_dependencies,
@@ -66,6 +68,7 @@ def notifications_page(request):
         template_name,
         {
             'page_title': 'Notifications',
+            'is_parent_view': getattr(request.user, 'user_type', None) == choices.UserType.PARENT,
             'type_configs': NotificationTypeConfig.objects.all(),
             'current_environment': current_environment,
             'environments': environments_for_filter,

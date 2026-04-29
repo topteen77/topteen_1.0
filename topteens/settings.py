@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import logging.handlers
+import socket
 from pathlib import Path
 from decouple import config
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -271,23 +272,64 @@ AUTH_USER_MODEL = "users.User"
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-        'CONN_MAX_AGE': config('DB_CONN_MAX_AGE', default=60, cast=int),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            # Use UTC for every connection so datetime values are valid (fixes admin date_hierarchy
-            # "invalid datetime / time zone definitions" on MySQL when tz tables are not loaded).
-            'init_command': "SET time_zone = '+00:00'",
-        },
+DB_ENGINE = config('DB_ENGINE', default='django.db.backends.mysql')
+DB_NAME = config('DB_NAME', default='topteens')
+DB_USER = config('DB_USER', default='root')
+DB_PASSWORD = config('DB_PASSWORD', default='')
+DB_HOST = config('DB_HOST', default='127.0.0.1')
+DB_PORT = config('DB_PORT', default='3306')
+DB_CONN_MAX_AGE = config('DB_CONN_MAX_AGE', default=60, cast=int)
+DB_AUTO_SQLITE_FALLBACK_DEBUG = config('DB_AUTO_SQLITE_FALLBACK_DEBUG', default=True, cast=bool)
+DB_CONNECT_TIMEOUT_SECONDS = config('DB_CONNECT_TIMEOUT_SECONDS', default=2, cast=int)
+
+
+def _mysql_host_reachable(host: str, port: str, timeout_seconds: int = 2) -> bool:
+    try:
+        with socket.create_connection((host, int(port)), timeout=timeout_seconds):
+            return True
+    except Exception:
+        return False
+
+
+if DB_ENGINE == 'django.db.backends.sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    use_sqlite_fallback = False
+    if DEBUG and DB_AUTO_SQLITE_FALLBACK_DEBUG:
+        # Local developer safety: if configured MySQL host is unreachable,
+        # fallback to sqlite so local pages don't crash with OperationalError.
+        use_sqlite_fallback = not _mysql_host_reachable(DB_HOST, DB_PORT, DB_CONNECT_TIMEOUT_SECONDS)
+
+    if use_sqlite_fallback:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': DB_NAME,
+                'USER': DB_USER,
+                'PASSWORD': DB_PASSWORD,
+                'HOST': DB_HOST,
+                'PORT': DB_PORT,
+                'CONN_MAX_AGE': DB_CONN_MAX_AGE,
+                'OPTIONS': {
+                    'charset': 'utf8mb4',
+                    # Use UTC for every connection so datetime values are valid (fixes admin date_hierarchy
+                    # "invalid datetime / time zone definitions" on MySQL when tz tables are not loaded).
+                    'init_command': "SET time_zone = '+00:00'",
+                },
+            }
+        }
 
 # DATABASES = {
 #     'default': {

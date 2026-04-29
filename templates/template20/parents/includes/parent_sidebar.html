@@ -1,0 +1,72 @@
+<style>
+
+.std-shell-main {
+	padding-top: 35px;
+}
+
+.student-dash-sidebar-col {
+	background: #ffff;
+}
+</style>
+
+
+<div class="student-dash-sidebar-col parent-sidebar-col d-none d-lg-block px-0">
+  <div class="profile-sidebar parent-sidebar-scroll h-100">
+    <div class="profile-summary border-bottom pb-4 mb-4">
+      <div class="profile-summary-head mb-3 position-relative d-inline-block w-100">
+        <div class="profile-image-wrapper d-flex align-items-center justify-content-start">
+          {% if request.user.image %}
+          <img src="{{ request.user.image.url }}" class="profile-image me-2" alt="{{ request.user.name }}"
+            onerror="this.style.display='none'; var f=this.nextElementSibling; if(f){ f.style.display='flex'; }" />
+          <div class="profile-image profile-image-initials me-2" style="display:none;" aria-label="User avatar">{{ (request.user.name or request.user.email or "?")[0]|upper }}</div>
+          {% else %}
+          <div class="profile-image profile-image-initials me-2" aria-label="User avatar">{{ (request.user.name or request.user.email or "?")[0]|upper }}</div>
+          {% endif %}
+          <div class="profile-info d-flex flex-column align-items-start justify-content-center">
+            <p class="profile-name mb-0 text-start text-purple">{{ request.user.name|default(request.user.username) }}</p>
+            <p class="profile-student-id text-gray mb-0 lh-sm">Parent account</p>
+          </div>
+        </div>
+      </div>
+      <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
+        <i class='bx bx-time-five fs-18 text-purple profile-meta-icon'></i>
+        <p class="profile-meta-text text-gray fs-14 mb-0">Joined {{ date_format(request.user.created) }}</p>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <a href="{{ url('parents_dashboard') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-home me-2 fs-18 text-purple'></i> Dashboard</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+      <a href="{{ url('careers:career') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-briefcase me-2 fs-18 text-purple'></i> Careers</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+      <a href="{{ url('blog:blogs') }}" class="d-block text-decoration-none mb-2">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-news me-2 fs-18 text-purple'></i> Blogs</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+      <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-1 d-flex align-items-center text-danger"><i class='bx bx-log-out-circle me-2 fs-18'></i> Sign Out</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
