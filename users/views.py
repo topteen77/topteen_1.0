@@ -3261,6 +3261,37 @@ class UserDashboard(TemplateView):
                 elif ctx.get("combined_report_url") and ctx["test_dashboard_url"] == ctx["combined_report_url"]:
                     psychometric_action_label = "View combined report"
                     psychometric_action_variant = "report"
+                else:
+                    # If student has started any psychometric test but not completed report flow,
+                    # show "Resume" instead of "Start" in My courses & tests.
+                    has_attempted_test = False
+                    if (ctx.get("test_name") or "").strip().lower() == "stream sorter":
+                        from app.models import TestCompletion, Results
+                        tc = TestCompletion.objects.filter(user=profile_user).first()
+                        if tc:
+                            has_attempted_test = any(
+                                [
+                                    bool(tc.test1_complete),
+                                    bool(tc.test2_complete),
+                                    bool(tc.test3_complete),
+                                    bool(tc.numerical_complete),
+                                    bool(tc.verbal_complete),
+                                    bool(tc.logical_complete),
+                                    bool(tc.emotional_complete),
+                                    bool(tc.machanical_complete),
+                                    bool(tc.language_complete),
+                                    bool(tc.spatial_complete),
+                                ]
+                            )
+                        if not has_attempted_test:
+                            has_attempted_test = Results.objects.filter(user=profile_user).exists()
+                    elif (ctx.get("test_name") or "").strip().lower() == "career direction":
+                        from app_post_matric.models import TestSession
+                        has_attempted_test = TestSession.objects.filter(user=profile_user).exists()
+
+                    if has_attempted_test:
+                        psychometric_action_label = "Resume"
+                        psychometric_action_variant = "start"
             except Exception:
                 pass
             ctx["dashboard_enrolled_items"].insert(

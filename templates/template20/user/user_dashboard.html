@@ -65,6 +65,30 @@
     background: #22e674;
   }
 
+  .stat-card-level .level-badge-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(244, 253, 255, 0.82) 45%, rgba(219, 246, 255, 0.72) 100%);
+    border: 1px solid rgba(76, 196, 255, 0.35);
+    box-shadow: 0 6px 18px rgba(34, 230, 116, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    padding: 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat-card-level .level-badge-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 3px 8px rgba(36, 46, 96, 0.28));
+  }
+
+  .stat-card-level:hover .level-badge-icon {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow: 0 9px 22px rgba(34, 230, 116, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.46) inset;
+  }
+
   .quick-link-card {
     background: var(--dash-surface);
     border: 1px solid var(--dash-border-soft);
@@ -878,9 +902,20 @@
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.4s;">
               <div class="stat-card stat-card-level">
-                <div>
-                  <img src="{{ static('images_new/icons/explore-icon.svg') }}" style="max-width:35px;"
-                    alt="Total Points" />
+                <div class="level-badge-icon">
+                  {% set level_name = current_level|default('Rookie') %}
+                  {% if level_name|lower == 'rookie' %}
+                  {% set level_badge_path = 'images_new/badges/rookie.png' %}
+                  {% elif level_name|lower == 'explorer' %}
+                  {% set level_badge_path = 'images_new/badges/explorer.png' %}
+                  {% elif level_name|lower == 'champion' %}
+                  {% set level_badge_path = 'images_new/badges/champion.png' %}
+                  {% elif level_name|lower == 'legend' %}
+                  {% set level_badge_path = 'images_new/badges/Legend.png' %}
+                  {% else %}
+                  {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
+                  {% endif %}
+                  <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
                 </div>
                 <div>
                   <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{
