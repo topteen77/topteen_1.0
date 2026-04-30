@@ -765,6 +765,68 @@
   .alert.alert-success.alert-dismissible.fade.show.mt-3.mb-0 {
 	margin-top: 66px !important;
 }
+
+  .profile-alert-card {
+    background: linear-gradient(135deg, #fffaf0 0%, #fff3d6 55%, #ffeab3 100%);
+    border: 1px solid #f8d27a;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(245, 170, 28, 0.14);
+    padding: 12px 14px;
+  }
+
+  .profile-alert-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .profile-alert-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #d18200;
+    box-shadow: 0 2px 8px rgba(209, 130, 0, 0.22);
+    flex-shrink: 0;
+  }
+
+  .profile-alert-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #6a4600;
+    margin-bottom: 2px;
+  }
+
+  .profile-alert-subtitle {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #8a610a;
+    margin-bottom: 0;
+  }
+
+  .profile-alert-btn {
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px !important;
+    box-shadow: 0 6px 12px rgba(72, 61, 255, 0.24);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 575px) {
+    .profile-alert-card {
+      padding: 10px;
+    }
+
+    .profile-alert-icon {
+      width: 30px;
+      height: 30px;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -856,8 +918,31 @@
 </div>
 <!-- End of Refer Friends Popup -->
 
+
         <!-- Statistics (dynamic: trophies, points, streak, level) -->
         <div class="mb-4 pt-9" id="dashboard-stats-section">
+
+
+          
+        {% if not is_parent_view and (hub_profile_completion|default(0) < 100) %}
+        <div class="profile-alert-card d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 mb-4"
+          role="alert">
+          <div class="profile-alert-main">
+            <span class="profile-alert-icon">
+              <i class='bx bx-user-circle fs-20' aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="profile-alert-title">Please update your profile</p>
+              <p class="profile-alert-subtitle">Your profile is {{ hub_profile_completion|default(0) }}% complete. Finish it to get better recommendations and matches.</p>
+            </div>
+          </div>
+          <a href="{{ url('users:profiledetails') }}" class="btn btn-sm custom-button purple-button profile-alert-btn">
+            Update Profile
+          </a>
+        </div>
+        {% endif %}
+
+        
           <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
           <div class="row g-3 dashboard-stat-cards">
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">

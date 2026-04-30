@@ -310,7 +310,7 @@ label.hobbiesTab img {
 
         <!-- Full Name -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 344px;">
+          <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="username" class="form-label fs-14 fw-semibold mb-2">Full Name</label>
             <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Name" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="username" id="username" type="text" 
@@ -323,7 +323,7 @@ label.hobbiesTab img {
 
         <!-- Birthday and Gender -->
         <div class="w-100 d-flex justify-content-center gap-3 mb-3">
-          <div class="icon-input position-relative has-label" style="width: 164px;">
+          <div class="icon-input position-relative has-label" style="width: 288px;">
             <label for="userbirthdaydate" class="form-label fs-14 fw-semibold mb-2">Birthday</label>
             <img src="{{ static('topteenfrontend/assets/images/calender1.png') }}" alt="Birthday" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="userbirthdaydate" id="userbirthdaydate" type="text" 
@@ -333,7 +333,7 @@ label.hobbiesTab img {
                    style="height: 48px; padding-left: 40px;"
                    placeholder="Select date (11–25 years)" required />
           </div>
-          <div class="icon-input position-relative has-label" style="width: 164px;">
+          <div class="icon-input position-relative has-label" style="width: 288px;">
             <label for="gender" class="form-label fs-14 fw-semibold mb-2">Gender</label>
             <img src="{{ static('topteenfrontend/assets/images/person.fill.png') }}" alt="Gender" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <select name="gender" id="gender" class="form-control custom-input w-100" style="height: 48px; padding-left: 40px;" required>
@@ -347,7 +347,7 @@ label.hobbiesTab img {
 
         <!-- Phone Number -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 344px;">
+          <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="userphone" class="form-label fs-14 fw-semibold mb-2">Phone Number</label>
             <img src="{{ static('topteenfrontend/assets/images/phone.fill.png') }}" alt="Phone" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="userphone" id="userphone" type="tel" 
@@ -361,7 +361,7 @@ label.hobbiesTab img {
 
         <!-- Email Address -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 344px;">
+          <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="useremail" class="form-label fs-14 fw-semibold mb-2">Email Address</label>
             <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Email" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="useremail" id="useremail" type="email"
@@ -374,7 +374,7 @@ label.hobbiesTab img {
 
         <!-- Parent Accounts (optional) -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 344px;">
+          <div class="icon-input position-relative has-label" style="width: 576px;">
             <label class="form-label fs-14 fw-semibold mb-2">Parent Mobile Number <span class="text-muted fw-normal">(Optional)</span></label>
             <div class="d-flex gap-2">
               <input id="parent_mobile_profile" type="text"
@@ -438,7 +438,7 @@ label.hobbiesTab img {
 
         <!-- School Name (suggest dropdown) -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 344px;">
+          <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="userschool" class="form-label fs-14 fw-semibold mb-2">School Name</label>
             <img src="{{ static('topteenfrontend/assets/images/person.2.crop.square.stack.fill.png') }}" alt="School" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <input name="userschool" id="userschool" type="text" 
@@ -458,7 +458,7 @@ label.hobbiesTab img {
 
         <!-- Grade -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 344px;">
+          <div class="icon-input position-relative has-label" style="width:576px;">
             <label for="usergrade" class="form-label fs-14 fw-semibold mb-2">Grade/Class</label>
             <img src="{{ static('topteenfrontend/assets/images/bookmark.square.png') }}" alt="Grade" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
             <select name="usergrade" id="usergrade" class="form-control custom-input w-100" style="height: 48px; padding-left: 45px;" required>
@@ -521,7 +521,8 @@ label.hobbiesTab img {
             {% endif %}
           </button>
           <input type="file" name="image" accept="image/*" class="d-none imgIp" />
-          <p>Upload your image</p>
+          <p class="mb-1">Upload your image</p>
+          <p class="text-muted small mb-0">Recommended image size: 200px x 200px</p>
         </div>
 
       
