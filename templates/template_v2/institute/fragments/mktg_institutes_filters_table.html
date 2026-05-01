@@ -1,0 +1,132 @@
+{# Marketing / institute-group style filters + AJAX institutes table. #}
+{% set _mktg_reset = mktg_reset_href|default(url('institute:marketinggroupdashboard')) %}
+{% set _lm = (search_params.list_mode if search_params is defined else '')|default('all') %}
+        <!-- Filter Form -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <form method="GET" class="row g-2 align-items-end" id="institute-filter-form">
+              <input type="hidden" name="institute_group_id" value="{% if search_params is defined %}{{ search_params.institute_group_id|default('') }}{% endif %}">
+              <div class="col-12 mb-2 pb-2 border-bottom">
+                <span class="form-label text-gray fs-12 d-block mb-1">Institute List</span>
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                  <div class="form-check form-check-inline mb-0">
+                    <input class="form-check-input" type="radio" name="list_mode" id="list_mode_all" value="all"
+                           {% if _lm == 'all' %}checked{% endif %}>
+                    <label class="form-check-label fs-13" for="list_mode_all">All</label>
+                  </div>
+                  <div class="form-check form-check-inline mb-0">
+                    <input class="form-check-input" type="radio" name="list_mode" id="list_mode_direct" value="direct"
+                           {% if _lm == 'direct' %}checked{% endif %}>
+                    <label class="form-check-label fs-13" for="list_mode_direct">Direct institutes</label>
+                  </div>
+                  <div class="form-check form-check-inline mb-0">
+                    <input class="form-check-input" type="radio" name="list_mode" id="list_mode_group" value="group"
+                           {% if _lm == 'group' %}checked{% endif %}>
+                    <label class="form-check-label fs-13" for="list_mode_group">Institute Groups</label>
+                  </div>
+                </div>
+                
+              </div>
+              <div class="col-md-2">
+                <label for="institute_filter" class="form-label text-gray fs-12 mb-1">Institute Name</label>
+                <input type="text"
+                       name="institute"
+                       id="institute_filter"
+                       list="institute_name_suggestions"
+                       class="form-control custom-input"
+                       placeholder="Search institute"
+                       value="{% if search_params is defined %}{{ search_params.institute|default('') }}{% endif %}">
+                <datalist id="institute_name_suggestions">
+                  {% for ins_name in (institute_names|default([])) %}
+                    <option value="{{ ins_name }}"></option>
+                  {% endfor %}
+                </datalist>
+              </div>
+              <div class="col-md-2">
+                <label for="location_filter" class="form-label text-gray fs-12 mb-1">Location</label>
+                <div class="ttv2-suggest-wrap">
+                  <input type="text"
+                         name="location"
+                         id="location_filter"
+                         list="location_suggestions"
+                         class="form-control custom-input pe-4"
+                         autocomplete="off"
+                         placeholder="Type or select location"
+                         value="{% if search_params is defined %}{{ search_params.location|default('') }}{% endif %}">
+                  <button type="button" class="ttv2-suggest-clear" id="location_filter_clear" aria-label="Clear location">&times;</button>
+                  <div class="ttv2-suggest-menu" id="location_filter_menu" role="listbox" aria-label="Location suggestions"></div>
+                </div>
+                <datalist id="location_suggestions">
+                  {% for location in (locations|default([])) %}
+                    <option value="{{ location }}"></option>
+                  {% endfor %}
+                </datalist>
+              </div>
+              <div class="col-md-2">
+                <label for="per_page_filter" class="form-label text-gray fs-12 mb-1">Records per page</label>
+                <select name="per_page" id="per_page_filter" class="form-control custom-input" onchange="if (typeof updatePerPage === 'function') updatePerPage(this.value)">
+                  <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10</option>
+                  <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
+                  <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>All</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="institute_status_filter" class="form-label text-gray fs-12 mb-1">Status</label>
+                <select name="status" id="institute_status_filter" class="form-control custom-input">
+                  <option value="" {% if not search_params is defined or not search_params.status %}selected{% endif %}>All</option>
+                  <option value="pending" {% if search_params is defined and search_params.status == 'pending' %}selected{% endif %}>Pending</option>
+                  <option value="approved" {% if search_params is defined and search_params.status == 'approved' %}selected{% endif %}>Approved</option>
+                  <option value="rejected" {% if search_params is defined and search_params.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+              </div>
+              <div class="col-md-2 d-flex gap-2 align-items-end justify-content-end">
+                <button type="submit"
+                        class="btn custom-button purple-button"
+                        title="Search"
+                        aria-label="Search"
+                        style="min-width:44px;">
+                  <i class='bx bx-search'></i>
+                </button>
+                <a href="{{ _mktg_reset }}"
+                   class="btn btn-secondary text-center"
+                   title="Reset"
+                   aria-label="Reset"
+                   style="min-width:44px;">
+                  <i class='bx bx-refresh'></i>
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Institutes Table -->
+        <div class="card mb-4 position-relative">
+          <div class="card-body">
+            <div id="institutes-loader" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3 text-gray">Loading institutes...</p>
+            </div>
+            <div id="institutes-table-wrapper" style="display: none;"></div>
+          </div>
+        </div>
+        <style>
+          .ttv2-suggest-wrap { position: relative; }
+          .ttv2-suggest-clear {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            border: 0; background: transparent; color: #94a3b8; font-size: 16px; line-height: 1;
+            display: none; cursor: pointer; padding: 0;
+          }
+          .ttv2-suggest-menu {
+            position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30;
+            max-height: 240px; overflow: auto; background: #fff; border: 1px solid #dbe4f0;
+            border-radius: 10px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); display: none;
+          }
+          .ttv2-suggest-item {
+            display: block; width: 100%; text-align: left; border: 0; background: #fff;
+            padding: 8px 10px; font-size: 13px; color: #0f172a; cursor: pointer;
+          }
+          .ttv2-suggest-item:hover, .ttv2-suggest-item.is-active { background: #eef2ff; }
+          .ttv2-suggest-empty { padding: 8px 10px; font-size: 12px; color: #64748b; }
+        </style>

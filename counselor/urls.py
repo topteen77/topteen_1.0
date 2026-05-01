@@ -19,6 +19,9 @@ urlpatterns = [
     path('Counselor_Course_payment_fail/<path:enc_id>/', views.CounselorCoursePaymentFail.as_view(), name='counselor_course_payment_fail'),
     path("Counselor_Course/<int:counselor_id>/",views.CourseStartsView.as_view(),name="Counselor_Course"),
     path('Counselor_enrolled_course/', views.CounselorEnrolledCourseView.as_view(), name='counselor_enrolled_course'),
+    path('enrolled_courses/<int:counselor_id>/', views.CounselorEnrolledCoursesListView.as_view(), name='enrolled_courses'),
+    path('<int:coun_id>/student_remark/save/', views.ttv2_save_student_remark, name='save_student_remark'),
+    path('<int:coun_id>/follow_up/save/', views.ttv2_save_follow_up, name='save_follow_up'),
     path('<int:coun_id>/follow_up/',views.Students_follow_up, name='Counselor_follow_up_page'),
 
 

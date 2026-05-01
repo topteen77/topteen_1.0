@@ -14,11 +14,14 @@
     <div class="d-flex align-items-center gap-2">
       <div class="dropdown">
         <button type="button"
-                class="ttv2-week-pill dropdown-toggle"
+                class="ttv2-date-range-icon-btn"
                 id="ttv2WeekDropdownBtn"
+                data-icon-only="1"
                 data-bs-toggle="dropdown"
+                title="Select date range"
+                aria-label="Select date range"
                 aria-expanded="false">
-          {{ ttv2_analytics.date_range_label|default('Select week') }}
+          <i class='bx bx-calendar'></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end" id="ttv2WeekDropdownMenu" aria-labelledby="ttv2WeekDropdownBtn">
           <li><span class="dropdown-item-text" style="font-size:11px;color:var(--c-text3);">Loading…</span></li>

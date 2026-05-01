@@ -433,6 +433,19 @@ def setup_demo_counselor_data(config=None):
             coun_user=cw,
             counselor_admin=institute,
         )
+        # Assign demo students (if present) to the demo counselor so counselor dashboards show non-zero students.
+        try:
+            from institute.models import StudentManagement
+
+            sids = list(getattr(config, "student_user_ids", []) or [])
+            if institute and sids:
+                sms = list(
+                    StudentManagement.objects.filter(institute=institute, student_id__in=sids).values_list("id", flat=True)
+                )
+                if sms:
+                    counselor_obj.students.set(sms)
+        except Exception:
+            pass
         create_counselor_course_payment(cw, course_c)
         state = getattr(config, "demo_counselor_course_state", None) or DemoCounselorCourseState.PASSED
         apply_demo_counselor_course_state(cw, state)

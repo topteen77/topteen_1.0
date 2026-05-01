@@ -29,7 +29,11 @@
 {% if institute is defined and institute and institute.slug %}
   {% set _set_counselor_url = url('institute:set_student_counselor', institute.slug) %}
 {% endif %}
-<div id="students-table-container" data-ttv2-set-counselor-url="{{ _set_counselor_url }}">
+<div id="students-table-container"
+     data-ttv2-set-counselor-url="{{ _set_counselor_url }}"
+     {% if ttv2_remark_save_url is defined and ttv2_remark_save_url %}data-ttv2-remark-url="{{ ttv2_remark_save_url }}"{% endif %}
+     {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}data-ttv2-followup-url="{{ ttv2_followup_save_url }}"{% endif %}
+     {% if roster_filtered_total is defined %} data-ttv2-roster-total="{{ roster_filtered_total }}"{% endif %}>
 <div class="table-responsive">
   <table class="table table-hover">
     <thead>
@@ -59,6 +63,9 @@
         {% endif %}
         {% if table_config and table_config.show_report %}
         <th>Report</th>
+        {% endif %}
+        {% if table_config and table_config.show_remarks %}
+        <th style="min-width:280px;">Counselling remarks</th>
         {% endif %}
         {% if table_config and table_config.show_actions %}
         <th>Action</th>
@@ -201,6 +208,68 @@
               {% endif %}
             </td>
             {% endif %}
+            {% if table_config and table_config.show_remarks %}
+            {% set _sm_id = (ts.id if ts is defined else '') %}
+            {% set _rm = (ttv2_followup_latest_map.get(_sm_id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else None) %}
+            <td>
+              <div class="d-flex flex-column gap-1">
+                {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}
+                  <div class="d-flex justify-content-between align-items-center gap-2">
+                    {% if _rm and _rm.smart_label %}
+                      {% set _k = _rm.smart_key|default('') %}
+                      {% if _k == 'pending_high' %}
+                        <span class="badge bg-danger">{{ _rm.smart_label }}</span>
+                      {% elif _k == 'upcoming_low' %}
+                        <span class="badge bg-warning text-dark">{{ _rm.smart_label }}</span>
+                      {% elif _k == 'completed' %}
+                        <span class="badge bg-success">{{ _rm.smart_label }}</span>
+                      {% elif _k == 'scheduled' %}
+                        <span class="badge bg-info text-dark">{{ _rm.smart_label }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ _rm.smart_label }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge bg-secondary">Not scheduled</span>
+                    {% endif %}
+                    {% if not _rm or _rm.smart_key != 'completed' %}
+                      <button type="button"
+                              class="btn btn-sm btn-outline-secondary"
+                              data-ttv2-followup-open
+                              data-sm-id="{{ _sm_id }}"
+                              data-student-name="{{ ts.student.name if (ts.student and ts.student.name) else '-' }}">
+                        Follow up
+                      </button>
+                    {% endif %}
+                  </div>
+                {% endif %}
+                <div style="font-size:11px;color:var(--c-text3);">
+                  Last: {% if _rm and _rm.when %}{{ _rm.when }}{% else %}-{% endif %}
+                  {% if _rm and _rm.next %}
+                    <span style="margin-left:10px;">Next: {{ _rm.next }}</span>
+                  {% endif %}
+                </div>
+                <div style="font-size:12px;color:var(--c-text);white-space:pre-wrap;">
+                  {% if _rm and _rm.message %}{{ _rm.message }}{% else %}<span class="text-muted">No remarks</span>{% endif %}
+                </div>
+                <div class="d-flex gap-2 align-items-start mt-1">
+                  <textarea class="form-control form-control-sm"
+                            rows="2"
+                            placeholder="Add counselling remark…"
+                            data-ttv2-remark-text
+                            data-sm-id="{{ _sm_id }}"
+                            style="min-height:44px;"></textarea>
+                  <button type="button"
+                          class="btn btn-sm btn-primary"
+                          data-ttv2-remark-save
+                          data-sm-id="{{ _sm_id }}"
+                          {% if is_dummy is defined and is_dummy %}disabled{% endif %}>
+                    Save
+                  </button>
+                </div>
+                <div class="text-muted" style="font-size:11px;" data-ttv2-remark-status data-sm-id="{{ _sm_id }}"></div>
+              </div>
+            </td>
+            {% endif %}
             {% if table_config and table_config.show_actions %}
             <td>
               <div class="d-flex gap-2">
@@ -255,7 +324,7 @@
         {% endfor %}
       {% else %}
       <tr>
-        <td colspan="{% set col_count = 2 %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_email %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_contact %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_followup %}{% set col_count = col_count + 2 %}{% endif %}{% if table_config.show_report %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_actions %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_block %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
+        <td colspan="{% set col_count = 2 %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_email %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_contact %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_followup %}{% set col_count = col_count + 2 %}{% endif %}{% if table_config.show_report %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_actions %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_block %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
           <div class="d-flex flex-column align-items-center">
             <i class='bx bx-user-x fs-48 text-gray mb-3'></i>
             <h4 class="fs-18 fw-semibold mb-2">No Students Found</h4>

@@ -1,217 +1,207 @@
 /**
- * Dynamic week dropdown (current + previous month) in week format.
- * Writes ?ttv2_week_start=YYYY-MM-DD (Monday) and reloads the page so server-side
- * analytics payload and charts update accordingly.
+ * Dashboard date-range dropdown.
+ * - Default state: All
+ * - Apply writes ?ttv2_date_start=YYYY-MM-DD&ttv2_date_end=YYYY-MM-DD
+ * - Reset clears date filters (and legacy week param).
  */
 (function () {
   "use strict";
 
-  function pad2(n) {
-    return n < 10 ? "0" + n : String(n);
-  }
-
-  function isoDate(d) {
-    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-  }
-
-  function parseIsoDate(s) {
-    if (!s) return null;
-    var m = String(s).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return null;
-    var y = Number(m[1]);
-    var mo = Number(m[2]);
-    var da = Number(m[3]);
-    if (!y || mo < 1 || mo > 12 || da < 1 || da > 31) return null;
-    var d = new Date(y, mo - 1, da);
-    if (isNaN(d.getTime())) return null;
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-
-  function startOfWeekMonday(d) {
-    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    var day = x.getDay(); // 0..6 (Sun..Sat)
-    var diff = day === 0 ? -6 : 1 - day; // move to Monday
-    x.setDate(x.getDate() + diff);
-    x.setHours(0, 0, 0, 0);
-    return x;
-  }
-
-  function addDays(d, n) {
-    var x = new Date(d.getTime());
-    x.setDate(x.getDate() + n);
-    return x;
-  }
-
-  function fmtLabel(monday) {
-    var end = addDays(monday, 6);
-    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    // Match UI reference: "Week of 27-03 May 2026"
-    var s = "Week of " + pad2(monday.getDate()) + "-" + pad2(end.getDate()) + " " + months[end.getMonth()] + " " + end.getFullYear();
-    return s;
-  }
-
   function getParam(name) {
     try {
-      return new URLSearchParams(window.location.search || "").get(name) || "";
+      return (new URLSearchParams(window.location.search || "").get(name) || "").trim();
     } catch (e) {
       return "";
     }
   }
 
-  function setParamAndReload(name, value) {
+  function parseIsoDate(s) {
+    if (!s) return null;
+    var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    if (isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function isoDate(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function fmtLabel(startRaw, endRaw) {
+    var s = parseIsoDate(startRaw);
+    var e = parseIsoDate(endRaw);
+    if (!s || !e) return "All";
+    var mons = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return (
+      String(s.getDate()).padStart(2, "0") +
+      " " +
+      mons[s.getMonth()] +
+      " " +
+      s.getFullYear() +
+      " – " +
+      String(e.getDate()).padStart(2, "0") +
+      " " +
+      mons[e.getMonth()] +
+      " " +
+      e.getFullYear()
+    );
+  }
+
+  function applyRange(startVal, endVal) {
     try {
-      var url = new URL(window.location.href);
-      if (value) url.searchParams.set(name, value);
-      else url.searchParams.delete(name);
-      // keep hash
-      window.location.href = url.toString();
+      var u = new URL(window.location.href);
+      if (startVal && endVal) {
+        u.searchParams.set("ttv2_date_start", startVal);
+        u.searchParams.set("ttv2_date_end", endVal);
+      } else {
+        u.searchParams.delete("ttv2_date_start");
+        u.searchParams.delete("ttv2_date_end");
+      }
+      // Keep backwards compatibility clean.
+      u.searchParams.delete("ttv2_week_start");
+      window.location.href = u.toString();
     } catch (e) {}
   }
 
-  function buildWeeksForCurrentMonth() {
-    var now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    var curMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    var curMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    var rangeStart = startOfWeekMonday(curMonthStart);
-    var rangeEnd = addDays(startOfWeekMonday(curMonthEnd), 6);
-
-    var weeks = [];
-    for (var d = new Date(rangeStart.getTime()); d <= rangeEnd; d = addDays(d, 7)) {
-      weeks.push(new Date(d.getTime()));
-    }
-
-    // newest first (more convenient)
-    weeks.sort(function (a, b) {
-      return b.getTime() - a.getTime();
-    });
-    return weeks;
+  function applyWeek(mondayIso) {
+    try {
+      var u = new URL(window.location.href);
+      if (mondayIso) {
+        u.searchParams.set("ttv2_week_start", mondayIso);
+      } else {
+        u.searchParams.delete("ttv2_week_start");
+      }
+      u.searchParams.delete("ttv2_date_start");
+      u.searchParams.delete("ttv2_date_end");
+      window.location.href = u.toString();
+    } catch (e) {}
   }
 
-  function addMenuItem(menu, text, value, onClick) {
-    var li = document.createElement("li");
-    var a = document.createElement("a");
-    a.href = "#";
-    a.className = "dropdown-item";
-    a.setAttribute("data-week", value || "");
-    a.textContent = text;
-    a.addEventListener("click", function (e) {
-      e.preventDefault();
-      onClick();
-    });
-    li.appendChild(a);
-    menu.appendChild(li);
-    return a;
+  function mondayOf(d) {
+    var x = new Date(d.getTime());
+    var wd = x.getDay(); // Sun=0
+    var diff = (wd + 6) % 7; // Mon=0
+    x.setDate(x.getDate() - diff);
+    x.setHours(0, 0, 0, 0);
+    return x;
   }
 
   function init() {
     var btn = document.getElementById("ttv2WeekDropdownBtn");
     var menu = document.getElementById("ttv2WeekDropdownMenu");
     if (!btn || !menu) return;
+    var iconOnly = btn.getAttribute("data-icon-only") === "1";
 
-    // Toggle handling:
-    // - Prefer Bootstrap Dropdown API (positions menu with Popper)
-    // - Fallback to a minimal "show" class toggle (works even after AJAX DOM swaps)
-    if (!btn.getAttribute("data-ttv2-week-toggle-bound")) {
-      btn.setAttribute("data-ttv2-week-toggle-bound", "1");
-      btn.addEventListener(
-        "click",
-        function (e) {
-          try {
-            // If Bootstrap is available, use it.
-            if (window.bootstrap && window.bootstrap.Dropdown) {
-              e.preventDefault();
-              var dd = window.bootstrap.Dropdown.getOrCreateInstance(btn);
-              dd.toggle();
-              return;
-            }
-            // Manual toggle
-            e.preventDefault();
-            e.stopPropagation();
-            var open = menu.classList.contains("show");
-            if (open) {
-              menu.classList.remove("show");
-              btn.setAttribute("aria-expanded", "false");
-            } else {
-              menu.classList.add("show");
-              btn.setAttribute("aria-expanded", "true");
-            }
-          } catch (err) {}
-        },
-        true
-      );
-      document.addEventListener(
-        "click",
-        function () {
-          try {
-            if (!menu.classList.contains("show")) return;
-            menu.classList.remove("show");
-            btn.setAttribute("aria-expanded", "false");
-          } catch (e) {}
-        },
-        true
-      );
-      document.addEventListener(
-        "keydown",
-        function (e) {
-          try {
-            if (e.key !== "Escape") return;
-            if (!menu.classList.contains("show")) return;
-            menu.classList.remove("show");
-            btn.setAttribute("aria-expanded", "false");
-          } catch (err) {}
-        },
-        true
-      );
-    }
+    var startVal = getParam("ttv2_date_start");
+    var endVal = getParam("ttv2_date_end");
 
-    var selected = (getParam("ttv2_week_start") || "").trim();
-    var hasWeekSelected = !!selected;
-    var selectedDate = parseIsoDate(selected);
-    if (selectedDate) {
-      selected = isoDate(startOfWeekMonday(selectedDate));
-    }
-
-    var weeks = buildWeeksForCurrentMonth();
-    if (!weeks.length) return;
-
-    menu.innerHTML = "";
-
-    var matchedSelected = false;
-    weeks.forEach(function (monday) {
-      var value = isoDate(monday);
-      var a = addMenuItem(menu, fmtLabel(monday), value, function () {
-        setParamAndReload("ttv2_week_start", value);
-      });
-      if (hasWeekSelected && value === selected) {
-        matchedSelected = true;
-        a.classList.add("active");
-        btn.textContent = a.textContent;
+    // Legacy fallback: if only week is selected, prefill a 7-day range.
+    if (!(startVal && endVal)) {
+      var wk = getParam("ttv2_week_start");
+      var wkDate = parseIsoDate(wk);
+      if (wkDate) {
+        var wkEnd = new Date(wkDate.getTime());
+        wkEnd.setDate(wkEnd.getDate() + 6);
+        startVal = isoDate(wkDate);
+        endVal = isoDate(wkEnd);
       }
-    });
-
-    // Divider between weeks and "All" (last item)
-    var dividerLi = document.createElement("li");
-    var hr = document.createElement("hr");
-    hr.className = "dropdown-divider";
-    dividerLi.appendChild(hr);
-    menu.appendChild(dividerLi);
-
-    // "All" option clears the week filter (server treats missing param as overall view).
-    var allA = addMenuItem(menu, "All", "", function () {
-      setParamAndReload("ttv2_week_start", "");
-    });
-    if (!hasWeekSelected) {
-      allA.classList.add("active");
-      btn.textContent = "All";
     }
 
-    // If a week was selected but it's not in the current-month list, still show its label on the button.
-    if (hasWeekSelected && !matchedSelected && selectedDate) {
-      btn.textContent = fmtLabel(startOfWeekMonday(selectedDate));
+    var currentLabel = fmtLabel(startVal, endVal);
+    if (!iconOnly) {
+      btn.textContent = currentLabel;
     }
+    btn.setAttribute("title", "Select date range (" + currentLabel + ")");
+    btn.setAttribute("aria-label", "Select date range (" + currentLabel + ")");
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var thisMon = mondayOf(today);
+    var lastMon = new Date(thisMon.getTime());
+    lastMon.setDate(lastMon.getDate() - 7);
+    var prevMon = new Date(thisMon.getTime());
+    prevMon.setDate(prevMon.getDate() - 14);
+    var thisIso = isoDate(thisMon);
+    var lastIso = isoDate(lastMon);
+    var prevIso = isoDate(prevMon);
+
+    menu.innerHTML =
+      '<li><div class="px-3 pt-2" style="min-width:260px;" data-ttv2-range-box>' +
+      '<div class="fw-semibold mb-2" style="font-size:12px;">Quick weeks</div>' +
+      '<div class="d-flex flex-wrap gap-2 mb-2">' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekThis">This week</button>' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekLast">Last week</button>' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekPrev">2 weeks ago</button>' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekAll">All</button>' +
+      "</div>" +
+      '<div class="ttv2-sp-hr" style="margin:10px 0;"></div>' +
+      '<div class="fw-semibold mb-2" style="font-size:12px;">Select date range</div>' +
+      '<div class="mb-2"><label class="form-label mb-1" style="font-size:11px;">From</label><input type="date" class="form-control form-control-sm" id="ttv2DateStart"></div>' +
+      '<div class="mb-2"><label class="form-label mb-1" style="font-size:11px;">To</label><input type="date" class="form-control form-control-sm" id="ttv2DateEnd"></div>' +
+      '<div class="d-flex justify-content-between gap-2">' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2DateReset">All</button>' +
+      '<button type="button" class="btn btn-sm btn-primary" id="ttv2DateApply">Apply</button>' +
+      "</div></div></li>";
+
+    var box = menu.querySelector("[data-ttv2-range-box]");
+    var startInput = menu.querySelector("#ttv2DateStart");
+    var endInput = menu.querySelector("#ttv2DateEnd");
+    var resetBtn = menu.querySelector("#ttv2DateReset");
+    var applyBtn = menu.querySelector("#ttv2DateApply");
+    var wkThis = menu.querySelector("#ttv2WeekThis");
+    var wkLast = menu.querySelector("#ttv2WeekLast");
+    var wkPrev = menu.querySelector("#ttv2WeekPrev");
+    var wkAll = menu.querySelector("#ttv2WeekAll");
+    if (!startInput || !endInput || !resetBtn || !applyBtn) return;
+
+    startInput.value = startVal || "";
+    endInput.value = endVal || "";
+
+    if (box && !box.getAttribute("data-ttv2-stop-prop")) {
+      box.setAttribute("data-ttv2-stop-prop", "1");
+      box.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    }
+
+    if (!applyBtn.getAttribute("data-ttv2-bound")) {
+      applyBtn.setAttribute("data-ttv2-bound", "1");
+      applyBtn.addEventListener("click", function () {
+        var s = (startInput.value || "").trim();
+        var e = (endInput.value || "").trim();
+        if (!s || !e) return;
+        if (s > e) {
+          var t = s;
+          s = e;
+          e = t;
+        }
+        applyRange(s, e);
+      });
+    }
+
+    if (!resetBtn.getAttribute("data-ttv2-bound")) {
+      resetBtn.setAttribute("data-ttv2-bound", "1");
+      resetBtn.addEventListener("click", function () {
+        applyRange("", "");
+      });
+    }
+
+    function bindWeekBtn(el, isoVal) {
+      if (!el || el.getAttribute("data-ttv2-bound")) return;
+      el.setAttribute("data-ttv2-bound", "1");
+      el.addEventListener("click", function () {
+        applyWeek(isoVal || "");
+      });
+    }
+
+    bindWeekBtn(wkThis, thisIso);
+    bindWeekBtn(wkLast, lastIso);
+    bindWeekBtn(wkPrev, prevIso);
+    bindWeekBtn(wkAll, "");
   }
 
   window.ttv2InitWeekDropdown = function () {

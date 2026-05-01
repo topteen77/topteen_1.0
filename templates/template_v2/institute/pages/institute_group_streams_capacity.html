@@ -1,0 +1,36 @@
+<div class="ttv2-ig-subpage">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="fs-20 mb-0">Seat capacity</h2>
+    <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+  </div>
+  <p class="text-muted small mb-3">Detailed seat capacity by school and stream.</p>
+
+  <div class="card mb-4" id="seat-capacity-section" style="display: block;">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
+      <div id="seat-capacity-loader" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      <div id="seat-capacity-table-wrapper" style="display: none;">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Sr. No.</th>
+                <th>Name</th>
+                <th>PCM</th>
+                <th>CBM</th>
+                <th>COMM</th>
+                <th>HME</th>
+                <th>HMB</th>
+              </tr>
+            </thead>
+            <tbody id="seat-capacity-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

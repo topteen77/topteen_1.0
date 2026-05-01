@@ -592,11 +592,14 @@
         const hmb = inst.hmb || 100;
         const name = inst.name || 'Unknown';
         const instId = inst.id || index;
-        
+        const slug = (inst.slug && String(inst.slug).trim()) ? String(inst.slug).trim() : '';
+        const nameCell = slug
+          ? `<a class="text-decoration-none" href="/institute/${encodeURIComponent(slug)}/dashboard/">${name}</a>`
+          : name;
         html += `
           <tr data-institute-id="${instId}" data-edit-mode="false">
             <td>${index + 1}</td>
-            <td class="institute-name">${name}</td>
+            <td class="institute-name">${nameCell}</td>
             <td class="pcm-value">${pcm}</td>
             <td class="cbm-value">${cbm}</td>
             <td class="comm-value">${comm}</td>
@@ -1189,6 +1192,24 @@
           if (totalCreditsEl) totalCreditsEl.textContent = totalCredits.toLocaleString();
           if (usedCreditsEl) usedCreditsEl.textContent = usedCredits.toLocaleString();
           if (remainingCreditsEl) remainingCreditsEl.textContent = remainingCredits.toLocaleString();
+          
+          var slug = row.getAttribute('data-institute-slug') || '';
+          var studentsBase = (panel.getAttribute('data-ttv2-students-list-url') || '').trim();
+          var stuLink = document.getElementById('panel-institute-students-link');
+          if (stuLink) {
+            if (slug && studentsBase) {
+              var sep = studentsBase.indexOf('?') >= 0 ? '&' : '?';
+              stuLink.href = studentsBase + sep + 'institute_slug=' + encodeURIComponent(slug);
+              stuLink.classList.remove('disabled');
+              stuLink.style.pointerEvents = '';
+              stuLink.setAttribute('aria-disabled', 'false');
+            } else {
+              stuLink.href = '#';
+              stuLink.classList.add('disabled');
+              stuLink.style.pointerEvents = 'none';
+              stuLink.setAttribute('aria-disabled', 'true');
+            }
+          }
           
           // Show panel
           panel.classList.add('show');

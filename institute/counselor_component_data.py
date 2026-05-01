@@ -50,6 +50,23 @@ def build_counselor_data_list_for_institute_ids(
             "created": counselor.created,
         }
         if include_institute_name and counselor.counselor_admin:
-            row["institute_name"] = getattr(counselor.counselor_admin, "name", "") or "—"
+            admin = counselor.counselor_admin
+            row["institute_name"] = getattr(admin, "name", "") or "—"
+            row["institute_slug"] = getattr(admin, "slug", "") or ""
         rows.append(row)
     return rows
+
+
+def filter_counselor_data_list_by_query(rows: List[Dict], query: str) -> List[Dict]:
+    """Narrow counselor rows by substring match on name, email, or institute name (if present)."""
+    q = (query or "").strip().lower()
+    if not q or not rows:
+        return rows
+    out: List[Dict] = []
+    for r in rows:
+        name = (r.get("name") or "").lower()
+        email = (r.get("email") or "").lower()
+        inst = (r.get("institute_name") or "").lower()
+        if q in name or q in email or q in inst:
+            out.append(r)
+    return out

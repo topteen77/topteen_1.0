@@ -1,0 +1,76 @@
+{# Session plan page. Empty-state until plan storage is wired. #}
+{% set plan_rows = (ttv2_session_plan_rows if ttv2_session_plan_rows is defined else []) %}
+{% set is_dummy = (ttv2_session_plan_is_dummy if ttv2_session_plan_is_dummy is defined else false) %}
+{% set _disabled = 'disabled' if is_dummy else '' %}
+
+<div class="ttv2-card">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="card-title mb-0">Session plan</div>
+      <div style="font-size:11px;color:var(--c-text3);">Next week schedule and planning notes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="ttv2-card mt-3" {% if is_dummy %}style="opacity:.65"{% endif %}>
+  <div class="card-title mb-2">Create plan item</div>
+  <form class="row g-2 align-items-end" method="post" {% if is_dummy %}style="pointer-events:none"{% endif %}>
+    <div class="col-12 col-md-2">
+      <label class="form-label" style="font-size:11px;color:var(--c-text3)">Day</label>
+      <select class="form-select form-select-sm" {{ _disabled }}>
+        <option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-2">
+      <label class="form-label" style="font-size:11px;color:var(--c-text3)">Time</label>
+      <input type="text" class="form-control form-control-sm" placeholder="09:00–10:00" {{ _disabled }}>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:11px;color:var(--c-text3)">Counselor</label>
+      <input type="text" class="form-control form-control-sm" placeholder="Counselor name" {{ _disabled }}>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:11px;color:var(--c-text3)">Session type</label>
+      <input type="text" class="form-control form-control-sm" placeholder="Group / Parent / 1:1" {{ _disabled }}>
+    </div>
+    <div class="col-12 col-md-2">
+      <button class="btn btn-sm btn-primary w-100" type="button" {{ _disabled }}>Add</button>
+    </div>
+  </form>
+</div>
+
+<div class="ttv2-card p-0 mt-3" {% if is_dummy %}style="opacity:.55"{% endif %}>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Counselor</th>
+          <th>Type</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if plan_rows %}
+          {% for r in plan_rows %}
+            <tr {% if is_dummy %}style="pointer-events:none"{% endif %}>
+              <td>{{ r.get('day','—') }}</td>
+              <td>{{ r.get('time','—') }}</td>
+              <td class="text-truncate" style="max-width:240px">{{ r.get('counselor','—') }}</td>
+              <td>{{ r.get('type','—') }}</td>
+              <td class="text-truncate" style="max-width:360px">{{ r.get('note','—') }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+              No session plan items yet.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+

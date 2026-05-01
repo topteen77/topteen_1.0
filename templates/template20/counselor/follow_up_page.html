@@ -226,25 +226,25 @@
         </div>
         <form method="POST">
           <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-          <input type="hidden" name="student_id" value="{{ stu_info.student.student.id }}">
+          {# student_id must be StudentManagement.id (not User.id) #}
+          <input type="hidden" name="student_id" value="{{ stu_info.student.id }}">
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Mode of Follow Up</label>
               <select name="mode_of_follow_up" class="form-control custom-input" required>
                 <option value="">Select Mode</option>
-                <option value="Phone">Phone</option>
-                <option value="Email">Email</option>
-                <option value="In-Person">In-Person</option>
-                <option value="Video Call">Video Call</option>
+                <option value="call">Call</option>
+                <option value="email">Email</option>
+                <option value="meeting">Meeting</option>
               </select>
             </div>
             <div class="mb-3">
               <label class="form-label">Follow Up Status</label>
               <select name="follow_up_status" class="form-control custom-input" required>
                 <option value="">Select Status</option>
-                <option value="Completed">Completed</option>
-                <option value="Pending">Pending</option>
-                <option value="Rescheduled">Rescheduled</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="follow-up">Follow-up</option>
               </select>
             </div>
             <div class="row mb-3">

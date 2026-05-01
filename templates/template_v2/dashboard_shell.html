@@ -66,10 +66,15 @@
 
 {% block additionaljs %}
 {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ staticv('js_new/ttv2_dashboard_analytics.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_career_analytics.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_weekly_session_report.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_session_report_students.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_session_report_mtd_click.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_students_insights.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_week_dropdown.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_streams_capacity.js') }}"></script>
+<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
 {# Theme toggle + Bootstrap scripts: template_v2/base_logged_in.html → logged_in_footer_scripts.html #}
 <script>
   // Shared: print report link
@@ -120,6 +125,11 @@
     document.addEventListener('click', function(e){
       var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a[data-ttv2-nav]') : null);
       if (!a) return;
+      // Only intercept hash/section navigation. Real URLs are handled by the AJAX navigator below.
+      var href = (a.getAttribute('href') || '').trim();
+      if (href && href[0] !== '#') {
+        return;
+      }
       e.preventDefault();
       var key = (a.getAttribute('data-ttv2-nav') || '').trim();
       if (!key) return;
@@ -163,15 +173,13 @@
     function setBusy(host, isBusy){
       try { host.setAttribute('aria-busy', isBusy ? 'true' : 'false'); } catch(e) {}
     }
-    function setPlaceholder(host){
-      try {
-        host.innerHTML = host.getAttribute('data-ttv2-placeholder-html') || host.innerHTML;
-      } catch(e) {}
-    }
     function afterInject(){
       try { if (typeof initTooltips === 'function') initTooltips(); } catch(e) {}
       try { if (typeof window.ttv2InitWeekDropdown === 'function') window.ttv2InitWeekDropdown(); } catch(e) {}
       try { if (typeof window.ttv2InitDashboardAnalyticsCharts === 'function') window.ttv2InitDashboardAnalyticsCharts(); } catch(e) {}
+      try { if (typeof window.ttv2InitWeeklySessionReport === 'function') window.ttv2InitWeeklySessionReport(); } catch(e) {}
+      try { if (typeof window.ttv2InitSessionReportStudents === 'function') window.ttv2InitSessionReportStudents(); } catch(e) {}
+      try { if (typeof window.ttv2InitSessionReportMtdWeekClick === 'function') window.ttv2InitSessionReportMtdWeekClick(); } catch(e) {}
       try { if (typeof window.ttv2InitStudentsInsightsBlocks === 'function') window.ttv2InitStudentsInsightsBlocks(true); } catch(e) {}
       try { if (typeof window.ttv2InitStudentsTable === 'function') window.ttv2InitStudentsTable(); } catch(e) {}
       try {
@@ -186,6 +194,7 @@
             var map = {
               students: ['sec-institute-students','sec-group-students','sec-marketing-students'],
               assessments: ['sec-institute-charts','sec-institute-psychometric'],
+              heatmap: ['sec-institute-heatmap','sec-group-heatmap','sec-marketing-heatmap'],
               streams: ['sec-institute-streams-capacity'],
               streams_capacity: ['sec-institute-streams-capacity'],
               counselors: ['sec-institute-counselors','sec-group-counselors','sec-marketing-counselors'],
@@ -235,6 +244,12 @@
         if (typeof window.ttv2AfterAjaxContentLoad === 'function') window.ttv2AfterAjaxContentLoad();
       } catch(e) {}
       try { document.dispatchEvent(new CustomEvent('ttv2:content:loaded')); } catch(e) {}
+      try { document.dispatchEvent(new CustomEvent('ttv2:afterAjaxContentLoad')); } catch(e) {}
+      try {
+        if (typeof window.ttv2OpenGroupQuicklinkModalFromHash === 'function') {
+          window.ttv2OpenGroupQuicklinkModalFromHash();
+        }
+      } catch(e) {}
     }
 
     function loadHostFromUrl(url, push){
@@ -242,11 +257,6 @@
       if (!host) return;
       var u = withPartial(url);
       setBusy(host, true);
-      // store placeholder first time (so we can reuse for subsequent navigations)
-      if (!host.getAttribute('data-ttv2-placeholder-html')) {
-        try { host.setAttribute('data-ttv2-placeholder-html', host.innerHTML); } catch(e) {}
-      }
-      setPlaceholder(host);
       fetch(u.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
         .then(function(r){ return r.text(); })
         .then(function(html){
@@ -302,6 +312,102 @@
       if (!host) return;
       loadHostFromUrl(window.location.href, false);
     });
+  })();
+</script>
+
+<script>
+  // Marketing / institute-group quick-action modals: hash deep-links, institute hidden fields, counselor POST URL.
+  (function(){
+    if (window.__ttv2GroupQuickActionShellInit) return;
+    window.__ttv2GroupQuickActionShellInit = true;
+
+    var QL_MAP = {
+      '#ql-add-institute': 'ttv2AddInstituteModal',
+      '#ql-add-counselor': 'ttv2AddCounselorModal',
+      '#ql-upload-matric': 'ttv2MatricCsvUploadModal',
+      '#ql-upload-postmatric': 'ttv2PostMatricCsvUploadModal',
+    };
+
+    function openFromHash(){
+      try{
+        if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+        var h = (window.location.hash || '').trim();
+        var mid = QL_MAP[h];
+        if (!mid) return;
+        var el = document.getElementById(mid);
+        if (!el) return;
+        bootstrap.Modal.getOrCreateInstance(el).show();
+      } catch(e) {}
+    }
+    window.ttv2OpenGroupQuicklinkModalFromHash = openFromHash;
+
+    function syncMatricHidden(){
+      var s = document.getElementById('ttv2MatricInstituteSelect');
+      var h = document.getElementById('ttv2MatricInstituteId');
+      if (s && h) h.value = (s.value || '').trim();
+    }
+    function syncPostMatricHidden(){
+      var s = document.getElementById('ttv2PostMatricInstituteSelect');
+      var h = document.getElementById('ttv2PostMatricInstituteId');
+      if (s && h) h.value = (s.value || '').trim();
+    }
+
+    function syncCounselorAction(){
+      try{
+        var t = document.getElementById('ttv2CounselorInstituteSelect');
+        var form = document.querySelector('form[data-ttv2-counselor-form="1"]');
+        var instId = document.getElementById('ttv2CounselorInstituteId');
+        if (!t || !form || !instId) return;
+        var opt = t.options[t.selectedIndex];
+        var slug = opt ? (opt.getAttribute('data-slug') || '').trim() : '';
+        instId.value = (t.value || '').trim();
+        var tmpl = (form.getAttribute('data-ttv2-counselor-action-tmpl') || '').trim();
+        if (tmpl && slug) {
+          form.action = tmpl.split('__ttv2__').join(slug);
+        } else {
+          form.action = '#';
+        }
+      } catch(e) {}
+    }
+
+    document.addEventListener('change', function(e){
+      var t = e.target;
+      if (!t || !t.id) return;
+      if (t.id === 'ttv2MatricInstituteSelect') return syncMatricHidden();
+      if (t.id === 'ttv2PostMatricInstituteSelect') return syncPostMatricHidden();
+      if (t.id === 'ttv2CounselorInstituteSelect') return syncCounselorAction();
+    }, true);
+
+    document.addEventListener('show.bs.modal', function(ev){
+      try{
+        var id = ev.target && ev.target.id;
+        if (id === 'ttv2MatricCsvUploadModal') syncMatricHidden();
+        if (id === 'ttv2PostMatricCsvUploadModal') syncPostMatricHidden();
+      } catch(e) {}
+    });
+
+    document.addEventListener('submit', function(e){
+      var form = e.target;
+      if (!form || form.tagName !== 'FORM' || !form.getAttribute) return;
+      try{
+        if (form.id === 'ttv2MatricCsvUploadForm') syncMatricHidden();
+        if (form.id === 'ttv2PostMatricCsvUploadForm') syncPostMatricHidden();
+        if (form.getAttribute('data-ttv2-counselor-form') === '1') {
+          syncCounselorAction();
+          var act = (form.getAttribute('action') || '').trim();
+          if (!act || act === '#') {
+            e.preventDefault();
+          }
+        }
+      } catch(e4) {}
+    }, true);
+
+    document.addEventListener('DOMContentLoaded', function(){
+      openFromHash();
+      syncMatricHidden();
+      syncPostMatricHidden();
+    });
+    window.addEventListener('hashchange', openFromHash);
   })();
 </script>
 {% endblock %}

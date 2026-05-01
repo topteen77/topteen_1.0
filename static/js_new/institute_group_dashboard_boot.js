@@ -7,6 +7,12 @@
   "use strict";
 
   function loadStatistics() {
+    if (
+      !document.getElementById("students-count") &&
+      !document.getElementById("counselors-count")
+    ) {
+      return;
+    }
     const url = window.location.pathname + "?data_type=stats";
     fetch(url, {
       headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -48,7 +54,51 @@
     } catch (e) {}
   }
 
+  function renderIgSimpleTable(tbodyId, rows) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    if (!rows || !rows.length) {
+      tbody.innerHTML = '<tr><td colspan="2" class="text-muted">No data available</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows
+      .map(function (r) {
+        return '<tr><td>' + (r.label || '-') + '</td><td class="text-end">' + (r.value || 0) + '</td></tr>';
+      })
+      .join("");
+  }
+
+  function setIgGraphView(target, view) {
+    const chartWrap = document.querySelector('[data-ig-chart-wrap="' + target + '"]');
+    const tableWrap = document.querySelector('[data-ig-table-wrap="' + target + '"]');
+    if (!chartWrap || !tableWrap) return;
+    const showTable = view === "table";
+    chartWrap.style.display = showTable ? "none" : "";
+    tableWrap.style.display = showTable ? "" : "none";
+    document.querySelectorAll('[data-ig-view-btn][data-target="' + target + '"]').forEach(function (btn) {
+      btn.classList.toggle("active", btn.getAttribute("data-view") === view);
+    });
+  }
+
+  function bindIgGraphViewToggles() {
+    if (window._igGraphViewToggleBound) return;
+    window._igGraphViewToggleBound = true;
+    document.addEventListener("click", function (e) {
+      const btn = e.target && (e.target.closest ? e.target.closest("[data-ig-view-btn]") : null);
+      if (!btn) return;
+      e.preventDefault();
+      const target = (btn.getAttribute("data-target") || "").trim();
+      const view = (btn.getAttribute("data-view") || "").trim();
+      if (!target || !view) return;
+      setIgGraphView(target, view);
+    });
+  }
+
   function loadCharts() {
+    bindIgGraphViewToggles();
+    if (!document.getElementById("charts-section")) {
+      return;
+    }
     const url = window.location.pathname + "?data_type=charts";
     fetch(url, {
       headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -73,7 +123,7 @@
           if (sl) sl.innerHTML = '<p class="text-gray">No data available</p>';
         }
         if (data.seat_capacity_institutes && data.seat_capacity_institutes.length > 0) {
-          loadSeatCapacityTable(data.seat_capacity_institutes);
+          loadSeatCapacityDashboardChart(data.seat_capacity_institutes);
         } else {
           const seatCapacityLoader = document.getElementById("seat-capacity-loader");
           const seatCapacitySection = document.getElementById("seat-capacity-section");
@@ -130,6 +180,7 @@
     const values = institutes.map(function (inst) {
       return inst.student_count || 0;
     });
+    renderIgSimpleTable("igStudentsTableBody", labels.map(function (label, idx) { return { label: label, value: values[idx] || 0 }; }));
     if (loader) loader.style.display = "none";
     canvas.style.display = "block";
     if (window._igStudentsChartInstance) {
@@ -159,6 +210,83 @@
         scales: { y: { beginAtZero: true } },
       },
     });
+  }
+
+  function loadSeatCapacityDashboardChart(institutes) {
+    const section = document.getElementById("seat-capacity-section");
+    const loader = document.getElementById("seat-capacity-loader");
+    const wrapper = document.getElementById("seat-capacity-table-wrapper");
+    const canvas = document.getElementById("igSeatCapacityDashboardChart");
+    if (!section || !canvas) return;
+
+    section.style.display = "block";
+    if (!institutes || !institutes.length) {
+      if (loader) loader.innerHTML = '<p class="text-gray">No seat capacity data available</p>';
+      return;
+    }
+
+    const labels = institutes.map(function (inst) { return inst.name || "Unknown"; });
+    const totals = institutes.map(function (inst) {
+      return Number(inst.pcm || 0) + Number(inst.cbm || 0) + Number(inst.comm || 0) + Number(inst.hme || 0) + Number(inst.hmb || 0);
+    });
+    renderIgSimpleTable("igSeatTableBody", labels.map(function (label, idx) { return { label: label, value: totals[idx] || 0 }; }));
+
+    if (loader) loader.style.display = "none";
+    if (wrapper) wrapper.style.display = "block";
+    canvas.style.display = "block";
+
+    if (window._igSeatCapacityChartInstance) {
+      try { window._igSeatCapacityChartInstance.destroy(); } catch (e) {}
+      window._igSeatCapacityChartInstance = null;
+    }
+
+    window._igSeatCapacityChartInstance = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Total seats",
+          data: totals,
+          backgroundColor: "rgba(167, 139, 250, 0.85)",
+          borderColor: "rgba(139, 92, 246, 1)",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 90,
+              minRotation: 90
+            }
+          },
+          y: { beginAtZero: true }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function ttv2LoadInstituteGroupSeatCapacityPage() {
+    const section = document.getElementById("seat-capacity-section");
+    const tbody = document.getElementById("seat-capacity-tbody");
+    if (!section || !tbody) return;
+    const url = window.location.pathname + "?data_type=charts";
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(function (response) {
+        if (!response.ok) throw new Error("HTTP error! status: " + response.status);
+        return response.json();
+      })
+      .then(function (data) {
+        loadSeatCapacityTable((data && data.seat_capacity_institutes) ? data.seat_capacity_institutes : []);
+      })
+      .catch(function () {
+        const loader = document.getElementById("seat-capacity-loader");
+        if (loader) loader.innerHTML = '<p class="text-danger">Error loading seat capacity data</p>';
+      });
   }
 
   function loadSeatCapacityTable(institutes) {
@@ -199,6 +327,10 @@
     if (!canvas || typeof Chart === "undefined") return;
     const attempted = testResultCount || 0;
     const notAttempted = Math.max(0, (totalStudents || 0) - attempted);
+    renderIgSimpleTable("igPsychTableBody", [
+      { label: "Attempted", value: attempted },
+      { label: "Not Attempted", value: notAttempted },
+    ]);
     if (loader) loader.style.display = "none";
     canvas.style.display = "block";
     if (window._igPersonalityChartInstance) {
@@ -239,6 +371,7 @@
     const values = streamsData.map(function (s) {
       return s.count || 0;
     });
+    renderIgSimpleTable("igStreamsTableBody", labels.map(function (label, idx) { return { label: label, value: values[idx] || 0 }; }));
     if (loader) loader.style.display = "none";
     canvas.style.display = "block";
     if (window._igStreamsChartInstance) {
@@ -295,6 +428,9 @@
   }
 
   function loadInstitutesOnPageLoad() {
+    if (!document.getElementById("institutes-table-container")) {
+      return;
+    }
     const urlObj = new URL(window.location.href);
     urlObj.searchParams.set("data_type", "institutes");
     loadInstitutesTable(urlObj.pathname + urlObj.search);
@@ -332,6 +468,7 @@
     loadStatistics();
     loadInstitutesOnPageLoad();
     loadCharts();
+    ttv2LoadInstituteGroupSeatCapacityPage();
     bindInstituteFilterFormOnce();
   };
 

@@ -1,17 +1,186 @@
-{# Sessions page: institute follow-ups (sessions). If no data, show disabled dummy rows. #}
+{# Sessions page: institute follow-ups (sessions). Shows empty-state when no rows. #}
 {% set rows = (ttv2_sessions if ttv2_sessions is defined else []) %}
-{% set is_dummy = (ttv2_sessions_is_dummy if ttv2_sessions_is_dummy is defined else False) %}
+{% set is_dummy = (ttv2_sessions_is_dummy if ttv2_sessions_is_dummy is defined else false) %}
+{% set kpis = (ttv2_sessions_kpis_simple if ttv2_sessions_kpis_simple is defined else {}) %}
+{% set filters = (ttv2_sessions_filters if ttv2_sessions_filters is defined else {}) %}
+{% set counselor_opts = (ttv2_session_report_counselors if ttv2_session_report_counselors is defined else []) %}
 
 <div class="ttv2-card">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div class="card-title mb-0">Sessions</div>
-    {% if is_dummy %}
-      <div style="font-size:11px;color:var(--c-text3);">No session data found. Showing sample rows (disabled).</div>
-    {% else %}
-      <div style="font-size:11px;color:var(--c-text3);">Showing recent counselor follow-ups.</div>
-    {% endif %}
+    <div style="font-size:11px;color:var(--c-text3);">Filter and review counselor follow-ups for this institute.</div>
   </div>
 </div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="ttv2-card">
+      <div class="ttv2-kpi-title">Total sessions</div>
+      <div class="ttv2-kpi-val">{{ kpis.get('total_sessions', 0) }}</div>
+      <div class="ttv2-kpi-sub">In selected filters</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="ttv2-card">
+      <div class="ttv2-kpi-title">Students with sessions</div>
+      <div class="ttv2-kpi-val">{{ kpis.get('unique_students', 0) }}</div>
+      <div class="ttv2-kpi-sub">Unique students covered</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="ttv2-card">
+      <div class="ttv2-kpi-title">Avg sessions / student</div>
+      <div class="ttv2-kpi-val">{{ kpis.get('avg_per_student', 0) }}</div>
+      <div class="ttv2-kpi-sub">Higher means more follow-ups</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="ttv2-card">
+      <div class="ttv2-kpi-title">Completed / Pending</div>
+      <div class="ttv2-kpi-val">{{ kpis.get('completed', 0) }} / {{ kpis.get('pending', 0) }}</div>
+      <div class="ttv2-kpi-sub">Follow-up: {{ kpis.get('follow_up', 0) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="ttv2-card mt-3">
+  <form id="ttv2SessionsFilters"
+        method="get"
+        action="{{ request.path if request else '' }}"
+        class="row g-2 align-items-end"
+        data-ttv2-autosubmit="1">
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:12px;color:var(--c-text3);">From</label>
+      <input id="ttv2SessFrom"
+             type="date"
+             class="form-control form-control-sm"
+             name="from"
+             value="{{ filters.get('from','') }}"
+             {% if filters.get('to','') %}max="{{ filters.get('to','') }}"{% endif %}>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:12px;color:var(--c-text3);">To</label>
+      <input id="ttv2SessTo"
+             type="date"
+             class="form-control form-control-sm"
+             name="to"
+             value="{{ filters.get('to','') }}"
+             {% if filters.get('from','') %}min="{{ filters.get('from','') }}"{% endif %}>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:12px;color:var(--c-text3);">Counselor</label>
+      <select class="form-select form-select-sm" name="counselor">
+        <option value="">All</option>
+        {% for c in counselor_opts %}
+          {% set cid = c.get('id') %}
+          {% set cnm = c.get('name') %}
+          <option value="{{ cid }}" {% if filters.get('counselor','')|string == cid|string %}selected{% endif %}>{{ cnm }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:12px;color:var(--c-text3);">Class</label>
+      <select class="form-select form-select-sm" name="class">
+        <option value="">All</option>
+        {% if class_and_sections is defined and class_and_sections %}
+          {% for cs in class_and_sections %}
+            <option value="{{ cs.id }}" {% if filters.get('class','')|string == cs.id|string %}selected{% endif %}>{{ cs.class_and_section }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:12px;color:var(--c-text3);">Mode</label>
+      <select class="form-select form-select-sm" name="mode">
+        <option value="">All</option>
+        {% for m in ['call','whatsapp','inperson','online'] %}
+          <option value="{{ m }}" {% if filters.get('mode','')|lower == m %}selected{% endif %}>{{ m|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" style="font-size:12px;color:var(--c-text3);">Status</label>
+      <select class="form-select form-select-sm" name="status">
+        <option value="">All</option>
+        {% for s in ['completed','pending','follow-up'] %}
+          <option value="{{ s }}" {% if filters.get('status','')|lower == s %}selected{% endif %}>{{ s|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-6 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url('institute:institutedashboard_page', args=[institute.slug, 'sessions']) }}">Reset</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Auto-apply filters on change + enforce date range constraints.
+  (function(){
+    function byId(id){ return document.getElementById(id); }
+    function setup(){
+      var form = byId('ttv2SessionsFilters');
+      if (!form || form.getAttribute('data-ttv2-autosubmit') !== '1') return;
+      if (form.getAttribute('data-ttv2-bound') === '1') return;
+      form.setAttribute('data-ttv2-bound','1');
+
+      var fromEl = byId('ttv2SessFrom');
+      var toEl = byId('ttv2SessTo');
+      var submitTimer = null;
+
+      function enforceRange(changed){
+        if (!fromEl || !toEl) return;
+        var fv = (fromEl.value || '').trim();
+        var tv = (toEl.value || '').trim();
+        if (fv) toEl.min = fv; else toEl.removeAttribute('min');
+        if (tv) fromEl.max = tv; else fromEl.removeAttribute('max');
+        if (fv && tv && fv > tv) {
+          if (changed === 'from') {
+            toEl.value = fv;
+          } else if (changed === 'to') {
+            fromEl.value = tv;
+          } else {
+            toEl.value = fv;
+          }
+        }
+      }
+
+      function requestSubmit(){
+        if (submitTimer) window.clearTimeout(submitTimer);
+        submitTimer = window.setTimeout(function(){
+          try {
+            if (typeof form.requestSubmit === 'function') form.requestSubmit();
+            else form.submit();
+          } catch(e) {
+            try { form.submit(); } catch(e2) {}
+          }
+        }, 150);
+      }
+
+      form.addEventListener('change', function(e){
+        var t = e && e.target;
+        if (!t) return;
+        if (t === fromEl) enforceRange('from');
+        if (t === toEl) enforceRange('to');
+        requestSubmit();
+      }, true);
+
+      // If user types date manually, submit on blur as well.
+      if (fromEl) fromEl.addEventListener('blur', function(){ enforceRange('from'); requestSubmit(); });
+      if (toEl) toEl.addEventListener('blur', function(){ enforceRange('to'); requestSubmit(); });
+
+      enforceRange('');
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup);
+    } else {
+      setup();
+    }
+    // Re-bind when v2 AJAX injects this page.
+    document.addEventListener('ttv2:content:loaded', function(){ setup(); });
+  })();
+</script>
 
 <div class="ttv2-card p-0 mt-3" {% if is_dummy %}style="opacity:.55"{% endif %}>
   <div class="table-responsive">
@@ -21,6 +190,7 @@
           <th>Date</th>
           <th>Counselor</th>
           <th>Student</th>
+          <th class="text-nowrap"># Sessions</th>
           <th>Mode</th>
           <th>Status</th>
           <th>Next follow-up</th>
@@ -33,6 +203,14 @@
               <td>{{ r.get('when', '-') }}</td>
               <td class="text-truncate" style="max-width:220px">{{ r.get('counselor', '-') }}</td>
               <td class="text-truncate" style="max-width:260px">{{ r.get('student', '-') }}</td>
+              <td>
+                {% set sc = r.get('student_sessions') %}
+                {% if sc is not none %}
+                  <span class="badge bg-light text-dark">{{ sc }}</span>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
               <td>{{ r.get('mode', '-') }}</td>
               <td>
                 {% set st = r.get('status','') %}
@@ -51,7 +229,7 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="6" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+            <td colspan="7" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
               No sessions found.
             </td>
           </tr>

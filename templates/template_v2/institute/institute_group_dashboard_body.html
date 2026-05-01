@@ -5,6 +5,10 @@
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
     {% include "template20/institute/institute_group_dashboard_body.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'institutes' %}
+    {% include "template_v2/institute/pages/institute_group_institutes_page.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'counselors' %}
+    {% include "template_v2/institute/pages/institute_group_counselors_page.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'students' %}
     {% set ttv2_students_role = 'institute_group' %}
     {% set ttv2_students_table_config = {
@@ -21,10 +25,16 @@
     } %}
     {% set ttv2_students_action_urls = {} %}
     {% include "template_v2/institute/pages/institute_students.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'streams_capacity' %}
+    {% include "template_v2/institute/pages/institute_group_streams_capacity.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
     {% include "template_v2/institute/pages/institute_accounts.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'payments' %}
     {% include "template_v2/institute/pages/institute_payments.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'session_report' %}
+    {% include "template_v2/institute/pages/institute_session_report.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'session_plan' %}
+    {% include "template_v2/institute/pages/institute_session_plan.html" %}
   {% else %}
     <div class="ttv2-card">
       <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>

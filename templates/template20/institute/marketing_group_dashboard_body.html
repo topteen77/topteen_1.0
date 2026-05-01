@@ -138,40 +138,39 @@
       <!-- Main Content -->
       <div class="col-lg-8" id="main-content-area">
         <h2 class="fs-24 fw-semibold mb-4">Marketing Group Dashboard</h2>
-
-        {% with section_id = "sec-marketing-students" %}
-        {% include "template_v2/includes/ttv2_students_insights_block.html" %}
-        {% endwith %}
         
-        <!-- Statistics Cards -->
+        <!-- Statistics Cards (institute / counselor counts open full list pages) -->
         <div class="row g-3 mb-4">
-          <div class="col-12 col-md-4 col-lg-2-4">
+          <div class="col-12 col-md-4 col-lg-2-4 position-relative">
             <div class="stat-card">
+              <a href="{{ url('institute:marketinggroupdashboard_page', args=['institutes']) }}" class="stretched-link" aria-label="Open institutes"></a>
               <i class='bx bx-building fs-32 text-primary'></i>
               <div>
-                <p class="stat-value" id="institutes-count">
+                <p class="stat-value" id="institutes-count" style="position: relative; z-index: 1;">
                   <span class="spinner-border spinner-border-sm" role="status"></span>
                 </p>
                 <p class="stat-label">Total Institutes</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-4 col-lg-2-4">
+          <div class="col-12 col-md-4 col-lg-2-4 position-relative">
             <div class="stat-card">
+              <a href="{{ url('institute:marketinggroupdashboard_page', args=['students']) }}" class="stretched-link" aria-label="Open students"></a>
               <i class='bx bx-user-check fs-32 text-success'></i>
               <div>
-                <p class="stat-value" id="students-count">
+                <p class="stat-value" id="students-count" style="position: relative; z-index: 1;">
                   <span class="spinner-border spinner-border-sm" role="status"></span>
                 </p>
                 <p class="stat-label">Total Students</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-4 col-lg-2-4">
+          <div class="col-12 col-md-4 col-lg-2-4 position-relative">
             <div class="stat-card">
+              <a href="{{ url('institute:marketinggroupdashboard_page', args=['counselors']) }}" class="stretched-link" aria-label="Open counselors"></a>
               <i class='bx bx-user fs-32 text-info'></i>
               <div>
-                <p class="stat-value" id="counselors-count">
+                <p class="stat-value" id="counselors-count" style="position: relative; z-index: 1;">
                   <span class="spinner-border spinner-border-sm" role="status"></span>
                 </p>
                 <p class="stat-label">Counselors</p>
@@ -202,146 +201,67 @@
           </div>
         </div>
 
-        <!-- Filter Form -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <form method="GET" class="row g-2 align-items-end" id="institute-filter-form">
-              <div class="col-md-2">
-                <label for="institute_filter" class="form-label text-gray fs-12 mb-1">Institute Name</label>
-                <input type="text" 
-                       name="institute" 
-                       id="institute_filter"
-                       class="form-control custom-input" 
-                       placeholder="Search institute"
-                       value="{{ search_params.institute|default('') }}">
-              </div>
-              <div class="col-md-2">
-                <label for="location_filter" class="form-label text-gray fs-12 mb-1">Location</label>
-                <select name="location" id="location_filter" class="form-control custom-input">
-                  <option value="">All Locations</option>
-                  {% for location in locations %}
-                  <option value="{{ location }}" {% if search_params.location == location %}selected{% endif %}>
-                    {{ location }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-2">
-                <label for="location_search_filter" class="form-label text-gray fs-12 mb-1">Search Location</label>
-                <input type="text" 
-                       name="location_search" 
-                       id="location_search_filter"
-                       class="form-control custom-input" 
-                       placeholder="Search by location"
-                       value="{{ search_params.location_search|default('') }}">
-              </div>
-              <div class="col-md-2">
-                <label for="per_page_filter" class="form-label text-gray fs-12 mb-1">Records per page</label>
-                <select name="per_page" id="per_page_filter" class="form-control custom-input" onchange="updatePerPage(this.value)">
-                  <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10</option>
-                  <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
-                  <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>All</option>
-                </select>
-              </div>
-              <div class="col-md-2">
-                <label for="institute_status_filter" class="form-label text-gray fs-12 mb-1">Status</label>
-                <select name="status" id="institute_status_filter" class="form-control custom-input">
-                  <option value="" {% if not search_params.status %}selected{% endif %}>All</option>
-                  <option value="pending" {% if search_params.status == 'pending' %}selected{% endif %}>Pending</option>
-                  <option value="approved" {% if search_params.status == 'approved' %}selected{% endif %}>Approved</option>
-                  <option value="rejected" {% if search_params.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                </select>
-              </div>
-              <div class="col-md-2 d-flex flex-column gap-2 align-items-stretch justify-content-end">
-                <button type="submit" 
-                        class="btn custom-button purple-button w-100" 
-                        style="text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.01em;">
-                  Search
-                </button>
-                <a href="{{ url('institute:marketinggroupdashboard') }}" 
-                   class="btn btn-secondary w-100 text-center" 
-                   style="text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.01em;">
-                  Reset
-                </a>
-              </div>
-            </form>
-          </div>
-        </div>
+        {% include "template_v2/institute/fragments/mktg_registration_insights.html" %}
 
-        <!-- Institutes Table -->
-        <div class="card mb-4 position-relative">
-          <div class="card-body">
-            <!-- Loader (shown initially) -->
-            <div id="institutes-loader" class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-3 text-gray">Loading institutes...</p>
-            </div>
-            
-            <!-- Table Container (hidden initially, shown after AJAX load) -->
-            <div id="institutes-table-wrapper" style="display: none;"></div>
-          </div>
-          
-        </div>
+        {% if not (ttv2_page is defined and ttv2_page == 'dashboard') %}
+          {% include "template_v2/institute/fragments/mktg_institutes_filters_table.html" %}
+          {% include "template_v2/institute/fragments/mktg_counselors_block.html" %}
 
-        {% set counselor_component_wrap = 'card' %}
-        {% set counselor_component_allow_add = false %}
-        {% set counselor_component_show_manage_actions = false %}
-        {% set counselor_component_show_institute_column = true %}
-        {% set counselor_component_section_id = 'sec-marketing-counselors' %}
-        {% set counselor_component_title = 'Counselors (scoped institutes)' %}
-        {% include 'template20/shared/counselors_details_component.html' %}
+          {% with section_id = "sec-marketing-students" %}
+          {% include "template_v2/includes/ttv2_students_insights_block.html" %}
+          {% endwith %}
+        {% endif %}
 
         <!-- Charts Section - Line Graph (Full Width) -->
         <div class="row g-4 mb-4" id="charts-section" style="display: none;">
           <div class="col-12">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-3">Total No. of Students in each institute</h5>
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                  <h5 class="card-title mb-0">Students by location (Top 12)</h5>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" data-mktg-view-btn data-target="location" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" data-mktg-view-btn data-target="location" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                  </div>
+                </div>
                 <div id="location-chart-loader" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                   </div>
                 </div>
-                <div style="height: 400px; position: relative; overflow: hidden;">
+                <div data-mktg-chart-wrap="location" style="height: 400px; position: relative; overflow: hidden;">
                   <canvas id="locationChart" style="display: none; max-height: 400px; max-width: 100%;"></canvas>
+                </div>
+                <div data-mktg-table-wrap="location" class="table-responsive" style="display:none;max-height:400px;overflow:auto;">
+                  <table class="table table-sm mb-0"><thead><tr><th>Location</th><th class="text-end">Students</th></tr></thead><tbody id="mktgLocationTableBody"></tbody></table>
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        <!-- Seat Capacity by Stream Table -->
+        <!-- Seat Capacity chart -->
         <div class="card mb-4" id="seat-capacity-section" style="display: none;">
           <div class="card-body">
-            <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+              <h5 class="card-title mb-0">Seat Capacity by School</h5>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary active" data-mktg-view-btn data-target="seat" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                <button type="button" class="btn btn-outline-secondary" data-mktg-view-btn data-target="seat" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+              </div>
+            </div>
             <div id="seat-capacity-loader" class="text-center py-5">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
             </div>
             <div id="seat-capacity-table-wrapper" style="display: none;">
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Sr. No.</th>
-                      <th>Name</th>
-                      <th>PCM</th>
-                      <th>CBM</th>
-                      <th>COMM</th>
-                      <th>HME</th>
-                      <th>HMB</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="seat-capacity-tbody">
-                  </tbody>
-                </table>
+              <div data-mktg-chart-wrap="seat" style="height: 320px; position: relative; overflow: hidden;">
+                <canvas id="seatCapacityDashboardChart" style="display: none; max-height: 320px; max-width: 100%;"></canvas>
               </div>
-              <!-- Pagination Container -->
-              <div id="seat-capacity-pagination"></div>
+              <div data-mktg-table-wrap="seat" class="table-responsive" style="display:none;max-height:320px;overflow:auto;">
+                <table class="table table-sm mb-0"><thead><tr><th>School</th><th class="text-end">Total seats</th></tr></thead><tbody id="mktgSeatTableBody"></tbody></table>
+              </div>
             </div>
           </div>
         </div>
@@ -350,30 +270,48 @@
         <div class="row g-4 mb-4 ttv2-bottom-charts-row" id="bottom-charts-section" style="display: none;">
           <div class="col-12 col-lg-6">
             <div class="card">
-              <div class="card-body">
-                <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                  <h5 class="card-title mb-0">Total No of students have attempts psychometric test</h5>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" data-mktg-view-btn data-target="psych" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" data-mktg-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                  </div>
+                </div>
                 <div id="personality-chart-loader" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                   </div>
                 </div>
-                <div style="height: 300px; position: relative;">
-                  <canvas id="personalityChart" style="display: none;"></canvas>
+                <div data-mktg-chart-wrap="psych" style="height: 260px; position: relative; width:100%;">
+                  <canvas id="personalityChart" style="display:none;width:100% !important;height:100% !important;"></canvas>
+                </div>
+                <div data-mktg-table-wrap="psych" class="table-responsive" style="display:none;max-height:260px;overflow:auto;">
+                  <table class="table table-sm mb-0"><thead><tr><th>Status</th><th class="text-end">Students</th></tr></thead><tbody id="mktgPsychTableBody"></tbody></table>
                 </div>
               </div>
             </div>
           </div>
           <div class="col-12 col-lg-6">
             <div class="card">
-              <div class="card-body">
-                <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                  <h5 class="card-title mb-0">Top streams by students</h5>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" data-mktg-view-btn data-target="streams" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" data-mktg-view-btn data-target="streams" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                  </div>
+                </div>
                 <div id="streams-chart-loader" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                   </div>
                 </div>
-                <div style="height: 300px; position: relative; overflow: hidden;">
-                  <canvas id="streamsChart" style="display: none; max-height: 300px; max-width: 100%;"></canvas>
+                <div data-mktg-chart-wrap="streams" style="height: 320px; position: relative; width:100%;">
+                  <canvas id="streamsChart" style="display:none;width:100% !important;height:100% !important;"></canvas>
+                </div>
+                <div data-mktg-table-wrap="streams" class="table-responsive" style="display:none;max-height:320px;overflow:auto;">
+                  <table class="table table-sm mb-0"><thead><tr><th>Stream</th><th class="text-end">Students</th></tr></thead><tbody id="mktgStreamsTableBody"></tbody></table>
                 </div>
               </div>
             </div>
@@ -385,7 +323,9 @@
 </section>
 
 <!-- Right Side Panel for Institute Details -->
-<div id="instituteDetailsPanel" class="institute-details-panel">
+<div id="instituteDetailsPanel"
+     class="institute-details-panel"
+     data-ttv2-students-list-url="{{ url('institute:marketinggroupdashboard_page', args=['students']) }}">
   <div class="panel-header">
     <div class="d-flex justify-content-between align-items-center">
       <h5 class="mb-0 fs-18 fw-semibold">Institute Details</h5>
@@ -416,6 +356,11 @@
     <div class="institute-detail-item">
       <div class="institute-detail-label">Students</div>
       <div class="institute-detail-value" id="panel-institute-students">-</div>
+      <a href="#"
+         id="panel-institute-students-link"
+         class="btn btn-sm btn-outline-primary mt-2 disabled"
+         style="pointer-events: none;"
+         aria-disabled="true">Open students for this school</a>
     </div>
     
     <!-- Credits Information Section -->

@@ -1,0 +1,13 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}My Enrolled Courses | Top Teen{% endblock %}
+{% block description_content %}Your enrolled courses and quick access to curriculum.{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebar_router.html" %}
+{% endblock %}
+
+{% block dashboard_body %}
+{% include "template_v2/counselor/fragments/enrolled_courses_section.html" %}
+{% endblock %}
+

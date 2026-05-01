@@ -5,6 +5,10 @@
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
     {% include "template20/institute/marketing_group_dashboard_body.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'institutes' %}
+    {% include "template_v2/institute/pages/marketing_group_institutes_page.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'counselors' %}
+    {% include "template_v2/institute/pages/marketing_group_counselors_page.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'students' %}
     {% set ttv2_students_role = 'marketing_group' %}
     {% set ttv2_students_table_config = {
@@ -21,6 +25,8 @@
     } %}
     {% set ttv2_students_action_urls = {} %}
     {% include "template_v2/institute/pages/institute_students.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'streams_capacity' %}
+    {% include "template_v2/institute/pages/marketing_group_streams_capacity.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
     {% include "template_v2/institute/pages/institute_accounts.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'payments' %}

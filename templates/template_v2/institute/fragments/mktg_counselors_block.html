@@ -1,0 +1,23 @@
+        <div class="card mb-3">
+          <div class="card-body">
+            <form method="get" action="{{ mktg_counselor_search_action|default(url('institute:marketinggroupdashboard')) }}" class="row g-2 align-items-end">
+              <div class="col-md-8">
+                <label class="form-label" for="mktg-counselor-q">Search counselors</label>
+                <input type="text" class="form-control" id="mktg-counselor-q" name="counselor_q"
+                       value="{{ counselor_q|default('') }}"
+                       placeholder="Name, email, or institute">
+              </div>
+              <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="{{ mktg_counselor_reset_href|default(url('institute:marketinggroupdashboard')) }}" class="btn btn-secondary">Reset</a>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% set counselor_component_wrap = 'card' %}
+        {% set counselor_component_allow_add = false %}
+        {% set counselor_component_show_manage_actions = false %}
+        {% set counselor_component_show_institute_column = true %}
+        {% set counselor_component_section_id = 'sec-marketing-counselors' %}
+        {% set counselor_component_title = 'Counselors' %}
+        {% include 'template20/shared/counselors_details_component.html' %}

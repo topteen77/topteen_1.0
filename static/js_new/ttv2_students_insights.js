@@ -28,6 +28,54 @@
     if (el) el.textContent = String(text);
   }
 
+  function setView(root, target, view) {
+    if (!root) return;
+    var chartWrap = root.querySelector('[data-ttv2-si-wrap="' + target + '-chart"]');
+    var tableWrap = root.querySelector('[data-ttv2-si-wrap="' + target + '-table"]');
+    if (chartWrap) chartWrap.style.display = view === "chart" ? "" : "none";
+    if (tableWrap) tableWrap.style.display = view === "table" ? "" : "none";
+    root
+      .querySelectorAll('[data-ttv2-si-view][data-ttv2-si-target="' + target + '"]')
+      .forEach(function (b) {
+        var isOn = (b.getAttribute("data-ttv2-si-view") || "") === view;
+        b.classList.toggle("active", !!isOn);
+        b.setAttribute("aria-pressed", isOn ? "true" : "false");
+      });
+  }
+
+  function bindTogglesOnce(root) {
+    if (!root || root.getAttribute("data-ttv2-si-toggles") === "1") return;
+    root.setAttribute("data-ttv2-si-toggles", "1");
+    root.addEventListener("click", function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest("[data-ttv2-si-view]") : null;
+      if (!btn) return;
+      var view = (btn.getAttribute("data-ttv2-si-view") || "").trim();
+      var target = (btn.getAttribute("data-ttv2-si-target") || "").trim();
+      if (!view || !target) return;
+      setView(root, target, view);
+    });
+    // default views
+    setView(root, "stream", "chart");
+    setView(root, "class", "chart");
+  }
+
+  function fillTable(root, key, rows) {
+    var tb = root.querySelector('[data-ttv2-si-table="' + key + '"]');
+    if (!tb) return;
+    tb.innerHTML = "";
+    (rows || []).forEach(function (r) {
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td");
+      td1.textContent = r.label;
+      var td2 = document.createElement("td");
+      td2.textContent = String(r.value);
+      td2.className = "text-end";
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tb.appendChild(tr);
+    });
+  }
+
   function initRoot(root, force) {
     if (!root || root.getAttribute("data-ttv2-students-insights") !== "1") {
       return;
@@ -41,6 +89,7 @@
       return;
     }
     root.setAttribute("data-ttv2-si-bound", "1");
+    bindTogglesOnce(root);
 
     if (typeof Chart !== "undefined") {
       Chart.defaults.color = cssVar("--c-text3", "rgba(146,153,176,0.85)");
@@ -179,6 +228,21 @@
             },
           },
         });
+
+        // Tables (same data as charts)
+        var streamRows = streamLabels.map(function (lbl, i) {
+          return { label: lbl, value: streamData[i] };
+        });
+        streamRows.sort(function (a, b) {
+          return (b.value || 0) - (a.value || 0);
+        });
+        fillTable(root, "stream", streamRows);
+        fillTable(root, "class", [
+          { label: "Class 10", value: c10 },
+          { label: "Class 11", value: c11 },
+          { label: "Class 12", value: c12 },
+          { label: "Other / primary", value: cOther },
+        ]);
       })
       .catch(function () {})
       .finally(function () {

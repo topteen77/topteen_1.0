@@ -5,9 +5,12 @@ All values are JSON-serializable (for |tojson in templates).
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+import math
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from django.db.models import Count, Max, Sum
+from django.db import models
+from django.db.models import Count, Max, Min, Sum, Q
+from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 
 from app.models import Results, TestCompletion
@@ -18,6 +21,23 @@ from counselor.models import Counselor, FollowUpStatus
 
 def _monday_of_week(d: date) -> date:
     return d - timedelta(days=d.weekday())
+
+
+def _followup_session_day_expr():
+    """
+    Calendar day for session / journey charts. Counselor cards count every FollowUpStatus
+    row, but many rows never set `last_follow_up_date`; those were invisible in trends.
+    Fall back to the row's created date so totals align with roster session counts.
+    """
+    return Coalesce(
+        "last_follow_up_date",
+        TruncDate("created"),
+        output_field=models.DateField(),
+    )
+
+
+def _followup_qs_for_session_metrics(base_qs):
+    return base_qs.annotate(_ttv2_sess_day=_followup_session_day_expr())
 
 
 def _week_ranges(num_weeks: int = 4, *, reference_monday: Optional[date] = None) -> List[Tuple[date, date, str]]:
@@ -37,48 +57,137 @@ def _week_ranges(num_weeks: int = 4, *, reference_monday: Optional[date] = None)
 
 
 def _followups_in_weeks(
-    counselor_ids: Sequence[int], num_weeks: int = 4, *, reference_monday: Optional[date] = None
+    counselor_ids: Sequence[int],
+    num_weeks: int = 4,
+    *,
+    reference_monday: Optional[date] = None,
+    student_management_ids: Optional[Sequence[int]] = None,
 ) -> Tuple[List[str], List[int], int, int]:
     """Session-like counts from FollowUpStatus by week. Also current & previous week totals."""
-    if not counselor_ids:
+    ids = [int(x) for x in counselor_ids if x]
+    sm_ids = [int(x) for x in (student_management_ids or []) if x]
+    if not ids and not sm_ids:
         return [], [], 0, 0
-    ids = list(counselor_ids)
+
+    base_qs = FollowUpStatus.objects.all()
+    if ids and sm_ids:
+        base_qs = base_qs.filter(Q(counselor_id__in=ids) | Q(student_id__in=sm_ids))
+    elif ids:
+        base_qs = base_qs.filter(counselor_id__in=ids)
+    else:
+        base_qs = base_qs.filter(student_id__in=sm_ids)
+
+    base_qs = _followup_qs_for_session_metrics(base_qs)
     ranges = _week_ranges(num_weeks, reference_monday=reference_monday)
     labels = [r[2] for r in ranges]
     values: List[int] = []
     for start, end, _ in ranges:
-        c = (
-            FollowUpStatus.objects.filter(counselor_id__in=ids)
-            .filter(
-                last_follow_up_date__isnull=False,
-                last_follow_up_date__gte=start,
-                last_follow_up_date__lte=end,
-            )
-            .count()
-        )
+        c = base_qs.filter(
+            _ttv2_sess_day__gte=start,
+            _ttv2_sess_day__lte=end,
+        ).count()
         values.append(c)
     this_monday = reference_monday or _monday_of_week(timezone.now().date())
     w0_start, w0_end = this_monday, this_monday + timedelta(days=6)
     w1_start, w1_end = this_monday - timedelta(days=7), this_monday - timedelta(days=1)
-    cur = (
-        FollowUpStatus.objects.filter(counselor_id__in=ids)
-        .filter(
-            last_follow_up_date__isnull=False,
-            last_follow_up_date__gte=w0_start,
-            last_follow_up_date__lte=w0_end,
-        )
-        .count()
-    )
-    prev = (
-        FollowUpStatus.objects.filter(counselor_id__in=ids)
-        .filter(
-            last_follow_up_date__isnull=False,
-            last_follow_up_date__gte=w1_start,
-            last_follow_up_date__lte=w1_end,
-        )
-        .count()
-    )
+    cur = base_qs.filter(
+        _ttv2_sess_day__gte=w0_start,
+        _ttv2_sess_day__lte=w0_end,
+    ).count()
+    prev = base_qs.filter(
+        _ttv2_sess_day__gte=w1_start,
+        _ttv2_sess_day__lte=w1_end,
+    ).count()
     return labels, values, cur, prev
+
+
+def _followups_in_date_range(
+    counselor_ids: Sequence[int],
+    *,
+    start_date: date,
+    end_date: date,
+    student_management_ids: Optional[Sequence[int]] = None,
+    max_bins: int = 8,
+) -> Tuple[List[str], List[int], int, int]:
+    """Session counts over a selected date range in compact bins."""
+    ids = [int(x) for x in counselor_ids if x]
+    sm_ids = [int(x) for x in (student_management_ids or []) if x]
+    if not ids and not sm_ids:
+        return [], [], 0, 0
+
+    base_qs = FollowUpStatus.objects.all()
+    if ids and sm_ids:
+        base_qs = base_qs.filter(Q(counselor_id__in=ids) | Q(student_id__in=sm_ids))
+    elif ids:
+        base_qs = base_qs.filter(counselor_id__in=ids)
+    else:
+        base_qs = base_qs.filter(student_id__in=sm_ids)
+
+    base_qs = _followup_qs_for_session_metrics(base_qs)
+    start_date = min(start_date, end_date)
+    end_date = max(start_date, end_date)
+    total_days = max(1, (end_date - start_date).days + 1)
+    bin_days = max(1, int(math.ceil(float(total_days) / max(1, int(max_bins)))))
+
+    labels: List[str] = []
+    values: List[int] = []
+    cur = start_date
+    while cur <= end_date:
+        bend = min(end_date, cur + timedelta(days=bin_days - 1))
+        labels.append(f"{cur:%d %b}–{bend:%d %b}")
+        values.append(
+            base_qs.filter(
+                _ttv2_sess_day__gte=cur,
+                _ttv2_sess_day__lte=bend,
+            ).count()
+        )
+        cur = bend + timedelta(days=1)
+
+    latest = values[-1] if values else 0
+    prev = values[-2] if len(values) > 1 else 0
+    return labels, values, latest, prev
+
+
+def _followups_all_time(
+    counselor_ids: Sequence[int],
+    *,
+    student_management_ids: Optional[Sequence[int]] = None,
+    max_bins: int = 8,
+) -> Tuple[List[str], List[int], int, int, Optional[date], Optional[date]]:
+    """
+    Session counts across the full available history (from earliest to latest follow-up date).
+    Returns (labels, values, last_bin_total, prev_bin_total, start_date, end_date).
+    """
+    ids = [int(x) for x in counselor_ids if x]
+    sm_ids = [int(x) for x in (student_management_ids or []) if x]
+    if not ids and not sm_ids:
+        return [], [], 0, 0, None, None
+
+    base_qs = FollowUpStatus.objects.all()
+    if ids and sm_ids:
+        base_qs = base_qs.filter(Q(counselor_id__in=ids) | Q(student_id__in=sm_ids))
+    elif ids:
+        base_qs = base_qs.filter(counselor_id__in=ids)
+    else:
+        base_qs = base_qs.filter(student_id__in=sm_ids)
+
+    base_qs = _followup_qs_for_session_metrics(base_qs)
+    agg = base_qs.aggregate(
+        mn=Min("_ttv2_sess_day"),
+        mx=Max("_ttv2_sess_day"),
+    )
+    mn = agg.get("mn")
+    mx = agg.get("mx")
+    if not mn or not mx:
+        return [], [], 0, 0, None, None
+    labels, values, latest, prev = _followups_in_date_range(
+        counselor_ids,
+        start_date=mn,
+        end_date=mx,
+        student_management_ids=student_management_ids,
+        max_bins=max_bins,
+    )
+    return labels, values, latest, prev, mn, mx
 
 
 def _psych_and_risk(user_ids: Sequence[int]) -> Tuple[int, int, int, float]:
@@ -161,6 +270,7 @@ def _week_activity_counts(
     student_management_qs,
     user_ids: Sequence[int],
     counselor_ids: Sequence[int],
+    student_management_ids: Optional[Sequence[int]] = None,
 ) -> Dict[str, int]:
     """Counts aligned with the selected Mon–Sun week (enrolments, psych attempts, journey touchpoints)."""
     enrollments = 0
@@ -198,14 +308,21 @@ def _week_activity_counts(
         )
 
     cids = [int(x) for x in counselor_ids if x]
+    sm_ids = [int(x) for x in (student_management_ids or []) if x]
     journey_touchpoints = 0
-    if cids:
+    if cids or sm_ids:
+        fu_qs = FollowUpStatus.objects.all()
+        if cids and sm_ids:
+            fu_qs = fu_qs.filter(Q(counselor_id__in=cids) | Q(student_id__in=sm_ids))
+        elif cids:
+            fu_qs = fu_qs.filter(counselor_id__in=cids)
+        else:
+            fu_qs = fu_qs.filter(student_id__in=sm_ids)
+        fu_qs = _followup_qs_for_session_metrics(fu_qs)
         journey_touchpoints = int(
-            FollowUpStatus.objects.filter(
-                counselor_id__in=cids,
-                last_follow_up_date__isnull=False,
-                last_follow_up_date__gte=week_start,
-                last_follow_up_date__lte=week_end,
+            fu_qs.filter(
+                _ttv2_sess_day__gte=week_start,
+                _ttv2_sess_day__lte=week_end,
             ).count()
         )
 
@@ -234,6 +351,8 @@ def build_ttv2_analytics(
     student_management_qs=None,
     counselor: Optional[Counselor] = None,
     week_start: Optional[date] = None,
+    date_start: Optional[date] = None,
+    date_end: Optional[date] = None,
 ) -> Dict[str, Any]:
     """
     role: "institute" | "counselor" | "marketing_group" | "institute_group"
@@ -268,6 +387,19 @@ def build_ttv2_analytics(
             )
         )
         n_students = len(user_ids)
+    student_management_ids: List[int] = []
+    if student_management_qs is not None and hasattr(student_management_qs, "values_list"):
+        student_management_ids = list(
+            student_management_qs.values_list("id", flat=True).distinct()
+        )
+
+    # Counselor dashboards: follow-up / "sessions" trend must count rows logged by this
+    # counselor only. Including student_management_ids makes the query
+    # Q(counselor_id__in=…) | Q(student_id__in=…), which pulls other counselors' history
+    # for the same students and skews the chart.
+    followup_student_management_ids: Optional[List[int]] = (
+        None if role == "counselor" else student_management_ids
+    )
 
     distinct_classes = 0
     if student_management_qs is not None and hasattr(student_management_qs, "values"):
@@ -281,12 +413,50 @@ def build_ttv2_analytics(
     psych_done, psych_total, on_track, clarity_avg = _psych_and_risk(user_ids)
     psych_pct = int(round(100.0 * psych_done / psych_total)) if psych_total else 0
 
-    reference_monday = _monday_of_week(week_start) if week_start else None
-    sess_labels, sess_values, sessions_week, sessions_prev = _followups_in_weeks(
-        counselor_ids, 4, reference_monday=reference_monday
-    )
+    has_date_range = bool(date_start and date_end)
+    if has_date_range:
+        dr_start = min(date_start, date_end)
+        dr_end = max(date_start, date_end)
+        sess_labels, sess_values, sessions_week, sessions_prev = _followups_in_date_range(
+            counselor_ids,
+            start_date=dr_start,
+            end_date=dr_end,
+            student_management_ids=followup_student_management_ids,
+        )
+        reference_monday = _monday_of_week(dr_end)
+    else:
+        # Default (no date filter): show all-time sessions trend so the chart is meaningful.
+        if not week_start:
+            (
+                sess_labels,
+                sess_values,
+                sessions_week,
+                sessions_prev,
+                _all_start,
+                _all_end,
+            ) = _followups_all_time(
+                counselor_ids,
+                student_management_ids=followup_student_management_ids,
+            )
+            if _all_start and _all_end:
+                dr_start, dr_end = _all_start, _all_end
+            else:
+                dr_start, dr_end = _monday_of_week(timezone.now().date()), _monday_of_week(timezone.now().date()) + timedelta(days=6)
+            reference_monday = _monday_of_week(dr_end)
+        else:
+            reference_monday = _monday_of_week(week_start)
+            sess_labels, sess_values, sessions_week, sessions_prev = _followups_in_weeks(
+                counselor_ids,
+                4,
+                reference_monday=reference_monday,
+                student_management_ids=followup_student_management_ids,
+            )
+            dr_start = reference_monday
+            dr_end = dr_start + timedelta(days=6)
     if not any(sess_values):
         sess_values = [0, 0, 0, sessions_week or 0]
+        if not sess_labels or len(sess_labels) != len(sess_values):
+            sess_labels = ["—", "—", "—", "—"]
 
     trend_prev = max(0.0, float(clarity_avg) + 5.0)
     clarity_trend = _clarity_trend_4(clarity_avg)
@@ -329,18 +499,26 @@ def build_ttv2_analytics(
         if row:
             top_stream = row.get("class_and_section__stream") or "—"
 
-    dr_start = reference_monday or _monday_of_week(timezone.now().date())
-    dr_end = dr_start + timedelta(days=6)
-    date_range_label = f"Week of {dr_start:%d}–{dr_end:%d %b %Y}"
+    if has_date_range:
+        date_range_label = f"{dr_start:%d %b %Y} – {dr_end:%d %b %Y}"
+    elif week_start:
+        date_range_label = f"Week of {dr_start:%d}–{dr_end:%d %b %Y}"
+    else:
+        # All-time chart (no week / explicit range): show actual span when we have history.
+        if dr_start and dr_end and (dr_end - dr_start).days > 6:
+            date_range_label = f"{dr_start:%d %b %Y} – {dr_end:%d %b %Y}"
+        else:
+            date_range_label = "All time"
 
     week_activity: Optional[Dict[str, int]] = None
-    if week_start:
+    if has_date_range or week_start:
         week_activity = _week_activity_counts(
             week_start=dr_start,
             week_end=dr_end,
             student_management_qs=student_management_qs,
             user_ids=user_ids,
             counselor_ids=counselor_ids,
+            student_management_ids=followup_student_management_ids,
         )
 
     kira = (
@@ -375,7 +553,7 @@ def build_ttv2_analytics(
         "pending": max(0, psych_total - psych_done),
         "labels": ["Completed", "Pending"],
     }
-    if week_start:
+    if has_date_range or week_start:
         completed_w = 0
         if user_ids:
             completed_w = int(
@@ -389,19 +567,21 @@ def build_ttv2_analytics(
             "completed": completed_w,
             "total": int(psych_total),
             "pending": max(0, int(psych_total) - completed_w),
-            "labels": ["Completed (week)", "Not completed (week)"],
+            "labels": ["Completed", "Pending"],
         }
 
     if week_activity is not None:
+        _prefix = "Selected range" if has_date_range else "This week"
         week_summary = (
-            f"This week: {week_activity['enrollments']} new enrolments · "
+            f"{_prefix}: {week_activity['enrollments']} new enrolments · "
             f"{week_activity['psych_attempts']} psychometric attempts · "
             f"{week_activity['psych_completed']} completions · "
             f"{week_activity['journey_touchpoints']} counseling touchpoints."
         )
     else:
+        # All-time sessions chart: sessions_week / sessions_prev are latest vs previous bins.
         week_summary = (
-            f"Follow-ups this week: {sessions_week} (last week: {sessions_prev}). "
+            f"All-time counseling touchpoints by period (latest bin {sessions_week}, previous {sessions_prev}). "
             f"Psychometric completion {psych_pct}%. Avg clarity gap {clarity_avg}%."
         )
 

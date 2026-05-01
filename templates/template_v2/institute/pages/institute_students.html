@@ -1,11 +1,76 @@
 {# Institute v2 Students page (partial, injected via ?ttv2_partial=1) #}
 <div id="sec-institute-students" class="ttv2-students-page">
   <div class="ttv2-students-page-head">
-    <h1 class="ttv2-sp-title">Student intelligence</h1>
-    <p class="ttv2-sp-sub">
-      Student view — search by name, class, email, then refine with filters.
-    </p>
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+      <div>
+        <h1 class="ttv2-sp-title mb-1">Student intelligence</h1>
+        <p class="ttv2-sp-sub mb-0">
+          Student view — search by name, class, email, then refine with filters.
+        </p>
+      </div>
+      {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#ttv2MatricCsvUploadModal">
+            <i class="bx bx-upload"></i> Matric CSV
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#ttv2PostMatricCsvUploadModal">
+            <i class="bx bx-upload"></i> Post‑Matric CSV
+          </button>
+        </div>
+      {% endif %}
+    </div>
   </div>
+
+  {# Institute-only: show students insights (KPIs + charts) on Students page. #}
+  {% if ttv2_students_role is not defined %}
+    {% include "template_v2/includes/ttv2_students_insights_block.html" %}
+
+    {# Institute-only: Psychometric participation + weekly sessions (legacy charts renderer). #}
+    {% set _chart_ts = (total_students_count if total_students_count is number else (total_students_count|default([]))|length) %}
+    {% set _chart_tr = (test_result_count if test_result_count is number else (test_result_count|default([]))|length) %}
+    <script type="application/json" id="ttv2-institute-legacy-charts-payload">{{ {
+      'hasStudents': (_chart_ts|default(0)) > 0,
+      'totalStudents': (_chart_ts|default(0)),
+      'testTaken': (_chart_tr|default(0)),
+      'streams': streams if streams is defined else {},
+      'sessionsJson': sessions_data_json if sessions_data_json is defined and sessions_data_json else '[]'
+    }|tojson }}</script>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-xl-6">
+        <div class="ttv2-card h-100" data-ttv2-psy>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+            <div class="card-title mb-0">Psychometric participation</div>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Psychometric participation view">
+              <button type="button" class="btn btn-outline-secondary active" data-ttv2-psy-view="chart">
+                <i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" data-ttv2-psy-view="table">
+                <i class="bx bx-table" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <div data-ttv2-psy-wrap="chart" style="height:260px;">
+            <canvas id="personality-chart" aria-label="Psychometric participation chart"></canvas>
+          </div>
+          <div class="table-responsive" data-ttv2-psy-wrap="table" style="display:none;max-height:260px;overflow:auto;">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th class="text-end">Students</th>
+                </tr>
+              </thead>
+              <tbody data-ttv2-psy-table-body></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-6">
+        {% include "template_v2/includes/ttv2_weekly_session_report_widget.html" %}
+      </div>
+    </div>
+  {% endif %}
 
   <div class="ttv2-sp-card">
     <div class="ttv2-sp-block">
@@ -29,6 +94,9 @@
       </div>
       <div class="ttv2-sp-tip">
         Tip: try an email domain or school short name when scope is all schools.
+        {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
+          <span class="d-block mt-1">Optional: add <code class="small">?institute_slug=…</code> to this page’s URL to narrow students to one institute you manage.</span>
+        {% endif %}
       </div>
       <div class="ttv2-sp-hr" aria-hidden="true"></div>
       <div class="ttv2-sp-filterrow">
@@ -89,9 +157,15 @@
 
   <div class="ttv2-card">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-      {% set _students_total = (total_students_count if (total_students_count is defined and total_students_count) else (stu.count() if (stu is defined and stu) else 0)) %}
+      {% if total_students_count is defined %}
+        {% set _students_total = total_students_count %}
+      {% elif stu is defined and stu %}
+        {% set _students_total = stu.count() %}
+      {% else %}
+        {% set _students_total = 0 %}
+      {% endif %}
       <div class="card-title mb-0">
-        {{ _students_total }} students
+        <span id="ttv2-students-roster-count">{{ _students_total }}</span> students
         {% if ttv2_assigned_students_count is defined %}
           <span style="font-size:11px;color:var(--c-text3);font-weight:600;margin-left:8px;">
             Assigned: {{ ttv2_assigned_students_count|default(0) }}
@@ -104,19 +178,35 @@
         {% endif %}
       </div>
       {% set _display_mode = (request.GET.get('display','cards') or 'cards') %}
-      <div class="btn-group" role="group" aria-label="Display">
-        <button type="button"
-                class="btn btn-sm btn-outline-secondary {% if _display_mode == 'cards' %}active{% endif %}"
-                data-ttv2-display="cards"
-                aria-pressed="{% if _display_mode == 'cards' %}true{% else %}false{% endif %}">
-          Grid
-        </button>
-        <button type="button"
-                class="btn btn-sm btn-outline-secondary {% if _display_mode == 'list' %}active{% endif %}"
-                data-ttv2-display="list"
-                aria-pressed="{% if _display_mode == 'list' %}true{% else %}false{% endif %}">
-          List
-        </button>
+      <div class="d-flex align-items-center gap-2">
+        {# Counselor: follow-up history. Institute: session report history. #}
+        {% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
+          <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}"
+             class="btn btn-sm btn-outline-primary"
+             title="Follow-up history">
+            <i class="bx bx-history me-1" aria-hidden="true"></i> History
+          </a>
+        {% elif institute is defined and institute and institute.slug %}
+          <a href="{{ url('institute:institutedashboard_page', args=[institute.slug, 'sessions']) }}"
+             class="btn btn-sm btn-outline-primary"
+             title="Session report">
+            <i class="bx bx-history me-1" aria-hidden="true"></i> History
+          </a>
+        {% endif %}
+        <div class="btn-group" role="group" aria-label="Display">
+          <button type="button"
+                  class="btn btn-sm btn-outline-secondary {% if _display_mode == 'cards' %}active{% endif %}"
+                  data-ttv2-display="cards"
+                  aria-pressed="{% if _display_mode == 'cards' %}true{% else %}false{% endif %}">
+            Grid
+          </button>
+          <button type="button"
+                  class="btn btn-sm btn-outline-secondary {% if _display_mode == 'list' %}active{% endif %}"
+                  data-ttv2-display="list"
+                  aria-pressed="{% if _display_mode == 'list' %}true{% else %}false{% endif %}">
+            List
+          </button>
+        </div>
       </div>
     </div>
     <div id="students-loader" class="text-center py-5" style="display: none;">
@@ -126,44 +216,21 @@
       <p class="mt-3 text-gray">Loading students...</p>
     </div>
     <div id="students-table-wrapper">
-      {# Normalize students variable for the shared students_table include. #}
-      {% if students is not defined and stu is defined %}
-        {% set students = stu %}
-      {% endif %}
-      {% if ttv2_students_ajax_only is defined and ttv2_students_ajax_only %}
-        {# Counselor and other roles can choose to always load rows via AJAX. #}
-        <div id="students-table-container"></div>
-      {% else %}
-        {% if ttv2_students_table_config is defined and ttv2_students_table_config %}
-          {% set table_config = ttv2_students_table_config %}
-        {% else %}
-          {% set table_config = {
-            'show_stream': True,
-            'show_email': False,
-            'show_contact': False,
-            'show_created': True,
-            'show_report': True,
-            'show_actions': True,
-            'show_block': True,
-            'show_followup': False,
-            'show_institute': False,
-            'role': (ttv2_students_role if (ttv2_students_role is defined and ttv2_students_role) else 'institute')
-          } %}
-        {% endif %}
-
-        {% if ttv2_students_action_urls is defined and ttv2_students_action_urls %}
-          {% set action_urls = ttv2_students_action_urls %}
-        {% else %}
-          {% set action_urls = {
-            'update': 'institute:update_student',
-            'delete': 'institute:delete_student',
-            'block': 'institute:institutestudentblock',
-            'change_password': 'institute:change_student_password'
-          } %}
-        {% endif %}
-        {% include 'template20/shared/students_table.html' %}
-      {% endif %}
+      {# Always load students via AJAX so institute + counselor share the same card/list layouts. #}
+      <div id="students-table-container"></div>
     </div>
   </div>
 </div>
+
+{# Counselor: show weekly session report widget at page bottom (below roster). #}
+{% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
+  <div class="mt-3">
+    {% include "template_v2/includes/ttv2_weekly_session_report_widget.html" %}
+  </div>
+{% endif %}
+
+{# Counselor-only: add follow-up modal used by list + grid. #}
+{% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
+  {% include "template_v2/includes/ttv2_follow_up_modal.html" %}
+{% endif %}
 

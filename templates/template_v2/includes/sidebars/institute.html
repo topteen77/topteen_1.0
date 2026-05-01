@@ -22,14 +22,21 @@
     {% endif %}
 
     <div class="ttv2-counselor-nav-title">Reports</div>
-    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}" class="active">
+    {% set _page = (ttv2_page|default('dashboard')) %}
+    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}"
+       data-ttv2-nav="dashboard"
+       class="{% if _page == 'dashboard' %}active{% endif %}">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
     </a>
-    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'students']) }}">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'students']) }}"
+       data-ttv2-nav="students"
+       class="{% if _page == 'students' %}active{% endif %}">
       <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students
     </a>
-    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'assessments']) }}">
-      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments2
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'assessments']) }}"
+       data-ttv2-nav="assessments"
+       class="{% if _page == 'assessments' %}active{% endif %}">
+      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Assessments
     </a>
     <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#38bdf8"></span>Journey tracker
@@ -37,26 +44,31 @@
 
     <div class="ttv2-counselor-nav-title">Analytics</div>
     {% if _inst_slug %}
-    <a href="{{ url('institute:instituteheatmap', args=[_inst_slug]) }}">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'heatmap']) }}"
+       data-ttv2-nav="heatmap"
+       class="{% if _page == 'heatmap' %}active{% endif %}">
       <span class="ttv2-counselor-dot" style="background:#34d399"></span>Career heatmap
     </a>
     {% endif %}
-    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'streams_capacity']) }}">
-      <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'streams_capacity']) }}"
+       data-ttv2-nav="streams_capacity"
+       class="{% if _page == 'streams_capacity' %}active{% endif %}">
+      <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Seat capacity by school
     </a>
     <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits
     </a>
 
     <div class="ttv2-counselor-nav-title">Guidance</div>
-    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'counselors']) }}">
-      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors1
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'counselors']) }}"
+       data-ttv2-nav="counselors"
+       class="{% if _page == 'counselors' %}active{% endif %}">
+      <span class="ttv2-counselor-dot" style="background:#4ade80"></span>Counselors
     </a>
-    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'sessions']) }}">
+    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'sessions']) }}"
+       data-ttv2-nav="sessions"
+       class="{% if _page == 'sessions' or _page == 'session_report' %}active{% endif %}">
       <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report
-    </a>
-    <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
-      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan
     </a>
     <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant

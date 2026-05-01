@@ -1,0 +1,7 @@
+{# Institute v2 Heatmap page (partial, injected via ?ttv2_partial=1) #}
+<div id="sec-institute-heatmap" class="ttv2-heatmap-page">
+  {% set heatmap_subtitle = 'Institute-wide Career Interest & Knowledge Matrix' %}
+  {% set heatmap_institute_slug = institute.slug if institute is defined and institute else '' %}
+  {% include 'template20/shared/career_heatmap_panel.html' %}
+</div>
+

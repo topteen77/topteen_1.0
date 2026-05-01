@@ -1,62 +1,139 @@
-{# Streams & capacity page: compare enrolled vs configured capacity. #}
-{% set rows = (ttv2_streams_capacity if ttv2_streams_capacity is defined else []) %}
-{% set is_dummy = (ttv2_streams_capacity_is_dummy if ttv2_streams_capacity_is_dummy is defined else False) %}
+{# Streams & seat capacity (v2): KPI cards + charts + full table. #}
+{% set p = (ttv2_streams_capacity_payload if ttv2_streams_capacity_payload is defined else {}) %}
+{% set k = (p.get('kpis', {}) if p else {}) %}
+{% set streams_meta = (p.get('streams_meta', []) if p else []) %}
+{% set class_rows = (p.get('class_rows', []) if p else []) %}
+
+<script type="application/json" id="ttv2-streams-capacity-payload">{{ p|tojson }}</script>
 
 <div class="ttv2-card" id="sec-institute-streams-capacity">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <div class="card-title mb-0">Streams & capacity</div>
-    {% if is_dummy %}
-      <div style="font-size:11px;color:var(--c-text3);">No stream data found. Showing sample rows (disabled).</div>
-    {% else %}
-      <div style="font-size:11px;color:var(--c-text3);">Seat capacity is configured at institute level.</div>
-    {% endif %}
+    <div>
+      <div class="card-title mb-0">Streams & seat capacity</div>
+      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
+        Stream assignment and seat capacity
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              id="ttv2WeekDropdownBtn"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              style="border-color:rgba(148,163,184,.35);">
+        Week
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end" id="ttv2WeekDropdownMenu" aria-labelledby="ttv2WeekDropdownBtn">
+        <li><span class="dropdown-item-text" style="font-size:11px;color:var(--c-text3);">Loading…</span></li>
+      </ul>
+    </div>
   </div>
 </div>
 
-<div class="ttv2-card p-0 mt-3" {% if is_dummy %}style="opacity:.55"{% endif %}>
+<div class="row g-3 mt-1">
+  <div class="col-12 col-lg-4">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div style="font-size:26px;font-weight:800;line-height:1;">{{ k.get('total_capacity', 0) }}</div>
+          <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">Total seat capacity</div>
+          <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
+            {{ k.get('streams_count', 0) }} streams • {{ k.get('classes_count', 0) }} classes • {{ k.get('capacity_per_stream_default', 0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="ttv2-card">
+      <div style="font-size:26px;font-weight:800;line-height:1;">{{ k.get('seats_filled', 0) }}</div>
+      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">Seats filled</div>
+      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">{{ k.get('fill_rate_pct', 0) }}% fill rate</div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="ttv2-card">
+      <div style="font-size:26px;font-weight:800;line-height:1;">{{ k.get('open_seats', 0) }}</div>
+      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">Open seats</div>
+      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">{{ (100 - (k.get('fill_rate_pct', 0) or 0))|round(2) }}% available</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-12 col-lg-7">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div style="font-weight:700;">Capacity by stream – 11th & 12th class</div>
+      </div>
+      <div style="height:240px;">
+        <canvas id="ttv2StreamsCapacityByStream"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-5">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div style="font-weight:700;">Occupancy rate by stream</div>
+      </div>
+      <div style="height:240px;">
+        <canvas id="ttv2StreamsOccupancyByStream"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ttv2-card mt-3 p-0">
+  <div class="px-3 pt-3 pb-2" style="border-bottom:1px solid rgba(148,163,184,.12);">
+    <div style="font-weight:700;">Seat capacity – full table</div>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0">
       <thead>
         <tr>
-          <th>Stream</th>
-          <th class="text-end">Enrolled</th>
-          <th class="text-end">Capacity</th>
-          <th class="text-end">Remaining</th>
-          <th>Status</th>
+          <th style="width:40px;">#</th>
+          <th>Class</th>
+          {% for sm in streams_meta %}
+            <th class="text-end">{{ sm.get('label','-') }}</th>
+          {% endfor %}
+          <th class="text-end">Total</th>
+          <th class="text-end">Filled</th>
+          <th class="text-end">Available</th>
+          <th class="text-end">Fill %</th>
         </tr>
       </thead>
       <tbody>
-        {% if rows %}
-          {% for r in rows %}
-            {% set rem = r.get('remaining', 0) %}
-            {% set cap = r.get('capacity', 0) %}
-            {% set pct = 0 %}
-            {% if cap and cap > 0 %}
-              {% set pct = (r.get('enrolled', 0) / cap * 100) %}
-            {% endif %}
-            <tr {% if is_dummy %}style="pointer-events:none"{% endif %}>
-              <td style="font-weight:700;">{{ r.get('label','-') }}</td>
-              <td class="text-end">{{ r.get('enrolled', 0) }}</td>
-              <td class="text-end">{{ r.get('capacity', 0) }}</td>
-              <td class="text-end">{{ rem }}</td>
-              <td>
-                {% if cap and rem <= 0 %}
-                  <span class="badge bg-danger">Full</span>
-                {% elif cap and pct >= 80 %}
-                  <span class="badge bg-warning text-dark">High</span>
-                {% else %}
-                  <span class="badge bg-success">Available</span>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        {% else %}
+        {% for r in class_rows %}
           <tr>
-            <td colspan="5" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
-              No streams found.
+            <td>{{ r.get('idx', loop.index) }}</td>
+            <td>
+              <span class="badge bg-primary-subtle text-primary" style="font-weight:700;">
+                {{ r.get('class_label','-') }}
+              </span>
             </td>
+            {% for sm in streams_meta %}
+              {% set code = sm.get('code','') %}
+              {% set cell = (r.get('streams', {}).get(code, {}) if r.get('streams') else {}) %}
+              <td class="text-end">{{ cell.get('cap', 0) }}</td>
+            {% endfor %}
+            <td class="text-end">{{ r.get('total', 0) }}</td>
+            <td class="text-end">{{ r.get('filled', 0) }}</td>
+            <td class="text-end">{{ r.get('available', 0) }}</td>
+            <td class="text-end">{{ r.get('fill_pct', 0) }}%</td>
           </tr>
-        {% endif %}
+        {% endfor %}
+        <tr style="border-top:1px solid rgba(148,163,184,.18);font-weight:800;">
+          <td></td>
+          <td>Total</td>
+          {% for sm in streams_meta %}
+            {% set code = sm.get('code','') %}
+            <td class="text-end">{{ (p.get('cap_map', {}).get(code, 0) or 0) * (p.get('classes', [])|length) }}</td>
+          {% endfor %}
+          <td class="text-end">{{ k.get('total_capacity', 0) }}</td>
+          <td class="text-end">{{ k.get('seats_filled', 0) }}</td>
+          <td class="text-end">{{ k.get('open_seats', 0) }}</td>
+          <td class="text-end">{{ k.get('fill_rate_pct', 0) }}%</td>
+        </tr>
       </tbody>
     </table>
   </div>

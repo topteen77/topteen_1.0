@@ -11,13 +11,23 @@
     {% set _inst_slug = (institute.slug if (institute is defined and institute and institute.slug) else '') %}
     {% set _is_counselor = (request.user and request.user.is_authenticated and request.user.user_type == 4) %}
     {% set _ttv2_role = (ttv2_analytics.role if (ttv2_analytics is defined and ttv2_analytics and ttv2_analytics.role is defined) else '') %}
+    {# Students KPI: per-school dashboard uses slug; marketing / institute-group use scoped students tab. #}
     {% set _students_href = (
       url('counselor:CounselorDashboardSection', args=[coun_id, 'students'])
       if (_is_counselor and coun_id is defined and coun_id)
-      else (url('institute:institutedashboard_page', args=[_inst_slug, 'students']) if _inst_slug else '')
+      else (url('institute:institutedashboard_page', args=[_inst_slug, 'students']) if _inst_slug
+      else (url('institute:marketinggroupdashboard_page', args=['students']) if _ttv2_role == 'marketing_group'
+      else (url('institute:institutegroupdashboard_page', args=['students']) if _ttv2_role == 'institute_group'
+      else '')))
     ) %}
     {% set _psych_graph_href = '#ttv2DaPsych' %}
-    {% set _couns_href = (url('institute:institutedashboard_page', args=[_inst_slug, 'counselors']) if _inst_slug else '') %}
+    {% set _couns_href = (
+      url('institute:institutedashboard_page', args=[_inst_slug, 'counselors'])
+      if _inst_slug
+      else (url('institute:marketinggroupdashboard_page', args=['counselors']) if _ttv2_role == 'marketing_group'
+      else (url('institute:institutegroupdashboard_page', args=['counselors']) if _ttv2_role == 'institute_group'
+      else ''))
+    ) %}
     {% set _new_assigned = (ttv2_new_assigned_count|default(0) if (ttv2_new_assigned_count is defined) else 0) %}
     {% set _new_assigned_href = (
       (url('counselor:CounselorDashboardSection', args=[coun_id, 'students']) ~ '?new_assigned=1')
@@ -41,7 +51,7 @@
       <div class="id-stat-icon id-stat-icon--blue"><i class="bx bx-brain" aria-hidden="true"></i></div>
       <div class="id-stat-body">
         <p class="id-stat-value">{{ ttv2_analytics.kpi.psychometric_count|default(0) }}</p>
-        <p class="id-stat-label lh-sm">{% if request.GET.get('ttv2_week_start') %}Psychometric attempts{% else %}Psychometric{% endif %}</p>
+        <p class="id-stat-label lh-sm">{% if request.GET.get('ttv2_week_start') or (request.GET.get('ttv2_date_start') and request.GET.get('ttv2_date_end')) %}Psychometric attempts{% else %}Psychometric{% endif %}</p>
       </div>
     </a>
 
@@ -89,22 +99,68 @@
     {% endif %}
   </div>
 
-  {# Chart rows: KPI strip above stays visible; overlay until Chart.js init completes. #}
-  <div class="ttv2-da-charts-area ttv2-da-charts-area--loading" data-ttv2-charts-area>
+  {# Chart rows: per-chart donut loaders (see ttv2_dashboard_analytics.js). #}
+  <div class="ttv2-da-charts-area" data-ttv2-charts-area>
   <div class="row g-3">
     <div class="col-12 col-xl-6">
       <div class="ttv2-card">
-        <div class="card-title">{% if request.GET.get('ttv2_week_start') %}Psychometric — this week{% else %}Psychometric completion{% endif %}</div>
-        <div style="position:relative;height:220px">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <div class="card-title mb-0">{% if request.GET.get('ttv2_week_start') or (request.GET.get('ttv2_date_start') and request.GET.get('ttv2_date_end')) %}Psychometric — selected range{% else %}Psychometric completion{% endif %}</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Psychometric view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="psych" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+          </div>
+        </div>
+        <div data-ttv2-chart-wrap="psych" style="position:relative;height:220px">
+          <div class="ttv2-chart-slot-loader"
+               data-ttv2-chart-loader="psych"
+               role="progressbar"
+               aria-valuemin="0"
+               aria-valuemax="100"
+               aria-valuenow="0"
+               aria-busy="true"
+               aria-label="Psychometric chart loading progress">
+            <div class="ttv2-chart-slot-loader__donut-wrap">
+              <div class="ttv2-chart-slot-loader__donut" style="--ttv2-load-pct:0"></div>
+              <span class="ttv2-chart-slot-loader__pct">0%</span>
+            </div>
+            <span class="ttv2-chart-slot-loader__status" data-ttv2-load-status>Queued</span>
+          </div>
           <canvas id="ttv2DaPsych" aria-label="Psychometric chart"></canvas>
+        </div>
+        <div data-ttv2-table-wrap="psych" class="table-responsive" style="display:none;max-height:220px;overflow:auto;">
+          <table class="table table-sm mb-0"><thead><tr><th>Label</th><th class="text-end">Count</th></tr></thead><tbody id="ttv2DaTblPsych"></tbody></table>
         </div>
       </div>
     </div>
     <div class="col-12 col-xl-6">
       <div class="ttv2-card">
-        <div class="card-title">Sessions trend</div>
-        <div style="position:relative;height:220px">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <div class="card-title mb-0">Sessions trend</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Sessions view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="sess" data-view="chart" title="Chart view"><i class="bx bx-line-chart"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="sess" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+          </div>
+        </div>
+        <div data-ttv2-chart-wrap="sess" style="position:relative;height:220px">
+          <div class="ttv2-chart-slot-loader"
+               data-ttv2-chart-loader="sess"
+               role="progressbar"
+               aria-valuemin="0"
+               aria-valuemax="100"
+               aria-valuenow="0"
+               aria-busy="true"
+               aria-label="Sessions trend loading progress">
+            <div class="ttv2-chart-slot-loader__donut-wrap">
+              <div class="ttv2-chart-slot-loader__donut" style="--ttv2-load-pct:0"></div>
+              <span class="ttv2-chart-slot-loader__pct">0%</span>
+            </div>
+            <span class="ttv2-chart-slot-loader__status" data-ttv2-load-status>Queued</span>
+          </div>
           <canvas id="ttv2DaSess" aria-label="Sessions trend"></canvas>
+        </div>
+        <div data-ttv2-table-wrap="sess" class="table-responsive" style="display:none;max-height:220px;overflow:auto;">
+          <table class="table table-sm mb-0"><thead><tr><th>Period</th><th class="text-end">Sessions</th></tr></thead><tbody id="ttv2DaTblSess"></tbody></table>
         </div>
       </div>
     </div>
@@ -112,25 +168,94 @@
   <div class="row g-3 mt-0">
     <div class="col-12 col-xl-4">
       <div class="ttv2-card">
-        <div class="card-title">Clarity gap trend</div>
-        <div style="position:relative;height:200px">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <div class="card-title mb-0">Clarity gap trend</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Clarity view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="clar" data-view="chart" title="Chart view"><i class="bx bx-line-chart"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="clar" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+          </div>
+        </div>
+        <div data-ttv2-chart-wrap="clar" style="position:relative;height:200px">
+          <div class="ttv2-chart-slot-loader"
+               data-ttv2-chart-loader="clar"
+               role="progressbar"
+               aria-valuemin="0"
+               aria-valuemax="100"
+               aria-valuenow="0"
+               aria-busy="true"
+               aria-label="Clarity chart loading progress">
+            <div class="ttv2-chart-slot-loader__donut-wrap">
+              <div class="ttv2-chart-slot-loader__donut" style="--ttv2-load-pct:0"></div>
+              <span class="ttv2-chart-slot-loader__pct">0%</span>
+            </div>
+            <span class="ttv2-chart-slot-loader__status" data-ttv2-load-status>Queued</span>
+          </div>
           <canvas id="ttv2DaClarity" aria-label="Clarity gap"></canvas>
         </div>
-      </div>
-    </div>
-    <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="card-title">Student risk status</div>
-        <div style="position:relative;height:200px">
-          <canvas id="ttv2DaRisk" aria-label="Risk"></canvas>
+        <div data-ttv2-table-wrap="clar" class="table-responsive" style="display:none;max-height:200px;overflow:auto;">
+          <table class="table table-sm mb-0"><thead><tr><th>Period</th><th class="text-end">Gap (%)</th></tr></thead><tbody id="ttv2DaTblClar"></tbody></table>
         </div>
       </div>
     </div>
     <div class="col-12 col-xl-4">
       <div class="ttv2-card">
-        <div class="card-title">Credit utilisation</div>
-        <div style="position:relative;height:200px">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <div class="card-title mb-0">Student risk status</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Risk view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="risk" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="risk" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+          </div>
+        </div>
+        <div data-ttv2-chart-wrap="risk" style="position:relative;height:200px">
+          <div class="ttv2-chart-slot-loader"
+               data-ttv2-chart-loader="risk"
+               role="progressbar"
+               aria-valuemin="0"
+               aria-valuemax="100"
+               aria-valuenow="0"
+               aria-busy="true"
+               aria-label="Risk chart loading progress">
+            <div class="ttv2-chart-slot-loader__donut-wrap">
+              <div class="ttv2-chart-slot-loader__donut" style="--ttv2-load-pct:0"></div>
+              <span class="ttv2-chart-slot-loader__pct">0%</span>
+            </div>
+            <span class="ttv2-chart-slot-loader__status" data-ttv2-load-status>Queued</span>
+          </div>
+          <canvas id="ttv2DaRisk" aria-label="Risk"></canvas>
+        </div>
+        <div data-ttv2-table-wrap="risk" class="table-responsive" style="display:none;max-height:200px;overflow:auto;">
+          <table class="table table-sm mb-0"><thead><tr><th>Status</th><th class="text-end">Count</th></tr></thead><tbody id="ttv2DaTblRisk"></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-4">
+      <div class="ttv2-card">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <div class="card-title mb-0">Credit utilisation</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Credits view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="cred" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="cred" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+          </div>
+        </div>
+        <div data-ttv2-chart-wrap="cred" style="position:relative;height:200px">
+          <div class="ttv2-chart-slot-loader"
+               data-ttv2-chart-loader="cred"
+               role="progressbar"
+               aria-valuemin="0"
+               aria-valuemax="100"
+               aria-valuenow="0"
+               aria-busy="true"
+               aria-label="Credits chart loading progress">
+            <div class="ttv2-chart-slot-loader__donut-wrap">
+              <div class="ttv2-chart-slot-loader__donut" style="--ttv2-load-pct:0"></div>
+              <span class="ttv2-chart-slot-loader__pct">0%</span>
+            </div>
+            <span class="ttv2-chart-slot-loader__status" data-ttv2-load-status>Queued</span>
+          </div>
           <canvas id="ttv2DaCredit" aria-label="Credits"></canvas>
+        </div>
+        <div data-ttv2-table-wrap="cred" class="table-responsive" style="display:none;max-height:200px;overflow:auto;">
+          <table class="table table-sm mb-0"><thead><tr><th>Type</th><th class="text-end">Credits</th></tr></thead><tbody id="ttv2DaTblCred"></tbody></table>
         </div>
       </div>
     </div>

@@ -38,6 +38,7 @@
 {% include "template_v2/institute/institute_embed_runtime.html" %}
 {% include "template_v2/institute/institute_dashboard_panel_bridge.html" %}
 <script src="{{ static('js_new/student_table_ajax.js') }}"></script>
+<script src="{{ static('js_new/ttv2_institute_counselors_page.js') }}"></script>
 <script>
   // Page-specific boot after the v2 shell injects ?ttv2_partial=1 into #ttv2AjaxContent
   (function(){
@@ -73,6 +74,11 @@
           window.ttv2InitInstituteLegacyCharts();
         }
       } catch (e) {}
+      try {
+        if (typeof window.ttv2InitInstituteCounselorsPage === 'function') {
+          window.ttv2InitInstituteCounselorsPage();
+        }
+      } catch (eC) {}
 
       // v2 institute nav: component-based, no URL updates
       (function(){

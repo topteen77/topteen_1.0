@@ -1,0 +1,377 @@
+{# Counselor Career analytics (v2). Uses Chart.js for charts (canvas), with tables as fallback. #}
+{% set ca = (ttv2_career_analytics if ttv2_career_analytics is defined else {}) %}
+{% set is_dummy = (ca.get('is_dummy') if ca is mapping else true) %}
+
+<script type="application/json" id="ttv2-career-analytics-payload">{{ ca|tojson }}</script>
+
+<div class="ttv2-card">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="card-title mb-0">Career analytics</div>
+      <div style="font-size:11px;color:var(--c-text3);">
+        {% if is_dummy %}No career analytics data available for this counselor yet.{% else %}Insights across interest, knowledge, clusters and risk.{% endif %}
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary" {% if is_dummy %}disabled{% endif %}>Export PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-0">
+  <div class="col-12 col-xl-4">
+    <div class="ttv2-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="k" style="font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.06em;">At risk students</div>
+          <div class="v" style="font-size:26px;font-weight:800;color:var(--c-text);line-height:1.1;">{{ ca.get('kpi',{}).get('at_risk',0) }}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--c-text3);">Clear this week</div>
+          <div style="font-size:12px;font-weight:800;color:#34d399;">{{ ca.get('kpi',{}).get('cleared',0) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="ttv2-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="k" style="font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.06em;">On track</div>
+          <div class="v" style="font-size:26px;font-weight:800;color:var(--c-text);line-height:1.1;">{{ ca.get('kpi',{}).get('on_track',0) }}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--c-text3);">Others at risk</div>
+          <div style="font-size:12px;font-weight:800;color:#fbbf24;">{{ ca.get('kpi',{}).get('others_at_risk',0) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="ttv2-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="k" style="font-size:11px;color:var(--c-text3);text-transform:uppercase;letter-spacing:.06em;">Clarity gap</div>
+          <div class="v" style="font-size:26px;font-weight:800;color:var(--c-text);line-height:1.1;">{{ ca.get('kpi',{}).get('clarity_gap',0) }}%</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--c-text3);">Δ vs prev</div>
+          <div style="font-size:12px;font-weight:800;color:#fb923c;">{{ ca.get('kpi',{}).get('delta',0) }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-0">
+  <div class="col-12 col-xl-7">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <div class="card-title mb-0">Career cluster by class</div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" {% if is_dummy %}disabled{% endif %}>Add analysis</button>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Career cluster view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="ca_cluster" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="ca_cluster" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+          </div>
+        </div>
+      </div>
+      <div style="position:relative;height:260px">
+        <div data-ttv2-chart-wrap="ca_cluster" style="position:relative;height:260px">
+          <canvas id="ttv2CaClusterDonut" aria-label="Career cluster donut"></canvas>
+        </div>
+        <div data-ttv2-table-wrap="ca_cluster" class="table-responsive" style="display:none;max-height:260px;overflow:auto;">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Class</th><th class="text-end">Students</th></tr></thead>
+            <tbody id="ttv2CaTblCluster">
+              {% set _cd = (ca.get('cluster_donut', {}) if ca is mapping else {}) %}
+              {% set _lbls = (_cd.get('labels', []) if _cd is mapping else []) %}
+              {% set _vals = (_cd.get('values', []) if _cd is mapping else []) %}
+              {% if _lbls %}
+                {% for l in _lbls %}
+                  <tr>
+                    <td>{{ l }}</td>
+                    <td class="text-end">{{ _vals[loop.index0] if _vals and (_vals|length > loop.index0) else 0 }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="2" class="text-muted">No data</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <div class="card-title mb-0">Interest vs knowledge — general stream</div>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Interest vs knowledge view switch">
+          <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="ca_ivk" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="ca_ivk" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+        </div>
+      </div>
+      <div style="position:relative;height:260px">
+        <div data-ttv2-chart-wrap="ca_ivk" style="position:relative;height:260px">
+          <canvas id="ttv2CaIvK" aria-label="Interest vs knowledge bar"></canvas>
+        </div>
+        <div data-ttv2-table-wrap="ca_ivk" class="table-responsive" style="display:none;max-height:260px;overflow:auto;">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Metric</th><th class="text-end">%</th></tr></thead>
+            <tbody id="ttv2CaTblIvk">
+              {% set _b = (ca.get('ivk_bar', {}) if ca is mapping else {}) %}
+              {% set _it = (_b.get('interest', [0]) if _b is mapping else [0]) %}
+              {% set _kn = (_b.get('knowledge', [0]) if _b is mapping else [0]) %}
+              {% set _al = (_b.get('alignment', [0]) if _b is mapping else [0]) %}
+              <tr><td>Interest</td><td class="text-end">{{ _it[0] if _it and (_it|length > 0) else 0 }}</td></tr>
+              <tr><td>Knowledge</td><td class="text-end">{{ _kn[0] if _kn and (_kn|length > 0) else 0 }}</td></tr>
+              <tr><td>Alignment</td><td class="text-end">{{ _al[0] if _al and (_al|length > 0) else 0 }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-0">
+  <div class="col-12 col-xl-6">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <div class="card-title mb-0">Student risk matrix</div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" {% if is_dummy %}disabled{% endif %}>Advanced</button>
+      </div>
+      <div class="ttv2-card p-0" style="background:transparent;border:none">
+        {% set risk = (ca.get('risk_matrix',[]) if ca is mapping else []) %}
+        {% if risk and (risk|length > 0) %}
+          {% for r in risk %}
+            <div class="d-flex align-items-center justify-content-between gap-2 py-2" style="border-bottom:1px solid var(--c-border);">
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">{{ r.get('name','Student') }}</div>
+                <div style="font-size:11px;color:var(--c-text3)">{{ r.get('meta','') }}</div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge {% if r.get('status')=='at_risk' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                  {{ 'At risk' if r.get('status')=='at_risk' else 'On track' }}
+                </span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" {% if is_dummy %}disabled{% endif %}>Go</button>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="py-5 text-center" style="color:var(--c-text3);font-size:12px;">
+            No risk data available for the selected scope.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-6">
+    <div class="ttv2-card">
+      <div class="card-title mb-2">Career paths shortlisted this week</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Primary path</th>
+              <th>Secondary</th>
+              <th>Tertiary</th>
+              <th>Next action</th>
+              <th>Target</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set paths = (ca.get('shortlisted',[]) if ca is mapping else []) %}
+            {% if paths and (paths|length > 0) %}
+              {% for p in paths %}
+                <tr {% if is_dummy %}style="opacity:.75"{% endif %}>
+                  <td>{{ p.get('student','—') }}</td>
+                  <td><span class="badge bg-secondary">{{ p.get('primary','—') }}</span></td>
+                  <td><span class="badge bg-secondary">{{ p.get('secondary','—') }}</span></td>
+                  <td><span class="badge bg-secondary">{{ p.get('tertiary','—') }}</span></td>
+                  <td>{{ p.get('next','—') }}</td>
+                  <td>{{ p.get('target','—') }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+                  No shortlisted careers found for this week.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    function readPayload(){
+      try {
+        var el = document.getElementById('ttv2-career-analytics-payload');
+        var raw = el ? (el.textContent || '{}') : '{}';
+        return JSON.parse(raw);
+      } catch(e){ return {}; }
+    }
+
+    function ensureChartJs(cb){
+      if (typeof Chart !== 'undefined') return cb(true);
+      try{
+        var existing = document.getElementById('ttv2-chartjs');
+        if (existing) return setTimeout(function(){ cb(typeof Chart !== 'undefined'); }, 50);
+        var s = document.createElement('script');
+        s.id = 'ttv2-chartjs';
+        // Pinned UMD build for consistent global `Chart`.
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+        s.async = true;
+        s.onload = function(){ cb(typeof Chart !== 'undefined'); };
+        s.onerror = function(){ cb(false); };
+        document.head.appendChild(s);
+      } catch(e){ cb(false); }
+    }
+
+    function canvasReady(cv){
+      try {
+        if (!cv) return false;
+        var r = cv.getBoundingClientRect();
+        return (r.width || 0) > 20 && (r.height || 0) > 20;
+      } catch(e){ return false; }
+    }
+
+    function destroyCareerCharts(){
+      try {
+        var prev = window.__ttv2CareerCharts || {};
+        Object.keys(prev).forEach(function(k){
+          try { if (prev[k] && prev[k].destroy) prev[k].destroy(); } catch(e) {}
+        });
+      } catch(e0) {}
+      window.__ttv2CareerCharts = {};
+    }
+
+    function forceChartView(targetKey) {
+      try {
+        var chartWrap = document.querySelector('[data-ttv2-chart-wrap="' + targetKey + '"]');
+        var tableWrap = document.querySelector('[data-ttv2-table-wrap="' + targetKey + '"]');
+        if (chartWrap) chartWrap.style.display = "";
+        if (tableWrap) tableWrap.style.display = "none";
+        document.querySelectorAll('[data-ttv2-view-btn][data-target="' + targetKey + '"]').forEach(function (btn) {
+          var view = (btn.getAttribute("data-view") || "").trim();
+          btn.classList.toggle("active", view === "chart");
+        });
+      } catch (e) {}
+    }
+
+    function syncCanvasSize(cv) {
+      try {
+        if (!cv) return;
+        var wrap = cv.parentElement;
+        if (!wrap) return;
+        var w = Math.max(1, wrap.clientWidth || 0);
+        var h = Math.max(1, wrap.clientHeight || 0);
+        // Chart.js reads the canvas element width/height; CSS-only sizing can yield 0x0 in some browsers.
+        if (w > 1 && h > 1) {
+          if (cv.width !== w) cv.width = w;
+          if (cv.height !== h) cv.height = h;
+        }
+      } catch (e) {}
+    }
+
+    function initCharts(){
+      var data = readPayload() || {};
+      var donut = document.getElementById('ttv2CaClusterDonut');
+      var bar = document.getElementById('ttv2CaIvK');
+      if (!donut && !bar) return;
+
+      // Ensure canvases are visible; if a table view was left open, canvas becomes 0x0 and Chart.js renders blank.
+      forceChartView("ca_cluster");
+      forceChartView("ca_ivk");
+
+      // On AJAX inject, canvases can momentarily have 0x0 size; retry once.
+      if ((donut && !canvasReady(donut)) || (bar && !canvasReady(bar))) {
+        try { setTimeout(initCharts, 120); } catch(e0) {}
+        return;
+      }
+
+      ensureChartJs(function(ok){
+        if (!ok || typeof Chart === 'undefined') return;
+
+        var muted = getComputedStyle(document.documentElement).getPropertyValue('--c-text3') || 'rgba(146,153,176,0.85)';
+        Chart.defaults.color = String(muted).trim() || 'rgba(146,153,176,0.85)';
+        Chart.defaults.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--c-border') || 'rgba(255,255,255,.12)';
+        Chart.defaults.font.family = 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif';
+
+        destroyCareerCharts();
+
+        if (donut) {
+          try {
+            syncCanvasSize(donut);
+            var d = (data.cluster_donut || {});
+            var labels = Array.isArray(d.labels) ? d.labels : [];
+            var values = Array.isArray(d.values) ? d.values : [];
+            if (!labels.length) labels = ['No data'];
+            if (!values.length) values = [0];
+            window.__ttv2CareerCharts.cluster = new Chart(donut.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: values,
+                  backgroundColor: ['#6c7dff','#34d399','#a78bfa','#fb923c','#f472b6','#fbbf24'],
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive:true,
+                maintainAspectRatio:false,
+                cutout:'70%',
+                plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10 }}}
+              }
+            });
+          } catch(e1){}
+        }
+
+        if (bar) {
+          try {
+            syncCanvasSize(bar);
+            var b = (data.ivk_bar || {});
+            window.__ttv2CareerCharts.ivk = new Chart(bar.getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: b.labels || ['General stream'],
+                datasets: [
+                  { label:'Interest', data: b.interest || [0], backgroundColor:'rgba(108,125,255,0.65)', borderWidth:0, borderRadius:10 },
+                  { label:'Knowledge', data: b.knowledge || [0], backgroundColor:'rgba(52,211,153,0.65)', borderWidth:0, borderRadius:10 },
+                  { label:'Alignment', data: b.alignment || [0], backgroundColor:'rgba(99,102,241,0.35)', borderWidth:0, borderRadius:10 }
+                ]
+              },
+              options: {
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10 }}},
+                scales:{ y:{ beginAtZero:true, max:100 }}
+              }
+            });
+          } catch(e2){}
+        }
+
+        // Bind chart/table toggles (safe to call multiple times)
+        try {
+          if (typeof window.ttv2InitDashboardAnalyticsCharts === 'function') {
+            window.ttv2InitDashboardAnalyticsCharts();
+          }
+        } catch(e3) {}
+      });
+    }
+
+    document.addEventListener('ttv2:content:loaded', initCharts);
+    document.addEventListener('ttv2:afterAjaxContentLoad', initCharts);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initCharts);
+    else initCharts();
+  })();
+</script>
+

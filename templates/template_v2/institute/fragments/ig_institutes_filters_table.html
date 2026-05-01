@@ -1,0 +1,57 @@
+{% set _ig_reset = ig_reset_href|default(url('institute:institutegroupdashboard')) %}
+{% set _ig_action = ig_filter_action|default(url('institute:institutegroupdashboard')) %}
+        <div class="table-card mb-4">
+          <form method="get" action="{{ _ig_action }}" id="institute-filter-form" class="row g-3">
+            <div class="col-md-4">
+              <label for="institute" class="form-label">Institute Name</label>
+              <input type="text"
+                     name="institute"
+                     id="institute"
+                     list="ig_institute_name_suggestions"
+                     class="form-control"
+                     placeholder="Search institute..."
+                     value="{% if search_params and search_params.institute %}{{ search_params.institute }}{% endif %}">
+              <datalist id="ig_institute_name_suggestions">
+                {% for ins_name in (institute_names|default([])) %}
+                  <option value="{{ ins_name }}"></option>
+                {% endfor %}
+              </datalist>
+            </div>
+            <div class="col-md-4">
+              <label for="location" class="form-label">Location</label>
+              <input type="text"
+                     name="location"
+                     id="location"
+                     list="ig_location_suggestions"
+                     class="form-control"
+                     placeholder="Type or select location..."
+                     value="{% if search_params and search_params.location %}{{ search_params.location }}{% endif %}">
+              <datalist id="ig_location_suggestions">
+                {% if locations %}
+                  {% for location in locations %}
+                    <option value="{{ location }}"></option>
+                  {% endfor %}
+                {% endif %}
+              </datalist>
+            </div>
+            <div class="col-md-12 d-flex align-items-end gap-2">
+              <button type="submit" class="btn btn-primary" title="Search" aria-label="Search">
+                <i class='bx bx-search'></i>
+              </button>
+              <a href="{{ _ig_reset }}" class="btn btn-secondary" title="Reset" aria-label="Reset">
+                <i class='bx bx-refresh'></i>
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="table-card mb-4">
+          <h5 class="mb-3">Institute Management</h5>
+          <div id="institutes-table-loader" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div id="institutes-table-container" style="display: none;">
+          </div>
+        </div>

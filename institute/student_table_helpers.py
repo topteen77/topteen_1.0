@@ -188,7 +188,19 @@ def get_student_table_config(role='institute'):
             'show_followup': False,
             'show_institute': True,
             'role': 'marketing'
-        }
+        },
+        'institute_group': {
+            'show_stream': True,
+            'show_email': False,
+            'show_contact': False,
+            'show_created': True,
+            'show_report': True,
+            'show_actions': False,
+            'show_block': False,
+            'show_followup': False,
+            'show_institute': True,
+            'role': 'institute_group'
+        },
     }
     
     return configs.get(role, configs['institute'])
@@ -222,7 +234,13 @@ def get_student_action_urls(role='institute'):
             'delete': None,
             'block': None,
             'change_password': None
-        }
+        },
+        'institute_group': {
+            'update': None,
+            'delete': None,
+            'block': None,
+            'change_password': None
+        },
     }
     
     return urls.get(role, urls['institute'])

@@ -12,6 +12,53 @@
     } catch (e) {}
   }
 
+  function setPsyView(view) {
+    try {
+      var root = document.querySelector("[data-ttv2-psy]");
+      if (!root) return;
+      var cw = root.querySelector('[data-ttv2-psy-wrap="chart"]');
+      var tw = root.querySelector('[data-ttv2-psy-wrap="table"]');
+      if (cw) cw.style.display = view === "chart" ? "" : "none";
+      if (tw) tw.style.display = view === "table" ? "" : "none";
+      root.querySelectorAll("[data-ttv2-psy-view]").forEach(function (b) {
+        var v = (b.getAttribute("data-ttv2-psy-view") || "").trim();
+        var on = v === view;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    } catch (e) {}
+  }
+
+  function bindPsyToggleOnce() {
+    try {
+      var root = document.querySelector("[data-ttv2-psy]");
+      if (!root || root.getAttribute("data-ttv2-psy-bound") === "1") return;
+      root.setAttribute("data-ttv2-psy-bound", "1");
+      root.addEventListener("click", function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest("[data-ttv2-psy-view]") : null;
+        if (!btn) return;
+        var v = (btn.getAttribute("data-ttv2-psy-view") || "").trim();
+        if (v) setPsyView(v);
+      });
+      setPsyView("chart");
+    } catch (e) {}
+  }
+
+  function fillPsyTable(totalStudents, testTaken) {
+    try {
+      var tb = document.querySelector("[data-ttv2-psy-table-body]");
+      if (!tb) return;
+      var remaining = Math.max(0, (parseInt(totalStudents, 10) || 0) - (parseInt(testTaken, 10) || 0));
+      tb.innerHTML =
+        "<tr><td>Taken exam</td><td class=\"text-end\">" +
+        (parseInt(testTaken, 10) || 0) +
+        "</td></tr>" +
+        "<tr><td>Remaining students</td><td class=\"text-end\">" +
+        remaining +
+        "</td></tr>";
+    } catch (e) {}
+  }
+
   function parsePayload() {
     var el = document.getElementById("ttv2-institute-legacy-charts-payload");
     if (!el || !el.textContent) return null;
@@ -61,6 +108,8 @@
         },
       });
     }
+    bindPsyToggleOnce();
+    fillPsyTable(totalStudents, testTaken);
 
     var streamCtx = document.getElementById("stream_chart");
     var streamKeys = Object.keys(streams).filter(function (k) {

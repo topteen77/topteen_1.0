@@ -1,0 +1,15 @@
+<div class="ttv2-ig-subpage">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="fs-20 mb-0">Counselors</h2>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ttv2AddCounselorModal">
+        <i class="bx bx-user-voice"></i> Add counselor
+      </button>
+      <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+    </div>
+  </div>
+  <p class="text-muted small mb-3">Search by counselor name, email, or institute.</p>
+  {% set ig_counselor_search_action = url('institute:institutegroupdashboard_page', args=['counselors']) %}
+  {% set ig_counselor_reset_href = url('institute:institutegroupdashboard_page', args=['counselors']) %}
+  {% include "template_v2/institute/fragments/ig_counselors_block.html" %}
+</div>

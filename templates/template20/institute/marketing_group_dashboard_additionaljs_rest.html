@@ -131,7 +131,15 @@
   
   // Load statistics via AJAX
   function loadStatistics() {
+    const sc = document.getElementById('students-count');
+    if (!sc && !document.getElementById('sidebar-total-credits')) {
+      return;
+    }
     const url = window.location.pathname + '?data_type=stats';
+    function setText(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
     fetch(url, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -139,29 +147,26 @@
     })
     .then(response => response.json())
     .then(data => {
-      document.getElementById('students-count').textContent = data.total_stu_count || 0;
-      document.getElementById('counselors-count').textContent = data.counselors_count || 0;
-      document.getElementById('credits-count').textContent = data.total_credits || 0;
-      document.getElementById('events-count').textContent = data.total_events || 0;
-      
-      // Update sidebar credits
+      setText('students-count', data.total_stu_count || 0);
+      setText('counselors-count', data.counselors_count || 0);
+      setText('credits-count', data.total_credits || 0);
+      setText('events-count', data.total_events || 0);
       const totalCredits = data.global_credits || 5000;
       const usedCredits = data.total_credits || 0;
       const remainingCredits = totalCredits - usedCredits;
-      
-      document.getElementById('sidebar-total-credits').textContent = totalCredits.toLocaleString();
-      document.getElementById('sidebar-used-credits').textContent = usedCredits.toLocaleString();
-      document.getElementById('sidebar-remaining-credits').textContent = remainingCredits.toLocaleString();
+      setText('sidebar-total-credits', totalCredits.toLocaleString());
+      setText('sidebar-used-credits', usedCredits.toLocaleString());
+      setText('sidebar-remaining-credits', remainingCredits.toLocaleString());
     })
     .catch(error => {
       console.error('Error loading statistics:', error);
-      document.getElementById('students-count').textContent = '0';
-      document.getElementById('counselors-count').textContent = '0';
-      document.getElementById('credits-count').textContent = '0';
-      document.getElementById('events-count').textContent = '0';
-      document.getElementById('sidebar-total-credits').textContent = '0';
-      document.getElementById('sidebar-used-credits').textContent = '0';
-      document.getElementById('sidebar-remaining-credits').textContent = '0';
+      setText('students-count', '0');
+      setText('counselors-count', '0');
+      setText('credits-count', '0');
+      setText('events-count', '0');
+      setText('sidebar-total-credits', '0');
+      setText('sidebar-used-credits', '0');
+      setText('sidebar-remaining-credits', '0');
     });
   }
   
@@ -179,6 +184,10 @@
   
   // Load charts data via AJAX
   function loadCharts() {
+    bindMktgGraphViewToggles();
+    if (!document.getElementById('charts-section')) {
+      return;
+    }
     const url = window.location.pathname + '?data_type=charts';
     fetch(url, {
       headers: {
@@ -225,7 +234,7 @@
       
       // Load seat capacity table with institutes data from charts
       if (data.seat_capacity_institutes && data.seat_capacity_institutes.length > 0) {
-        loadSeatCapacityTable(data.seat_capacity_institutes);
+        loadSeatCapacityDashboardChart(data.seat_capacity_institutes);
       } else {
         const seatCapacityLoader = document.getElementById('seat-capacity-loader');
         const seatCapacitySection = document.getElementById('seat-capacity-section');
@@ -248,8 +257,46 @@
       }
     });
   }
+
+  function renderMktgSimpleTable(tbodyId, rows) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    if (!rows || !rows.length) {
+      tbody.innerHTML = '<tr><td colspan="2" class="text-muted">No data available</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => (
+      '<tr><td>' + (r.label || '-') + '</td><td class="text-end">' + (r.value || 0) + '</td></tr>'
+    )).join('');
+  }
+
+  function setMktgGraphView(target, view) {
+    const chartWrap = document.querySelector('[data-mktg-chart-wrap="' + target + '"]');
+    const tableWrap = document.querySelector('[data-mktg-table-wrap="' + target + '"]');
+    if (!chartWrap || !tableWrap) return;
+    const showTable = view === 'table';
+    chartWrap.style.display = showTable ? 'none' : '';
+    tableWrap.style.display = showTable ? '' : 'none';
+    document.querySelectorAll('[data-mktg-view-btn][data-target="' + target + '"]').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+    });
+  }
+
+  function bindMktgGraphViewToggles() {
+    if (window._mktgGraphViewToggleBound) return;
+    window._mktgGraphViewToggleBound = true;
+    document.addEventListener('click', function(e) {
+      const btn = e.target && (e.target.closest ? e.target.closest('[data-mktg-view-btn]') : null);
+      if (!btn) return;
+      e.preventDefault();
+      const target = (btn.getAttribute('data-target') || '').trim();
+      const view = (btn.getAttribute('data-view') || '').trim();
+      if (!target || !view) return;
+      setMktgGraphView(target, view);
+    });
+  }
   
-  // Load location chart (Line graph as per production) - OPTIMIZED
+  // Load location chart - ranked bars for faster reading.
   function loadLocationChart(institutes) {
     const loader = document.getElementById('location-chart-loader');
     const canvas = document.getElementById('locationChart');
@@ -264,21 +311,17 @@
       return;
     }
     
-    // Data is already grouped by address from backend, just extract it
-    const labels = [];
-    const data = [];
-    
-    // Limit to max 20 data points to prevent browser hang (data is already sorted by backend)
-    const maxPoints = 20;
-    const limitedInstitutes = institutes.slice(0, maxPoints);
-    
-    limitedInstitutes.forEach(inst => {
-      const addr = inst.address || 'Unknown';
-      // Truncate long addresses to prevent chart overflow
-      const shortAddr = addr.length > 30 ? addr.substring(0, 30) + '...' : addr;
-      labels.push(shortAddr);
-      data.push(inst.student_count || 0);
-    });
+    const maxPoints = 12;
+    const ranked = [...institutes]
+      .map(inst => ({
+        fullLabel: (inst.address || 'Unknown').trim() || 'Unknown',
+        count: Number(inst.student_count || 0),
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, maxPoints);
+    const labels = ranked.map(x => x.fullLabel.length > 28 ? (x.fullLabel.substring(0, 28) + '...') : x.fullLabel);
+    const data = ranked.map(x => x.count);
+    renderMktgSimpleTable('mktgLocationTableBody', ranked.map(x => ({ label: x.fullLabel, value: x.count })));
     
     if (labels.length > 0) {
       loader.style.display = 'none';
@@ -290,60 +333,37 @@
       }
       
       window.locationChartInstance = new Chart(canvas, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Total Students',
+            label: 'Students',
             data: data,
-            backgroundColor: 'rgba(76, 201, 240, 0.2)',
-            borderColor: 'rgba(76, 201, 240, 1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            pointHoverRadius: 5
+            backgroundColor: 'rgba(76, 201, 240, 0.75)',
+            borderColor: 'rgba(6, 182, 212, 1)',
+            borderWidth: 1,
+            borderRadius: 6,
+            barThickness: 16
           }]
         },
         options: {
+          indexAxis: 'y',
           responsive: true,
-          maintainAspectRatio: true,
-          aspectRatio: 3, // Fixed aspect ratio to prevent excessive height
-          layout: {
-            padding: {
-              top: 10,
-              bottom: 10,
-              left: 10,
-              right: 10
-            }
-          },
+          maintainAspectRatio: false,
           scales: {
             x: {
               title: {
                 display: true,
-                text: 'Institute Location'
+                text: 'Students'
               },
               ticks: {
-                maxRotation: 45,
-                minRotation: 45,
-                maxTicksLimit: 20, // Limit x-axis labels
-                font: {
-                  size: 10
-                }
+                precision: 0
               },
-              grid: {
-                display: false
-              }
             },
             y: {
-              beginAtZero: true,
               title: {
                 display: true,
-                text: 'Total Students'
-              },
-              ticks: {
-                stepSize: 50,
-                maxTicksLimit: 10 // Limit y-axis labels
+                text: 'Location (Top 12)'
               }
             }
           },
@@ -352,14 +372,18 @@
               display: false
             },
             tooltip: {
-              enabled: true,
-              intersect: false,
-              mode: 'index'
+              callbacks: {
+                title: function(items) {
+                  if (!items || !items.length) return '';
+                  const idx = items[0].dataIndex;
+                  return ranked[idx] ? ranked[idx].fullLabel : '';
+                },
+                label: function(ctx) {
+                  return ' Students: ' + (ctx.raw || 0);
+                }
+              }
             }
           },
-          animation: {
-            duration: 1000 // Faster animation
-          }
         }
       });
     } else {
@@ -375,6 +399,10 @@
     const total = typeof totalStudents === 'number' ? totalStudents : (totalStudents || 0);
     const completed = typeof testResults === 'number' ? testResults : (testResults || 0);
     const pending = Math.max(0, total - completed);
+    renderMktgSimpleTable('mktgPsychTableBody', [
+      { label: 'Completed', value: completed },
+      { label: 'Pending', value: pending },
+    ]);
     
     if (total > 0) {
       loader.style.display = 'none';
@@ -403,16 +431,16 @@
         },
         options: {
           responsive: true,
-          maintainAspectRatio: true,
-          aspectRatio: 1.5, // Fixed aspect ratio
+          maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 10,
-              bottom: 10,
-              left: 10,
-              right: 10
+              top: 4,
+              bottom: 4,
+              left: 4,
+              right: 4
             }
           },
+          cutout: '62%',
           plugins: {
             legend: {
               position: 'bottom'
@@ -429,7 +457,7 @@
     }
   }
   
-  // Load streams chart (Line graph as per production) - OPTIMIZED
+  // Load streams chart - ranked bars for quick comparison.
   function loadStreamsChart(streamsData) {
     const loader = document.getElementById('streams-chart-loader');
     const canvas = document.getElementById('streamsChart');
@@ -453,6 +481,10 @@
     
     const labels = limitedData.map(item => item.stream || 'Other');
     const data = limitedData.map(item => item.count || 0);
+    renderMktgSimpleTable('mktgStreamsTableBody', limitedData.map(item => ({
+      label: item.stream || 'Other',
+      value: item.count || 0,
+    })));
     
     // Truncate long stream names to prevent chart overflow
     const shortLabels = labels.map(label => {
@@ -470,31 +502,27 @@
       }
       
       window.streamsChartInstance = new Chart(canvas, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: shortLabels,
           datasets: [{
-            label: 'Count',
+            label: 'Students',
             data: data,
-            backgroundColor: 'rgba(63, 55, 201, 0.2)',
-            borderColor: 'rgba(63, 55, 201, 1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            pointHoverRadius: 5
+            backgroundColor: 'rgba(99, 102, 241, 0.75)',
+            borderColor: 'rgba(79, 70, 229, 1)',
+            borderWidth: 1,
+            borderRadius: 6
           }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: true,
-          aspectRatio: 2, // Fixed aspect ratio to prevent excessive height
+          maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 10,
-              bottom: 10,
-              left: 10,
-              right: 10
+              top: 4,
+              bottom: 4,
+              left: 4,
+              right: 4
             }
           },
           scales: {
@@ -504,11 +532,11 @@
                 text: 'Stream'
               },
               ticks: {
-                maxRotation: 45,
-                minRotation: 45,
-                maxTicksLimit: 15, // Limit x-axis labels
+                maxRotation: 20,
+                minRotation: 20,
+                maxTicksLimit: 15,
                 font: {
-                  size: 10
+                  size: 11
                 }
               },
               grid: {
@@ -522,8 +550,7 @@
                 text: 'Count'
               },
               ticks: {
-                stepSize: 50,
-                maxTicksLimit: 10 // Limit y-axis labels
+                precision: 0
               }
             }
           },
@@ -532,14 +559,18 @@
               display: false
             },
             tooltip: {
-              enabled: true,
-              intersect: false,
-              mode: 'index'
+              callbacks: {
+                title: function(items) {
+                  if (!items || !items.length) return '';
+                  const idx = items[0].dataIndex;
+                  return labels[idx] || '';
+                },
+                label: function(ctx) {
+                  return ' Students: ' + (ctx.raw || 0);
+                }
+              }
             }
           },
-          animation: {
-            duration: 1000 // Faster animation
-          }
         }
       });
     } else {
@@ -548,6 +579,86 @@
     }
   }
   
+  // Dashboard: compact seat-capacity graph (details are available on the dedicated Seat capacity page).
+  function loadSeatCapacityDashboardChart(institutes) {
+    const section = document.getElementById('seat-capacity-section');
+    const loader = document.getElementById('seat-capacity-loader');
+    const wrapper = document.getElementById('seat-capacity-table-wrapper');
+    const canvas = document.getElementById('seatCapacityDashboardChart');
+
+    if (!section || !canvas) return;
+    section.style.display = 'block';
+
+    if (!institutes || !institutes.length) {
+      if (loader) loader.innerHTML = '<p class="text-gray">No seat capacity data available</p>';
+      return;
+    }
+
+    const labels = institutes.map(inst => inst.name || 'Unknown');
+    const totals = institutes.map(inst =>
+      (Number(inst.pcm || 0) + Number(inst.cbm || 0) + Number(inst.comm || 0) + Number(inst.hme || 0) + Number(inst.hmb || 0))
+    );
+    renderMktgSimpleTable('mktgSeatTableBody', labels.map((name, idx) => ({
+      label: name,
+      value: totals[idx] || 0,
+    })));
+
+    if (loader) loader.style.display = 'none';
+    if (wrapper) wrapper.style.display = 'block';
+    canvas.style.display = 'block';
+
+    if (window._mktgSeatCapacityChart) {
+      try { window._mktgSeatCapacityChart.destroy(); } catch (e) {}
+      window._mktgSeatCapacityChart = null;
+    }
+
+    window._mktgSeatCapacityChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total seats',
+          data: totals,
+          backgroundColor: 'rgba(167, 139, 250, 0.85)',
+          borderColor: 'rgba(139, 92, 246, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 90,
+              minRotation: 90
+            }
+          },
+          y: { beginAtZero: true, title: { display: true, text: 'Seats' } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  // Seat-capacity dedicated page: keep detailed editable table here.
+  function ttv2LoadSeatCapacityPage() {
+    const section = document.getElementById('seat-capacity-section');
+    const tbody = document.getElementById('seat-capacity-tbody');
+    if (!section || !tbody) return;
+    const url = window.location.pathname + '?data_type=charts';
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => { if (!r.ok) throw new Error('HTTP error! status: ' + r.status); return r.json(); })
+      .then(data => {
+        loadSeatCapacityTable((data && data.seat_capacity_institutes) ? data.seat_capacity_institutes : []);
+      })
+      .catch(() => {
+        const loader = document.getElementById('seat-capacity-loader');
+        if (loader) loader.innerHTML = '<p class="text-danger">Error loading seat capacity data</p>';
+      });
+  }
+
   // Load seat capacity table with inline edit functionality
   function loadSeatCapacityTable(institutes) {
     const section = document.getElementById('seat-capacity-section');
@@ -572,11 +683,14 @@
         const hmb = inst.hmb || 100;
         const name = inst.name || 'Unknown';
         const instId = inst.id || index;
-        
+        const slug = (inst.slug && String(inst.slug).trim()) ? String(inst.slug).trim() : '';
+        const nameCell = slug
+          ? `<a class="text-decoration-none" href="/institute/${encodeURIComponent(slug)}/dashboard/">${name}</a>`
+          : name;
         html += `
           <tr data-institute-id="${instId}" data-edit-mode="false">
             <td>${index + 1}</td>
-            <td class="institute-name">${name}</td>
+            <td class="institute-name">${nameCell}</td>
             <td class="pcm-value">${pcm}</td>
             <td class="cbm-value">${cbm}</td>
             <td class="comm-value">${comm}</td>
@@ -758,23 +872,97 @@
       }
     } catch (e) {}
   }
+
+  // Location suggest dropdown (custom menu over native datalist for better UX).
+  function ttv2InitLocationSuggestDropdown() {
+    const input = document.getElementById('location_filter');
+    const datalist = document.getElementById('location_suggestions');
+    const menu = document.getElementById('location_filter_menu');
+    const clearBtn = document.getElementById('location_filter_clear');
+    if (!input || !datalist || !menu || !clearBtn) return;
+    if (input.dataset.ttv2SuggestBound === '1') return;
+    input.dataset.ttv2SuggestBound = '1';
+
+    const options = Array.from(datalist.querySelectorAll('option'))
+      .map(o => (o.value || '').trim())
+      .filter(Boolean);
+
+    function setClearVisible() {
+      clearBtn.style.display = (input.value || '').trim() ? 'block' : 'none';
+    }
+
+    function hideMenu() {
+      menu.style.display = 'none';
+      menu.innerHTML = '';
+    }
+
+    function renderMenu(raw) {
+      const q = (raw || '').trim().toLowerCase();
+      const filtered = options.filter(v => !q || v.toLowerCase().includes(q)).slice(0, 30);
+      if (!filtered.length) {
+        menu.innerHTML = '<div class="ttv2-suggest-empty">No matching locations</div>';
+      } else {
+        menu.innerHTML = filtered
+          .map(v => `<button type="button" class="ttv2-suggest-item" data-val="${String(v).replace(/"/g, '&quot;')}">${v}</button>`)
+          .join('');
+      }
+      menu.style.display = 'block';
+    }
+
+    input.addEventListener('focus', function () {
+      renderMenu(input.value);
+      setClearVisible();
+    });
+    input.addEventListener('input', function () {
+      renderMenu(input.value);
+      setClearVisible();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') hideMenu();
+    });
+
+    clearBtn.addEventListener('click', function () {
+      input.value = '';
+      setClearVisible();
+      renderMenu('');
+      input.focus();
+    });
+
+    menu.addEventListener('click', function (e) {
+      const btn = e.target.closest('.ttv2-suggest-item');
+      if (!btn) return;
+      input.value = btn.getAttribute('data-val') || '';
+      setClearVisible();
+      hideMenu();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!input.closest('.ttv2-suggest-wrap')) return;
+      if (input.closest('.ttv2-suggest-wrap').contains(e.target)) return;
+      hideMenu();
+    });
+
+    setClearVisible();
+  }
   
   // Boot all dashboard loaders + delegated listeners. For Template v2 the body is
   // injected into #ttv2AjaxContent after this script runs, so we also expose this
   // on window and call it from the v2 shell after the partial HTML is inserted.
   function ttv2BootMarketingGroupDashboard() {
-    if (window._ttv2MarketingGroupDashboardBooted) {
-      return;
-    }
-    window._ttv2MarketingGroupDashboardBooted = true;
     loadInstituteCount();
     ttv2RevealMarketingChartShells();
     loadStatistics();
-    loadInstitutesOnPageLoad();
+    if (document.getElementById('institutes-loader') || document.getElementById('institutes-table-wrapper')) {
+      loadInstitutesOnPageLoad();
+    }
+    ttv2InitLocationSuggestDropdown();
     loadCharts();
+    ttv2LoadSeatCapacityPage();
     
     const sidebarPendingBtn = document.getElementById('sidebar-pending-institutes-btn');
-    if (sidebarPendingBtn) {
+    if (sidebarPendingBtn && !sidebarPendingBtn.getAttribute('data-mktg-bound')) {
+      sidebarPendingBtn.setAttribute('data-mktg-bound', '1');
       sidebarPendingBtn.addEventListener('click', function() {
         const statusSel = document.getElementById('institute_status_filter');
         const form = document.getElementById('institute-filter-form');
@@ -798,7 +986,8 @@
 
     const instituteFilterForm = document.getElementById('institute-filter-form');
     
-    if (instituteFilterForm) {
+    if (instituteFilterForm && instituteFilterForm.getAttribute('data-mktg-ttv2-bound') !== '1') {
+      instituteFilterForm.setAttribute('data-mktg-ttv2-bound', '1');
       instituteFilterForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
@@ -823,8 +1012,10 @@
       });
     }
     
-    // Handle pagination links with AJAX; hard-delete (empty institutes only)
-    document.addEventListener('click', function(e) {
+    // Handle pagination links with AJAX; hard-delete (empty institutes only) — document delegation once
+    if (!window._ttv2MktgDocClickBound) {
+      window._ttv2MktgDocClickBound = true;
+      document.addEventListener('click', function(e) {
       const delBtn = e.target.closest('.institute-hard-delete-btn');
       if (delBtn) {
         e.preventDefault();
@@ -901,9 +1092,12 @@
         }
       }
     });
+    }
     
-    // Handle update institute form submissions
-    document.addEventListener('submit', function(e) {
+    // Handle update institute / password modals (once globally)
+    if (!window._ttv2MktgDocSubmitBound) {
+      window._ttv2MktgDocSubmitBound = true;
+      document.addEventListener('submit', function(e) {
       const updateForm = e.target.closest('form[id^="updateInstituteForm"]');
       if (updateForm) {
         e.preventDefault();
@@ -1046,6 +1240,7 @@
         });
       }
     });
+    }
     
     // Initialize tooltips for non-AJAX content
     initTooltips();
@@ -1193,6 +1388,24 @@
           if (totalCreditsEl) totalCreditsEl.textContent = totalCredits.toLocaleString();
           if (usedCreditsEl) usedCreditsEl.textContent = usedCredits.toLocaleString();
           if (remainingCreditsEl) remainingCreditsEl.textContent = remainingCredits.toLocaleString();
+          
+          var slug = row.getAttribute('data-institute-slug') || '';
+          var studentsBase = (panel.getAttribute('data-ttv2-students-list-url') || '').trim();
+          var stuLink = document.getElementById('panel-institute-students-link');
+          if (stuLink) {
+            if (slug && studentsBase) {
+              var sep = studentsBase.indexOf('?') >= 0 ? '&' : '?';
+              stuLink.href = studentsBase + sep + 'institute_slug=' + encodeURIComponent(slug);
+              stuLink.classList.remove('disabled');
+              stuLink.style.pointerEvents = '';
+              stuLink.setAttribute('aria-disabled', 'false');
+            } else {
+              stuLink.href = '#';
+              stuLink.classList.add('disabled');
+              stuLink.style.pointerEvents = 'none';
+              stuLink.setAttribute('aria-disabled', 'true');
+            }
+          }
           
           // Show panel
           panel.classList.add('show');

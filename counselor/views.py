@@ -520,14 +520,17 @@ def get_students_by_role(user, counselor=None, institute=None):
             # Use the user's own institute to ensure correct filtering
             institute = user_institute
         elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
-            # Institute Group Admin can see institutes in their group
-            institute_group = InstituteGroup.objects.filter(institute_group_admin=user).first()
-            if institute_group and institute.institute_group != institute_group:
+            # Any institute group owned by this user may contain the institute
+            if (
+                not institute.institute_group_id
+                or institute.institute_group.institute_group_admin_id != user.id
+            ):
                 return StudentManagement.objects.none()
         elif user_type == choices.UserType.MARKETINGGROUPADMIN:
-            # Marketing Group Admin can see institutes in their marketing group
-            marketing_group = InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
-            if marketing_group and institute.marketing_group != marketing_group:
+            if (
+                not institute.marketing_group_id
+                or institute.marketing_group.marketing_group_admin_id != user.id
+            ):
                 return StudentManagement.objects.none()
         elif user_type == choices.UserType.COUNSELOR:
             # Counselor can see students from their assigned institute
@@ -613,20 +616,18 @@ def get_students_by_role(user, counselor=None, institute=None):
         return StudentManagement.objects.filter(institute=institute).select_related('student', 'class_and_section', 'institute')
     
     elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
-        # Institute Group Admin sees all students in institutes within their group
-        institute_group = InstituteGroup.objects.filter(institute_group_admin=user).first()
-        if not institute_group:
-            return StudentManagement.objects.none()
-        
-        return StudentManagement.objects.filter(institute__institute_group=institute_group).select_related('student', 'class_and_section', 'institute')
-    
+        # All institutes in any group owned by this admin (not only .first() group)
+        return StudentManagement.objects.filter(
+            institute__institute_group__institute_group_admin=user
+        ).select_related("student", "class_and_section", "institute")
+
     elif user_type == choices.UserType.MARKETINGGROUPADMIN:
-        # Marketing Group Admin sees all students in institutes within their marketing group
-        marketing_group = InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
-        if not marketing_group:
-            return StudentManagement.objects.none()
-        
-        return StudentManagement.objects.filter(institute__marketing_group=marketing_group).select_related('student', 'class_and_section', 'institute')
+        # All institutes tied to any marketing group row this admin owns
+        return StudentManagement.objects.filter(
+            institute__marketing_group__marketing_group_admin=user
+        ).exclude(institute__isnull=True).select_related(
+            "student", "class_and_section", "institute"
+        )
     
     else:
         # Unknown role, return empty queryset
@@ -1078,6 +1079,7 @@ def _get_psychometric_test_result(user):
                 "test_link": reverse('app:test_buttons'),
                 "success_count": 0,
                 "test_status": "no_tests",
+                "test_labels": ["Career Interest", "Intelligence", "Personality"],
                 "test_details": {
                     "test1": False,
                     "test2": False,
@@ -1155,6 +1157,7 @@ def _get_psychometric_test_result(user):
             "test_link": test_link,
             "success_count": completed_tests,
             "test_status": test_status,
+            "test_labels": ["Career Interest", "Intelligence", "Personality"],
             "test_details": {
                 "test1": test1_complete,
                 "test2": test2_complete,
@@ -1171,6 +1174,7 @@ def _get_psychometric_test_result(user):
             "test_link": None,
             "success_count": 0,
             "test_status": "no_tests",
+            "test_labels": ["Career Interest", "Intelligence", "Personality"],
             "test_details": {
                 "test1": False,
                 "test2": False,
@@ -1255,6 +1259,7 @@ def _get_post_matric_test_result(user, test_sessions):
             "test_link": test_link,
             "success_count": completed_tests,
             "test_status": test_status,
+            "test_labels": ["Personality", "Motivation", "Career Interest", "Aptitude"],
             "test_details": {
                 "test1": test_completion[1],
                 "test2": test_completion[2],
@@ -1272,6 +1277,7 @@ def _get_post_matric_test_result(user, test_sessions):
             "test_link": None,
             "success_count": 0,
             "test_status": "no_tests",
+            "test_labels": ["Personality", "Motivation", "Career Interest", "Aptitude"],
             "test_details": {
                 "test1": False,
                 "test2": False,
@@ -1284,6 +1290,129 @@ def _get_post_matric_test_result(user, test_sessions):
 
 import logging
 logger = logging.getLogger(__name__)
+
+@login_required(login_url=reverse_lazy('users:login'))
+def ttv2_save_student_remark(request, coun_id: int):
+    """
+    v2: Save counselor counselling remark against a student.
+    Stored on FollowUpStatus.message (one row per counselor+student, update_or_create).
+    """
+    from core import choices
+    from django.http import Http404
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=405)
+
+    counselor = get_object_or_404(Counselor, id=coun_id)
+    # Security: counselors can only save their own students' remarks
+    if request.user.user_type == choices.UserType.COUNSELOR and counselor.coun_user != request.user:
+        raise Http404("Permission denied")
+
+    try:
+        payload = json.loads((request.body or b"{}").decode("utf-8"))
+    except Exception:
+        payload = {}
+    sm_id = payload.get("student_management_id") or payload.get("sm_id") or None
+    msg = (payload.get("message") or "").strip()
+    if not sm_id or not msg:
+        return JsonResponse({"success": False, "error": "Missing student or message"}, status=400)
+
+    # Only allow for assigned students
+    try:
+        assigned_students = counselor.get_students(institute=counselor.counselor_admin) if counselor.counselor_admin else counselor.students.all()
+        sm = assigned_students.get(id=int(sm_id))
+    except Exception:
+        return JsonResponse({"success": False, "error": "Student not assigned"}, status=403)
+
+    # Keep remarks separate from "sessions":
+    # - append-only (so remarks don't overwrite follow-ups)
+    # - do NOT set last_follow_up_date so it won't count in session metrics
+    fu = FollowUpStatus.objects.create(
+        counselor=counselor,
+        student=sm,
+        message=msg,
+        last_follow_up_date=None,
+        is_followed_up=False,
+        follow_up_status="pending",
+        mode_of_follow_up="meeting",
+    )
+    when = fu.last_follow_up_date.strftime("%d/%m/%Y") if fu.last_follow_up_date else ""
+    return JsonResponse({"success": True, "message": fu.message or "", "when": when})
+
+
+@login_required(login_url=reverse_lazy('users:login'))
+def ttv2_save_follow_up(request, coun_id: int):
+    """
+    v2: Create/update a counselor follow-up for an assigned student (AJAX JSON).
+    Mirrors the old follow-up page form but returns JSON for in-page updates.
+    """
+    from core import choices
+    from django.http import Http404
+    from django.utils.dateparse import parse_date
+
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=405)
+
+    counselor = get_object_or_404(Counselor, id=coun_id)
+    if request.user.user_type == choices.UserType.COUNSELOR and counselor.coun_user != request.user:
+        raise Http404("Permission denied")
+
+    try:
+        payload = json.loads((request.body or b"{}").decode("utf-8"))
+    except Exception:
+        payload = {}
+
+    sm_id = payload.get("student_management_id") or payload.get("sm_id") or payload.get("student_id") or None
+    mode = (payload.get("mode_of_follow_up") or "").strip().lower()
+    status = (payload.get("follow_up_status") or "").strip().lower()
+    msg = (payload.get("message") or "").strip()
+    is_followed_up = bool(payload.get("is_followed_up") or False)
+    last_dt = parse_date((payload.get("last_follow_up_date") or "").strip() or "") if payload.get("last_follow_up_date") else None
+    next_dt = parse_date((payload.get("next_follow_up_date") or "").strip() or "") if payload.get("next_follow_up_date") else None
+
+    valid_modes = {m[0] for m in getattr(FollowUpStatus, "MODE_CHOICES", [])}
+    valid_statuses = {s[0] for s in getattr(FollowUpStatus, "STATUS_CHOICES", [])}
+    if not sm_id:
+        return JsonResponse({"success": False, "error": "Missing student"}, status=400)
+    if mode not in valid_modes:
+        return JsonResponse({"success": False, "error": "Invalid mode"}, status=400)
+    if status not in valid_statuses:
+        return JsonResponse({"success": False, "error": "Invalid status"}, status=400)
+
+    try:
+        assigned_students = (
+            counselor.get_students(institute=counselor.counselor_admin)
+            if counselor.counselor_admin
+            else counselor.students.all()
+        )
+        sm = assigned_students.get(id=int(sm_id))
+    except Exception:
+        return JsonResponse({"success": False, "error": "Student not assigned"}, status=403)
+
+    # IMPORTANT: append-only history (do not overwrite existing follow-ups).
+    # If the user marks "followed up" but doesn't provide a date, default to today.
+    if is_followed_up and not last_dt:
+        last_dt = timezone.localdate()
+    fu = FollowUpStatus.objects.create(
+        counselor=counselor,
+        student=sm,
+        mode_of_follow_up=mode,
+        follow_up_status=status,
+        last_follow_up_date=last_dt,
+        next_follow_up_date=next_dt,
+        message=msg,
+        is_followed_up=is_followed_up,
+    )
+    when = fu.last_follow_up_date.strftime("%d/%m/%Y") if fu.last_follow_up_date else ""
+    return JsonResponse(
+        {
+            "success": True,
+            "when": when,
+            "message": (fu.message or "").strip(),
+            "mode_of_follow_up": fu.mode_of_follow_up,
+            "follow_up_status": fu.follow_up_status,
+            "is_followed_up": bool(fu.is_followed_up),
+        }
+    )
 
 
 
@@ -1340,28 +1469,51 @@ def Students_follow_up(request, coun_id):
                 messages.error(request, 'Selected student is not assigned to you.')
                 return redirect('counselor:Counselor_follow_up_page', coun_id=coun_id)
 
-            # Create or update the follow-up instance
-            follow_up_instance, created = FollowUpStatus.objects.update_or_create(
+            # Normalize mode/status to match FollowUpStatus choices (backwards compatible with legacy values).
+            raw_mode = (request.POST.get('mode_of_follow_up') or '').strip()
+            raw_status = (request.POST.get('follow_up_status') or '').strip()
+            mode_map = {
+                'phone': 'call',
+                'call': 'call',
+                'email': 'email',
+                'in-person': 'meeting',
+                'in person': 'meeting',
+                'video call': 'meeting',
+                'meeting': 'meeting',
+            }
+            status_map = {
+                'completed': 'completed',
+                'pending': 'pending',
+                'rescheduled': 'follow-up',
+                'follow up': 'follow-up',
+                'follow-up': 'follow-up',
+            }
+            mode_norm = mode_map.get(raw_mode.strip().lower(), raw_mode.strip().lower() or 'call')
+            status_norm = status_map.get(raw_status.strip().lower(), raw_status.strip().lower() or 'pending')
+            # MySQL DateField does not accept empty string; coerce blanks to None and parse safely.
+            try:
+                from django.utils.dateparse import parse_date
+            except Exception:
+                parse_date = None
+            _last_raw = (request.POST.get('last_follow_up_date') or '').strip()
+            _next_raw = (request.POST.get('next_follow_up_date') or '').strip()
+            last_dt = (parse_date(_last_raw) if (parse_date and _last_raw) else None)
+            next_dt = (parse_date(_next_raw) if (parse_date and _next_raw) else None)
+
+            # Append-only history: always create a new follow-up entry.
+            is_followed = request.POST.get('is_followed_up') == 'on'
+            if is_followed and not last_dt:
+                last_dt = timezone.localdate()
+            FollowUpStatus.objects.create(
                 counselor=counselor,
                 student=student_management_instance,
-                defaults={
-                    'mode_of_follow_up': request.POST.get('mode_of_follow_up'),
-                    'follow_up_status': request.POST.get('follow_up_status'),
-                    'last_follow_up_date': request.POST.get('last_follow_up_date'),
-                    'next_follow_up_date': request.POST.get('next_follow_up_date'),
-                    'message': request.POST.get('message'),
-                    'is_followed_up': request.POST.get('is_followed_up') == 'on'
-                }
+                mode_of_follow_up=mode_norm,
+                follow_up_status=status_norm,
+                last_follow_up_date=last_dt,
+                next_follow_up_date=next_dt,
+                message=(request.POST.get('message') or '').strip(),
+                is_followed_up=is_followed,
             )
-
-            if not created:
-                follow_up_instance.mode_of_follow_up = request.POST.get('mode_of_follow_up')
-                follow_up_instance.follow_up_status = request.POST.get('follow_up_status')
-                follow_up_instance.last_follow_up_date = request.POST.get('last_follow_up_date')
-                follow_up_instance.next_follow_up_date = request.POST.get('next_follow_up_date')
-                follow_up_instance.message = request.POST.get('message')
-                follow_up_instance.is_followed_up = request.POST.get('is_followed_up') == 'on'
-                follow_up_instance.save()
 
             logger.debug("Follow-up entry saved successfully.")
             messages.success(request, 'Follow-up created successfully!')
@@ -1370,10 +1522,12 @@ def Students_follow_up(request, coun_id):
             logger.warning("No student ID provided.")
 
     # Retrieve follow-up data only for assigned students
-    follow_ups = FollowUpStatus.objects.filter(
-        counselor=counselor,
-        student_id__in=assigned_student_ids
-    ).select_related('student', 'student__student')
+    # IMPORTANT: show most recent follow-up first (append-only history).
+    follow_ups = (
+        FollowUpStatus.objects.filter(counselor=counselor, student_id__in=assigned_student_ids)
+        .select_related("student", "student__student")
+        .order_by("-created", "-last_follow_up_date", "-next_follow_up_date", "-id")
+    )
     
     # Create a dictionary to hold follow-up data by student ID
     follow_up_data = {}
@@ -1389,6 +1543,7 @@ def Students_follow_up(request, coun_id):
             'message': follow_up.message,
             'last_follow_up_date': follow_up.last_follow_up_date,
             'next_follow_up_date': follow_up.next_follow_up_date,
+            'created': follow_up.created,
         })
         
         # Increment the count if this follow-up is marked as followed up
@@ -1430,7 +1585,17 @@ def Students_follow_up(request, coun_id):
         'coun_id' : coun_id
     }
 
-    return render(request, 'template20/counselor/follow_up_page.html', context)
+    # Render template based on dashboard version (v2 should match the new shell style).
+    try:
+        template_version = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
+    except Exception:
+        template_version = "v1"
+    tpl = (
+        "template_v2/counselor/follow_up_page.html"
+        if template_version == "v2"
+        else "template20/counselor/follow_up_page.html"
+    )
+    return render(request, tpl, context)
 
 def CounselorCoursepayment(request):
     from django.conf import settings
@@ -2073,7 +2238,20 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
         if counselor.coun_user != request.user:
             raise Http404("You don't have permission to access this counselor's dashboard.")
 
-    # Optional: week selector (v2 analytics header). Monday date: YYYY-MM-DD.
+    # Optional: date-range selector (v2 analytics header); fallback to legacy week selector.
+    _date_start = None
+    _date_end = None
+    _raw_date_start = (request.GET.get("ttv2_date_start") or "").strip()
+    _raw_date_end = (request.GET.get("ttv2_date_end") or "").strip()
+    if _raw_date_start and _raw_date_end:
+        try:
+            _date_start = datetime.strptime(_raw_date_start, "%Y-%m-%d").date()
+            _date_end = datetime.strptime(_raw_date_end, "%Y-%m-%d").date()
+        except Exception:
+            _date_start = None
+            _date_end = None
+
+    # Optional: week selector (legacy support). Monday date: YYYY-MM-DD.
     _week_start = None
     _raw_week = (request.GET.get("ttv2_week_start") or "").strip()
     if _raw_week:
@@ -2108,7 +2286,15 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
             return _get_counselor_stats_ajax(counselor)
         elif data_type == 'sessions':
             # AJAX handler for session chart data
-            return _get_counselor_sessions_ajax(counselor, coun_id)
+            grp = (request.GET.get("group") or "").strip().lower()
+            return _get_counselor_sessions_ajax(counselor, coun_id, week_start=_week_start, group=grp)
+        elif data_type == 'session_history_student':
+            # AJAX handler for per-student full session history (timeline).
+            try:
+                sid = int(request.GET.get("student_id") or 0)
+            except Exception:
+                sid = 0
+            return _get_counselor_student_sessions_history_ajax(counselor, coun_id, sid)
     
     # Lightweight initial page load - only essential data
     # Use optimized queries with select_related and prefetch_related
@@ -2294,6 +2480,12 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
             _iv = ""
         if _iv in ("students",):
             context["ttv2_page"] = "students"
+        elif _iv in ("sessions",):
+            context["ttv2_page"] = "sessions"
+        elif _iv in ("plan",):
+            context["ttv2_page"] = "session_plan"
+        elif _iv in ("career",):
+            context["ttv2_page"] = "career"
         else:
             context["ttv2_page"] = "dashboard"
     if getattr(request, "ttv2_auto_print", False):
@@ -2308,11 +2500,617 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
             student_management_qs=students_to_display,
             counselor=counselor,
             week_start=_week_start,
+            date_start=_date_start,
+            date_end=_date_end,
         )
     except Exception:
         from core.ttv2_dashboard_analytics import empty_ttv2_analytics
 
         context["ttv2_analytics"] = empty_ttv2_analytics()
+
+    # Career analytics page (v2): dynamic payload for assigned students.
+    try:
+        if (context.get("ttv2_page") or "").strip().lower() == "career":
+            from django.utils import timezone as _tz
+            from django.db.models import Count, Max
+            from django.db.models.functions import Coalesce, TruncDate
+            from django.db import models as _models
+            from careers.models import CareerShortlist
+            from app.models import TestCompletion, Results
+
+            today = _tz.localdate()
+            try:
+                week_start = _week_start or (today - timedelta(days=today.weekday()))
+            except Exception:
+                week_start = today - timedelta(days=today.weekday())
+            week_end = week_start + timedelta(days=6)
+
+            # Career cluster by class: group assigned students by ClassAndSection.class_and_section
+            labels = []
+            values = []
+            try:
+                qs = students_to_display
+                if hasattr(qs, "filter") and hasattr(qs, "values"):
+                    for row in (
+                        qs.filter(class_and_section__isnull=False)
+                        .values("class_and_section__class_and_section")
+                        .annotate(n=Count("id"))
+                        .order_by("-n")
+                    ):
+                        nm = (row.get("class_and_section__class_and_section") or "").strip() or "Unknown"
+                        # Normalize for demo data inconsistencies (e.g. "class 10" vs "Class 10")
+                        if nm.lower().startswith("class "):
+                            nm = "Class " + nm.split(" ", 1)[1].strip()
+                        labels.append(nm)
+                        values.append(int(row.get("n") or 0))
+            except Exception:
+                labels = []
+                values = []
+
+            # If there are assigned students but missing class labels, show them under "Unknown"
+            try:
+                total_students = int(qs.count()) if hasattr(qs, "count") else 0
+            except Exception:
+                total_students = 0
+            if not labels and total_students:
+                labels = ["Unknown"]
+                values = [total_students]
+
+            is_dummy = not bool(labels)
+
+            # Scope: assigned student user ids for psychometrics + shortlist tables.
+            try:
+                user_ids = (
+                    list(qs.values_list("student_id", flat=True))
+                    if hasattr(qs, "values_list")
+                    else [getattr(getattr(x, "student", None), "id", None) for x in (qs or [])]
+                )
+                user_ids = [int(x) for x in user_ids if x]
+            except Exception:
+                user_ids = []
+
+            # --- KPI: risk (on_track/at_risk) + clarity gap from TestCompletion flags ---
+            on_track = 0
+            at_risk = 0
+            clarity_avg = 0.0
+            gap_by_user = {}
+            try:
+                tc_by_user = {t.user_id: t for t in TestCompletion.objects.filter(user_id__in=user_ids)}
+                total_u = len(user_ids)
+                gap_sum = 0.0
+                for uid in user_ids:
+                    tc = tc_by_user.get(uid)
+                    if not tc:
+                        gap = 100.0
+                        gap_by_user[int(uid)] = gap
+                        gap_sum += gap
+                        continue
+                    sub = sum(bool(x) for x in (tc.test1_complete, tc.test2_complete, tc.test3_complete))
+                    if sub >= 3:
+                        on_track += 1
+                        gap = 0.0
+                    else:
+                        gap = 100.0 * (1.0 - sub / 3.0)
+                    gap = float(round(gap, 1))
+                    gap_by_user[int(uid)] = gap
+                    gap_sum += gap
+                at_risk = max(0, int(total_u) - int(on_track))
+                clarity_avg = float(round((gap_sum / total_u) if total_u else 0.0, 1))
+            except Exception:
+                on_track = 0
+                at_risk = 0
+                clarity_avg = 0.0
+                gap_by_user = {}
+
+            # "Cleared this week": students who completed all 3 psych tests within the selected week.
+            cleared = 0
+            try:
+                cleared = int(
+                    Results.objects.filter(user_id__in=user_ids, test_paper__in=["test1", "test2", "test3"])
+                    .values("user_id")
+                    .annotate(n=Count("test_paper", distinct=True), last=Max("modified"))
+                    .filter(n__gte=3, last__date__gte=week_start, last__date__lte=week_end)
+                    .count()
+                )
+            except Exception:
+                cleared = 0
+
+            # "Others at risk": students with overdue follow-ups (distinct students).
+            others_at_risk = 0
+            overdue_sm_ids = set()
+            try:
+                # assigned_student_ids already computed earlier (StudentManagement ids)
+                overdue_sm_ids = set(
+                    FollowUpStatus.objects.filter(
+                        counselor=counselor,
+                        student_id__in=assigned_student_ids,
+                        next_follow_up_date__isnull=False,
+                        next_follow_up_date__lt=today,
+                    )
+                    .exclude(follow_up_status="completed")
+                    .exclude(is_followed_up=True)
+                    .values_list("student_id", flat=True)
+                    .distinct()
+                )
+                others_at_risk = int(len(overdue_sm_ids))
+            except Exception:
+                overdue_sm_ids = set()
+                others_at_risk = 0
+
+            # --- Student risk matrix: top students by (overdue, clarity gap) ---
+            risk_matrix = []
+            try:
+                # Build StudentManagement -> meta + risk score
+                sms = (
+                    list(qs.select_related("student", "class_and_section")[:500])
+                    if hasattr(qs, "select_related")
+                    else list(qs or [])
+                )
+                rows = []
+                for sm in sms:
+                    u = getattr(sm, "student", None)
+                    uid = getattr(u, "id", None)
+                    nm = (getattr(u, "name", "") or "").strip() if u else ""
+                    if not nm:
+                        nm = f"Student {getattr(sm, 'id', '')}".strip()
+                    cls = ""
+                    stream = ""
+                    try:
+                        cas = getattr(sm, "class_and_section", None)
+                        cls = (getattr(cas, "class_and_section", "") or "").strip()
+                        stream = (getattr(cas, "stream", "") or "").strip()
+                    except Exception:
+                        cls = ""
+                        stream = ""
+                    meta = " · ".join([x for x in [cls or "—", ("Stream " + stream) if stream else "Stream —"] if x])
+                    gap = float(gap_by_user.get(int(uid), 100.0)) if uid else 100.0
+                    overdue = bool(getattr(sm, "id", None) in overdue_sm_ids)
+                    # Score: overdue is strongest, then clarity gap
+                    score = (1000.0 if overdue else 0.0) + gap
+                    status = "at_risk" if overdue or gap >= 34.0 else "on_track"
+                    rows.append((score, {"name": nm, "meta": meta, "status": status}))
+                rows.sort(key=lambda t: t[0], reverse=True)
+                risk_matrix = [r[1] for r in rows[:8]]
+            except Exception:
+                risk_matrix = []
+
+            # --- Career paths shortlisted this week (from CareerShortlist) ---
+            shortlisted = []
+            try:
+                # Map user_id -> student display name (for table rows)
+                name_by_user = {}
+                try:
+                    for sm in qs.select_related("student"):
+                        u = getattr(sm, "student", None)
+                        if not u:
+                            continue
+                        name_by_user[int(u.id)] = (getattr(u, "name", "") or "").strip() or f"Student {u.id}"
+                except Exception:
+                    name_by_user = {}
+
+                sl_qs = (
+                    CareerShortlist.objects.filter(
+                        user_id__in=user_ids,
+                        created__date__gte=week_start,
+                        created__date__lte=week_end,
+                    )
+                    .select_related("career")
+                    .order_by("-created")[:50]
+                )
+                for sl in sl_qs:
+                    u_id = getattr(sl, "user_id", None)
+                    career = getattr(sl, "career", None)
+                    if not u_id or not career:
+                        continue
+                    student_name = name_by_user.get(int(u_id)) or f"Student {u_id}"
+
+                    # Best-effort mapping into the 3 "path" columns:
+                    # - primary: the career name
+                    # - secondary/tertiary: up to 2 cluster tags (if present)
+                    primary = (getattr(career, "name", None) or "—") if career else "—"
+                    clusters = []
+                    try:
+                        clusters = list(career.career_cluster.all().values_list("name", flat=True)[:3])
+                        clusters = [(c or "").strip() for c in clusters if (c or "").strip()]
+                    except Exception:
+                        clusters = []
+                    secondary = clusters[0] if len(clusters) > 0 else "—"
+                    tertiary = clusters[1] if len(clusters) > 1 else "—"
+
+                    # Follow-up targeting: use end-of-week by default (UI placeholder).
+                    target = ""
+                    try:
+                        target = week_end.strftime("%d %b %Y")
+                    except Exception:
+                        target = ""
+
+                    shortlisted.append(
+                        {
+                            "student": student_name,
+                            "primary": primary,
+                            "secondary": secondary,
+                            "tertiary": tertiary,
+                            "next": "Discuss shortlisted career",
+                            "target": target,
+                        }
+                    )
+                # Limit visible rows for UI readability
+                shortlisted = shortlisted[:10]
+            except Exception:
+                shortlisted = []
+
+            context["ttv2_career_analytics"] = {
+                "is_dummy": bool(is_dummy),
+                "kpi": {
+                    "at_risk": int(at_risk),
+                    "cleared": int(cleared),
+                    "on_track": int(on_track),
+                    "others_at_risk": int(others_at_risk),
+                    "clarity_gap": float(clarity_avg),
+                    "delta": 0.0,
+                },
+                # NOTE: this donut is "by class" (segments = classes).
+                "cluster_donut": {"labels": labels, "values": values},
+                # Keep as placeholder until we have real per-stream scoring.
+                "ivk_bar": {
+                    "labels": ["General stream"],
+                    "interest": [0],
+                    "knowledge": [0],
+                    "alignment": [0],
+                },
+                "risk_matrix": risk_matrix,
+                "shortlisted": shortlisted,
+            }
+    except Exception:
+        pass
+
+    # Sessions page (v2): KPI strip + timeline rows (server-rendered; chart widget loads via AJAX).
+    try:
+        if (context.get("ttv2_page") or "").strip().lower() == "sessions":
+            from django.utils import timezone as _tz
+            import calendar
+
+            today = _tz.localdate()
+            # If legacy week param provided, honor it; else default to current week.
+            try:
+                week_start = _week_start or (today - timedelta(days=today.weekday()))
+            except Exception:
+                week_start = today - timedelta(days=today.weekday())
+            week_end = week_start + timedelta(days=6)
+
+            # Month-to-date summary (month determined by selected week_start).
+            try:
+                month_ref = week_start or today
+                month_first = month_ref.replace(day=1)
+                month_last = month_ref.replace(day=calendar.monthrange(month_ref.year, month_ref.month)[1])
+                # Month-to-date should end at today only for the current month; otherwise, end-of-month.
+                if month_ref.year == today.year and month_ref.month == today.month:
+                    month_end = min(today, month_last)
+                else:
+                    month_end = month_last
+            except Exception:
+                month_first = today.replace(day=1)
+                month_end = today
+
+            def _month_week_ranges(start_d, end_d):
+                """
+                Split [start_d, end_d] into week buckets within the month.
+                Buckets are consecutive 7-day spans starting at the 1st of the month:
+                1–7, 8–14, 15–21, 22–28, 29–EOM.
+                """
+                out = []
+                cur = start_d
+                idx = 1
+                while cur <= end_d:
+                    nxt = min(end_d, cur + timedelta(days=6))
+                    out.append((idx, cur, nxt))
+                    idx += 1
+                    cur = nxt + timedelta(days=1)
+                return out
+
+            month_weeks = _month_week_ranges(month_first, month_end)
+
+            # Follow-ups for this counselor + assigned students.
+            fu_qs = FollowUpStatus.objects.filter(
+                counselor=counselor,
+                student_id__in=assigned_student_ids,
+            )
+
+            def _d(d):
+                try:
+                    return d.strftime("%d %b %Y") if d else ""
+                except Exception:
+                    return ""
+
+            def _week_day_for_fu(fu):
+                d = getattr(fu, "last_follow_up_date", None) or None
+                if not d:
+                    try:
+                        d = _tz.localtime(getattr(fu, "created", None)).date()
+                    except Exception:
+                        d = None
+                return d
+
+            # Accurate weekly KPIs directly from DB (do not rely on a sliced list).
+            try:
+                from django.db.models.functions import Coalesce, TruncDate
+                from django.db import models
+                from django.db.models import Count, Q
+
+                fu_week = (
+                    fu_qs.annotate(
+                        _sess_day=Coalesce(
+                            "last_follow_up_date",
+                            TruncDate("created"),
+                            output_field=models.DateField(),
+                        )
+                    )
+                    .filter(_sess_day__gte=week_start, _sess_day__lte=week_end)
+                )
+                sessions_week = int(fu_week.count())
+                completed_week = int(fu_week.filter(follow_up_status="completed").count())
+                unique_students_week = int(fu_week.values("student_id").distinct().count())
+            except Exception:
+                sessions_week = 0
+                completed_week = 0
+                unique_students_week = 0
+            upcoming = 0
+            try:
+                upcoming = int(
+                    FollowUpStatus.objects.filter(
+                        counselor=counselor,
+                        student_id__in=assigned_student_ids,
+                        next_follow_up_date__isnull=False,
+                        next_follow_up_date__gte=today,
+                    )
+                    .values("student_id")
+                    .distinct()
+                    .count()
+                )
+            except Exception:
+                upcoming = 0
+            completion_rate = int(round((100.0 * completed_week / sessions_week), 0)) if sessions_week else 0
+
+            context["ttv2_sessions_kpis"] = {
+                "sessions_week": int(sessions_week),
+                "unique_students_week": int(unique_students_week),
+                "completed_week": int(completed_week),
+                "completion_rate_week": int(completion_rate),
+                "upcoming_followups": int(upcoming),
+            }
+
+            # Month-to-date table rows (uses session day fallback rule)
+            try:
+                from django.db.models.functions import Coalesce, TruncDate
+                from django.db import models
+
+                # Use last_follow_up_date when present, else fall back to created date.
+                base_fu_month = (
+                    FollowUpStatus.objects.filter(
+                    counselor=counselor,
+                    student_id__in=assigned_student_ids,
+                    )
+                    .annotate(
+                        _sess_day=Coalesce(
+                            "last_follow_up_date",
+                            TruncDate("created"),
+                            output_field=models.DateField(),
+                        )
+                    )
+                    .filter(_sess_day__gte=month_first, _sess_day__lte=month_end)
+                )
+            except Exception:
+                base_fu_month = FollowUpStatus.objects.none()
+
+            mtd_rows = []
+            for widx, ws, we in month_weeks:
+                try:
+                    qs_w = base_fu_month.filter(_sess_day__gte=ws, _sess_day__lte=we)
+                    sessions_cnt = int(qs_w.count())
+                    students_reached = int(qs_w.values("student_id").distinct().count())
+                    total_students = int(len(assigned_student_ids or []))
+                except Exception:
+                    sessions_cnt = 0
+                    students_reached = 0
+                    total_students = int(len(assigned_student_ids or []))
+
+                # Reuse analytics' clarity gap as a simple, stable proxy: take overall avg clarity for assigned students.
+                # (Per-week clarity needs more model fields; can be added later.)
+                try:
+                    clarity_gap = float((context.get("ttv2_analytics") or {}).get("kpi", {}).get("clarity_gap", 0) or 0)
+                except Exception:
+                    clarity_gap = 0.0
+                # Test completion proxy: psychometric completion percent from analytics KPI.
+                try:
+                    test_completion = int((context.get("ttv2_analytics") or {}).get("kpi", {}).get("psych_pct", 0) or 0)
+                except Exception:
+                    test_completion = 0
+
+                mtd_rows.append(
+                    {
+                        "week": f"Week {widx}",
+                        "period": f"{ws:%b} {ws.day}–{we.day}",
+                        "week_start": ws.isoformat(),
+                        "sessions": sessions_cnt,
+                        "students_reached": f"{students_reached}/{total_students}" if total_students else f"{students_reached}/0",
+                        "test_completion": test_completion,
+                        "clarity_gap": clarity_gap,
+                        "paths": 0,
+                        "milestone": "—",
+                        "rating": 0,
+                        "is_current": bool(ws <= week_start <= we),
+                    }
+                )
+
+            context["ttv2_sessions_month_label"] = f"{month_first:%B} {month_first.year}"
+            context["ttv2_sessions_mtd_rows"] = mtd_rows
+            context["ttv2_sessions_weekly_note"] = "—"
+            context["ttv2_sessions_next_actions"] = []
+
+            # Student cards: small preview per student; full history fetched via AJAX per student.
+            try:
+                from django.db.models import Count, Q
+                from django.db.models.functions import Coalesce, TruncDate
+                from django.db import models
+
+                base_fu = FollowUpStatus.objects.filter(
+                    counselor=counselor, student_id__in=assigned_student_ids
+                )
+                # Total counts per student
+                totals = {
+                    int(r["student_id"]): {
+                        "total": int(r["n"] or 0),
+                        "done": int(r["done"] or 0),
+                    }
+                    for r in base_fu.values("student_id").annotate(
+                        n=Count("id"),
+                        done=Count("id", filter=Q(follow_up_status="completed")),
+                    )
+                }
+                # Week counts per student (session day = last_follow_up_date or created date)
+                week_map = {
+                    int(r["student_id"]): {
+                        "week_total": int(r["n"] or 0),
+                        "week_done": int(r["done"] or 0),
+                    }
+                    for r in base_fu.annotate(
+                        _sess_day=Coalesce(
+                            "last_follow_up_date",
+                            TruncDate("created"),
+                            output_field=models.DateField(),
+                        )
+                    )
+                    .filter(_sess_day__gte=week_start, _sess_day__lte=week_end)
+                    .values("student_id")
+                    .annotate(
+                        n=Count("id"),
+                        done=Count("id", filter=Q(follow_up_status="completed")),
+                    )
+                }
+            except Exception:
+                totals = {}
+                week_map = {}
+
+            # Recent follow-ups across all students (for preview lines): grab a bounded slice and pick first 2 per student.
+            try:
+                recent_fu = list(
+                    FollowUpStatus.objects.filter(
+                        counselor=counselor, student_id__in=assigned_student_ids
+                    )
+                    .select_related("student", "student__student", "student__class_and_section")
+                    .order_by("-last_follow_up_date", "-created")[:250]
+                )
+            except Exception:
+                recent_fu = []
+
+            preview_by_student = {}
+            for fu in recent_fu:
+                try:
+                    sid = int(getattr(fu, "student_id", 0) or 0)
+                except Exception:
+                    sid = 0
+                if not sid:
+                    continue
+                if sid not in preview_by_student:
+                    preview_by_student[sid] = []
+                if len(preview_by_student[sid]) >= 2:
+                    continue
+                preview_by_student[sid].append(fu)
+
+            student_cards = []
+            try:
+                students_list = list(
+                    students_to_display.select_related("student", "class_and_section")[:2000]
+                )
+            except Exception:
+                try:
+                    students_list = list(students_to_display)
+                except Exception:
+                    students_list = []
+
+            def _student_name(sm):
+                try:
+                    return (
+                        getattr(getattr(sm, "student", None), "name", None)
+                        or getattr(sm, "name", None)
+                        or ""
+                    ).strip()
+                except Exception:
+                    return ""
+
+            def _student_meta(sm):
+                try:
+                    cs = getattr(sm, "class_and_section", None)
+                    cls = (getattr(cs, "class_and_section", None) or "").strip()
+                    stream = (getattr(cs, "stream", None) or "").strip()
+                    parts = []
+                    if cls:
+                        parts.append(cls)
+                    if stream:
+                        parts.append(stream)
+                    return " · ".join(parts)
+                except Exception:
+                    return ""
+
+            for sm in students_list:
+                try:
+                    sid = int(getattr(sm, "id", 0) or 0)
+                except Exception:
+                    sid = 0
+                if not sid:
+                    continue
+                nm = _student_name(sm) or "Student"
+                meta = _student_meta(sm)
+                t = totals.get(sid, {"total": 0, "done": 0})
+                w = week_map.get(sid, {"week_total": 0, "week_done": 0})
+                done = int(t.get("done") or 0)
+                total = int(t.get("total") or 0)
+                week_total = int(w.get("week_total") or 0)
+                week_done = int(w.get("week_done") or 0)
+
+                # Preview items
+                items = []
+                for fu in preview_by_student.get(sid, [])[:2]:
+                    items.append(
+                        {
+                            "when": _d(getattr(fu, "last_follow_up_date", None))
+                            or _d(_week_day_for_fu(fu))
+                            or "—",
+                            "mode": (getattr(fu, "mode_of_follow_up", None) or "—"),
+                            "status": (getattr(fu, "follow_up_status", None) or "—"),
+                            "next": _d(getattr(fu, "next_follow_up_date", None)) or "",
+                            "message": (getattr(fu, "message", None) or "").strip(),
+                        }
+                    )
+
+                student_cards.append(
+                    {
+                        "student_id": sid,
+                        "student": nm,
+                        "meta": meta,
+                        "week_total": week_total,
+                        "week_done": week_done,
+                        "total": total,
+                        "done": done,
+                        "preview": items,
+                    }
+                )
+
+            # Sort by week activity desc then total desc then name
+            try:
+                student_cards.sort(
+                    key=lambda r: (
+                        -int(r.get("week_total") or 0),
+                        -int(r.get("total") or 0),
+                        str(r.get("student") or "").lower(),
+                    )
+                )
+            except Exception:
+                pass
+
+            context["ttv2_sessions_students"] = student_cards
+    except Exception:
+        pass
     
     # Only load student table data if explicitly requested (not on initial page load)
     # This will be loaded via AJAX after page loads
@@ -2417,11 +3215,110 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
     # Get assigned student IDs for follow-up filtering (students_to_display already contains assigned students)
     assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
     
-    # Retrieve follow-up data for assigned students (matching production code - filter only by counselor)
-    follow_ups = FollowUpStatus.objects.filter(
-        counselor=counselor,
-        student_id__in=assigned_student_ids
+    # Retrieve follow-up data for assigned students (latest per student).
+    # IMPORTANT: some rows may only have next_follow_up_date (scheduled) and no last_follow_up_date,
+    # so we sort by the most relevant available date: COALESCE(last_follow_up_date, next_follow_up_date).
+    try:
+        from django.db.models.functions import Coalesce
+    except Exception:
+        Coalesce = None
+    follow_qs = FollowUpStatus.objects.filter(
+        counselor=counselor, student_id__in=assigned_student_ids
     ).select_related('student', 'student__student')
+    if Coalesce:
+        follow_ups = follow_qs.annotate(
+            _sort_date=Coalesce("last_follow_up_date", "next_follow_up_date")
+        ).order_by("-_sort_date", "-created")
+    else:
+        follow_ups = follow_qs.order_by("-last_follow_up_date", "-next_follow_up_date", "-created")
+    followup_latest_map = {}
+    try:
+        today = timezone.localdate()
+        tomorrow = today + timedelta(days=1)
+        for fu in follow_ups:
+            sid = getattr(fu, "student_id", None)
+            if not sid or sid in followup_latest_map:
+                continue
+            last_dt = getattr(fu, "last_follow_up_date", None)
+            next_dt = getattr(fu, "next_follow_up_date", None)
+            is_done = bool(getattr(fu, "is_followed_up", False)) or (
+                (getattr(fu, "follow_up_status", "") or "").strip().lower() == "completed"
+            )
+            is_pending = not is_done
+
+            smart_key = "not_scheduled"
+            smart_label = "Not scheduled"
+            priority = 0
+            smart_btn_label = ""
+            smart_btn_variant = ""
+            show_followup_btn = False
+
+            # Pending follow-up buckets (drives button text).
+            if is_pending and next_dt:
+                if next_dt < today:
+                    smart_key = "overdue"
+                    smart_label = "Overdue"
+                    priority = 3
+                    show_followup_btn = True
+                    smart_btn_variant = "danger"
+                    smart_btn_label = f"Date: {next_dt.strftime('%d/%m/%Y')}"
+                elif next_dt == today:
+                    smart_key = "due_today"
+                    smart_label = "Follow-up today"
+                    priority = 3
+                    show_followup_btn = True
+                    smart_btn_variant = "danger"
+                    smart_btn_label = "Follow up today"
+                elif next_dt == tomorrow:
+                    smart_key = "upcoming"
+                    smart_label = "Upcoming follow-up"
+                    priority = 1
+                    show_followup_btn = True
+                    smart_btn_variant = "warning"
+                    smart_btn_label = "Upcoming follow up"
+                else:
+                    smart_key = "scheduled_future"
+                    smart_label = "Scheduled"
+                    priority = 0
+                    show_followup_btn = False
+                    smart_btn_variant = ""
+                    smart_btn_label = ""
+            # Completed today (show green Next: date).
+            elif is_done and last_dt and last_dt == today:
+                smart_key = "completed_today"
+                smart_label = "Completed"
+                priority = 0
+                show_followup_btn = False
+            # Completed (other dates).
+            elif is_done and last_dt:
+                smart_key = "completed"
+                smart_label = "Completed"
+                priority = 0
+                show_followup_btn = False
+            elif next_dt:
+                smart_key = "scheduled_future"
+                smart_label = "Scheduled"
+                priority = 0
+                show_followup_btn = False
+
+            followup_latest_map[sid] = {
+                "message": (fu.message or "").strip(),
+                "when": fu.last_follow_up_date.strftime("%d/%m/%Y") if fu.last_follow_up_date else "",
+                "next": next_dt.strftime("%d/%m/%Y") if next_dt else "",
+                "last_raw": last_dt.isoformat() if last_dt else "",
+                "next_raw": next_dt.isoformat() if next_dt else "",
+                "is_followed_up": bool(getattr(fu, "is_followed_up", False)),
+                "status": (getattr(fu, "follow_up_status", "") or "").strip().lower(),
+                "mode": (getattr(fu, "mode_of_follow_up", "") or "").strip().lower(),
+                "smart_key": smart_key,
+                "smart_label": smart_label,
+                "priority": priority,
+                "smart_btn_label": smart_btn_label,
+                "smart_btn_variant": smart_btn_variant,
+                "show_followup_btn": bool(show_followup_btn),
+            }
+    except Exception:
+        followup_latest_map = {}
     
     # Apply filters on queryset (shared with institute filtering behavior)
     students_filtered = apply_student_filters(students_to_display, request)
@@ -2458,6 +3355,15 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
     class_counts = get_class_counts(students_to_display)
     unique_streams = get_unique_streams_by_role(request.user, students_to_display)
     
+    if paginator is not None:
+        roster_filtered_total = paginator.count
+    else:
+        roster_filtered_total = (
+            students_filtered.count()
+            if hasattr(students_filtered, "count")
+            else len(list(students_filtered))
+        )
+
     context = {
         'counselors': counselor,
         'students': students_page,
@@ -2470,6 +3376,10 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
         'coun_id': coun_id,
         'follow_up_data': {},
         'merged_data': [],
+        'roster_filtered_total': roster_filtered_total,
+        'ttv2_followup_latest_map': followup_latest_map,
+        'ttv2_remark_save_url': reverse("counselor:save_student_remark", args=[coun_id]),
+        'ttv2_followup_save_url': reverse("counselor:save_follow_up", args=[coun_id]),
     }
     
     if template_version == "v2":
@@ -2521,9 +3431,11 @@ def _get_counselor_stats_ajax(counselor):
     })
 
 
-def _get_counselor_sessions_ajax(counselor, coun_id):
+def _get_counselor_sessions_ajax(counselor, coun_id, week_start=None, group: str = ""):
     """AJAX handler for session chart data."""
     from django.db.models import Count
+    from django.db.models.functions import Coalesce, TruncDate
+    from django.db import models
     
     # Get counselor's associated institute
     counselor_institute = counselor.counselor_admin
@@ -2535,43 +3447,107 @@ def _get_counselor_sessions_ajax(counselor, coun_id):
     # Get assigned student IDs for session filtering (students_to_display already contains assigned students)
     assigned_student_ids = students_to_display.values_list('id', flat=True) if hasattr(students_to_display, 'values_list') else [s.id for s in students_to_display]
     
-    # Filter sessions only for assigned students (matching production code - filter only by counselor)
-    sessions_data = (
-        FollowUpStatus.objects
-        .filter(counselor_id=coun_id, student_id__in=assigned_student_ids)
-        .values('last_follow_up_date')
-        .annotate(session_count=Count('id'))
-    )
-    
-    week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-    reference_date = date.today()
-    
-    for session in sessions_data:
-        try:
-            session_date = session.get('last_follow_up_date')
-            if session_date:
-                if isinstance(session_date, str):
-                    if 'T' in session_date:
-                        session_date = datetime.fromisoformat(session_date.split('T')[0]).date()
-                    else:
-                        session_date = datetime.strptime(session_date, "%Y-%m-%d").date()
-                
-                day_of_week = session_date.weekday()
-                if day_of_week < 6:
-                    week_data[day_of_week] += session.get('session_count', 0)
-        except (KeyError, ValueError, TypeError):
-            continue
-    
+    group = (group or "").strip().lower()
+
+    # Selected week
+    try:
+        reference_date = week_start or date.today()
+    except Exception:
+        reference_date = date.today()
+
     days_since_monday = reference_date.weekday()
     week_start = reference_date - timedelta(days=days_since_monday)
+    week_end = week_start + timedelta(days=6)
+
+    # Prepare 7-day label sequence (Mon..Sun)
+    days = [week_start + timedelta(days=i) for i in range(7)]
+    day_keys = [d.isoformat() for d in days]
+
+    base_qs = (
+        FollowUpStatus.objects.filter(counselor_id=coun_id, student_id__in=assigned_student_ids)
+        .annotate(
+            _sess_day=Coalesce(
+                "last_follow_up_date",
+                TruncDate("created"),
+                output_field=models.DateField(),
+            )
+        )
+        .filter(_sess_day__gte=week_start, _sess_day__lte=week_end)
+    )
+
+    if group == "student":
+        # Student-wise series (top N students for the selected week)
+        top_n = 8
+        try:
+            top_ids = list(
+                base_qs.values("student_id")
+                .annotate(n=Count("id"))
+                .order_by("-n")[:top_n]
+            )
+            top_ids = [int(r["student_id"]) for r in top_ids if r.get("student_id")]
+        except Exception:
+            top_ids = []
+
+        # Map student_id -> display name
+        name_map = {}
+        try:
+            for sm in students_to_display.filter(id__in=top_ids).select_related("student"):
+                nm = ""
+                try:
+                    nm = (getattr(getattr(sm, "student", None), "name", None) or "").strip()
+                except Exception:
+                    nm = ""
+                name_map[int(sm.id)] = nm or f"Student {sm.id}"
+        except Exception:
+            for sid in top_ids:
+                name_map[int(sid)] = f"Student {sid}"
+
+        # Counts by (student, day)
+        counts = {}
+        try:
+            for r in (
+                base_qs.filter(student_id__in=top_ids)
+                .values("student_id", "_sess_day")
+                .annotate(n=Count("id"))
+            ):
+                sid = int(r.get("student_id") or 0)
+                d = r.get("_sess_day")
+                if not sid or not d:
+                    continue
+                counts[(sid, d.isoformat())] = int(r.get("n") or 0)
+        except Exception:
+            counts = {}
+
+        sessions_data_out = []
+        for sid in top_ids:
+            series = []
+            for dk in day_keys:
+                series.append({"day": dk, "session_count": int(counts.get((int(sid), dk), 0))})
+            sessions_data_out.append(
+                {
+                    "series_id": int(sid),
+                    "series_name": name_map.get(int(sid)) or f"Student {sid}",
+                    "sessions": series,
+                }
+            )
+        return JsonResponse({"sessions_data": sessions_data_out})
+
+    # Default: counselor aggregate
+    week_data = {dk: 0 for dk in day_keys}
+    try:
+        for r in base_qs.values("_sess_day").annotate(n=Count("id")):
+            d = r.get("_sess_day")
+            if not d:
+                continue
+            dk = d.isoformat()
+            if dk in week_data:
+                week_data[dk] = int(r.get("n") or 0)
+    except Exception:
+        pass
     
     final_data = []
-    for day, count in week_data.items():
-        day_date = week_start + timedelta(days=day)
-        final_data.append({
-            "day": day_date.strftime("%Y-%m-%d"),
-            "session_count": count
-        })
+    for dk in day_keys:
+        final_data.append({"day": dk, "session_count": int(week_data.get(dk, 0))})
     
     couns_sessions_data = [{
         'counselor_id': counselor.id,
@@ -2580,6 +3556,72 @@ def _get_counselor_sessions_ajax(counselor, coun_id):
     }]
     
     return JsonResponse({'sessions_data': couns_sessions_data})
+
+
+def _get_counselor_student_sessions_history_ajax(counselor, coun_id: int, student_id: int):
+    """
+    AJAX: full follow-up history for a single assigned student, for the v2 Session report.
+    Returns lightweight JSON for client-side rendering.
+    """
+    from django.utils import timezone as _tz
+
+    # Ensure student is assigned to this counselor (same scope as dashboards).
+    counselor_institute = counselor.counselor_admin
+    students_to_display = get_students_by_role(
+        counselor.coun_user, counselor=counselor, institute=counselor_institute
+    )
+    assigned_ids = (
+        list(students_to_display.values_list("id", flat=True))
+        if hasattr(students_to_display, "values_list")
+        else [s.id for s in students_to_display]
+    )
+    if not student_id or int(student_id) not in {int(x) for x in assigned_ids if x}:
+        return JsonResponse({"ok": False, "items": []})
+
+    def _fmt(d):
+        try:
+            return d.strftime("%a %d %b %Y") if d else ""
+        except Exception:
+            return ""
+
+    from django.db.models.functions import Coalesce, TruncDate
+    from django.db import models
+
+    fu_qs = (
+        FollowUpStatus.objects.filter(counselor_id=coun_id, student_id=int(student_id))
+        .select_related("student", "student__student")
+        .annotate(_sess_day=Coalesce("last_follow_up_date", TruncDate("created"), output_field=models.DateField()))
+        .order_by("-_sess_day", "-created")
+    )
+    items = []
+    for fu in fu_qs[:500]:
+        try:
+            st = getattr(fu, "student", None)
+            nm = ""
+            try:
+                nm = (
+                    getattr(getattr(st, "student", None), "name", None)
+                    or getattr(st, "name", None)
+                    or ""
+                ).strip()
+            except Exception:
+                nm = ""
+            if not nm:
+                nm = "Student"
+            when = getattr(fu, "_sess_day", None)
+            items.append(
+                {
+                    "when": _fmt(when) or "—",
+                    "mode": (getattr(fu, "mode_of_follow_up", None) or "—"),
+                    "status": (getattr(fu, "follow_up_status", None) or "—"),
+                    "next": _fmt(getattr(fu, "next_follow_up_date", None)) or "",
+                    "message": (getattr(fu, "message", None) or "").strip(),
+                }
+            )
+        except Exception:
+            continue
+
+    return JsonResponse({"ok": True, "student_id": int(student_id), "items": items})
 
 
 def _get_counselor_full_table_context(request, counselor, students_to_display, follow_ups, per_page):
@@ -2955,6 +3997,98 @@ class CounselorEnrolledCourseView(View):
         video_progress = {int(progress.video_id.split('-')[1]): progress.completed for progress in progress_data}
         return video_progress
 
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class CounselorEnrolledCoursesListView(View):
+    """
+    My Enrolled Courses page: show course cards (same UI as counselor dashboard).
+    """
+
+    template_name = "template_v2/counselor/enrolled_courses_list.html"
+    partial_template_name = "template_v2/counselor/fragments/enrolled_courses_page_partial.html"
+
+    def get(self, request, counselor_id: int):
+        from core import choices
+        from django.http import Http404
+
+        counselor = get_object_or_404(Counselor, id=counselor_id)
+        if request.user.user_type == choices.UserType.COUNSELOR and counselor.coun_user != request.user:
+            raise Http404("You don't have permission to access this counselor's courses.")
+
+        # Use both request.user and counselor.coun_user (matches dashboard access logic).
+        counselor_user = getattr(counselor, "coun_user", None)
+        users = []
+        seen = set()
+        for u in (request.user, counselor_user):
+            if u and getattr(u, "pk", None) and u.pk not in seen:
+                seen.add(u.pk)
+                users.append(u)
+
+        courses = list(CounselorCourse.objects.only("id", "title").all()[:10])
+        enrolled_cards = []
+        for course in courses:
+            title = (getattr(course, "title", "") or "").strip() or "Career Counseling Course"
+            enrolled = any(_counselor_course_access_for_user(u, course) for u in users)
+
+            progress_user = None
+            for u in users:
+                if _counselor_course_access_for_user(u, course):
+                    progress_user = u
+                    break
+            progress_pct = (
+                int(_counselor_course_progress_percentage(progress_user, course) or 0)
+                if progress_user
+                else 0
+            )
+
+            if not enrolled:
+                cta = "Enroll"
+            elif progress_pct >= 100:
+                cta = "Completed"
+            elif progress_pct > 0:
+                cta = "Resume"
+            else:
+                cta = "Start"
+
+            certificate_url = None
+            if enrolled and progress_user:
+                try:
+                    _check_and_issue_certificate(progress_user, counselor_id)
+                    if CounselorCertification.objects.filter(user=progress_user).exists():
+                        certificate_url = reverse("counselor:view_certificate", args=[counselor_id])
+                except Exception:
+                    certificate_url = None
+
+            enrolled_cards.append(
+                {
+                    "title": title,
+                    "enrolled": enrolled,
+                    "progress_pct": progress_pct,
+                    "cta": cta,
+                    "curriculum_url": reverse("counselor:counselor_course_detail"),
+                    "start_url": reverse("counselor:course_learning", args=[counselor_id]),
+                    "enroll_url": reverse("counselor:CounselorCoursepayment"),
+                    "certificate_url": certificate_url,
+                }
+            )
+
+        ctx = {
+            "coun_id": counselor_id,
+            "counselor": counselor,
+            "counselor_institute": counselor.counselor_admin,
+            "enrolled_courses": enrolled_cards,
+        }
+
+        # Unified v2 shell loads content via AJAX (?ttv2_partial=1). In that mode we must return
+        # only the body section (NOT the full dashboard shell), otherwise it nests layouts and
+        # feels like an iframe.
+        try:
+            if request.GET.get("ttv2_partial") == "1":
+                return render(request, self.partial_template_name, ctx)
+        except Exception:
+            pass
+        return render(request, self.template_name, ctx)
 
 
 import traceback

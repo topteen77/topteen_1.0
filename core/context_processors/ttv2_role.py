@@ -8,6 +8,7 @@ from django.urls import NoReverseMatch, reverse
 from core import choices
 from counselor.models import Counselor
 from institute.models import Institute
+from django.db.models.functions import Lower
 
 
 def _safe_reverse(viewname: str, *, args: Optional[list] = None, kwargs: Optional[dict] = None) -> str:
@@ -110,14 +111,6 @@ def _nav_for_role(
                         else "#",
                         "key": "sessions",
                     },
-                    {
-                        "label": "Session plan",
-                        "dot": "#f472b6",
-                        "href": _safe_reverse("counselor:CounselorDashboardSection", args=[coun_id, "session-plan"])
-                        if coun_id
-                        else "#",
-                        "key": "plan",
-                    },
                 ],
             },
             {
@@ -138,6 +131,18 @@ def _nav_for_role(
                 "title": "Reports",
                 "items": [
                     {"label": "Dashboard", "dot": "#6c7dff", "href": _safe_reverse("institute:institutegroupdashboard")},
+                    {
+                        "label": "Institutes",
+                        "dot": "#3b82f6",
+                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["institutes"]),
+                        "key": "institutes",
+                    },
+                    {
+                        "label": "Counselors",
+                        "dot": "#0ea5e9",
+                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["counselors"]),
+                        "key": "counselors",
+                    },
                     {"label": "Students", "dot": "#f472b6", "href": _safe_reverse("institute:institutegroupdashboard_page", args=["students"])},
                 ],
             },
@@ -150,6 +155,18 @@ def _nav_for_role(
                 "title": "Reports",
                 "items": [
                     {"label": "Dashboard", "dot": "#6c7dff", "href": _safe_reverse("institute:marketinggroupdashboard")},
+                    {
+                        "label": "Institutes",
+                        "dot": "#3b82f6",
+                        "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["institutes"]),
+                        "key": "institutes",
+                    },
+                    {
+                        "label": "Counselors",
+                        "dot": "#0ea5e9",
+                        "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["counselors"]),
+                        "key": "counselors",
+                    },
                     {"label": "Students", "dot": "#f472b6", "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["students"])},
                 ],
             },
@@ -170,7 +187,12 @@ def _nav_for_role(
         {
             "title": "Analytics",
             "items": [
-                {"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:instituteheatmap", args=[inst_slug]) if inst_slug else "#"},
+                {
+                    "label": "Career heatmap",
+                    "dot": "#34d399",
+                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "heatmap"]) if inst_slug else "#",
+                    "key": "heatmap",
+                },
                 {"label": "Streams & capacity", "dot": "#a78bfa", "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "streams_capacity"]) if inst_slug else "#"},
             ],
         },
@@ -235,6 +257,29 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
         "can_block_students": role == "institute",
     }
 
+    # Shared v2 modals (CSV upload / add counselor) need an institute list in shell templates.
+    # Provide it globally for roles that can act across institutes.
+    ttv2_quicklink_institutes: List[Dict[str, Any]] = []
+    try:
+        if role in ("counselor", "institute") and institute:
+            ttv2_quicklink_institutes = [
+                {"id": institute.id, "name": institute.name, "slug": institute.slug}
+            ]
+        elif role == "marketing_group":
+            ttv2_quicklink_institutes = list(
+                Institute.objects.filter(marketing_group__marketing_group_admin=user)
+                .values("id", "name", "slug")
+                .order_by(Lower("name"))[:500]
+            )
+        elif role == "institute_group":
+            ttv2_quicklink_institutes = list(
+                Institute.objects.filter(institute_group__institute_group_admin=user)
+                .values("id", "name", "slug")
+                .order_by(Lower("name"))[:500]
+            )
+    except Exception:
+        ttv2_quicklink_institutes = []
+
     return {
         "ttv2_role_ctx": {
             "role": role,
@@ -246,6 +291,7 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             "profile": profile,
             "nav": {"sections": sections},
             "permissions": permissions,
-        }
+        },
+        "ttv2_quicklink_institutes": ttv2_quicklink_institutes,
     }
 

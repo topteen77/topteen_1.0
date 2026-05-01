@@ -1,12 +1,16 @@
 {# AJAX fragment: student roster as cards. Expects `students` Page + `results_data` dict. #}
-<div id="students-table-container">
+<div id="students-table-container"
+     {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}data-ttv2-followup-url="{{ ttv2_followup_save_url }}"{% endif %}
+     {% if roster_filtered_total is defined %} data-ttv2-roster-total="{{ roster_filtered_total }}"{% endif %}>
   <div class="ttv2-student-cards-grid">
     {% if students %}
       {% for sm in students %}
         {% set u = sm.student %}
         {% set cas = sm.class_and_section %}
-        {% set r = (results_data.get(u.id) if (results_data and u) else none) %}
+        {# results_data is keyed by User object (see counselor.views.get_results_data_for_students) #}
+        {% set r = (results_data.get(u) if (results_data and u and results_data.get(u) is not none) else (results_data.get(u.id) if (results_data and u) else none)) %}
         {% set td = (r.test_details if (r and r.test_details) else {}) %}
+        {% set tl = (r.test_labels if (r and r.test_labels) else []) %}
         {% set has4 = (td.get('test4') is not none) %}
         {% set track = (r.track if (r and r.track) else '') %}
         {% set match = (r.match_pct if (r and r.match_pct) else '') %}
@@ -14,6 +18,7 @@
         {% set mi = (r.mi_attempted if (r and r.mi_attempted) else false) %}
         {% set eq = (r.eq_attempted if (r and r.eq_attempted) else false) %}
         {% set abroad = (r.abroad_exploring if (r and r.abroad_exploring) else false) %}
+        {% set _fu = (ttv2_followup_latest_map.get(sm.id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else none) %}
         {# Advisor / counselor name (first assigned) #}
         {% set _adv = '' %}
         {% if sm and sm.counselors is defined %}
@@ -41,6 +46,34 @@
                 {% if cas and cas.stream %} · {{ cas.stream }}{% endif %}
                 {% if _adv %} · Advisor: {{ _adv }}{% endif %}
               </div>
+              {% if _fu %}
+                {% set _k = _fu.smart_key|default('') %}
+                <div style="margin-top:6px;">
+                  {% if _k == 'overdue' or _k == 'due_today' %}
+                    <span class="badge bg-danger">{{ _fu.smart_label|default('Follow-up') }}</span>
+                  {% elif _k == 'upcoming' %}
+                    <span class="badge bg-warning text-dark">{{ _fu.smart_label|default('Upcoming') }}</span>
+                  {% elif _k == 'completed_today' %}
+                    <span class="badge bg-success">Completed</span>
+                  {% elif _k == 'completed' %}
+                    <span class="badge bg-success">Completed</span>
+                  {% elif _k == 'scheduled_future' %}
+                    <span class="badge bg-secondary">Next</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ _fu.smart_label|default('Not scheduled') }}</span>
+                  {% endif %}
+
+                  {% if _k == 'completed_today' and _fu.next %}
+                    <span style="font-size:11px;color:#16a34a;font-weight:700;margin-left:8px;">Next: {{ _fu.next }}</span>
+                  {% elif _fu.next %}
+                    <span style="font-size:11px;color:var(--c-text3);margin-left:8px;">Next: {{ _fu.next }}</span>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div style="margin-top:6px;">
+                  <span class="badge bg-secondary">Not scheduled</span>
+                </div>
+              {% endif %}
             </div>
           </div>
 
@@ -64,13 +97,26 @@
           <div class="ttv2-student-hr" aria-hidden="true"></div>
 
           <div class="ttv2-student-bars">
-            {% set items = [
-              ('Test 1', td.get('test1')),
-              ('Test 2', td.get('test2')),
-              ('Test 3', td.get('test3')),
-            ] %}
-            {% if has4 %}
-              {% set items = items + [('Test 4', td.get('test4'))] %}
+            {% if tl and (tl|length) >= 3 %}
+              {% set items = [
+                (tl[0], td.get('test1')),
+                (tl[1], td.get('test2')),
+                (tl[2], td.get('test3')),
+              ] %}
+              {% if has4 and (tl|length) >= 4 %}
+                {% set items = items + [(tl[3], td.get('test4'))] %}
+              {% elif has4 %}
+                {% set items = items + [('Test 4', td.get('test4'))] %}
+              {% endif %}
+            {% else %}
+              {% set items = [
+                ('Test 1', td.get('test1')),
+                ('Test 2', td.get('test2')),
+                ('Test 3', td.get('test3')),
+              ] %}
+              {% if has4 %}
+                {% set items = items + [('Test 4', td.get('test4'))] %}
+              {% endif %}
             {% endif %}
             {% for label, done in items %}
               <div class="ttv2-student-barrow">
@@ -85,9 +131,23 @@
           <div class="ttv2-student-actions">
             <a class="btn btn-sm btn-outline-primary {% if not (r and r.test_status == 'completed' and r.test_link) %}disabled{% endif %}"
                {% if r and r.test_status == 'completed' and r.test_link %}target="_blank" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
-              Single PDF
+              Report
             </a>
-            <a class="btn btn-sm btn-outline-secondary disabled" href="#" aria-disabled="true">Profile</a>
+            <a class="btn btn-sm btn-outline-secondary {% if not (r and r.test_link) %}disabled{% endif %}"
+               {% if r and r.test_link %}target="_blank" rel="noopener" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
+              Profile
+            </a>
+            {% if ttv2_followup_save_url is defined and ttv2_followup_save_url and _fu and _fu.show_followup_btn %}
+              {% set _btn = _fu.smart_btn_label|default('Follow up') %}
+              {% set _v = _fu.smart_btn_variant|default('secondary') %}
+              <button type="button"
+                      class="btn btn-sm {% if _v == 'danger' %}btn-outline-danger{% elif _v == 'warning' %}btn-outline-warning{% else %}btn-outline-secondary{% endif %}"
+                      data-ttv2-followup-open
+                      data-sm-id="{{ sm.id }}"
+                      data-student-name="{{ u.name if (u and u.name) else '-' }}">
+                {{ _btn }}
+              </button>
+            {% endif %}
             {% if _adv and _set_counselor_url != '#' %}
               <button type="button"
                       class="btn btn-sm btn-outline-danger"

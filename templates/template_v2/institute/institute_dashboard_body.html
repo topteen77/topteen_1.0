@@ -4,7 +4,6 @@
   {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
     {% include "template_v2/institute/pages/institute_unassigned_students.html" %}
-    {% include "template20/institute/institute_dashboard_body.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'students' %}
     {% include "template_v2/institute/pages/institute_students.html" %}
@@ -16,8 +15,14 @@
     {% include "template_v2/institute/pages/institute_payments.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'sessions' %}
     {% include "template_v2/institute/pages/institute_sessions.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'session_report' %}
+    {% include "template_v2/institute/pages/institute_session_report_rich.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'session_plan' %}
+    {% include "template_v2/institute/pages/institute_session_plan.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'streams_capacity' %}
     {% include "template_v2/institute/pages/institute_streams_capacity.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'heatmap' %}
+    {% include "template_v2/institute/pages/institute_heatmap.html" %}
   {% else %}
     <div class="ttv2-card">
       <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>

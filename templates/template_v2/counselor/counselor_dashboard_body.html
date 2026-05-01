@@ -72,6 +72,14 @@
   {% set ttv2_students_action_urls = {} %}
   {% include "template_v2/institute/pages/institute_students.html" %}
 </div>
+{% elif (ttv2_page|default('dashboard')) == 'career' %}
+<div class="ttv2-counselor-embed">
+  {% include "template_v2/counselor/pages/career_analytics.html" %}
+</div>
+{% elif (ttv2_page|default('dashboard')) == 'sessions' %}
+<div class="ttv2-counselor-embed">
+  {% include "template_v2/counselor/pages/session_report.html" %}
+</div>
 {% else %}
   <div class="ttv2-card">
     <div class="card-title">Coming soon</div>

@@ -1,16 +1,36 @@
 <!-- Institutes Table Container (for AJAX loading) -->
 <div id="institutes-table-wrapper">
 <div id="institutes-table-container">
+{% set _is_group_mode = (institutes_is_group_mode if institutes_is_group_mode is defined else (search_params.list_mode == 'group' if search_params is defined else False)) %}
+<div class="px-2 py-2 mb-0 small border rounded-top bg-light text-secondary d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
+  {% if institutes_paginations %}
+    <span><strong class="text-dark">{{ institutes_paginations.paginator.count }}</strong> matching</span>
+    <span class="text-muted">·</span>
+    <span>Showing rows <strong class="text-dark">{{ institutes_paginations.start_index() }}–{{ institutes_paginations.end_index() }}</strong> on this page</span>
+  {% elif institutes_list_all is defined %}
+    <span><strong class="text-dark">{{ institutes_list_all|length }}</strong> matching (all on one page)</span>
+  {% else %}
+    <span><strong class="text-dark">0</strong> matching</span>
+  {% endif %}
+</div>
 <div class="table-responsive">
   <table class="table table-hover">
     <thead>
       <tr>
         <th>Sr. No.</th>
+        {% if _is_group_mode %}
+        <th>Group Name</th>
+        {% else %}
         <th>School Name</th>
+        <th>Group Name</th>
+        {% endif %}
+        <th>Group Institutes</th>
         <th>Students</th>
         <th>Credits</th>
+        {% if not _is_group_mode %}
         <th>Action</th>
         <th>Approval</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -18,6 +38,7 @@
         {% for ins in institutes_paginations %}
         <tr class="institute-row" 
             data-institute-id="{{ ins.id }}"
+            data-institute-slug="{{ ins.slug }}"
             data-institute-name="{{ ins.name }}"
             data-institute-email="{{ ins.created_by.email if ins.created_by else '-' }}"
             data-institute-contact="{{ ins.contact_info if ins.contact_info else '-' }}"
@@ -26,13 +47,51 @@
             data-institute-students="{{ ins.student_count if ins.student_count else 0 }}"
             data-institute-credits="{{ ins.credit_counts if ins.credit_counts else 0 }}">
           <td>{{ (institutes_paginations.number - 1) * institutes_paginations.paginator.per_page + loop.index }}</td>
+          {% if _is_group_mode %}
+          <td>{{ ins.group_name if ins.group_name else '-' }}</td>
+          {% else %}
           <td>
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
           </td>
-          <td>{{ ins.student_count if ins.student_count else 0 }}</td>
-          <td>{{ ins.credit_counts if ins.credit_counts else 0 }}</td>
+          {% endif %}
+          {% if not _is_group_mode %}
+          <td>
+            {% if ins.institute_group %}
+              {% set _grp_href = request.path ~ '?list_mode=group&institute_group_id=' ~ ins.institute_group.id %}
+              <a href="{{ _grp_href }}" class="text-primary text-decoration-none fw-semibold">{{ ins.institute_group.group_name }}</a>
+            {% else %}
+              <span></span>
+            {% endif %}
+          </td>
+          {% endif %}
+          <td>
+            {% if _is_group_mode %}
+              {% if ins.institute_group_id and ins.institute_count is defined %}
+                {% set _grp_drill_href = request.path ~ '?list_mode=all&institute_group_id=' ~ ins.institute_group_id %}
+                <a href="{{ _grp_drill_href }}" class="text-primary text-decoration-none fw-semibold" title="Show institutes in this group">{{ ins.institute_count }}</a>
+              {% else %}
+                <span class="fw-semibold">{{ ins.institute_count if ins.institute_count is defined else '-' }}</span>
+              {% endif %}
+            {% elif ins.institute_group and ins.group_institute_count %}
+              {% set _grp_cnt_href = request.path ~ '?list_mode=group&institute_group_id=' ~ ins.institute_group.id %}
+              <a href="{{ _grp_cnt_href }}" class="text-primary text-decoration-none fw-semibold">{{ ins.group_institute_count }}</a>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          {% set _mktg_stu_cnt = ins.student_count if ins.student_count else 0 %}
+          <td>
+            {% if _is_group_mode %}
+            <span class="fw-semibold">{{ _mktg_stu_cnt }}</span>
+            {% else %}
+            {% set _mktg_stu_href = url('institute:marketinggroupdashboard_page', args=['students']) ~ '?institute_slug=' ~ (ins.slug|urlencode) %}
+            <a href="{{ _mktg_stu_href }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ _mktg_stu_cnt }}</a>
+            {% endif %}
+          </td>
+          <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
+          {% if not _is_group_mode %}
           <td>
             <div class="d-flex gap-2">
               <button type="button" 
@@ -61,10 +120,18 @@
           </td>
           <td>
             {% if ins.institute_status == 3 %}
-            <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
-               class="badge bg-warning text-dark">
-              <i class='bx bx-time-five me-1'></i> Pending
-            </a>
+            <div class="d-flex flex-wrap gap-1">
+              <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
+                 class="btn btn-sm btn-success py-0 px-2"
+                 style="font-size:11px;line-height:1.5;">
+                <i class='bx bx-check-circle me-1'></i>Approve
+              </a>
+              <a href="{{ url('institute:institutereject', args=[ins.id]) }}" 
+                 class="btn btn-sm btn-danger py-0 px-2"
+                 style="font-size:11px;line-height:1.5;">
+                <i class='bx bx-x-circle me-1'></i>Reject
+              </a>
+            </div>
             {% elif ins.institute_status == 2 %}
             <span class="badge bg-danger">
               <i class='bx bx-x-circle me-1'></i> Rejected
@@ -75,12 +142,14 @@
             </span>
             {% endif %}
           </td>
+          {% endif %}
         </tr>
         {% endfor %}
       {% elif institutes_list_all %}
         {% for ins in institutes_list_all %}
         <tr class="institute-row" 
             data-institute-id="{{ ins.id }}"
+            data-institute-slug="{{ ins.slug }}"
             data-institute-name="{{ ins.name }}"
             data-institute-email="{{ ins.created_by.email if ins.created_by else '-' }}"
             data-institute-contact="{{ ins.contact_info if ins.contact_info else '-' }}"
@@ -89,13 +158,46 @@
             data-institute-students="{{ ins.student_count if ins.student_count else 0 }}"
             data-institute-credits="{{ ins.credit_counts if ins.credit_counts else 0 }}">
           <td>{{ loop.index }}</td>
+          {% if _is_group_mode %}
+          <td>{{ ins.group_name if ins.group_name else '-' }}</td>
+          {% else %}
           <td>
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
           </td>
-          <td>{{ ins.student_count if ins.student_count else 0 }}</td>
-          <td>{{ ins.credit_counts if ins.credit_counts else 0 }}</td>
+          {% endif %}
+          {% if not _is_group_mode %}
+          <td>
+            {% if ins.institute_group %}
+              {% set _grp_href2 = request.path ~ '?list_mode=group&institute_group_id=' ~ ins.institute_group.id %}
+              <a href="{{ _grp_href2 }}" class="text-primary text-decoration-none fw-semibold">{{ ins.institute_group.group_name }}</a>
+            {% else %}
+              <span></span>
+            {% endif %}
+          </td>
+          {% endif %}
+          <td>
+            {% if _is_group_mode %}
+              <span class="fw-semibold">{{ ins.institute_count if ins.institute_count is defined else '-' }}</span>
+            {% elif ins.institute_group and ins.group_institute_count %}
+              {% set _grp_cnt_href2 = request.path ~ '?list_mode=group&institute_group_id=' ~ ins.institute_group.id %}
+              <a href="{{ _grp_cnt_href2 }}" class="text-primary text-decoration-none fw-semibold">{{ ins.group_institute_count }}</a>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          {% set _mktg_stu_cnt2 = ins.student_count if ins.student_count else 0 %}
+          <td>
+            {% if _is_group_mode %}
+            <span class="fw-semibold">{{ _mktg_stu_cnt2 }}</span>
+            {% else %}
+            {% set _mktg_stu_href2 = url('institute:marketinggroupdashboard_page', args=['students']) ~ '?institute_slug=' ~ (ins.slug|urlencode) %}
+            <a href="{{ _mktg_stu_href2 }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ _mktg_stu_cnt2 }}</a>
+            {% endif %}
+          </td>
+          <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
+          {% if not _is_group_mode %}
           <td>
             <div class="d-flex gap-2">
               <button type="button" 
@@ -124,10 +226,18 @@
           </td>
           <td>
             {% if ins.institute_status == 3 %}
-            <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
-               class="badge bg-warning text-dark">
-              <i class='bx bx-time-five me-1'></i> Pending
-            </a>
+            <div class="d-flex flex-wrap gap-1">
+              <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
+                 class="btn btn-sm btn-success py-0 px-2"
+                 style="font-size:11px;line-height:1.5;">
+                <i class='bx bx-check-circle me-1'></i>Approve
+              </a>
+              <a href="{{ url('institute:institutereject', args=[ins.id]) }}" 
+                 class="btn btn-sm btn-danger py-0 px-2"
+                 style="font-size:11px;line-height:1.5;">
+                <i class='bx bx-x-circle me-1'></i>Reject
+              </a>
+            </div>
             {% elif ins.institute_status == 2 %}
             <span class="badge bg-danger">
               <i class='bx bx-x-circle me-1'></i> Rejected
@@ -138,11 +248,12 @@
             </span>
             {% endif %}
           </td>
+          {% endif %}
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="text-center text-gray">No institutes found</td>
+          <td colspan="{% if _is_group_mode %}5{% else %}8{% endif %}" class="text-center text-gray">No institutes found</td>
         </tr>
       {% endif %}
     </tbody>
@@ -153,13 +264,12 @@
 
 <!-- Pagination Container (for AJAX loading) -->
 <div id="institutes-pagination">
-{% if institutes_paginations and institutes_paginations.paginator.num_pages > 1 %}
-<div class="d-flex justify-content-between align-items-center mt-3">
-  <div>
-    {% if institutes_paginations %}
+{% if institutes_paginations %}
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+  <div class="small text-secondary">
     Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
-    {% endif %}
   </div>
+  {% if institutes_paginations.paginator.num_pages > 1 %}
   <nav>
     <ul class="pagination mb-0">
       {% if institutes_paginations.has_previous() %}
@@ -203,6 +313,7 @@
       {% endif %}
     </ul>
   </nav>
+  {% endif %}
 </div>
 {% endif %}
 </div>

@@ -1,0 +1,224 @@
+{# Institute Session report (v2): same layout as counselor, but scoped to all institute students/counselors. #}
+{% set k = (ttv2_sessions_kpis if ttv2_sessions_kpis is defined else {}) %}
+{% set students = (ttv2_sessions_students if ttv2_sessions_students is defined else []) %}
+{% set mtd = (ttv2_sessions_mtd_rows if ttv2_sessions_mtd_rows is defined else []) %}
+{% set month_label = (ttv2_sessions_month_label if ttv2_sessions_month_label is defined else '') %}
+{% set weekly_note = (ttv2_sessions_weekly_note if ttv2_sessions_weekly_note is defined else '—') %}
+{% set next_actions = (ttv2_sessions_next_actions if ttv2_sessions_next_actions is defined else []) %}
+
+<div class="ttv2-card mb-3">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="card-title mb-0">Session report</div>
+      <div style="font-size:11px;color:var(--c-text3);">
+        Institute-wide: includes all counselors and students.
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="dropdown">
+        <button type="button"
+                class="ttv2-date-range-icon-btn"
+                id="ttv2WeekDropdownBtn"
+                data-icon-only="1"
+                data-bs-toggle="dropdown"
+                title="Select week / date range"
+                aria-label="Select week / date range"
+                aria-expanded="false">
+          <i class='bx bx-calendar'></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" id="ttv2WeekDropdownMenu" aria-labelledby="ttv2WeekDropdownBtn">
+          <li><span class="dropdown-item-text" style="font-size:11px;color:var(--c-text3);">Loading…</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ttv2-kpi-grid">
+  <div class="ttv2-kpi">
+    <div class="val">{{ k.get('sessions_week', 0) }}</div>
+    <div class="lbl">Sessions (this week)</div>
+    <div class="sub" style="font-size:11px;color:var(--c-text3);">Follow-ups logged</div>
+  </div>
+  <div class="ttv2-kpi">
+    <div class="val">{{ k.get('unique_students_week', 0) }}</div>
+    <div class="lbl">Students engaged</div>
+    <div class="sub" style="font-size:11px;color:var(--c-text3);">Unique students this week</div>
+  </div>
+  <div class="ttv2-kpi">
+    <div class="val">{{ k.get('completed_week', 0) }}</div>
+    <div class="lbl">Completed</div>
+    <div class="sub" style="font-size:11px;color:var(--c-text3);">Completed follow-ups</div>
+  </div>
+  <div class="ttv2-kpi">
+    <div class="val">{{ k.get('completion_rate_week', 0) }}%</div>
+    <div class="lbl">Completion rate</div>
+    <div class="sub" style="font-size:11px;color:var(--c-text3);">Completed / total (week)</div>
+  </div>
+  <div class="ttv2-kpi">
+    <div class="val">{{ k.get('upcoming_followups', 0) }}</div>
+    <div class="lbl">Upcoming</div>
+    <div class="sub" style="font-size:11px;color:var(--c-text3);">Next follow-ups scheduled</div>
+  </div>
+</div>
+
+{% if mtd %}
+<div class="ttv2-card mt-3">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+    <div class="card-title mb-0">Full {{ month_label }} session history — month-to-date</div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-text3);">
+          <th>Week</th>
+          <th>Period</th>
+          <th class="text-center">Sessions</th>
+          <th class="text-center">Students reached</th>
+          <th class="text-center">Test completion</th>
+          <th class="text-center">Clarity gap</th>
+          <th class="text-center">Paths</th>
+          <th class="text-center">Milestone</th>
+          <th class="text-center">Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in mtd %}
+          <tr data-ttv2-mtd-week="1"
+              data-ttv2-week-start="{{ r.get('week_start','') }}"
+              {% if r.get('is_current') %}style="background:rgba(34,197,94,0.08)"{% endif %}>
+            <td>{{ r.get('week','—') }}</td>
+            <td>{{ r.get('period','—') }}</td>
+            <td class="text-center">
+              <span class="badge {% if (r.get('sessions',0) or 0) > 0 %}bg-success{% else %}bg-secondary{% endif %}">{{ r.get('sessions',0) }}</span>
+            </td>
+            <td class="text-center">{{ r.get('students_reached','0/0') }}</td>
+            <td class="text-center"><span class="badge bg-warning text-dark">{{ r.get('test_completion',0) }}%</span></td>
+            <td class="text-center"><span class="badge bg-warning text-dark">{{ r.get('clarity_gap',0) }}%</span></td>
+            <td class="text-center">{{ r.get('paths',0) }}</td>
+            <td class="text-center"><span class="badge bg-secondary">{{ r.get('milestone','—') }}</span></td>
+            <td class="text-center" style="opacity:.7;">{% if r.get('rating',0) %}{{ r.get('rating') }}{% else %}—{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-12 col-xl-6">
+      <div style="font-size:11px;color:var(--c-text3);margin-bottom:6px;">Weekly note</div>
+      <div class="ttv2-card" style="padding:12px;background:rgba(255,255,255,.02);">
+        <div style="font-size:12px;color:var(--c-text2);line-height:1.45;">{{ weekly_note }}</div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div style="font-size:11px;color:var(--c-text3);margin-bottom:6px;">Action items for next week</div>
+      <div class="ttv2-card" style="padding:12px;background:rgba(255,255,255,.02);">
+        {% if next_actions and (next_actions|length > 0) %}
+          <ol class="mb-0" style="padding-left:16px;font-size:12px;color:var(--c-text2);line-height:1.55;">
+            {% for a in next_actions %}
+              <li>{{ a }}</li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <div style="font-size:12px;color:var(--c-text2);line-height:1.45;">—</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mt-0">
+  <div class="col-12 col-xl-7">
+    {% include "template_v2/includes/ttv2_weekly_session_report_widget.html" %}
+  </div>
+  <div class="col-12 col-xl-5">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-start justify-content-between gap-2">
+        <div class="min-w-0">
+          <div class="card-title mb-0">Student sessions</div>
+          <div style="font-size:11px;color:var(--c-text3);">Each student with complete follow-up history (across counselors).</div>
+        </div>
+      </div>
+
+      <div class="mt-2" style="border-top:1px solid var(--c-border);">
+        {% if students %}
+          <div class="ttv2-sr-students" data-ttv2-sr-students>
+            {% for s in students %}
+              {% set total = (s.get('total',0) or 0) %}
+              {% set done = (s.get('done',0) or 0) %}
+              {% set wk = (s.get('week_total',0) or 0) %}
+              {% set wkdone = (s.get('week_done',0) or 0) %}
+              <div class="ttv2-sr-student" data-ttv2-student-card data-student-id="{{ s.get('student_id') }}">
+                <div class="ttv2-sr-student-head">
+                  <div class="ttv2-sr-avatar" aria-hidden="true">
+                    {{ (s.get('student','S')|string)[:2]|upper }}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="ttv2-sr-name text-truncate">{{ s.get('student','Student') }}</div>
+                    <div class="ttv2-sr-sub text-truncate">
+                      {% if s.get('meta') %}{{ s.get('meta') }} · {% endif %}
+                      {{ wk }} session{{ 's' if wk != 1 else '' }} this week · {{ wkdone }} completed
+                    </div>
+                  </div>
+                  <div class="ms-auto d-flex align-items-center gap-2">
+                    <span class="ttv2-sr-pill">
+                      {{ done }} of {{ total }} done
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-sr-toggle>
+                      Details
+                    </button>
+                  </div>
+                </div>
+
+                <div class="ttv2-sr-student-body" data-ttv2-sr-body style="display:none;">
+                  <div class="ttv2-sr-loading text-center py-3" data-ttv2-sr-loading style="display:none;color:var(--c-text3);font-size:12px;">
+                    Loading history…
+                  </div>
+                  <div class="ttv2-sr-sessions" data-ttv2-sr-sessions>
+                    {% for r in (s.get('preview',[]) or []) %}
+                      <div class="ttv2-sr-session">
+                        <div class="ttv2-sr-dot" aria-hidden="true"></div>
+                        <div class="ttv2-sr-session-main min-w-0">
+                          <div class="ttv2-sr-session-top">
+                            <div class="ttv2-sr-when">{{ r.get('when','—') }}</div>
+                            <div class="ttv2-sr-chips">
+                              {% if r.get('counselor') %}
+                                <span class="badge bg-dark">{{ r.get('counselor') }}</span>
+                              {% endif %}
+                              <span class="badge bg-secondary">{{ r.get('mode','—') }}</span>
+                              <span class="badge {% if (r.get('status')|lower) == 'completed' %}bg-success{% elif (r.get('status')|lower) == 'pending' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                {{ r.get('status','—') }}
+                              </span>
+                              {% if r.get('next') %}
+                                <span class="badge bg-dark">Next: {{ r.get('next') }}</span>
+                              {% endif %}
+                            </div>
+                          </div>
+                          {% if r.get('message') %}
+                            <div class="ttv2-sr-msg">{{ r.get('message') }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <div class="ttv2-sr-footer">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-ttv2-sr-loadall>
+                      Load complete history
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+            No follow-ups yet.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+

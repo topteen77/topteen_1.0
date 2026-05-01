@@ -44,6 +44,14 @@
         }
       } catch (e) {}
       try {
+        var host = document.getElementById('ttv2AjaxContent');
+        var marker = host ? host.querySelector('[data-ttv2-page]') : null;
+        var page = marker ? (marker.getAttribute('data-ttv2-page') || '').trim().toLowerCase() : '';
+        if (page === 'students' && typeof window.ttv2InitStudentTableAfterBodyInject === 'function') {
+          window.ttv2InitStudentTableAfterBodyInject();
+        }
+      } catch (e3) {}
+      try {
         var params = new URLSearchParams(window.location.search || '');
         var sec = (params.get('ttv2_section') || '').trim();
         if (sec === 'students') {
@@ -54,4 +62,6 @@
     };
   })();
 </script>
+
+{% include "template_v2/includes/ttv2_quick_action_modals_group_mktg.html" %}
 {% endblock %}

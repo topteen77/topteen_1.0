@@ -1,0 +1,15 @@
+<div class="ttv2-mktg-subpage">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="fs-20 mb-0">Counselors</h2>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ttv2AddCounselorModal">
+        <i class="bx bx-user-voice"></i> Add counselor
+      </button>
+      <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+    </div>
+  </div>
+  <p class="text-muted small mb-3">Search by counselor name, email, or institute.</p>
+  {% set mktg_counselor_search_action = url('institute:marketinggroupdashboard_page', args=['counselors']) %}
+  {% set mktg_counselor_reset_href = url('institute:marketinggroupdashboard_page', args=['counselors']) %}
+  {% include "template_v2/institute/fragments/mktg_counselors_block.html" %}
+</div>

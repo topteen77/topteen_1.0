@@ -23,6 +23,7 @@ urlpatterns = [
     path("marketing_profile_edit/",views.InstituteMarketingProfileEditView.as_view(),name="marketingprofileedit"),
     path("update_seat_capacity/",views.UpdateSeatCapacityView.as_view(),name="updateseatcapacity"),
     path("institute_approve/<int:id>/", views.InstituteApproveView.as_view(), name="instituteapprove"),
+    path("institute_reject/<int:id>/", views.InstituteRejectView.as_view(), name="institutereject"),
     path(
         "institute_hard_delete/<int:id>/",
         views.InstituteHardDeleteView.as_view(),
@@ -55,18 +56,23 @@ urlpatterns = [
     path("p0ost_matric_student_sample_data/",views.post_matric_student_sample_data,name="post_matric_student_sample_csv"),
     # Must be before <slug:slug>/ so the API is never mistaken for an institute slug
     path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),
+    path("api/marketing_search_suggest/", views.marketing_search_suggest, name="marketing_search_suggest"),
+    path("api/institute_group_search_suggest/", views.institute_group_search_suggest, name="institute_group_search_suggest"),
+    path("api/admin_institute_search_suggest/", views.admin_institute_search_suggest, name="admin_institute_search_suggest"),
     # old code not in use - start
     # New isolated routes for institute authentication frontend
     # old code not in use - end
     path("auth/register/", views.InstituteRegisterView.as_view(), name="register"),
     path("auth/login/", views.InstituteLoginView.as_view(), name="login"),
     path("auth/demo-login/", DemoLoginView.as_view(), name="demo_login"),
-    # Must be before <slug:slug>/ so "heatmap" is not captured as an institute slug
-    path("<slug:slug>/heatmap/", views.InstituteHeatmapView.as_view(), name="instituteheatmap"),
+    # v2 heatmap is now a normal dashboard page: /institute/<slug>/heatmap/ (handled by institutedashboard_page)
+    # Keep legacy view at a non-conflicting URL for backwards compatibility.
+    path("<slug:slug>/heatmap-legacy/", views.InstituteHeatmapView.as_view(), name="instituteheatmap_legacy"),
     # Assign institute student to counselor (AJAX)
     path("<slug:slug>/assign-counselor/", views.AssignStudentToCounselorView.as_view(), name="assign_student_counselor"),
     # Change/unassign counselor for a student (AJAX)
     path("<slug:slug>/set-counselor/", views.SetStudentCounselorView.as_view(), name="set_student_counselor"),
+    path("<slug:slug>/api/student_name_suggest/", views.institute_student_name_suggest, name="institute_student_name_suggest"),
     # Backwards-compatible name used across templates/APIs
     path("<slug:slug>/dashboard/", views.InstituteDashboardView.as_view(), name="institute_masterdashboard"),
     path("<slug:slug>/<str:page>/", views.InstituteDashboardView.as_view(), name="institutedashboard_page"),

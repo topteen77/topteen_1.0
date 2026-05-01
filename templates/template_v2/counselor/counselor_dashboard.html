@@ -43,9 +43,8 @@
 
     <div class="ttv2-counselor-nav-title">Guidance</div>
     <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-report']) }}" data-ttv2-nav="sessions"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report</a>
-    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-plan']) }}" data-ttv2-nav="plan"><span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan</a>
     <div class="ttv2-counselor-nav-title">Courses</div>
-    <a href="{{ url('counselor:course_learning', args=[coun_id]) }}"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>My Enrolled Courses</a>
+    <a href="{{ url('counselor:enrolled_courses', args=[coun_id]) }}"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>My Enrolled Courses</a>
   </div>
   
   
@@ -95,6 +94,7 @@
 {% block additionaljs %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ staticv('js_new/ttv2_dashboard_analytics.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_weekly_session_report.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_students_insights.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_week_dropdown.js') }}"></script>
 <script>
@@ -128,6 +128,9 @@
       } catch(e) {}
       try {
         if (typeof window.ttv2InitStudentsTable === 'function') window.ttv2InitStudentsTable();
+      } catch(e) {}
+      try {
+        if (typeof window.ttv2InitWeeklySessionReport === 'function') window.ttv2InitWeeklySessionReport();
       } catch(e) {}
       try {
         if ('{{ ttv2_auto_print|default(false) }}' === 'True') setTimeout(function(){ window.print(); }, 350);

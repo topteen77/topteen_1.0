@@ -11,7 +11,10 @@
 {% if _wrap == 'institute' %}
 <div class="in-student-table mb-4 p-3" id="{{ _sec_id }}">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-    <h2 class="id-panel-title mb-0">{{ _title }}</h2>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <h2 class="id-panel-title mb-0">{{ _title }}</h2>
+      <span class="badge bg-secondary rounded-pill">{{ _rows|length }} record{% if _rows|length != 1 %}s{% endif %}</span>
+    </div>
     {% if _allow_add %}
     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
       <i class="bx bx-user-plus me-1"></i> Add counselor
@@ -24,7 +27,10 @@
 <div class="card mb-4" id="{{ _sec_id }}">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-      <h2 class="card-title fs-18 mb-0">{{ _title }}</h2>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <h2 class="card-title fs-18 mb-0">{{ _title }}</h2>
+        <span class="badge bg-secondary rounded-pill">{{ _rows|length }} record{% if _rows|length != 1 %}s{% endif %}</span>
+      </div>
       {% if _allow_add %}
       <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCounselorModal">
         <i class="bx bx-user-plus me-1"></i> Add counselor
@@ -37,9 +43,9 @@
         <thead>
           <tr>
             <th>Sr.no.</th>
-            {% if _show_inst %}<th>Institute</th>{% endif %}
             <th>Name</th>
             <th>Email</th>
+            {% if _show_inst %}<th>Institute</th>{% endif %}
             <th>Students Followed up</th>
             <th>Created</th>
             <th>Students Counselled</th>
@@ -51,11 +57,19 @@
           {% for coun in _rows %}
           <tr>
             <td>{{ loop.index }}</td>
-            {% if _show_inst %}<td>{{ coun.institute_name|default('—') }}</td>{% endif %}
             <td>
               <a href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}">{{ coun.name }}</a>
             </td>
             <td>{{ coun.email }}</td>
+            {% if _show_inst %}
+            <td>
+              {% if coun.institute_slug|default('') %}
+              <a href="{{ url('institute:institute_masterdashboard', args=[coun.institute_slug]) }}">{{ coun.institute_name|default('—') }}</a>
+              {% else %}
+              {{ coun.institute_name|default('—') }}
+              {% endif %}
+            </td>
+            {% endif %}
             <td>{{ coun.sessions }}</td>
             <td>{% if coun.created %}{{ coun.created.strftime('%d-%m-%Y') }}{% else %}-{% endif %}</td>
             <td>{{ coun.students_counseled }}</td>

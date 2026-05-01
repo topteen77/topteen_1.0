@@ -11,6 +11,12 @@
     <a href="{{ url('institute:institutegroupdashboard') }}" class="active">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard
     </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['institutes']) }}">
+      <span class="ttv2-counselor-dot" style="background:#3b82f6"></span>Institutes
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['counselors']) }}">
+      <span class="ttv2-counselor-dot" style="background:#0ea5e9"></span>Counselors
+    </a>
     <a href="{{ url('institute:institutegroupdashboard_page', args=['students']) }}">
       <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students
     </a>
@@ -31,8 +37,8 @@
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#fbbf24"></span>Interest matrix
     </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Streams & capacity
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['streams_capacity']) }}">
+      <span class="ttv2-counselor-dot" style="background:#a78bfa"></span>Seat capacity by school
     </a>
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#34d399"></span>Credits
@@ -46,9 +52,6 @@
       <span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report
     </a>
     <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
-      <span class="ttv2-counselor-dot" style="background:#f472b6"></span>Session plan
-    </a>
-    <a href="#" class="ttv2-nav-disabled" aria-disabled="true">
       <span class="ttv2-counselor-dot" style="background:#6c7dff"></span>KIRA AI assistant
     </a>
 
@@ -58,6 +61,29 @@
     </a>
     <a href="#" class="ttv2-print-link">
       <span class="ttv2-counselor-dot" style="background:#94a3b8"></span>Print report
+    </a>
+
+    <div class="ttv2-counselor-nav-title">Quick links</div>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['institutes']) }}#ql-add-institute" class="ttv2-counselor-quicklink">
+      <i class='bx bx-plus'></i> Add Institute
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['counselors']) }}#ql-add-counselor" class="ttv2-counselor-quicklink">
+      <i class='bx bx-user-voice'></i> Add Counselor
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['students']) }}#ql-upload-matric" class="ttv2-counselor-quicklink">
+      <i class='bx bx-upload'></i> Matric CSV Upload
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['students']) }}#ql-upload-postmatric" class="ttv2-counselor-quicklink">
+      <i class='bx bx-upload'></i> Post‑Matric CSV Upload
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['institutes']) }}" class="ttv2-counselor-quicklink">
+      <i class='bx bx-building'></i> Open institutes list
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['students']) }}" class="ttv2-counselor-quicklink">
+      <i class='bx bx-group'></i> Open students list
+    </a>
+    <a href="{{ url('institute:institutegroupdashboard_page', args=['counselors']) }}" class="ttv2-counselor-quicklink">
+      <i class='bx bx-user'></i> Open counselors list
     </a>
 
     <div class="ttv2-counselor-nav-title">Account</div>

@@ -1,6 +1,7 @@
 {# v2 institute-group heatmap body partial (AJAX into dashboard shell) #}
 <div class="ttv2-group-embed institute-group-dashboard">
-  <div class="container-fluid px-0">
+  <div data-ttv2-page="heatmap"></div>
+  <div id="sec-group-heatmap" class="container-fluid px-0">
     {% set heatmap_subtitle = 'Institute group — School-wide Career Interest & Knowledge Matrix' %}
     {% include 'template20/shared/career_heatmap_panel.html' %}
   </div>

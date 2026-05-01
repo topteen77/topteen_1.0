@@ -69,6 +69,22 @@ function loadStudentsTable(url, options = {}) {
         tableContainer.style.display = 'block';
       }
 
+      // v2 roster header: show count for current filters/search (matches paginator total, not unscoped org total).
+      try {
+        var hostEl = wrapper || tableContainer;
+        var inj = hostEl
+          ? (hostEl.querySelector && hostEl.querySelector('#students-table-container'))
+          : null;
+        if (!inj && tableContainer && tableContainer.id === 'students-table-container') {
+          inj = tableContainer;
+        }
+        var n = inj && inj.getAttribute ? inj.getAttribute('data-ttv2-roster-total') : null;
+        var countEl = document.getElementById('ttv2-students-roster-count');
+        if (countEl && n !== null && n !== undefined && String(n).length) {
+          countEl.textContent = String(n);
+        }
+      } catch (eCount) {}
+
       // Re-initialize student row hover if function exists
       if (typeof initializeStudentRowHover === 'function') {
         initializeStudentRowHover();
@@ -89,6 +105,20 @@ function loadStudentsTable(url, options = {}) {
           window.ttv2InitAdvisorChangeControls();
         }
       } catch (e0) {}
+
+      // Counselor remarks: bind save buttons (delegated).
+      try {
+        if (typeof window !== 'undefined' && typeof window.ttv2InitCounselorRemarksControls === 'function') {
+          window.ttv2InitCounselorRemarksControls();
+        }
+      } catch (e1) {}
+
+      // Counselor follow-up (modal): bind open + submit handlers.
+      try {
+        if (typeof window !== 'undefined' && typeof window.ttv2InitCounselorFollowUpControls === 'function') {
+          window.ttv2InitCounselorFollowUpControls();
+        }
+      } catch (eF) {}
 
       // Call success callback
       if (config.onSuccess) {
@@ -117,6 +147,216 @@ function loadStudentsTable(url, options = {}) {
       }
     });
 }
+
+function ttv2GetCookie(name) {
+  try {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  } catch (e) {
+    return null;
+  }
+}
+
+function ttv2InitCounselorRemarksControls() {
+  if (document.body.dataset.ttv2RemarksBound === '1') return;
+  document.body.dataset.ttv2RemarksBound = '1';
+
+  document.body.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-remark-save]') : null;
+    if (!btn) return;
+    var smId = (btn.getAttribute('data-sm-id') || '').trim();
+    if (!smId) return;
+
+    var container = document.getElementById('students-table-container');
+    var url = container ? (container.getAttribute('data-ttv2-remark-url') || '').trim() : '';
+    if (!url || url === '#') return;
+
+    var ta = document.querySelector('textarea[data-ttv2-remark-text][data-sm-id="' + smId + '"]');
+    var statusEl = document.querySelector('[data-ttv2-remark-status][data-sm-id="' + smId + '"]');
+    var msg = ta ? (ta.value || '').trim() : '';
+    if (!msg) {
+      if (statusEl) statusEl.textContent = 'Please type a remark.';
+      return;
+    }
+    if (statusEl) statusEl.textContent = 'Saving...';
+    btn.disabled = true;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': ttv2GetCookie('csrftoken') || ''
+      },
+      body: JSON.stringify({ student_management_id: smId, message: msg })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.success) throw new Error((data && data.error) || 'Save failed');
+        if (statusEl) statusEl.textContent = 'Saved.';
+        // Update "Last" message inline (simple refresh by reloading table not required).
+        try {
+          var cell = btn.closest('td');
+          if (cell) {
+            var lastMsg = cell.querySelector('div[style*="white-space:pre-wrap"]');
+            if (lastMsg) lastMsg.textContent = data.message || msg;
+            var lastWhen = cell.querySelector('div[style*="font-size:11px"]');
+            if (lastWhen && data.when) lastWhen.textContent = 'Last: ' + data.when;
+          }
+        } catch (e2) {}
+        if (ta) ta.value = '';
+      })
+      .catch(function () {
+        if (statusEl) statusEl.textContent = 'Failed to save.';
+      })
+      .finally(function () {
+        btn.disabled = false;
+      });
+  });
+}
+
+try {
+  window.ttv2InitCounselorRemarksControls = ttv2InitCounselorRemarksControls;
+} catch (e0) {}
+
+function ttv2InitCounselorFollowUpControls() {
+  if (document.body.dataset.ttv2FollowUpBound === '1') return;
+  document.body.dataset.ttv2FollowUpBound = '1';
+
+  function getFollowupUrl() {
+    var container = document.getElementById('students-table-container');
+    return container ? (container.getAttribute('data-ttv2-followup-url') || '').trim() : '';
+  }
+
+  function openModal(smId, studentName) {
+    if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+    var modalEl = document.getElementById('ttv2FollowUpModal');
+    if (!modalEl) return;
+
+    var titleEl = document.getElementById('ttv2FollowUpModalTitle');
+    var smInp = document.getElementById('ttv2FollowUpSmId');
+    var modeEl = document.getElementById('ttv2FollowUpMode');
+    var statusEl = document.getElementById('ttv2FollowUpStatus');
+    var lastEl = document.getElementById('ttv2FollowUpLastDate');
+    var nextEl = document.getElementById('ttv2FollowUpNextDate');
+    var msgEl = document.getElementById('ttv2FollowUpMessage');
+    var chkEl = document.getElementById('ttv2FollowUpIsFollowed');
+    var stEl = document.getElementById('ttv2FollowUpFormStatus');
+    var saveBtn = document.getElementById('ttv2FollowUpSaveBtn');
+
+    if (titleEl) titleEl.textContent = 'Create follow up - ' + (studentName || 'Student');
+    if (smInp) smInp.value = String(smId || '');
+    if (modeEl) modeEl.value = '';
+    if (statusEl) statusEl.value = '';
+    if (lastEl) lastEl.value = '';
+    if (nextEl) nextEl.value = '';
+    if (msgEl) msgEl.value = '';
+    if (chkEl) chkEl.checked = false;
+    if (stEl) stEl.textContent = '';
+    if (saveBtn) saveBtn.disabled = false;
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  }
+
+  function reloadRoster() {
+    try {
+      if (typeof loadStudentsTable !== 'function') return;
+      var url = new URL(window.location.href);
+      url.searchParams.set('data_type', 'students');
+      loadStudentsTable(url.toString());
+    } catch (e) {}
+  }
+
+  document.body.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-followup-open]') : null;
+    if (!btn) return;
+    e.preventDefault();
+
+    var smId = (btn.getAttribute('data-sm-id') || '').trim();
+    if (!smId) return;
+    var studentName = (btn.getAttribute('data-student-name') || '').trim();
+    openModal(smId, studentName);
+  }, true);
+
+  document.body.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || form.id !== 'ttv2FollowUpForm') return;
+    e.preventDefault();
+
+    var url = getFollowupUrl();
+    if (!url || url === '#') return;
+
+    var smInp = document.getElementById('ttv2FollowUpSmId');
+    var modeEl = document.getElementById('ttv2FollowUpMode');
+    var statusEl = document.getElementById('ttv2FollowUpStatus');
+    var lastEl = document.getElementById('ttv2FollowUpLastDate');
+    var nextEl = document.getElementById('ttv2FollowUpNextDate');
+    var msgEl = document.getElementById('ttv2FollowUpMessage');
+    var chkEl = document.getElementById('ttv2FollowUpIsFollowed');
+    var stEl = document.getElementById('ttv2FollowUpFormStatus');
+    var saveBtn = document.getElementById('ttv2FollowUpSaveBtn');
+
+    var smId = smInp ? (smInp.value || '').trim() : '';
+    var mode = modeEl ? (modeEl.value || '').trim() : '';
+    var status = statusEl ? (statusEl.value || '').trim() : '';
+    if (!smId || !mode || !status) {
+      if (stEl) stEl.textContent = 'Please select mode and status.';
+      return;
+    }
+    if (stEl) stEl.textContent = 'Saving...';
+    if (saveBtn) saveBtn.disabled = true;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': ttv2GetCookie('csrftoken') || ''
+      },
+      body: JSON.stringify({
+        student_management_id: smId,
+        mode_of_follow_up: mode,
+        follow_up_status: status,
+        last_follow_up_date: lastEl ? (lastEl.value || '') : '',
+        next_follow_up_date: nextEl ? (nextEl.value || '') : '',
+        message: msgEl ? (msgEl.value || '') : '',
+        is_followed_up: chkEl ? !!chkEl.checked : false
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.success) throw new Error((data && data.error) || 'Save failed');
+        if (stEl) stEl.textContent = 'Saved.';
+        try {
+          var modalEl = document.getElementById('ttv2FollowUpModal');
+          if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+          }
+        } catch (e0) {}
+        reloadRoster();
+      })
+      .catch(function () {
+        if (stEl) stEl.textContent = 'Failed to save.';
+      })
+      .finally(function () {
+        if (saveBtn) saveBtn.disabled = false;
+      });
+  }, true);
+}
+
+try {
+  window.ttv2InitCounselorFollowUpControls = ttv2InitCounselorFollowUpControls;
+} catch (e0) {}
 
 /**
  * Update per page records count

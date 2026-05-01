@@ -1,0 +1,263 @@
+{# Shared quick-action modals for v2 Marketing / Institute Group dashboards.
+   - Bulk uploads reuse institute endpoints (requires institute_id).
+   - Add counselor reuses institute endpoint create_counselor/<slug>/ (slug selected from dropdown).
+   - Add institute reuses institute:createinstitute (allowed for marketing + institute-group admins via decorator). #}
+
+{# Add Institute #}
+<div class="modal fade" id="ttv2AddInstituteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-plus me-2'></i> Create Institute</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:createinstitute') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" name="institute_email" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Institute Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="institute_name" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="institute_address" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact No <span class="text-danger">*</span></label>
+              <input type="tel"
+                     class="form-control ttv2-phone10"
+                     name="institute_contact"
+                     inputmode="numeric"
+                     pattern="\\d{10}"
+                     maxlength="10"
+                     autocomplete="tel"
+                     required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Admin Contact <span class="text-danger">*</span></label>
+              <input type="tel"
+                     class="form-control ttv2-phone10"
+                     name="institute_admin"
+                     inputmode="numeric"
+                     pattern="\\d{10}"
+                     maxlength="10"
+                     autocomplete="tel"
+                     required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Institute Group</label>
+              <select class="form-select" name="institute_group">
+                <option value="">Select Group</option>
+                {% set _groups = (institute_groups if institute_groups is defined else (institute_group if institute_group is defined else [])) %}
+                {% for g in _groups %}
+                  <option value="{{ g.id }}">{{ g.group_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Exam Credits <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" name="ins_credits" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Institute Logo <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" name="institute_logo" accept=".jpg,.png" required>
+              <small class="text-muted">Accepted formats: JPG, PNG</small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class='bx bx-save me-2'></i>Create Institute</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Add Counselor (select institute first, then post to create_counselor/<slug>/) #}
+<div class="modal fade" id="ttv2AddCounselorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-user-voice me-2'></i> Create Counselor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST"
+            data-ttv2-counselor-form="1"
+            data-ttv2-counselor-action-tmpl="{{ url('institute:createcounselor', kwargs={'slug': '__ttv2__'}) }}"
+            action="#"
+            enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="counselor_admin" id="ttv2CounselorInstituteId" value="">
+        <div class="modal-body">
+          <div class="alert alert-info py-2" style="font-size:12px">
+            Select an institute first. Counselor will be created under that institute.
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Institute <span class="text-danger">*</span></label>
+            <select class="form-select" id="ttv2CounselorInstituteSelect" required>
+              <option value="">Select institute</option>
+              {% for inst in (ttv2_quicklink_institutes|default([])) %}
+                <option value="{{ inst.id }}" data-slug="{{ inst.slug }}">{{ inst.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Counselor Name <span class="text-danger">*</span></label>
+              <input type="text" name="counselor_name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Counselor Email <span class="text-danger">*</span></label>
+              <input type="email" name="counselor_email" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Counselor Address <span class="text-danger">*</span></label>
+              <input type="text" name="counselor_address" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Counselor Contact Info <span class="text-danger">*</span></label>
+              <input type="tel"
+                     name="counselor_contact_info"
+                     class="form-control ttv2-phone10"
+                     inputmode="numeric"
+                     pattern="\\d{10}"
+                     maxlength="10"
+                     autocomplete="tel"
+                     required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Education <span class="text-danger">*</span></label>
+              <select name="c_education" class="form-select" required>
+                <option value="">Select…</option>
+                <option value="PHD">PHD</option>
+                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                <option value="Master's Degree">Master's Degree</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Gender</label>
+              <select name="counselor_gender" class="form-select">
+                <option value="">Select…</option>
+                <option value="20">Male</option>
+                <option value="30">Female</option>
+                <option value="10">Unknown</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class='bx bx-save me-2'></i>Create Counselor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // v2 quick-action phone inputs: digits only + max 10
+  (function(){
+    if (window.__ttv2Phone10Bound) return;
+    window.__ttv2Phone10Bound = true;
+    function clamp(el){
+      try{
+        if (!el) return;
+        var v = (el.value || '').replace(/\\D+/g, '');
+        if (v.length > 10) v = v.slice(0, 10);
+        if (el.value !== v) el.value = v;
+      } catch(e) {}
+    }
+    document.addEventListener('input', function(e){
+      var el = e && e.target;
+      if (!el || !el.classList || !el.classList.contains('ttv2-phone10')) return;
+      clamp(el);
+    }, true);
+  })();
+</script>
+
+{# Bulk student upload — Matric #}
+<div class="modal fade" id="ttv2MatricCsvUploadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-upload me-2'></i> Matric CSV Upload</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="ttv2MatricCsvUploadForm" method="POST" action="{{ url('institute:institutecsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" id="ttv2MatricInstituteId" value="">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            CSV file must follow this format:
+            <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank" download>Sample CSV</a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Institute <span class="text-danger">*</span></label>
+            <select class="form-select" id="ttv2MatricInstituteSelect" required>
+              <option value="">Select institute</option>
+              {% for inst in (ttv2_quicklink_institutes|default([])) %}
+                <option value="{{ inst.id }}">{{ inst.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Bulk student upload — Post‑Matric #}
+<div class="modal fade" id="ttv2PostMatricCsvUploadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-upload me-2'></i> Post‑Matric CSV Upload</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="ttv2PostMatricCsvUploadForm" method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" id="ttv2PostMatricInstituteId" value="">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class='bx bx-info-circle me-2'></i>
+            CSV file must follow this format:
+            <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank" download>Post Matric Sample CSV</a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Institute <span class="text-danger">*</span></label>
+            <select class="form-select" id="ttv2PostMatricInstituteSelect" required>
+              <option value="">Select institute</option>
+              {% for inst in (ttv2_quicklink_institutes|default([])) %}
+                <option value="{{ inst.id }}">{{ inst.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="stu_file" class="form-control" accept=".csv" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

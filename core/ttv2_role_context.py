@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 from django.urls import NoReverseMatch, reverse
 
@@ -48,6 +49,60 @@ def _resolve_counselor_for_user(user) -> Optional[Counselor]:
         )
     except Exception:
         return None
+
+
+def _nav_href_path(href: str) -> str:
+    """Path portion of a nav href, normalized for comparison (no query/hash, trim slashes)."""
+    if not href or str(href).strip().startswith("#"):
+        return ""
+    try:
+        path = urlparse(str(href).strip()).path or ""
+    except Exception:
+        path = str(href).split("?")[0].split("#")[0]
+    path = path.rstrip("/") or "/"
+    return path
+
+
+def _annotate_nav_active(sections: List[Dict[str, Any]], request_path: str) -> None:
+    """
+    Set item['active'] True for the best-matching link vs request_path (longest prefix wins).
+    Mutates section dicts in place.
+    """
+    cur = (request_path or "").split("?")[0].split("#")[0].rstrip("/") or "/"
+    candidates: List[Tuple[int, str, Dict[str, Any]]] = []
+    for sec in sections:
+        if not isinstance(sec, dict):
+            continue
+        items = sec.get("items")
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            href = str(item.get("href") or "").strip()
+            item["active"] = False
+            if item.get("disabled"):
+                continue
+            hpath = _nav_href_path(href)
+            if hpath:
+                candidates.append((len(hpath), hpath, item))
+
+    best_path: Optional[str] = None
+    for _ln, hpath, _it in sorted(candidates, key=lambda x: -x[0]):
+        if hpath == "/":
+            if cur == "/":
+                best_path = "/"
+                break
+            continue
+        if cur == hpath or cur.startswith(hpath + "/"):
+            best_path = hpath
+            break
+
+    if not best_path:
+        return
+    for _ln, hpath, item in candidates:
+        if hpath == best_path:
+            item["active"] = True
 
 
 def _nav_for_role(
@@ -108,14 +163,6 @@ def _nav_for_role(
                         else "#",
                         "key": "sessions",
                     },
-                    {
-                        "label": "Session plan",
-                        "dot": "#f472b6",
-                        "href": _safe_reverse("counselor:CounselorDashboardSection", args=[coun_id, "session-plan"])
-                        if coun_id
-                        else "#",
-                        "key": "plan",
-                    },
                 ],
             },
             {
@@ -124,7 +171,7 @@ def _nav_for_role(
                     {
                         "label": "My Enrolled Courses",
                         "dot": "#fb923c",
-                        "href": _safe_reverse("counselor:course_learning", args=[coun_id]) if coun_id else "#",
+                        "href": _safe_reverse("counselor:enrolled_courses", args=[coun_id]) if coun_id else "#",
                     }
                 ],
             },
@@ -137,6 +184,18 @@ def _nav_for_role(
                 "items": [
                     {"label": "Dashboard", "dot": "#6c7dff", "href": _safe_reverse("institute:institutegroupdashboard")},
                     {
+                        "label": "Institutes",
+                        "dot": "#3b82f6",
+                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["institutes"]),
+                        "key": "institutes",
+                    },
+                    {
+                        "label": "Counselors",
+                        "dot": "#0ea5e9",
+                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["counselors"]),
+                        "key": "counselors",
+                    },
+                    {
                         "label": "Students",
                         "dot": "#f472b6",
                         "href": _safe_reverse("institute:institutegroupdashboard_page", args=["students"]),
@@ -144,23 +203,19 @@ def _nav_for_role(
                 ],
             },
             {
-                "title": "Analytics",
-                "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:institutegroupheatmap")}],
-            },
-            {
-                "title": "Accounts",
+                "title": "Guidance",
                 "items": [
                     {
-                        "label": "Accounts",
-                        "dot": "#6c7dff",
-                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["accounts"]),
-                    },
-                    {
-                        "label": "Payments",
-                        "dot": "#34d399",
-                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["payments"]),
+                        "label": "Session report",
+                        "dot": "#fb923c",
+                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["session_report"]),
+                        "key": "sessions",
                     },
                 ],
+            },
+            {
+                "title": "Analytics",
+                "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:institutegroupheatmap")}],
             },
         ]
 
@@ -170,6 +225,18 @@ def _nav_for_role(
                 "title": "Reports",
                 "items": [
                     {"label": "Dashboard", "dot": "#6c7dff", "href": _safe_reverse("institute:marketinggroupdashboard")},
+                    {
+                        "label": "Institutes",
+                        "dot": "#3b82f6",
+                        "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["institutes"]),
+                        "key": "institutes",
+                    },
+                    {
+                        "label": "Counselors",
+                        "dot": "#0ea5e9",
+                        "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["counselors"]),
+                        "key": "counselors",
+                    },
                     {
                         "label": "Students",
                         "dot": "#f472b6",
@@ -226,36 +293,33 @@ def _nav_for_role(
             ],
         },
         {
+            "title": "Guidance",
+            "items": [
+                {
+                    "label": "Session report",
+                    "dot": "#fb923c",
+                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "session_report"])
+                    if inst_slug
+                    else "#",
+                    "key": "sessions",
+                },
+            ],
+        },
+        {
             "title": "Analytics",
             "items": [
                 {
                     "label": "Career heatmap",
                     "dot": "#34d399",
-                    "href": _safe_reverse("institute:instituteheatmap", args=[inst_slug]) if inst_slug else "#",
+                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "heatmap"])
+                    if inst_slug
+                    else "#",
+                    "key": "heatmap",
                 },
                 {
                     "label": "Streams & capacity",
                     "dot": "#a78bfa",
                     "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "streams_capacity"])
-                    if inst_slug
-                    else "#",
-                },
-            ],
-        },
-        {
-            "title": "Accounts",
-            "items": [
-                {
-                    "label": "Accounts",
-                    "dot": "#6c7dff",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "accounts"])
-                    if inst_slug
-                    else "#",
-                },
-                {
-                    "label": "Payments",
-                    "dot": "#34d399",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "payments"])
                     if inst_slug
                     else "#",
                 },
@@ -293,6 +357,10 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
 
     display_name = _display_name_for_user(user)
     sections = _nav_for_role(role=role, institute=institute, counselor=counselor)
+    try:
+        _annotate_nav_active(sections, getattr(request, "path", "") or "")
+    except Exception:
+        pass
 
     profile = None
     tagline = "Dashboard v2.0"

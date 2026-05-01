@@ -1,9 +1,9 @@
 {# KPIs + stream donut + class bar chart; data from ?data_type=students_analytics on current dashboard URL #}
 <div class="ttv2-students-insights mb-4" data-ttv2-students-insights="1"{% if section_id %} id="{{ section_id }}"{% endif %}>
-  <div class="ttv2-card mb-3">
+  <!-- <div class="ttv2-card mb-3">
     <div class="card-title">Students</div>
     <div style="font-size:11px;color:var(--c-text3);line-height:1.4;">Enrollment, class and stream breakdown</div>
-  </div>
+  </div> -->
 
   <div class="ttv2-kpi-grid mb-3">
     <div class="ttv2-kpi" style="border-top-color:#f472b6">
@@ -30,17 +30,59 @@
   <div class="row g-3 mb-3">
     <div class="col-12 col-xl-6">
       <div class="ttv2-card ttv2-si-chart-card" data-chart-card="stream">
-        <div class="card-title">Stream distribution</div>
-        <div class="ttv2-si-chart-wrap">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+          <div class="card-title mb-0">Stream distribution</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Stream distribution view">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-si-view="chart" data-ttv2-si-target="stream">
+              <i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-si-view="table" data-ttv2-si-target="stream">
+              <i class="bx bx-table" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div class="ttv2-si-chart-wrap" data-ttv2-si-wrap="stream-chart">
           <canvas data-chart="stream" aria-label="Stream distribution chart"></canvas>
+        </div>
+        <div class="table-responsive" data-ttv2-si-wrap="stream-table" style="display:none;max-height:260px;overflow:auto;">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Stream</th>
+                <th class="text-end">Students</th>
+              </tr>
+            </thead>
+            <tbody data-ttv2-si-table="stream"></tbody>
+          </table>
         </div>
       </div>
     </div>
     <div class="col-12 col-xl-6">
       <div class="ttv2-card ttv2-si-chart-card" data-chart-card="class">
-        <div class="card-title">Class enrollment</div>
-        <div class="ttv2-si-chart-wrap">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+          <div class="card-title mb-0">Class enrollment</div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Class enrollment view">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-si-view="chart" data-ttv2-si-target="class">
+              <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary" data-ttv2-si-view="table" data-ttv2-si-target="class">
+              <i class="bx bx-table" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div class="ttv2-si-chart-wrap" data-ttv2-si-wrap="class-chart">
           <canvas data-chart="class" aria-label="Class enrollment chart"></canvas>
+        </div>
+        <div class="table-responsive" data-ttv2-si-wrap="class-table" style="display:none;max-height:260px;overflow:auto;">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th class="text-end">Students</th>
+              </tr>
+            </thead>
+            <tbody data-ttv2-si-table="class"></tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -1,0 +1,222 @@
+{% extends 'template_v2/base_logged_in.html' %}
+
+{% block title_content %}Follow Up History | Top Teen{% endblock %}
+{% block description_content %}Manage student follow-up history and sessions.{% endblock %}
+
+{% block bodyclass %}{{ super() }} counselor-dashboard ttv2-shell{% endblock %}
+
+{# Counselor v2 uses its own topbar; hide the global site header nav #}
+{% block header %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}">
+{% include 'template20/counselor/counselor_dashboard_assets.html' %}
+{% endblock %}
+
+{% block sidebar %}
+<div class="ttv2-counselor-sidebar">
+  <div class="ttv2-counselor-brand">
+    <div class="ttv2-counselor-brand-row">
+      <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+    </div>
+    <div class="tagline">Career Counsellor Dashboard v2.0</div>
+  </div>
+
+  {% if counselor_institute %}
+    {% set _jn = counselor_institute.created.strftime("%b %Y") if counselor_institute.created else '' %}
+    {% set profile_name = counselor_institute.name|default('Institute') %}
+    {% set profile_joined = _jn %}
+    {% set profile_badge = 'Active member' %}
+    {% include "template_v2/includes/sidebar_profile_card.html" %}
+  {% endif %}
+
+  <div class="ttv2-counselor-nav">
+    <div class="ttv2-counselor-nav-title">Report</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'dashboard']) }}"><span class="ttv2-counselor-dot" style="background:#6c7dff"></span>Dashboard</a>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'students']) }}"><span class="ttv2-counselor-dot" style="background:#f472b6"></span>Students</a>
+
+    <div class="ttv2-counselor-nav-title">Analytics</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'career-analytics']) }}"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Career analytics</a>
+
+    <div class="ttv2-counselor-nav-title">Guidance</div>
+    <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'session-report']) }}"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>Session report</a>
+    <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}" class="active"><span class="ttv2-counselor-dot" style="background:#22c55e"></span>Follow-up history</a>
+
+    <div class="ttv2-counselor-nav-title">Courses</div>
+    <a href="{{ url('counselor:enrolled_courses', args=[coun_id]) }}"><span class="ttv2-counselor-dot" style="background:#fb923c"></span>My Enrolled Courses</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ttv2-counselor-shell">
+  <div class="ttv2-counselor-topbar">
+    <div>
+      <div class="title">Follow-up history</div>
+      <div class="sub">Create, review, and update your student follow-ups</div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ url('counselor:CounselorDashboardSection', args=[coun_id, 'students']) }}"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bx bx-arrow-back me-1" aria-hidden="true"></i> Back to students
+      </a>
+      <span class="badge bg-primary">{{ total_is_followed_up_count|default(0) }} Followed</span>
+    </div>
+  </div>
+
+  <div class="ttv2-counselor-content">
+    <div class="ttv2-card">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <div class="card-title mb-0">Search</div>
+          <div style="font-size:11px;color:var(--c-text3);">Filter by class and student name.</div>
+        </div>
+        <form method="get" class="row g-2 align-items-end" style="max-width:720px;">
+          <div class="col-12 col-md-4">
+            <label class="form-label mb-1" style="font-size:11px;color:var(--c-text3);">Class</label>
+            <select name="class_and_section" class="form-select form-select-sm">
+              <option value="">All classes</option>
+              {% for cas in class_and_sections %}
+                <option value="{{ cas.class_and_section }}" {% if request.GET.class_and_section == cas.class_and_section %}selected{% endif %}>
+                  {{ cas.class_and_section }}{% if class_counts %} ({{ class_counts.get(cas.class_and_section, 0) }}){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-5">
+            <label class="form-label mb-1" style="font-size:11px;color:var(--c-text3);">Student name</label>
+            <input type="text"
+                   name="student_name"
+                   class="form-control form-control-sm"
+                   placeholder="Search student"
+                   value="{{ request.GET.student_name|default('') }}">
+          </div>
+          <div class="col-12 col-md-3 d-flex gap-2 justify-content-md-end">
+            <button type="submit" class="btn btn-sm btn-primary flex-grow-1 flex-md-grow-0">Search</button>
+            <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}"
+               class="btn btn-sm btn-outline-secondary flex-grow-1 flex-md-grow-0">
+              Reset
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="ttv2-card mt-3 p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th style="min-width:220px;">Student</th>
+              <th>Class</th>
+              <th>Last</th>
+              <th>Next</th>
+              <th style="min-width:280px;">Remarks</th>
+              <th style="min-width:160px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if students %}
+              {% for stu_info in students %}
+                {% set st = stu_info.student %}
+                {% set fu = (stu_info.follow_ups[0] if (stu_info.follow_ups and (stu_info.follow_ups|length) > 0) else None) %}
+                <tr>
+                  <td class="text-truncate" style="max-width:260px;">
+                    {{ st.student.name if (st and st.student and st.student.name) else '-' }}
+                    <div style="font-size:11px;color:var(--c-text3);">
+                      {{ st.student.email if (st and st.student and st.student.email) else '' }}
+                    </div>
+                  </td>
+                  <td>{{ st.class_and_section.class_and_section if (st and st.class_and_section) else '-' }}</td>
+                  <td>{{ fu.last_follow_up_date|default('-') if fu else '-' }}</td>
+                  <td>{{ fu.next_follow_up_date|default('-') if fu else '-' }}</td>
+                  <td style="white-space:pre-wrap;">{{ fu.message|default('') if fu else '' }}</td>
+                  <td>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#followUpModal{{ st.id }}"
+                            data-student-id="{{ st.id }}"
+                            data-student-name="{{ st.student.name if (st and st.student) else '' }}">
+                      {% if fu %}Update{% else %}Create{% endif %} follow-up
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">No students found.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Follow Up Modal (v2) - reuse legacy POST endpoint but with correct choice values #}
+{% if students %}
+  {% for stu_info in students %}
+    {% set st = stu_info.student %}
+    <div class="modal fade" id="followUpModal{{ st.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Follow up - {{ st.student.name if (st and st.student) else 'Student' }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form method="POST">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input type="hidden" name="student_id" value="{{ st.id }}">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Mode of follow up</label>
+                <select name="mode_of_follow_up" class="form-control custom-input" required>
+                  <option value="">Select mode</option>
+                  <option value="call">Call</option>
+                  <option value="email">Email</option>
+                  <option value="meeting">Meeting</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Follow up status</label>
+                <select name="follow_up_status" class="form-control custom-input" required>
+                  <option value="">Select status</option>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="follow-up">Follow-up</option>
+                </select>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Last follow up date</label>
+                  <input type="date" name="last_follow_up_date" class="form-control custom-input">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Next follow up date</label>
+                  <input type="date" name="next_follow_up_date" class="form-control custom-input">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Message</label>
+                <textarea name="message" class="form-control custom-input" rows="3" placeholder="Enter follow-up remarks"></textarea>
+              </div>
+              <div class="form-check mb-2">
+                <input type="checkbox" name="is_followed_up" class="form-check-input" id="isFollowedUp{{ st.id }}">
+                <label class="form-check-label" for="isFollowedUp{{ st.id }}">Mark as followed up</label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save follow-up</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}
+

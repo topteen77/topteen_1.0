@@ -1,6 +1,15 @@
 <!-- Institutes Table Container (for AJAX loading) -->
 <div id="institutes-table-wrapper">
 <div id="institutes-table-container">
+<div class="px-2 py-2 mb-0 small border rounded-top bg-light text-secondary d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
+  {% if institutes_paginations %}
+    <span><strong class="text-dark">{{ institutes_paginations.paginator.count }}</strong> matching</span>
+    <span class="text-muted">·</span>
+    <span>Showing rows <strong class="text-dark">{{ institutes_paginations.start_index() }}–{{ institutes_paginations.end_index() }}</strong> on this page</span>
+  {% else %}
+    <span><strong class="text-dark">0</strong> matching</span>
+  {% endif %}
+</div>
 <div class="table-responsive">
   <table class="table table-hover">
     <thead>
@@ -16,7 +25,11 @@
     <tbody>
       {% if institutes_paginations %}
         {% for ins in institutes_paginations %}
-        <tr>
+        {% set _ig_stu_href = url('institute:institutegroupdashboard_page', args=['students']) ~ '?institute_slug=' ~ (ins.slug|urlencode) %}
+        <tr class="institute-row"
+            data-institute-slug="{{ ins.slug }}"
+            data-institute-name="{{ ins.name }}"
+            data-institute-students="{{ ins.student_count if ins.student_count else 0 }}">
           <td>{{ (institutes_paginations.number - 1) * institutes_paginations.paginator.per_page + loop.index }}</td>
           <td>
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
@@ -25,7 +38,9 @@
           </td>
           <td>{{ ins.created_by.email if ins.created_by else '-' }}</td>
           <td>{{ ins.address if ins.address else '-' }}</td>
-          <td>{{ ins.student_count if ins.student_count else 0 }}</td>
+          <td>
+            <a href="{{ _ig_stu_href }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ ins.student_count if ins.student_count else 0 }}</a>
+          </td>
           <td>{{ ins.created_at.strftime('%Y-%m-%d') if ins.created_at else '-' }}</td>
         </tr>
         {% endfor %}
@@ -42,6 +57,11 @@
 </div>
 
 <!-- Pagination -->
+{% if institutes_paginations %}
+<div class="small text-secondary mt-2 mb-1 text-center">
+  Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
+</div>
+{% endif %}
 {% if institutes_paginations and institutes_paginations.has_other_pages %}
 <nav aria-label="Institutes pagination">
   <ul class="pagination justify-content-center">

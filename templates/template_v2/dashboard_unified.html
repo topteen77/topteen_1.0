@@ -66,9 +66,11 @@
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   {% include 'template20/institute/marketing_group_dashboard_additionaljs_rest.html' %}
+  {% include "template_v2/includes/ttv2_quick_action_modals_group_mktg.html" %}
   {% include "template_v2/includes/role_boot/marketing_group.html" %}
 {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
   <script src="{{ staticv('js_new/institute_group_dashboard_boot.js') }}"></script>
+  {% include "template_v2/includes/ttv2_quick_action_modals_group_mktg.html" %}
   {% include "template_v2/includes/role_boot/institute_group.html" %}
 {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}
   {% include "template_v2/includes/role_boot/counselor.html" %}

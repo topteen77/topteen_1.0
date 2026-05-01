@@ -132,6 +132,114 @@
   {% endif %}
 </div>
 
+{# Dummy counseling/session data for demo counselor #}
+<div class="module" style="margin-bottom: 1.5em;">
+  <h2 style="margin-top: 0;">Dummy counselling data (for testing counselor UI)</h2>
+  <p style="color:#555; font-size:13px; max-width: 720px;">
+    Generates <code>FollowUpStatus</code> rows for the demo counselor against selected demo students.
+    Use this to test: counselor dashboard, session report, student follow-up history.
+  </p>
+  <form method="post" action="{% url 'admin:demo_data_generate_counseling' %}" style="max-width: 720px; padding: 1em; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+    {% csrf_token %}
+    <div style="display:flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+      <div style="flex: 1 1 280px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Demo students</label>
+        <select name="demo_student_ids" multiple size="6" style="width:100%; min-width: 280px;">
+          {% for s in demo_students %}
+            <option value="{{ s.id }}">{{ s.name }}{% if s.class %} — {{ s.class }}{% endif %} (SM#{{ s.id }})</option>
+          {% endfor %}
+        </select>
+        <div style="color:#666; font-size:12px; margin-top:0.35em;">Hold Ctrl/Cmd to select multiple.</div>
+      </div>
+      <div style="flex: 0 0 220px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Data level</label>
+        <select name="counseling_level" style="min-width: 200px;">
+          <option value="light">Light (few entries)</option>
+          <option value="medium" selected>Medium (month span)</option>
+          <option value="heavy">Heavy (multi-week / dense)</option>
+        </select>
+        <div style="margin-top: 12px;">
+          <input type="submit" value="Generate dummy counselling data" class="default" onclick="return confirm('Create dummy follow-up entries?');">
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <form method="post" action="{% url 'admin:demo_data_reset_counseling' %}" style="max-width: 720px; padding: 1em; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;">
+    {% csrf_token %}
+    <div style="display:flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+      <div style="flex: 1 1 280px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Reset for demo students (optional)</label>
+        <select name="demo_student_ids_reset" multiple size="6" style="width:100%; min-width: 280px;">
+          {% for s in demo_students %}
+            <option value="{{ s.id }}">{{ s.name }}{% if s.class %} — {{ s.class }}{% endif %} (SM#{{ s.id }})</option>
+          {% endfor %}
+        </select>
+        <div style="color:#666; font-size:12px; margin-top:0.35em;">If none selected, it resets for <strong>all</strong> demo students.</div>
+      </div>
+      <div style="flex: 0 0 220px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Action</label>
+        <div style="margin-top: 12px;">
+          <input type="submit" value="Reset dummy counselling data" class="button deletelink"
+                 onclick="return confirm('Delete FollowUpStatus rows for demo counselor + selected demo students?');">
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+{# Dummy heatmap data for demo institute #}
+<div class="module" style="margin-bottom: 1.5em;">
+  <h2 style="margin-top: 0;">Dummy heatmap data (for testing institute heatmap)</h2>
+  <p style="color:#555; font-size:13px; max-width: 720px;">
+    Generates <code>Results</code> rows for <code>test1</code>, <code>test2</code>, <code>test3</code> for selected demo students.
+    Heatmap uses these to compute interest/knowledge/alignment tiles.
+  </p>
+
+  <form method="post" action="{% url 'admin:demo_data_generate_heatmap' %}" style="max-width: 720px; padding: 1em; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+    {% csrf_token %}
+    <div style="display:flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+      <div style="flex: 1 1 280px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Demo students</label>
+        <select name="demo_student_ids_heatmap" multiple size="6" style="width:100%; min-width: 280px;">
+          {% for s in demo_students %}
+            <option value="{{ s.id }}">{{ s.name }}{% if s.class %} — {{ s.class }}{% endif %} (SM#{{ s.id }})</option>
+          {% endfor %}
+        </select>
+        <div style="color:#666; font-size:12px; margin-top:0.35em;">If none selected, it generates for <strong>all</strong> demo students.</div>
+      </div>
+      <div style="flex: 0 0 220px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Action</label>
+        <div style="margin-top: 12px;">
+          <input type="submit" value="Generate dummy heatmap data" class="default" onclick="return confirm('Create/replace Results rows for test1/test2/test3?');">
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <form method="post" action="{% url 'admin:demo_data_reset_heatmap' %}" style="max-width: 720px; padding: 1em; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;">
+    {% csrf_token %}
+    <div style="display:flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+      <div style="flex: 1 1 280px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Reset for demo students (optional)</label>
+        <select name="demo_student_ids_heatmap_reset" multiple size="6" style="width:100%; min-width: 280px;">
+          {% for s in demo_students %}
+            <option value="{{ s.id }}">{{ s.name }}{% if s.class %} — {{ s.class }}{% endif %} (SM#{{ s.id }})</option>
+          {% endfor %}
+        </select>
+        <div style="color:#666; font-size:12px; margin-top:0.35em;">If none selected, it resets for <strong>all</strong> demo students.</div>
+      </div>
+      <div style="flex: 0 0 220px;">
+        <label style="display:block; font-weight:600; margin-bottom:0.35em;">Action</label>
+        <div style="margin-top: 12px;">
+          <input type="submit" value="Reset dummy heatmap data" class="button deletelink"
+                 onclick="return confirm('Delete Results rows (test1/test2/test3) for selected demo students?');">
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
 {# Demo users list (student demo only) #}
 <div class="module">
   <h2 style="margin-top: 0;">Demo users (student / institute)</h2>

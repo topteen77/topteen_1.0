@@ -38,11 +38,11 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="fs-12 text-gray">Students:</span>
-                  <span class="fs-14 fw-semibold text-primary">{{ total_stu_count }}</span>
+                  <a href="{{ url('institute:institutegroupdashboard_page', args=['students']) }}" class="fs-14 fw-semibold text-primary text-decoration-none">{{ total_stu_count }}</a>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="fs-12 text-gray">Counselors:</span>
-                  <span class="fs-14 fw-semibold text-info">{{ counselors_count }}</span>
+                  <a href="{{ url('institute:institutegroupdashboard_page', args=['counselors']) }}" class="fs-14 fw-semibold text-info text-decoration-none">{{ counselors_count }}</a>
                 </div>
                 <div class="d-flex justify-content-between align-items-center border-top pt-2">
                   <span class="fs-12 text-gray">Tests Completed:</span>
@@ -78,37 +78,36 @@
           {% endif %}
         </div>
 
-        {% with section_id = "sec-group-students" %}
-        {% include "template_v2/includes/ttv2_students_insights_block.html" %}
-        {% endwith %}
-
         <!-- Statistics Cards -->
         <div class="row g-3 mb-4">
-          <div class="col-12 col-md-4 col-lg-2-4">
+          <div class="col-12 col-md-4 col-lg-2-4 position-relative">
             <div class="stat-card">
+              <a href="{{ url('institute:institutegroupdashboard_page', args=['institutes']) }}" class="stretched-link" aria-label="Open institutes"></a>
               <i class='bx bx-building fs-32 text-primary'></i>
               <div>
-                <p class="stat-value" id="institutes-count">{{ total_institute_count }}</p>
+                <p class="stat-value" id="institutes-count" style="position: relative; z-index: 1;">{{ total_institute_count }}</p>
                 <p class="stat-label">Total Institutes</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-4 col-lg-2-4">
+          <div class="col-12 col-md-4 col-lg-2-4 position-relative">
             <div class="stat-card">
+              <a href="{{ url('institute:institutegroupdashboard_page', args=['students']) }}" class="stretched-link" aria-label="Open students"></a>
               <i class='bx bx-user-check fs-32 text-success'></i>
               <div>
-                <p class="stat-value" id="students-count">
+                <p class="stat-value" id="students-count" style="position: relative; z-index: 1;">
                   <span class="spinner-border spinner-border-sm" role="status"></span>
                 </p>
                 <p class="stat-label">Total Students</p>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-4 col-lg-2-4">
+          <div class="col-12 col-md-4 col-lg-2-4 position-relative">
             <div class="stat-card">
+              <a href="{{ url('institute:institutegroupdashboard_page', args=['counselors']) }}" class="stretched-link" aria-label="Open counselors"></a>
               <i class='bx bx-user fs-32 text-info'></i>
               <div>
-                <p class="stat-value" id="counselors-count">
+                <p class="stat-value" id="counselors-count" style="position: relative; z-index: 1;">
                   <span class="spinner-border spinner-border-sm" role="status"></span>
                 </p>
                 <p class="stat-label">Counselors</p>
@@ -139,115 +138,62 @@
           </div>
         </div>
 
-        <!-- Search and Filter -->
-        <div class="table-card mb-4">
-          <form method="get" action="{{ url('institute:institutegroupdashboard') }}" id="institute-filter-form" class="row g-3">
-            <div class="col-md-4">
-              <label for="institute" class="form-label">Institute Name</label>
-              <input type="text" 
-                     name="institute" 
-                     id="institute"
-                     class="form-control" 
-                     placeholder="Search institute..."
-                     value="{% if search_params and search_params.institute %}{{ search_params.institute }}{% endif %}">
-            </div>
-            <div class="col-md-4">
-              <label for="location" class="form-label">Location</label>
-              <select name="location" id="location" class="form-select">
-                <option value="">All Locations</option>
-                {% if locations %}
-                {% for location in locations %}
-                <option value="{{ location }}" {% if search_params and search_params.location == location %}selected{% endif %}>
-                  {{ location }}
-                </option>
-                {% endfor %}
-                {% endif %}
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label for="location_search" class="form-label">Search Location</label>
-              <input type="text" 
-                     name="location_search" 
-                     id="location_search"
-                     class="form-control" 
-                     placeholder="Search by location"
-                     value="{% if search_params and search_params.location_search %}{{ search_params.location_search }}{% endif %}">
-            </div>
-            <div class="col-md-12 d-flex align-items-end gap-2">
-              <button type="submit" class="btn btn-primary">
-                <i class='bx bx-search me-2'></i> Search
-              </button>
-              <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-secondary">
-                <i class='bx bx-refresh'></i> Reset
-              </a>
-            </div>
-          </form>
-        </div>
+        {% if not (ttv2_page is defined and ttv2_page == 'dashboard') %}
+          {% include "template_v2/institute/fragments/ig_institutes_filters_table.html" %}
+          {% include "template_v2/institute/fragments/ig_counselors_block.html" %}
 
-        <!-- Institutes Table (Loaded via AJAX) -->
-        <div class="table-card mb-4">
-          <h5 class="mb-3">Institute Management</h5>
-          <div id="institutes-table-loader" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-          <div id="institutes-table-container" style="display: none;">
-            <!-- Table will be loaded here via AJAX -->
-          </div>
-        </div>
-
-        {% set counselor_component_wrap = 'card' %}
-        {% set counselor_component_allow_add = false %}
-        {% set counselor_component_show_manage_actions = false %}
-        {% set counselor_component_show_institute_column = true %}
-        {% set counselor_component_section_id = 'sec-group-counselors' %}
-        {% set counselor_component_title = 'Counselors (institute group)' %}
-        {% include 'template20/shared/counselors_details_component.html' %}
+          {% with section_id = "sec-group-students" %}
+          {% include "template_v2/includes/ttv2_students_insights_block.html" %}
+          {% endwith %}
+        {% endif %}
 
         <!-- Charts Section (Loaded via AJAX) -->
         <div id="charts-section" style="display: block;">
           <!-- Total No. of Students in each institute -->
           <div class="card mb-4">
             <div class="card-body">
-              <h5 class="card-title mb-3">Total No. of Students in each institute</h5>
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <h5 class="card-title mb-0">Total No. of Students in each institute</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="students" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="students" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                </div>
+              </div>
               <div id="students-chart-loader" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
-              <div style="height: 300px; position: relative;">
+              <div data-ig-chart-wrap="students" style="height: 300px; position: relative;">
                 <canvas id="studentsChart" style="display: none;"></canvas>
+              </div>
+              <div data-ig-table-wrap="students" class="table-responsive" style="display:none;max-height:300px;overflow:auto;">
+                <table class="table table-sm mb-0"><thead><tr><th>Institute</th><th class="text-end">Students</th></tr></thead><tbody id="igStudentsTableBody"></tbody></table>
               </div>
             </div>
           </div>
           
-          <!-- Seat Capacity by Stream Table -->
+          <!-- Seat Capacity chart -->
           <div class="card mb-4" id="seat-capacity-section" style="display: none;">
             <div class="card-body">
-              <h5 class="card-title mb-3">Seat Capacity by Stream in School</h5>
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <h5 class="card-title mb-0">Seat Capacity by School</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="seat" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                  <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="seat" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                </div>
+              </div>
               <div id="seat-capacity-loader" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
               <div id="seat-capacity-table-wrapper" style="display: none;">
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Sr. No.</th>
-                        <th>Name</th>
-                        <th>PCM</th>
-                        <th>CBM</th>
-                        <th>COMM</th>
-                        <th>HME</th>
-                        <th>HMB</th>
-                      </tr>
-                    </thead>
-                    <tbody id="seat-capacity-tbody">
-                    </tbody>
-                  </table>
+                <div data-ig-chart-wrap="seat" style="height: 320px; position: relative; overflow: hidden;">
+                  <canvas id="igSeatCapacityDashboardChart" style="display: none; max-height: 320px; max-width: 100%;"></canvas>
+                </div>
+                <div data-ig-table-wrap="seat" class="table-responsive" style="display:none;max-height:320px;overflow:auto;">
+                  <table class="table table-sm mb-0"><thead><tr><th>School</th><th class="text-end">Total seats</th></tr></thead><tbody id="igSeatTableBody"></tbody></table>
                 </div>
               </div>
             </div>
@@ -258,14 +204,23 @@
             <div class="col-12 col-lg-6">
               <div class="card">
                 <div class="card-body">
-                  <h5 class="card-title mb-3">Total No of students have attempts psychometric test</h5>
+                  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                    <h5 class="card-title mb-0">Total No of students have attempts psychometric test</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="psych" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
+                      <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                    </div>
+                  </div>
                   <div id="personality-chart-loader" class="text-center py-5" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
                     <div class="spinner-border text-primary" role="status">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </div>
-                  <div style="min-height: 300px; height: 300px; position: relative;">
+                  <div data-ig-chart-wrap="psych" style="min-height: 300px; height: 300px; position: relative;">
                     <canvas id="personalityChart" style="display: none;"></canvas>
+                  </div>
+                  <div data-ig-table-wrap="psych" class="table-responsive" style="display:none;max-height:300px;overflow:auto;">
+                    <table class="table table-sm mb-0"><thead><tr><th>Status</th><th class="text-end">Students</th></tr></thead><tbody id="igPsychTableBody"></tbody></table>
                   </div>
                 </div>
               </div>
@@ -273,14 +228,23 @@
             <div class="col-12 col-lg-6">
               <div class="card">
                 <div class="card-body">
-                  <h5 class="card-title mb-3">Stream-based graph of all Institutes</h5>
+                  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                    <h5 class="card-title mb-0">Stream-based graph of all Institutes</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="streams" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                      <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="streams" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                    </div>
+                  </div>
                   <div id="streams-chart-loader" class="text-center py-5" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
                     <div class="spinner-border text-primary" role="status">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </div>
-                  <div style="min-height: 300px; height: 300px; position: relative; overflow: hidden;">
+                  <div data-ig-chart-wrap="streams" style="min-height: 300px; height: 300px; position: relative; overflow: hidden;">
                     <canvas id="streamsChart" style="display: none; max-height: 300px; max-width: 100%;"></canvas>
+                  </div>
+                  <div data-ig-table-wrap="streams" class="table-responsive" style="display:none;max-height:300px;overflow:auto;">
+                    <table class="table table-sm mb-0"><thead><tr><th>Stream</th><th class="text-end">Students</th></tr></thead><tbody id="igStreamsTableBody"></tbody></table>
                   </div>
                 </div>
               </div>

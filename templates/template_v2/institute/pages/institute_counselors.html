@@ -1,152 +1,540 @@
 {# Institute v2 Counselors page (partial, injected via ?ttv2_partial=1) #}
 <div id="sec-institute-counselors" class="ttv2-counselors-page">
+  <style>
+    /* Scoped polish: institute counselors page only */
+    #sec-institute-counselors .ttv2-section-sub {
+      font-size: 12px;
+      color: var(--c-text3);
+      line-height: 1.35;
+    }
+    #sec-institute-counselors .ttv2-card-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #sec-institute-counselors .ttv2-muted {
+      font-size: 11px;
+      color: var(--c-text3);
+    }
+    #sec-institute-counselors .ttv2-activity-strip {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    #sec-institute-counselors .ttv2-activity-pill {
+      width: 10px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.18);
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, .10) inset;
+      transition: transform .12s ease, background-color .12s ease;
+    }
+    #sec-institute-counselors .ttv2-activity-pill:hover {
+      transform: translateY(-1px);
+      background: rgba(99, 102, 241, 0.55);
+    }
+    #sec-institute-counselors .ttv2-lb-wrap {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, .25);
+    }
+    #sec-institute-counselors .ttv2-lb-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--c-bg2);
+      border-bottom: 1px solid rgba(148, 163, 184, .25);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+      color: var(--c-text3);
+      white-space: nowrap;
+    }
+    #sec-institute-counselors .ttv2-lb-table tbody td {
+      vertical-align: middle;
+    }
+    #sec-institute-counselors .ttv2-lb-table tbody tr:hover {
+      background: rgba(99, 102, 241, .06);
+    }
+    #sec-institute-counselors .ttv2-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      background: rgba(99, 102, 241, .10);
+      color: var(--c-text1);
+      border: 1px solid rgba(99, 102, 241, .18);
+    }
+    #sec-institute-counselors .ttv2-num {
+      font-variant-numeric: tabular-nums;
+    }
+    #sec-institute-counselors .ttv2-load {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #sec-institute-counselors .ttv2-load-bar {
+      position: relative;
+      flex: 1;
+      min-width: 110px;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(99, 102, 241, .14);
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, .10) inset;
+    }
+    #sec-institute-counselors .ttv2-load-bar > span {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6366f1, #60a5fa);
+    }
+    #sec-institute-counselors .ttv2-load-bar > em {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-style: normal;
+      font-size: 11px;
+      line-height: 1;
+      color: rgba(15, 23, 42, .85);
+      mix-blend-mode: multiply;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+      text-shadow: 0 1px 0 rgba(255,255,255,.65);
+    }
+    #sec-institute-counselors .ttv2-load-val {
+      min-width: 44px;
+      text-align: right;
+      font-size: 12px;
+      color: var(--c-text2);
+      font-variant-numeric: tabular-nums;
+    }
+    #sec-institute-counselors .ttv2-disabled-block {
+      opacity: .55;
+      pointer-events: none;
+      filter: grayscale(.1);
+    }
+    #sec-institute-counselors .ttv2-disabled-block .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #sec-institute-counselors .ttv2-disabled-block .card-title:after {
+      content: "Coming soon";
+      font-size: 11px;
+      color: var(--c-text3);
+      border: 1px solid rgba(148, 163, 184, .35);
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, .08);
+    }
+
+    /* Counselors KPI grid: 5 tiles (wrap cleanly) */
+    #sec-institute-counselors .ttv2-counselor-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (min-width: 1200px) {
+      #sec-institute-counselors .ttv2-counselor-kpis {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 992px) {
+      #sec-institute-counselors .ttv2-counselor-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 520px) {
+      #sec-institute-counselors .ttv2-counselor-kpis {
+        grid-template-columns: 1fr;
+      }
+    }
+    #sec-institute-counselors .ttv2-kpi-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(251, 146, 60, .35);
+      background: rgba(251, 146, 60, .12);
+      color: #fb923c;
+    }
+    #sec-institute-counselors .ttv2-kpi-coverage {
+      font-size: 11px;
+      font-weight: 700;
+      color: #34d399;
+    }
+    #sec-institute-counselors .ttv2-canvas-box {
+      position: relative;
+      height: 240px;
+    }
+    #sec-institute-counselors .ttv2-sc-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+    #sec-institute-counselors .ttv2-sc-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--c-text3);
+      border-bottom: 1px solid rgba(148, 163, 184, .22);
+    }
+    #sec-institute-counselors .ttv2-sc-table td {
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    #sec-institute-counselors .ttv2-sc-ok {
+      color: #34d399;
+      font-weight: 600;
+    }
+    #sec-institute-counselors .ttv2-sc-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(52, 211, 153, 0.18);
+      color: #6ee7b7;
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+    #sec-institute-counselors .ttv2-sc-pill-muted {
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--c-text2);
+      border-color: rgba(148, 163, 184, 0.28);
+    }
+    #sec-institute-counselors .ttv2-sc-stars {
+      display: flex;
+      gap: 4px;
+    }
+    #sec-institute-counselors .ttv2-sc-star {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: rgba(251, 191, 36, 0.9);
+    }
+    #sec-institute-counselors .ttv2-sc-star.off {
+      background: rgba(51, 65, 85, 0.55);
+    }
+  </style>
+
   {# Header #}
   <div class="ttv2-counselors-head">
     <div>
       <div class="ttv2-sp-title">Counselor performance</div>
       <div class="ttv2-sp-sub">
-        Metrics below are a snapshot; you can add follow-ups, track sessions, and review weekly trends.
+        A snapshot of weekly activity and counselor engagement for this institute.
       </div>
     </div>
   </div>
 
-  {# KPI strip (dummy for now) #}
-  {% set kpis = [
-    ('Session score', '4.46', 'Avg daily follow-up sessions (90 days)'),
-    ('Session coverage', '117', 'Sessions logged (90 days)'),
-    ('Opt-in rate', '88%', 'Students opted-in for counselor slots'),
-    ('Follow-up rate', '80%', 'Students with 1+ follow-up logged'),
-    ('Assigned seats', '99', 'Capacity in active slots (quarterly)')
-  ] %}
+  {# KPI strip (DB-accurate) #}
+  {% set _k = (ttv2_counselors_kpis if ttv2_counselors_kpis is defined else {}) %}
   <div class="ttv2-counselor-kpis">
-    {% for title, val, sub in kpis %}
-      <div class="ttv2-counselor-kpi">
-        <div class="ttv2-counselor-kpi-top">
-          <div class="ttv2-counselor-kpi-title">{{ title }}</div>
-          <div class="ttv2-counselor-kpi-ico"><i class="bx bx-info-circle" aria-hidden="true"></i></div>
-        </div>
-        <div class="ttv2-counselor-kpi-val">{{ val }}</div>
-        <div class="ttv2-counselor-kpi-sub">{{ sub }}</div>
+    <div class="ttv2-counselor-kpi">
+      <div class="ttv2-counselor-kpi-top">
+        <div class="ttv2-counselor-kpi-title">Counselors</div>
+        <div class="ttv2-counselor-kpi-ico"><i class="bx bx-group" aria-hidden="true"></i></div>
       </div>
-    {% endfor %}
-  </div>
-
-  {# Session plan (dummy) #}
-  <div class="ttv2-card">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <div class="card-title mb-0">Session plan (next week)</div>
-      <div class="ttv2-pill-select">
-        <span>Campus</span>
-        <span class="ttv2-pill-select-val">Demo Institute</span>
-        <i class="bx bx-chevron-down" aria-hidden="true"></i>
+      <div class="ttv2-counselor-kpi-val">{{ _k.get('counselors', 0) }}</div>
+      <div class="ttv2-counselor-kpi-sub">Active counselors in this institute</div>
+    </div>
+    <div class="ttv2-counselor-kpi">
+      <div class="ttv2-counselor-kpi-top">
+        <div class="ttv2-counselor-kpi-title">Sessions logged</div>
+        <div class="ttv2-counselor-kpi-ico"><i class="bx bx-line-chart" aria-hidden="true"></i></div>
+      </div>
+      <div class="ttv2-counselor-kpi-val">{{ _k.get('sessions_logged', 0) }}</div>
+      <div class="ttv2-counselor-kpi-sub">Total follow-up sessions recorded</div>
+    </div>
+    <div class="ttv2-counselor-kpi" style="border-top-color:#fbbf24">
+      <div class="ttv2-counselor-kpi-top">
+        <div class="ttv2-counselor-kpi-title">Students counselled</div>
+        <div class="ttv2-counselor-kpi-ico"><i class="bx bx-user-check" aria-hidden="true"></i></div>
+      </div>
+      <div class="ttv2-counselor-kpi-val">
+        {{ _k.get('students_counseled', 0) }} / {{ _k.get('students_counselled_total', 0) }}
+      </div>
+      <div class="ttv2-counselor-kpi-sub">Distinct students counselled / total institute students</div>
+      <div class="ttv2-kpi-coverage" style="margin-top:6px;">{{ _k.get('students_counselled_pct', 0) }}% coverage</div>
+    </div>
+    <div class="ttv2-counselor-kpi" style="border-top-color:#fb923c">
+      <div class="ttv2-counselor-kpi-top">
+        <div class="ttv2-counselor-kpi-title">Follow-ups sent</div>
+        <div class="ttv2-counselor-kpi-ico"><i class="bx bx-send" aria-hidden="true"></i></div>
+      </div>
+      <div class="ttv2-counselor-kpi-val">{{ _k.get('followups_sent', 0) }}</div>
+      <div class="ttv2-counselor-kpi-sub">
+        <span class="ttv2-kpi-pill">Follow-ups sent</span>
       </div>
     </div>
-    <div class="ttv2-counselor-table mt-2">
-      <div class="ttv2-counselor-table-row ttv2-counselor-table-head">
-        <div>Day</div><div>Time</div><div>Counselor</div><div>Type</div><div>Batch</div><div>Room</div>
+    <div class="ttv2-counselor-kpi">
+      <div class="ttv2-counselor-kpi-top">
+        <div class="ttv2-counselor-kpi-title">Avg sessions / counselor</div>
+        <div class="ttv2-counselor-kpi-ico"><i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i></div>
       </div>
-      {% set plan = [
-        ('Mon','08:00–10:00','Dr. Priya Sordar','Follow-ups','Batch 9 (all schools)','Counselor hall'),
-        ('Tue','11:00–12:00','Dr. Priya Sordar','Group workshop','Do right skills (goal setting)','Seminar hall'),
-        ('Wed','10:00–12:00','Dr. Priya Sordar','Career talk','Stream exploration (9–10)','Hall A'),
-        ('Thu','11:00–13:00','Dr. Priya Sordar','1:1 slots','Open slots (pre-counsel)','Counselor room'),
-        ('Fri','09:00–11:00','Dr. Priya Sordar','Parent session','Quarterly progress (invite)','Meeting room B'),
-      ] %}
-      {% for d,t,c,ty,b,r in plan %}
-        <div class="ttv2-counselor-table-row">
-          <div>{{ d }}</div><div>{{ t }}</div><div class="min-w-0">{{ c }}</div>
-          <div><span class="badge bg-light text-dark">{{ ty }}</span></div>
-          <div class="min-w-0">{{ b }}</div><div>{{ r }}</div>
-        </div>
-      {% endfor %}
+      <div class="ttv2-counselor-kpi-val">{{ _k.get('avg_sessions', 0) }}</div>
+      <div class="ttv2-counselor-kpi-sub">Based on sessions logged above</div>
     </div>
   </div>
 
-  {# Counselor cards (real data when available; else dummy) #}
-  {% set cards = [] %}
-  {% if counselor_data_list is defined and counselor_data_list %}
-    {% set cards = counselor_data_list %}
+  {# Screen 1: Counselor roster + session activity + coverage (DB) #}
+  {% set roster = (ttv2_counselors_roster if ttv2_counselors_roster is defined else []) %}
+  {% set _charts = (ttv2_counselors_charts if ttv2_counselors_charts is defined else {}) %}
+  {% set _sc = (ttv2_counselors_scorecard if ttv2_counselors_scorecard is defined else None) %}
+  {% set _focus = (ttv2_counselors_focus_id if ttv2_counselors_focus_id is defined else None) %}
+
+  {% if roster and (roster|length) %}
+    <div class="ttv2-card mb-3">
+      <div class="ttv2-card-title-row align-items-center">
+        <div>
+          <div class="card-title mb-0">Counselor roster</div>
+          <div class="ttv2-section-sub">Email, session counts, student coverage, and follow-up rows for this institute.</div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <label class="ttv2-muted mb-0" for="ttv2CounselorFocusSelect">Charts &amp; scorecard</label>
+          <select id="ttv2CounselorFocusSelect" class="form-select form-select-sm" style="min-width:200px;max-width:280px">
+            {% for r in roster %}
+              <option value="{{ r.id }}" {% if _focus and r.id == _focus %}selected{% endif %}>{{ r.email }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive ttv2-lb-wrap mt-2">
+        <table class="table table-sm mb-0 ttv2-lb-table">
+          <thead>
+            <tr>
+              <th class="text-nowrap">#</th>
+              <th>Email</th>
+              <th class="text-nowrap">Joined</th>
+              <th class="text-end text-nowrap">Sessions total</th>
+              <th class="text-end text-nowrap">Students covered</th>
+              <th class="text-end text-nowrap">Students counselled</th>
+              <th class="text-end text-nowrap">Follow-ups</th>
+              <th class="text-end text-nowrap">Avg session</th>
+              <th class="text-nowrap">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in roster %}
+              <tr>
+                <td class="ttv2-num text-nowrap">{{ r.row_num|default(loop.index) }}</td>
+                <td class="min-w-0">{{ r.email }}</td>
+                <td class="text-nowrap">{{ r.joined }}</td>
+                <td class="text-end ttv2-num">{{ r.sessions_total }}</td>
+                <td class="text-end ttv2-num">{{ r.students_covered_num }} / {{ r.students_covered_den }}</td>
+                <td class="text-end ttv2-num">{{ r.students_counselled }}</td>
+                <td class="text-end ttv2-num">{{ r.followups }}</td>
+                <td class="text-end text-nowrap">{{ r.avg_session_label }}</td>
+                <td><span class="ttv2-sc-badge">{{ r.status }}</span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-xl-7">
+        <div class="ttv2-card h-100">
+          <div class="card-title mb-1">{{ (_charts.get('line') or {}).get('title', 'Session activity') }}</div>
+          <div class="ttv2-section-sub">Follow-up rows by session day (this calendar month) · {{ (_charts.get('focus_name') or '') }}</div>
+          <div class="ttv2-canvas-box mt-2">
+            <canvas id="ttv2CounselorsLine" aria-label="Session activity chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-5">
+        <div class="ttv2-card h-100">
+          <div class="card-title mb-1">Student coverage</div>
+          <div class="ttv2-section-sub">Distinct students with completed follow-ups vs assigned roster (selected counselor).</div>
+          <div class="ttv2-canvas-box mt-2">
+            <canvas id="ttv2CounselorsDonut" aria-label="Student coverage chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="application/json" id="ttv2-counselors-charts-payload">{{ (_charts or {})|tojson }}</script>
+
+    {% if _sc and _sc.rows %}
+      <div class="ttv2-card mb-3">
+        <div class="ttv2-card-title-row align-items-start">
+          <div>
+            <div class="card-title mb-1">
+              Performance scorecard — {{ _sc.email or 'Counselor' }} · Week of {{ _sc.week_label }}
+            </div>
+            <div class="ttv2-section-sub">Targets are institute defaults; metrics are computed from follow-ups, tests, and career shortlists.</div>
+          </div>
+          {% if _sc.all_targets_met %}
+            <span class="ttv2-sc-badge">All targets met</span>
+          {% endif %}
+        </div>
+        <div class="table-responsive mt-2">
+          <table class="table table-sm mb-0 ttv2-sc-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Target</th>
+                <th class="text-end">Achieved</th>
+                <th class="text-end">Score</th>
+                <th class="text-end">Vs prev week</th>
+                <th class="text-end">Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in _sc.rows %}
+                <tr>
+                  <td>{{ row.metric }}</td>
+                  <td>{{ row.target }}</td>
+                  <td class="text-end {% if row.ok and not (row.na|default(false)) %}ttv2-sc-ok{% endif %}">{{ row.achieved }}</td>
+                  <td class="text-end">
+                    {% if row.score and row.score != '—' %}
+                      <span class="ttv2-sc-pill">{{ row.score }}</span>
+                    {% else %}
+                      <span class="ttv2-sc-pill ttv2-sc-pill-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end {% if row.vs_prev and row.vs_prev != '—' %}ttv2-sc-ok{% endif %}">{{ row.vs_prev }}</td>
+                  <td class="text-end">
+                    {% if row.rating and row.rating > 0 %}
+                      <div class="ttv2-sc-stars justify-content-end">
+                        {% for star in range(5) %}
+                          <span class="ttv2-sc-star{% if star >= row.rating %} off{% endif %}"></span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <span class="ttv2-muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
   {% else %}
-    {% set cards = [
-      {'name':'Dr. Priya Sordar','email':'priya@example.com','sessions':32,'students':48,'opt_in':'88%','followup':'80%','avg_risk':'99'},
-      {'name':'Arvind Srikham','email':'arvind@example.com','sessions':20,'students':36,'opt_in':'81%','followup':'73%','avg_risk':'78'},
-      {'name':'Sneha Mahotra','email':'sneha@example.com','sessions':28,'students':44,'opt_in':'86%','followup':'82%','avg_risk':'65'},
-    ] %}
+    <div class="ttv2-card mb-3">
+      <div class="card-title mb-1">Counselors</div>
+      <div style="font-size:12px;color:var(--c-text3);">No counselors found for this institute.</div>
+    </div>
   {% endif %}
 
-  <div class="ttv2-counselor-cards-grid">
-    {% for c in cards %}
-      {% set nm = c.name|default(c.get('counselor_name') if c is mapping else '')|default('Counselor') %}
-      {% set em = c.email|default(c.get('email') if c is mapping else '')|default('') %}
-      {% set sessions = c.sessions|default(c.get('sessions') if c is mapping else 0)|default(0) %}
-      {% set students = c.students|default(c.get('students') if c is mapping else 0)|default(0) %}
-      {% set opt_in = c.opt_in|default(c.get('opt_in') if c is mapping else '—')|default('—') %}
-      {% set followup = c.followup|default(c.get('followup') if c is mapping else '—')|default('—') %}
-      {% set cid = c.id|default(c.get('id') if c is mapping else None) %}
-      {% set details_href = (url('counselor:CounselorDashboardView', cid) if cid else '#') %}
-      <div class="ttv2-counselor-card">
-        <div class="ttv2-counselor-card-top">
-          <div class="ttv2-counselor-avatar">{{ (nm[0] if nm else 'C')|upper }}</div>
-          <div class="min-w-0">
-            <div class="ttv2-counselor-name" title="{{ nm }}">{{ nm }}</div>
-            <div class="ttv2-counselor-meta">{{ em }}</div>
-          </div>
-          <div class="ttv2-counselor-cta">
-            {% if details_href != '#' %}
-              <a href="{{ details_href }}" class="btn btn-sm btn-outline-secondary">Details</a>
-            {% else %}
-              <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Details</button>
-            {% endif %}
-          </div>
-        </div>
-        <div class="ttv2-counselor-metrics">
-          <div class="m"><div class="k">Sessions</div><div class="v">{{ sessions }}</div></div>
-          <div class="m"><div class="k">Students</div><div class="v">{{ students }}</div></div>
-          <div class="m"><div class="k">Opt-in</div><div class="v">{{ opt_in }}</div></div>
-          <div class="m"><div class="k">Follow-up</div><div class="v">{{ followup }}</div></div>
-        </div>
-        <div class="ttv2-counselor-mini">
-          <div class="lbl">Follow-up coverage</div>
-          <div class="bar"><span style="width:72%"></span></div>
+  {# Weekly activity heatmap (current week): tests + sessions #}
+  {% set wa = (ttv2_counselors_week_activity if ttv2_counselors_week_activity is defined else {}) %}
+  {% set days = (wa.get('days') if wa and wa.get('days') else []) %}
+  <div class="ttv2-card">
+    <div class="ttv2-card-title-row">
+      <div>
+        <div class="card-title mb-0">Weekly activity heatmap</div>
+        <div class="ttv2-section-sub">
+          Current week (tests + sessions){% if wa.get('week_start') and wa.get('week_end') %} · {{ wa.get('week_start') }} → {{ wa.get('week_end') }}{% endif %}
         </div>
       </div>
-    {% endfor %}
-  </div>
+      {% if days and (days|length) %}
+        {% set _sum = 0 %}
+        {% for d in days %}{% set _sum = _sum + (d.total|default(0)) %}{% endfor %}
+        <div class="ttv2-muted">Total activity: <span class="ttv2-num">{{ _sum }}</span></div>
+      {% endif %}
+    </div>
 
-  {# Dummy charts/heatmap/leaderboard sections (placeholders) #}
-  <div class="row g-3">
-    <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="card-title">Volume vs satisfaction index</div>
-        <div class="ttv2-dummy-chart" aria-hidden="true"></div>
+    {% if days and (days|length) %}
+      <div class="ttv2-activity-strip" aria-label="Weekly activity (tests + sessions)">
+        {% for d in days %}
+          {% set inten = (d.intensity|default(0)) %}
+          {% set alpha = (0.18 + (inten * 0.72)) %}
+          <div class="ttv2-activity-pill"
+               role="img"
+               title="{{ d.label }} ({{ d.date }}): sessions {{ d.sessions }}, tests {{ d.tests }}, total {{ d.total }}"
+               style="background:rgba(99,102,241,{{ alpha }});"></div>
+        {% endfor %}
       </div>
-    </div>
-    <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="card-title">Session volume trend</div>
-        <div class="ttv2-dummy-chart ttv2-dummy-chart--line" aria-hidden="true"></div>
-      </div>
-    </div>
+      <div class="ttv2-muted mt-2">Hover a bar for details. Activity = tests + sessions.</div>
+    {% else %}
+      <div class="text-center py-4" style="color:var(--c-text3);font-size:12px;">No activity found for this week.</div>
+    {% endif %}
   </div>
 
   <div class="ttv2-card">
-    <div class="card-title">Weekly activity heatmap</div>
-    <div class="ttv2-dummy-heat" aria-hidden="true"></div>
-  </div>
-
-  <div class="ttv2-card">
-    <div class="card-title">Full leaderboard</div>
-    <div class="ttv2-dummy-table">
-      <div class="ttv2-dummy-table-row ttv2-dummy-table-head">
-        <div>Counselor</div><div>Impact</div><div>Sessions</div><div>Opt-in</div><div>Follow-up</div><div>Avg risk</div>
+    <div class="ttv2-card-title-row">
+      <div>
+        <div class="card-title mb-0">Full leaderboard</div>
+        <div class="ttv2-section-sub">Ranked by impact score (volume + completion + student coverage) for this institute.</div>
       </div>
-      {% for c in cards[:6] %}
-        {% set nm = c.name|default(c.get('counselor_name') if c is mapping else '')|default('Counselor') %}
-        <div class="ttv2-dummy-table-row">
-          <div class="min-w-0">{{ nm }}</div><div>—</div><div>{{ c.sessions|default(0) }}</div><div>{{ c.opt_in|default('—') }}</div><div>{{ c.followup|default('—') }}</div><div>{{ c.avg_risk|default('—') }}</div>
-        </div>
+      <div class="ttv2-muted">All metrics are computed from live session data.</div>
+    </div>
+    {% set lb = (ttv2_counselors_leaderboard if ttv2_counselors_leaderboard is defined else []) %}
+    {% if lb and (lb|length) %}
+      {# Hide columns that are entirely unavailable (all None). #}
+      {% set has_csat = false %}
+      {% set has_avgmin = false %}
+      {% for r in lb %}
+        {% if r.csat is not none %}{% set has_csat = true %}{% endif %}
+        {% if r.avg_min is not none %}{% set has_avgmin = true %}{% endif %}
       {% endfor %}
-    </div>
+      <div class="table-responsive ttv2-lb-wrap mt-2">
+        <table class="table table-sm mb-0 ttv2-lb-table">
+          <thead>
+            <tr>
+              <th class="text-nowrap">#</th>
+              <th>Counselor</th>
+              <th class="text-end">Impact</th>
+              <th class="text-end">Sessions</th>
+              <th class="text-end">This mo</th>
+              {% if has_csat %}<th class="text-end">CSAT</th>{% endif %}
+              <th class="text-end">On-time</th>
+              <th class="text-end">Follow-up</th>
+              {% if has_avgmin %}<th class="text-end">Avg min</th>{% endif %}
+              <th style="min-width:120px">Load</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in lb %}
+              <tr>
+                <td class="text-nowrap ttv2-num">{{ r.rank|default(loop.index) }}</td>
+                <td class="min-w-0">{{ r.counselor|default('Counselor') }}</td>
+                <td class="text-end"><span class="ttv2-pill">{{ r.impact|default(0) }}</span></td>
+                <td class="text-end ttv2-num">{{ r.sessions|default(0) }}</td>
+                <td class="text-end ttv2-num">{{ r.this_mo|default(0) }}</td>
+                {% if has_csat %}<td class="text-end">{{ r.csat if r.csat is not none else '—' }}</td>{% endif %}
+                <td class="text-end ttv2-num">{{ (r.on_time|string) ~ '%' if r.on_time is not none else '—' }}</td>
+                <td class="text-end ttv2-num">{{ (r.follow_up|string) ~ '%' if r.follow_up is not none else '—' }}</td>
+                {% if has_avgmin %}<td class="text-end">{{ r.avg_min if r.avg_min is not none else '—' }}</td>{% endif %}
+                <td>
+                  <div class="ttv2-load">
+                    <div class="ttv2-load-bar" aria-label="Load {{ r.load_pct|default(0) }}%" title="Load: {{ r.sessions|default(0) }} sessions">
+                      <span style="width:{{ r.load_pct|default(0) }}%"></span>
+                      <em>{{ r.sessions|default(0) }}</em>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="font-size:12px;color:var(--c-text3);">No leaderboard data yet.</div>
+    {% endif %}
   </div>
+
 </div>
 

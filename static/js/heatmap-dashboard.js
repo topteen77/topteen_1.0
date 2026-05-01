@@ -51,6 +51,11 @@
             this.loadData();
         },
 
+        // Detect whether the heatmap markup exists on the page
+        isHeatmapPresent: function() {
+            return !!document.getElementById('heatmap-grid-container');
+        },
+
         // Get institute slug from URL or data attribute
         getInstituteSlug: function() {
             // Check if there's a data attribute on the container
@@ -113,6 +118,9 @@
         // Load data from API
         loadData: function() {
             const self = this;
+            if (!this.isHeatmapPresent()) {
+                return;
+            }
             this.state.loading = true;
             this.updateLoadingState(true);
 
@@ -220,7 +228,6 @@
         renderHeatmap: function() {
             const container = document.getElementById('heatmap-grid-container');
             if (!container) {
-                console.error('heatmap-grid-container not found');
                 return;
             }
 
@@ -460,14 +467,26 @@
         }
     };
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            HeatmapDashboard.init();
-        });
-    } else {
-        HeatmapDashboard.init();
+    function safeInitOrReload() {
+        if (!HeatmapDashboard.isHeatmapPresent()) {
+            return;
+        }
+        // Bind events once (delegated) + (re)load data
+        HeatmapDashboard.bindEvents();
+        try { HeatmapDashboard.loadData(); } catch (e) {}
     }
+
+    // Initialize only if heatmap markup exists
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', safeInitOrReload);
+    } else {
+        safeInitOrReload();
+    }
+
+    // v2 AJAX navigation injects markup; re-init after content load
+    document.addEventListener('ttv2:content:loaded', function() {
+        safeInitOrReload();
+    });
 
     // Make it globally accessible if needed
     window.HeatmapDashboard = HeatmapDashboard;

@@ -4,6 +4,9 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from core.choices import UserType
+from django.utils import timezone
+from datetime import timedelta
+import random
 from .models import DemoDatasetConfig, DemoCounselorCourseState, ResultType
 from .demo_dataset import (
     create_demo_dataset,
@@ -138,6 +141,31 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         if cid:
             demo_counselor_user = User.objects.filter(id=cid).first()
         extra_context["demo_counselor_user"] = demo_counselor_user
+
+        # Demo student dropdown (for dummy counseling/session data generation)
+        demo_students = []
+        try:
+            from institute.models import StudentManagement
+
+            sids = list(getattr(config, "student_user_ids", []) or [])
+            if sids:
+                for sm in (
+                    StudentManagement.objects.filter(student_id__in=sids)
+                    .select_related("student", "class_and_section")
+                    .order_by("id")
+                ):
+                    demo_students.append(
+                        {
+                            "id": sm.id,
+                            "name": (getattr(getattr(sm, "student", None), "name", None) or "").strip()
+                            or f"Student {sm.id}",
+                            "class": (getattr(getattr(sm, "class_and_section", None), "class_and_section", None) or "").strip(),
+                        }
+                    )
+        except Exception:
+            demo_students = []
+        extra_context["demo_students"] = demo_students
+
         return super().changelist_view(request, extra_context)
 
     def student_count(self, obj):
@@ -196,8 +224,327 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.remove_demo_counselor_view),
                 name="demo_data_remove_counselor",
             ),
+            path(
+                "generate_counseling/",
+                self.admin_site.admin_view(self.generate_counseling_data_view),
+                name="demo_data_generate_counseling",
+            ),
+            path(
+                "reset_counseling/",
+                self.admin_site.admin_view(self.reset_counseling_data_view),
+                name="demo_data_reset_counseling",
+            ),
+            path(
+                "generate_heatmap/",
+                self.admin_site.admin_view(self.generate_heatmap_data_view),
+                name="demo_data_generate_heatmap",
+            ),
+            path(
+                "reset_heatmap/",
+                self.admin_site.admin_view(self.reset_heatmap_data_view),
+                name="demo_data_reset_heatmap",
+            ),
         ]
         return custom + urls
+
+    def generate_counseling_data_view(self, request):
+        """
+        Admin utility: Create dummy FollowUpStatus rows for the demo counselor against selected demo students.
+        Used to test counselor dashboard/session report/students follow-ups quickly.
+        """
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        config = DemoDatasetConfig.get_singleton()
+        counselor_id = getattr(config, "counselor_id", None)
+        if not counselor_id:
+            messages.error(request, "Demo counselor not set up. Run 'Setup demo counselor' first.")
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        # Inputs
+        level = (request.POST.get("counseling_level") or "medium").strip().lower()
+        student_ids = request.POST.getlist("demo_student_ids") or []
+        if not student_ids:
+            one = (request.POST.get("demo_student_id") or "").strip()
+            if one:
+                student_ids = [one]
+        try:
+            student_ids = [int(x) for x in student_ids if str(x).strip().isdigit()]
+        except Exception:
+            student_ids = []
+        if not student_ids:
+            messages.error(request, "Select at least one demo student.")
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        # Intensity presets
+        presets = {
+            "light": {"count": 3, "span_days": 10},
+            "medium": {"count": 8, "span_days": 28},
+            "heavy": {"count": 16, "span_days": 56},
+        }
+        p = presets.get(level, presets["medium"])
+        n = int(p["count"])
+        span = int(p["span_days"])
+
+        try:
+            from counselor.models import FollowUpStatus, Counselor
+            from institute.models import StudentManagement
+
+            counselor = Counselor.objects.filter(id=int(counselor_id)).first()
+            if not counselor:
+                messages.error(request, "Demo counselor profile missing. Re-run 'Setup demo counselor'.")
+                return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+            students = list(StudentManagement.objects.filter(id__in=student_ids))
+            if not students:
+                messages.error(request, "No matching demo students found.")
+                return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+            # Ensure selected demo students are assigned to the demo counselor so counselor dashboards show them.
+            try:
+                counselor.students.add(*students)
+            except Exception:
+                try:
+                    for sm in students:
+                        counselor.students.add(sm)
+                except Exception:
+                    pass
+
+            today = timezone.localdate()
+            modes = ["call", "meeting", "email"]
+            statuses = ["completed", "pending", "follow-up"]
+            notes = [
+                "Career exploration & clarity gap reduction",
+                "Roadmap planning & milestone setting",
+                "Parent counseling touchpoint",
+                "Interest vs knowledge alignment discussion",
+                "Action plan shared + resources sent",
+            ]
+
+            created_total = 0
+            for sm in students:
+                for i in range(n):
+                    # Spread across past `span` days; keep more density in the latest week
+                    back = int(round((span * i) / max(1, n - 1)))
+                    d = today - timedelta(days=back)
+                    st = statuses[i % len(statuses)]
+                    md = modes[(i + 1) % len(modes)]
+                    msg = notes[i % len(notes)]
+                    nxt = None
+                    if st != "completed":
+                        nxt = min(today + timedelta(days=7), today + timedelta(days=14))
+                    FollowUpStatus.objects.create(
+                        counselor=counselor,
+                        student=sm,
+                        mode_of_follow_up=md,
+                        follow_up_status=st,
+                        last_follow_up_date=d,
+                        next_follow_up_date=nxt,
+                        is_followed_up=(st == "completed"),
+                        message=msg,
+                    )
+                    created_total += 1
+
+            messages.success(
+                request,
+                f"Created {created_total} dummy follow-up entries for {len(students)} student(s) (level: {level}).",
+            )
+        except Exception as e:
+            messages.error(request, f"Could not generate dummy counseling data: {e}")
+
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def reset_counseling_data_view(self, request):
+        """
+        Admin utility: Delete FollowUpStatus rows for the demo counselor against selected demo students.
+        Intended to reset the counselor UI testing data without touching student/institute demo dataset.
+        """
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        config = DemoDatasetConfig.get_singleton()
+        counselor_id = getattr(config, "counselor_id", None)
+        if not counselor_id:
+            messages.error(request, "Demo counselor not set up. Run 'Setup demo counselor' first.")
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        # Inputs (optional): if nothing selected, reset for all demo students in config
+        student_ids = request.POST.getlist("demo_student_ids_reset") or []
+        if not student_ids:
+            one = (request.POST.get("demo_student_id_reset") or "").strip()
+            if one:
+                student_ids = [one]
+        try:
+            student_ids = [int(x) for x in student_ids if str(x).strip().isdigit()]
+        except Exception:
+            student_ids = []
+
+        try:
+            from counselor.models import FollowUpStatus
+            from institute.models import StudentManagement
+
+            if not student_ids:
+                # Map demo student user IDs -> StudentManagement ids (same scope as generation dropdown)
+                sids = list(getattr(config, "student_user_ids", []) or [])
+                student_ids = list(
+                    StudentManagement.objects.filter(student_id__in=sids).values_list("id", flat=True)
+                )
+
+            if not student_ids:
+                messages.warning(request, "No demo students found to reset.")
+                return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+            deleted, _ = FollowUpStatus.objects.filter(
+                counselor_id=int(counselor_id),
+                student_id__in=student_ids,
+            ).delete()
+            messages.success(
+                request,
+                f"Reset dummy counselling data: deleted {deleted} FollowUpStatus row(s).",
+            )
+        except Exception as e:
+            messages.error(request, f"Could not reset dummy counselling data: {e}")
+
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def generate_heatmap_data_view(self, request):
+        """
+        Admin utility: Create demo `Results` rows (test1/test2/test3) for selected demo students.
+        Heatmap reads these three test papers to compute interest/knowledge/alignment.
+        """
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        config = DemoDatasetConfig.get_singleton()
+        student_ids = request.POST.getlist("demo_student_ids_heatmap") or []
+
+        try:
+            from institute.models import StudentManagement
+            from app.models import Results
+
+            sids = list(getattr(config, "student_user_ids", []) or [])
+            qs = StudentManagement.objects.filter(student_id__in=sids).select_related("student", "class_and_section")
+            if student_ids:
+                qs = qs.filter(id__in=student_ids)
+            sms = list(qs)
+            if not sms:
+                messages.error(request, "No matching demo students found for heatmap generation.")
+                return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+            # Deterministic randomness per run (stable demo).
+            seed = int(timezone.now().strftime("%Y%m%d"))
+            rng = random.Random(seed)
+
+            # Ensure streams are set so heatmap clusters aren't all "Unknown".
+            stream_choices = ["PCM", "CBM", "COMM", "HME", "HMB"]
+
+            # Helper payloads: keep within expected ranges used by institute/utils.py
+            def _test1_results():
+                # Personality-ish numeric values
+                keys = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"]
+                return {k: rng.randint(2, 9) for k in keys}
+
+            def _test2_scores():
+                # RIASEC scores 0..6
+                return {k: rng.randint(0, 6) for k in ["R", "I", "A", "S", "E", "C"]}
+
+            def _test3_scores():
+                # Intelligence-like numeric values 0..10
+                keys = ["linguistic", "logical", "spatial", "musical", "bodily", "interpersonal", "intrapersonal", "naturalist"]
+                return {k: rng.randint(0, 10) for k in keys}
+
+            created = 0
+            updated = 0
+            for sm in sms:
+                u = getattr(sm, "student", None)
+                if not u:
+                    continue
+
+                # Best-effort: set stream on the student's class/section.
+                try:
+                    cas = getattr(sm, "class_and_section", None)
+                    if cas is not None and not getattr(cas, "stream", None):
+                        cas.stream = rng.choice(stream_choices)
+                        cas.save(update_fields=["stream"])
+                except Exception:
+                    pass
+
+                # Remove any existing duplicates so heatmap `.first()` is stable.
+                for tp in ("test1", "test2", "test3"):
+                    Results.objects.filter(user=u, test_paper=tp).delete()
+
+                Results.objects.create(
+                    user=u,
+                    test_paper="test1",
+                    scores={},
+                    results=_test1_results(),
+                    selected_answers={},
+                )
+                Results.objects.create(
+                    user=u,
+                    test_paper="test2",
+                    scores=_test2_scores(),
+                    results={},
+                    selected_answers={},
+                )
+                Results.objects.create(
+                    user=u,
+                    test_paper="test3",
+                    scores=_test3_scores(),
+                    results={},
+                    selected_answers={},
+                )
+                created += 3
+
+            messages.success(
+                request,
+                f"Heatmap demo data generated: {created} Results rows for {len(sms)} student(s).",
+            )
+        except Exception as e:
+            messages.error(request, f"Heatmap demo generation failed: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def reset_heatmap_data_view(self, request):
+        """Admin utility: delete demo `Results` rows (test1/test2/test3) for selected/all demo students."""
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        config = DemoDatasetConfig.get_singleton()
+        student_ids = request.POST.getlist("demo_student_ids_heatmap_reset") or []
+        try:
+            from institute.models import StudentManagement
+            from app.models import Results
+
+            sids = list(getattr(config, "student_user_ids", []) or [])
+            qs = StudentManagement.objects.filter(student_id__in=sids).select_related("student")
+            if student_ids:
+                qs = qs.filter(id__in=student_ids)
+            uids = [sm.student_id for sm in qs if getattr(sm, "student_id", None)]
+            if not uids:
+                messages.error(request, "No matching demo students found for heatmap reset.")
+                return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+            deleted, _ = Results.objects.filter(user_id__in=uids, test_paper__in=["test1", "test2", "test3"]).delete()
+            messages.success(request, f"Heatmap demo data reset: deleted {deleted} Results row(s).")
+        except Exception as e:
+            messages.error(request, f"Heatmap demo reset failed: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
 
     def config_save_view(self, request):
         if not request.user.is_staff:
