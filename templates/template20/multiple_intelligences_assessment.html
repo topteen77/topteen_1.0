@@ -222,7 +222,8 @@
         </div>
         <div class="lsd-download-buttons">
           <a href="#" class="lsd-download-btn lsd-primary-download" id="lsdReportDownload"> <i class='bx bx-file-blank'></i> <span>Download Student Report (PDF)</span> </a>
-          <a href="#" class="lsd-download-btn" id="lsdScoringDownload"> <i class='bx bx-list-check'></i> <span>Download Scoring Method (PDF)</span> </a>
+          <a href="/static/mi-pdf/Scoring-Method.pdf" class="lsd-download-btn" id="lsdScoringDownload"> <i class='bx bx-list-check'></i> <span>Download Scoring Method (PDF)</span> </a>
+          <a href="/static/mi-pdf/Learning-Style-Reports-for-Students.pdf" class="lsd-download-btn" id="lsdLearningStyleDownload"> <i class='bx bx-book-reader'></i> <span>Download Learning Style Report (PDF)</span> </a>
         </div>
         <div class="lsd-download-note">Note: Downloads are enabled after you complete and submit all 60 questions.</div>
       </div>
@@ -336,6 +337,7 @@
   const resultSummary = document.getElementById("lsdResultSummary");
   const reportDownload = document.getElementById("lsdReportDownload");
   const scoringDownload = document.getElementById("lsdScoringDownload");
+  const learningStyleDownload = document.getElementById("lsdLearningStyleDownload");
   const validationEl = document.getElementById("lsdValidationMessage");
 
   function showValidation(message) {
@@ -520,6 +522,7 @@
     reportDownload.classList.add("lsd-primary-download");
     reportDownload.removeAttribute("aria-disabled");
     scoringDownload.removeAttribute("aria-disabled");
+    if (learningStyleDownload) learningStyleDownload.removeAttribute("aria-disabled");
     resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
     if (miConfig.saveUrl && miConfig.csrfToken) {
       fetch(miConfig.saveUrl, {
@@ -542,7 +545,7 @@
   function downloadResultPdf() {
     if (!lastResultData) return;
     if (miConfig.reportPdfUrl) {
-      window.location.href = miConfig.reportPdfUrl;
+      window.open(miConfig.reportPdfUrl, "_blank");
       return;
     }
     if (!window.jspdf) return;
@@ -621,8 +624,13 @@
   if (scoringDownload) {
     scoringDownload.addEventListener("click", function(e) {
       e.preventDefault();
-      if (miConfig.reportPdfUrl) window.location.href = miConfig.reportPdfUrl;
-      else if (lastResultData) downloadResultPdf();
+      if (lastResultData) window.open("/static/mi-pdf/Scoring-Method.pdf", "_blank");
+    });
+  }
+  if (learningStyleDownload) {
+    learningStyleDownload.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (lastResultData) window.open("/static/mi-pdf/Learning-Style-Reports-for-Students.pdf", "_blank");
     });
   }
 
@@ -652,6 +660,7 @@
     reportDownload.classList.add("lsd-primary-download");
     reportDownload.removeAttribute("aria-disabled");
     scoringDownload.removeAttribute("aria-disabled");
+    if (learningStyleDownload) learningStyleDownload.removeAttribute("aria-disabled");
   }
 
   var savedResultEl = document.getElementById("saved-mi-result");

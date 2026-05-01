@@ -2512,20 +2512,156 @@ def mi_report_pdf(request):
         if scoring_html:
             html_parts.append("<h2>Scoring Method</h2>")
             html_parts.append(scoring_html)
+    logo_url = request.build_absolute_uri("/static/images/logo.png")
+    style_summary_html = (latest.style_summary or "").replace("\n", "<br>")
+    dominant_count = latest.counts.get(latest.primary_style, 0) if isinstance(latest.counts, dict) else 0
     result_block = """
-    <div style="margin-top:2em; padding:1em; border:1px solid #ddd;">
-    <h2>Your Result</h2>
-    <p><strong>Primary learning style:</strong> %s</p>
-    <p>%s</p>
-    <p><strong>Your answers:</strong> A = %s, B = %s, C = %s, D = %s</p>
+    <div class="result-card">
+      <div class="topteen-watermark">
+        <img src="%s" alt="TopTeen watermark" />
+      </div>
+      <h2>Your Multiple Intelligences Result</h2>
+      <div class="score-highlight">
+        <span class="label">Primary Learning Style</span>
+        <div class="score-value">%s</div>
+        <div class="score-band">Top score: %s points</div>
+      </div>
+
+      <div class="summary-box">%s</div>
+
+      <h3>Response Distribution</h3>
+      <table class="subscale-table">
+        <thead>
+          <tr>
+            <th>A</th><th>B</th><th>C</th><th>D</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>%s</td><td>%s</td><td>%s</td><td>%s</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     """ % (
+        logo_url,
         latest.style_name,
-        latest.style_summary.replace("\n", "<br>"),
+        dominant_count,
+        style_summary_html,
         latest.counts.get("A", 0), latest.counts.get("B", 0), latest.counts.get("C", 0), latest.counts.get("D", 0),
     )
     html_parts.append(result_block)
-    full_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Learning Style Report</title></head><body style="font-family: sans-serif; padding: 20px;">%s</body></html>""" % "\n".join(html_parts)
+    full_html = """<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Learning Style Report</title>
+      <style>
+        @page { size: A4; margin: 24mm 16mm 18mm 16mm; }
+        body {
+          font-family: "Segoe UI", Arial, sans-serif;
+          color: #1f2937;
+          line-height: 1.5;
+          font-size: 13px;
+        }
+        .page-header {
+          display: table;
+          width: 100%%;
+          margin-bottom: 16px;
+          border-bottom: 2px solid #eef2ff;
+          padding-bottom: 10px;
+        }
+        .brand-left, .brand-right { display: table-cell; vertical-align: middle; }
+        .brand-right { text-align: right; color: #4f46e5; }
+        .brand-left img { width: 118px; height: auto; }
+        .brand-title { font-size: 20px; font-weight: 700; margin: 0; color: #111827; }
+        .brand-subtitle { margin: 4px 0 0; color: #6b7280; font-size: 12px; }
+        .doc-content h1, .doc-content h2, .doc-content h3 { color: #111827; }
+        .doc-content h2 {
+          font-size: 18px;
+          border-left: 4px solid #4f46e5;
+          padding-left: 8px;
+          margin-top: 18px;
+          margin-bottom: 8px;
+        }
+        .result-card {
+          position: relative;
+          margin-top: 18px;
+          border: 1px solid #dbeafe;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #ffffff 0%%, #f8faff 100%%);
+          padding: 18px;
+          overflow: hidden;
+        }
+        .topteen-watermark {
+          position: absolute;
+          top: 50%%;
+          left: 50%%;
+          transform: translate(-50%%, -50%%);
+          opacity: 0.06;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .topteen-watermark img {
+          width: 360px;
+          height: auto;
+        }
+        .result-card > * { position: relative; z-index: 1; }
+        .score-highlight {
+          border: 1px solid #c7d2fe;
+          background: #eef2ff;
+          border-radius: 12px;
+          padding: 14px;
+          margin: 8px 0 14px;
+          text-align: center;
+        }
+        .score-highlight .label { display: block; color: #4338ca; font-weight: 600; }
+        .score-value { font-size: 28px; line-height: 1.2; font-weight: 800; color: #312e81; margin-top: 2px; }
+        .score-band { margin-top: 4px; font-size: 12px; color: #4b5563; }
+        .summary-box {
+          border: 1px solid #e5e7eb;
+          background: #ffffff;
+          border-radius: 10px;
+          padding: 12px;
+          margin-bottom: 12px;
+        }
+        .subscale-table {
+          width: 100%%;
+          border-collapse: collapse;
+          margin-top: 6px;
+        }
+        .subscale-table th, .subscale-table td {
+          border: 1px solid #d1d5db;
+          text-align: center;
+          padding: 8px 6px;
+        }
+        .subscale-table th {
+          background: #eef2ff;
+          color: #3730a3;
+          font-weight: 700;
+        }
+        .doc-footer {
+          margin-top: 16px;
+          font-size: 11px;
+          color: #6b7280;
+          text-align: right;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="page-header">
+        <div class="brand-left">
+          <img src="%s" alt="TopTeen Logo" />
+        </div>
+        <div class="brand-right">
+          <p class="brand-title">Multiple Intelligences Assessment</p>
+          <p class="brand-subtitle">Personalized Result Report</p>
+        </div>
+      </div>
+      <div class="doc-content">%s</div>
+      <div class="doc-footer">Generated by TopTeen</div>
+    </body>
+    </html>""" % (logo_url, "\n".join(html_parts))
     try:
         import weasyprint
         import ssl
@@ -2556,22 +2692,161 @@ def eq_report_pdf(request):
         docx_html = _docx_path_to_html(docx_path)
         if docx_html:
             html_parts.append(docx_html)
+    logo_url = request.build_absolute_uri("/static/images/logo.png")
     result_block = """
-    <div style="margin-top:2em; padding:1em; border:1px solid #ddd;">
-    <h2>Your EQ Result</h2>
-    <p><strong>Composite EQ Score:</strong> %.1f (%s)</p>
-    <p><strong>Profile Balance Index (PBI):</strong> %.1f</p>
-    <p><strong>Subscale scores:</strong> SA = %s, SC = %s, EM = %s, CR = %s, SM = %s, AC = %s</p>
-    <p><strong>Intrapersonal EQ:</strong> %s | <strong>Interpersonal EQ:</strong> %s | <strong>Adaptive EQ:</strong> %s</p>
+    <div class="result-card">
+      <div class="topteen-watermark">
+        <img src="%s" alt="TopTeen watermark" />
+      </div>
+      <h2>Your EQ Result</h2>
+      <div class="score-highlight">
+        <span class="label">Composite EQ Score</span>
+        <div class="score-value">%.1f</div>
+        <div class="score-band">%s</div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric-item"><span>Profile Balance Index (PBI)</span><strong>%.1f</strong></div>
+        <div class="metric-item"><span>Intrapersonal EQ</span><strong>%s</strong></div>
+        <div class="metric-item"><span>Interpersonal EQ</span><strong>%s</strong></div>
+        <div class="metric-item"><span>Adaptive EQ</span><strong>%s</strong></div>
+      </div>
+
+      <h3>Subscale Scores</h3>
+      <table class="subscale-table">
+        <thead>
+          <tr>
+            <th>SA</th><th>SC</th><th>EM</th><th>CR</th><th>SM</th><th>AC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     """ % (
+        logo_url,
         latest.ei_total, latest.band_label, latest.pbi,
+        latest.intrapersonal_eq, latest.interpersonal_eq, latest.adaptive_eq,
         latest.subscale_scores.get("SA"), latest.subscale_scores.get("SC"), latest.subscale_scores.get("EM"),
         latest.subscale_scores.get("CR"), latest.subscale_scores.get("SM"), latest.subscale_scores.get("AC"),
-        latest.intrapersonal_eq, latest.interpersonal_eq, latest.adaptive_eq,
     )
     html_parts.append(result_block)
-    full_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Emotional Intelligence Report</title></head><body style="font-family: sans-serif; padding: 20px;">%s</body></html>""" % "\n".join(html_parts)
+    full_html = """<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Emotional Intelligence Report</title>
+      <style>
+        @page { size: A4; margin: 24mm 16mm 18mm 16mm; }
+        body {
+          font-family: "Segoe UI", Arial, sans-serif;
+          color: #1f2937;
+          line-height: 1.5;
+          font-size: 13px;
+        }
+        .page-header {
+          display: table;
+          width: 100%%;
+          margin-bottom: 16px;
+          border-bottom: 2px solid #eef2ff;
+          padding-bottom: 10px;
+        }
+        .brand-left, .brand-right { display: table-cell; vertical-align: middle; }
+        .brand-right { text-align: right; color: #4f46e5; }
+        .brand-left img { width: 118px; height: auto; }
+        .brand-title { font-size: 20px; font-weight: 700; margin: 0; color: #111827; }
+        .brand-subtitle { margin: 4px 0 0; color: #6b7280; font-size: 12px; }
+        .doc-content h1, .doc-content h2, .doc-content h3 { color: #111827; }
+        .doc-content h2 {
+          font-size: 18px;
+          border-left: 4px solid #4f46e5;
+          padding-left: 8px;
+          margin-top: 18px;
+          margin-bottom: 8px;
+        }
+        .result-card {
+          position: relative;
+          margin-top: 18px;
+          border: 1px solid #dbeafe;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #ffffff 0%%, #f8faff 100%%);
+          padding: 18px;
+          overflow: hidden;
+        }
+        .topteen-watermark {
+          position: absolute;
+          top: 50%%;
+          left: 50%%;
+          transform: translate(-50%%, -50%%);
+          opacity: 0.06;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .topteen-watermark img {
+          width: 360px;
+          height: auto;
+        }
+        .result-card > * { position: relative; z-index: 1; }
+        .score-highlight {
+          border: 1px solid #c7d2fe;
+          background: #eef2ff;
+          border-radius: 12px;
+          padding: 14px;
+          margin: 8px 0 14px;
+          text-align: center;
+        }
+        .score-highlight .label { display: block; color: #4338ca; font-weight: 600; }
+        .score-value { font-size: 30px; line-height: 1.1; font-weight: 800; color: #312e81; margin-top: 2px; }
+        .score-band { margin-top: 4px; font-size: 12px; color: #4b5563; }
+        .metric-grid { margin: 4px 0 14px; }
+        .metric-item {
+          display: table;
+          width: 100%%;
+          border-bottom: 1px solid #e5e7eb;
+          padding: 6px 0;
+        }
+        .metric-item span, .metric-item strong { display: table-cell; }
+        .metric-item strong { text-align: right; color: #111827; }
+        .subscale-table {
+          width: 100%%;
+          border-collapse: collapse;
+          margin-top: 6px;
+        }
+        .subscale-table th, .subscale-table td {
+          border: 1px solid #d1d5db;
+          text-align: center;
+          padding: 8px 6px;
+        }
+        .subscale-table th {
+          background: #eef2ff;
+          color: #3730a3;
+          font-weight: 700;
+        }
+        .doc-footer {
+          margin-top: 16px;
+          font-size: 11px;
+          color: #6b7280;
+          text-align: right;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="page-header">
+        <div class="brand-left">
+          <img src="%s" alt="TopTeen Logo" />
+        </div>
+        <div class="brand-right">
+          <p class="brand-title">Emotional Intelligence Assessment</p>
+          <p class="brand-subtitle">Personalized Result Report</p>
+        </div>
+      </div>
+      <div class="doc-content">%s</div>
+      <div class="doc-footer">Generated by TopTeen</div>
+    </body>
+    </html>""" % (logo_url, "\n".join(html_parts))
     try:
         import weasyprint
         import ssl

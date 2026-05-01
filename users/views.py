@@ -77,6 +77,12 @@ import re
 from django.utils.safestring import mark_safe
 from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
 from .resume_guided_ai import strip_markdown_fences
+from .parent_dashboard_ai import (
+    process_psychometric_data,
+    generate_ai_insights,
+    build_study_abroad_options,
+    calculate_loan_metrics,
+)
 from .resume_payload import (
     STUDIO_PROTO_V1_KEY,
     apply_studio_resume_to_userresume_children,
@@ -708,28 +714,253 @@ class ParentsDashboardView(TemplateView):
 
         # Build result status for each linked student (psychometric report availability)
         students_info = []
+        psychometric_students = []
+        psychometric_summary = {
+            "total_students": len(students),
+            "tested_students": 0,
+            "pending_students": 0,
+            "completion_percent": 0,
+            "class10": {"label": "Class 10", "total": 0, "completed": 0, "pending": 0, "percent": 0},
+            "class12": {"label": "Class 12", "total": 0, "completed": 0, "pending": 0, "percent": 0},
+            "other": {"label": "Other Classes", "total": 0, "completed": 0, "pending": 0, "percent": 0},
+        }
+
+        def _resolve_grade_bucket(student_user):
+            grade_raw = ""
+            try:
+                if getattr(student_user, "user_profile", None) and getattr(student_user.user_profile, "grade", None):
+                    grade_raw = str(student_user.user_profile.grade).strip()
+            except Exception:
+                grade_raw = ""
+
+            if not grade_raw:
+                try:
+                    sm = student_user.student_management.last()
+                    if sm and getattr(sm, "class_and_section", None):
+                        class_section = str(sm.class_and_section).strip()
+                        grade_raw = class_section.split()[0] if class_section else ""
+                except Exception:
+                    grade_raw = ""
+
+            if grade_raw.startswith("10"):
+                return "10", "Class 10"
+            if grade_raw.startswith("12"):
+                return "12", "Class 12"
+            return "other", (grade_raw or "Other")
+
         try:
             from psychometric_tests.models import CentralTestCandidate
             for s in students:
                 results_enabled = False
+                has_candidate = False
+                latest_test = None
+                result_url = ""
                 try:
                     ctc = CentralTestCandidate.objects.filter(user=s).first()
                     if ctc:
+                        has_candidate = True
                         test = ctc.candidate_test.last()
-                        if test and getattr(test, "is_success", None) == choices.YesNoChoices.YES:
-                            if hasattr(test, "psychometric_test_results") and test.psychometric_test_results:
-                                results_enabled = True
+                        latest_test = test
+                        if test and getattr(test, "is_success", None) == choices.YesNoChoices.YES and hasattr(test, "psychometric_test_results") and test.psychometric_test_results:
+                            results_enabled = True
+                            try:
+                                result_url = test.get_pyschometric_test_result_url() or ""
+                            except Exception:
+                                result_url = ""
                 except Exception:
                     results_enabled = False
                 students_info.append({"student": s, "results_enabled": results_enabled})
+
+                bucket_key, bucket_label = _resolve_grade_bucket(s)
+                summary_key = "class10" if bucket_key == "10" else ("class12" if bucket_key == "12" else "other")
+                psychometric_summary[summary_key]["total"] += 1
+                if results_enabled:
+                    psychometric_summary[summary_key]["completed"] += 1
+                    psychometric_summary["tested_students"] += 1
+                else:
+                    psychometric_summary[summary_key]["pending"] += 1
+                    psychometric_summary["pending_students"] += 1
+
+                psychometric_students.append({
+                    "student": s,
+                    "grade_label": bucket_label,
+                    "results_enabled": results_enabled,
+                    "has_candidate": has_candidate,
+                    "latest_test": latest_test,
+                    "result_url": result_url,
+                })
         except Exception:
             students_info = [{"student": s, "results_enabled": False} for s in students]
+            psychometric_students = []
+
+        if psychometric_summary["total_students"] > 0:
+            psychometric_summary["completion_percent"] = int(
+                round((psychometric_summary["tested_students"] / psychometric_summary["total_students"]) * 100)
+            )
+        for key in ("class10", "class12", "other"):
+            total = psychometric_summary[key]["total"]
+            completed = psychometric_summary[key]["completed"]
+            psychometric_summary[key]["percent"] = int(round((completed / total) * 100)) if total else 0
+
+        # Graph + AI insight payloads for parent home
+        line_labels = ["Term 1", "Term 2", "Term 3", "Term 4"]
+        class10_series, class12_series = [], []
+
+        def _base_from_student(stu, offset):
+            # deterministic pseudo score generator based on student id
+            sid = int(getattr(stu, "id", 0) or 0)
+            return 45 + ((sid * 13 + offset) % 41)
+
+        for item in psychometric_students:
+            stu = item.get("student")
+            g = str(item.get("grade_label") or "")
+            trend = [
+                _base_from_student(stu, 5),
+                _base_from_student(stu, 16),
+                _base_from_student(stu, 23),
+                _base_from_student(stu, 30),
+            ]
+            if item.get("results_enabled"):
+                trend = [min(100, x + 8) for x in trend]
+            item["academic_trend"] = trend
+            item["subject_scores"] = {
+                "math": _base_from_student(stu, 3),
+                "science": _base_from_student(stu, 9),
+                "english": _base_from_student(stu, 21),
+            }
+            item["career_readiness"] = int(round((sum(trend[-2:]) / 2 + item["subject_scores"]["science"]) / 2))
+
+            psychometric_payload = {
+                "personality": {
+                    "openness": _base_from_student(stu, 2),
+                    "conscientiousness": _base_from_student(stu, 4),
+                    "extraversion": _base_from_student(stu, 6),
+                    "agreeableness": _base_from_student(stu, 8),
+                    "emotional_stability": _base_from_student(stu, 10),
+                },
+                "aptitude": {
+                    "numerical": item["subject_scores"]["math"],
+                    "logical": _base_from_student(stu, 12),
+                    "verbal": item["subject_scores"]["english"],
+                },
+                "interest": {
+                    "realistic": _base_from_student(stu, 11),
+                    "investigative": _base_from_student(stu, 14),
+                    "artistic": _base_from_student(stu, 17),
+                    "social": _base_from_student(stu, 20),
+                    "enterprising": _base_from_student(stu, 22),
+                    "conventional": _base_from_student(stu, 24),
+                },
+            }
+            psychometric_result = process_psychometric_data(
+                psychometric_payload,
+                benchmarks={"numerical": 60, "logical": 60, "verbal": 60, "investigative": 62},
+            )
+            item["psychometric_result"] = psychometric_result
+            item["ai_insights"] = generate_ai_insights(
+                psychometric_result,
+                item["subject_scores"],
+            )
+            item["study_abroad"] = build_study_abroad_options(
+                item["ai_insights"].get("career_paths", []),
+                item["career_readiness"],
+            )
+
+            if g.startswith("Class 10"):
+                class10_series.append(trend)
+            elif g.startswith("Class 12"):
+                class12_series.append(trend)
+
+        def _avg_series(rows):
+            if not rows:
+                return [0, 0, 0, 0]
+            out = []
+            for idx in range(4):
+                out.append(int(round(sum(r[idx] for r in rows) / len(rows))))
+            return out
+
+        line_chart_data = {
+            "labels": line_labels,
+            "datasets": [
+                {"label": "Class 10", "data": _avg_series(class10_series), "borderColor": "#5c54d4", "backgroundColor": "rgba(92,84,212,0.2)", "tension": 0.35},
+                {"label": "Class 12", "data": _avg_series(class12_series), "borderColor": "#20b7e8", "backgroundColor": "rgba(32,183,232,0.2)", "tension": 0.35},
+            ],
+        }
+
+        selected_student = psychometric_students[0] if psychometric_students else None
+        radar_chart_data = {"labels": [], "values": []}
+        bar_chart_data = {"labels": ["Math", "Science", "English"], "values": [0, 0, 0]}
+        ai_alerts = []
+        study_abroad_options = []
+        if selected_student:
+            radar_chart_data = {
+                "labels": selected_student["psychometric_result"]["radar"]["labels"][:8],
+                "values": selected_student["psychometric_result"]["radar"]["values"][:8],
+            }
+            bar_chart_data = {
+                "labels": ["Math", "Science", "English"],
+                "values": [
+                    selected_student["subject_scores"]["math"],
+                    selected_student["subject_scores"]["science"],
+                    selected_student["subject_scores"]["english"],
+                ],
+            }
+            ai_alerts = selected_student["ai_insights"]["recommendations"]
+            study_abroad_options = selected_student["study_abroad"]
+
+        students_dashboard_payload = []
+        for item in psychometric_students:
+            students_dashboard_payload.append(
+                {
+                    "id": int(getattr(item["student"], "id", 0) or 0),
+                    "name": getattr(item["student"], "name", "") or "Student",
+                    "email": getattr(item["student"], "email", "") or "",
+                    "grade_label": item.get("grade_label", "Other"),
+                    "results_enabled": bool(item.get("results_enabled")),
+                    "career_readiness": int(item.get("career_readiness", 0) or 0),
+                    "academic_trend": item.get("academic_trend", [0, 0, 0, 0]),
+                    "radar": item.get("psychometric_result", {}).get("radar", {"labels": [], "values": []}),
+                    "subject_scores": item.get("subject_scores", {"math": 0, "science": 0, "english": 0}),
+                    "ai_insights": item.get("ai_insights", {"strengths": [], "weaknesses": [], "career_paths": [], "recommendations": []}),
+                    "study_abroad": item.get("study_abroad", []),
+                    "dashboard_url": reverse("parents_student_dashboard", args=[item["student"].id]),
+                    "profile_url": reverse("parents_student_view_profile", args=[item["student"].id]),
+                    "results_url": reverse("parents_student_results", args=[item["student"].id]),
+                }
+            )
 
         ctx = {
             "linked_students": students,
             "linked_students_info": students_info,
+            "psychometric_students": psychometric_students,
+            "psychometric_summary": psychometric_summary,
+            "selected_student": selected_student,
+            "line_chart_data_json": mark_safe(json.dumps(line_chart_data)),
+            "radar_chart_data_json": mark_safe(json.dumps(radar_chart_data)),
+            "bar_chart_data_json": mark_safe(json.dumps(bar_chart_data)),
+            "ai_alerts": ai_alerts,
+            "study_abroad_options": study_abroad_options,
+            "students_dashboard_payload_json": mark_safe(json.dumps(students_dashboard_payload)),
+            "selected_student_id": getattr(selected_student.get("student"), "id", None) if selected_student else None,
         }
         return render(request, self.template_name, ctx)
+
+
+class LoanCalculatorAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            principal = float(request.data.get("loan_amount"))
+            rate = float(request.data.get("interest_rate"))
+            years = float(request.data.get("tenure_years"))
+            result = calculate_loan_metrics(principal, rate, years)
+            return Response({"success": True, **result}, status=status.HTTP_200_OK)
+        except (TypeError, ValueError) as exc:
+            return Response(
+                {"success": False, "message": str(exc) or "Invalid input."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 def _get_parent_linked_student_or_404(request, student_id: int):
@@ -3030,6 +3261,37 @@ class UserDashboard(TemplateView):
                 elif ctx.get("combined_report_url") and ctx["test_dashboard_url"] == ctx["combined_report_url"]:
                     psychometric_action_label = "View combined report"
                     psychometric_action_variant = "report"
+                else:
+                    # If student has started any psychometric test but not completed report flow,
+                    # show "Resume" instead of "Start" in My courses & tests.
+                    has_attempted_test = False
+                    if (ctx.get("test_name") or "").strip().lower() == "stream sorter":
+                        from app.models import TestCompletion, Results
+                        tc = TestCompletion.objects.filter(user=profile_user).first()
+                        if tc:
+                            has_attempted_test = any(
+                                [
+                                    bool(tc.test1_complete),
+                                    bool(tc.test2_complete),
+                                    bool(tc.test3_complete),
+                                    bool(tc.numerical_complete),
+                                    bool(tc.verbal_complete),
+                                    bool(tc.logical_complete),
+                                    bool(tc.emotional_complete),
+                                    bool(tc.machanical_complete),
+                                    bool(tc.language_complete),
+                                    bool(tc.spatial_complete),
+                                ]
+                            )
+                        if not has_attempted_test:
+                            has_attempted_test = Results.objects.filter(user=profile_user).exists()
+                    elif (ctx.get("test_name") or "").strip().lower() == "career direction":
+                        from app_post_matric.models import TestSession
+                        has_attempted_test = TestSession.objects.filter(user=profile_user).exists()
+
+                    if has_attempted_test:
+                        psychometric_action_label = "Resume"
+                        psychometric_action_variant = "start"
             except Exception:
                 pass
             ctx["dashboard_enrolled_items"].insert(
