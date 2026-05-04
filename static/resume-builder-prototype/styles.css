@@ -2964,6 +2964,7 @@ article#resume.resume .resume__mount > .tpl {
     border-right: none;
     border-bottom: 1px solid var(--line);
     box-shadow: none;
+    width:260px !important;
   }
 
   .app-main {
@@ -3072,5 +3073,39 @@ article#resume.resume .resume__mount > .tpl {
 
   .tpl-fo-sec {
     grid-template-columns: 40px 1fr;
+  }
+}
+
+/* Step-7 picker inside iframe: keep desktop split on small desktop widths */
+@media (min-width: 860px) and (max-width: 1100px) {
+  body.tt-mode-picker {
+    --sidebar-width: min(320px, 34vw);
+  }
+
+  body.tt-mode-picker .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 200;
+    width: var(--sidebar-width);
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-right: 1px solid var(--line);
+    border-bottom: none;
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
+  }
+
+  body.tt-mode-picker .app-main {
+    margin-left: var(--sidebar-width);
+    grid-template-columns: 1fr auto;
+  }
+
+  body.tt-mode-picker .actions {
+    width: 72px;
+    flex-direction: column;
+    border-left: 1px solid var(--line);
+    border-top: none;
+    justify-content: flex-start;
   }
 }
