@@ -1039,12 +1039,20 @@
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
                       <p class="fs-15 fw-semibold mb-0 flex-grow-1"
                         style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ item.title }}">{{ item.title }}</p>
+                      {% if not item.hide_kind_badge %}
                       <span class="badge rounded-pill text-uppercase flex-shrink-0"
                         style="font-size:10px;letter-spacing:.4px;background:{% if item.kind == 'psychometric' %}#eef2ff{% else %}#e8f8ee{% endif %};color:{% if item.kind == 'psychometric' %}#3f37c9{% else %}#198754{% endif %};">
                         {{ item.kind }}
                       </span>
+                      {% endif %}
                     </div>
                     <p class="text-gray fs-11 mb-0 text-truncate" title="{{ item.subtitle }}">{{ item.subtitle }}</p>
+                    {% if item.result_preview %}
+                    <p class="fs-12 fw-semibold mb-0 mt-2 text-dark dashboard-enrolled-result-line" style="line-height:1.4;" title="{{ item.result_preview }}">{{ item.result_preview }}</p>
+                    {% endif %}
+                    {% if item.result_subline %}
+                    <p class="text-gray fs-10 mb-0 mt-1 dashboard-enrolled-result-sub" style="line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="{{ item.result_subline }}">{{ item.result_subline }}</p>
+                    {% endif %}
                   </div>
                 </div>
                 <a href="{{ item.start_url }}"
