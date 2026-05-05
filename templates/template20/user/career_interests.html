@@ -11,33 +11,38 @@
 
   .career-card {
     background: #fff;
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 20px;
-    min-height: 151px;
-    transition: transform 0.3s;
+    min-height: 110px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     position: relative;
     overflow: hidden;
     text-decoration: none;
     display: block;
     color: inherit;
-    border: 1px solid #dcdce1;
+    border: 1px solid #dfe3ef;
   }
   .career-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    border-color: #cbd4f7;
+    box-shadow: 0 10px 24px rgba(51, 64, 129, 0.13);
     text-decoration: none;
     color: inherit;
+  }
+  .career-card-title {
+    line-height: 1.35;
   }
   .career-card-icon {
     width: 69px;
     height: 69px;
-       border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    background: #fff;
+    background: linear-gradient(160deg, #f6f8ff 0%, #eef1ff 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    border: 1px solid #e7ebff;
   }
   .career-card-icon img {
     width: 100%;
@@ -50,8 +55,8 @@
     color: #999;
   }
   .career-card-mobile {
-    min-height: 84px;
-    padding: 10px;
+    min-height: 104px;
+    padding: 16px;
   }
   .career-card-mobile .icon-mobile {   
     width: 70px;
@@ -74,13 +79,13 @@
   }
   .delete-career-btn {
     position: absolute;
-    top:5px;
-    right: 5px;
+    top: 8px;
+    right: 8px;
     background: rgba(255, 255, 255, 0.9);
     border: none;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,26 +98,145 @@
   .delete-career-btn:hover {
     background: rgba(255, 255, 255, 1);
     color: #dc3545;
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
-
-  @media (max-width: 768px) {
-
-    .top-80 {
-  top: 80%;
-}
-
-  }
-
 
   .app-right-content {
-	background: #eef1f8;
-  height: 100vh;
-}
-
-.student-dash-main-col {
-	padding: 0px;
-}
+    background: #eef1f8;
+    min-height: 100vh;
+  }
+  .student-dash-main-col {
+    padding: 0px;
+  }
+  .career-empty-state {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    border: 1px dashed #cfd7f4;
+    border-radius: 16px;
+    padding: 56px 24px;
+    max-width: 720px;
+    margin: 24px auto 0;
+  }
+  .career-empty-state-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #eef2ff;
+    color: #5a67d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+  }
+  .career-empty-state-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2437;
+    margin-bottom: 8px;
+  }
+  .career-empty-state-text {
+    color: #667085;
+    font-size: 0.95rem;
+    max-width: 540px;
+    margin: 0 auto 26px;
+  }
+  .career-grid {
+    margin-top: 6px;
+  }
+  .career-delete-modal .modal-content {
+    border: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(22, 26, 45, 0.25);
+  }
+  .career-delete-modal .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eceff6;
+  }
+  .career-delete-modal .modal-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1d2438;
+  }
+  .career-delete-modal .btn-close {
+    opacity: 0.65;
+    transition: opacity 0.2s ease;
+  }
+  .career-delete-modal .btn-close:hover {
+    opacity: 1;
+  }
+  .career-delete-modal .modal-body {
+    padding: 16px 20px 12px;
+  }
+  .career-delete-modal .modal-body p {
+    margin: 0;
+    color: #495169;
+    line-height: 1.5;
+    font-size: 0.98rem;
+  }
+  .career-delete-modal .modal-footer {
+    border-top: 1px solid #eceff6;
+    padding: 14px 20px 16px;
+    gap: 10px;
+  }
+  .career-modal-btn {
+    min-width: 108px;
+    height: 42px;
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+  }
+  .career-modal-btn-cancel {
+    background: #6b7388;
+    color: #fff;
+  }
+  .career-modal-btn-cancel:hover {
+    background: #5d6578;
+    color: #fff;
+  }
+  .career-modal-btn-remove {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(79, 70, 229, 0.32);
+  }
+  .career-modal-btn-remove:hover {
+    background: linear-gradient(135deg, #4338ca, #3730a3);
+    color: #fff;
+  }
+  @media (max-width: 768px) {
+    .top-80 {
+      top: 80%;
+    }
+    .career-dashboard-wrap {
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .career-card-mobile {
+      min-height: 88px;
+      padding: 12px;
+    }
+    .career-card-title {
+      font-size: 0.95rem !important;
+      max-width: 85%;
+    }
+    .career-empty-state {
+      padding: 34px 16px;
+      margin-top: 8px;
+    }
+    .career-empty-state-title {
+      font-size: 1.2rem;
+    }
+    .career-delete-modal .modal-title {
+      font-size: 1.15rem;
+    }
+    .career-modal-btn {
+      min-width: 96px;
+      height: 40px;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -128,13 +252,14 @@
 {% block student_main %}
 
 <div class="app-right-content pt-3 px-3 pb-3">
+  <div class="career-dashboard-wrap">
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}
 
         <!-- Career Interests Heading -->
-        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-2">
           <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
           {% if career_interests %}
           <div class="d-none d-lg-block">
@@ -160,7 +285,7 @@
 
         <!-- Career Interests Grid -->
         {% if career_interests and career_interests|length > 0 %}
-        <div class="row g-3 g-lg-4">
+        <div class="row g-3 g-lg-4 career-grid">
           {% for career_interest in career_interests %}
             {% if career_interest and career_interest.career %}
             <div class="col-12 col-md-6 col-lg-4">
@@ -187,7 +312,7 @@
                 
                 <div class="ms-3 pe-3">
                   <a href="{{ career_interest.career.url() }}" class="text-decoration-none text-dark">
-                    <h3 class="fs-16 fw-semibold text-dark mb-0">{{ career_interest.career.name }}</h3>
+                    <h3 class="fs-16 fw-semibold text-dark mb-0 career-card-title">{{ career_interest.career.name }}</h3>
                   </a>
                 </div>
                 
@@ -201,18 +326,21 @@
         </div>
         {% else %}
         <!-- Empty State -->
-        <div class="text-center py-5">
-          <i class='bx bx-briefcase fs-64 text-gray mb-3'></i>
-          <h3 class="fs-20 fw-semibold text-dark mb-2">No Career Shortlisted</h3>
-          <p class="text-gray fs-14 mb-4">You haven't shortlisted any careers yet. Start exploring careers and add them to your interests.</p>
+        <div class="career-empty-state text-center">
+          <div class="career-empty-state-icon">
+            <i class='bx bx-briefcase'></i>
+          </div>
+          <h3 class="career-empty-state-title">No Career Shortlisted</h3>
+          <p class="career-empty-state-text">You haven't shortlisted any careers yet. Start exploring careers and add them to your interests.</p>
           <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">
             <i class='bx bx-search me-2'></i> Explore Careers
           </a>
         </div>
         {% endif %}
+  </div>
 
 <!-- Delete Career Modal -->
-<div class="modal fade" id="deleteCareerModal" tabindex="-1" aria-labelledby="deleteCareerModalLabel" aria-hidden="true">
+<div class="modal fade career-delete-modal" id="deleteCareerModal" tabindex="-1" aria-labelledby="deleteCareerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -223,8 +351,8 @@
         <p>Are you sure you want to remove <strong id="deleteCareerName"></strong> from your career interests?</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn custom-button purple-button" id="confirmDeleteCareer">Remove</button>
+        <button type="button" class="btn career-modal-btn career-modal-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn career-modal-btn career-modal-btn-remove" id="confirmDeleteCareer">Remove</button>
       </div>
     </div>
   </div>
