@@ -4577,6 +4577,26 @@ class InstituteDashboardView(TemplateView):
                     )
                 )
 
+                def _avg_minutes_between_followups(cfu_qs):
+                    """
+                    Mean minutes between consecutive FollowUpStatus.created timestamps for one counselor.
+                    Used when true 'session duration' is not stored on the model.
+                    """
+                    times = list(cfu_qs.order_by("created").values_list("created", flat=True))
+                    if len(times) < 2:
+                        return None
+                    deltas = []
+                    for i in range(1, len(times)):
+                        try:
+                            dt = (times[i] - times[i - 1]).total_seconds() / 60.0
+                        except Exception:
+                            continue
+                        if 1.0 <= dt <= 60.0 * 24.0 * 7.0:
+                            deltas.append(dt)
+                    if not deltas:
+                        return None
+                    return int(round(sum(deltas) / float(len(deltas))))
+
                 roster = []
                 for c in counselors_pref:
                     assigned_ids = [int(x) for x in c.students.values_list("id", flat=True)]
@@ -4614,17 +4634,22 @@ class InstituteDashboardView(TemplateView):
                             joined_s = cr.strftime("%d/%m/%Y")
                     except Exception:
                         joined_s = ""
+                    nm = (getattr(c, "counselor_name", None) or "").strip() or f"Counselor {c.id}"
+                    em = (getattr(c, "counselor_email", None) or "").strip() or ""
+                    gap_min = _avg_minutes_between_followups(cfu)
+                    avg_lbl = f"{gap_min} min" if gap_min is not None else "—"
                     roster.append(
                         {
                             "id": int(c.id),
-                            "email": (getattr(c, "counselor_email", None) or "").strip() or "—",
+                            "label": f"{nm}" + (f" · {em}" if em else ""),
+                            "email": em or "—",
                             "joined": joined_s or "—",
                             "sessions_total": sessions_total,
                             "students_covered_num": stu_any,
                             "students_covered_den": cov_den,
                             "students_counselled": stu_done,
                             "followups": sessions_total,
-                            "avg_session_label": "—",
+                            "avg_session_label": avg_lbl,
                             "status": "Active",
                         }
                     )
@@ -4653,30 +4678,98 @@ class InstituteDashboardView(TemplateView):
                     except Exception:
                         pass
 
-                # Month buckets (calendar month) for session activity line chart
-                y, m = int(today.year), int(today.month)
-                month_last_day = calendar.monthrange(y, m)[1]
-                bucket_edges = [(1, 7), (8, 14), (15, 21), (22, month_last_day)]
-                month_labels = []
-                month_vals = []
-                fu_focus = fu.filter(counselor_id=focus_cid) if focus_cid else fu.none()
+                def _counselors_chart_range_bounds(req, today_d, _date_cls):
+                    from django.utils.dateparse import parse_date as _parse_date
 
-                for d1, d2 in bucket_edges:
-                    start_b = _date(y, m, d1)
-                    end_b = _date(y, m, min(d2, month_last_day))
-                    month_labels.append(f"{start_b:%b} {start_b.day}–{end_b.day}")
-                    month_vals.append(
-                        int(fu_focus.filter(_sess_day__gte=start_b, _sess_day__lte=end_b).count())
-                    )
-                ctx["ttv2_counselors_charts"] = {
-                    "line": {
-                        "title": f"Session activity — {today:%B}",
-                        "labels": month_labels,
-                        "values": month_vals,
-                    },
-                    "donut": {"counselled": 0, "not_counselled": 0},
-                    "focus_name": focus_name,
+                    rk = (req.GET.get("counselors_range") or "30d").strip().lower()
+                    if rk not in ("today", "week", "30d", "year", "custom"):
+                        rk = "30d"
+                    lab = {
+                        "today": "Today",
+                        "week": "Last 7 days",
+                        "30d": "Last 30 days",
+                        "year": "Last 365 days",
+                        "custom": "Custom range",
+                    }.get(rk, "Last 30 days")
+                    if rk == "today":
+                        return today_d, today_d, rk, lab
+                    if rk == "week":
+                        return today_d - timedelta(days=6), today_d, rk, lab
+                    if rk == "30d":
+                        return today_d - timedelta(days=29), today_d, rk, lab
+                    if rk == "year":
+                        return today_d - timedelta(days=364), today_d, rk, lab
+                    fs = _parse_date((req.GET.get("counselors_from") or "").strip())
+                    te = _parse_date((req.GET.get("counselors_to") or "").strip())
+                    if fs and te:
+                        if te < fs:
+                            fs, te = te, fs
+                        if (te - fs).days > 730:
+                            te = fs + timedelta(days=730)
+                        return fs, te, rk, f"{fs:%d %b %Y} – {te:%d %b %Y}"
+                    return today_d - timedelta(days=29), today_d, "30d", lab.get("30d", "Last 30 days")
+
+                def _counselors_line_buckets(fu_qs, start_d, end_d):
+                    labels, vals = [], []
+                    if start_d > end_d:
+                        return labels, vals
+                    num_days = (end_d - start_d).days + 1
+                    if num_days < 1:
+                        return labels, vals
+                    if num_days <= 31:
+                        d = start_d
+                        while d <= end_d:
+                            labels.append(d.strftime("%d %b"))
+                            vals.append(int(fu_qs.filter(_sess_day=d).count()))
+                            d += timedelta(days=1)
+                        return labels, vals
+                    n_b = 12
+                    step = max(1, (num_days + n_b - 1) // n_b)
+                    d = start_d
+                    while d <= end_d:
+                        d2 = min(d + timedelta(days=step - 1), end_d)
+                        if d == d2:
+                            labels.append(d.strftime("%d %b %Y"))
+                        else:
+                            labels.append(f"{d:%d %b} – {d2:%d %b %Y}")
+                        vals.append(int(fu_qs.filter(_sess_day__gte=d, _sess_day__lte=d2).count()))
+                        d = d2 + timedelta(days=1)
+                    return labels, vals
+
+                range_start, range_end, range_key, range_label = _counselors_chart_range_bounds(
+                    request, today, _date
+                )
+                ctx["ttv2_counselors_chart_controls"] = {
+                    "range_key": range_key,
+                    "range_label": range_label,
+                    "from_iso": range_start.isoformat(),
+                    "to_iso": range_end.isoformat(),
                 }
+
+                fu_focus = fu.filter(counselor_id=focus_cid) if focus_cid else fu.none()
+                fu_focus_r = fu_focus.filter(_sess_day__gte=range_start, _sess_day__lte=range_end)
+                line_labels, line_vals = _counselors_line_buckets(fu_focus_r, range_start, range_end)
+                line_table = [{"period": lbl, "count": int(v)} for lbl, v in zip(line_labels, line_vals)]
+
+                range_caption = f"{range_start:%d %b %Y} – {range_end:%d %b %Y}"
+                charts_payload = {
+                    "line": {
+                        "title": "Session activity",
+                        "subtitle": range_caption,
+                        "labels": line_labels,
+                        "values": line_vals,
+                    },
+                    "line_table": line_table,
+                    "donut": {"counselled": 0, "not_counselled": 0},
+                    "donut_table": [],
+                    "focus_name": focus_name,
+                    "range_key": range_key,
+                    "range_label": range_label,
+                    "range_from": range_start.isoformat(),
+                    "range_to": range_end.isoformat(),
+                }
+                ctx["ttv2_counselors_charts"] = charts_payload
+
                 if focus_cid:
                     try:
                         fc = Counselor.objects.filter(id=focus_cid).first()
@@ -4685,9 +4778,13 @@ class InstituteDashboardView(TemplateView):
                                 fc.students.filter(institute=institute).values_list("id", flat=True)
                             )
                             f_fu = fu.filter(counselor_id=focus_cid)
+                            f_fu_r = f_fu.filter(
+                                _sess_day__gte=range_start,
+                                _sess_day__lte=range_end,
+                            )
                             if aset:
                                 done_n = int(
-                                    f_fu.filter(
+                                    f_fu_r.filter(
                                         student_id__in=aset, follow_up_status__iexact="completed"
                                     )
                                     .values("student_id")
@@ -4697,7 +4794,7 @@ class InstituteDashboardView(TemplateView):
                                 tot_n = len(aset)
                             else:
                                 done_n = int(
-                                    f_fu.filter(follow_up_status__iexact="completed")
+                                    f_fu_r.filter(follow_up_status__iexact="completed")
                                     .exclude(student_id__isnull=True)
                                     .values("student_id")
                                     .distinct()
@@ -4709,6 +4806,10 @@ class InstituteDashboardView(TemplateView):
                                 "counselled": done_n,
                                 "not_counselled": other_n,
                             }
+                            ctx["ttv2_counselors_charts"]["donut_table"] = [
+                                {"segment": "Counselled in period", "count": done_n},
+                                {"segment": "Remaining on roster", "count": other_n},
+                            ]
                     except Exception:
                         pass
 
@@ -4903,10 +5004,22 @@ class InstituteDashboardView(TemplateView):
                     "days": [],
                 }
                 ctx["ttv2_counselors_roster"] = []
+                ctx["ttv2_counselors_chart_controls"] = {
+                    "range_key": "30d",
+                    "range_label": "Last 30 days",
+                    "from_iso": "",
+                    "to_iso": "",
+                }
                 ctx["ttv2_counselors_charts"] = {
-                    "line": {"title": "", "labels": [], "values": []},
+                    "line": {"title": "", "subtitle": "", "labels": [], "values": []},
+                    "line_table": [],
                     "donut": {"counselled": 0, "not_counselled": 0},
+                    "donut_table": [],
                     "focus_name": "",
+                    "range_key": "30d",
+                    "range_label": "",
+                    "range_from": "",
+                    "range_to": "",
                 }
                 ctx["ttv2_counselors_focus_id"] = None
                 ctx["ttv2_counselors_scorecard"] = None

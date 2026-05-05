@@ -59,6 +59,7 @@
 <script src="{{ staticv('js_new/student_table_ajax.js') }}"></script>
 
 {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute' %}
+  <script src="{{ staticv('js_new/ttv2_institute_counselors_page.js') }}"></script>
   {% include "template_v2/institute/institute_embed_runtime.html" %}
   {% include "template_v2/institute/institute_dashboard_panel_bridge.html" %}
   {% include "template_v2/includes/role_boot/institute.html" %}

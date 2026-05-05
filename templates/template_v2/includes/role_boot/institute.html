@@ -209,6 +209,11 @@
           window.ttv2InitInstituteLegacyCharts();
         }
       } catch (e) {}
+      try {
+        if (typeof window.ttv2InitInstituteCounselorsPage === 'function') {
+          window.ttv2InitInstituteCounselorsPage();
+        }
+      } catch (eC) {}
 
       // Optional deep link scroll (legacy)
       try {

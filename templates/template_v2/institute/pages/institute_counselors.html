@@ -180,6 +180,68 @@
       position: relative;
       height: 240px;
     }
+    #sec-institute-counselors .ttv2-cc-toolbar .form-select,
+    #sec-institute-counselors .ttv2-cc-toolbar input[type="date"] {
+      max-width: 160px;
+    }
+    #sec-institute-counselors .ttv2-cc-mini-table {
+      font-size: 13px;
+    }
+    #sec-institute-counselors .ttv2-cc-mini-table thead th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      color: var(--c-text3);
+      border-bottom: 1px solid rgba(148, 163, 184, .22);
+    }
+    #sec-institute-counselors .ttv2-cc-charts-refresh-wrap {
+      position: relative;
+    }
+    #sec-institute-counselors .ttv2-cc-refresh-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
+    }
+    #sec-institute-counselors .ttv2-cc-charts-refresh-wrap.ttv2-cc--refreshing .ttv2-cc-refresh-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    #sec-institute-counselors .ttv2-cc-refresh-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c-text1, #e2e8f0);
+      background: rgba(30, 41, 59, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+    #sec-institute-counselors .ttv2-cc-refresh-spin {
+      width: 1.1rem;
+      height: 1.1rem;
+      border: 2px solid rgba(99, 102, 241, 0.25);
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: ttv2-cc-spin 0.7s linear infinite;
+    }
+    @keyframes ttv2-cc-spin {
+      to { transform: rotate(360deg); }
+    }
     #sec-institute-counselors .ttv2-sc-badge {
       font-size: 11px;
       font-weight: 700;
@@ -296,8 +358,10 @@
   </div>
 
   {# Screen 1: Counselor roster + session activity + coverage (DB) #}
-  {% set roster = (ttv2_counselors_roster if ttv2_counselors_roster is defined else []) %}
-  {% set _charts = (ttv2_counselors_charts if ttv2_counselors_charts is defined else {}) %}
+  {% set roster = (ttv2_counselors_roster|default([], true)) %}
+  {# default(..., true): treat None / missing as empty so charts JSON always has structure for Chart.js #}
+  {% set _charts = (ttv2_counselors_charts|default({}, true)) %}
+  {% set _cc = (ttv2_counselors_chart_controls|default({}, true)) %}
   {% set _sc = (ttv2_counselors_scorecard if ttv2_counselors_scorecard is defined else None) %}
   {% set _focus = (ttv2_counselors_focus_id if ttv2_counselors_focus_id is defined else None) %}
 
@@ -312,7 +376,7 @@
           <label class="ttv2-muted mb-0" for="ttv2CounselorFocusSelect">Charts &amp; scorecard</label>
           <select id="ttv2CounselorFocusSelect" class="form-select form-select-sm" style="min-width:200px;max-width:280px">
             {% for r in roster %}
-              <option value="{{ r.id }}" {% if _focus and r.id == _focus %}selected{% endif %}>{{ r.email }}</option>
+              <option value="{{ r.id }}" {% if _focus and r.id == _focus %}selected{% endif %}>{{ r.label|default(r.email) }}</option>
             {% endfor %}
           </select>
         </div>
@@ -328,7 +392,7 @@
               <th class="text-end text-nowrap">Students covered</th>
               <th class="text-end text-nowrap">Students counselled</th>
               <th class="text-end text-nowrap">Follow-ups</th>
-              <th class="text-end text-nowrap">Avg session</th>
+              <th class="text-end text-nowrap" title="Mean minutes between consecutive logged follow-ups for this counselor.">Avg gap</th>
               <th class="text-nowrap">Status</th>
             </tr>
           </thead>
@@ -351,28 +415,121 @@
       </div>
     </div>
 
+    <div id="ttv2CounselorsChartsRefreshWrap" class="ttv2-cc-charts-refresh-wrap" aria-live="polite">
+    <div class="d-flex flex-wrap align-items-end gap-2 mb-2 ttv2-cc-toolbar">
+      <div>
+        <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsRange">Chart period</label>
+        <select id="ttv2CounselorsRange" class="form-select form-select-sm" aria-label="Chart date range">
+          {% set _rk = (_cc.get('range_key') or '30d') %}
+          <option value="today" {% if _rk == 'today' %}selected{% endif %}>Today</option>
+          <option value="week" {% if _rk == 'week' %}selected{% endif %}>Last 7 days</option>
+          <option value="30d" {% if _rk == '30d' %}selected{% endif %}>Last 30 days</option>
+          <option value="year" {% if _rk == 'year' %}selected{% endif %}>Last 365 days</option>
+          <option value="custom" {% if _rk == 'custom' %}selected{% endif %}>Custom range</option>
+        </select>
+      </div>
+      <div id="ttv2CounselorsCustomDates" class="d-flex flex-wrap align-items-end gap-2 {% if _rk != 'custom' %}d-none{% endif %}">
+        <div>
+          <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsFrom">From</label>
+          <input type="date" id="ttv2CounselorsFrom" class="form-control form-control-sm" value="{{ (_cc.get('from_iso') or '')[:10] }}" />
+        </div>
+        <div>
+          <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsTo">To</label>
+          <input type="date" id="ttv2CounselorsTo" class="form-control form-control-sm" value="{{ (_cc.get('to_iso') or '')[:10] }}" />
+        </div>
+        <button type="button" class="btn btn-sm btn-primary" id="ttv2CounselorsRangeApply">Apply</button>
+      </div>
+    </div>
+
     <div class="row g-3 mb-3">
       <div class="col-12 col-xl-7">
         <div class="ttv2-card h-100">
-          <div class="card-title mb-1">{{ (_charts.get('line') or {}).get('title', 'Session activity') }}</div>
-          <div class="ttv2-section-sub">Follow-up rows by session day (this calendar month) · {{ (_charts.get('focus_name') or '') }}</div>
-          <div class="ttv2-canvas-box mt-2">
-            <canvas id="ttv2CounselorsLine" aria-label="Session activity chart"></canvas>
+          <div class="ttv2-card-title-row align-items-start">
+            <div class="min-w-0">
+              <div class="card-title mb-1">{{ (_charts.get('line') or {}).get('title', 'Session activity') }}</div>
+              <div class="ttv2-section-sub">
+                Follow-up rows by session day · {{ (_charts.get('line') or {}).get('subtitle', '') }} · {{ (_charts.get('focus_name') or '') }}
+              </div>
+            </div>
+            <div class="btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Session activity view">
+              <button type="button" class="btn btn-outline-secondary active" title="Chart" data-ttv2-cc-view data-ccard-body="ttv2-ccard-sess-line" data-view="chart" aria-pressed="true">
+                <i class="bx bx-line-chart" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" title="Table" data-ttv2-cc-view data-ccard-body="ttv2-ccard-sess-line" data-view="table" aria-pressed="false">
+                <i class="bx bx-table" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <div id="ttv2-ccard-sess-line" class="mt-2">
+            <div class="ttv2-ccard-view-chart ttv2-canvas-box">
+              <canvas id="ttv2CounselorsLine" aria-label="Session activity chart"></canvas>
+            </div>
+            <div class="ttv2-ccard-view-table d-none">
+              <div class="table-responsive ttv2-lb-wrap">
+                <table class="table table-sm mb-0 ttv2-cc-mini-table">
+                  <thead><tr><th>Period</th><th class="text-end">Follow-ups</th></tr></thead>
+                  <tbody>
+                    {% for row in (_charts.get('line_table') or []) %}
+                      <tr><td>{{ row.period }}</td><td class="text-end ttv2-num">{{ row.count }}</td></tr>
+                    {% else %}
+                      <tr><td colspan="2" class="text-muted" style="font-size:12px;">No rows in this period.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div class="col-12 col-xl-5">
         <div class="ttv2-card h-100">
-          <div class="card-title mb-1">Student coverage</div>
-          <div class="ttv2-section-sub">Distinct students with completed follow-ups vs assigned roster (selected counselor).</div>
-          <div class="ttv2-canvas-box mt-2">
-            <canvas id="ttv2CounselorsDonut" aria-label="Student coverage chart"></canvas>
+          <div class="ttv2-card-title-row align-items-start">
+            <div class="min-w-0">
+              <div class="card-title mb-1">Student coverage</div>
+              <div class="ttv2-section-sub">
+                Distinct students with completed follow-ups in the selected period vs assigned roster · {{ (_charts.get('focus_name') or '') }}.
+              </div>
+            </div>
+            <div class="btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Coverage view">
+              <button type="button" class="btn btn-outline-secondary active" title="Chart" data-ttv2-cc-view data-ccard-body="ttv2-ccard-cov-donut" data-view="chart" aria-pressed="true">
+                <i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" title="Table" data-ttv2-cc-view data-ccard-body="ttv2-ccard-cov-donut" data-view="table" aria-pressed="false">
+                <i class="bx bx-table" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <div id="ttv2-ccard-cov-donut" class="mt-2">
+            <div class="ttv2-ccard-view-chart ttv2-canvas-box">
+              <canvas id="ttv2CounselorsDonut" aria-label="Student coverage chart"></canvas>
+            </div>
+            <div class="ttv2-ccard-view-table d-none">
+              <div class="table-responsive ttv2-lb-wrap">
+                <table class="table table-sm mb-0 ttv2-cc-mini-table">
+                  <thead><tr><th>Segment</th><th class="text-end">Students</th></tr></thead>
+                  <tbody>
+                    {% for row in (_charts.get('donut_table') or []) %}
+                      <tr><td>{{ row.segment }}</td><td class="text-end ttv2-num">{{ row.count }}</td></tr>
+                    {% else %}
+                      <tr><td colspan="2" class="text-muted" style="font-size:12px;">No coverage data.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="ttv2-cc-refresh-overlay" aria-hidden="true">
+      <div class="ttv2-cc-refresh-inner">
+        <span class="ttv2-cc-refresh-spin" aria-hidden="true"></span>
+        <span class="ttv2-cc-refresh-label">Updating charts…</span>
+      </div>
+    </div>
+    </div>
 
-    <script type="application/json" id="ttv2-counselors-charts-payload">{{ (_charts or {})|tojson }}</script>
+    <script type="application/json" id="ttv2-counselors-charts-payload">{{ _charts|tojson }}</script>
 
     {% if _sc and _sc.rows %}
       <div class="ttv2-card mb-3">
