@@ -265,7 +265,7 @@ body.student-dashboard-shell .student-dash-sidebar-col > .profile-sidebar
 /* ─────────────────────────────────────────────────────────
    BUILDER
 ───────────────────────────────────────────────────────── */
-#pg-build { padding:76px 0 100px; }
+/* #pg-build { padding:76px 0 100px; } */
 .bld-wrap {  margin:0 auto; padding:0 18px; }
 .bld-wrap.bld-wrap--wide { max-width: min(1480px, calc(100vw - 40px)); }
 
@@ -772,9 +772,9 @@ html[data-theme="light"] .tpltile-mock--none{
 }
 
 /* Add room so sticky nav never overlaps the last card */
-.spanel {
+/* .spanel {
   padding-bottom: 110px;
-}
+} */
 
 /* Make finish actions feel like a clear final CTA area */
 #gen-preview-wrap {

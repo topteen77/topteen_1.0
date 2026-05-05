@@ -27,7 +27,14 @@
   .lsd-btn-outline { border-color: #d1d5db; background: #ffffff; color: #374151; }
   .lsd-btn-outline:hover { border-color: #4b5563; background: #f9fafb; }
   .lsd-btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
-  .lsd-wizard-card { background: #ffffff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); margin-bottom: 20px; }
+  .lsd-main-area { margin-bottom: 20px; }
+  .lsd-tabs-row { display: flex; gap: 8px; margin-bottom: 14px; padding: 4px; border-radius: 14px; background: #eef2ff; border: 1px solid #e0e7ff; }
+  .lsd-tab { flex: 1; border: none; border-radius: 12px; padding: 12px 16px; font-size: 15px; font-weight: 600; cursor: pointer; background: transparent; color: #6b7280; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+  .lsd-tab:hover:not(:disabled) { color: #4338ca; background: rgba(255, 255, 255, 0.6); }
+  .lsd-tab.lsd-tab-active { background: #ffffff; color: #4338ca; box-shadow: 0 2px 12px rgba(79, 70, 229, 0.15); }
+  .lsd-tab:disabled { opacity: 0.45; cursor: not-allowed; color: #9ca3af; }
+  .lsd-tab-panel { margin-bottom: 0; }
+  .lsd-wizard-card { background: #ffffff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08); margin-bottom: 0; }
   .lsd-progress-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
   .progress.lsd-progress { height: 8px; border-radius: 999px; background: #e5e7eb; margin-bottom: 12px; overflow: hidden; }
   .lsd-progress .progress-bar { background: linear-gradient(90deg, #4F46E5 0%, #38BDF8 100%); }
@@ -132,100 +139,108 @@
       </button>
     </div>
 
-    <!-- 60-question wizard -->
-    <div class="lsd-wizard-card" id="lsdWizardCard" style="display:none;">
-      <div class="lsd-progress-label">
-        <span id="lsdProgressLabel">Question 1 of 60</span>
+    <!-- Questions + Results (tabbed after Start Test) -->
+    <div class="lsd-main-area" id="lsdMainArea" style="display:none;">
+      <div class="lsd-tabs-row" role="tablist" aria-label="Test sections">
+        <button type="button" class="lsd-tab lsd-tab-active" id="lsdTabQuestions" role="tab" aria-selected="true" aria-controls="lsdPanelQuestions">Questions</button>
+        <button type="button" class="lsd-tab" id="lsdTabResults" role="tab" aria-selected="false" aria-controls="lsdPanelResults" disabled aria-disabled="true">Results</button>
       </div>
-      <div class="progress lsd-progress">
-        <div class="progress-bar" id="lsdProgressBar" role="progressbar" style="width: 2%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <div class="lsd-question-nav">
-        <div class="lsd-question-nav-label">Quick question navigator</div>
-        <div class="lsd-question-nav-buttons" id="lsdQuestionNav"></div>
-      </div>
-      <div id="lsdQuestionContainer"></div>
-      <div id="lsdValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
-      <div class="lsd-wizard-footer">
-        <div class="lsd-complete-badge" id="lsdCompleteBadge">
-          <i class='bx bx-check-circle'></i>
-          <span>All questions answered! You can submit your test.</span>
-        </div>
-        <div class="lsd-wizard-buttons">
-          <button type="button" class="lsd-btn lsd-btn-outline" id="lsdPrevBtn">
-            <i class='bx bx-chevron-left'></i>
-            Previous
-          </button>
-          <button type="button" class="lsd-btn lsd-btn-primary" id="lsdNextBtn">
-            Next
-            <i class='bx bx-chevron-right'></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Results section -->
-    <div class="lsd-results-section" id="lsdResultsSection" style="display:none;">
-      <div class="lsd-results-card">
-        <div id="lsdResultSummary">
-          <p class="lsd-results-summary mb-1">
-            Complete all 60 questions and submit your test to see your personalised learning style summary here.
-          </p>
-        </div>
-      </div>
-      <div class="lsd-results-card">
-        <div class="lsd-guide-title">
-          <i class='bx bx-bar-chart-alt-2'></i>
-          <span>How to Read Your Results</span>
-        </div>
-        <p class="lsd-guide-text">
-          This test is based on four classic learning preferences. Your result depends on which option letter (A, B, C, or D) you chose most often across the 60 questions.
-        </p>
-        <p class="lsd-guide-text">
-          After you finish, the test will count your answers for each letter and highlight your strongest learning style. You can also look at your second-highest letter to understand your secondary style.
-        </p>
-        <div class="lsd-style-grid">
-          <div class="lsd-style-card a">
-            <div class="lsd-style-card-icon"><i class='bx bx-image'></i></div>
-            <div class="lsd-style-card-title">Mostly A's: Visual Learner</div>
-            <div class="lsd-style-card-tag">You learn best with pictures, diagrams, charts, and videos.</div>
+      <div class="lsd-tab-panel" id="lsdPanelQuestions" role="tabpanel" aria-labelledby="lsdTabQuestions">
+        <div class="lsd-wizard-card" id="lsdWizardCard">
+          <div class="lsd-progress-label">
+            <span id="lsdProgressLabel">Question 1 of 60</span>
           </div>
-          <div class="lsd-style-card b">
-            <div class="lsd-style-card-icon"><i class='bx bx-microphone'></i></div>
-            <div class="lsd-style-card-title">Mostly B's: Auditory / Social Learner</div>
-            <div class="lsd-style-card-tag">You learn best by listening, discussing, and talking things through.</div>
+          <div class="progress lsd-progress">
+            <div class="progress-bar" id="lsdProgressBar" role="progressbar" style="width: 2%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
           </div>
-          <div class="lsd-style-card c">
-            <div class="lsd-style-card-icon"><i class='bx bx-book-open'></i></div>
-            <div class="lsd-style-card-title">Mostly C's: Reading / Writing Learner</div>
-            <div class="lsd-style-card-tag">You learn best with written words—reading, note-taking, and lists.</div>
+          <div class="lsd-question-nav">
+            <div class="lsd-question-nav-label">Quick question navigator</div>
+            <div class="lsd-question-nav-buttons" id="lsdQuestionNav"></div>
           </div>
-          <div class="lsd-style-card d">
-            <div class="lsd-style-card-icon"><i class='bx bx-run'></i></div>
-            <div class="lsd-style-card-title">Mostly D's: Kinesthetic Learner</div>
-            <div class="lsd-style-card-tag">You learn best by doing, moving, building, and hands-on practice.</div>
-          </div>
-        </div>
-        <p class="lsd-guide-text" style="margin-top: 12px;">
-          Many students are a <strong>mix of two or more styles</strong>. Use your top one or two styles as a guide to choose study methods, classroom strategies, and activities that match how you naturally learn.
-        </p>
-      </div>
-      <div class="lsd-download-card">
-        <div class="lsd-download-header">
-          <div class="lsd-download-icon"><i class='bx bx-download'></i></div>
-          <div>
-            <div class="lsd-download-title">Download Your Self-Assessment Guides</div>
-            <div class="lsd-download-text">
-              Use these printable guides to review your results, reflect on your strengths, and plan next steps with a teacher, mentor, or parent.
+          <div id="lsdQuestionContainer"></div>
+          <div id="lsdValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
+          <div class="lsd-wizard-footer">
+            <div class="lsd-complete-badge" id="lsdCompleteBadge">
+              <i class='bx bx-check-circle'></i>
+              <span>All questions answered! Open the Results tab to see your summary.</span>
+            </div>
+            <div class="lsd-wizard-buttons px-5">
+              <button type="button" class="lsd-btn lsd-btn-outline" id="lsdPrevBtn">
+                <i class='bx bx-chevron-left'></i>
+                Previous
+              </button>
+              <button type="button" class="lsd-btn lsd-btn-primary" id="lsdNextBtn">
+                Next
+                <i class='bx bx-chevron-right'></i>
+              </button>
             </div>
           </div>
         </div>
-        <div class="lsd-download-buttons">
-          <a href="#" class="lsd-download-btn lsd-primary-download" id="lsdReportDownload"> <i class='bx bx-file-blank'></i> <span>Download Student Report (PDF)</span> </a>
-          <a href="/static/mi-pdf/Scoring-Method.pdf" class="lsd-download-btn" id="lsdScoringDownload"> <i class='bx bx-list-check'></i> <span>Download Scoring Method (PDF)</span> </a>
-          <a href="/static/mi-pdf/Learning-Style-Reports-for-Students.pdf" class="lsd-download-btn" id="lsdLearningStyleDownload"> <i class='bx bx-book-reader'></i> <span>Download Learning Style Report (PDF)</span> </a>
+      </div>
+      <div class="lsd-tab-panel" id="lsdPanelResults" role="tabpanel" aria-labelledby="lsdTabResults" hidden>
+        <div class="lsd-results-section" id="lsdResultsSection">
+          <div class="lsd-results-card">
+            <div id="lsdResultSummary">
+              <p class="lsd-results-summary mb-1">
+                Answer all 60 questions, then open this tab to see your personalised learning style summary.
+              </p>
+            </div>
+          </div>
+          <div class="lsd-results-card">
+            <div class="lsd-guide-title">
+              <i class='bx bx-bar-chart-alt-2'></i>
+              <span>How to Read Your Results</span>
+            </div>
+            <p class="lsd-guide-text">
+              This test is based on four classic learning preferences. Your result depends on which option letter (A, B, C, or D) you chose most often across the 60 questions.
+            </p>
+            <p class="lsd-guide-text">
+              After you finish, the test will count your answers for each letter and highlight your strongest learning style. You can also look at your second-highest letter to understand your secondary style.
+            </p>
+            <div class="lsd-style-grid">
+              <div class="lsd-style-card a">
+                <div class="lsd-style-card-icon"><i class='bx bx-image'></i></div>
+                <div class="lsd-style-card-title">Mostly A's: Visual Learner</div>
+                <div class="lsd-style-card-tag">You learn best with pictures, diagrams, charts, and videos.</div>
+              </div>
+              <div class="lsd-style-card b">
+                <div class="lsd-style-card-icon"><i class='bx bx-microphone'></i></div>
+                <div class="lsd-style-card-title">Mostly B's: Auditory / Social Learner</div>
+                <div class="lsd-style-card-tag">You learn best by listening, discussing, and talking things through.</div>
+              </div>
+              <div class="lsd-style-card c">
+                <div class="lsd-style-card-icon"><i class='bx bx-book-open'></i></div>
+                <div class="lsd-style-card-title">Mostly C's: Reading / Writing Learner</div>
+                <div class="lsd-style-card-tag">You learn best with written words—reading, note-taking, and lists.</div>
+              </div>
+              <div class="lsd-style-card d">
+                <div class="lsd-style-card-icon"><i class='bx bx-run'></i></div>
+                <div class="lsd-style-card-title">Mostly D's: Kinesthetic Learner</div>
+                <div class="lsd-style-card-tag">You learn best by doing, moving, building, and hands-on practice.</div>
+              </div>
+            </div>
+            <p class="lsd-guide-text" style="margin-top: 12px;">
+              Many students are a <strong>mix of two or more styles</strong>. Use your top one or two styles as a guide to choose study methods, classroom strategies, and activities that match how you naturally learn.
+            </p>
+          </div>
+          <div class="lsd-download-card">
+            <div class="lsd-download-header">
+              <div class="lsd-download-icon"><i class='bx bx-download'></i></div>
+              <div>
+                <div class="lsd-download-title">Download Your Self-Assessment Guides</div>
+                <div class="lsd-download-text">
+                  Use these printable guides to review your results, reflect on your strengths, and plan next steps with a teacher, mentor, or parent.
+                </div>
+              </div>
+            </div>
+            <div class="lsd-download-buttons">
+              <a href="#" class="lsd-download-btn lsd-primary-download" id="lsdReportDownload"> <i class='bx bx-file-blank'></i> <span>Download Student Report (PDF)</span> </a>
+              <a href="/static/mi-pdf/Scoring-Method.pdf" class="lsd-download-btn" id="lsdScoringDownload"> <i class='bx bx-list-check'></i> <span>Download Scoring Method (PDF)</span> </a>
+              <a href="/static/mi-pdf/Learning-Style-Reports-for-Students.pdf" class="lsd-download-btn" id="lsdLearningStyleDownload"> <i class='bx bx-book-reader'></i> <span>Download Learning Style Report (PDF)</span> </a>
+            </div>
+            <div class="lsd-download-note">Note: Downloads are enabled after you complete all 60 questions and view your results.</div>
+          </div>
         </div>
-        <div class="lsd-download-note">Note: Downloads are enabled after you complete and submit all 60 questions.</div>
       </div>
     </div>
   </div>
@@ -325,7 +340,11 @@
 
   const introCard = document.getElementById("lsdIntroCard");
   const startBtn = document.getElementById("lsdStartBtn");
-  const wizardCard = document.getElementById("lsdWizardCard");
+  const mainArea = document.getElementById("lsdMainArea");
+  const tabQuestions = document.getElementById("lsdTabQuestions");
+  const tabResults = document.getElementById("lsdTabResults");
+  const panelQuestions = document.getElementById("lsdPanelQuestions");
+  const panelResults = document.getElementById("lsdPanelResults");
   const progressLabel = document.getElementById("lsdProgressLabel");
   const progressBar = document.getElementById("lsdProgressBar");
   const questionContainer = document.getElementById("lsdQuestionContainer");
@@ -380,6 +399,38 @@
   for (var _k in savedAnswers) answers[_k] = savedAnswers[_k];
   let testCompleted = false;
   let lastResultData = null;
+  let activeTabId = "questions";
+
+  function setActiveTab(which) {
+    activeTabId = which;
+    if (!tabQuestions || !tabResults || !panelQuestions || !panelResults) return;
+    if (which === "questions") {
+      tabQuestions.classList.add("lsd-tab-active");
+      tabResults.classList.remove("lsd-tab-active");
+      tabQuestions.setAttribute("aria-selected", "true");
+      tabResults.setAttribute("aria-selected", "false");
+      panelQuestions.hidden = false;
+      panelResults.hidden = true;
+    } else {
+      tabResults.classList.add("lsd-tab-active");
+      tabQuestions.classList.remove("lsd-tab-active");
+      tabResults.setAttribute("aria-selected", "true");
+      tabQuestions.setAttribute("aria-selected", "false");
+      panelQuestions.hidden = true;
+      panelResults.hidden = false;
+    }
+  }
+
+  function syncResultsTabEnabledState() {
+    var allAnswered = Object.keys(answers).length === questions.length;
+    if (tabResults) {
+      tabResults.disabled = !allAnswered;
+      tabResults.setAttribute("aria-disabled", allAnswered ? "false" : "true");
+    }
+    if (!allAnswered && activeTabId === "results") {
+      setActiveTab("questions");
+    }
+  }
 
   function updateProgress() {
     const total = questions.length;
@@ -393,6 +444,7 @@
     } else {
       completeBadge.classList.remove("lsd-visible");
     }
+    syncResultsTabEnabledState();
   }
 
   function renderQuestionNav() {
@@ -516,14 +568,14 @@
     resultSummary.appendChild(typeEl);
     resultSummary.appendChild(summaryEl);
     resultSummary.appendChild(countsEl);
-    resultsSection.style.display = "block";
     testCompleted = true;
     lastResultData = { styleName: styleName, styleSummary: styleSummary, counts: counts };
     reportDownload.classList.add("lsd-primary-download");
     reportDownload.removeAttribute("aria-disabled");
     scoringDownload.removeAttribute("aria-disabled");
     if (learningStyleDownload) learningStyleDownload.removeAttribute("aria-disabled");
-    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveTab("results");
+    if (panelResults) panelResults.scrollIntoView({ behavior: "smooth", block: "start" });
     if (miConfig.saveUrl && miConfig.csrfToken) {
       fetch(miConfig.saveUrl, {
         method: "POST",
@@ -654,13 +706,14 @@
     resultSummary.appendChild(typeEl);
     resultSummary.appendChild(summaryEl);
     resultSummary.appendChild(countsEl);
-    resultsSection.style.display = "block";
     testCompleted = true;
     lastResultData = { styleName: saved.style_name, styleSummary: saved.style_summary || "", counts: counts };
     reportDownload.classList.add("lsd-primary-download");
     reportDownload.removeAttribute("aria-disabled");
     scoringDownload.removeAttribute("aria-disabled");
     if (learningStyleDownload) learningStyleDownload.removeAttribute("aria-disabled");
+    syncResultsTabEnabledState();
+    setActiveTab("results");
   }
 
   var savedResultEl = document.getElementById("saved-mi-result");
@@ -669,7 +722,7 @@
       var savedResult = JSON.parse(savedResultEl.textContent);
       if (savedResult && savedResult.style_name && savedResult.counts && Object.keys(answers).length === 60) {
         introCard.style.display = "none";
-        wizardCard.style.display = "block";
+        if (mainArea) mainArea.style.display = "block";
         renderQuestionNav();
         renderQuestion();
         updateProgress();
@@ -678,10 +731,27 @@
     } catch (e) {}
   }
 
+  if (tabQuestions) {
+    tabQuestions.addEventListener("click", function() {
+      setActiveTab("questions");
+    });
+  }
+  if (tabResults) {
+    tabResults.addEventListener("click", function() {
+      if (tabResults.disabled) return;
+      if (Object.keys(answers).length === questions.length && !testCompleted) {
+        buildResults();
+        return;
+      }
+      setActiveTab("results");
+    });
+  }
+
   if (startBtn) {
     startBtn.addEventListener("click", function() {
       introCard.style.display = "none";
-      wizardCard.style.display = "block";
+      if (mainArea) mainArea.style.display = "block";
+      setActiveTab("questions");
       renderQuestionNav();
       renderQuestion();
       updateProgress();

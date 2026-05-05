@@ -27,10 +27,23 @@
   .lsd-btn-outline { border-color: #d1d5db; background: #fff; color: #374151; }
   .lsd-btn-outline:hover { border-color: #4b5563; background: #f9fafb; }
   .lsd-btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
-  .lsd-wizard-card { background: #fff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 20px; }
+  .lsd-main-area { margin-bottom: 20px; }
+  .lsd-tabs-row { display: flex; gap: 8px; margin-bottom: 14px; padding: 4px; border-radius: 14px; background: #eef2ff; border: 1px solid #e0e7ff; }
+  .lsd-tab { flex: 1; border: none; border-radius: 12px; padding: 12px 16px; font-size: 15px; font-weight: 600; cursor: pointer; background: transparent; color: #6b7280; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+  .lsd-tab:hover:not(:disabled) { color: #4338ca; background: rgba(255, 255, 255, 0.6); }
+  .lsd-tab.lsd-tab-active { background: #ffffff; color: #4338ca; box-shadow: 0 2px 12px rgba(79, 70, 229, 0.15); }
+  .lsd-tab:disabled { opacity: 0.45; cursor: not-allowed; color: #9ca3af; }
+  .lsd-tab-panel { margin-bottom: 0; }
+  .lsd-wizard-card { background: #fff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 0; }
   .lsd-progress-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
   .progress.lsd-progress { height: 8px; border-radius: 999px; background: #e5e7eb; margin-bottom: 12px; overflow: hidden; }
   .lsd-progress .progress-bar { background: linear-gradient(90deg, #4F46E5 0%, #38BDF8 100%); }
+  .lsd-question-nav { margin-bottom: 14px; overflow: hidden; }
+  .lsd-question-nav-label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+  .lsd-question-nav-buttons { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .lsd-question-nav-btn { width: 30px; height: 30px; border-radius: 999px; border: 1px solid #e5e7eb; background: #ffffff; font-size: 12px; color: #4b5563; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; flex: 0 0 auto; }
+  .lsd-question-nav-btn.lsd-current { border-color: #4F46E5; }
+  .lsd-question-nav-btn.lsd-answered { background: #4F46E5; color: #ffffff; border-color: #4F46E5; }
   .lsd-question-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
   .lsd-question-text { font-size: 15px; color: #4b5563; margin-bottom: 16px; }
   .lsd-option-btn { width: 100%; text-align: left; border-radius: 14px; border: 2px solid #e5e7eb; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: #fff; cursor: pointer; transition: all 0.25s ease; font-size: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
@@ -103,7 +116,7 @@
         Some items are <strong>reverse scored</strong>, which simply means that higher agreement lowers the score for that area. The system handles this automatically when calculating your results.
       </p>
       <p class="lsd-intro-note">
-        When you are ready, click <strong>Start Test</strong>. You will move through the six levels one screen at a time, and at the end you'll see a full scoring breakdown and can download your scoring report.
+        When you are ready, click <strong>Start Test</strong>. Use the <strong>Questions</strong> and <strong>Results</strong> tabs and the level navigator to move between sections. After all 36 statements are answered, open the <strong>Results</strong> tab for your scoring summary and download.
       </p>
       <button type="button" class="lsd-btn lsd-btn-primary" id="eiStartBtn">
         Start Test
@@ -111,74 +124,92 @@
       </button>
     </div>
 
-    <div class="lsd-wizard-card" id="eiAssessmentCard" style="display:none;">
-      <div class="lsd-progress-label">
-        <span id="eiProgressLabel">Level 1 of 6 • Self-Awareness &amp; Self-Esteem (SA)</span>
+    <div class="lsd-main-area" id="eiMainArea" style="display:none;">
+      <div class="lsd-tabs-row" role="tablist" aria-label="Assessment sections">
+        <button type="button" class="lsd-tab lsd-tab-active" id="eiTabQuestions" role="tab" aria-selected="true" aria-controls="eiPanelQuestions">Questions</button>
+        <button type="button" class="lsd-tab" id="eiTabResults" role="tab" aria-selected="false" aria-controls="eiPanelResults" disabled aria-disabled="true">Results</button>
       </div>
-      <div class="progress lsd-progress">
-        <div class="progress-bar" id="eiProgressBar" role="progressbar" style="width: 16%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <div id="eiLevelContainer"></div>
-      <div id="eiValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
-      <div class="lsd-wizard-footer">
-        <div class="lsd-complete-badge" id="eiCompleteBadge">
-          <i class='bx bx-check-circle'></i>
-          <span>All levels completed! You can view your full EQ scoring.</span>
-        </div>
-        <div class="lsd-wizard-buttons">
-          <button type="button" class="lsd-btn lsd-btn-outline" id="eiPrevBtn">
-            <i class='bx bx-chevron-left'></i>
-            Previous Level
-          </button>
-          <button type="button" class="lsd-btn lsd-btn-primary" id="eiNextBtn">
-            <span>Next Level</span>
-            <i class='bx bx-chevron-right'></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="lsd-results-section" id="eiResultsSection" style="display:none;">
-      <div class="lsd-results-card">
-        <div class="lsd-results-badge">
-          <i class='bx bx-bar-chart-alt-2'></i>
-          <span>Your Emotional Intelligence Scoring Summary</span>
-        </div>
-        <div class="lsd-results-type">Your EQ Profile</div>
-        <div id="eiResultsSummary"></div>
-      </div>
-      <div class="lsd-results-card">
-        <div class="lsd-guide-title">
-          <i class='bx bx-help-circle'></i>
-          <span>How the Scoring System Works</span>
-        </div>
-        <p class="lsd-guide-text">
-          Your emotional intelligence score is built from six subscales. Each subscale contains six statements rated from 1–5. Some items are reverse scored (higher agreement reduces the score). The system converts your answers to subscale scores between 6 and 30.
-        </p>
-        <p class="lsd-guide-text">
-          After calculating subscale scores, weights are applied to create a composite EQ score: SA × 1.0, SC × 1.3, EM × 1.2, CR × 1.1, SM × 1.2, AC × 1.0. From there we also compute a <strong>Profile Balance Index (PBI)</strong>, <strong>Intrapersonal EQ</strong>, <strong>Interpersonal EQ</strong>, and <strong>Adaptive EQ</strong>.
-        </p>
-        <p class="lsd-guide-text" style="margin-top: 12px;">
-          Interpretation bands for the composite EQ score: ≥ 160 = Exceptional (Top 10%), 140–159 = High (65–89th %ile), 115–139 = Average (35–64th %ile), 95–114 = Low (15–34th %ile), ≤ 94 = Very Low (Bottom 14%).
-        </p>
-      </div>
-      <div class="lsd-download-card">
-        <div class="lsd-download-header">
-          <div class="lsd-download-icon"><i class='bx bx-download'></i></div>
-          <div>
-            <div class="lsd-download-title">Download Your Scoring System &amp; Results</div>
-            <div class="lsd-download-text">
-              Download a personalised scoring report showing all subscale scores, weighted scores, composite EQ, balance index, and cluster indices. You can share or print this for coaching, counseling, or personal reflection.
+      <div class="lsd-tab-panel" id="eiPanelQuestions" role="tabpanel" aria-labelledby="eiTabQuestions">
+        <div class="lsd-wizard-card" id="eiAssessmentCard">
+          <div class="lsd-progress-label">
+            <span id="eiProgressLabel">Level 1 of 6 • Self-Awareness &amp; Self-Esteem (SA)</span>
+          </div>
+          <div class="progress lsd-progress">
+            <div class="progress-bar" id="eiProgressBar" role="progressbar" style="width: 16%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="lsd-question-nav">
+            <div class="lsd-question-nav-label">Quick level navigator (1–6)</div>
+            <div class="lsd-question-nav-buttons" id="eiLevelNav"></div>
+          </div>
+          <div id="eiLevelContainer"></div>
+          <div id="eiValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
+          <div class="lsd-wizard-footer">
+            <div class="lsd-complete-badge" id="eiCompleteBadge">
+              <i class='bx bx-check-circle'></i>
+              <span>All statements answered! Open the Results tab to see your summary.</span>
+            </div>
+            <div class="lsd-wizard-buttons px-5">
+              <button type="button" class="lsd-btn lsd-btn-outline" id="eiPrevBtn">
+                <i class='bx bx-chevron-left'></i>
+                Previous Level
+              </button>
+              <button type="button" class="lsd-btn lsd-btn-primary" id="eiNextBtn">
+                <span>Next Level</span>
+                <i class='bx bx-chevron-right'></i>
+              </button>
             </div>
           </div>
         </div>
-        <div class="lsd-download-buttons">
-          <button type="button" class="lsd-download-btn lsd-primary-download" id="eiDownloadReportBtn">
-            <i class='bx bx-file-blank'></i>
-            <span>Download Scoring Report (PDF)</span>
-          </button>
+      </div>
+      <div class="lsd-tab-panel" id="eiPanelResults" role="tabpanel" aria-labelledby="eiTabResults" hidden>
+        <div class="lsd-results-section" id="eiResultsSection">
+          <div class="lsd-results-card">
+            <div id="eiResultIntro">
+              <p class="lsd-results-summary mb-1">
+                Answer all 36 statements across six levels, then open this tab to see your personalised EQ summary.
+              </p>
+            </div>
+            <div class="lsd-results-badge" id="eiResultsBadge" style="display:none;">
+              <i class='bx bx-bar-chart-alt-2'></i>
+              <span>Your Emotional Intelligence Scoring Summary</span>
+            </div>
+            <div class="lsd-results-type" id="eiResultsTypeHeading" style="display:none;">Your EQ Profile</div>
+            <div id="eiResultsSummary"></div>
+          </div>
+          <div class="lsd-results-card">
+            <div class="lsd-guide-title">
+              <i class='bx bx-help-circle'></i>
+              <span>How the Scoring System Works</span>
+            </div>
+            <p class="lsd-guide-text">
+              Your emotional intelligence score is built from six subscales. Each subscale contains six statements rated from 1–5. Some items are reverse scored (higher agreement reduces the score). The system converts your answers to subscale scores between 6 and 30.
+            </p>
+            <p class="lsd-guide-text">
+              After calculating subscale scores, weights are applied to create a composite EQ score: SA × 1.0, SC × 1.3, EM × 1.2, CR × 1.1, SM × 1.2, AC × 1.0. From there we also compute a <strong>Profile Balance Index (PBI)</strong>, <strong>Intrapersonal EQ</strong>, <strong>Interpersonal EQ</strong>, and <strong>Adaptive EQ</strong>.
+            </p>
+            <p class="lsd-guide-text" style="margin-top: 12px;">
+              Interpretation bands for the composite EQ score: ≥ 160 = Exceptional (Top 10%), 140–159 = High (65–89th %ile), 115–139 = Average (35–64th %ile), 95–114 = Low (15–34th %ile), ≤ 94 = Very Low (Bottom 14%).
+            </p>
+          </div>
+          <div class="lsd-download-card">
+            <div class="lsd-download-header">
+              <div class="lsd-download-icon"><i class='bx bx-download'></i></div>
+              <div>
+                <div class="lsd-download-title">Download Your Scoring System &amp; Results</div>
+                <div class="lsd-download-text">
+                  Download a personalised scoring report showing all subscale scores, weighted scores, composite EQ, balance index, and cluster indices. You can share or print this for coaching, counseling, or personal reflection.
+                </div>
+              </div>
+            </div>
+            <div class="lsd-download-buttons">
+              <button type="button" class="lsd-download-btn lsd-primary-download" id="eiDownloadReportBtn">
+                <i class='bx bx-file-blank'></i>
+                <span>Download Scoring Report (PDF)</span>
+              </button>
+            </div>
+            <div class="lsd-download-note">Note: The download is available after your EQ summary has been calculated (all levels complete).</div>
+          </div>
         </div>
-        <div class="lsd-download-note">Note: The download button becomes active after you finish all six levels of the test.</div>
       </div>
     </div>
   </div>
@@ -266,17 +297,57 @@
 
   var introCard = document.getElementById("eiIntroCard");
   var startBtn = document.getElementById("eiStartBtn");
-  var assessmentCard = document.getElementById("eiAssessmentCard");
+  var mainArea = document.getElementById("eiMainArea");
+  var tabQuestions = document.getElementById("eiTabQuestions");
+  var tabResults = document.getElementById("eiTabResults");
+  var panelQuestions = document.getElementById("eiPanelQuestions");
+  var panelResults = document.getElementById("eiPanelResults");
+  var levelNav = document.getElementById("eiLevelNav");
   var progressLabel = document.getElementById("eiProgressLabel");
   var progressBar = document.getElementById("eiProgressBar");
   var levelContainer = document.getElementById("eiLevelContainer");
   var prevBtn = document.getElementById("eiPrevBtn");
   var nextBtn = document.getElementById("eiNextBtn");
   var completeBadge = document.getElementById("eiCompleteBadge");
-  var resultsSection = document.getElementById("eiResultsSection");
+  var resultIntro = document.getElementById("eiResultIntro");
+  var resultsBadgeEl = document.getElementById("eiResultsBadge");
+  var resultsTypeHeading = document.getElementById("eiResultsTypeHeading");
   var resultsSummary = document.getElementById("eiResultsSummary");
   var downloadBtn = document.getElementById("eiDownloadReportBtn");
   var validationEl = document.getElementById("eiValidationMessage");
+
+  var activeTabId = "questions";
+
+  function setActiveTab(which) {
+    activeTabId = which;
+    if (!tabQuestions || !tabResults || !panelQuestions || !panelResults) return;
+    if (which === "questions") {
+      tabQuestions.classList.add("lsd-tab-active");
+      tabResults.classList.remove("lsd-tab-active");
+      tabQuestions.setAttribute("aria-selected", "true");
+      tabResults.setAttribute("aria-selected", "false");
+      panelQuestions.hidden = false;
+      panelResults.hidden = true;
+    } else {
+      tabResults.classList.add("lsd-tab-active");
+      tabQuestions.classList.remove("lsd-tab-active");
+      tabResults.setAttribute("aria-selected", "true");
+      tabQuestions.setAttribute("aria-selected", "false");
+      panelQuestions.hidden = true;
+      panelResults.hidden = false;
+    }
+  }
+
+  function syncResultsTabEnabledState() {
+    var allAnswered = validateAllCompleted();
+    if (tabResults) {
+      tabResults.disabled = !allAnswered;
+      tabResults.setAttribute("aria-disabled", allAnswered ? "false" : "true");
+    }
+    if (!allAnswered && activeTabId === "results") {
+      setActiveTab("questions");
+    }
+  }
 
   function showValidation(message) {
     if (!validationEl) return;
@@ -321,6 +392,30 @@
   for (var _kr in savedResponses) responses[_kr] = savedResponses[_kr];
   var scoresCache = null;
 
+  function renderLevelNav() {
+    if (!levelNav) return;
+    levelNav.innerHTML = "";
+    for (var li = 0; li < levels.length; li++) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "lsd-question-nav-btn";
+      btn.textContent = String(li + 1);
+      btn.setAttribute("aria-label", "Level " + (li + 1));
+      if (validateLevelCompleted(li)) btn.classList.add("lsd-answered");
+      if (li === currentLevelIndex) btn.classList.add("lsd-current");
+      (function(idx) {
+        btn.addEventListener("click", function() {
+          currentLevelIndex = idx;
+          clearValidation();
+          renderCurrentLevel();
+        });
+      })(li);
+      levelNav.appendChild(btn);
+    }
+    var curBtn = levelNav.querySelector(".lsd-question-nav-btn.lsd-current");
+    if (curBtn) curBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }
+
   function updateProgress() {
     var totalLevels = levels.length;
     var level = levels[currentLevelIndex];
@@ -330,6 +425,13 @@
     progressBar.setAttribute("aria-valuenow", String(percent));
     prevBtn.disabled = currentLevelIndex === 0;
     nextBtn.querySelector("span").textContent = currentLevelIndex === totalLevels - 1 ? "Finish & View Results" : "Next Level";
+    if (validateAllCompleted()) {
+      completeBadge.classList.add("lsd-visible");
+    } else {
+      completeBadge.classList.remove("lsd-visible");
+    }
+    syncResultsTabEnabledState();
+    renderLevelNav();
   }
 
   function createLikertOption(questionId, value, label) {
@@ -360,6 +462,7 @@
       wrapper.classList.add("lsd-selected");
       responses[questionId] = value;
       clearValidation();
+      updateProgress();
     });
     return wrapper;
   }
@@ -458,6 +561,9 @@
   }
 
   function renderResults(scores, skipSave) {
+    if (resultIntro) resultIntro.style.display = scores ? "none" : "";
+    if (resultsBadgeEl) resultsBadgeEl.style.display = scores ? "inline-flex" : "none";
+    if (resultsTypeHeading) resultsTypeHeading.style.display = scores ? "block" : "none";
     resultsSummary.innerHTML = "";
     var s = scores.subscaleScores;
     var compositeEl = document.createElement("p");
@@ -478,8 +584,7 @@
     resultsSummary.appendChild(pbiEl);
     resultsSummary.appendChild(subscaleTable);
     resultsSummary.appendChild(clusterEl);
-    resultsSection.style.display = "block";
-    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (panelResults) panelResults.scrollIntoView({ behavior: "smooth", block: "start" });
     if (!skipSave && eqConfig.saveUrl && eqConfig.csrfToken) {
       fetch(eqConfig.saveUrl, {
         method: "POST",
@@ -535,7 +640,7 @@
       var savedEq = JSON.parse(savedEqResultEl.textContent);
       if (savedEq && savedEq.ei_total != null && savedEq.subscale_scores && Object.keys(responses).length === 36) {
         introCard.style.display = "none";
-        assessmentCard.style.display = "block";
+        if (mainArea) mainArea.style.display = "block";
         currentLevelIndex = 0;
         renderCurrentLevel();
         var savedScores = {
@@ -549,15 +654,34 @@
           weighted: savedEq.weighted || {}
         };
         scoresCache = savedScores;
+        syncResultsTabEnabledState();
         renderResults(savedScores, true);
+        setActiveTab("results");
       }
     } catch (e) {}
+  }
+
+  if (tabQuestions) {
+    tabQuestions.addEventListener("click", function() {
+      setActiveTab("questions");
+    });
+  }
+  if (tabResults) {
+    tabResults.addEventListener("click", function() {
+      if (tabResults.disabled) return;
+      if (validateAllCompleted() && !scoresCache) {
+        scoresCache = calculateScores();
+        renderResults(scoresCache, false);
+      }
+      setActiveTab("results");
+    });
   }
 
   if (startBtn) {
     startBtn.addEventListener("click", function() {
       introCard.style.display = "none";
-      assessmentCard.style.display = "block";
+      if (mainArea) mainArea.style.display = "block";
+      setActiveTab("questions");
       currentLevelIndex = 0;
       renderCurrentLevel();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -586,7 +710,9 @@
         return;
       }
       scoresCache = calculateScores();
-      renderResults(scoresCache);
+      renderResults(scoresCache, false);
+      setActiveTab("results");
+      if (panelResults) panelResults.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
   if (downloadBtn) {

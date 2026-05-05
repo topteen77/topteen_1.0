@@ -3306,6 +3306,75 @@ class UserDashboard(TemplateView):
                 },
             )
 
+        # Multiple Intelligences (free assessment): My courses & tests — report vs take test
+        try:
+            from core.models import MIAssessmentResult
+
+            mi_latest = MIAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
+            mi_done = mi_latest is not None
+            mi_preview = ""
+            mi_subline = ""
+            if mi_latest:
+                mi_preview = (mi_latest.style_name or "").strip() or "Learning style result"
+                counts = mi_latest.counts if isinstance(mi_latest.counts, dict) else {}
+                a = counts.get("A", counts.get("a", 0))
+                b = counts.get("B", counts.get("b", 0))
+                c = counts.get("C", counts.get("c", 0))
+                d = counts.get("D", counts.get("d", 0))
+                try:
+                    a, b, c, d = int(a), int(b), int(c), int(d)
+                except (TypeError, ValueError):
+                    a = b = c = d = 0
+                mi_subline = "Answers: A={}, B={}, C={}, D={}".format(a, b, c, d)
+            ctx["dashboard_enrolled_items"].append(
+                {
+                    "kind": "psychometric",
+                    "title": "Multiple Intelligences",
+                    "subtitle": "Learning style" if mi_done else "Assessment",
+                    "start_url": reverse("core:multiple_intelligences_assessment"),
+                    "action_label": "View report" if mi_done else "Take assessment test",
+                    "action_variant": "report" if mi_done else "start",
+                    "result_preview": mi_preview or None,
+                    "result_subline": mi_subline or None,
+                    "hide_kind_badge": True,
+                }
+            )
+        except Exception:
+            pass
+
+        # Emotional Intelligence (free assessment): My courses & tests — report vs take test
+        try:
+            from core.models import EQAssessmentResult
+
+            eq_latest = EQAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
+            eq_done = eq_latest is not None
+            eq_preview = ""
+            eq_subline = ""
+            if eq_latest:
+                try:
+                    total = float(eq_latest.ei_total)
+                except (TypeError, ValueError):
+                    total = 0.0
+                eq_preview = "Composite EQ {:.1f}".format(total)
+                band = (eq_latest.band_label or "").strip()
+                if band:
+                    eq_subline = band
+            ctx["dashboard_enrolled_items"].append(
+                {
+                    "kind": "psychometric",
+                    "title": "Emotional Intelligence",
+                    "subtitle": "EQ profile" if eq_done else "Assessment",
+                    "start_url": reverse("core:emotional_intelligences_assessment"),
+                    "action_label": "View report" if eq_done else "Take assessment test",
+                    "action_variant": "report" if eq_done else "start",
+                    "result_preview": eq_preview or None,
+                    "result_subline": eq_subline or None,
+                    "hide_kind_badge": True,
+                }
+            )
+        except Exception:
+            pass
+
         # Applications & resume hub (AdmitCV-inspired KPIs + planner widgets)
         ctx.update(_hub_nav_counts(profile_user))
         try:

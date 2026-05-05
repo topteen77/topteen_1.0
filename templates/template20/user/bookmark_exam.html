@@ -99,6 +99,78 @@
     gap: 20px;
   }
 
+  .exam-empty-state {
+    max-width: 760px;
+    margin: 24px auto 0;
+    padding: 44px 26px;
+    border-radius: 20px;
+    border: 1px solid #dfe4ff;
+    background: linear-gradient(150deg, #ffffff 0%, #f7f8ff 50%, #f1f3ff 100%);
+    box-shadow: 0 18px 45px rgba(51, 64, 129, 0.1);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .exam-empty-state::before,
+  .exam-empty-state::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(76, 51, 255, 0.08);
+    z-index: 0;
+  }
+  .exam-empty-state::before {
+    width: 190px;
+    height: 190px;
+    top: -80px;
+    right: -70px;
+  }
+  .exam-empty-state::after {
+    width: 140px;
+    height: 140px;
+    bottom: -55px;
+    left: -45px;
+  }
+  .exam-empty-content {
+    position: relative;
+    z-index: 1;
+  }
+  .exam-empty-icon {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4c33ff;
+    font-size: 38px;
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ecebff 100%);
+    box-shadow: 0 8px 18px rgba(76, 51, 255, 0.22);
+  }
+  .exam-empty-title {
+    font-size: 1.55rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #1f2437;
+    margin-bottom: 10px;
+  }
+  .exam-empty-text {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #5d647d;
+    max-width: 520px;
+    margin: 0 auto 24px;
+  }
+  .exam-empty-btn {
+    min-width: 170px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .exam-empty-btn i {
+    font-size: 16px;
+  }
+
   @media (max-width: 1199.98px) {
     .exam-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -114,6 +186,23 @@
   @media (max-width: 575.98px) {
     .exam-grid {
       grid-template-columns: 1fr;
+    }
+    .exam-empty-state {
+      margin-top: 10px;
+      border-radius: 16px;
+      padding: 30px 16px;
+    }
+    .exam-empty-title {
+      font-size: 1.2rem;
+    }
+    .exam-empty-text {
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+    }
+    .exam-empty-icon {
+      width: 72px;
+      height: 72px;
+      font-size: 32px;
     }
   }
 
@@ -208,13 +297,18 @@
         </div>
         {% else %}
         <!-- Empty State -->
-        <div class="text-center py-5">          
-          <i class='bx bx-clipboard fs-40 text-purple mb-3 bg-secondary-subtle rounded p-2'></i>
-          <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Exams</h3>
-          <p class="text-gray fs-14 mb-4">You haven't bookmarked any exams yet.</p>
-          <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button">
-            Browse Exams
-          </a>
+        <div class="exam-empty-state">
+          <div class="exam-empty-content">
+            <div class="exam-empty-icon">
+              <i class='bx bx-bookmarks'></i>
+            </div>
+            <h3 class="exam-empty-title">No Bookmarked Exams</h3>
+            <p class="exam-empty-text">Start building your exam shortlist to track important tests and access details quickly from one place.</p>
+            <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button purple-button exam-empty-btn d-inline-flex align-items-center justify-content-center gap-2">
+              <i class='bx bx-search'></i>
+              <span>Browse Exams</span>
+            </a>
+          </div>
         </div>
         {% endif %}
 {% endblock %}
