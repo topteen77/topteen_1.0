@@ -188,7 +188,7 @@
               After calculating subscale scores, weights are applied to create a composite EQ score: SA × 1.0, SC × 1.3, EM × 1.2, CR × 1.1, SM × 1.2, AC × 1.0. From there we also compute a <strong>Profile Balance Index (PBI)</strong>, <strong>Intrapersonal EQ</strong>, <strong>Interpersonal EQ</strong>, and <strong>Adaptive EQ</strong>.
             </p>
             <p class="lsd-guide-text" style="margin-top: 12px;">
-              Interpretation bands for the composite EQ score: ≥ 160 = Exceptional (Top 10%), 140–159 = High (65–89th %ile), 115–139 = Average (35–64th %ile), 95–114 = Low (15–34th %ile), ≤ 94 = Very Low (Bottom 14%).
+              Interpretation bands for the composite EQ score: ≥ 160 = Exceptional (Top 10%), 140–159 = High (65–89th Percentile), 115–139 = Average (35–64th Percentile), 95–114 = Low (15–34th Percentile), ≤ 94 = Very Low (Bottom 14%).
             </p>
           </div>
           <div class="lsd-download-card">
@@ -556,8 +556,13 @@
     var intrapersonalEQ = SA + SC + SM;
     var interpersonalEQ = EM + CR + AC;
     var adaptiveEQ = SC + SM;
-    var bandLabel = EI_total >= 160 ? "Exceptional (Top 10%)" : EI_total >= 140 ? "High (65–89th %ile)" : EI_total >= 115 ? "Average (35–64th %ile)" : EI_total >= 95 ? "Low (15–34th %ile)" : "Very Low (Bottom 14%)";
+    var bandLabel = EI_total >= 160 ? "Exceptional (Top 10%)" : EI_total >= 140 ? "High (65–89th Percentile)" : EI_total >= 115 ? "Average (35–64th Percentile)" : EI_total >= 95 ? "Low (15–34th Percentile)" : "Very Low (Bottom 14%)";
     return { subscaleScores: subscaleScores, weighted: weighted, EI_total: EI_total, PBI: PBI, intrapersonalEQ: intrapersonalEQ, interpersonalEQ: interpersonalEQ, adaptiveEQ: adaptiveEQ, bandLabel: bandLabel };
+  }
+
+  function normalizeBandLabel(label) {
+    if (!label) return "";
+    return String(label).replace(/%ile/gi, "Percentile");
   }
 
   function renderResults(scores, skipSave) {
@@ -568,7 +573,8 @@
     var s = scores.subscaleScores;
     var compositeEl = document.createElement("p");
     compositeEl.className = "lsd-results-summary";
-    compositeEl.innerHTML = "<strong>Composite EQ Score: </strong>" + scores.EI_total.toFixed(1) + " <span style='color:#059669;font-weight:600;'>(" + scores.bandLabel + ")</span>";
+    var safeBandLabel = normalizeBandLabel(scores.bandLabel);
+    compositeEl.innerHTML = "<strong>Composite EQ Score: </strong>" + scores.EI_total.toFixed(1) + " <span style='color:#059669;font-weight:600;'>(" + safeBandLabel + ")</span>";
     var pbiEl = document.createElement("p");
     pbiEl.className = "lsd-results-summary";
     pbiEl.innerHTML = "<strong>Profile Balance Index (PBI): </strong>" + scores.PBI.toFixed(1) + " – lower values indicate a more balanced EQ profile across subscales.";
@@ -598,7 +604,7 @@
           intrapersonalEQ: scores.intrapersonalEQ,
           interpersonalEQ: scores.interpersonalEQ,
           adaptiveEQ: scores.adaptiveEQ,
-          bandLabel: scores.bandLabel
+          bandLabel: safeBandLabel
         }),
         credentials: "same-origin"
       }).then(function(r) { return r.json(); }).then(function(data) {
@@ -647,7 +653,7 @@
           subscaleScores: savedEq.subscale_scores,
           EI_total: savedEq.ei_total,
           PBI: savedEq.pbi != null ? savedEq.pbi : 0,
-          bandLabel: savedEq.band_label || "",
+          bandLabel: normalizeBandLabel(savedEq.band_label || ""),
           intrapersonalEQ: savedEq.intrapersonal_eq != null ? savedEq.intrapersonal_eq : 0,
           interpersonalEQ: savedEq.interpersonal_eq != null ? savedEq.interpersonal_eq : 0,
           adaptiveEQ: savedEq.adaptive_eq != null ? savedEq.adaptive_eq : 0,

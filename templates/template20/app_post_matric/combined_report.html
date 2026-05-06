@@ -232,6 +232,16 @@
     padding: 14px;
   }
 
+  .report-link-card {
+    cursor: pointer;
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+
+  .report-link-card:hover {
+    box-shadow: 0 8px 20px rgba(63, 55, 201, 0.12);
+    transform: translateY(-1px);
+  }
+
   .chart-title {
     font-size: 14px;
     font-weight: 700;
@@ -1157,7 +1167,7 @@
           </div>
         </div>
         <div class="deep-dive-grid">
-          <div class="chart-card">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=4{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
             <div class="chart-title">Aptitude Section Scores</div>
             <div class="chart-wrap aptitude-chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
             <div class="aptitude-band-legend">
@@ -1168,12 +1178,12 @@
             <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
           </div>
        
-          <div class="chart-card">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=3{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
             <div class="chart-title">Career Interest Dimensions</div>
             <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
             <div class="data-note" id="careerDeepNote">Loading assessment details...</div>
           </div>
-          <div class="chart-card">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=2{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
             <div class="chart-title">Motivation Driver Mix</div>
             <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
             <div class="motivation-primary-block" id="motivationPrimaryBlock">Your Primary Motivation: --</div>
@@ -1182,7 +1192,7 @@
 
 
              
-          <div class="chart-card">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=1{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
             <div class="chart-title">Personality Traits Profile</div>
             <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
             <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
@@ -2144,6 +2154,22 @@
 
     const chartCountEl = document.getElementById('jsonChartsCount');
     if (chartCountEl) chartCountEl.textContent = String(chartInstances.length);
+
+    const reportLinkCards = document.querySelectorAll('.report-link-card[data-report-url]');
+    reportLinkCards.forEach((card) => {
+      const url = card.getAttribute('data-report-url');
+      if (!url) return;
+      card.addEventListener('click', (event) => {
+        if (event.target && event.target.closest('a, button')) return;
+        window.open(url, '_blank', 'noopener');
+      });
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          window.open(url, '_blank', 'noopener');
+        }
+      });
+    });
 
   })();
 </script>
