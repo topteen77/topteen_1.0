@@ -321,17 +321,15 @@
 
   .riasec-code-badge {
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: #1e3a8a;
-    border-radius: 999px;
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .3px;
-    border: 1px solid #93c5fd;
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.12);
+  align-items: center;
+  gap: 6px;
+  background: #5249DF;
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .3px;
   }
 
   .motivation-primary-block {
@@ -557,6 +555,20 @@
     border-color: #2f29a5;
   }
 
+  .mini-btn.report-btn {
+    background: linear-gradient(135deg, #3f37c9, #5b52dc);
+    border-color: #3f37c9;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(63, 55, 201, 0.22);
+  }
+
+  .mini-btn.report-btn:hover {
+    background: linear-gradient(135deg, #2f29a5, #4a44c7);
+    color: #fff;
+    border-color: #2f29a5;
+    transform: translateY(-1px);
+  }
+
   .status-pill {
     background: #e6f8ee;
   color: #138a4b;
@@ -684,16 +696,18 @@
     border: 1px solid #dfe6fb;
     border-radius: 12px;
     padding: 12px;
-    box-shadow: 0 4px 14px rgba(63, 55, 201, 0.08);
+   
   }
 
   .aptitude-career-title {
     font-size: 14px;
     font-weight: 800;
-    color: #1f2a56;
+    color: #fff;
     margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ebefff;
+    padding: 8px 10px;
+    border: 1px solid #2f3f8f;
+    border-radius: 8px;
+    background: #5249DF;
   }
 
   .aptitude-career-list {
@@ -714,10 +728,95 @@
     line-height: 1.35;
   }
 
+  .course-reco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .course-reco-card {
+    background: linear-gradient(145deg, #f4fff9 0%, #eafaf2 100%);
+    border: 1px solid #bdebd1;
+    border-left: 4px solid #1f9d63;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: space-between;
+   }
+
+  .course-reco-card.is-hidden {
+    display: none;
+  }
+
+  .course-reco-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .course-reco-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background:#188d58 ;
+    color: #d9f7e7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .course-reco-title {
+    font-size: 13px;
+    color: #0f5f38;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .course-reco-meta {
+    font-size: 12px;
+    color: #3b4f67;
+    line-height: 1.45;
+  }
+
+  .course-reco-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .course-reco-chip {
+    display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 1px 15px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #c9d9ff;
+  background: #eef3ff;
+  color: #31489a;
+  margin-top: 3px;
+  }
+
+  .course-reco-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+  }
+
   .list-item.warning {
     background: #fff5f5;
     border-color: #ffd7d7;
     color: #8d2f2f;
+  }
+
+  .list-item.above-highlight {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #166534;
   }
 
   .aptitude-item {
@@ -736,14 +835,23 @@
     justify-content: center;
     font-size: 11px;
     flex-shrink: 0;
-    background: #dbe7ff;
-    color: #3d5aa8;
+    background:#3d5aa8 ;
+    color: #dbe7ff;
   }
 
   .aptitude-item.warning .aptitude-item-icon {
-    background: #ffe2e2;
-    color: #b24040;
+    background:#b24040 ;
+    color:#ffe2e2 ;
   }
+
+  .aptitude-item.above-highlight .aptitude-item-icon {
+    background: #15803d;
+    color: #fff;
+  }
+
+  .list-item.aptitude-item span + span {
+  line-height: 17px;
+}
 
   .empty-state-card {
     background: linear-gradient(145deg, #f8fbff 0%, #eef4ff 100%);
@@ -971,6 +1079,19 @@
     color: #6b7280;
   }
 
+  /* Resolution-based deep-dive card layout */
+  @media (min-width: 1400px) {
+    .deep-dive-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1399px) {
+    .deep-dive-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 767px) {
     .hero-title {
       font-size: 1.65rem;
@@ -1099,7 +1220,7 @@
 
               <div class="d-flex align-items-center justify-content-between w-100">
               <div class="test-title">{{ test.title }}</div>
-              <div class="status-pill"><i class="fas fa-check-circle"></i> Completed</div>
+              <div class="status-pill"> Completed</div>
 
               </div>
               
@@ -1113,8 +1234,8 @@
     
             <!-- <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div> -->
             <div class="timeline-card-actions">
-              <a href="/api/web/results/?test_id={{ test.test_id }}{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}" class="mini-btn">
-                <i class="fas fa-eye"></i>
+              <a href="/api/web/results/?test_id={{ test.test_id }}{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}" class="mini-btn report-btn">
+                <i class="fas fa-file-alt"></i>
                 View Report
               </a>
             </div>
@@ -1264,25 +1385,32 @@
           <h3 class="section-title">Recommended College Courses</h3>
           <p class="career-spotlight-subtitle mt-1">Curated course options aligned with your aptitude profile and career direction.</p>
           {% if aptitude_course_recommendation_cards %}
-          <ul class="career-grid recommendation-list">
+          <ul class="course-reco-grid recommendation-list">
             {% for card in aptitude_course_recommendation_cards %}
-            <li class="career-item recommended">
-              <span class="career-icon"><i class='bx bx-book-open'></i></span>
-              <span class="career-text">
-                <strong>{{ card.course_name }}</strong>
-                {% if card.mapped_areas %}
-                <div class="muted-small mt-1"><strong>Mapped area(s):</strong> {{ card.mapped_areas|join(', ') }}</div>
-                {% endif %}
-                {% if card.eligibility_hints %}
-                <div class="muted-small mt-1"><strong>Eligibility / entrance:</strong> {{ card.eligibility_hints|join(' | ') }}</div>
-                {% endif %}
-              </span>
+            <li class="course-reco-card js-course-card">
+              <div class="course-reco-head">
+                <span class="course-reco-icon"><i class='bx bx-book-reader'></i></span>
+                <div class="course-reco-title"><strong>{{ card.course_name }}</strong></div>
+              </div>
+              {% if card.mapped_areas %}
+              <div class="cs-report-wrap">
+              <div class="course-reco-meta"><strong>Mapped area(s):</strong></div>
+              <div class="course-reco-chip-wrap">
+                {% for area in card.mapped_areas %}
+                <span class="course-reco-chip">{{ area }}</span>
+                {% endfor %}
+              </div>
+            </div>
+              {% endif %}
+              {% if card.eligibility_hints %}
+              <div class="course-reco-meta"><strong>Eligibility / entrance:</strong> {{ card.eligibility_hints|join(' | ') }}</div>
+              {% endif %}
             </li>
             {% endfor %}
           </ul>
           {% else %}
           {% set course_ns = namespace(items=[], has_courses=false) %}
-          <ul class="career-grid recommendation-list">
+          <ul class="course-reco-grid recommendation-list">
             {% for course in aptitude_Recommended_College_Courses %}
               {% if course is mapping and course.Recommended_College %}
                 {% for course_name in course.Recommended_College %}
@@ -1290,7 +1418,18 @@
                 {% if clean_course_name and clean_course_name not in course_ns.items %}
                 {% set _ = course_ns.items.append(clean_course_name) %}
                 {% set course_ns.has_courses = true %}
-                <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
+                <li class="course-reco-card js-course-card">
+                  <div class="course-reco-head">
+                    <span class="course-reco-icon"><i class='bx bx-book-reader'></i></span>
+                    <div class="course-reco-title"><strong>{{ clean_course_name }}</strong></div>
+                  </div>
+                  {% if course.Area %}
+                  <div class="course-reco-meta"><strong>Mapped area(s):</strong></div>
+                  <div class="course-reco-chip-wrap">
+                    <span class="course-reco-chip">{{ course.Area }}</span>
+                  </div>
+                  {% endif %}
+                </li>
                 {% endif %}
                 {% endfor %}
               {% else %}
@@ -1298,7 +1437,12 @@
                 {% if clean_course_name and clean_course_name not in course_ns.items %}
                 {% set _ = course_ns.items.append(clean_course_name) %}
                 {% set course_ns.has_courses = true %}
-                <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
+                <li class="course-reco-card js-course-card">
+                  <div class="course-reco-head">
+                    <span class="course-reco-icon"><i class='bx bx-book-reader'></i></span>
+                    <div class="course-reco-title"><strong>{{ clean_course_name }}</strong></div>
+                  </div>
+                </li>
                 {% endif %}
               {% endif %}
             {% endfor %}
@@ -1327,7 +1471,7 @@
               {% for item in above_list %}
               {% if item and item not in above_ns.items %}
               {% set _ = above_ns.items.append(item) %}
-              <div class="list-item aptitude-item"><span class="aptitude-item-icon"><i class='bx bx-right-arrow-alt' ></i></span><span>{{ item }}</span></div>
+              <div class="list-item aptitude-item above-highlight"><span class="aptitude-item-icon"><i class='bx bx-up-arrow-alt' ></i></span><span>{{ item }}</span></div>
               {% endif %}
               {% endfor %}
             </div>
@@ -1565,11 +1709,17 @@
             </ul>
           </div>
           {% endif %}
+          <div class="course-reco-actions d-none">
+            <button type="button" class="mini-btn" id="toggleCourseRecoBtn" style="display:none;">
+              <i class="fas fa-chevron-down"></i>
+              Show More Courses
+            </button>
+          </div>
         </div>
       </div>
       {% endif %}
 
-      <div class="actions-section">
+      <div class="actions-section d-flex justify-content-center mt-3">
         <!-- <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
           <i class="fas fa-arrow-left"></i>
           Back to Results
@@ -2032,7 +2182,7 @@
     if (careerSeries.labels.length) {
       const ctx = document.getElementById('careerDeepChart');
       if (ctx) {
-        const riasecColors = ['#93c5fd', '#7dd3fc', '#99f6e4', '#86efac', '#fcd34d', '#fca5a5'];
+        const riasecColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
         const riasecCode = getRiasecCodeFromReport(careerData ? careerData.result_data : null, careerSeries.keys, careerSeries.values);
         chartInstances.push(new Chart(ctx, {
           type: 'polarArea',
@@ -2170,6 +2320,26 @@
         }
       });
     });
+
+    const courseCards = Array.from(document.querySelectorAll('.js-course-card'));
+    const toggleCourseRecoBtn = document.getElementById('toggleCourseRecoBtn');
+    const initialCourseVisible = 8;
+    if (toggleCourseRecoBtn && courseCards.length > initialCourseVisible) {
+      let expanded = false;
+      courseCards.forEach((card, idx) => {
+        if (idx >= initialCourseVisible) card.classList.add('is-hidden');
+      });
+      toggleCourseRecoBtn.style.display = 'inline-flex';
+      toggleCourseRecoBtn.addEventListener('click', () => {
+        expanded = !expanded;
+        courseCards.forEach((card, idx) => {
+          if (idx >= initialCourseVisible) card.classList.toggle('is-hidden', !expanded);
+        });
+        toggleCourseRecoBtn.innerHTML = expanded
+          ? "<i class='fas fa-chevron-up'></i> Show Less Courses"
+          : "<i class='fas fa-chevron-down'></i> Show More Courses";
+      });
+    }
 
   })();
 </script>
