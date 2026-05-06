@@ -514,6 +514,7 @@ function ttv2BindInstituteStudentPanelOnce() {
 
 function ttv2InitStudentTableAfterBodyInject() {
   const filterForm = document.getElementById('filter-form');
+  const filterDrawer = document.getElementById('ttv2StudentFilterDrawer');
   if (filterForm && !filterForm.dataset.ttv2StudentAjaxBound) {
     filterForm.dataset.ttv2StudentAjaxBound = '1';
     filterForm.addEventListener('submit', function (e) {
@@ -563,6 +564,37 @@ function ttv2InitStudentTableAfterBodyInject() {
       });
     });
   })();
+
+  // Mobile filter drawer (students page): open/close sheet style panel.
+  if (filterDrawer && !filterDrawer.dataset.ttv2DrawerBound) {
+    filterDrawer.dataset.ttv2DrawerBound = '1';
+    var bodyEl = document.body;
+    var openBtns = document.querySelectorAll('[data-ttv2-filter-open]');
+    var closeBtns = filterDrawer.querySelectorAll('[data-ttv2-filter-close]');
+    function closeDrawer() {
+      filterDrawer.classList.remove('is-open');
+      if (bodyEl) bodyEl.classList.remove('ttv2-filter-drawer-open');
+    }
+    function openDrawer() {
+      filterDrawer.classList.add('is-open');
+      if (bodyEl) bodyEl.classList.add('ttv2-filter-drawer-open');
+    }
+    openBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () { openDrawer(); });
+    });
+    closeBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () { closeDrawer(); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeDrawer();
+    });
+    if (filterForm && !filterForm.dataset.ttv2DrawerSubmitBound) {
+      filterForm.dataset.ttv2DrawerSubmitBound = '1';
+      filterForm.addEventListener('submit', function () {
+        closeDrawer();
+      });
+    }
+  }
 
   // Display toggle (cards/list): buttons can be outside the filter form.
   if (!document.body.dataset.ttv2DisplayToggleBound) {

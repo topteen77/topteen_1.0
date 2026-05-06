@@ -1,5 +1,5 @@
-
-<section class="institute-dashboard pb-5">
+{% include 'template20/institute/includes/institute_shell_topbar.html' %}
+<section class="institute-dashboard std-shell-main pb-5">
   <div class="container-fluid id-shell px-3 px-lg-4">
     <div class="row g-4 pt-3 pt-lg-4">
       <!-- Sidebar -->
@@ -107,7 +107,7 @@
       </aside>
 
       <!-- Main -->
-      <div class="col-12 col-lg-9 col-xl-9">
+      <div class="col-12 col-lg-9 col-xl-9 id-main-column">
         <div class="id-mobile-toolbar">
           <button type="button" class="id-mobile-toggle-btn" id="idSidebarOpenBtn">
             <i class='bx bx-menu'></i> Menu
@@ -1074,6 +1074,8 @@
     const dashboardRoot = document.querySelector('.institute-dashboard');
     if (!dashboardRoot) return;
 
+    const topbarMenuBtn = document.getElementById('idTopbarMobileMenuBtn');
+    const topbarDesktopToggle = document.getElementById('idSidebarToggleDesktop');
     const sidebarOpenBtn = document.getElementById('idSidebarOpenBtn');
     const sidebarCloseBtn = document.getElementById('idSidebarCloseBtn');
     const sidebarOverlay = document.getElementById('idSidebarOverlay');
@@ -1109,6 +1111,20 @@
       if (!dashboardRoot.classList.contains('sidebar-drawer-open')) {
         document.body.style.overflow = '';
       }
+    }
+
+    if (topbarMenuBtn) {
+      topbarMenuBtn.addEventListener('click', function () {
+        openSidebarDrawer();
+      });
+    }
+
+    if (topbarDesktopToggle) {
+      topbarDesktopToggle.addEventListener('click', function () {
+        if (window.innerWidth >= 992) {
+          dashboardRoot.classList.toggle('sidebar-collapsed-desktop');
+        }
+      });
     }
 
     if (sidebarOpenBtn) sidebarOpenBtn.addEventListener('click', openSidebarDrawer);

@@ -130,21 +130,21 @@
     var prevIso = isoDate(prevMon);
 
     menu.innerHTML =
-      '<li><div class="px-3 pt-2" style="min-width:260px;" data-ttv2-range-box>' +
-      '<div class="fw-semibold mb-2" style="font-size:12px;">Quick weeks</div>' +
-      '<div class="d-flex flex-wrap gap-2 mb-2">' +
-      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekThis">This week</button>' +
-      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekLast">Last week</button>' +
-      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekPrev">2 weeks ago</button>' +
-      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2WeekAll">All</button>' +
+      '<li class="ttv2-week-dd-item"><div class="ttv2-week-dd-body" data-ttv2-range-box>' +
+      '<div class="ttv2-week-dd-title">Quick weeks</div>' +
+      '<div class="ttv2-week-dd-quick-row">' +
+      '<button type="button" class="btn btn-sm ttv2-week-chip" id="ttv2WeekThis">This week</button>' +
+      '<button type="button" class="btn btn-sm ttv2-week-chip" id="ttv2WeekLast">Last week</button>' +
+      '<button type="button" class="btn btn-sm ttv2-week-chip" id="ttv2WeekPrev">2 weeks ago</button>' +
+      '<button type="button" class="btn btn-sm ttv2-week-chip" id="ttv2WeekAll">All</button>' +
       "</div>" +
-      '<div class="ttv2-sp-hr" style="margin:10px 0;"></div>' +
-      '<div class="fw-semibold mb-2" style="font-size:12px;">Select date range</div>' +
-      '<div class="mb-2"><label class="form-label mb-1" style="font-size:11px;">From</label><input type="date" class="form-control form-control-sm" id="ttv2DateStart"></div>' +
-      '<div class="mb-2"><label class="form-label mb-1" style="font-size:11px;">To</label><input type="date" class="form-control form-control-sm" id="ttv2DateEnd"></div>' +
-      '<div class="d-flex justify-content-between gap-2">' +
-      '<button type="button" class="btn btn-sm btn-outline-secondary" id="ttv2DateReset">All</button>' +
-      '<button type="button" class="btn btn-sm btn-primary" id="ttv2DateApply">Apply</button>' +
+      '<div class="ttv2-week-dd-divider"></div>' +
+      '<div class="ttv2-week-dd-title">Select date range</div>' +
+      '<div class="ttv2-week-field mb-2"><label class="form-label mb-1 ttv2-week-field-label">From</label><input type="date" class="form-control form-control-sm ttv2-week-field-input" id="ttv2DateStart"></div>' +
+      '<div class="ttv2-week-field mb-2"><label class="form-label mb-1 ttv2-week-field-label">To</label><input type="date" class="form-control form-control-sm ttv2-week-field-input" id="ttv2DateEnd"></div>' +
+      '<div class="ttv2-week-dd-actions">' +
+      '<button type="button" class="btn btn-sm ttv2-week-btn-reset" id="ttv2DateReset">All</button>' +
+      '<button type="button" class="btn btn-sm ttv2-week-btn-apply" id="ttv2DateApply">Apply</button>' +
       "</div></div></li>";
 
     var box = menu.querySelector("[data-ttv2-range-box]");

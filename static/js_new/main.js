@@ -414,6 +414,12 @@ dropdown.forEach((item) => {
   // our custom `.dropdown-toggle` element. Avoid crashing the rest of the JS.
   if (!dropdownToggle) return;
 
+  // Bootstrap-managed menus use `.dropdown-menu`; legacy header menus use `.dropdown-content`.
+  // Do not bind the legacy toggle handler when only Bootstrap markup is present (v2 shell topbar).
+  const legacyMenu = item.querySelector(".dropdown-content");
+  const bsMenu = item.querySelector(".dropdown-menu");
+  if (bsMenu && !legacyMenu) return;
+
   dropdownToggle.addEventListener("click", () => {
     const dropdownShow = document.querySelector(".dropdown-show");
     toggleDropdownItem(item);

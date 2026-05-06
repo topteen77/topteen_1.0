@@ -3,6 +3,9 @@
   <div class="ttv2-counselor-brand">
     <div class="ttv2-counselor-brand-row">
       <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+      <button type="button" class="ttv2-sidebar-close-btn" aria-label="Close sidebar" data-ttv2-sidebar-close>
+        <i class='bx bx-x'></i>
+      </button>
     </div>
     <div class="tagline">{{ ttv2_role_ctx.tagline|default('Dashboard v2.0') }}</div>
   </div>
@@ -22,17 +25,49 @@
       {% for item in (_items or []) %}
         {% set _href = (item.get('href') if item is mapping else (item.href if item.href is defined else '#')) %}
         {% set _key = (item.get('key') if item is mapping else (item.key if item.key is defined else '')) %}
+        {% set _icon = (item.get('icon') if item is mapping else (item.icon if item.icon is defined else '')) %}
         {% set _active = (item.get('active') if item is mapping else (item.active if item.active is defined else false)) %}
         {% set _disabled = (item.get('disabled') if item is mapping else (item.disabled if item.disabled is defined else false)) %}
         {% set _no_ajax = (item.get('no_ajax') if item is mapping else (item.no_ajax if item.no_ajax is defined else false)) %}
-        {% set _dot = (item.get('dot') if item is mapping else (item.dot if item.dot is defined else '#6c7dff')) %}
         {% set _label = (item.get('label') if item is mapping else (item.label if item.label is defined else 'Link')) %}
+        {% if not _icon %}
+          {% set _lookup = (_key|default('')|lower|replace(' ', '_')|replace('-', '_')) %}
+          {% if not _lookup %}
+            {% set _lookup = (_label|default('')|lower|replace(' ', '_')|replace('-', '_')) %}
+          {% endif %}
+          {% set _icon_map = {
+            'dashboard':'bx bxs-dashboard',
+            'student':'bx bx-user',
+            'students':'bx bx-user',
+            'assessments':'bx bx-notepad',
+            'assessment':'bx bx-notepad',
+            'counselor':'bx bx-user-voice',
+            'counselors':'bx bx-user-voice',
+            'sessions':'bx bx-calendar-event',
+            'session':'bx bx-calendar-event',
+            'session_report':'bx bx-bar-chart-alt-2',
+            'heatmap':'bx bx-map-alt',
+            'career_heatmap':'bx bx-map-alt',
+            'streams_capacity':'bx bx-git-branch',
+            'streams_&_capacity':'bx bx-git-branch',
+            'streams_and_capacity':'bx bx-git-branch',
+            'streams':'bx bx-git-branch',
+            'credits':'bx bx-credit-card',
+            'journey':'bx bx-line-chart',
+            'journey_tracker':'bx bx-line-chart',
+            'reports':'bx bx-file',
+            'logout':'bx bx-log-out'
+          } %}
+          {% set _icon = _icon_map.get(_lookup, 'bx bx-category-alt') %}
+        {% endif %}
         <a href="{{ _href|default('#') }}"
            {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}
-           class="{% if _active %}active{% endif %} {% if _disabled %}ttv2-nav-disabled{% endif %}"
+           class="ttv2-nav-link{% if _active %} active{% endif %}{% if _disabled %} ttv2-nav-disabled{% endif %}"
            {% if _disabled %}aria-disabled="true"{% endif %}
+           {% if _active %}aria-current="page"{% endif %}
            {% if _no_ajax %}data-no-ttv2-ajax="1"{% endif %}>
-          <span class="ttv2-counselor-dot" style="background:{{ _dot|default('#6c7dff') }}"></span>{{ _label|default('Link') }}
+          <span class="ttv2-counselor-nav-icon" aria-hidden="true"><i class="{{ _icon }}"></i></span>
+          <span class="ttv2-counselor-nav-label">{{ _label|default('Link') }}</span>
         </a>
       {% endfor %}
     {% endfor %}

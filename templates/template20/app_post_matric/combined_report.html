@@ -244,9 +244,18 @@
     position: relative;
   }
 
+  .aptitude-chart-wrap {
+    height: 280px;
+  }
+
+  .chart-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
   .deep-dive-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -254,6 +263,140 @@
     font-size: 12px;
     color: #6b7280;
     margin-top: 8px;
+  }
+
+  .hexaco-scores-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    justify-content: center;
+  }
+
+  .hexaco-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+  }
+
+  .riasec-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    justify-content: center;
+  }
+
+  .riasec-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1e293b;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+  }
+
+  .riasec-note-wrap {
+    margin-top: 2px;
+    text-align: center;
+  }
+
+  .riasec-code-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e3a8a;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    border: 1px solid #93c5fd;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.12);
+  }
+
+  .motivation-primary-block {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #c7d2fe;
+    background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+    color: #312e81;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .motivation-score-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .motivation-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .aptitude-band-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .aptitude-band-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+
+  .aptitude-band-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .aptitude-band-dot.above { background: #16a34a; }
+  .aptitude-band-dot.average { background: #0284c7; }
+  .aptitude-band-dot.below { background: #dc2626; }
+
+  .personality-top-block {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #bbf7d0;
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    color: #166534;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
   }
 
   .data-status {
@@ -344,9 +487,10 @@
   }
 
   .test-title {
-    font-size: 1rem;
+    font-size: 12px;
     font-weight: 700;
     color: #21243d;
+    line-height: 1.2;
   }
 
   .test-date {
@@ -405,14 +549,14 @@
 
   .status-pill {
     background: #e6f8ee;
-    color: #138a4b;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  color: #138a4b;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   }
 
   .subsection-title {
@@ -517,6 +661,47 @@
   .career-spotlight .career-item.recommended:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(31, 157, 99, 0.2);
+  }
+
+  .aptitude-career-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .aptitude-career-card {
+    background: #fff;
+    border: 1px solid #dfe6fb;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 14px rgba(63, 55, 201, 0.08);
+  }
+
+  .aptitude-career-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1f2a56;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ebefff;
+  }
+
+  .aptitude-career-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 7px;
+  }
+
+  .aptitude-career-list li {
+    font-size: 13px;
+    color: #31405f;
+    background: #f8faff;
+    border: 1px solid #e6ecff;
+    border-radius: 8px;
+    padding: 7px 9px;
+    line-height: 1.35;
   }
 
   .list-item.warning {
@@ -788,6 +973,14 @@
     .chart-wrap {
       height: 200px;
     }
+
+    .aptitude-chart-wrap {
+      height: 300px;
+    }
+
+    .deep-dive-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 1199px) {
@@ -860,8 +1053,10 @@
         data-average="{{ average_list|default([], true)|length }}"
         data-below="{{ below_list|default([], true)|length }}">
       </div>
-      <script id="test-results-json"
+<script id="test-results-json"
         type="application/json">{% if test_results_json %}{{ test_results_json|safe }}{% else %}[]{% endif %}</script>
+<script id="aptitude-band-json"
+        type="application/json">{% if aptitude_band_json %}{{ aptitude_band_json|safe }}{% else %}{"above":[],"average":[],"below":[]} {% endif %}</script>
 
       <div class="kpi-grid mt-4">
         <div class="kpi-card kpi-tests">
@@ -883,7 +1078,7 @@
       </div>
 
       <div class="mt-4">
-        <div class="timeline-head">
+        <div class="timeline-head mb-6">
           <h3 class="section-title mb-0">Assessment Timeline</h3>
         </div>
         {% if completed_tests %}
@@ -963,10 +1158,16 @@
         </div>
         <div class="deep-dive-grid">
           <div class="chart-card">
-            <div class="chart-title">Personality Traits Profile</div>
-            <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
-            <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
+            <div class="chart-title">Aptitude Section Scores</div>
+            <div class="chart-wrap aptitude-chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
+            <div class="aptitude-band-legend">
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot above"></span>Above Average</span>
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot average"></span>Average</span>
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot below"></span>Below Average</span>
+            </div>
+            <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
           </div>
+       
           <div class="chart-card">
             <div class="chart-title">Career Interest Dimensions</div>
             <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
@@ -975,13 +1176,19 @@
           <div class="chart-card">
             <div class="chart-title">Motivation Driver Mix</div>
             <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
+            <div class="motivation-primary-block" id="motivationPrimaryBlock">Your Primary Motivation: --</div>
             <div class="data-note" id="motivationDeepNote">Loading assessment details...</div>
           </div>
+
+
+             
           <div class="chart-card">
-            <div class="chart-title">Aptitude Section Scores</div>
-            <div class="chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
-            <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
+            <div class="chart-title">Personality Traits Profile</div>
+            <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
+            <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
+            <div class="personality-top-block" id="personalityTopBlock">Top Personality Dimensions: --</div>
           </div>
+        
         </div>
       </div>
 
@@ -989,28 +1196,55 @@
       <div class="mt-4">
         <div class="career-spotlight">
           <h3 class="section-title">Recommended Career Paths</h3>
+          {% if aptitude_roles_guidance %}
+          <p class="career-spotlight-subtitle mt-1">Career recommendations from your aptitude report. Each section shows your strength area and suitable roles.</p>
+          <div class="aptitude-career-grid">
+            {% for item in aptitude_roles_guidance %}
+            {% if item and item.Area %}
+            <div class="aptitude-career-card">
+              <div class="aptitude-career-title">{{ item.Area }}</div>
+              <ul class="aptitude-career-list">
+                {% if item.Recommendations %}
+                  {% for role_item in item.Recommendations %}
+                  {% set role_name = role_item.Role if role_item is mapping else role_item %}
+                  {% set clean_role_name = (role_name|string)|trim %}
+                  {% if clean_role_name %}
+                  <li>{{ clean_role_name }}</li>
+                  {% endif %}
+                  {% endfor %}
+                {% endif %}
+                {% if not item.Recommendations and item.Guidance %}
+                <li>{{ item.Guidance }}</li>
+                {% endif %}
+              </ul>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
           <p class="career-spotlight-subtitle mt-1">Personalized options based on your aptitude, interest profile, and motivation analysis.</p>
           <ul class="career-grid recommendation-list">
-          {% set career_ns = namespace(items=[]) %}
-          {% for career in careers_to_opt %}
-          {% if career and career not in career_ns.items %}
-          {% set _ = career_ns.items.append(career) %}
-          <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
-          {% endif %}
-          {% endfor %}
-          {% for career in riasec_careers_to_opt %}
-          {% if career and career not in career_ns.items %}
-          {% set _ = career_ns.items.append(career) %}
-          <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
-          {% endif %}
-          {% endfor %}
-          {% for career in motivation_careers_to_opt %}
-          {% if career and career not in career_ns.items %}
-          {% set _ = career_ns.items.append(career) %}
-          <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
-          {% endif %}
-          {% endfor %}
+            {% set career_ns = namespace(items=[]) %}
+            {% for career in careers_to_opt %}
+            {% if career and career not in career_ns.items %}
+            {% set _ = career_ns.items.append(career) %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+            {% endif %}
+            {% endfor %}
+            {% for career in riasec_careers_to_opt %}
+            {% if career and career not in career_ns.items %}
+            {% set _ = career_ns.items.append(career) %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+            {% endif %}
+            {% endfor %}
+            {% for career in motivation_careers_to_opt %}
+            {% if career and career not in career_ns.items %}
+            {% set _ = career_ns.items.append(career) %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+            {% endif %}
+            {% endfor %}
           </ul>
+          {% endif %}
         </div>
       </div>
       {% endif %}
@@ -1019,26 +1253,44 @@
         <div class="career-spotlight">
           <h3 class="section-title">Recommended College Courses</h3>
           <p class="career-spotlight-subtitle mt-1">Curated course options aligned with your aptitude profile and career direction.</p>
+          {% if aptitude_course_recommendation_cards %}
+          <ul class="career-grid recommendation-list">
+            {% for card in aptitude_course_recommendation_cards %}
+            <li class="career-item recommended">
+              <span class="career-icon"><i class='bx bx-book-open'></i></span>
+              <span class="career-text">
+                <strong>{{ card.course_name }}</strong>
+                {% if card.mapped_areas %}
+                <div class="muted-small mt-1"><strong>Mapped area(s):</strong> {{ card.mapped_areas|join(', ') }}</div>
+                {% endif %}
+                {% if card.eligibility_hints %}
+                <div class="muted-small mt-1"><strong>Eligibility / entrance:</strong> {{ card.eligibility_hints|join(' | ') }}</div>
+                {% endif %}
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
           {% set course_ns = namespace(items=[], has_courses=false) %}
           <ul class="career-grid recommendation-list">
             {% for course in aptitude_Recommended_College_Courses %}
-            {% if course is mapping and course.Recommended_College %}
-            {% for course_name in course.Recommended_College %}
-            {% set clean_course_name = (course_name|string)|trim %}
-            {% if clean_course_name and clean_course_name not in course_ns.items %}
-            {% set _ = course_ns.items.append(clean_course_name) %}
-            {% set course_ns.has_courses = true %}
-            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
-            {% endif %}
-            {% endfor %}
-            {% else %}
-            {% set clean_course_name = (course|string)|trim %}
-            {% if clean_course_name and clean_course_name not in course_ns.items %}
-            {% set _ = course_ns.items.append(clean_course_name) %}
-            {% set course_ns.has_courses = true %}
-            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
-            {% endif %}
-            {% endif %}
+              {% if course is mapping and course.Recommended_College %}
+                {% for course_name in course.Recommended_College %}
+                {% set clean_course_name = (course_name|string)|trim %}
+                {% if clean_course_name and clean_course_name not in course_ns.items %}
+                {% set _ = course_ns.items.append(clean_course_name) %}
+                {% set course_ns.has_courses = true %}
+                <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
+                {% endif %}
+                {% endfor %}
+              {% else %}
+                {% set clean_course_name = (course|string)|trim %}
+                {% if clean_course_name and clean_course_name not in course_ns.items %}
+                {% set _ = course_ns.items.append(clean_course_name) %}
+                {% set course_ns.has_courses = true %}
+                <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ clean_course_name }}</span></li>
+                {% endif %}
+              {% endif %}
             {% endfor %}
           </ul>
           {% if not course_ns.has_courses %}
@@ -1047,6 +1299,7 @@
             <div class="empty-title">Recommended courses are not available yet</div>
             <p class="empty-subtitle">Course recommendations will appear here once complete aptitude mapping data is available.</p>
           </div>
+          {% endif %}
           {% endif %}
         </div>
       </div>
@@ -1139,6 +1392,30 @@
               <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
               {% endif %}
               {% endfor %}
+              {% if not cluster_ns.has_items and career_guidance_selected %}
+              {% for guidance in career_guidance_selected %}
+              {% if guidance.Career_Clusters %}
+              {% for cluster_name in guidance.Career_Clusters %}
+              {% set clean_cluster_name = (cluster_name|string)|trim %}
+              {% if clean_cluster_name and clean_cluster_name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(clean_cluster_name) %}
+              {% set cluster_ns.has_items = true %}
+              {% set cluster_url = cluster_url_map.get(clean_cluster_name|lower) if cluster_url_map else None %}
+              <li>{% if cluster_url %}<a href="{{ cluster_url }}">{{ clean_cluster_name }}</a>{% else %}{{ clean_cluster_name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+              {% if not cluster_ns.has_items and psychometric_career_clusters %}
+              {% for cluster_item in psychometric_career_clusters %}
+              {% if cluster_item.name and cluster_item.name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(cluster_item.name) %}
+              {% set cluster_ns.has_items = true %}
+              <li>{% if cluster_item.url %}<a href="{{ cluster_item.url }}">{{ cluster_item.name }}</a>{% else %}{{ cluster_item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
             </ul>
             {% if not cluster_ns.has_items %}
             <div class="card-empty-state">
@@ -1174,7 +1451,7 @@
               {% if item.name and item.name not in pathway_ns.items %}
               {% set _ = pathway_ns.items.append(item.name) %}
               {% set pathway_ns.has_items = true %}
-              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              <li>{{ item.name }}</li>
               {% endif %}
               {% endfor %}
             </ul>
@@ -1413,9 +1690,296 @@
       return { labels, values };
     }
 
+    function extractPersonalitySeries(input) {
+      if (!input || typeof input !== 'object') return { labels: [], values: [] };
+
+      const allowed = new Set(['h', 'e', 'x', 'a', 'c', 'o']);
+      const labels = [];
+      const values = [];
+
+      Object.keys(input).forEach((key) => {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!allowed.has(normalized)) return;
+
+        const raw = input[key];
+        let value = null;
+        if (typeof raw === 'number') value = raw;
+        else if (raw && typeof raw === 'object' && typeof raw.score === 'number') value = raw.score;
+        if (value !== null && Number.isFinite(value)) {
+          labels.push(normalized.toUpperCase());
+          values.push(Number(value));
+        }
+      });
+
+      const orderedLabels = ['H', 'E', 'X', 'A', 'C', 'O'];
+      const combined = labels.map((label, idx) => ({ label, value: values[idx] }))
+        .sort((a, b) => orderedLabels.indexOf(a.label) - orderedLabels.indexOf(b.label));
+
+      return {
+        labels: combined.map((item) => item.label),
+        values: combined.map((item) => item.value)
+      };
+    }
+
+    function extractRiasecSeries(input) {
+      const safeInput = (input && typeof input === 'object') ? input : {};
+      const allowed = new Set(['r', 'i', 'a', 's', 'e', 'c']);
+      const order = ['R', 'I', 'A', 'S', 'E', 'C'];
+      const labelMap = {
+        R: 'Realistic (R)',
+        I: 'Investigative (I)',
+        A: 'Artistic (A)',
+        S: 'Social (S)',
+        E: 'Enterprising (E)',
+        C: 'Conventional (C)'
+      };
+      const valueMap = {};
+      Object.keys(safeInput).forEach((key) => {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!allowed.has(normalized)) return;
+        const raw = safeInput[key];
+        let value = null;
+        if (typeof raw === 'number') value = raw;
+        else if (raw && typeof raw === 'object' && typeof raw.score === 'number') value = raw.score;
+        if (value !== null && Number.isFinite(value)) valueMap[normalized.toUpperCase()] = Number(value);
+      });
+
+      const items = order.map((key) => ({
+        key,
+        value: Object.prototype.hasOwnProperty.call(valueMap, key) ? valueMap[key] : null
+      }));
+      return {
+        keys: items.map((item) => item.key),
+        labels: items.map((item) => labelMap[item.key] || item.key),
+        values: items.map((item) => item.value)
+      };
+    }
+
     function updateDataNote(id, text) {
       const noteEl = document.getElementById(id);
       if (noteEl) noteEl.textContent = text;
+    }
+
+    function updatePersonalityScoreNote(labels, values) {
+      const noteEl = document.getElementById('personalityDeepNote');
+      const topEl = document.getElementById('personalityTopBlock');
+      if (!noteEl) return;
+      if (!labels.length || !values.length) {
+        noteEl.textContent = 'Personality scores are not available yet.';
+        if (topEl) topEl.textContent = 'Top Personality Dimensions: --';
+        return;
+      }
+      const scored = labels.map((label, idx) => ({
+        label,
+        idx,
+        score: Number(values[idx] || 0)
+      }));
+      const ranked = [...scored].sort((a, b) => b.score - a.score);
+      const top1Idx = ranked[0] ? ranked[0].idx : -1;
+      const top2Idx = ranked[1] ? ranked[1].idx : -1;
+      const fullNameMap = {
+        H: 'Honesty-Humility',
+        E: 'Emotionality',
+        X: 'Extraversion',
+        A: 'Agreeableness',
+        C: 'Conscientiousness',
+        O: 'Openness'
+      };
+
+      const chips = labels
+        .map((label, idx) => {
+          const score = Number(values[idx] || 0);
+          let color = '#64748b';
+          if (idx === top1Idx || idx === top2Idx) color = '#16a34a';
+          return `<span class="hexaco-chip" style="background:${color}">${label}: ${score}</span>`;
+        })
+        .join('');
+      noteEl.innerHTML = `<div class="hexaco-scores-line">${chips}</div>`;
+      if (topEl) {
+        const topNames = ranked.slice(0, 2).map((row) => `${fullNameMap[row.label] || row.label} (${row.label})`);
+        topEl.textContent = topNames.length ? `Top Personality Dimensions: ${topNames.join(', ')}` : 'Top Personality Dimensions: --';
+      }
+    }
+
+    const riasecCodeFromContext = "{{ riasec_high_categories|default('', true)|escapejs }}";
+
+    function normalizeRiasecCode(code) {
+      const raw = String(code || '').trim();
+      if (!raw) return '';
+      const labelToCode = {
+        realistic: 'R',
+        investigative: 'I',
+        artistic: 'A',
+        social: 'S',
+        enterprising: 'E',
+        conventional: 'C'
+      };
+
+      const cleaned = raw.replace(/^\[|\]$/g, '').trim();
+      if (/^[RIASEC]+$/i.test(cleaned)) {
+        return cleaned.toUpperCase().slice(0, 3);
+      }
+
+      const maybeList = raw.trim();
+      if (maybeList.startsWith('[') && maybeList.endsWith(']')) {
+        const quotedItems = maybeList
+          .slice(1, -1)
+          .split(',')
+          .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
+          .filter(Boolean);
+        if (quotedItems.length) {
+          const codes = [];
+          quotedItems.forEach((token) => {
+            const t = token.toLowerCase();
+            let c = '';
+            if (token.length === 1 && /[RIASEC]/i.test(token)) c = token.toUpperCase();
+            else c = labelToCode[t] || '';
+            if (c && !codes.includes(c)) codes.push(c);
+          });
+          return codes.join('').slice(0, 3);
+        }
+      }
+
+      const compact = raw.toUpperCase().replace(/[^RIASEC]/g, '');
+      if (compact && compact.length <= 6) {
+        return Array.from(new Set(compact.split(''))).join('').slice(0, 3);
+      }
+      return '';
+    }
+
+    function getRiasecCodeFromReport(careerResultData, keys, values) {
+      const data = (careerResultData && typeof careerResultData === 'object') ? careerResultData : {};
+      const contextCode = normalizeRiasecCode(riasecCodeFromContext);
+
+      const top3 = data._top_3_categories;
+
+      if (Array.isArray(top3) && top3.length) {
+        const topCode = top3
+          .map((item) => {
+            if (typeof item === 'string') return normalizeRiasecCode(item);
+            if (item && typeof item === 'object') {
+              return normalizeRiasecCode(item.code || item.category || item.dimension || item.label || '');
+            }
+            return '';
+          })
+          .join('')
+          .slice(0, 3);
+        if (topCode) return topCode;
+      }
+
+      if (typeof top3 === 'string' && top3.trim()) {
+        const topCode = normalizeRiasecCode(top3);
+        if (topCode) return topCode;
+      }
+
+      const ranked = keys.map((key, idx) => ({
+        key,
+        score: values[idx] == null ? -Infinity : Number(values[idx])
+      }))
+        .filter((row) => Number.isFinite(row.score))
+        // Deterministic tie-break: alphabetical code order (I before R, etc.)
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return String(a.key || '').localeCompare(String(b.key || ''));
+        })
+        .slice(0, 3)
+        .map((row) => row.key);
+
+      const rankedCode = ranked.join('').slice(0, 3);
+      if (rankedCode) return rankedCode;
+      return contextCode || '';
+    }
+
+    function updateRiasecNote(keys, labels, values, colors, riasecCode) {
+      const noteEl = document.getElementById('careerDeepNote');
+      if (!noteEl) return;
+      if (!labels.length || !values.length) {
+        noteEl.textContent = 'Career interest scores are not available yet.';
+        return;
+      }
+
+      const chips = labels.map((label, idx) => {
+        const rawScore = values[idx];
+        const scoreText = (rawScore === null || rawScore === undefined || rawScore === '') ? '' : String(rawScore);
+        const color = colors[idx] || '#334155';
+        return `<span class="riasec-chip" style="background:${color}">${label}: ${scoreText}</span>`;
+      }).join('');
+
+      const codeValue = riasecCode || 'NA';
+      noteEl.innerHTML = `<div class="riasec-note-wrap"><div class="riasec-code-badge">RIASEC Code: ${codeValue}</div><div class="riasec-legend">${chips}</div></div>`;
+    }
+
+    function updateMotivationPrimary(labels, values) {
+      const blockEl = document.getElementById('motivationPrimaryBlock');
+      if (!blockEl) return;
+      if (!labels.length || !values.length) {
+        blockEl.textContent = 'Your Primary Motivation: --';
+        return;
+      }
+
+      let maxIdx = 0;
+      let maxScore = Number(values[0] || 0);
+      for (let i = 1; i < values.length; i += 1) {
+        const current = Number(values[i] || 0);
+        if (current > maxScore) {
+          maxScore = current;
+          maxIdx = i;
+        }
+      }
+      const primaryName = labels[maxIdx] || '--';
+      const motivationColorMap = {
+        Social: '#22c55e',
+        Medical: '#6366f1',
+        Business: '#f59e0b',
+        Engineer: '#ef4444'
+      };
+      const chips = labels.map((label, idx) => {
+        const value = Number(values[idx] || 0);
+        const color = motivationColorMap[label] || '#64748b';
+        return `<span class="motivation-chip" style="background:${color}">${label}: ${value}</span>`;
+      }).join('');
+      blockEl.innerHTML = `Your Primary Motivation: ${primaryName}<div class="motivation-score-line">${chips}</div>`;
+    }
+
+    function truncateLabel(label, maxLength) {
+      const text = String(label || '').trim();
+      if (!text) return '';
+      return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+    }
+
+    function normalizeAptitudeName(name) {
+      return String(name || '')
+        .replace(/\breasoning\b/ig, '')
+        .replace(/&/g, 'and')
+        .replace(/[_-]/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+
+    const aptitudeBandEl = document.getElementById('aptitude-band-json');
+    let aptitudeBands = { above: [], average: [], below: [] };
+    if (aptitudeBandEl) {
+      try {
+        aptitudeBands = JSON.parse(aptitudeBandEl.textContent || '{}') || aptitudeBands;
+      } catch (e) {}
+    }
+    const aboveSet = new Set((aptitudeBands.above || []).map(normalizeAptitudeName));
+    const averageSet = new Set((aptitudeBands.average || []).map(normalizeAptitudeName));
+    const belowSet = new Set((aptitudeBands.below || []).map(normalizeAptitudeName));
+
+    function getAptitudeBandByName(name) {
+      const n = normalizeAptitudeName(name);
+      if (aboveSet.has(n)) return 'Above Average';
+      if (averageSet.has(n)) return 'Average';
+      if (belowSet.has(n)) return 'Below Average';
+      return 'Average';
+    }
+
+    function getAptitudeColorByBand(band) {
+      if (band === 'Above Average') return '#16a34a';
+      if (band === 'Below Average') return '#dc2626';
+      return '#0284c7';
     }
 
     const resultRecords = parseResultsJson();
@@ -1430,7 +1994,7 @@
     const motivationData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('motivation'));
     const aptitudeData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('aptitude'));
 
-    const personalitySeries = extractSeries(personalityData ? personalityData.result_data : null);
+    const personalitySeries = extractPersonalitySeries(personalityData ? personalityData.result_data : null);
     if (personalitySeries.labels.length) {
       const ctx = document.getElementById('personalityDeepChart');
       if (ctx) {
@@ -1439,7 +2003,7 @@
           data: {
             labels: personalitySeries.labels,
             datasets: [{
-              label: 'Trait score',
+              label: 'HEXACO Score',
               data: personalitySeries.values,
               borderColor: '#4f46e5',
               backgroundColor: 'rgba(79, 70, 229, 0.2)',
@@ -1448,31 +2012,39 @@
           },
           options: { ...commonOptions, scales: { r: { beginAtZero: true } } }
         }));
-        updateDataNote('personalityDeepNote', 'Loaded from personality result_data.');
+        updatePersonalityScoreNote(personalitySeries.labels, personalitySeries.values);
       }
     } else {
-      updateDataNote('personalityDeepNote', 'Personality scores are not available yet.');
+      updatePersonalityScoreNote([], []);
     }
 
-    const careerSeries = extractSeries(careerData ? careerData.result_data : null);
+    const careerSeries = extractRiasecSeries(careerData ? careerData.result_data : null);
     if (careerSeries.labels.length) {
       const ctx = document.getElementById('careerDeepChart');
       if (ctx) {
+        const riasecColors = ['#93c5fd', '#7dd3fc', '#99f6e4', '#86efac', '#fcd34d', '#fca5a5'];
+        const riasecCode = getRiasecCodeFromReport(careerData ? careerData.result_data : null, careerSeries.keys, careerSeries.values);
         chartInstances.push(new Chart(ctx, {
           type: 'polarArea',
           data: {
             labels: careerSeries.labels,
             datasets: [{
-              data: careerSeries.values,
-              backgroundColor: ['#1e3a8a', '#0ea5e9', '#10b981', '#22c55e', '#f59e0b', '#ef4444']
+              data: careerSeries.values.map((v) => v == null ? 0 : v),
+              backgroundColor: riasecColors
             }]
           },
-          options: commonOptions
+          options: {
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false }
+            }
+          }
         }));
-        updateDataNote('careerDeepNote', 'Loaded from career interest result_data.');
+        updateRiasecNote(careerSeries.keys, careerSeries.labels, careerSeries.values, riasecColors, riasecCode);
       }
     } else {
-      updateDataNote('careerDeepNote', 'Career interest scores are not available yet.');
+      updateRiasecNote([], [], [], [], '');
     }
 
     const motivationSource = motivationData ? (motivationData.category_counts || motivationData.result_data) : null;
@@ -1491,9 +2063,11 @@
           },
           options: { ...commonOptions, cutout: '62%' }
         }));
-        updateDataNote('motivationDeepNote', 'Loaded from motivation category_counts/result_data.');
+        updateMotivationPrimary(motivationSeries.labels, motivationSeries.values);
+        updateDataNote('motivationDeepNote', '');
       }
     } else {
+      updateMotivationPrimary([], []);
       updateDataNote('motivationDeepNote', 'Motivation scores are not available yet.');
     }
 
@@ -1501,24 +2075,68 @@
     if (aptitudeSeries.labels.length) {
       const ctx = document.getElementById('aptitudeDeepChart');
       if (ctx) {
+        const aptitudeLabels = aptitudeSeries.labels.map((label) => {
+          const cleaned = String(label || '').replace(/\breasoning\b/ig, '').replace(/\s{2,}/g, ' ').trim();
+          return cleaned || String(label || '');
+        });
+        const aptitudeBandsByIndex = aptitudeLabels.map((label) => getAptitudeBandByName(label));
+        const aptitudeColors = aptitudeBandsByIndex.map((band) => getAptitudeColorByBand(band));
         chartInstances.push(new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: aptitudeSeries.labels,
+            labels: aptitudeLabels,
             datasets: [{
-              label: 'Section score',
+              label: 'Section score (out of 15)',
               data: aptitudeSeries.values,
               borderRadius: 8,
-              backgroundColor: '#0ea5e9'
+              backgroundColor: aptitudeColors
             }]
           },
           options: {
             ...commonOptions,
-            indexAxis: 'y',
-            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            scales: {
+              x: {
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 35,
+                  minRotation: 20,
+                  font: { size: 10 },
+                  callback: function (value) {
+                    const rawLabel = this.getLabelForValue(value);
+                    return truncateLabel(rawLabel, 12);
+                  }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 15,
+                ticks: {
+                  precision: 0,
+                  stepSize: 1,
+                  autoSkip: false
+                }
+              }
+            },
+            plugins: {
+              ...commonOptions.plugins,
+              tooltip: {
+                callbacks: {
+                  title: function (tooltipItems) {
+                    if (!tooltipItems || !tooltipItems.length) return '';
+                    const index = tooltipItems[0].dataIndex;
+                    return aptitudeLabels[index] || '';
+                  },
+                  label: function (context) {
+                    const score = Number(context.parsed.y || 0);
+                    const band = aptitudeBandsByIndex[context.dataIndex] || 'Average';
+                    return `${score}/15 - ${band}`;
+                  }
+                }
+              }
+            }
           }
         }));
-        updateDataNote('aptitudeDeepNote', 'Loaded from aptitude result_data.');
+        updateDataNote('aptitudeDeepNote', '');
       }
     } else {
       updateDataNote('aptitudeDeepNote', 'Aptitude scores are not available yet.');

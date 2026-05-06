@@ -18,37 +18,41 @@
     </div>
   {% endif %}
 
-  <div class="table-responsive mt-3">
-    <table class="table table-hover mb-0">
+  <div class="table-responsive mt-3" style="border:1px solid var(--c-border);border-radius:14px;overflow:hidden;background:#fff;">
+    <table class="table align-middle mb-0" style="font-size:13px;">
       <thead>
-        <tr>
-          <th>Student</th>
-          <th>Class</th>
-          <th>Stream</th>
-          <th style="width:260px;">Assign to counselor</th>
-          <th style="width:120px;"></th>
+        <tr style="background:#f8fafc;">
+          <th style="font-weight:700;color:var(--c-text2);padding:12px 14px;">Student</th>
+          <th style="font-weight:700;color:var(--c-text2);padding:12px 10px;">Class</th>
+          <th style="font-weight:700;color:var(--c-text2);padding:12px 10px;">Stream</th>
+          <th style="width:280px;font-weight:700;color:var(--c-text2);padding:12px 10px;">Assign to counselor</th>
+          <th style="width:130px;padding:12px 14px;"></th>
         </tr>
       </thead>
       <tbody>
         {% if rows %}
           {% for r in rows %}
-            <tr data-sm-id="{{ r.sm_id }}">
-              <td class="min-w-0">
-                <div style="font-weight:700;">{{ r.name }}</div>
-                <div style="font-size:12px;color:var(--c-text3);">{{ r.email }}</div>
+            <tr data-sm-id="{{ r.sm_id }}" style="border-top:1px solid #f1f5f9;">
+              <td class="min-w-0" style="padding:14px;">
+                <div style="font-weight:700;color:var(--c-text1);">{{ r.name }}</div>
+                <div style="font-size:12px;color:var(--c-text3);margin-top:2px;">{{ r.email }}</div>
               </td>
-              <td>{{ r.class }}</td>
-              <td>{{ r.stream }}</td>
-              <td>
-                <select class="form-select form-select-sm" data-ttv2-counselor>
+              <td style="padding:14px 10px;">
+                <span style="display:inline-block;background:#f1f5f9;color:var(--c-text2);padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;">{{ r.class }}</span>
+              </td>
+              <td style="padding:14px 10px;">
+                <span style="display:inline-block;background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;">{{ r.stream }}</span>
+              </td>
+              <td style="padding:14px 10px;">
+                <select class="form-select form-select-sm" data-ttv2-counselor style="border-radius:10px;min-height:36px;font-size:12px;">
                   <option value="">Select counselor</option>
                   {% for c in counselors %}
                     <option value="{{ c.id }}">{{ c.name }}</option>
                   {% endfor %}
                 </select>
               </td>
-              <td class="text-end">
-                <button type="button" class="btn btn-sm btn-primary" data-ttv2-assign {% if not counselors %}disabled{% endif %}>
+              <td class="text-end" style="padding:14px;">
+                <button type="button" class="btn btn-sm btn-primary px-3" style="border-radius:10px;font-weight:600;min-width:90px;" data-ttv2-assign {% if not counselors %}disabled{% endif %}>
                   Assign
                 </button>
               </td>

@@ -1,8 +1,8 @@
 {# Institute v2 Students page (partial, injected via ?ttv2_partial=1) #}
 <div id="sec-institute-students" class="ttv2-students-page">
-  <div class="ttv2-students-page-head">
+  <div class="ttv2-students-page-head ttv2-sp-hero">
     <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
-      <div>
+      <div class="ttv2-sp-hero-copy">
         <h1 class="ttv2-sp-title mb-1">Student intelligence</h1>
         <p class="ttv2-sp-sub mb-0">
           Student view — search by name, class, email, then refine with filters.
@@ -99,43 +99,65 @@
         {% endif %}
       </div>
       <div class="ttv2-sp-hr" aria-hidden="true"></div>
-      <div class="ttv2-sp-filterrow">
-        <div class="ttv2-sp-filterlabel">Filters</div>
-        <select name="class_and_section" id="classes" class="form-control custom-input">
-          <option value="">All classes</option>
-          {% for cas in class_and_sections %}
-          <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section')==cas.class_and_section %}selected{% endif %}>
-            {{ cas.class_and_section }}
-          </option>
-          {% endfor %}
-        </select>
-
-        <select name="stream" id="streams" class="form-control custom-input">
-          <option value="">All streams</option>
-          {% if unique_streams %}
-            {% for stream in unique_streams %}
-              <option value="{{ stream }}" {% if request.GET.get('stream')==stream %}selected{% endif %}>{{ stream }}</option>
-            {% endfor %}
-          {% endif %}
-        </select>
-
-        <select name="test_taken" id="assessment" class="form-control custom-input">
-          <option value="">Assessment: all</option>
-          <option value="Yes" {% if request.GET.get('test_taken')=='Yes' %}selected{% endif %}>Completed</option>
-          <option value="In Progress" {% if request.GET.get('test_taken')=='In Progress' %}selected{% endif %}>In progress</option>
-          <option value="No" {% if request.GET.get('test_taken')=='No' %}selected{% endif %}>Not started</option>
-        </select>
-
-        <a class="ttv2-sp-reset-icon"
+      <div class="ttv2-sp-mobile-toolbar d-lg-none">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-filter-open>
+          <i class="bx bx-slider-alt me-1" aria-hidden="true"></i> Filters
+        </button>
+        <a class="btn btn-sm btn-outline-secondary"
            href="{{ request.path }}"
            title="Reset filters"
            aria-label="Reset filters">
-          <i class="bx bx-refresh" aria-hidden="true"></i>
+          <i class="bx bx-refresh me-1" aria-hidden="true"></i> Reset
         </a>
-        <!-- <a href="{{ request.path }}?{% if request.GET %}{% for key, value in request.GET.items() %}{{ key }}={{ value }}&{% endfor %}{% endif %}download=Yes"
-           class="btn btn-sm btn-outline-primary ttv2-sp-download" title="Download CSV">
-          <i class="bx bx-download me-1" aria-hidden="true"></i> Download
-        </a> -->
+      </div>
+
+      <div class="ttv2-sp-filter-drawer" id="ttv2StudentFilterDrawer">
+        <div class="ttv2-sp-filter-drawer-backdrop" data-ttv2-filter-close></div>
+        <div class="ttv2-sp-filter-drawer-panel" role="dialog" aria-modal="true" aria-label="Student filters">
+          <div class="ttv2-sp-filter-drawer-head">
+            <div class="ttv2-sp-filterlabel mb-0">Filters</div>
+            <button type="button" class="ttv2-sp-filter-drawer-close" data-ttv2-filter-close aria-label="Close filters">
+              <i class="bx bx-x" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="ttv2-sp-filterrow">
+            <select name="class_and_section" id="classes" class="form-control custom-input">
+              <option value="">All classes</option>
+              {% for cas in class_and_sections %}
+              <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section')==cas.class_and_section %}selected{% endif %}>
+                {{ cas.class_and_section }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <select name="stream" id="streams" class="form-control custom-input">
+              <option value="">All streams</option>
+              {% if unique_streams %}
+                {% for stream in unique_streams %}
+                  <option value="{{ stream }}" {% if request.GET.get('stream')==stream %}selected{% endif %}>{{ stream }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+
+            <select name="test_taken" id="assessment" class="form-control custom-input">
+              <option value="">Assessment: all</option>
+              <option value="Yes" {% if request.GET.get('test_taken')=='Yes' %}selected{% endif %}>Completed</option>
+              <option value="In Progress" {% if request.GET.get('test_taken')=='In Progress' %}selected{% endif %}>In progress</option>
+              <option value="No" {% if request.GET.get('test_taken')=='No' %}selected{% endif %}>Not started</option>
+            </select>
+
+            <a class="ttv2-sp-reset-icon d-none d-lg-inline-flex"
+               href="{{ request.path }}"
+               title="Reset filters"
+               aria-label="Reset filters">
+              <i class="bx bx-refresh" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div class="ttv2-sp-filter-drawer-actions d-lg-none">
+            <button type="submit" class="btn btn-sm btn-primary">Apply filters</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-filter-close>Close</button>
+          </div>
+        </div>
       </div>
 
       <!-- <div class="ttv2-sp-pdfrow">
@@ -155,8 +177,8 @@
     </form>
   </div>
 
-  <div class="ttv2-card">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <div class="ttv2-card ttv2-roster-shell">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 ttv2-roster-head">
       {% if total_students_count is defined %}
         {% set _students_total = total_students_count %}
       {% elif stu is defined and stu %}
@@ -164,7 +186,7 @@
       {% else %}
         {% set _students_total = 0 %}
       {% endif %}
-      <div class="card-title mb-0">
+      <div class="card-title mb-0 ttv2-roster-title">
         <span id="ttv2-students-roster-count">{{ _students_total }}</span> students
         {% if ttv2_assigned_students_count is defined %}
           <span style="font-size:11px;color:var(--c-text3);font-weight:600;margin-left:8px;">
@@ -178,7 +200,7 @@
         {% endif %}
       </div>
       {% set _display_mode = (request.GET.get('display','cards') or 'cards') %}
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 ttv2-roster-actions">
         {# Counselor: follow-up history. Institute: session report history. #}
         {% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
           <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}"

@@ -7,6 +7,16 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}">
+
+<style>
+.btn .badge {
+  position: relative;
+  top: -7px;
+  left: -9px;
+}
+
+</style>
+
 {% endblock %}
 
 {% block bodyclass %}{{ super() }} ttv2-shell{% endblock %}
@@ -18,21 +28,35 @@
 {% block content %}
 <div class="ttv2-counselor-shell">
   <div class="ttv2-counselor-topbar">
-    <div></div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 ttv2-topbar-left">
+      <a href="{{ url('core:home') }}" class="ttv2-topbar-brand" aria-label="TopTeen home">
+        <img class="ttv2-topbar-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+      </a>
+      <button type="button" class="ttv2-sidebar-toggle" aria-label="Toggle sidebar" data-ttv2-sidebar-toggle>
+        <i class='bx bx-menu'></i>
+      </button>
+    </div>
+    <div class="d-flex align-items-center gap-2 ttv2-topbar-right">
       <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle" aria-label="Toggle theme">
         <i class="bx bx-moon"></i>
       </button>
       <div class="ttv2-topbar-icon">{% include "notifications/includes/notification_bell.html" %}</div>
       <div class="ttv2-topbar-avatar-dropdown dropdown">
-        <span class="dropdown-toggle menu-link float-end" role="button" aria-label="Open profile menu">
+        <button type="button"
+                class="dropdown-toggle ttv2-avatar-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-display="static"
+                data-bs-auto-close="outside"
+                aria-expanded="false"
+                aria-label="Open profile menu">
           <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
-        </span>
-        <div class="dropdown-content login-content">
+        </button>
+        <div class="dropdown-menu dropdown-menu-end ttv2-user-dropdown-menu">
           <h6>Dashboard</h6>
           <p class="text-gray fs-14">Welcome, {% if user.name and user.name != 'None' %}{{ user.name }}{% elif user.mobile %}{{ user.mobile }}{% elif user.first_name %}{{ user.first_name }}{% elif user.email %}{{ user.email|truncate(20) }}{% else %}User{% endif %}</p>
+          {% set _dashboard_home_href %}{% block dashboard_home_url %}{{ url('users:userdashboard') }}{% endblock %}{% endset %}
           <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
-            <a href="{% block dashboard_home_url %}{{ url('users:userdashboard') }}{% endblock %}" class="btn custom-button purple-button me-3">Dashboard</a>
+            <a href="{{ _dashboard_home_href|trim }}" class="btn custom-button purple-button me-3">Dashboard</a>
             <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
           </div>
         </div>
@@ -44,6 +68,7 @@
     {% block dashboard_body %}{% endblock %}
   </div>
 </div>
+<div class="ttv2-sidebar-overlay" data-ttv2-sidebar-overlay hidden></div>
 
 {# Student report popup (reuses existing report pages inside an iframe) #}
 <div class="modal fade" id="ttv2StudentReportModal" tabindex="-1" aria-hidden="true">
@@ -76,6 +101,116 @@
 <script src="{{ staticv('js_new/ttv2_streams_capacity.js') }}"></script>
 <script src="{{ static('js/heatmap-dashboard.js') }}"></script>
 {# Theme toggle + Bootstrap scripts: template_v2/base_logged_in.html → logged_in_footer_scripts.html #}
+<script>
+  // Shared: responsive sidebar behavior (desktop pinned + mobile drawer)
+  (function(){
+    function getToggleButtons(){
+      try { return document.querySelectorAll('[data-ttv2-sidebar-toggle]'); } catch(e) { return []; }
+    }
+    function setToggleVisualState(isSidebarVisible){
+      try {
+        getToggleButtons().forEach(function(btn){
+          if (!btn) return;
+          var icon = btn.querySelector('i');
+          if (icon) {
+            icon.classList.remove('bx-menu', 'bx-x');
+            icon.classList.add(isSidebarVisible ? 'bx-x' : 'bx-menu');
+          }
+          btn.setAttribute('aria-label', isSidebarVisible ? 'Close sidebar' : 'Open sidebar');
+        });
+      } catch(e) {}
+    }
+    function getOverlay(){
+      return document.querySelector('[data-ttv2-sidebar-overlay]');
+    }
+    function isDesktop(){
+      try { return window.innerWidth >= 992; } catch(e) { return false; }
+    }
+    function syncOverlay(){
+      var overlay = getOverlay();
+      if (!overlay) return;
+      var show = false;
+      try {
+        show = !isDesktop() && document.body.classList.contains('ttv2-sidebar-open');
+      } catch(e) {}
+      if (show) overlay.removeAttribute('hidden');
+      else overlay.setAttribute('hidden', 'hidden');
+    }
+    function setDrawerOpen(isOpen){
+      try {
+        document.body.classList.toggle('ttv2-sidebar-open', !!isOpen);
+      } catch(e) {}
+      setToggleVisualState(!!isOpen);
+      syncOverlay();
+    }
+    function setDesktopCollapsed(isCollapsed){
+      try {
+        document.body.classList.toggle('ttv2-sidebar-collapsed', !!isCollapsed);
+      } catch(e) {}
+      setToggleVisualState(!isCollapsed);
+      syncOverlay();
+    }
+    function bind(){
+      document.addEventListener('click', function(e){
+        var t = e.target;
+        if (!t) return;
+        if (t.closest && t.closest('[data-ttv2-sidebar-toggle]')) {
+          e.preventDefault();
+          if (isDesktop()) {
+            var isCollapsed = false;
+            try { isCollapsed = document.body.classList.contains('ttv2-sidebar-collapsed'); } catch(err) {}
+            setDesktopCollapsed(!isCollapsed);
+          } else {
+            var isOpen = false;
+            try { isOpen = document.body.classList.contains('ttv2-sidebar-open'); } catch(err2) {}
+            setDrawerOpen(!isOpen);
+          }
+          return;
+        }
+        if (t.closest && t.closest('[data-ttv2-sidebar-close]')) {
+          e.preventDefault();
+          setDrawerOpen(false);
+          return;
+        }
+        if (t.matches && t.matches('[data-ttv2-sidebar-overlay]')) {
+          e.preventDefault();
+          setDrawerOpen(false);
+          return;
+        }
+        // Auto-close on nav click in mobile drawer.
+        var navLink = t.closest ? t.closest('.ttv2-counselor-nav a') : null;
+        if (navLink && !isDesktop()) setDrawerOpen(false);
+      }, true);
+
+      window.addEventListener('resize', function(){
+        try {
+          if (isDesktop()) {
+            setDrawerOpen(false);
+          } else {
+            setDesktopCollapsed(false);
+          }
+          syncOverlay();
+        } catch(e) {}
+      });
+      try {
+        var isVisibleNow = false;
+        if (isDesktop()) {
+          isVisibleNow = !document.body.classList.contains('ttv2-sidebar-collapsed');
+        } else {
+          isVisibleNow = document.body.classList.contains('ttv2-sidebar-open');
+        }
+        setToggleVisualState(!!isVisibleNow);
+      } catch(e) {}
+      syncOverlay();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+</script>
+
 <script>
   // Shared: print report link
   (function(){
@@ -120,6 +255,63 @@
 </script>
 
 <script>
+  // Shared: robust avatar dropdown tap behavior (especially mobile).
+  (function(){
+    function closeAvatarDropdown(wrap){
+      if (!wrap) return;
+      try {
+        var menu = wrap.querySelector('.dropdown-content');
+        if (menu) menu.removeAttribute('style');
+        wrap.classList.remove('dropdown-show');
+      } catch(e) {}
+    }
+    function openAvatarDropdown(wrap){
+      if (!wrap) return;
+      try {
+        var menu = wrap.querySelector('.dropdown-content');
+        if (menu) menu.style.height = menu.scrollHeight + 'px';
+        wrap.classList.add('dropdown-show');
+      } catch(e) {}
+    }
+    function bind(){
+      var wrap = document.querySelector('.ttv2-topbar-avatar-dropdown.dropdown');
+      if (!wrap || wrap.getAttribute('data-ttv2-avatar-bound') === '1') return;
+      // If Bootstrap dropdown menu is used, do not bind legacy dropdown-content logic.
+      if (!wrap.querySelector('.dropdown-content')) return;
+      wrap.setAttribute('data-ttv2-avatar-bound', '1');
+      var toggle = wrap.querySelector('.dropdown-toggle');
+      if (!toggle) return;
+
+      // Capture phase + stopImmediatePropagation avoids double-toggle conflicts
+      // with legacy global dropdown listeners in mobile.
+      toggle.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+        var isOpen = wrap.classList.contains('dropdown-show');
+        if (isOpen) closeAvatarDropdown(wrap);
+        else openAvatarDropdown(wrap);
+      }, true);
+
+      document.addEventListener('click', function(e){
+        var t = e.target;
+        if (t && t.closest && t.closest('.ttv2-topbar-avatar-dropdown.dropdown')) return;
+        closeAvatarDropdown(wrap);
+      }, true);
+
+      document.addEventListener('keydown', function(e){
+        if ((e.key || '').toLowerCase() === 'escape') closeAvatarDropdown(wrap);
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+</script>
+
+<script>
   // Shared: sidebar SPA-style section switch (no URL update)
   (function(){
     document.addEventListener('click', function(e){
@@ -147,6 +339,53 @@
   // - Sidebar links are real URLs (so refresh/deeplink works)
   // - Click loads ?ttv2_partial=1 into the content host, shows loader, updates URL via history.pushState
   (function(){
+    function normalizeUrl(url){
+      try {
+        var u = new URL(url, window.location.href);
+        u.hash = '';
+        u.searchParams.delete('ttv2_partial');
+        return u.pathname + (u.search || '');
+      } catch(e) {
+        return (url || '').split('#')[0];
+      }
+    }
+    function mapPageToNavKey(page){
+      var p = (page || '').trim().toLowerCase();
+      if (!p) return '';
+      if (p === 'streams') return 'streams_capacity';
+      if (p === 'session_report') return 'sessions';
+      return p;
+    }
+    function syncSidebarActiveByUrl(url){
+      try {
+        var links = document.querySelectorAll('.ttv2-counselor-nav a.ttv2-nav-link, .ttv2-counselor-nav a[data-ttv2-nav]');
+        if (!links || !links.length) return;
+        var current = normalizeUrl(url || window.location.href);
+        var anyMatched = false;
+        links.forEach(function(a){
+          var href = normalizeUrl(a.getAttribute('href') || '');
+          var matched = !!href && href === current;
+          if (matched) anyMatched = true;
+          a.classList.toggle('active', matched);
+          if (matched) a.setAttribute('aria-current', 'page');
+          else a.removeAttribute('aria-current');
+        });
+        if (!anyMatched) {
+          var host = document.getElementById('ttv2AjaxContent');
+          var marker = host ? host.querySelector('[data-ttv2-page]') : null;
+          var page = marker ? (marker.getAttribute('data-ttv2-page') || '') : '';
+          var key = mapPageToNavKey(page);
+          if (!key) return;
+          links.forEach(function(a){
+            var k = (a.getAttribute('data-ttv2-nav') || '').trim().toLowerCase();
+            var matchedByKey = k === key;
+            a.classList.toggle('active', matchedByKey);
+            if (matchedByKey) a.setAttribute('aria-current', 'page');
+            else a.removeAttribute('aria-current');
+          });
+        }
+      } catch(e) {}
+    }
     function sameOrigin(url){
       try { return new URL(url, window.location.href).origin === window.location.origin; } catch(e) { return false; }
     }
@@ -250,6 +489,7 @@
           window.ttv2OpenGroupQuicklinkModalFromHash();
         }
       } catch(e) {}
+      syncSidebarActiveByUrl(window.location.href);
     }
 
     function loadHostFromUrl(url, push){
@@ -292,17 +532,19 @@
         src = window.location.href;
       }
       loadHostFromUrl(src, false);
+      syncSidebarActiveByUrl(window.location.href);
     });
 
     // Sidebar link interception
     document.addEventListener('click', function(e){
-      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a') : null);
+      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a.ttv2-nav-link, .ttv2-counselor-nav a[data-ttv2-nav]') : null);
       if (!a) return;
       if (!shouldAjaxifyLink(a)) return;
       var host = document.getElementById('ttv2AjaxContent');
       if (!host) return;
       e.preventDefault();
       var href = a.getAttribute('href');
+      syncSidebarActiveByUrl(href);
       loadHostFromUrl(href, true);
     }, true);
 
@@ -310,6 +552,7 @@
     window.addEventListener('popstate', function(){
       var host = document.getElementById('ttv2AjaxContent');
       if (!host) return;
+      syncSidebarActiveByUrl(window.location.href);
       loadHostFromUrl(window.location.href, false);
     });
   })();

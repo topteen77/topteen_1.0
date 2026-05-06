@@ -79,11 +79,11 @@
       </div>
       <div class="id-stat-card">
         <div class="id-stat-icon id-stat-icon--green"><i class="bx bx-wallet" aria-hidden="true"></i></div>
-        <div class="id-stat-body">
+      <div class="id-stat-body">
           <p class="id-stat-value">{{ ttv2_analytics.kpi.credits_remaining|default(0) }}</p>
           <p class="id-stat-label lh-sm">Remaining Credits</p>
           {% if ttv2_analytics.kpi.credit_topup %}
-          <p class="mb-0" style="margin-top:2px"><span class="badge bg-warning text-dark" style="font-size:9px">Top-up</span></p>
+          <p class="mb-0 ttv2-topup-pill-wrap"><span class="badge bg-warning text-dark ttv2-topup-pill">Top-up</span></p>
           {% endif %}
         </div>
       </div>
@@ -103,11 +103,11 @@
   <div class="ttv2-da-charts-area" data-ttv2-charts-area>
   <div class="row g-3">
     <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <div class="ttv2-card ttv2-chart-card">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
           <div class="card-title mb-0">{% if request.GET.get('ttv2_week_start') or (request.GET.get('ttv2_date_start') and request.GET.get('ttv2_date_end')) %}Psychometric — selected range{% else %}Psychometric completion{% endif %}</div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Psychometric view switch">
-            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="psych" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+          <div class="btn-group btn-group-sm ttv2-view-toggle" role="group" aria-label="Psychometric view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="psych" data-view="chart" title="Chart view"><i class='bx bxs-doughnut-chart'></i></button>
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
@@ -134,10 +134,10 @@
       </div>
     </div>
     <div class="col-12 col-xl-6">
-      <div class="ttv2-card">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <div class="ttv2-card ttv2-chart-card">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
           <div class="card-title mb-0">Sessions trend</div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Sessions view switch">
+          <div class="btn-group btn-group-sm ttv2-view-toggle" role="group" aria-label="Sessions view switch">
             <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="sess" data-view="chart" title="Chart view"><i class="bx bx-line-chart"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="sess" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
@@ -167,10 +167,10 @@
   </div>
   <div class="row g-3 mt-0">
     <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <div class="ttv2-card ttv2-chart-card">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
           <div class="card-title mb-0">Clarity gap trend</div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Clarity view switch">
+          <div class="btn-group btn-group-sm ttv2-view-toggle" role="group" aria-label="Clarity view switch">
             <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="clar" data-view="chart" title="Chart view"><i class="bx bx-line-chart"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="clar" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
@@ -198,10 +198,10 @@
       </div>
     </div>
     <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <div class="ttv2-card ttv2-chart-card">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
           <div class="card-title mb-0">Student risk status</div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Risk view switch">
+          <div class="btn-group btn-group-sm ttv2-view-toggle" role="group" aria-label="Risk view switch">
             <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="risk" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="risk" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
@@ -229,11 +229,11 @@
       </div>
     </div>
     <div class="col-12 col-xl-4">
-      <div class="ttv2-card">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <div class="ttv2-card ttv2-chart-card">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
           <div class="card-title mb-0">Credit utilisation</div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Credits view switch">
-            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="cred" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
+          <div class="btn-group btn-group-sm ttv2-view-toggle" role="group" aria-label="Credits view switch">
+            <button type="button" class="btn btn-outline-secondary active" data-ttv2-view-btn data-target="cred" data-view="chart" title="Chart view"><i class='bx bxs-doughnut-chart'></i></button>
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="cred" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>

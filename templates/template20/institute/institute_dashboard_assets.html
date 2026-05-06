@@ -1,6 +1,16 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
+{% include 'template20/user/includes/student_shell_styles.html' %}
 <link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
 <style>
+  :root {
+    color-scheme: light;
+  }
+
+  body.institute-dashboard {
+    color-scheme: light;
+    background: #f0f2f7;
+  }
+
   .header.tt-header {
     margin-top: 0px;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
@@ -37,9 +47,27 @@
     --id-radius: 12px;
     --id-shadow: 0 4px 24px rgba(91, 33, 182, 0.08);
     --id-shadow-sm: 0 2px 12px rgba(15, 23, 42, 0.06);
-    padding-top: 46px;
+    padding-top: 0;
     background: var(--id-page-bg);
     min-height: 100vh;
+  }
+
+  .institute-dashboard .std-shell-topbar .dropdown-menu {
+    border-color: var(--dash-border-soft) !important;
+  }
+
+  @media (min-width: 992px) {
+    .institute-dashboard.sidebar-collapsed-desktop .id-sidebar-column {
+      display: none;
+    }
+
+    .institute-dashboard.sidebar-collapsed-desktop .id-main-column {
+      width: 100%;
+    }
+
+    .institute-dashboard.sidebar-collapsed-desktop #idSidebarToggleDesktop i {
+      transform: rotate(180deg);
+    }
   }
 
   .institute-dashboard .id-shell {

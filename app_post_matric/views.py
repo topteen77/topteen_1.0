@@ -14,7 +14,7 @@ from .models import (
     TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
     TestCompletionPopup, CareerMatch, AptitudeCombinationMapping
 )
-from careers.models import Career
+from careers.models import Career, CareerCluster
 from .serializers import (
     TestCategorySerializer, TestCategoryDetailSerializer,
     TestSerializer, TestDetailSerializer,
@@ -33,6 +33,7 @@ from core.breadcrumbs import get_breadcrumb
 from django.contrib.auth.decorators import login_required
 from django.template.loader import get_template
 from django.conf import settings
+from django.utils.text import slugify
 User = get_user_model()
 
 
@@ -891,10 +892,17 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                         rrow = rec_map.get(normalize_area(area))
                         if rrow:
                             recommended_college = list(rrow.get('Recommended College Courses', []))
-                            result['aptitude_Recommended_College_Courses'].append({
+                            rec_entry = {
                                 'Area': rrow.get('Areas', 'Unknown'),
-                                'Recommended_College': recommended_college
-                            })
+                                'Recommended_College': recommended_college,
+                                'Universities': list(rrow.get('Universities', [])),
+                            }
+                            # Optional hint fields (only included when present in source data)
+                            for hint_key in ['Eligibility', 'Stream', 'Entrance Exams', 'Entrance Path', 'Duration']:
+                                hint_value = rrow.get(hint_key)
+                                if hint_value:
+                                    rec_entry[hint_key] = hint_value
+                            result['aptitude_Recommended_College_Courses'].append(rec_entry)
                         # Roles guidance
                         matches = roles_map.get(normalize_area(area), [])
                         if matches:
@@ -911,6 +919,57 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                 # ---------- Above Average + Average: Strength/Recommendations/Roles ----------
                 process_strength_recs_roles(above_categories)
                 process_strength_recs_roles(average_categories)
+
+                # ---------- Student-facing grouped course cards ----------
+                # Build "Course + mapped area(s) + optional eligibility hints" structure for dashboard.
+                course_cards_map = {}
+                for row in result.get('aptitude_Recommended_College_Courses', []):
+                    area_name = str(row.get('Area', '') or '').strip()
+                    course_names = row.get('Recommended_College', []) or []
+                    universities = row.get('Universities', []) or []
+
+                    hint_items = []
+                    for hint_key in ['Eligibility', 'Stream', 'Entrance Exams', 'Entrance Path', 'Duration']:
+                        hint_val = row.get(hint_key)
+                        if not hint_val:
+                            continue
+                        if isinstance(hint_val, list):
+                            hint_text = ', '.join([str(v).strip() for v in hint_val if str(v).strip()])
+                        else:
+                            hint_text = str(hint_val).strip()
+                        if hint_text:
+                            hint_items.append(f"{hint_key}: {hint_text}")
+
+                    for raw_course in course_names:
+                        course_name = str(raw_course or '').strip()
+                        if not course_name:
+                            continue
+                        card = course_cards_map.get(course_name)
+                        if not card:
+                            card = {
+                                'course_name': course_name,
+                                'mapped_areas': [],
+                                'universities': [],
+                                'eligibility_hints': [],
+                            }
+                            course_cards_map[course_name] = card
+
+                        if area_name and area_name not in card['mapped_areas']:
+                            card['mapped_areas'].append(area_name)
+
+                        for uni in universities:
+                            uni_name = str(uni or '').strip()
+                            if uni_name and uni_name not in card['universities']:
+                                card['universities'].append(uni_name)
+
+                        for hint_text in hint_items:
+                            if hint_text not in card['eligibility_hints']:
+                                card['eligibility_hints'].append(hint_text)
+
+                result['aptitude_course_recommendation_cards'] = sorted(
+                    list(course_cards_map.values()),
+                    key=lambda item: item.get('course_name', '').lower()
+                )
 
                 # ---------- Combined Report: Exact Area Match ----------
                 # selected_areas = set(above_categories + average_categories)
@@ -1942,6 +2001,7 @@ def CombinedReport(request, user_id=None):
                             'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
                             'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
                             'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
+                            'aptitude_course_recommendation_cards': hexaco_recommendations.get('aptitude_course_recommendation_cards', []),
                             'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
                             'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
                         })
@@ -2135,7 +2195,8 @@ def CombinedReport(request, user_id=None):
                                     clusters_data = []
                                     for cluster in mapping.clusters.all():
                                         try:
-                                            url = reverse('careers:careerlibrary', kwargs={'cluster_slug': cluster.slug, 'cluster_id': cluster.id})
+                                            safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
+                                            url = reverse('careers:careerlibrary', kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id})
                                             clusters_data.append({
                                                 'name': cluster.name,
                                                 'url': url
@@ -2243,12 +2304,172 @@ def CombinedReport(request, user_id=None):
                 print(f"Error processing aptitude session data: {e}")
                 import traceback
                 print(traceback.format_exc())
+
+        # Build psychometric career clusters fallback (used when aptitude clusters are missing)
+        try:
+            import re
+            psychometric_careers = []
+
+            # Personality careers_to_opt can be dict(trait -> [careers]) or list
+            personality_careers = context.get('careers_to_opt', [])
+            if isinstance(personality_careers, dict):
+                for items in personality_careers.values():
+                    if isinstance(items, list):
+                        psychometric_careers.extend(items)
+            elif isinstance(personality_careers, list):
+                psychometric_careers.extend(personality_careers)
+
+            # RIASEC careers_to_opt is generally dict(category -> [careers])
+            riasec_careers = context.get('riasec_careers_to_opt', [])
+            if isinstance(riasec_careers, dict):
+                for items in riasec_careers.values():
+                    if isinstance(items, list):
+                        psychometric_careers.extend(items)
+            elif isinstance(riasec_careers, list):
+                psychometric_careers.extend(riasec_careers)
+
+            # Add aptitude recommended roles as additional psychometric signals
+            aptitude_roles_guidance = context.get('aptitude_roles_guidance', []) or []
+            for area_group in aptitude_roles_guidance:
+                if not isinstance(area_group, dict):
+                    continue
+                for role_item in area_group.get('Recommendations', []) or []:
+                    if isinstance(role_item, dict):
+                        role_name = role_item.get('Role')
+                    else:
+                        role_name = role_item
+                    if role_name:
+                        psychometric_careers.append(role_name)
+
+            cleaned_career_names = []
+            seen_names = set()
+            for name in psychometric_careers:
+                clean_name = str(name or '').strip()
+                if not clean_name:
+                    continue
+                lowered = clean_name.lower()
+                if lowered in seen_names:
+                    continue
+                seen_names.add(lowered)
+                cleaned_career_names.append(clean_name)
+
+            psychometric_clusters = []
+            if cleaned_career_names:
+                # Normalize name to improve matching between recommendation labels and Career.name
+                def _normalize_name(text):
+                    return re.sub(r'[^a-z0-9]+', '', str(text or '').lower()).strip()
+
+                normalized_targets = set(_normalize_name(name) for name in cleaned_career_names if name)
+
+                # First pass: published careers
+                career_qs = Career.objects.filter(is_published=True).prefetch_related('career_cluster')
+                if not career_qs.exists():
+                    # Fallback if publish flag is not maintained in this environment
+                    career_qs = Career.objects.all().prefetch_related('career_cluster')
+
+                cluster_seen = set()
+                matched_any = False
+                for career_obj in career_qs:
+                    normalized_db_name = _normalize_name(getattr(career_obj, 'name', ''))
+                    if normalized_db_name not in normalized_targets:
+                        continue
+                    matched_any = True
+                    for cluster in career_obj.career_cluster.all():
+                        cluster_name = str(getattr(cluster, 'name', '') or '').strip()
+                        if not cluster_name:
+                            continue
+                        key = cluster_name.lower()
+                        if key in cluster_seen:
+                            continue
+                        cluster_seen.add(key)
+                        cluster_url = None
+                        try:
+                            safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
+                            cluster_url = reverse(
+                                'careers:careerlibrary',
+                                kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
+                            )
+                        except Exception:
+                            cluster_url = None
+                        psychometric_clusters.append({
+                            'name': cluster_name,
+                            'url': cluster_url
+                        })
+
+                # Second pass fallback: loose contains matching when exact normalized names do not match
+                if not matched_any:
+                    for rec_name in cleaned_career_names:
+                        token = str(rec_name or '').strip()
+                        if not token:
+                            continue
+                        loose_qs = Career.objects.filter(name__icontains=token[:40]).prefetch_related('career_cluster')[:10]
+                        for career_obj in loose_qs:
+                            for cluster in career_obj.career_cluster.all():
+                                cluster_name = str(getattr(cluster, 'name', '') or '').strip()
+                                if not cluster_name:
+                                    continue
+                                key = cluster_name.lower()
+                                if key in cluster_seen:
+                                    continue
+                                cluster_seen.add(key)
+                                cluster_url = None
+                                try:
+                                    safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
+                                    cluster_url = reverse(
+                                        'careers:careerlibrary',
+                                        kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
+                                    )
+                                except Exception:
+                                    cluster_url = None
+                                psychometric_clusters.append({
+                                    'name': cluster_name,
+                                    'url': cluster_url
+                                })
+
+            context['psychometric_career_clusters'] = sorted(
+                psychometric_clusters,
+                key=lambda item: str(item.get('name', '')).lower()
+            )
+        except Exception as e:
+            print(f"Error building psychometric_career_clusters: {e}")
+            context['psychometric_career_clusters'] = []
+
+        # Build cluster name -> URL map for template linking of text-only cluster sources
+        try:
+            cluster_url_map = {}
+            for cluster in CareerCluster.objects.all().only('id', 'slug', 'name'):
+                cluster_name = str(getattr(cluster, 'name', '') or '').strip()
+                if not cluster_name:
+                    continue
+                key = cluster_name.lower()
+                if key in cluster_url_map:
+                    continue
+                try:
+                    safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
+                    cluster_url_map[key] = reverse(
+                        'careers:careerlibrary',
+                        kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
+                    )
+                except Exception:
+                    cluster_url_map[key] = None
+            context['cluster_url_map'] = cluster_url_map
+        except Exception as e:
+            print(f"Error building cluster_url_map: {e}")
+            context['cluster_url_map'] = {}
         
         context['breadcrumb'] = get_breadcrumb([
             {'text': 'Tests', 'url': reverse('post_matric:tests')},
             {'text': 'Results', 'url': reverse('post_matric:results_list')},
             {'text': 'Combined Report', 'url': ''},
         ])
+
+        # Provide aptitude banding from backend (Above/Average/Below) for charts
+        import json as _json
+        context['aptitude_band_json'] = _json.dumps({
+            'above': context.get('above_list', []) or [],
+            'average': context.get('average_list', []) or [],
+            'below': context.get('below_list', []) or [],
+        })
         return render(request, "template20/app_post_matric/combined_report.html", context)
         
     except Exception as e:

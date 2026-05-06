@@ -46,6 +46,16 @@
                 {% if cas and cas.stream %} · {{ cas.stream }}{% endif %}
                 {% if _adv %} · Advisor: {{ _adv }}{% endif %}
               </div>
+              <div class="ttv2-student-info-lines">
+                <div class="ttv2-student-info-line">
+                  <i class="bx bx-envelope" aria-hidden="true"></i>
+                  <span>{{ u.email if (u and u.email) else '-' }}</span>
+                </div>
+                <div class="ttv2-student-info-line">
+                  <i class="bx bx-phone" aria-hidden="true"></i>
+                  <span>{{ u.mobile if (u and u.mobile) else '-' }}</span>
+                </div>
+              </div>
               {% if _fu %}
                 {% set _k = _fu.smart_key|default('') %}
                 <div style="margin-top:6px;">
