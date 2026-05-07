@@ -10,10 +10,12 @@ from users.models import User, UserProfile, ParentStudentLink
 from institute.models import Institute, ClassAndSection, StudentManagement
 from app.models import TestCompletion, Results
 from app_post_matric.models import (
+    Test,
     TestSession,
     TestResult,
     SectionSession,
     UserResponse,
+    TestTopCategories,
 )
 from demo_data.models import DemoCounselorCourseState, DemoDatasetConfig, ResultType
 from counselor.models import (
@@ -135,61 +137,143 @@ def _get_or_create_class_sections():
 
 def _create_completed_post_matric_tests_for_user(user, *, seed_index=0):
     """
-    Class 12 flow uses app_post_matric models (TestSession/TestResult/SectionSession).
-    Create one completed attempt for tests with pk 1..4 (if present).
+    Class 12 flow uses app_post_matric models (TestSession/TestResult/SectionSession/TestTopCategories).
+
+    DB test order (see app_post_matric.Test): 1=Personality, 2=Motivation, 3=Career Interest, 4=Aptitude.
+
+    Populates shapes expected by CombinedReport + combined_report.html charts:
+    - TestResult.result_data / category_counts (client-side test_results_json)
+    - TestTopCategories (server-side RIASEC / motivation / aptitude bands)
+    - Non-zero session duration (total minutes in report)
     """
+    import json
+    from datetime import timedelta
+
     from django.utils import timezone
-    from app_post_matric.models import Test
 
     now = timezone.now()
-    # Keep deterministic-ish scores per user index.
-    base_score = 65 + (seed_index % 20)
+    # Clear prior top-category rows (not tied to session cascade).
+    TestTopCategories.objects.filter(user=user).delete()
 
+    # Valid RIASEC keys from static/data/interest_riasec.json "code" + merged career path JSON.
+    riasec_codes = ["RIA", "RIS", "RIE", "RIC", "RAS", "RAE"]
+    career_code = riasec_codes[seed_index % len(riasec_codes)]
+    # TestTopCategories for server-side motivation narrative (Motivation_Career.json domains).
+    motivation_domains = ["Business", "Engineer", "Social", "Medical"]
+    motivation_primary = motivation_domains[seed_index % len(motivation_domains)]
+    motivation_secondary = motivation_domains[(seed_index + 1) % len(motivation_domains)]
+
+    # DB pk order: 1 Personality, 2 Motivation, 3 Career, 4 Aptitude
     for test_pk in (1, 2, 3, 4):
         test = Test.objects.filter(pk=test_pk).first()
         if not test:
             continue
 
-        # Keep demo stable: remove any existing attempts for this test.
-        # Cascades will clear SectionSession/TestResult/UserResponse appropriately.
         TestSession.objects.filter(user=user, test_id=test_pk).delete()
 
+        duration_minutes = 28 + (seed_index % 8) + test_pk * 6
+        start_time = now - timedelta(minutes=duration_minutes)
         session = TestSession.objects.create(
             user=user,
             test=test,
-            start_time=now,
+            start_time=start_time,
             end_time=now,
             is_completed=True,
             attempt_count=1,
         )
 
-        # Ensure sections (especially for test 4) are marked complete.
         try:
             for section in test.sections.all():
                 SectionSession.objects.update_or_create(
                     session=session,
                     section=section,
                     defaults={
-                        "start_time": now,
+                        "start_time": start_time,
                         "end_time": now,
                         "is_completed": True,
                     },
                 )
         except Exception:
-            # If a test has no sections, skip silently.
             pass
 
-        # Minimal TestResult so reports/dashboards have something to read.
+        title = (test.title or "").strip()
+        result_data = {}
+        category_counts = {}
+        ttc_high = None
+        ttc_low = ""
+
+        if title == "Personality Assessment":
+            b = 3 + (seed_index % 2)
+            result_data = {
+                "H": {"score": b + 1},
+                "E": {"score": b},
+                "X": {"score": b + 2},
+                "A": {"score": b + 1},
+                "C": {"score": b + 3},
+                "O": {"score": b},
+            }
+            ttc_high = '["H", "E", "X"]'
+            ttc_low = "O"
+        elif title == "Motivation Assessment":
+            # CombinedReport builds test_results_json from TestResult only when result_data is
+            # truthy; otherwise it aggregates UserResponse rows into Achievement/Power/Affiliation
+            # (see app_post_matric.views.CombinedReport). Demo users have no UserResponse rows, so
+            # we must store non-zero Achievement/Power/Affiliation here (do not change report code).
+            ach = 12 + (seed_index % 6)
+            pwr = 7 + (seed_index % 5)
+            aff = 6 + (seed_index % 4)
+            result_data = {"Achievement": ach, "Power": pwr, "Affiliation": aff}
+            category_counts = {"Achievement": ach, "Power": pwr, "Affiliation": aff}
+            ttc_high = motivation_primary
+            ttc_low = motivation_secondary
+        elif title == "Career Interest Inventory":
+            result_data = {
+                "R": {"score": 22},
+                "I": {"score": 8},
+                "A": {"score": 12},
+                "S": {"score": 4},
+                "E": {"score": 6},
+                "C": {"score": 18},
+            }
+            ttc_high = career_code
+            ttc_low = "S"
+        elif title == "Aptitude Assessment":
+            result_data = {
+                "Abstract Reasoning": {"score": 12},
+                "Numerical Reasoning": {"score": 11},
+                "Logical Reasoning": {"score": 9},
+                "Language & Verbal Reasoning": {"score": 10},
+                "Mechanical Reasoning": {"score": 7},
+                "Spatial Reasoning": {"score": 8},
+                "Clerical Speed & Accuracy": {"score": 9},
+            }
+            ttc_high = json.dumps(
+                {
+                    "Above Average": ["Abstract Reasoning", "Numerical Reasoning"],
+                    "Average": ["Logical Reasoning", "Language & Verbal Reasoning"],
+                    "Below Average": ["Mechanical Reasoning", "Spatial Reasoning"],
+                }
+            )
+            ttc_low = ""
+
         TestResult.objects.update_or_create(
             session=session,
             defaults={
-                "score": float(base_score + (test_pk * 2)),
+                "score": float(68 + (seed_index % 12) + test_pk * 2),
                 "grade": "A",
-                "feedback": "Demo result",
-                "result_data": {"demo": True, "test_id": test_pk},
-                "category_counts": {"Business": 3, "Medical": 2, "Social": 2, "Engineer": 3},
+                "feedback": "Demo result (system-generated)",
+                "result_data": result_data,
+                "category_counts": category_counts,
             },
         )
+
+        if ttc_high is not None:
+            TestTopCategories.objects.create(
+                user=user,
+                test_paper=test,
+                high_category=ttc_high,
+                low_category=ttc_low or "",
+            )
 
 
 def create_demo_dataset(config=None):
@@ -426,6 +510,7 @@ def _delete_system_demo_data():
     Counselor.objects.filter(coun_user_id__in=demo_user_ids).delete()
 
     # Post-matric: TestResult -> TestSession; SectionSession -> TestSession; UserResponse -> section_session/session
+    TestTopCategories.objects.filter(user_id__in=demo_user_ids).delete()
     TestResult.objects.filter(session__user_id__in=demo_user_ids).delete()
     UserResponse.objects.filter(session__user_id__in=demo_user_ids).delete()
     SectionSession.objects.filter(session__user_id__in=demo_user_ids).delete()
