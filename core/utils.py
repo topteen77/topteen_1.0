@@ -39,6 +39,16 @@ def ratio(p,q):
         return round(p/q),1
     return round(q/p),1
 
+def expand_eq_band_percentile(label):
+    """Replace legacy '%ile' abbreviation with the full word 'percentile' for display."""
+    if label is None:
+        return label
+    s = str(label)
+    if not s:
+        return s
+    return re.sub(r"%ile", "percentile", s, flags=re.IGNORECASE)
+
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:

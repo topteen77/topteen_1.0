@@ -538,7 +538,7 @@ def _wizard_short_summary(d):
         parts.append(career[:1200])
     unis = (d.get("unis") or "").strip()
     if unis:
-        parts.append("Target universities: " + unis[:500])
+        parts.append("Study destinations: " + unis[:500])
     if parts:
         return "\n\n".join(parts)
     personal = (d.get("personal") or "").strip()

@@ -944,6 +944,87 @@
     text-decoration: underline;
   }
 
+  .recommended-role-list li.top-1,
+  .recommended-role-list li.top-1 a {
+    color: #92400e;
+    font-weight: 700;
+  }
+
+  .recommended-role-list li.top-2,
+  .recommended-role-list li.top-2 a {
+    color: #334155;
+    font-weight: 700;
+  }
+
+  .recommended-role-list li.top-3,
+  .recommended-role-list li.top-3 a {
+    color: #7c2d12;
+    font-weight: 700;
+  }
+
+  .recommended-role-list li.top-1,
+  .recommended-role-list li.top-2,
+  .recommended-role-list li.top-3 {
+    list-style-position: outside;
+    border-radius: 8px;
+    padding: 7px 10px;
+    margin-left: -4px;
+  }
+
+  .recommended-role-list li.top-1 {
+    background: #fff7d6;
+    border-left: 4px solid #d97706;
+  }
+
+  .recommended-role-list li.top-2 {
+    background: #f1f5f9;
+    border-left: 4px solid #64748b;
+  }
+
+  .recommended-role-list li.top-3 {
+    background: #ffedd5;
+    border-left: 4px solid #c2410c;
+  }
+
+  .recommended-role-list li.top-1::marker {
+    color: #d97706;
+  }
+
+  .recommended-role-list li.top-2::marker {
+    color: #64748b;
+  }
+
+  .recommended-role-list li.top-3::marker {
+    color: #c2410c;
+  }
+
+  .recommended-role-rank {
+    display: inline-block;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    margin-right: 8px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    letter-spacing: 0.2px;
+    vertical-align: middle;
+  }
+
+  .recommended-role-list li.top-1 .recommended-role-rank {
+    color: #92400e;
+    background: #fde68a;
+  }
+
+  .recommended-role-list li.top-2 .recommended-role-rank {
+    color: #334155;
+    background: #dbe4ee;
+  }
+
+  .recommended-role-list li.top-3 .recommended-role-rank {
+    color: #7c2d12;
+    background: #fed7aa;
+  }
+
   .card-empty-state {
     min-height: 140px;
     border: 1px dashed #d7deee;
@@ -1124,6 +1205,12 @@
     .test-list.timeline-grid {
       grid-template-columns: 1fr;
     }
+
+    .report-card {
+    padding: 0px;
+  }
+
+    
   }
 </style>
 {% endblock %}
@@ -1132,11 +1219,11 @@
 <div class="mt-8 combined-report-wrap">
 
 
-  <div class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5 mt-4">
+  <div class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 mt-4">
     {% include 'template20/includes/breadcrumb.html' %}
   </div>
 
-  <main class="container-fluid user-dashboard-container px-3 px-lg-4 px-xl-5 py-4 report-shell">
+  <main class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 py-4 report-shell">
     <div class="row justify-content-center mt-5">
       <div class="col-12">
         <div class="report-hero text-center text-white">
@@ -1580,15 +1667,23 @@
           </div>
           <div class="mapping-card">
             <h4>Recommended Roles</h4>
-            {% set role_ns = namespace(items=[], has_items=false) %}
-            <ul class="link-list">
+            {% set role_ns = namespace(items=[], role_items=[], has_items=false) %}
+            <ul class="link-list recommended-role-list">
               {% for item in aptitude_mapping.roles %}
               {% if item.name and item.name not in role_ns.items %}
               {% set _ = role_ns.items.append(item.name) %}
+              {% set _ = role_ns.role_items.append(item) %}
               {% set role_ns.has_items = true %}
-              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
               {% endif %}
               {% endfor %}
+              {% if role_ns.has_items %}
+              {% set ordered_roles = role_ns.role_items | reverse | list %}
+              {% for item in ordered_roles %}
+              {% if item.name %}
+              <li class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">{% if loop.index <= 3 %}<span class="recommended-role-rank">#{{ loop.index }}</span>{% endif %}{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
             </ul>
             {% if not role_ns.has_items %}
             <div class="card-empty-state">

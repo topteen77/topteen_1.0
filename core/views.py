@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
-from .utils import build_html_head, clean_html, get_static_page, get_static_page_html_head, get_page_seo_html_head
+from .utils import build_html_head, clean_html, expand_eq_band_percentile, get_static_page, get_static_page_html_head, get_page_seo_html_head
 from .breadcrumbs import get_breadcrumb
 from django.db import connection
 from django.db.models import Q
@@ -1285,7 +1285,7 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
                     "subscale_scores": latest.subscale_scores,
                     "ei_total": latest.ei_total,
                     "pbi": latest.pbi,
-                    "band_label": latest.band_label,
+                    "band_label": expand_eq_band_percentile(latest.band_label),
                     "intrapersonal_eq": latest.intrapersonal_eq,
                     "interpersonal_eq": latest.interpersonal_eq,
                     "adaptive_eq": latest.adaptive_eq,
@@ -2451,7 +2451,7 @@ def save_eq_assessment(request):
     intrapersonal_eq = data.get("intrapersonalEQ")
     interpersonal_eq = data.get("interpersonalEQ")
     adaptive_eq = data.get("adaptiveEQ")
-    band_label = data.get("bandLabel", "")
+    band_label = expand_eq_band_percentile(data.get("bandLabel", ""))
     if not isinstance(responses, dict) or not isinstance(subscale_scores, dict) or ei_total is None:
         return JsonResponse({"ok": False, "error": "Missing or invalid fields."}, status=400)
     if len(responses) != 36:
@@ -2466,7 +2466,7 @@ def save_eq_assessment(request):
         intrapersonal_eq=float(intrapersonal_eq or 0),
         interpersonal_eq=float(interpersonal_eq or 0),
         adaptive_eq=float(adaptive_eq or 0),
-        band_label=str(band_label),
+        band_label=str(band_label) if band_label is not None else "",
     )
     return JsonResponse({"ok": True})
 
@@ -2728,7 +2728,7 @@ def eq_report_pdf(request):
     </div>
     """ % (
         logo_url,
-        latest.ei_total, latest.band_label, latest.pbi,
+        latest.ei_total, expand_eq_band_percentile(latest.band_label), latest.pbi,
         latest.intrapersonal_eq, latest.interpersonal_eq, latest.adaptive_eq,
         latest.subscale_scores.get("SA"), latest.subscale_scores.get("SC"), latest.subscale_scores.get("EM"),
         latest.subscale_scores.get("CR"), latest.subscale_scores.get("SM"), latest.subscale_scores.get("AC"),

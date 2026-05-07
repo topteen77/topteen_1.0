@@ -134,8 +134,8 @@
     border-radius: 16px;
     padding: 22px 18px 18px;
     text-align: center;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-     /* border: 1px solid rgba(255, 255, 255, 0.6); */
+    box-shadow: 0 10px 28px rgba(30, 41, 59, 0.1);
+    border: 1px solid #dde5ff;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -151,19 +151,20 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    opacity: 0.85;
+    height: 4px;
+    opacity: 0.95;
   }
   .report-card-personality::after { background: linear-gradient(90deg, #5a3d7a, #8b5cf6); }
   .report-card-interest::after { background: linear-gradient(90deg, #c97b3d, #f59e0b); }
   .report-card-intelligence::after { background: linear-gradient(90deg, #b83d6d, #ec4899); }
   .report-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 18px 36px rgba(30, 41, 59, 0.16);
+    border-color: #c7d2fe;
   }
-  .report-card-personality { background: linear-gradient(165deg, rgba(127, 86, 168, 0.2) 0%, rgba(127, 86, 168, 0.08) 100%); }
-  .report-card-interest { background: linear-gradient(165deg, rgba(245, 158, 81, 0.22) 0%, rgba(245, 158, 81, 0.08) 100%); }
-  .report-card-intelligence { background: linear-gradient(165deg, rgba(233, 120, 168, 0.22) 0%, rgba(233, 120, 168, 0.08) 100%); }
+  .report-card-personality { background: linear-gradient(160deg, #ffffff 0%, #f5f3ff 100%); }
+  .report-card-interest { background: linear-gradient(160deg, #ffffff 0%, #fff7ed 100%); }
+  .report-card-intelligence { background: linear-gradient(160deg, #ffffff 0%, #fdf2f8 100%); }
   .report-badge {
     display: inline-block;
     padding: 8px 12px;
@@ -243,6 +244,175 @@
     align-items: center;
     flex: 1;
   }
+  .report-card-modern {
+    text-align: left;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 16px 16px 14px;
+    min-height: 336px;
+    backdrop-filter: blur(2px);
+  }
+  .report-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .report-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .report-card-sub {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .report-card-score {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .report-card-score.personality { color: #5a3d7a; }
+  .report-card-score.interest { color: #b45309; }
+  .report-card-score.intelligence { color: #be185d; }
+  .modern-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .modern-pill {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+  }
+  .modern-pill.personality { color: #5b21b6; background: #ede9fe; border-color: #ddd6fe; }
+  .modern-pill.interest { color: #9a3412; background: #ffedd5; border-color: #fed7aa; }
+  .modern-pill.intelligence { color: #be185d; background: #fce7f3; border-color: #fbcfe8; }
+  .modern-pill.i-high {
+    color: #166534;
+    background: #dcfce7;
+    border-color: #86efac;
+  }
+  .modern-pill.i-avg {
+    color: #c2410c;
+    background: #ffedd5;
+    border-color: #fdba74;
+  }
+  .modern-pill.i-below {
+    color: #b91c1c;
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+  .modern-pill.warn {
+    color: #b91c1c;
+    background: #fee2e2;
+    border-color: #fecaca;
+  }
+  .interest-avoid-wrap {
+    margin-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
+  }
+  .interest-avoid-title {
+    margin: 0 0 7px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+  }
+  .interest-avoid-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .interest-avoid-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c2410c;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+  }
+  .modern-bars {
+    display: grid;
+    gap: 9px;
+    margin-top: 10px;
+  }
+  .modern-bar-row {
+    display: grid;
+    grid-template-columns: 72px 1fr 26px;
+    align-items: center;
+    gap: 8px;
+  }
+  .modern-bar-row span {
+    font-size: 12px;
+    color: #334155;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .modern-bar-track {
+    height: 7px;
+    background: #e8edf7;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .modern-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+  }
+  .modern-bar-fill.personality { background: linear-gradient(90deg, #7c3aed, #8b5cf6); }
+  .modern-bar-fill.interest { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  .modern-bar-fill.intelligence { background: linear-gradient(90deg, #f97316, #fb923c); }
+  .modern-bar-fill.intelligence.high { background: linear-gradient(90deg, #16a34a, #22c55e); }
+  .modern-bar-fill.intelligence.avg { background: linear-gradient(90deg, #ea580c, #f59e0b); }
+  .modern-bar-fill.intelligence.below { background: linear-gradient(90deg, #dc2626, #ef4444); }
+  .modern-bar-mark {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: right;
+    line-height: 15px;
+  }
+  .modern-bar-mark.avg { color: #c2410c; }
+  .modern-bar-mark.below { color: #b91c1c; }
+  .modern-bar-mark.high { color: #166534; }
+  .modern-card-footer {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .report-card-modern .report-card-actions {
+    margin-top: 10px;
+    justify-content: space-between;
+  }
+  .report-card-modern .report-card-actions a {
+    border-radius: 12px;
+    width: calc(50% - 4px);
+    height: 38px;
+    font-size: 13px;
+    gap: 6px;
+    font-weight: 600;
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+  }
+  .report-card-modern .report-card-actions .btn-view {
+    background: linear-gradient(135deg, #4f46e5, #3F37C9);
+  }
+  .report-card-modern .report-card-actions .btn-download {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
   .stream-card {
     background: #fff;
     border: 1px solid var(--psych-border);
@@ -305,6 +475,18 @@
   }
   .download-report-btn:hover { color: #3F37C9; background: #eef2ff; border-color: #a5b4fc; }
   .download-report-btn:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+  .psych-report-section {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 255, 0.95) 100%);
+    border: 1px solid #dbe2ff;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 24px rgba(63, 55, 201, 0.08);
+  }
+  @media (min-width: 768px) {
+    .psych-report-section {
+      padding: 16px;
+    }
+  }
   .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
   .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
   .vocational-card {
@@ -344,6 +526,118 @@
     color: #0f172a;
     border-top: 1px solid #f1f5f9;
     background: #fafafa;
+  }
+  .improvement-alert {
+    border: 1px solid #f3d4b5;
+    background: linear-gradient(180deg, #fffaf4 0%, #fff4e8 100%);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(217, 119, 6, 0.08);
+  }
+  .improvement-alert h4 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #9a3412;
+  }
+  .improvement-alert p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #7c2d12;
+    line-height: 1.55;
+  }
+  .improvement-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .improvement-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #b45309;
+    background: #ffedd5;
+    border: 1px solid #fdba74;
+  }
+  .suggested-careers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 992px) {
+    .suggested-careers-grid { grid-template-columns: 1fr; }
+  }
+  .suggested-career-card {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  }
+  .suggested-career-card h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .suggested-career-card p {
+    margin: 4px 0 10px;
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+  .career-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .career-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.69rem;
+    font-weight: 600;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+  .career-chip.subject-chip {
+    font-weight: 700;
+    border-width: 1px;
+  }
+  .stream-chip-pcm { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+  .stream-chip-pcb { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+  .stream-chip-hum { background: #ecfccb; border-color: #bef264; color: #3f6212; }
+  .stream-chip-hwl { background: #cffafe; border-color: #67e8f9; color: #155e75; }
+  .stream-chip-cwm { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+  .stream-chip-cwom { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .stream-chip-cs { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+  .stream-chip-finearts { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+  .career-type-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #9a3412;
+    background: #ffedd5;
+    border: 1px solid #fdba74;
+    margin-bottom: 8px;
+  }
+  .career-subtitle {
+    margin: 12px 0 8px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
   .psych-section-link a {
     color: inherit;
@@ -764,46 +1058,144 @@
             </div>
             {% endif %}
 
-      <!-- Psychometric Test Report (match screen: three cards with circular %, badges) -->
-      <div class="mb-4">
+   
+      <!-- Psychometric Test Report (modern combined-report style using DB data) -->
+      <div class="mb-4 psych-report-section">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric test report</h2>
         <div class="row g-3">
           <div class="col-md-4 mb-md-0 mb-3">
-            <div class="report-card report-card-personality">
-              <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_html') }}{% endif %}" class="report-card-main-link text-decoration-none text-dark">
-                <div class="circle-progress" style="--circle-color: #5a3d7a; --pct: {{ (personality_pct|default(0) / 100) }};"><span class="circle-progress-text">{{ personality_pct|default(0) }}%</span></div>
-                <p class="fs-16 fw-bold mb-0">Personality</p>
-                <span class="report-badge report-badge-personality">{% if top_category %}{{ top_category.fullname|default('—') }}{% else %}—{% endif %}</span>
-              </a>
-              <div class="report-card-actions">
-                <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Personality report"><i class='bx bx-show fs-18'></i></a>
-                <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Personality PDF" target="_blank" rel="noopener"><i class='bx bx-download fs-18'></i></a>
+            <div class="report-card report-card-personality report-card-modern">
+              <div class="report-card-head">
+                <div>
+                  <p class="report-card-title">Personality</p>
+                  <p class="report-card-sub">RIASEC model - Part 1</p>
+                </div>
+                <div class="report-card-score personality">{{ personality_pct|default(0) }}%</div>
+              </div>
+              <div class="modern-pill-row">
+                <span class="modern-pill personality">{% if top_category %}{{ top_category.fullname|default(top_category.category)|default('Profile trend') }}{% else %}Profile trend{% endif %}</span>
+              </div>
+              <div class="modern-bars">
+                {% if personality_breakdown %}
+                  {% for item in personality_breakdown %}
+                    {% if loop.index <= 6 %}
+                    <div class="modern-bar-row">
+                      <span>{{ item.label }}</span>
+                      <div class="modern-bar-track"><div class="modern-bar-fill personality psych-dynamic-width" data-score="{{ item.score_pct }}"></div></div>
+                      <strong class="modern-bar-mark">{{ item.score_pct }}%</strong>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modern-card-footer">
+                <div class="report-card-actions">
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Personality report"><i class='bx bx-show'></i> View</a>
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Personality PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                </div>
               </div>
             </div>
           </div>
           <div class="col-md-4 mb-md-0 mb-3">
-            <div class="report-card report-card-interest">
-              <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_html') }}{% endif %}" class="report-card-main-link text-decoration-none text-dark">
-                <div class="circle-progress" style="--circle-color: #c97b3d; --pct: {{ (interest_pct|default(0) / 100) }};"><span class="circle-progress-text">{{ interest_pct|default(0) }}%</span></div>
-                <p class="fs-16 fw-bold mb-0">Interest</p>
-                <span class="report-badge report-badge-interest">{{ max_length|default('—') }}</span>
-              </a>
-              <div class="report-card-actions">
-                <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Interest report"><i class='bx bx-show fs-18'></i></a>
-                <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Interest PDF" target="_blank" rel="noopener"><i class='bx bx-download fs-18'></i></a>
+            <div class="report-card report-card-interest report-card-modern">
+              <div class="report-card-head">
+                <div>
+                  <p class="report-card-title">Interest</p>
+                  <p class="report-card-sub">Career interest inventory - Part 2</p>
+                </div>
+                <div class="report-card-score interest">{{ interest_highest_value|default(interest_pct|default(0))|int }}</div>
+              </div>
+              <div class="modern-pill-row d-none">
+                <span class="modern-pill interest">Top: {{ dominant_interest_name|default(max_length|default('Dominant area')) }}</span>
+                {% if lowest_interest_name %}
+                <span class="modern-pill warn">Lowest: {{ lowest_interest_name }}</span>
+                {% endif %}
+              </div>
+              <div class="modern-bars">
+                {% if interest_breakdown %}
+                  {% for item in interest_breakdown %}
+                    {% if loop.index <= 6 %}
+                    <div class="modern-bar-row">
+                      <span>{{ item.label }}</span>
+                      <div class="modern-bar-track"><div class="modern-bar-fill interest psych-dynamic-width" data-score="{{ item.score_pct }}"></div></div>
+                      <strong class="modern-bar-mark">{{ item.score_value|default(item.score_pct) }}</strong>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modern-card-footer">
+                {% if interest_avoid_careers %}
+                <div class="interest-avoid-wrap d-none">
+                  <p class="interest-avoid-title">Careers to avoid</p>
+                  <div class="interest-avoid-list">
+                    {% for role in interest_avoid_careers %}
+                    <span class="interest-avoid-chip">{{ role }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+                <div class="report-card-actions">
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Interest report"><i class='bx bx-show'></i> View</a>
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Interest PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                </div>
               </div>
             </div>
           </div>
           <div class="col-md-4 mb-md-0 mb-3">
-            <div class="report-card report-card-intelligence">
-              <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_html') }}{% endif %}" class="report-card-main-link text-decoration-none text-dark">
-                <div class="circle-progress" style="--circle-color: #b83d6d; --pct: {{ (intelligence_pct|default(0) / 100) }};"><span class="circle-progress-text">{{ intelligence_pct|default(0) }}%</span></div>
-                <p class="fs-16 fw-bold mb-0">Intelligence</p>
-                <span class="report-badge report-badge-intelligence">{% if above_avg_score %}{{ above_avg_score }} REASONING{% else %}—{% endif %}</span>
-              </a>
-              <div class="report-card-actions">
-                <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Intelligence report"><i class='bx bx-show fs-18'></i></a>
-                <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Intelligence PDF" target="_blank" rel="noopener"><i class='bx bx-download fs-18'></i></a>
+            <div class="report-card report-card-intelligence report-card-modern">
+              <div class="report-card-head">
+                <div>
+                  <p class="report-card-title">Intelligence</p>
+                  <p class="report-card-sub">Aptitude assessment - Part 3</p>
+                </div>
+                <div class="report-card-score intelligence"></div>
+              </div>
+              <div class="modern-pill-row d-none">
+                {% set pill_ns = namespace(count=0) %}
+                {% if intelligence_breakdown %}
+                  {% for item in intelligence_breakdown %}
+                    {% if pill_ns.count < 3 and (item.band == 'Above Avg' or item.band == 'Avg') %}
+                      <span class="modern-pill intelligence {% if item.band == 'Above Avg' %}i-high{% else %}i-avg{% endif %}">
+                        {% if loop.first %}Top: {% endif %}{{ item.label|upper }}
+                      </span>
+                      {% set pill_ns.count = pill_ns.count + 1 %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+                {% if pill_ns.count == 0 %}
+                  {% set top_band = top_intelligence_band|default('') %}
+                  <span class="modern-pill intelligence {% if top_band == 'Above Avg' %}i-high{% elif top_band == 'Avg' %}i-avg{% elif top_band == 'Below' %}i-below{% endif %}">
+                    {% if top_intelligence_label %}
+                      Top: {{ top_intelligence_label|upper }}
+                    {% elif above_avg_score %}
+                      Top: {{ above_avg_score }}
+                    {% else %}
+                      Reasoning profile
+                    {% endif %}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="modern-bars">
+                {% if intelligence_breakdown %}
+                  {% for item in intelligence_breakdown %}
+                    {% if loop.index <= 6 %}
+                    <div class="modern-bar-row">
+                      <span>{{ item.label }}</span>
+                      <div class="modern-bar-track">
+                        <div class="modern-bar-fill intelligence psych-dynamic-width {% if item.band == 'Below' %}below{% elif item.band == 'Above Avg' %}high{% else %}avg{% endif %}" data-score="{{ item.score_pct }}"></div>
+                      </div>
+                      <strong class="modern-bar-mark {% if item.band == 'Below' %}below{% elif item.band == 'Above Avg' %}high{% else %}avg{% endif %}">{{ item.band }}</strong>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modern-card-footer">
+                <div class="report-card-actions">
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Intelligence report"><i class='bx bx-show'></i> View</a>
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Intelligence PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                </div>
               </div>
             </div>
           </div>
@@ -814,7 +1206,94 @@
         </div>
       </div>
 
+      {% if interest_suggested_careers or aptitude_suggested_careers %}
       <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested careers</h2>
+        <div class="suggested-careers-grid">
+          <div class="suggested-career-card">
+            <h4>From interest </h4>
+            <p>Based on your dominant interest area from report.</p>
+            {% if dominant_interest_name %}
+            <span class="career-type-pill">Highest type: {{ dominant_interest_name }}</span>
+            {% endif %}
+            <div class="career-chip-grid">
+              {% if interest_suggested_careers %}
+                {% for career in interest_suggested_careers %}
+                <span class="career-chip">{{ career }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="career-chip">No interest-based career suggestions found.</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="suggested-career-card">
+            <h4>From aptitude ({{ top_intelligence_label|default('reasoning')|lower }})</h4>
+            <p>Best-fit careers for your strongest intelligence areas.</p>
+            <div class="career-chip-grid">
+              {% if aptitude_suggested_careers %}
+                {% for career in aptitude_suggested_careers %}
+                <span class="career-chip">{{ career }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="career-chip">No aptitude career suggestions found.</span>
+              {% endif %}
+            </div>
+            {% if suitable_subject_combinations %}
+            <p class="career-subtitle">Suitable subject combinations</p>
+            <div class="career-chip-grid">
+              {% for combo in suitable_subject_combinations %}
+              <span class="career-chip subject-chip {{ combo.color_class|default('') }}">{{ combo.label|default(combo) }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+
+      {% if below|default([]) or vocational_course_cards|default([]) %}
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Improvement recommendations</h2>
+        {% if below|default([]) %}
+        <div class="improvement-alert mb-3">
+          <h4>Below-average aptitude scores detected</h4>
+          <p>{{ below|length }} reasoning area(s) are currently below average. Follow targeted practice and recommended vocational guidance before final stream selection.</p>
+          <div class="improvement-chip-row">
+            {% for area in below %}
+            <span class="improvement-chip">{{ area|title }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if vocational_course_cards|default([]) %}
+        <h3 class="psych-section-title psych-section-link mb-3">
+          <span class="psych-section-dot" aria-hidden="true"></span>
+          <a href="{{ url('core:vocational_courses') }}">Vocational courses for below-average students</a>
+        </h3>
+        <div class="row g-3">
+          {% for card in vocational_course_cards %}
+          <div class="col-md-3">
+            <div class="vocational-card p-0">
+              <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
+                <div class="vocational-img-wrap">
+                  {% if card.course.image %}
+                  <img src="{{ card.course.image.url }}" alt="{{ card.label }}">
+                  {% else %}
+                  <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="{{ card.label }}">
+                  {% endif %}
+                </div>
+                <p class="vocational-label lh-sm">{{ card.label }}</p>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="mb-4 d-none">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Performance insights graph</h2>
         <div class="insights-grid">
           <div class="insight-panel">
@@ -906,7 +1385,7 @@
       {% set radar_communication = (((personality_pct|default(0)|int + interest_pct|default(0)|int * 2) / 3))|round|int %}
       {% set radar_problem_solving = (((interest_pct|default(0)|int + intelligence_pct|default(0)|int * 2) / 3))|round|int %}
       {% set radar_execution = base_overall|int %}
-      <div class="mb-4">
+      <div class="mb-4 d-none">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric analytics</h2>
         <div class="career-analytics-grid mb-3">
           <div class="career-analytics-card">
@@ -979,36 +1458,6 @@
           </div>
         </div>
       </div>
-
-
-
-      <!-- Vocational Courses for Below Average Students: shown only when result has below-average areas; cards dynamic, each links to its detail page -->
-      {% if vocational_course_cards|default([]) %}
-      <div class="mb-4">
-        <h3 class="psych-section-title psych-section-link mb-3">
-          <span class="psych-section-dot" aria-hidden="true"></span>
-          <a href="{{ url('core:vocational_courses') }}">Vocational courses for below-average students</a>
-        </h3>
-        <div class="row g-3">
-          {% for card in vocational_course_cards %}
-          <div class="col-md-3">
-            <div class="vocational-card p-0">
-              <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
-                <div class="vocational-img-wrap">
-                  {% if card.course.image %}
-                  <img src="{{ card.course.image.url }}" alt="{{ card.label }}">
-                  {% else %}
-                  <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="{{ card.label }}">
-                  {% endif %}
-                </div>
-                <p class="vocational-label lh-sm">{{ card.label }}</p>
-              </a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
       </div>
       <script>
         (function () {

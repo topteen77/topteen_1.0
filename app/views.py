@@ -265,6 +265,158 @@ def dashboard(request, student_id=None):
         except (TypeError, ValueError):
             intelligence_pct = 0
 
+        # Structured breakdowns for modern psychometric cards (DB-backed)
+        personality_breakdown = []
+        try:
+            for label, score in sorted((sorted_result or {}).items(), key=lambda item: item[1], reverse=True):
+                try:
+                    pct = int(round(float(score)))
+                except (TypeError, ValueError):
+                    pct = 0
+                personality_breakdown.append({
+                    'label': str(label).strip(),
+                    'score_pct': max(0, min(100, pct)),
+                })
+        except Exception:
+            personality_breakdown = []
+
+        interest_breakdown = []
+        try:
+            sorted_interest_items = sorted((sorted_test2_result or {}).items(), key=lambda item: item[1], reverse=True)
+            max_interest_score = 0.0
+            if sorted_interest_items:
+                try:
+                    max_interest_score = float(sorted_interest_items[0][1])
+                except (TypeError, ValueError):
+                    max_interest_score = 0.0
+            for label, raw_score in sorted_interest_items:
+                try:
+                    numeric_score = float(raw_score)
+                except (TypeError, ValueError):
+                    numeric_score = 0.0
+                # Interest bars should be relative to the top interest score to match report behavior.
+                pct = int(round((numeric_score / max_interest_score) * 100.0)) if max_interest_score else 0
+                interest_breakdown.append({
+                    'label': str(label).strip().title(),
+                    'score_pct': max(0, min(100, pct)),   # width
+                    'score_value': int(round(numeric_score)),  # shown number (raw report score)
+                })
+        except Exception:
+            interest_breakdown = []
+
+        # Interest top/lowest metadata + "careers to avoid" suggestions for UI card
+        interest_label_map = {
+            'R': 'Realistic',
+            'I': 'Investigative',
+            'A': 'Artistic',
+            'S': 'Social',
+            'E': 'Enterprising',
+            'C': 'Conventional',
+            'REALISTIC': 'Realistic',
+            'INVESTIGATIVE': 'Investigative',
+            'ARTISTIC': 'Artistic',
+            'SOCIAL': 'Social',
+            'ENTERPRISING': 'Enterprising',
+            'CONVENTIONAL': 'Conventional',
+        }
+        interest_avoid_map = {
+            # Keep this aligned with class10_combined_report_content "Careers to Avoid" blocks
+            'REALISTIC': [
+                'Construction Industry',
+                'Mechanical Trades',
+                'Electrical Engineering',
+                'Environmental and Outdoor Work',
+                'Agricultural Sector',
+            ],
+            'INVESTIGATIVE': [
+                'Scientific Research',
+                'Academic Research',
+                'Laboratory Technician',
+                'Data Analysis and Data Science',
+                'Engineering and Technical Analysis',
+            ],
+            'ARTISTIC': [
+                'Graphic Design',
+                'Creative Writing and Publishing',
+                'Fine Arts',
+                'Performing Arts (e.g., Acting, Music)',
+                'Interior and Fashion Design',
+            ],
+            'SOCIAL': [
+                'Counseling and Therapy',
+                'Teaching and Education',
+                'Social Work',
+                'Healthcare (e.g., Nursing, Patient Care)',
+                'Human Resources and Organizational Development',
+            ],
+            'ENTERPRISING': [
+                'Entrepreneurship and Startups',
+                'Sales and Marketing Management',
+                'Business Leadership and Executive Roles',
+                'Real Estate Sales',
+                'Strategic Business Consulting',
+            ],
+            'CONVENTIONAL': [
+                'Accounting and Financial Management',
+                'Administrative Support',
+                'Data Entry and Clerical Work',
+                'Banking and Financial Services',
+                'Compliance and Regulatory Roles',
+            ],
+        }
+        dominant_interest_name = ''
+        lowest_interest_name = ''
+        interest_avoid_careers = []
+        try:
+            dominant_key = str(max_length or '').strip().upper()
+            lowest_key = str(min_length or '').strip().upper()
+            dominant_interest_name = interest_label_map.get(dominant_key, str(max_length or '').strip().title())
+            lowest_interest_name = interest_label_map.get(lowest_key, str(min_length or '').strip().title())
+            interest_avoid_careers = interest_avoid_map.get(lowest_key, [])
+            if not interest_avoid_careers and lowest_interest_name:
+                interest_avoid_careers = interest_avoid_map.get(lowest_interest_name.upper(), [])
+        except Exception:
+            dominant_interest_name = str(max_length or '').strip()
+            lowest_interest_name = str(min_length or '').strip()
+            interest_avoid_careers = []
+
+        intelligence_breakdown = []
+        top_intelligence_label = ''
+        top_intelligence_band = ''
+        try:
+            above_set = {str(item).upper().strip() for item in (above_avg or [])}
+            avg_set = {str(item).upper().strip() for item in (avg or [])}
+            below_set = {str(item).upper().strip() for item in (below or [])}
+            sorted_intelligence_items = sorted((sorted_test3_result or {}).items(), key=lambda item: item[1], reverse=True)
+            for raw_label, raw_score in sorted_intelligence_items:
+                code = str(raw_label).split('_')[0].upper().strip()
+                label = code.title()
+                try:
+                    numeric_score = float(raw_score)
+                except (TypeError, ValueError):
+                    numeric_score = 0.0
+                pct = int(round(max(0.0, min(100.0, (numeric_score / 15.0) * 100.0))))
+                if code in above_set:
+                    band = 'Above Avg'
+                elif code in avg_set:
+                    band = 'Avg'
+                elif code in below_set:
+                    band = 'Below'
+                else:
+                    band = 'Avg'
+                intelligence_breakdown.append({
+                    'label': label,
+                    'score_pct': pct,
+                    'band': band,
+                })
+            if intelligence_breakdown:
+                top_intelligence_label = intelligence_breakdown[0].get('label', '')
+                top_intelligence_band = intelligence_breakdown[0].get('band', '')
+        except Exception:
+            intelligence_breakdown = []
+            top_intelligence_label = ''
+            top_intelligence_band = ''
+
         # Skill readiness index from TopTeen DB (test3 intelligence scores)
         # test3 section scores are usually on a 0-15 scale, convert to percentage for UI bars.
         skill_readiness_index = []
@@ -339,6 +491,99 @@ def dashboard(request, student_id=None):
         except Exception:
             vocational_course_cards = []
 
+        # Suggested careers block (same intent as combined report)
+        interest_suggested_careers = []
+        aptitude_suggested_careers = []
+        suitable_subject_combinations = []
+        try:
+            interest_career_map = {
+                'R': [
+                    'Mechanical Engineering', 'Construction Management', 'Aviation (Pilots)',
+                    'Surveying and Mapping', 'Skilled Trades', 'Industrial Engineering',
+                    'Automotive Engineering', 'Environmental Health and Safety Specialist',
+                ],
+                'I': [
+                    'Research and Development', 'Data Science and Analytics', 'Biotechnology and Life Sciences',
+                    'Software Engineering', 'Forensic Science', 'Medical Research',
+                    'Environmental Science', 'Epidemiology',
+                ],
+                'A': [
+                    'Graphic Design', 'Writing and Publishing', 'Music and Performing Arts',
+                    'Film and Media Production', 'Art Direction', 'Animation',
+                    'Interior Design', 'Fashion Design',
+                ],
+                'S': [
+                    'Counseling and Therapy', 'Education and Teaching',
+                    'Healthcare (e.g., Nursing, Physician Assistant)', 'Social Services',
+                    'Human Resources', 'Occupational Therapy', 'Public Relations',
+                    'Nonprofit Management',
+                ],
+                'E': [
+                    'Entrepreneurship', 'Marketing and Sales', 'Real Estate',
+                    'Business Consulting', 'Executive Leadership', 'Management Consulting',
+                    'Venture Capital', 'Investment Banking',
+                ],
+                'C': [
+                    'Accounting and Finance', 'Administrative and Office Management',
+                    'Data Analysis', 'Project Management', 'Banking and Financial Services',
+                    'Compliance and Risk Management', 'Supply Chain Management',
+                    'Investment Analysis',
+                ],
+            }
+            dominant_key = str(max_length or '').strip().upper()[:1]
+            interest_suggested_careers = interest_career_map.get(dominant_key, [])
+            if not interest_suggested_careers and courseName:
+                # Fallback to existing dynamic category careers if interest mapping unavailable.
+                interest_suggested_careers = sorted(list(courseName))
+            interest_suggested_careers = interest_suggested_careers[:12]
+        except Exception:
+            interest_suggested_careers = []
+        try:
+            aptitude_career_map = {
+                'NUMERICAL': ['Finance & Accounting', 'Data Science & Analytics', 'Statistics', 'Actuarial Science'],
+                'VERBAL': ['Law', 'Journalism', 'Content Strategy', 'Public Communication'],
+                'LOGICAL': ['Engineering', 'Computer Science', 'IT & Programming', 'Software Development'],
+                'MECHANICAL': ['Mechanical Engineering', 'Automobile Engineering', 'Industrial Design', 'Production Engineering'],
+                'SPATIAL': ['Architecture & Design', 'Urban Planning', 'Geography & Cartography', 'Interior Design'],
+                'LANGUAGE': ['Media & Communication', 'Linguistics', 'Teaching', 'Translation Studies'],
+                'CRITICAL': ['Policy Analysis', 'Law', 'Research', 'Strategic Analysis'],
+            }
+            # Same stream mapping used in report logic (single strongest aptitude)
+            aptitude_stream_map = {
+                'NUMERICAL': ['PCM', 'CWM'],
+                'VERBAL': ['HUM', 'CWM'],
+                'LOGICAL': ['PCM', 'PCB'],
+                'MECHANICAL': ['PCM', 'CS'],
+                'SPATIAL': ['PCM', 'Fine Arts'],
+                'LANGUAGE': ['HUM', 'HWL'],
+                'CRITICAL': ['PCM', 'HUM'],
+            }
+            stream_subject_map = {
+                'PCM': {'label': 'PCM (Physics, Chemistry, Mathematics)', 'color_class': 'stream-chip-pcm'},
+                'PCB': {'label': 'PCB (Physics, Chemistry, Biology)', 'color_class': 'stream-chip-pcb'},
+                'HUM': {'label': 'HUM (Humanities)', 'color_class': 'stream-chip-hum'},
+                'HWL': {'label': 'HWL (Humanities with Languages)', 'color_class': 'stream-chip-hwl'},
+                'CWM': {'label': 'CWM (Commerce with Mathematics)', 'color_class': 'stream-chip-cwm'},
+                'CWOM': {'label': 'CWOM (Commerce without Mathematics)', 'color_class': 'stream-chip-cwom'},
+                'CS': {'label': 'CS (Computer Science)', 'color_class': 'stream-chip-cs'},
+                'FINE ARTS': {'label': 'Fine Arts', 'color_class': 'stream-chip-finearts'},
+            }
+            # Keep aligned with report: prioritize strongest aptitude area only
+            primary_aptitude = str(above_avg_score or '').upper().strip()
+            if primary_aptitude not in aptitude_career_map and top_intelligence_label:
+                primary_aptitude = str(top_intelligence_label).upper().strip()
+            if primary_aptitude in aptitude_career_map:
+                aptitude_suggested_careers = aptitude_career_map.get(primary_aptitude, [])[:8]
+                stream_codes = aptitude_stream_map.get(primary_aptitude, [])
+                for code in stream_codes:
+                    key = str(code).upper().strip()
+                    entry = stream_subject_map.get(key)
+                    if entry:
+                        suitable_subject_combinations.append(entry)
+        except Exception:
+            aptitude_suggested_careers = []
+            suitable_subject_combinations = []
+
         # Statistics for template20 dashboard (trophies, points, streak, level)
         try:
             from core.dashboard_stats import get_student_dashboard_stats
@@ -374,6 +619,14 @@ def dashboard(request, student_id=None):
             'personality_pct': personality_pct,
             'interest_pct': interest_pct,
             'intelligence_pct': intelligence_pct,
+            'personality_breakdown': personality_breakdown[:6],
+            'interest_breakdown': interest_breakdown[:6],
+            'dominant_interest_name': dominant_interest_name,
+            'lowest_interest_name': lowest_interest_name,
+            'interest_avoid_careers': interest_avoid_careers,
+            'intelligence_breakdown': intelligence_breakdown[:6],
+            'top_intelligence_label': top_intelligence_label,
+            'top_intelligence_band': top_intelligence_band,
             'trophies_unlocked': trophies_unlocked,
             'total_points': total_points,
             'streak_days': streak_days,
@@ -381,6 +634,9 @@ def dashboard(request, student_id=None):
             'next_level_min_points': next_level_min_points,
             'level_progress_percent': level_progress_percent,
             'vocational_course_cards': vocational_course_cards,
+            'interest_suggested_careers': interest_suggested_careers,
+            'aptitude_suggested_careers': aptitude_suggested_careers,
+            'suitable_subject_combinations': suitable_subject_combinations,
             'skill_readiness_index': skill_readiness_index,
             'report_user_id': request.user.id,
         }

@@ -18,7 +18,7 @@ from users.models import User, UserProfile
 from core import choices
 from psychometric_tests.models import PsychometricTestResult,CentralTestCandidate
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from core.utils import build_html_head
+from core.utils import build_html_head, expand_eq_band_percentile
 from django.contrib import messages
 from .task import send_new_student_credential,institute_deletion_request,create_student_and_send_mail,send_institute_mail
 from django.urls import reverse_lazy
@@ -3447,7 +3447,7 @@ class InstituteDashboardView(TemplateView):
                         mi_line = "MI: %s (%s)" % (esc(mi.style_name), esc(mi.primary_style))
                     eq_line = "EI: —"
                     if eq:
-                        eq_line = "EI: %.1f (%s)" % (float(eq.ei_total or 0), esc(eq.band_label))
+                        eq_line = "EI: %.1f (%s)" % (float(eq.ei_total or 0), esc(expand_eq_band_percentile(eq.band_label)))
                     pages.append(
                         """
                         <div class="page">

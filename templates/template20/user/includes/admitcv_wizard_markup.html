@@ -79,13 +79,42 @@
       </div>
     </div>
 
-    <div class="fc" id="fc-uni-targets">
-      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm0-6a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/></svg></div><div><div class="fc-title">Target Universities</div><div class="fc-sub">Click to select all institutions you're applying to</div></div></div>
-      <div class="chips" id="uni-chips" aria-describedby="e-unis-target">
-        <span class="chip" onclick="toggleChip(this)">Harvard</span><span class="chip" onclick="toggleChip(this)">Yale</span><span class="chip" onclick="toggleChip(this)">Princeton</span><span class="chip" onclick="toggleChip(this)">Columbia</span><span class="chip" onclick="toggleChip(this)">Penn / Wharton</span><span class="chip" onclick="toggleChip(this)">Brown</span><span class="chip" onclick="toggleChip(this)">Dartmouth</span><span class="chip" onclick="toggleChip(this)">Cornell</span><span class="chip" onclick="toggleChip(this)">MIT</span><span class="chip" onclick="toggleChip(this)">Stanford</span><span class="chip" onclick="toggleChip(this)">Oxford</span><span class="chip" onclick="toggleChip(this)">Cambridge</span><span class="chip" onclick="toggleChip(this)">UCL</span><span class="chip" onclick="toggleChip(this)">LSE</span><span class="chip" onclick="toggleChip(this)">Imperial</span><span class="chip" onclick="toggleChip(this)">Warwick</span><span class="chip" onclick="toggleChip(this)">Edinburgh</span><span class="chip" onclick="toggleChip(this)">King's College London</span><span class="chip" onclick="toggleChip(this)">Melbourne</span><span class="chip" onclick="toggleChip(this)">Sydney</span><span class="chip" onclick="toggleChip(this)">UNSW</span><span class="chip" onclick="toggleChip(this)">ANU</span><span class="chip" onclick="toggleChip(this)">Toronto</span><span class="chip" onclick="toggleChip(this)">McGill</span><span class="chip" onclick="toggleChip(this)">Sciences Po</span><span class="chip" onclick="toggleChip(this)">ETH Zurich</span><span class="chip" onclick="toggleChip(this)">NUS Singapore</span><span class="chip" onclick="toggleChip(this)">HKU</span>
+    <div class="fc" id="fc-study-destination">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div><div><div class="fc-title">Study Destination</div><div class="fc-sub">Click to select all countries you're considering for study abroad</div></div></div>
+      <div class="chips" id="country-chips" aria-describedby="e-other-country">
+        <span class="chip" onclick="toggleChip(this)">Australia</span><span class="chip" onclick="toggleChip(this)">Canada</span><span class="chip" onclick="toggleChip(this)">Cyprus</span><span class="chip" onclick="toggleChip(this)">France</span><span class="chip" onclick="toggleChip(this)">Germany</span><span class="chip" onclick="toggleChip(this)">Ireland</span><span class="chip" onclick="toggleChip(this)">New Zealand</span><span class="chip" onclick="toggleChip(this)">Singapore</span><span class="chip" onclick="toggleChip(this)">UAE</span><span class="chip" onclick="toggleChip(this)">UK</span><span class="chip" onclick="toggleChip(this)">USA</span>
       </div>
-      <div class="fld" style="margin-top:13px;"><label class="lbl">Other Universities <span class="opt">(type additional targets)</span></label><input type="text" id="f-other-uni" placeholder="e.g. NYU, Boston, HKUST, TU Delft" aria-invalid="false"></div>
-      <span class="ferr" id="e-unis-target">Select at least one university chip above or list targets in Other Universities.</span>
+      <div class="fld" style="margin-top:13px;">
+        <label class="lbl">Other country <span class="opt">(type additional destinations)</span></label>
+        <input type="text" id="f-other-country" list="country-name-suggestions" placeholder="Type to search country name (e.g. Netherlands, Switzerland, Japan, Italy)" aria-invalid="false">
+        <datalist id="country-name-suggestions">
+          <option value="Afghanistan"></option><option value="Albania"></option><option value="Algeria"></option><option value="Andorra"></option><option value="Angola"></option><option value="Antigua and Barbuda"></option><option value="Argentina"></option><option value="Armenia"></option><option value="Australia"></option><option value="Austria"></option><option value="Azerbaijan"></option>
+          <option value="Bahamas"></option><option value="Bahrain"></option><option value="Bangladesh"></option><option value="Barbados"></option><option value="Belarus"></option><option value="Belgium"></option><option value="Belize"></option><option value="Benin"></option><option value="Bhutan"></option><option value="Bolivia"></option><option value="Bosnia and Herzegovina"></option><option value="Botswana"></option><option value="Brazil"></option><option value="Brunei"></option><option value="Bulgaria"></option><option value="Burkina Faso"></option><option value="Burundi"></option>
+          <option value="Cabo Verde"></option><option value="Cambodia"></option><option value="Cameroon"></option><option value="Canada"></option><option value="Central African Republic"></option><option value="Chad"></option><option value="Chile"></option><option value="China"></option><option value="Colombia"></option><option value="Comoros"></option><option value="Congo"></option><option value="Costa Rica"></option><option value="Croatia"></option><option value="Cuba"></option><option value="Cyprus"></option><option value="Czech Republic"></option>
+          <option value="Denmark"></option><option value="Djibouti"></option><option value="Dominica"></option><option value="Dominican Republic"></option>
+          <option value="Ecuador"></option><option value="Egypt"></option><option value="El Salvador"></option><option value="Equatorial Guinea"></option><option value="Eritrea"></option><option value="Estonia"></option><option value="Eswatini"></option><option value="Ethiopia"></option>
+          <option value="Fiji"></option><option value="Finland"></option><option value="France"></option>
+          <option value="Gabon"></option><option value="Gambia"></option><option value="Georgia"></option><option value="Germany"></option><option value="Ghana"></option><option value="Greece"></option><option value="Grenada"></option><option value="Guatemala"></option><option value="Guinea"></option><option value="Guinea-Bissau"></option><option value="Guyana"></option>
+          <option value="Haiti"></option><option value="Honduras"></option><option value="Hungary"></option>
+          <option value="Iceland"></option><option value="India"></option><option value="Indonesia"></option><option value="Iran"></option><option value="Iraq"></option><option value="Ireland"></option><option value="Israel"></option><option value="Italy"></option>
+          <option value="Jamaica"></option><option value="Japan"></option><option value="Jordan"></option>
+          <option value="Kazakhstan"></option><option value="Kenya"></option><option value="Kiribati"></option><option value="Kuwait"></option><option value="Kyrgyzstan"></option>
+          <option value="Laos"></option><option value="Latvia"></option><option value="Lebanon"></option><option value="Lesotho"></option><option value="Liberia"></option><option value="Libya"></option><option value="Liechtenstein"></option><option value="Lithuania"></option><option value="Luxembourg"></option>
+          <option value="Madagascar"></option><option value="Malawi"></option><option value="Malaysia"></option><option value="Maldives"></option><option value="Mali"></option><option value="Malta"></option><option value="Marshall Islands"></option><option value="Mauritania"></option><option value="Mauritius"></option><option value="Mexico"></option><option value="Micronesia"></option><option value="Moldova"></option><option value="Monaco"></option><option value="Mongolia"></option><option value="Montenegro"></option><option value="Morocco"></option><option value="Mozambique"></option><option value="Myanmar"></option>
+          <option value="Namibia"></option><option value="Nauru"></option><option value="Nepal"></option><option value="Netherlands"></option><option value="New Zealand"></option><option value="Nicaragua"></option><option value="Niger"></option><option value="Nigeria"></option><option value="North Korea"></option><option value="North Macedonia"></option><option value="Norway"></option>
+          <option value="Oman"></option>
+          <option value="Pakistan"></option><option value="Palau"></option><option value="Palestine"></option><option value="Panama"></option><option value="Papua New Guinea"></option><option value="Paraguay"></option><option value="Peru"></option><option value="Philippines"></option><option value="Poland"></option><option value="Portugal"></option>
+          <option value="Qatar"></option>
+          <option value="Romania"></option><option value="Russia"></option><option value="Rwanda"></option>
+          <option value="Saint Kitts and Nevis"></option><option value="Saint Lucia"></option><option value="Saint Vincent and the Grenadines"></option><option value="Samoa"></option><option value="San Marino"></option><option value="Sao Tome and Principe"></option><option value="Saudi Arabia"></option><option value="Senegal"></option><option value="Serbia"></option><option value="Seychelles"></option><option value="Sierra Leone"></option><option value="Singapore"></option><option value="Slovakia"></option><option value="Slovenia"></option><option value="Solomon Islands"></option><option value="Somalia"></option><option value="South Africa"></option><option value="South Korea"></option><option value="South Sudan"></option><option value="Spain"></option><option value="Sri Lanka"></option><option value="Sudan"></option><option value="Suriname"></option><option value="Sweden"></option><option value="Switzerland"></option><option value="Syria"></option>
+          <option value="Taiwan"></option><option value="Tajikistan"></option><option value="Tanzania"></option><option value="Thailand"></option><option value="Timor-Leste"></option><option value="Togo"></option><option value="Tonga"></option><option value="Trinidad and Tobago"></option><option value="Tunisia"></option><option value="Turkey"></option><option value="Turkmenistan"></option><option value="Tuvalu"></option>
+          <option value="Uganda"></option><option value="Ukraine"></option><option value="United Arab Emirates"></option><option value="United Kingdom"></option><option value="United States"></option><option value="Uruguay"></option><option value="Uzbekistan"></option>
+          <option value="Vanuatu"></option><option value="Vatican City"></option><option value="Venezuela"></option><option value="Vietnam"></option>
+          <option value="Yemen"></option>
+          <option value="Zambia"></option><option value="Zimbabwe"></option>
+        </datalist>
+      </div>
+      <span class="ferr" id="e-other-country">Select at least one country chip above or list destinations in Other country.</span>
     </div>
 
     <div class="snav">
@@ -103,7 +132,27 @@
       <div class="fg fg2">
         <div class="fld"><label class="lbl">GPA / Percentage / Predicted Grade <span class="req">*</span></label><input type="text" id="f-gpa" placeholder="e.g. 95.4% / 4.0 GPA / A*A*A Predicted"><span class="ferr" id="e-gpa">Grade information is required</span></div>
         <div class="fld"><label class="lbl">Grading Board / System</label>
-          <select id="f-board"><option value="">Select...</option><option>CBSE (India)</option><option>ICSE / ISC (India)</option><option>IB (International Baccalaureate)</option><option>A-Levels (UK/Cambridge)</option><option>AP (Advanced Placement, USA)</option><option>HSC / VCE / ATAR (Australia)</option><option>US GPA (4.0 scale)</option><option>German Abitur</option><option>French Baccalaureate</option><option>Nigerian WAEC / NECO</option><option>Kenyan KCSE</option><option>Other National System</option></select></div>
+          <select id="f-board">
+            <option value="">Select...</option>
+            <option>CBSE (India)</option>
+            <option>ICSE / ISC (India)</option>
+            <option>State Board (India)</option>
+            <option>IB (International Baccalaureate)</option>
+            <option>A-Levels (UK/Cambridge)</option>
+            <option>AP (Advanced Placement, USA)</option>
+            <option>HSC / VCE / ATAR (Australia)</option>
+            <option>US GPA (4.0 scale)</option>
+            <option>German Abitur</option>
+            <option>French Baccalaureate</option>
+            <option>Nigerian WAEC / NECO</option>
+            <option>Kenyan KCSE</option>
+            <option>Other National System</option>
+          </select>
+        </div>
+        <div class="fld" id="f-board-state-wrap" style="display:none;">
+          <label class="lbl">State Board Name <span class="opt">(if applicable)</span></label>
+          <input type="text" id="f-board-state" placeholder="e.g. Maharashtra State Board, Gujarat Secondary Board">
+        </div>
         <div class="fld s2"><label class="lbl">Key Subjects with Grades</label><input type="text" id="f-subjects" placeholder="e.g. Mathematics (A* / 99%), Economics (A* / 98%), Physics (A / 96%), English (A*)"><span class="fhint">More detail → better AI output</span></div>
       </div>
     </div>
@@ -272,6 +321,17 @@
         </div>
         <div class="fld"><label class="lbl">Resume Tagline <span class="opt">(optional)</span></label><input type="text" id="f-tag" placeholder="e.g. Undergraduate Applicant — Economics | Class of 2029"></div>
         <div class="fld s2"><label class="lbl">Special Instructions to AI <span class="opt">(optional)</span></label><input type="text" id="f-instr" placeholder="e.g. Emphasise quantitative reasoning, keep tone formal, ensure research is prominent"></div>
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-head"><div class="fc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v2H5zm0 4h9v2H5zm0 4h6v2H5zm0 4h4v2H5z"/></svg></div><div><div class="fc-title">Spelling &amp; Grammar Check</div><div class="fc-sub">Optional AI proofreading of everything you type in this wizard</div></div></div>
+      <div class="fg fg1">
+        <label class="chk">
+          <input type="checkbox" id="f-proofread" checked>
+          <span class="chk-label">Ask the AI to automatically fix spelling and basic grammar across my resume.</span>
+        </label>
+        <p class="fhint" style="margin-top:6px;">This option is <strong>not mandatory</strong>. Leave it unchecked if you prefer to keep your original wording.</p>
       </div>
     </div>
 

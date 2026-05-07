@@ -209,7 +209,7 @@ def build_plain_resume_summary_py(d: dict[str, str]) -> str:
         head += " (" + str(d["country"]).strip() + ")"
     lines.append(head)
     if (d.get("unis") or "").strip():
-        lines.append("Target universities: " + str(d["unis"]).strip())
+        lines.append("Study destinations: " + str(d["unis"]).strip())
     lvl = (d.get("level") or "").strip()
     sch = (d.get("school") or "").strip()
     if lvl or sch:
@@ -331,7 +331,7 @@ def build_resume_prompt(d: dict[str, str], studio_template_id: str | None = None
         f"PHONE: {_nz(d.get('phone'))}\nLINKEDIN: {_nz(d.get('linkedin'))}\nPORTFOLIO: {_nz(d.get('portfolio'))}\n"
         f"EDUCATION LEVEL: {_nz(d.get('level'))}\nSCHOOL: {_nz(d.get('school'))}\n"
         f"INTENDED COURSE: {_nz(d.get('course'))}\nCAREER GOAL: {_nz(d.get('career'))}\n"
-        f"TARGET UNIVERSITIES: {_nz(d.get('unis'), 'Top global universities')}\n\n"
+        f"STUDY DESTINATIONS (countries): {_nz(d.get('unis'), 'Not specified')}\n\n"
         "ACADEMIC RECORD:\n"
         f"GPA / GRADE: {_nz(d.get('gpa'))}\nGRADING BOARD: {_nz(d.get('board'))}\n"
         f"KEY SUBJECTS: {_nz(d.get('subjects'))}\nTEST SCORES: {_nz(d.get('tests'), 'None provided')}\n"

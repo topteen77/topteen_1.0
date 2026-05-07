@@ -6979,6 +6979,13 @@ a:hover {
 
 /** color **/
 
+
+.cs-dropdown-user .dropdown-item {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
 .career-discovery .accordion {
   cursor: pointer;
 }
@@ -7500,7 +7507,7 @@ a:hover {
   /* right: 33px; */
   left: inherit;
   padding: 8px 13px;
-  top: 35px !important;
+  top: 61px !important;
   border-radius: 0 0 6px 6px;
 }
 

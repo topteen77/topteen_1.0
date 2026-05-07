@@ -31,6 +31,16 @@
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
       border-top: 4px solid var(--accent);
     }
+    .ai-shell .gen-wrap .rv-con i,
+    .ai-shell .gen-wrap .rv-con svg,
+    .ai-shell .gen-wrap .rv-con .bi,
+    .ai-shell .gen-wrap .rv-con [class*="fa-"] {
+      font-size: 13px;
+      width: 13px;
+      height: 13px;
+      min-width: 13px;
+      vertical-align: -1px;
+    }
     {{ ai_dynamic_css|safe }}
     {% if ai_google_font_stack %}
     .ai-shell .gen-wrap,
