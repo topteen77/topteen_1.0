@@ -169,11 +169,11 @@ function restoreTestsFromString(str){
 function restoreUnisFromString(unisStr){
   if (!unisStr || !String(unisStr).trim()) return;
   S.unis = [];
-  var chips = document.querySelectorAll('#uni-chips .chip');
+  var chips = document.querySelectorAll('#country-chips .chip');
   for (var c = 0; c < chips.length; c++) {
     if (chips[c].classList.contains('on')) toggleChip(chips[c]);
   }
-  sv('f-other-uni', '');
+  sv('f-other-country', '');
   var tokens = String(unisStr).split(',').map(function(x){ return x.trim(); }).filter(Boolean);
   var other = [];
   for (var i = 0; i < tokens.length; i++) {
@@ -188,7 +188,7 @@ function restoreUnisFromString(unisStr){
     }
     if (!hit) other.push(t);
   }
-  if (other.length) sv('f-other-uni', other.join(', '));
+  if (other.length) sv('f-other-country', other.join(', '));
 }
 
 function applyWizardRestore(){
@@ -216,6 +216,7 @@ function applyWizardRestore(){
   if (d.unis) restoreUnisFromString(d.unis);
   if (d.gpa) sv('f-gpa', d.gpa);
   if (d.board) sv('f-board', d.board);
+  if (d.board_state) sv('f-board-state', d.board_state);
   if (d.subjects) sv('f-subjects', d.subjects);
   if (d.tests) restoreTestsFromString(d.tests);
   if (d.awards) restoreSimpleList('dl-awards', 'Award', 'e.g. National Mathematics Olympiad — Silver Medal, top 50 nationally (2024)', d.awards);
@@ -236,6 +237,10 @@ function applyWizardRestore(){
   if (d.format) sv('f-format', d.format);
   if (d.tag) sv('f-tag', d.tag);
   if (d.instr) sv('f-instr', d.instr);
+  if (typeof d.proofread === 'boolean') {
+    var pr = document.getElementById('f-proofread');
+    if (pr) pr.checked = d.proofread;
+  }
   var sp = d.studio_proto_v1;
   if (sp && sp.template) {
     S.studioTemplateId = String(sp.template);
@@ -253,6 +258,7 @@ function applyWizardRestore(){
       }
     }
   }
+  syncBoardExtraField();
   buildPreview();
 }
 
@@ -390,6 +396,19 @@ document.addEventListener('DOMContentLoaded', function(){
   if(pr) pr.addEventListener('click', printGenPreview);
 });
 
+function syncBoardExtraField(){
+  var sel = document.getElementById('f-board');
+  var wrap = document.getElementById('f-board-state-wrap');
+  if(!wrap) return;
+  var v = sel && sel.value ? String(sel.value).toLowerCase() : '';
+  if(v.indexOf('state board') === 0){
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+    if(document.getElementById('f-board-state')) sv('f-board-state','');
+  }
+}
+
 function wireInputs(){
   var inputs = document.querySelectorAll('input,select,textarea');
   for(var i=0;i<inputs.length;i++){
@@ -398,7 +417,8 @@ function wireInputs(){
       var eid = 'e-' + this.id.replace('f-','');
       var el = document.getElementById(eid);
       if(el) el.classList.remove('show');
-      if(this.id === 'f-other-uni') clearUniTargetErr();
+      if(this.id === 'f-other-country') clearStudyDestinationErr();
+      if(this.id === 'f-board') syncBoardExtraField();
     });
   }
 }
@@ -470,6 +490,7 @@ function goS(n){
 
 function nextS(from){
   if(from===1 && !val1()) return;
+  if(from===1 && !valTargets()) return;
   if(from===2 && !val2()) return;
   if(from < S.STEPS) goS(from+1);
   else doGenerate(null);
@@ -524,10 +545,10 @@ function val2(){
 /* ═══════════════════════════════════════════════════════
    CHIPS & STYLE
 ═══════════════════════════════════════════════════════ */
-function clearUniTargetErr(){
-  var e = document.getElementById('e-unis-target');
-  if(e) e.classList.remove('show');
-  var fc = document.getElementById('fc-uni-targets');
+function clearStudyDestinationErr(){
+  var el = document.getElementById('e-other-country');
+  if(el) el.classList.remove('show');
+  var fc = document.getElementById('fc-study-destination');
   if(fc) fc.classList.remove('warn-on');
 }
 
@@ -540,7 +561,7 @@ function toggleChip(el){
   } else {
     if(idx>-1) S.unis.splice(idx,1);
   }
-  clearUniTargetErr();
+  clearStudyDestinationErr();
 }
 
 function pickStyle(tile, key){
@@ -580,14 +601,14 @@ function val6Style(){
 }
 
 function valTargets(){
-  clearUniTargetErr();
-  var oth = gv('f-other-uni');
+  clearStudyDestinationErr();
+  var oth = gv('f-other-country');
   if(S.unis.length > 0 || oth) return true;
-  var e = document.getElementById('e-unis-target');
-  if(e) e.classList.add('show');
-  var fc = document.getElementById('fc-uni-targets');
+  var err = document.getElementById('e-other-country');
+  if(err) err.classList.add('show');
+  var fc = document.getElementById('fc-study-destination');
   if(fc) fc.classList.add('warn-on');
-  toast('⚠ Add at least one target university (select chips or use Other Universities).');
+  toast('⚠ Add at least one study destination (select country chips or use Other country).');
   return false;
 }
 
@@ -816,7 +837,7 @@ function readTests(){
 
 function collectFD(){
   var unis = S.unis.slice();
-  var oth = gv('f-other-uni');
+  var oth = gv('f-other-country');
   if(oth) unis.push(oth);
   return {
     name:       gv('f-name'),
@@ -832,6 +853,7 @@ function collectFD(){
     unis:       unis.join(', '),
     gpa:        gv('f-gpa'),
     board:      gv('f-board'),
+    board_state:gv('f-board-state'),
     subjects:   gv('f-subjects'),
     tests:      readTests(),
     awards:     readSimpleList('dl-awards'),
@@ -853,6 +875,7 @@ function collectFD(){
     format:     gv('f-format'),
     tag:        gv('f-tag'),
     instr:      gv('f-instr'),
+    proofread:  !!(document.getElementById('f-proofread') && document.getElementById('f-proofread').checked),
     ts:         new Date().toISOString()
   };
 }
@@ -868,7 +891,7 @@ function buildPreview(){
   if(d.name)    lines.push('<strong style="color:var(--prose)">'+esc(d.name)+'</strong> · '+esc(d.country||'International'));
   if(d.level)   lines.push('<span style="color:var(--prose3)">Level:</span> '+esc(d.level));
   if(d.course)  lines.push('<span style="color:var(--prose3)">Applying for:</span> '+esc(d.course));
-  if(d.unis)    lines.push('<span style="color:var(--prose3)">Targets:</span> <span style="color:var(--aurum2)">'+esc(d.unis)+'</span>');
+  if(d.unis)    lines.push('<span style="color:var(--prose3)">Study destinations:</span> <span style="color:var(--aurum2)">'+esc(d.unis)+'</span>');
   if(d.gpa)     lines.push('<span style="color:var(--prose3)">Grade:</span> '+esc(d.gpa));
   if(d.tests)   lines.push('<span style="color:var(--prose3)">Tests:</span> '+esc(d.tests));
   if(d.career)  lines.push('<span style="color:var(--prose3)">Goal:</span> <em>'+esc(d.career)+'</em>');
@@ -934,8 +957,8 @@ function buildPrompt(d, rewrite){
     'LINKEDIN: '+(d.linkedin||'N/A')+'\nPORTFOLIO: '+(d.portfolio||'N/A')+'\n'+
     'EDUCATION LEVEL: '+(d.level||'N/A')+'\nSCHOOL: '+(d.school||'N/A')+'\n'+
     'INTENDED COURSE: '+(d.course||'N/A')+'\nCAREER GOAL: '+(d.career||'N/A')+'\n'+
-    'TARGET UNIVERSITIES: '+(d.unis||'Top global universities')+'\n\n'+
-    'ACADEMIC RECORD:\nGPA / GRADE: '+(d.gpa||'N/A')+'\nGRADING BOARD: '+(d.board||'N/A')+'\n'+
+    'STUDY DESTINATIONS (countries): '+(d.unis||'Not specified — infer globally competitive positioning')+'\n\n'+
+    'ACADEMIC RECORD:\nGPA / GRADE: '+(d.gpa||'N/A')+'\nGRADING BOARD: '+(([d.board,d.board_state].filter(Boolean).join(' — '))||'N/A')+'\n'+
     'KEY SUBJECTS: '+(d.subjects||'N/A')+'\nTEST SCORES: '+(d.tests||'None provided')+'\n'+
     'ACADEMIC AWARDS:\n'+(d.awards||'None listed')+'\nOLYMPIADS & COMPETITIONS:\n'+(d.olymp||'None listed')+'\n\n'+
     'LEADERSHIP & ACTIVITIES:\n'+(d.lead||'None listed')+'\n\nEXTRACURRICULAR ACTIVITIES:\n'+(d.extra||'None listed')+'\n\nSPORTS:\n'+(d.sport||'None listed')+'\n\n'+
@@ -946,6 +969,7 @@ function buildPrompt(d, rewrite){
     'PERSONAL ACHIEVEMENTS:\n'+(d.personal||'None listed')+'\nHOBBIES & INTERESTS: '+(d.hobbies||'None listed')+'\n\n'+
     'RESUME CONFIGURATION:\nSTYLE: '+(STYLE_D[d.style]||d.style)+'\nFORMAT: '+(d.format||'one_page')+'\n'+
     'TAGLINE: '+(d.tag||'')+'\nSPECIAL INSTRUCTIONS: '+(d.instr||'None')+'\n'+
+    'SPELLING / GRAMMAR CHECK REQUESTED: '+(d.proofread ? 'Yes — carefully proofread and correct spelling/typos while preserving the student\'s voice.' : 'No — keep original spelling and phrasing except for critical clarity issues.')+'\n'+
     (rewrite ? 'REWRITE MODE: '+rewrite+'\n' : '')+
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'+
     'LANGUAGE TRANSFORMATION RULES — APPLY TO EVERY BULLET:\n'+
@@ -959,8 +983,8 @@ function buildPrompt(d, rewrite){
     'HTML OUTPUT — USE ONLY THESE CSS CLASSES (already defined on the page):\n'+
     'rv-name, rv-tag, rv-con, rv-sec, rv-sh, rv-it, rv-ith, rv-itn, rv-itd, rv-ito, rv-bul (ul), rv-bul li, rv-sum, rv-skw (div), rv-sk (span)\n\n'+
     'REQUIRED SECTIONS — include all that have data:\n'+
-    '1. Header: rv-name (full name), rv-tag (course + universities tagline), rv-con (contact row with all provided details — wrap linkedin/portfolio in <a href="..."> tags)\n'+
-    '2. Profile Summary: rv-sum — 3-4 powerful sentences: identity, unique strengths, ambition, target university fit\n'+
+    '1. Header: rv-name (full name), rv-tag (course + study-destination tagline), rv-con (contact row with all provided details — wrap linkedin/portfolio in <a href="..."> tags)\n'+
+    '2. Profile Summary: rv-sum — 3-4 powerful sentences: identity, unique strengths, ambition, fit with stated study destinations\n'+
     '3. Education — school, board, grades, subjects, relevant coursework\n'+
     '4. Standardised Test Scores (if any provided)\n'+
     '5. Academic Honours & Awards (if any)\n'+
@@ -985,7 +1009,7 @@ function buildPlainResumeSummary(d){
   if(d.course) head += ' — ' + d.course;
   if(d.country) head += ' (' + d.country + ')';
   L.push(head);
-  if(d.unis) L.push('Target universities: ' + d.unis);
+  if(d.unis) L.push('Study destinations: ' + d.unis);
   if(d.level || d.school) L.push('Education: ' + [d.level, d.school].filter(Boolean).join(' · '));
   if(d.gpa || d.board || d.subjects){
     L.push('Academic: ' + [d.gpa, d.board].filter(Boolean).join(' · ') + (d.subjects ? ' | Subjects: ' + d.subjects : ''));
@@ -1041,7 +1065,7 @@ function buildLocalResumeHtml(d){
   var sumParts = [];
   if(d.course && d.unis){
     var u = d.unis.split(',').map(function(x){ return x.trim(); }).filter(Boolean);
-    sumParts.push('Targeting ' + u.slice(0, 4).join(', ') + (u.length > 4 ? ', and further institutions.' : '.'));
+    sumParts.push('Targeting study in ' + u.slice(0, 4).join(', ') + (u.length > 4 ? ', and further destinations.' : '.'));
   }
   if(d.level) sumParts.push('Currently: ' + d.level + (d.school ? ' at ' + d.school : '') + '.');
   if(d.career) sumParts.push('Long-term goal: ' + d.career + '.');
@@ -1468,7 +1492,7 @@ function renderResult(raw, d){
   /* meta */
   var metaEl = document.getElementById('res-meta');
   if(metaEl){
-    var topU = d.unis ? d.unis.split(',').slice(0,3).map(function(u){return u.trim();}).join(', ') : 'Global universities';
+    var topU = d.unis ? d.unis.split(',').slice(0,3).map(function(u){return u.trim();}).join(', ') : 'Study destinations TBD';
     metaEl.textContent = (STYLE_LBL[d.style]||d.style)+' style · '+topU+' · '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   }
 
@@ -1486,7 +1510,7 @@ function renderResult(raw, d){
   var tierMsg = {
     'Elite':'World-class application readiness',
     'Outstanding':'Strong candidate at top universities',
-    'Strong':'Competitive at most target universities',
+    'Strong':'Competitive for stated study destinations',
     'Competitive':'Targeted improvements will strengthen your application'
   };
   setText('ov-tier', sc.tier||'Competitive');
@@ -1624,6 +1648,7 @@ function doPrint(){
     '.rv-tag{font-size:12px;color:#4a5a6e;margin-bottom:8px}'+
     '.rv-con{display:flex;flex-wrap:wrap;gap:3px 15px;font-size:11px;color:#4a5a6e;padding-bottom:13px;border-bottom:2.5px solid #07090f;margin-bottom:18px}'+
     '.rv-con a{color:#4a5a6e;text-decoration:none}'+
+    '.rv-con i,.rv-con svg,.rv-con .bi,.rv-con [class*="fa-"]{font-size:13px;width:13px;height:13px;min-width:13px;vertical-align:-1px}'+
     '.rv-sec{margin-bottom:17px}'+
     '.rv-sh{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#07090f;padding-bottom:4px;border-bottom:1px solid #ddd;margin-bottom:8px}'+
     '.rv-it{margin-bottom:11px}'+
@@ -1768,16 +1793,16 @@ function loadDemo(){
 
   /* select chips */
   S.unis = [];
-  var allChips = document.querySelectorAll('#uni-chips .chip');
+  var allChips = document.querySelectorAll('#country-chips .chip');
   for(var ci=0;ci<allChips.length;ci++) allChips[ci].classList.remove('on');
-  var targets = ['LSE','Oxford','UCL','Warwick','Cambridge'];
+  var targets = ['UK','USA','Canada','Singapore'];
   for(var ti=0;ti<allChips.length;ti++){
     if(targets.indexOf(allChips[ti].textContent.trim())>-1){
       allChips[ti].classList.add('on');
       S.unis.push(allChips[ti].textContent.trim());
     }
   }
-  sv('f-other-uni','Edinburgh, Sciences Po');
+  sv('f-other-country','Netherlands, Switzerland');
 
   /* Step 2 */
   sv('f-gpa','95.4% — CBSE Board (Predicted)');

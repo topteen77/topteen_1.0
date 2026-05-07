@@ -5,22 +5,151 @@
     <svg class="tt-notification-bell-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span class="badge bg-danger tt-notification-badge" id="ttNotificationBadge" style="display:none;">0</span>
   </button>
-  <div class="dropdown-menu dropdown-menu-end tt-notification-dropdown p-0" aria-labelledby="ttNotificationBellBtn">
-    <div class="px-3 py-2 border-bottom fw-semibold">Notifications</div>
-    <div id="ttNotificationLatestList" style="max-height:360px; overflow:auto;"></div>
-    <div class="p-2 border-top text-center">
-      <a href="{{ url('notifications:page') }}" class="btn btn-sm btn-outline-primary">View all</a>
+  <div class="dropdown-menu dropdown-menu-end tt-notification-dropdown p-0 border-0" aria-labelledby="ttNotificationBellBtn">
+    <div class="tt-notification-header">Notifications</div>
+    <div id="ttNotificationLatestList" class="tt-notification-latest-scroll"></div>
+    <div class="tt-notification-footer text-center">
+      <a href="{{ url('notifications:page') }}" class="btn btn-sm tt-notification-view-all">View all</a>
     </div>
   </div>
 </div>
 <style>
   .tt-notification-bell-wrap { position: relative; }
-  .tt-notification-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; }
-  .tt-notification-bell-icon { display: block; flex-shrink: 0; }
-  .tt-notification-badge { position: absolute; top: -6px; right: -6px; font-size: 10px; }
-  .tt-notification-dropdown { min-width: 360px; }
-  .tt-notification-item { cursor: pointer; }
-  .tt-notification-item:hover { background: #f8f9fa; }
+  .tt-notification-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #fff;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .tt-notification-bell:hover {
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+  .tt-notification-bell-icon { display: block; flex-shrink: 0; color: #475569; }
+  .tt-notification-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 10px;
+    min-width: 1.1rem;
+    padding: 0.15em 0.35em;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .tt-notification-dropdown {
+    min-width: min(380px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    margin-top: 10px !important;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 14px 44px rgba(15, 23, 42, 0.14),
+      0 4px 16px rgba(15, 23, 42, 0.06);
+  }
+  .tt-notification-header {
+    padding: 14px 18px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #0f172a;
+    background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+    border-bottom: 1px solid #eef2f7;
+  }
+  .tt-notification-latest-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  .tt-notification-latest-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .tt-notification-latest-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+  .tt-notification-item {
+    cursor: pointer;
+    padding: 12px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+  }
+  .tt-notification-item:last-child {
+    border-bottom: none;
+  }
+  .tt-notification-item:hover {
+    background: #f8fafc;
+  }
+  .tt-notification-item.tt-notification-item--unread {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.07) 0%, rgba(255, 255, 255, 0) 55%);
+    box-shadow: inset 3px 0 0 #6366f1;
+  }
+  .tt-notification-title {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: #0f172a;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+  .tt-notification-body {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+  .tt-notification-meta {
+    font-size: 0.6875rem;
+    color: #94a3b8;
+    margin-top: 8px;
+  }
+  .tt-notification-retry-wrap {
+    margin-top: 10px;
+  }
+  .tt-notification-footer {
+    padding: 12px 18px 14px;
+    border-top: 1px solid #eef2f7;
+    background: #fafbfc;
+  }
+  .tt-notification-view-all {
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.4rem 1.1rem;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+    background: #fff;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .tt-notification-view-all:hover {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+  .tt-notification-empty {
+    padding: 28px 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .tt-notification-load-err {
+    padding: 16px 18px;
+    color: #b91c1c;
+    font-size: 0.8125rem;
+  }
 </style>
 <script>
   (function () {
@@ -64,7 +193,7 @@
 
     function render(items) {
       if (!items.length) {
-        listEl.innerHTML = '<div class="p-3 text-muted small">No notifications yet.</div>';
+        listEl.innerHTML = '<div class="tt-notification-empty">No notifications yet.</div>';
         return;
       }
       listEl.innerHTML = items.map(function (n) {
@@ -72,13 +201,17 @@
         var retry = '';
         if (pay.retry_payment_path && pay.show_retry_payment) {
           var rl = esc(pay.retry_payment_label || 'Retry payment');
-          retry = '<div class="mt-2"><a class="btn btn-sm btn-primary tt-notification-retry" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a></div>';
+          retry = '<div class="tt-notification-retry-wrap"><a class="btn btn-sm btn-primary tt-notification-retry" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a></div>';
         }
-        return '<div class="tt-notification-item border-bottom px-3 py-2 ' + (n.is_read ? '' : 'bg-light') + '" data-id="' + n.id + '">' +
-          '<div class="fw-semibold small">' + esc(n.title) + '</div>' +
-          '<div class="small text-muted">' + esc(n.body || '') + '</div>' +
+        var bodyRaw = n.body || '';
+        var unreadClass = n.is_read ? '' : ' tt-notification-item--unread';
+        var tipText = [n.title || '', bodyRaw].filter(Boolean).join(' — ');
+        var tip = esc(tipText);
+        return '<div class="tt-notification-item' + unreadClass + '" data-id="' + n.id + '" title="' + tip + '">' +
+          '<div class="tt-notification-title">' + esc(n.title) + '</div>' +
+          (bodyRaw ? '<div class="tt-notification-body">' + esc(bodyRaw) + '</div>' : '') +
           retry +
-          '<div class="small text-secondary mt-1">' + esc(n.created) + '</div>' +
+          '<div class="tt-notification-meta">' + esc(n.created) + '</div>' +
         '</div>';
       }).join('');
       listEl.querySelectorAll('.tt-notification-item').forEach(function (el) {
@@ -121,7 +254,7 @@
           render(data.notifications || []);
         })
         .catch(function () {
-          listEl.innerHTML = '<div class="p-3 text-danger small">Could not load notifications.</div>';
+          listEl.innerHTML = '<div class="tt-notification-load-err">Could not load notifications.</div>';
         });
     }
 
@@ -137,4 +270,3 @@
   })();
 </script>
 {% endif %}
-

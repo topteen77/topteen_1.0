@@ -28,7 +28,7 @@ from core import choices
 from django.template.loader import render_to_string
 from django.db.models import Q
 from core.breadcrumbs import get_breadcrumb
-from core.utils import build_html_head
+from core.utils import build_html_head, expand_eq_band_percentile
 from rest_framework import permissions,authentication
 from django.db.models import Q
 from django.core.signing import Signer
@@ -3374,7 +3374,7 @@ class UserDashboard(TemplateView):
                 eq_preview = "Composite EQ {:.1f}".format(total)
                 band = (eq_latest.band_label or "").strip()
                 if band:
-                    eq_subline = band
+                    eq_subline = expand_eq_band_percentile(band)
             ctx["dashboard_enrolled_items"].append(
                 {
                     "kind": "psychometric",

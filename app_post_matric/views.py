@@ -2436,23 +2436,47 @@ def CombinedReport(request, user_id=None):
             context['psychometric_career_clusters'] = []
 
         # Build cluster name -> URL map for template linking of text-only cluster sources
+        # Includes common aliases so DB clusters still link when recommendation text varies
+        # (e.g. "&" vs "and", punctuation differences, repeated spaces).
         try:
+            def _cluster_lookup_keys(raw_name):
+                name = str(raw_name or '').strip()
+                if not name:
+                    return []
+
+                keys = set()
+                lower_name = name.lower()
+                keys.add(lower_name)
+
+                # Alias variations for common textual differences.
+                keys.add(lower_name.replace('&', 'and'))
+                keys.add(lower_name.replace(' and ', ' & '))
+
+                compact = re.sub(r'\s+', ' ', lower_name)
+                keys.add(compact)
+                keys.add(compact.replace('&', 'and'))
+                keys.add(re.sub(r'[^a-z0-9 ]+', ' ', compact).strip())
+
+                return [k.strip() for k in keys if k and k.strip()]
+
             cluster_url_map = {}
             for cluster in CareerCluster.objects.all().only('id', 'slug', 'name'):
                 cluster_name = str(getattr(cluster, 'name', '') or '').strip()
                 if not cluster_name:
                     continue
-                key = cluster_name.lower()
-                if key in cluster_url_map:
-                    continue
                 try:
                     safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
-                    cluster_url_map[key] = reverse(
+                    cluster_url = reverse(
                         'careers:careerlibrary',
                         kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
                     )
                 except Exception:
-                    cluster_url_map[key] = None
+                    cluster_url = None
+
+                for key in _cluster_lookup_keys(cluster_name):
+                    if key in cluster_url_map:
+                        continue
+                    cluster_url_map[key] = cluster_url
             context['cluster_url_map'] = cluster_url_map
         except Exception as e:
             print(f"Error building cluster_url_map: {e}")

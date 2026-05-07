@@ -74,6 +74,10 @@
 #pc-root *::before,
 #pc-root *::after { box-sizing: border-box; }
 
+.pc-bubble.pc-md ul {
+  list-style: disc;
+}
+
 #pc-root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
                'Inter', 'Helvetica Neue', Arial, sans-serif;
