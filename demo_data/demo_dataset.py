@@ -122,15 +122,74 @@ def _intelligence_scores_for_result_type(result_type, student_index):
 
 
 def _get_or_create_class_sections():
-    c10, _ = ClassAndSection.objects.get_or_create(
-        class_and_section="Class 10",
-        defaults={"stream": "General"},
-    )
-    c12, _ = ClassAndSection.objects.get_or_create(
-        class_and_section="Class 12",
-        defaults={"stream": "General"},
-    )
+    # Be tolerant to existing DB rows like "class 10" vs "Class 10"
+    c10 = ClassAndSection.objects.filter(class_and_section__iexact="Class 10").first()
+    if c10 is None:
+        c10 = ClassAndSection.objects.create(class_and_section="Class 10", stream="General")
+
+    c12 = ClassAndSection.objects.filter(class_and_section__iexact="Class 12").first()
+    if c12 is None:
+        c12 = ClassAndSection.objects.create(class_and_section="Class 12", stream="General")
     return c10, c12
+
+
+def _create_completed_post_matric_tests_for_user(user, *, seed_index=0):
+    """
+    Class 12 flow uses app_post_matric models (TestSession/TestResult/SectionSession).
+    Create one completed attempt for tests with pk 1..4 (if present).
+    """
+    from django.utils import timezone
+    from app_post_matric.models import Test
+
+    now = timezone.now()
+    # Keep deterministic-ish scores per user index.
+    base_score = 65 + (seed_index % 20)
+
+    for test_pk in (1, 2, 3, 4):
+        test = Test.objects.filter(pk=test_pk).first()
+        if not test:
+            continue
+
+        # Keep demo stable: remove any existing attempts for this test.
+        # Cascades will clear SectionSession/TestResult/UserResponse appropriately.
+        TestSession.objects.filter(user=user, test_id=test_pk).delete()
+
+        session = TestSession.objects.create(
+            user=user,
+            test=test,
+            start_time=now,
+            end_time=now,
+            is_completed=True,
+            attempt_count=1,
+        )
+
+        # Ensure sections (especially for test 4) are marked complete.
+        try:
+            for section in test.sections.all():
+                SectionSession.objects.update_or_create(
+                    session=session,
+                    section=section,
+                    defaults={
+                        "start_time": now,
+                        "end_time": now,
+                        "is_completed": True,
+                    },
+                )
+        except Exception:
+            # If a test has no sections, skip silently.
+            pass
+
+        # Minimal TestResult so reports/dashboards have something to read.
+        TestResult.objects.update_or_create(
+            session=session,
+            defaults={
+                "score": float(base_score + (test_pk * 2)),
+                "grade": "A",
+                "feedback": "Demo result",
+                "result_data": {"demo": True, "test_id": test_pk},
+                "category_counts": {"Business": 3, "Medical": 2, "Social": 2, "Engineer": 3},
+            },
+        )
 
 
 def create_demo_dataset(config=None):
@@ -162,14 +221,14 @@ def create_demo_dataset(config=None):
         _delete_system_demo_data()
 
         # 1. Institute user
-        inst_user = User.objects.create_user(
+        inst_user = User(
             email=f"demo_institute@{DEMO_EMAIL_DOMAIN}",
             name="Demo Institute",
-            password=DEMO_PASSWORD,
+            user_type=choices.UserType.INSTITUTE,
+            is_demo_account=True,
+            is_system_demo=True,
         )
-        inst_user.user_type = choices.UserType.INSTITUTE
-        inst_user.is_demo_account = True
-        inst_user.is_system_demo = True
+        inst_user.set_password(DEMO_PASSWORD)
         inst_user.save()
 
         # 2. Institute (credit_counts >= total students)
@@ -188,20 +247,20 @@ def create_demo_dataset(config=None):
         student_users = []
         for i in range(1, total_students + 1):
             if i <= n10:
-                grade_class, grade_label = c10, "Class 10"
+                grade_class, grade_label = c10, "10"
             else:
-                grade_class, grade_label = c12, "Class 12"
+                grade_class, grade_label = c12, "12"
             # Unique 10-digit demo mobile per student (e.g. 9999900001, 9999900002, ...)
             demo_mobile = str(9999900000 + i)
-            stu = User.objects.create_user(
+            stu = User(
                 email=f"demo_student_{i}@{DEMO_EMAIL_DOMAIN}",
                 name=f"Demo Student {i}",
-                password=DEMO_PASSWORD,
+                user_type=choices.UserType.STUDENT,
+                mobile=demo_mobile,
+                is_demo_account=True,
+                is_system_demo=True,
             )
-            stu.user_type = choices.UserType.STUDENT
-            stu.mobile = demo_mobile
-            stu.is_demo_account = True
-            stu.is_system_demo = True
+            stu.set_password(DEMO_PASSWORD)
             stu.save()
             UserProfile.objects.get_or_create(
                 user=stu,
@@ -215,14 +274,14 @@ def create_demo_dataset(config=None):
             student_users.append(stu)
 
         # 4. Parent
-        parent = User.objects.create_user(
+        parent = User(
             email=f"demo_parent@{DEMO_EMAIL_DOMAIN}",
             name="Demo Parent",
-            password=DEMO_PASSWORD,
+            user_type=choices.UserType.PARENT,
+            is_demo_account=True,
+            is_system_demo=True,
         )
-        parent.user_type = choices.UserType.PARENT
-        parent.is_demo_account = True
-        parent.is_system_demo = True
+        parent.set_password(DEMO_PASSWORD)
         parent.save()
 
         # 5. ParentStudentLink
@@ -241,6 +300,25 @@ def create_demo_dataset(config=None):
             if not gets_psychometric(idx):
                 continue
             result_type = result_type_10 if idx < n10 else result_type_12
+            # Class 10 (matric) uses app.models Results/TestCompletion.
+            # Class 12 (post-matric) dashboards use app_post_matric TestSession/TestResult.
+            if config.psychometric_tests_complete and idx >= n10:
+                _create_completed_post_matric_tests_for_user(stu, seed_index=idx)
+                # Also mark old-style flags as complete for compatibility with any shared UI pieces.
+                tc, _ = TestCompletion.objects.get_or_create(user=stu)
+                tc.test1_complete = True
+                tc.test2_complete = True
+                tc.test3_complete = True
+                tc.numerical_complete = True
+                tc.verbal_complete = True
+                tc.logical_complete = True
+                tc.emotional_complete = True
+                tc.machanical_complete = True
+                tc.language_complete = True
+                tc.spatial_complete = True
+                tc.save()
+                continue
+
             if config.psychometric_tests_complete:
                 tc, _ = TestCompletion.objects.get_or_create(
                     user=stu,
@@ -418,14 +496,14 @@ def setup_demo_counselor_data(config=None):
     with transaction.atomic():
         _delete_demo_counselor_only()
 
-        cw = User.objects.create_user(
+        cw = User(
             email=DEMO_COUNSELOR_EMAIL,
             name="Demo Counselor",
-            password=DEMO_PASSWORD,
+            user_type=choices.UserType.COUNSELOR,
+            is_demo_account=True,
+            is_system_demo=False,
         )
-        cw.user_type = choices.UserType.COUNSELOR
-        cw.is_demo_account = True
-        cw.is_system_demo = False
+        cw.set_password(DEMO_PASSWORD)
         cw.save()
 
         counselor_obj = Counselor.objects.create(

@@ -16,20 +16,41 @@ def get_demo_accounts_list(user_types=None):
     Return list of demo account dicts for template: token, name, role_label.
     From DB only (is_demo_account=True).
     """
-    qs = User.objects.filter(is_demo_account=True, is_active=True)
+    qs = User.objects.filter(is_demo_account=True, is_active=True).select_related("user_profile")
     if user_types is not None:
         types = list(user_types) if isinstance(user_types, (list, tuple)) else [user_types]
         qs = qs.filter(user_type__in=types)
     demo_users = qs.order_by('user_type', 'name')
     signer = Signer()
-    return [
-        {
-            'token': signer.sign_object({'demo_user_id': u.pk}),
-            'name': u.name or u.email or str(u.pk),
-            'role_label': dict(choices.UserType.CHOICES).get(u.user_type, 'User'),
-        }
-        for u in demo_users
-    ]
+    out = []
+    role_map = dict(choices.UserType.CHOICES)
+    for u in demo_users:
+        role_label = role_map.get(u.user_type, "User")
+        student_class = ""
+        if u.user_type == choices.UserType.STUDENT:
+            try:
+                student_class = (getattr(getattr(u, "user_profile", None), "grade", None) or "").strip()
+            except Exception:
+                student_class = ""
+            if not student_class:
+                # Fallback to school "Class & Section" if profile grade isn't set.
+                try:
+                    sm = u.student_management.last()
+                    student_class = (getattr(sm, "class_and_section", None) or "").strip()
+                    # normalize "10 A" -> "10"
+                    if student_class and " " in student_class:
+                        student_class = student_class.split()[0].strip()
+                except Exception:
+                    student_class = ""
+        out.append(
+            {
+                "token": signer.sign_object({"demo_user_id": u.pk}),
+                "name": u.name or u.email or str(u.pk),
+                "role_label": role_label,
+                "student_class": student_class,
+            }
+        )
+    return out
 
 
 def get_demo_login_context(request, user_types=None):

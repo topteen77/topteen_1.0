@@ -266,7 +266,9 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
             self.name = str(self.email or self.mobile or "").strip()
             if self.name:
                 self.save(update_fields=["name"])
-        if not self.image:
+        # Demo/system accounts should not do network calls (ui-avatars) or storage uploads during save.
+        # This is critical for admin demo dataset reset/setup speed and for offline dev.
+        if not self.image and not getattr(self, "is_system_demo", False) and not getattr(self, "is_demo_account", False):
             try:
                 self._grab_avatar()
             except Exception:
