@@ -14,6 +14,7 @@ from .demo_dataset import (
     remove_demo_data,
     reset_demo_counselor_data,
     reset_demo_data,
+    reseed_demo_student_psychometric,
     setup_demo_counselor_data,
 )
 
@@ -198,6 +199,11 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "reset/",
                 self.admin_site.admin_view(self.reset_demo_data_view),
                 name="demo_data_reset",
+            ),
+            path(
+                "reseed_student_psych/",
+                self.admin_site.admin_view(self.reseed_student_psych_view),
+                name="demo_data_reseed_student_psych",
             ),
             path(
                 "remove/",
@@ -697,6 +703,36 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
             )
         except Exception as e:
             messages.error(request, f"Reset failed: {e}")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def reseed_student_psych_view(self, request):
+        """
+        POST: reseed psychometric data for one system-demo student (user id) with a chosen ResultType.
+        """
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        raw_uid = (request.POST.get("demo_student_user_id") or "").strip()
+        result_type = (request.POST.get("result_type") or "").strip()
+        if not raw_uid.isdigit():
+            messages.error(request, "Invalid student user id.")
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        try:
+            out = reseed_demo_student_psychometric(int(raw_uid), result_type)
+            messages.success(
+                request,
+                f"Psychometric data reseeded for demo student (user id {out['user_id']}, class {out['grade']}, profile: {out['result_type']}).",
+            )
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f"Reseed failed: {e}")
+
         return redirect("admin:demo_data_demodatasetconfig_changelist")
 
     def remove_demo_data_view(self, request):
