@@ -144,6 +144,17 @@
     <div class="row">
       <div class="col-md-5 mx-auto">
         <div class="login-center">
+          {% if already_logged_in %}
+          <div class="login-screen text-center p-5">
+            <div class="logo-header text-center my-4">
+              <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
+            </div>
+            <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">You're already logged in</h2>
+            <p class="text-gray fs-15 mb-0">
+              {% if logged_in_as %}Signed in as <span class="fw-600 text-purple">{{ logged_in_as }}</span>.{% else %}You already have an active session.{% endif %}
+            </p>
+          </div>
+          {% else %}
           <form class="start-form" id="loginSignupForm">
             <div class="login-screen text-center p-5">
               <!-- Get Started Form -->
@@ -302,6 +313,7 @@
               {% include 'template20/includes/demo_credentials.html' %}
             </div>
           </form>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -414,6 +426,30 @@
 <script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
 
 <script>
+  // If user has an active Django session, prompt to logout first.
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if already_logged_in %}
+    try {
+      Swal.fire({
+        title: "You're already logged in",
+        text: "Do you want to logout first?",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Logout",
+        cancelButtonText: "Stay here",
+        showDenyButton: true,
+        denyButtonText: "Go to dashboard",
+      }).then(function(result) {
+        if (result.isConfirmed) {
+          window.location.href = "{{ logout_url }}";
+        } else if (result.isDenied) {
+          window.location.href = "{{ dashboard_url }}";
+        }
+      });
+    } catch (e) {}
+    {% endif %}
+  });
+
   // Login with OTP functions
   var loginOtpEmailValue = '';
   window.LOGIN_MODE = "{{ login_mode|default('default') }}";

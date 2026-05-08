@@ -492,6 +492,22 @@ class LoginView(TemplateView):
         ctx={}
         ctx['html_head']=self.__html_head()
         ctx['breadcrumb']=self.__breadcrumb()
+        # If user is already authenticated and still hits a login URL, the UI should
+        # prompt for logout instead of showing the login form.
+        ctx["already_logged_in"] = bool(getattr(request, "user", None) and request.user.is_authenticated)
+        try:
+            ctx["logout_url"] = reverse("users:logout")
+        except Exception:
+            ctx["logout_url"] = "/user/logout/"
+        try:
+            ctx["dashboard_url"] = reverse("users:userdashboard")
+        except Exception:
+            ctx["dashboard_url"] = "/user/dashboard/"
+        try:
+            u = getattr(request, "user", None)
+            ctx["logged_in_as"] = (getattr(u, "name", None) or getattr(u, "email", None) or "").strip()
+        except Exception:
+            ctx["logged_in_as"] = ""
         if enc_id:
             ctx['enc_referral_user']=enc_id
         else:
@@ -526,9 +542,8 @@ class LoginView(TemplateView):
         return ctx
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('users:userdashboard')
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+        ctx = self.get_context(request, *args, **kwargs)
+        return render(request, self.template_name, ctx)
 
 
 class DemoLoginView(View):
@@ -639,8 +654,6 @@ class StudentLoginView(LoginView):
         return ctx
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'student'
         return render(request, self.template_name, ctx)
@@ -654,8 +667,6 @@ class StudentSignupView(LoginView):
     template_name = "template20/student_signup.html"
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'student'
         return render(request, self.template_name, ctx)
@@ -691,10 +702,6 @@ class ParentsLoginView(LoginView):
         return ctx
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            if getattr(request.user, 'user_type', None) == choices.UserType.PARENT:
-                return redirect('parents_dashboard')
-            return redirect('users:userdashboard')
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'parent'
         return render(request, self.template_name, ctx)
@@ -2955,6 +2962,16 @@ class UserDashboard(TemplateView):
                 user_grade = str(user_profile.grade)
         except:
             pass
+
+        # Normalize values like "Class 12" / "12th" / "Grade 10" -> "12"/"10"
+        if user_grade:
+            try:
+                nums = re.findall(r'\d+', str(user_grade))
+                if nums:
+                    n = int(nums[0])
+                    user_grade = "12" if n >= 11 else "10"
+            except Exception:
+                pass
         
         # If no grade from UserProfile, check StudentManagement
         if not user_grade:
@@ -2963,7 +2980,6 @@ class UserDashboard(TemplateView):
                 if student_management and student_management.class_and_section:
                     class_name = student_management.class_and_section.class_and_section
                     if class_name:
-                        import re
                         numbers = re.findall(r'\d+', class_name)
                         if numbers:
                             class_number = int(numbers[0])

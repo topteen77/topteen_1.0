@@ -251,6 +251,7 @@
         <th style="padding: 0.5em;">Name</th>
         <th style="padding: 0.5em;">Email</th>
         <th style="padding: 0.5em;">Role</th>
+        <th style="padding: 0.5em;">Reseed psychometric</th>
         <th style="padding: 0.5em;">Action</th>
       </tr>
     </thead>
@@ -261,6 +262,22 @@
         <td style="padding: 0.5em;">{{ u.name }}</td>
         <td style="padding: 0.5em;">{{ u.email }}</td>
         <td style="padding: 0.5em;">{{ u.role }}</td>
+        <td style="padding: 0.5em; vertical-align: top;">
+          {% if u.user_type == 1 %}
+          <form method="post" action="{% url 'admin:demo_data_reseed_student_psych' %}" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; max-width: 420px;">
+            {% csrf_token %}
+            <input type="hidden" name="demo_student_user_id" value="{{ u.id }}">
+            <select name="result_type" style="min-width: 200px; max-width: 100%;">
+              {% for value, label in result_type_choices %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+            <input type="submit" class="button" value="Reseed" onclick="return confirm('Replace psychometric data for this demo student only?');">
+          </form>
+          {% else %}
+          <span style="color: #888;">—</span>
+          {% endif %}
+        </td>
         <td style="padding: 0.5em;"><a href="{% url 'admin:users_user_change' u.id %}">View user</a></td>
       </tr>
       {% endfor %}

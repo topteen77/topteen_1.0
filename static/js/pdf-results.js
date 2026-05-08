@@ -510,7 +510,11 @@ function handleAptitudeResults(result, index) {
     
     // Process each section
     Object.entries(sectionsDataRaw).forEach(([sectionName, sectionData]) => {
-      const sectionScore = sectionScores[sectionName] || 0;
+      const rawScore = sectionScores[sectionName] || 0;
+      const sectionScore =
+        typeof rawScore === 'object' && rawScore !== null && 'score' in rawScore
+          ? Number(rawScore.score) || 0
+          : Number(rawScore) || 0;
       let totalQuestions = 15; // Default
       let correctAnswers = sectionScore;
       
@@ -544,16 +548,18 @@ function handleAptitudeResults(result, index) {
     
     // Extract section names and scores from result_data
     Object.entries(sectionScores).forEach(([sectionName, sectionScore]) => {
-      // Try to determine the total questions for this section
-      // Default to 15 if we can't determine it
       const totalQuestions = 15;
-      
+      const numericScore =
+        typeof sectionScore === 'object' && sectionScore !== null && 'score' in sectionScore
+          ? Number(sectionScore.score) || 0
+          : Number(sectionScore) || 0;
+
       sectionsData.push({
         name: sectionName,
-        score: sectionScore,
+        score: numericScore,
         totalQuestions: totalQuestions,
-        correctAnswers: sectionScore,
-        accuracy: (sectionScore / totalQuestions) * 100
+        correctAnswers: numericScore,
+        accuracy: (numericScore / totalQuestions) * 100
       });
     });
   }
@@ -563,7 +569,13 @@ function handleAptitudeResults(result, index) {
     console.log('No section data found, creating generic section');
     
     // Calculate total score across all sections if available
-    const totalScore = Object.values(sectionScores).reduce((sum, score) => sum + score, 0);
+    const totalScore = Object.values(sectionScores).reduce((sum, score) => {
+      const n =
+        typeof score === 'object' && score !== null && 'score' in score
+          ? Number(score.score) || 0
+          : Number(score) || 0;
+      return sum + n;
+    }, 0);
     
     sectionsData.push({
       name: "Overall Aptitude",

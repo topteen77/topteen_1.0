@@ -2013,7 +2013,8 @@ def CombinedReport(request, user_id=None):
                         # print("hexaco_recommendations['career_guidance_selected']: ", hexaco_recommendations['career_guidance_selected'])
                         # print("len(hexaco_recommendations['career_guidance_selected']): ", len(hexaco_recommendations['career_guidance_selected']))
                         # Fetch AptitudeCombinationMapping data based on aptitude codes
-                        from django.urls import reverse
+                        # (do not import `reverse` here — it shadows the module import and breaks
+                        # earlier/later uses of reverse() in this function via UnboundLocalError)
                         from django.utils.html import format_html
                         from careers.models import CareerCluster
                         from courses.models import Course
