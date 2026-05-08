@@ -117,6 +117,31 @@
   .stat-card-icon-wrap.points { background: linear-gradient(145deg, #dbeafe, #bfdbfe); }
   .stat-card-icon-wrap.streak { background: linear-gradient(145deg, #ffedd5, #fdba74); }
   .stat-card-icon-wrap.level { background: linear-gradient(145deg, #d1fae5, #a7f3d0); }
+  /* Level card: match main user dashboard badge image + frame */
+  .stat-card.stat-card-level > div:first-child.level-badge-icon {
+    flex-shrink: 0;
+  }
+  .stat-card.stat-card-level .level-badge-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(244, 253, 255, 0.82) 45%, rgba(219, 246, 255, 0.72) 100%);
+    border: 1px solid rgba(76, 196, 255, 0.35);
+    box-shadow: 0 6px 18px rgba(34, 230, 116, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+    padding: 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card.stat-card-level .level-badge-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 3px 8px rgba(36, 46, 96, 0.28));
+  }
+  .stat-card.stat-card-level:hover .level-badge-icon {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow: 0 9px 22px rgba(34, 230, 116, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.46) inset;
+  }
   .stat-card .stat-value {
     font-size: 1.25rem;
     font-weight: 700;
@@ -134,7 +159,6 @@
     border-radius: 16px;
     padding: 22px 18px 18px;
     text-align: center;
-    box-shadow: 0 10px 28px rgba(30, 41, 59, 0.1);
     border: 1px solid #dde5ff;
     height: 100%;
     display: flex;
@@ -154,17 +178,8 @@
     height: 4px;
     opacity: 0.95;
   }
-  .report-card-personality::after { background: linear-gradient(90deg, #5a3d7a, #8b5cf6); }
-  .report-card-interest::after { background: linear-gradient(90deg, #c97b3d, #f59e0b); }
-  .report-card-intelligence::after { background: linear-gradient(90deg, #b83d6d, #ec4899); }
-  .report-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 18px 36px rgba(30, 41, 59, 0.16);
-    border-color: #c7d2fe;
-  }
-  .report-card-personality { background: linear-gradient(160deg, #ffffff 0%, #f5f3ff 100%); }
-  .report-card-interest { background: linear-gradient(160deg, #ffffff 0%, #fff7ed 100%); }
-  .report-card-intelligence { background: linear-gradient(160deg, #ffffff 0%, #fdf2f8 100%); }
+
+
   .report-badge {
     display: inline-block;
     padding: 8px 12px;
@@ -352,40 +367,60 @@
   }
   .modern-bar-row {
     display: grid;
-    grid-template-columns: 72px 1fr 26px;
+    grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 8px;
+    gap: 4px 10px;
   }
   .modern-bar-row span {
+    grid-column: 1;
+    grid-row: 1;
     font-size: 12px;
-    color: #334155;
-    font-weight: 700;
+    color: #525252;
+    font-weight: 600;
     white-space: nowrap;
   }
   .modern-bar-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
     height: 7px;
-    background: #e8edf7;
+    background: #e5e7eb;
     border-radius: 999px;
     overflow: hidden;
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    border: 0;
   }
   .modern-bar-fill {
     height: 100%;
     width: 0;
     border-radius: inherit;
   }
-  .modern-bar-fill.personality { background: linear-gradient(90deg, #7c3aed, #8b5cf6); }
+  /* Shared RIASEC palette to match report UI */
+  .modern-bar-fill.personality { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+  .modern-bar-fill.personality.riasec-s,
+  .modern-bar-fill.interest.riasec-s { background: linear-gradient(90deg, #1f9d77, #2ab08c); } /* Social */
+  .modern-bar-fill.personality.riasec-c,
+  .modern-bar-fill.interest.riasec-c { background: linear-gradient(90deg, #6f63ce, #8a7de1); } /* Conventional */
+  .modern-bar-fill.personality.riasec-i,
+  .modern-bar-fill.interest.riasec-i { background: linear-gradient(90deg, #3e7ec8, #5a96dc); } /* Investigative */
+  .modern-bar-fill.personality.riasec-a,
+  .modern-bar-fill.interest.riasec-a { background: linear-gradient(90deg, #c65687, #db729f); } /* Artistic */
+  .modern-bar-fill.personality.riasec-r,
+  .modern-bar-fill.interest.riasec-r { background: linear-gradient(90deg, #df8b17, #eda432); } /* Realistic */
+  .modern-bar-fill.personality.riasec-e,
+  .modern-bar-fill.interest.riasec-e { background: linear-gradient(90deg, #bf562f, #d56e45); } /* Enterprising */
   .modern-bar-fill.interest { background: linear-gradient(90deg, #d97706, #f59e0b); }
   .modern-bar-fill.intelligence { background: linear-gradient(90deg, #f97316, #fb923c); }
   .modern-bar-fill.intelligence.high { background: linear-gradient(90deg, #16a34a, #22c55e); }
   .modern-bar-fill.intelligence.avg { background: linear-gradient(90deg, #ea580c, #f59e0b); }
   .modern-bar-fill.intelligence.below { background: linear-gradient(90deg, #dc2626, #ef4444); }
   .modern-bar-mark {
-    font-size: 10px;
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 12px;
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: none;
     text-align: right;
-    line-height: 15px;
+    line-height: 1.2;
+    color: #262626;
   }
   .modern-bar-mark.avg { color: #c2410c; }
   .modern-bar-mark.below { color: #b91c1c; }
@@ -395,17 +430,27 @@
     padding-top: 12px;
   }
   .report-card-modern .report-card-actions {
-    margin-top: 10px;
-    justify-content: space-between;
+    margin-top: 8px;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
   }
   .report-card-modern .report-card-actions a {
-    border-radius: 12px;
-    width: calc(50% - 4px);
-    height: 38px;
-    font-size: 13px;
-    gap: 6px;
+    border-radius: 8px;
+    width: auto;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 30px;
+    height: 30px;
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 4px;
     font-weight: 600;
-    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.14);
+  }
+  .report-card-modern .report-card-actions a i {
+    font-size: 14px;
+    line-height: 1;
   }
   .report-card-modern .report-card-actions .btn-view {
     background: linear-gradient(135deg, #4f46e5, #3F37C9);
@@ -487,8 +532,9 @@
       padding: 16px;
     }
   }
-  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(76, 201, 240, 0.2); overflow: hidden; }
-  .level-progress-bar { height: 100%; border-radius: 2px; background: #4cc9f0; transition: width 0.5s ease; }
+  /* Align level progress track/fill with main user dashboard */
+  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(91, 201, 234, 0.22); overflow: hidden; }
+  .level-progress-bar { height: 100%; border-radius: 2px; background: #5bc9ea; transition: width 0.5s ease; }
   .vocational-card {
     border-radius: 14px;
     overflow: hidden;
@@ -583,6 +629,20 @@
     font-size: 0.9rem;
     font-weight: 700;
     color: #1e293b;
+  }
+  .suggested-career-card .aptitude-area-highlight {
+    display: inline-block;
+    margin-left: 2px;
+    padding: 2px 9px 3px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.82em;
+    letter-spacing: 0.02em;
+    color: #9d174d;
+    background: linear-gradient(180deg, #fce7f3 0%, #fbcfe8 100%);
+    border: 1px solid #f9a8d4;
+    box-shadow: 0 1px 2px rgba(157, 23, 77, 0.08);
+    vertical-align: baseline;
   }
   .suggested-career-card p {
     margin: 4px 0 10px;
@@ -1020,10 +1080,24 @@
             </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="stat-card-icon-wrap level"><i class='bx bx-medal fs-24 text-success'></i></div>
+            <div class="stat-card stat-card-level">
+              <div class="level-badge-icon">
+                {% set level_name = current_level|default('Rookie') %}
+                {% if level_name|lower == 'rookie' %}
+                  {% set level_badge_path = 'images_new/badges/rookie.png' %}
+                {% elif level_name|lower == 'explorer' %}
+                  {% set level_badge_path = 'images_new/badges/explorer.png' %}
+                {% elif level_name|lower == 'champion' %}
+                  {% set level_badge_path = 'images_new/badges/champion.png' %}
+                {% elif level_name|lower == 'legend' %}
+                  {% set level_badge_path = 'images_new/badges/Legend.png' %}
+                {% else %}
+                  {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
+                {% endif %}
+                <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
+              </div>
               <div class="min-w-0">
-                <p class="stat-value mb-0 text-truncate" title="{{ current_level|default('Explorer') }}">{{ current_level|default('Explorer') }}</p>
+                <p class="stat-value mb-0 text-truncate" title="{{ current_level|default('Rookie') }}">{{ current_level|default('Rookie') }}</p>
                 <p class="stat-label mb-0 lh-sm">Current level</p>
                 {% if next_level_min_points is not none and level_progress_percent is not none %}
                 <div class="level-progress-wrap mt-1" style="max-width: 100%;">
@@ -1039,7 +1113,7 @@
             <!-- Suggested Streams based on Personality (light blue cards with icon) -->
             {% if streamsubject %}
             <div class="my-md-6 my-4">
-              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested streams from personality</h3>
+              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Personality</h3>
               <div class="row g-3">
                 {% for stream, subject in streamsubject %}
                 <div class="col-6 col-md-4">
@@ -1061,7 +1135,7 @@
    
       <!-- Psychometric Test Report (modern combined-report style using DB data) -->
       <div class="mb-4 psych-report-section">
-        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric test report</h2>
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric Test Report</h2>
         <div class="row g-3">
           <div class="col-md-4 mb-md-0 mb-3">
             <div class="report-card report-card-personality report-card-modern">
@@ -1079,9 +1153,27 @@
                 {% if personality_breakdown %}
                   {% for item in personality_breakdown %}
                     {% if loop.index <= 6 %}
+                    {% set lu = item.label|trim|lower %}
+                    {% if lu == 'realistic' %}
+                      {% set riasec_bar = 'riasec-r' %}
+                    {% elif lu == 'investigative' %}
+                      {% set riasec_bar = 'riasec-i' %}
+                    {% elif lu == 'artistic' %}
+                      {% set riasec_bar = 'riasec-a' %}
+                    {% elif lu == 'social' %}
+                      {% set riasec_bar = 'riasec-s' %}
+                    {% elif lu == 'enterprising' %}
+                      {% set riasec_bar = 'riasec-e' %}
+                    {% elif lu == 'conventional' %}
+                      {% set riasec_bar = 'riasec-c' %}
+                    {% elif lu in ['r', 'i', 'a', 's', 'e', 'c'] %}
+                      {% set riasec_bar = 'riasec-' + lu %}
+                    {% else %}
+                      {% set riasec_bar = '' %}
+                    {% endif %}
                     <div class="modern-bar-row">
                       <span>{{ item.label }}</span>
-                      <div class="modern-bar-track"><div class="modern-bar-fill personality psych-dynamic-width" data-score="{{ item.score_pct }}"></div></div>
+                      <div class="modern-bar-track"><div class="modern-bar-fill personality psych-dynamic-width {{ riasec_bar }}" data-score="{{ item.score_pct }}"></div></div>
                       <strong class="modern-bar-mark">{{ item.score_pct }}%</strong>
                     </div>
                     {% endif %}
@@ -1103,7 +1195,7 @@
                   <p class="report-card-title">Interest</p>
                   <p class="report-card-sub">Career interest inventory - Part 2</p>
                 </div>
-                <div class="report-card-score interest">{{ interest_highest_value|default(interest_pct|default(0))|int }}</div>
+                <div class="report-card-score interest">{{ interest_highest_value|default(interest_pct|default(0))|int }} pts</div>
               </div>
               <div class="modern-pill-row d-none">
                 <span class="modern-pill interest">Top: {{ dominant_interest_name|default(max_length|default('Dominant area')) }}</span>
@@ -1115,10 +1207,28 @@
                 {% if interest_breakdown %}
                   {% for item in interest_breakdown %}
                     {% if loop.index <= 6 %}
+                    {% set li = item.label|trim|lower %}
+                    {% if li == 'realistic' %}
+                      {% set interest_riasec = 'riasec-r' %}
+                    {% elif li == 'investigative' %}
+                      {% set interest_riasec = 'riasec-i' %}
+                    {% elif li == 'artistic' %}
+                      {% set interest_riasec = 'riasec-a' %}
+                    {% elif li == 'social' %}
+                      {% set interest_riasec = 'riasec-s' %}
+                    {% elif li == 'enterprising' %}
+                      {% set interest_riasec = 'riasec-e' %}
+                    {% elif li == 'conventional' %}
+                      {% set interest_riasec = 'riasec-c' %}
+                    {% elif li in ['r', 'i', 'a', 's', 'e', 'c'] %}
+                      {% set interest_riasec = 'riasec-' + li %}
+                    {% else %}
+                      {% set interest_riasec = '' %}
+                    {% endif %}
                     <div class="modern-bar-row">
                       <span>{{ item.label }}</span>
-                      <div class="modern-bar-track"><div class="modern-bar-fill interest psych-dynamic-width" data-score="{{ item.score_pct }}"></div></div>
-                      <strong class="modern-bar-mark">{{ item.score_value|default(item.score_pct) }}</strong>
+                      <div class="modern-bar-track"><div class="modern-bar-fill interest psych-dynamic-width {{ interest_riasec }}" data-score="{{ item.score_pct }}"></div></div>
+                      <strong class="modern-bar-mark">{{ item.score_value|default(item.score_pct) }} pts</strong>
                     </div>
                     {% endif %}
                   {% endfor %}
@@ -1208,14 +1318,14 @@
 
       {% if interest_suggested_careers or aptitude_suggested_careers %}
       <div class="mb-4">
-        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested careers</h2>
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Careers</h2>
         <div class="suggested-careers-grid">
           <div class="suggested-career-card">
-            <h4>From interest </h4>
+            <h4>From Interest Area:     {% if dominant_interest_name %}
+              <span class="career-type-pill"> {{ dominant_interest_name }}</span>
+              {% endif %}</h4>
             <p>Based on your dominant interest area from report.</p>
-            {% if dominant_interest_name %}
-            <span class="career-type-pill">Highest type: {{ dominant_interest_name }}</span>
-            {% endif %}
+        
             <div class="career-chip-grid">
               {% if interest_suggested_careers %}
                 {% for career in interest_suggested_careers %}
@@ -1227,9 +1337,9 @@
             </div>
           </div>
           <div class="suggested-career-card">
-            <h4>From aptitude ({{ top_intelligence_label|default('reasoning')|lower }})</h4>
+            <h4>From Aptitude <span class="aptitude-area-highlight text-capitalize">{{ top_intelligence_label|default('reasoning')|lower }}</span></h4>
             <p>Best-fit careers for your strongest intelligence areas.</p>
-            <div class="career-chip-grid">
+            <div class="career-chip-grid pb-2">
               {% if aptitude_suggested_careers %}
                 {% for career in aptitude_suggested_careers %}
                 <span class="career-chip">{{ career }}</span>
