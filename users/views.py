@@ -159,6 +159,28 @@ def _link_current_analytics_session(request, user):
     except Exception:
         pass
 
+
+def is_safe_post_login_redirect_path(path):
+    """
+    Paths safe to open in the browser after HTML login/signup.
+    Blocks XHR/JSON endpoints (e.g. notification poll) that @login_required
+    sends to LOGIN_URL with ?next=..., which would otherwise strand users on raw JSON.
+    """
+    if not path or not isinstance(path, str):
+        return False
+    p = path.strip()
+    if not p.startswith('/') or p.startswith('//'):
+        return False
+    base = (p.split('?')[0] or '').lower()
+    if '/notifications/api/' in base:
+        return False
+    if base.startswith('/api/v1/'):
+        return False
+    if base.startswith('/api-auth/'):
+        return False
+    return True
+
+
 # def create_institute(request):
 #     if request.method == 'POST':      
         
@@ -518,6 +540,8 @@ class LoginView(TemplateView):
             from django.utils.http import url_has_allowed_host_and_scheme
             full_url = request.build_absolute_uri(next_url)
             if not url_has_allowed_host_and_scheme(full_url, request.get_host()):
+                next_url = ''
+            elif not is_safe_post_login_redirect_path(next_url):
                 next_url = ''
             else:
                 # Store in session as fallback if client doesn't send next in login POST
@@ -1764,7 +1788,7 @@ class SignUpVerifyOTP(APIView):
                     next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
                     if not next_path:
                         next_path = request.session.pop('login_next_url', '')
-                    if next_path:
+                    if next_path and is_safe_post_login_redirect_path(next_path):
                         full_url = request.build_absolute_uri(next_path)
                         if url_has_allowed_host_and_scheme(full_url, request.get_host()):
                             if '/psychometrictest/' in full_url:
@@ -1937,7 +1961,7 @@ class SignUpPassword(APIView):
                     next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
                     if not next_path:
                         next_path = request.session.pop('login_next_url', '')
-                    if next_path:
+                    if next_path and is_safe_post_login_redirect_path(next_path):
                         full_url = request.build_absolute_uri(next_path)
                         if url_has_allowed_host_and_scheme(full_url, request.get_host()):
                             if '/psychometrictest/' in full_url:
@@ -2030,7 +2054,7 @@ class LoginOTP(APIView):
                     next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
                     if not next_path:
                         next_path = request.session.pop('login_next_url', '')
-                    if next_path:
+                    if next_path and is_safe_post_login_redirect_path(next_path):
                         full_url = request.build_absolute_uri(next_path)
                         if url_has_allowed_host_and_scheme(full_url, request.get_host()):
                             if '/psychometrictest/' in full_url:
@@ -2157,7 +2181,7 @@ class LoginPassword(APIView):
                 next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
                 if not next_path:
                     next_path = request.session.pop('login_next_url', '')
-                if next_path:
+                if next_path and is_safe_post_login_redirect_path(next_path):
                     full_url = request.build_absolute_uri(next_path)
                     if url_has_allowed_host_and_scheme(full_url, request.get_host()):
                         if '/psychometrictest/' in full_url:
