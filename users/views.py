@@ -623,6 +623,7 @@ class DemoLoginView(View):
         return reverse('users:userdashboard')
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class StudentLoginView(LoginView):
     """
     Student login landing page (/student/login/).

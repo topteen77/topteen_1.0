@@ -1635,14 +1635,24 @@
               {% endfor %}
               {% if not cluster_ns.has_items and career_guidance_selected %}
               {% for guidance in career_guidance_selected %}
-              {% if guidance.Career_Clusters %}
+              {% if guidance.Career_Clusters_resolved %}
+              {% for c in guidance.Career_Clusters_resolved %}
+              {% if c.name and c.name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(c.name) %}
+              {% set cluster_ns.has_items = true %}
+              <li>{% if c.url %}<a href="{{ c.url }}">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% elif guidance.Career_Clusters %}
               {% for cluster_name in guidance.Career_Clusters %}
               {% set clean_cluster_name = (cluster_name|string)|trim %}
-              {% if clean_cluster_name and clean_cluster_name not in cluster_ns.items %}
-              {% set _ = cluster_ns.items.append(clean_cluster_name) %}
+              {% set r = cluster_resolve_map.get(clean_cluster_name|lower) if cluster_resolve_map else none %}
+              {% set display_cluster_name = r['name'] if r else clean_cluster_name %}
+              {% if display_cluster_name and display_cluster_name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(display_cluster_name) %}
               {% set cluster_ns.has_items = true %}
-              {% set cluster_url = cluster_url_map.get(clean_cluster_name|lower) if cluster_url_map else None %}
-              <li>{% if cluster_url %}<a href="{{ cluster_url }}">{{ clean_cluster_name }}</a>{% else %}{{ clean_cluster_name }}{% endif %}</li>
+              {% set cluster_url = (r['url'] if r else none) or (cluster_url_map.get(clean_cluster_name|lower) if cluster_url_map else none) %}
+              <li>{% if cluster_url %}<a href="{{ cluster_url }}">{{ display_cluster_name }}</a>{% else %}{{ display_cluster_name }}{% endif %}</li>
               {% endif %}
               {% endfor %}
               {% endif %}

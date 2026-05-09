@@ -12,7 +12,7 @@ from django.utils.dateparse import parse_datetime
 from .models import (
     TestCategory, Test, Question, Answer,
     TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
-    TestCompletionPopup, CareerMatch, AptitudeCombinationMapping
+    TestCompletionPopup, CareerMatch, AptitudeCombinationMapping, ClusterMapping,
 )
 from careers.models import Career, CareerCluster
 from .serializers import (
@@ -492,6 +492,104 @@ def save_popup_answer(request):
 import json
 import os
 from django.conf import settings
+
+
+def career_cluster_label_lookup_keys(raw_name):
+    """Normalized lookup keys for matching report labels to CareerCluster maps."""
+    name = str(raw_name or '').strip()
+    if not name:
+        return []
+    keys = set()
+    lower_name = name.lower()
+    keys.add(lower_name)
+    keys.add(lower_name.replace('&', 'and'))
+    keys.add(lower_name.replace(' and ', ' & '))
+    compact = re.sub(r'\s+', ' ', lower_name)
+    keys.add(compact)
+    keys.add(compact.replace('&', 'and'))
+    keys.add(re.sub(r'[^a-z0-9 ]+', ' ', compact).strip())
+    return [k.strip() for k in keys if k and k.strip()]
+
+
+def _cluster_resolve_lookup(label, cluster_resolve_map):
+    for key in career_cluster_label_lookup_keys(label):
+        if key in cluster_resolve_map:
+            return cluster_resolve_map[key]
+    return None
+
+
+def _cluster_url_only_lookup(label, cluster_url_map):
+    for key in career_cluster_label_lookup_keys(label):
+        if key in cluster_url_map:
+            return cluster_url_map[key]
+    return None
+
+
+def enrich_combined_report_cluster_links(context, cluster_resolve_map, cluster_url_map):
+    """
+    Ensure cluster names/URLs use DB titles and career library links.
+    Fixes cases where aptitude M2M has no URL or the template never uses resolve maps.
+    """
+    am = context.get('aptitude_mapping')
+    if isinstance(am, dict):
+        for item in am.get('clusters') or []:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get('name') or '').strip()
+            if not name:
+                continue
+            resolved = _cluster_resolve_lookup(name, cluster_resolve_map)
+            if resolved:
+                if resolved.get('name'):
+                    item['name'] = resolved['name']
+                if resolved.get('url'):
+                    item['url'] = resolved['url']
+            if not item.get('url'):
+                item['url'] = _cluster_url_only_lookup(
+                    item.get('name') or name, cluster_url_map
+                )
+
+    for guidance in context.get('career_guidance_selected') or []:
+        if not isinstance(guidance, dict):
+            continue
+        raw_list = guidance.get('Career_Clusters')
+        if not raw_list:
+            continue
+        seen = set()
+        resolved_rows = []
+        for raw in raw_list:
+            label = str(raw or '').strip()
+            if not label:
+                continue
+            res = _cluster_resolve_lookup(label, cluster_resolve_map)
+            display = (res.get('name') if res else None) or label
+            url = (res.get('url') if res else None) or _cluster_url_only_lookup(
+                label, cluster_url_map
+            )
+            dedupe = (display or '').lower()
+            if dedupe in seen:
+                continue
+            seen.add(dedupe)
+            resolved_rows.append({'name': display, 'url': url})
+        guidance['Career_Clusters_resolved'] = resolved_rows
+
+    for item in context.get('psychometric_career_clusters') or []:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get('name') or '').strip()
+        if not name:
+            continue
+        if item.get('url'):
+            continue
+        resolved = _cluster_resolve_lookup(name, cluster_resolve_map)
+        if resolved:
+            if resolved.get('name'):
+                item['name'] = resolved['name']
+            if resolved.get('url'):
+                item['url'] = resolved['url']
+        if not item.get('url'):
+            item['url'] = _cluster_url_only_lookup(item.get('name') or name, cluster_url_map)
+
 
 def get_hexaco_or_riasec_career_mapping(latest_session):
     try:
@@ -2439,26 +2537,6 @@ def CombinedReport(request, user_id=None):
         # Includes common aliases so DB clusters still link when recommendation text varies
         # (e.g. "&" vs "and", punctuation differences, repeated spaces).
         try:
-            def _cluster_lookup_keys(raw_name):
-                name = str(raw_name or '').strip()
-                if not name:
-                    return []
-
-                keys = set()
-                lower_name = name.lower()
-                keys.add(lower_name)
-
-                # Alias variations for common textual differences.
-                keys.add(lower_name.replace('&', 'and'))
-                keys.add(lower_name.replace(' and ', ' & '))
-
-                compact = re.sub(r'\s+', ' ', lower_name)
-                keys.add(compact)
-                keys.add(compact.replace('&', 'and'))
-                keys.add(re.sub(r'[^a-z0-9 ]+', ' ', compact).strip())
-
-                return [k.strip() for k in keys if k and k.strip()]
-
             cluster_url_map = {}
             for cluster in CareerCluster.objects.all().only('id', 'slug', 'name'):
                 cluster_name = str(getattr(cluster, 'name', '') or '').strip()
@@ -2473,14 +2551,87 @@ def CombinedReport(request, user_id=None):
                 except Exception:
                     cluster_url = None
 
-                for key in _cluster_lookup_keys(cluster_name):
+                for key in career_cluster_label_lookup_keys(cluster_name):
                     if key in cluster_url_map:
                         continue
                     cluster_url_map[key] = cluster_url
+
+            # Report JSON uses short labels; map them to live CareerCluster title + career library URL.
+            cluster_resolve_map = {}
+
+            def _resolve_entry_for_cluster_obj(cluster):
+                if not cluster:
+                    return None
+                try:
+                    safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
+                    url = reverse(
+                        'careers:careerlibrary',
+                        kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id},
+                    )
+                except Exception:
+                    url = None
+                display = str(getattr(cluster, 'name', '') or '').strip()
+                if not display:
+                    return None
+                return {'name': display, 'url': url}
+
+            def _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False):
+                entry = _resolve_entry_for_cluster_obj(cluster)
+                if not entry:
+                    return
+                for key in career_cluster_label_lookup_keys(raw_label):
+                    if not key:
+                        continue
+                    if overwrite or key not in cluster_resolve_map:
+                        cluster_resolve_map[key] = entry
+
+            mapping_path = os.path.join(
+                settings.BASE_DIR, 'static', 'data', 'combined_report_data', 'excel_to_db_mapping.json',
+            )
+            if os.path.isfile(mapping_path):
+                try:
+                    with open(mapping_path, 'r', encoding='utf-8') as f:
+                        mapping_json = json.load(f)
+                    for raw_label, targets in (mapping_json.get('cluster_mappings') or {}).items():
+                        if not targets or not isinstance(targets, list):
+                            continue
+                        cid = targets[0].get('id')
+                        if not cid:
+                            continue
+                        cluster = CareerCluster.objects.filter(pk=cid).first()
+                        _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False)
+                except Exception as ex:
+                    print(f"Error loading excel_to_db_mapping cluster_mappings: {ex}")
+
+            label_ids_path = os.path.join(
+                settings.BASE_DIR, 'static', 'data', 'report_cluster_label_ids.json',
+            )
+            if os.path.isfile(label_ids_path):
+                try:
+                    with open(label_ids_path, 'r', encoding='utf-8') as f:
+                        label_id_map = json.load(f)
+                    for raw_label, cid in (label_id_map or {}).items():
+                        cluster = CareerCluster.objects.filter(pk=cid).first()
+                        _merge_cluster_resolve_keys(str(raw_label), cluster, overwrite=False)
+                except Exception as ex:
+                    print(f"Error loading report_cluster_label_ids.json: {ex}")
+
+            try:
+                for cm in ClusterMapping.objects.select_related('db_cluster').filter(
+                    db_cluster__isnull=False,
+                ):
+                    _merge_cluster_resolve_keys(cm.excel_name, cm.db_cluster, overwrite=True)
+            except Exception as ex:
+                print(f"Error merging ClusterMapping into cluster_resolve_map: {ex}")
+
+            enrich_combined_report_cluster_links(context, cluster_resolve_map, cluster_url_map)
+
+            context['cluster_resolve_map'] = cluster_resolve_map
             context['cluster_url_map'] = cluster_url_map
         except Exception as e:
             print(f"Error building cluster_url_map: {e}")
             context['cluster_url_map'] = {}
+            context['cluster_resolve_map'] = {}
         
         context['breadcrumb'] = get_breadcrumb([
             {'text': 'Tests', 'url': reverse('post_matric:tests')},
