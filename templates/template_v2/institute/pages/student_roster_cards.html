@@ -197,6 +197,20 @@
           </div>
         </div>
       {% endfor %}
+      {# Ghost / filler cards so the last row always fills a 3-col grid (e.g. last page
+         of pagination when the count is not a multiple of 3). Hidden on smaller
+         breakpoints (see CSS) so they never show in 1/2-col layouts. #}
+      {% set _stu_count = students|length %}
+      {% set _ghost_count = (3 - (_stu_count % 3)) % 3 %}
+      {% if _ghost_count > 0 %}
+        {% for _g in range(_ghost_count) %}
+          <div class="ttv2-student-card ttv2-student-card--ghost" aria-hidden="true">
+            <div class="ttv2-student-ghost-icon"><i class="bx bx-user-plus"></i></div>
+            <div class="ttv2-student-ghost-title">Open slot</div>
+            <div class="ttv2-student-ghost-text">More students will appear as your roster grows.</div>
+          </div>
+        {% endfor %}
+      {% endif %}
     {% else %}
       <div class="ttv2-card" style="grid-column:1/-1;">
         <div class="card-title">No students found</div>

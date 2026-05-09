@@ -1,8 +1,8 @@
 <!-- Institutes Table Container (for AJAX loading) -->
 <div id="institutes-table-wrapper">
-<div id="institutes-table-container">
+<div id="institutes-table-container" class="ttv2-mktg-institutes-wrap">
 {% set _is_group_mode = (institutes_is_group_mode if institutes_is_group_mode is defined else (search_params.list_mode == 'group' if search_params is defined else False)) %}
-<div class="px-2 py-2 mb-0 small border rounded-top bg-light text-secondary d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
+<div class="px-3 py-2 mb-0 small ttv2-mktg-count-bar d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
   {% if institutes_paginations %}
     <span><strong class="text-dark">{{ institutes_paginations.paginator.count }}</strong> matching</span>
     <span class="text-muted">·</span>
@@ -14,7 +14,7 @@
   {% endif %}
 </div>
 <div class="table-responsive">
-  <table class="table table-hover">
+  <table class="table table-hover align-middle ttv2-mktg-table">
     <thead>
       <tr>
         <th>Sr. No.</th>
@@ -50,7 +50,7 @@
           {% if _is_group_mode %}
           <td>{{ ins.group_name if ins.group_name else '-' }}</td>
           {% else %}
-          <td>
+          <td class="ttv2-mktg-cell-name">
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
@@ -93,7 +93,7 @@
           <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
           {% if not _is_group_mode %}
           <td>
-            <div class="d-flex gap-2">
+            <div class="ttv2-mktg-action-bar">
               <button type="button" 
                       class="btn btn-sm btn-link p-0" 
                       data-bs-toggle="modal" 
@@ -120,25 +120,23 @@
           </td>
           <td>
             {% if ins.institute_status == 3 %}
-            <div class="d-flex flex-wrap gap-1">
+            <div class="ttv2-mktg-row-pending d-flex flex-wrap gap-1 align-items-center">
               <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-success py-0 px-2"
-                 style="font-size:11px;line-height:1.5;">
+                 class="btn btn-sm btn-success text-white">
                 <i class='bx bx-check-circle me-1'></i>Approve
               </a>
               <a href="{{ url('institute:institutereject', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-danger py-0 px-2"
-                 style="font-size:11px;line-height:1.5;">
+                 class="btn btn-sm btn-danger text-white">
                 <i class='bx bx-x-circle me-1'></i>Reject
               </a>
             </div>
             {% elif ins.institute_status == 2 %}
-            <span class="badge bg-danger">
-              <i class='bx bx-x-circle me-1'></i> Rejected
+            <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
+              <i class='bx bx-x-circle'></i> Rejected
             </span>
             {% else %}
-            <span class="badge bg-success">
-              <i class='bx bx-check-circle me-1'></i> Approved
+            <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--ok">
+              <i class='bx bx-check-circle'></i> Approved
             </span>
             {% endif %}
           </td>
@@ -161,7 +159,7 @@
           {% if _is_group_mode %}
           <td>{{ ins.group_name if ins.group_name else '-' }}</td>
           {% else %}
-          <td>
+          <td class="ttv2-mktg-cell-name">
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
@@ -199,7 +197,7 @@
           <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
           {% if not _is_group_mode %}
           <td>
-            <div class="d-flex gap-2">
+            <div class="ttv2-mktg-action-bar">
               <button type="button" 
                       class="btn btn-sm btn-link p-0" 
                       data-bs-toggle="modal" 
@@ -226,25 +224,23 @@
           </td>
           <td>
             {% if ins.institute_status == 3 %}
-            <div class="d-flex flex-wrap gap-1">
+            <div class="ttv2-mktg-row-pending d-flex flex-wrap gap-1 align-items-center">
               <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-success py-0 px-2"
-                 style="font-size:11px;line-height:1.5;">
+                 class="btn btn-sm btn-success text-white">
                 <i class='bx bx-check-circle me-1'></i>Approve
               </a>
               <a href="{{ url('institute:institutereject', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-danger py-0 px-2"
-                 style="font-size:11px;line-height:1.5;">
+                 class="btn btn-sm btn-danger text-white">
                 <i class='bx bx-x-circle me-1'></i>Reject
               </a>
             </div>
             {% elif ins.institute_status == 2 %}
-            <span class="badge bg-danger">
-              <i class='bx bx-x-circle me-1'></i> Rejected
+            <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
+              <i class='bx bx-x-circle'></i> Rejected
             </span>
             {% else %}
-            <span class="badge bg-success">
-              <i class='bx bx-check-circle me-1'></i> Approved
+            <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--ok">
+              <i class='bx bx-check-circle'></i> Approved
             </span>
             {% endif %}
           </td>
@@ -265,7 +261,7 @@
 <!-- Pagination Container (for AJAX loading) -->
 <div id="institutes-pagination">
 {% if institutes_paginations %}
-<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 ttv2-mktg-pagination-foot">
   <div class="small text-secondary">
     Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
   </div>

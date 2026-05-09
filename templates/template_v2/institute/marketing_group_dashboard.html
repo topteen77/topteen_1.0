@@ -47,6 +47,9 @@
         }
       } catch (e) {}
       try {
+        if (typeof window.ttv2InitMktgFilterDrawer === 'function') window.ttv2InitMktgFilterDrawer();
+      } catch (e4) {}
+      try {
         var host = document.getElementById('ttv2AjaxContent');
         var marker = host ? host.querySelector('[data-ttv2-page]') : null;
         var page = marker ? (marker.getAttribute('data-ttv2-page') || '').trim().toLowerCase() : '';

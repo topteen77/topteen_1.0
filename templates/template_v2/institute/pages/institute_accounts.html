@@ -1,4 +1,4 @@
-{# Accounts page: institute-scoped accounts analytics (layout similar to screenshot). #}
+{# Accounts page: institute-scoped accounts analytics. Modernized v2 layout. #}
 {% set a = (ttv2_accounts if ttv2_accounts is defined else {}) %}
 {% set time_period = a.get('time_period', '30days') %}
 {% set _role = (ttv2_role_ctx.role if (ttv2_role_ctx is defined and ttv2_role_ctx and ttv2_role_ctx.role) else '') %}
@@ -19,184 +19,347 @@
   {% endif %}
 {% endif %}
 
-<div class="d-flex justify-content-end align-items-center mb-3">
-  <div style="min-width:200px">
-    <select class="form-select" onchange="(function(v){var u=new URL(window.location.href);u.searchParams.set('period',v);window.location=u.toString();})(this.value)">
-      <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
-      <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
-      <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
-      <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
-      <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
-      <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
-    </select>
-  </div>
-</div>
+{% set _period_labels = {
+  'today': 'Today',
+  'yesterday': 'Yesterday',
+  '7days': 'Last 7 days',
+  '30days': 'Last 30 days',
+  '90days': 'Last 90 days',
+  'alltime': 'All time'
+} %}
+{% set _period_label = _period_labels.get(time_period, 'Last 30 days') %}
 
-<div class="row g-3 mb-3">
-  <div class="col-md-3">
-    <div class="ttv2-card">
-      <div style="font-size:12px;color:var(--c-text3);">Total Registrations</div>
-      <div style="font-size:22px;font-weight:800;">
-        {% if a.get('total_registrations', 0) and students_href != '#' %}
-          <a href="{{ students_href }}" style="color:#2563eb;text-decoration:none;">{{ a.get('total_registrations', 0) }}</a>
-        {% else %}
-          <span style="color:#2563eb;">{{ a.get('total_registrations', 0) }}</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="ttv2-card">
-      <div style="font-size:12px;color:var(--c-text3);">Total Revenue</div>
-      <div style="font-size:22px;font-weight:800;">
-        {% if a.get('total_revenue', 0) and payments_href != '#' %}
-          <a href="{{ payments_href }}?period={{ time_period }}" style="color:#16a34a;text-decoration:none;">₹{{ "%.2f"|format(a.get('total_revenue', 0)) }}</a>
-        {% else %}
-          <span style="color:#16a34a;">₹{{ "%.2f"|format(a.get('total_revenue', 0)) }}</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="ttv2-card">
-      <div style="font-size:12px;color:var(--c-text3);">Total Prospects</div>
-      <div style="font-size:22px;font-weight:800;color:#0ea5e9;">{{ a.get('total_prospects', 0) }}</div>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="ttv2-card">
-      <div style="font-size:12px;color:var(--c-text3);">Converted Prospects</div>
-      <div style="font-size:22px;font-weight:800;color:#f59e0b;">{{ a.get('converted_prospects', 0) }}</div>
-    </div>
-  </div>
-</div>
-
+{% set _total_reg = a.get('total_registrations', 0) %}
+{% set _total_rev = a.get('total_revenue', 0) %}
+{% set _total_pro = a.get('total_prospects', 0) %}
+{% set _conv_pro = a.get('converted_prospects', 0) %}
+{% set _pen_pro = a.get('pending_prospects', 0) %}
+{% set _conv_rate = ((_conv_pro / _total_pro * 100) if _total_pro and _total_pro > 0 else 0) %}
 {% set ps = a.get('payment_status', {}) %}
-<div class="ttv2-card mb-3">
-  <div class="card-title">Payment Status Breakdown</div>
-  <div class="row mt-2">
-    <div class="col-md-4">
-      <div style="font-size:13px;">
-        Successful:
-        {% if ps.get('success', 0) and payments_href != '#' %}
-          <a href="{{ payments_href }}?period={{ time_period }}&status=success" style="font-weight:800;color:#16a34a;text-decoration:none;">{{ ps.get('success', 0) }}</a>
-        {% else %}
-          <span style="font-weight:800;color:#16a34a;">{{ ps.get('success', 0) }}</span>
-        {% endif %}
-      </div>
+{% set _ps_success = ps.get('success', 0) %}
+{% set _ps_failed = ps.get('failed', 0) %}
+{% set _ps_pending = ps.get('pending', 0) %}
+
+<div class="ttv2-accounts-page">
+  <div class="ttv2-acc-hero">
+    <div class="ttv2-acc-hero-copy">
+      <h2>Accounts overview</h2>
+      <p>Revenue, registrations &amp; prospect analytics for <strong>{{ _period_label }}</strong>.</p>
     </div>
-    <div class="col-md-4">
-      <div style="font-size:13px;">
-        Failed:
-        {% if ps.get('failed', 0) and payments_href != '#' %}
-          <a href="{{ payments_href }}?period={{ time_period }}&status=failed" style="font-weight:800;color:#dc2626;text-decoration:none;">{{ ps.get('failed', 0) }}</a>
-        {% else %}
-          <span style="font-weight:800;color:#dc2626;">{{ ps.get('failed', 0) }}</span>
-        {% endif %}
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div style="font-size:13px;">
-        Pending:
-        {% if ps.get('pending', 0) and payments_href != '#' %}
-          <a href="{{ payments_href }}?period={{ time_period }}&status=pending" style="font-weight:800;color:#f59e0b;text-decoration:none;">{{ ps.get('pending', 0) }}</a>
-        {% else %}
-          <span style="font-weight:800;color:#f59e0b;">{{ ps.get('pending', 0) }}</span>
-        {% endif %}
-      </div>
+    <div class="ttv2-acc-period">
+      <span class="ttv2-acc-period-icon" aria-hidden="true"><i class="bx bx-calendar-event"></i></span>
+      <select aria-label="Time period"
+              onchange="(function(v){var u=new URL(window.location.href);u.searchParams.set('period',v);window.location=u.toString();})(this.value)">
+        <option value="today" {% if time_period == 'today' %}selected{% endif %}>Today</option>
+        <option value="yesterday" {% if time_period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+        <option value="7days" {% if time_period == '7days' %}selected{% endif %}>Last 7 Days</option>
+        <option value="30days" {% if time_period == '30days' %}selected{% endif %}>Last 30 Days</option>
+        <option value="90days" {% if time_period == '90days' %}selected{% endif %}>Last 90 Days</option>
+        <option value="alltime" {% if time_period == 'alltime' %}selected{% endif %}>All Time</option>
+      </select>
     </div>
   </div>
-</div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-6">
-    <div class="ttv2-card h-100">
-      <div class="card-title">Prospects Overview</div>
-      <div style="font-size:13px;line-height:1.9;">
-        <div>Total Prospects: <strong>{{ a.get('total_prospects', 0) }}</strong></div>
-        <div>Converted: <strong>{{ a.get('converted_prospects', 0) }}</strong></div>
-        <div>Pending: <strong>{{ a.get('pending_prospects', 0) }}</strong></div>
-        <div>Conversion Rate:
-          <strong>
-            {% set tp = a.get('total_prospects', 0) %}
-            {% if tp and tp > 0 %}
-              {{ "%.2f"|format((a.get('converted_prospects', 0) / tp * 100)) }}%
-            {% else %}
-              0%
-            {% endif %}
-          </strong>
+  {# --- KPI cards --- #}
+  <div class="ttv2-acc-kpis">
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--blue">
+      <div class="ttv2-acc-kpi-head">
+        <span class="ttv2-acc-kpi-icon"><i class="bx bx-user-plus"></i></span>
+        <span class="ttv2-acc-kpi-pill">Registrations</span>
+      </div>
+      <div class="ttv2-acc-kpi-label">Total registrations</div>
+      <div class="ttv2-acc-kpi-value">
+        {% if _total_reg and students_href != '#' %}
+          <a href="{{ students_href }}">{{ _total_reg }}</a>
+        {% else %}
+          {{ _total_reg }}
+        {% endif %}
+      </div>
+      <div class="ttv2-acc-kpi-sub">New users created in the period</div>
+    </div>
+
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--green">
+      <div class="ttv2-acc-kpi-head">
+        <span class="ttv2-acc-kpi-icon"><i class="bx bx-rupee"></i></span>
+        <span class="ttv2-acc-kpi-pill">Revenue</span>
+      </div>
+      <div class="ttv2-acc-kpi-label">Total revenue</div>
+      <div class="ttv2-acc-kpi-value">
+        {% if _total_rev and payments_href != '#' %}
+          <a href="{{ payments_href }}?period={{ time_period }}">₹{{ "%.2f"|format(_total_rev) }}</a>
+        {% else %}
+          ₹{{ "%.2f"|format(_total_rev) }}
+        {% endif %}
+      </div>
+      <div class="ttv2-acc-kpi-sub">Successful payments collected</div>
+    </div>
+
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--cyan">
+      <div class="ttv2-acc-kpi-head">
+        <span class="ttv2-acc-kpi-icon"><i class="bx bx-target-lock"></i></span>
+        <span class="ttv2-acc-kpi-pill">Prospects</span>
+      </div>
+      <div class="ttv2-acc-kpi-label">Total prospects</div>
+      <div class="ttv2-acc-kpi-value">{{ _total_pro }}</div>
+      <div class="ttv2-acc-kpi-sub">Leads in the funnel</div>
+    </div>
+
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--amber">
+      <div class="ttv2-acc-kpi-head">
+        <span class="ttv2-acc-kpi-icon"><i class="bx bx-trophy"></i></span>
+        <span class="ttv2-acc-kpi-pill">Converted</span>
+      </div>
+      <div class="ttv2-acc-kpi-label">Converted prospects</div>
+      <div class="ttv2-acc-kpi-value">{{ _conv_pro }}</div>
+      <div class="ttv2-acc-kpi-sub">{{ "%.1f"|format(_conv_rate) }}% conversion rate</div>
+    </div>
+  </div>
+
+  {# --- Payment Status --- #}
+  <div class="ttv2-acc-section">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon"><i class="bx bx-credit-card"></i></span>
+        <h3 class="ttv2-acc-section-title">Payment status breakdown</h3>
+      </div>
+    </div>
+    <div class="ttv2-acc-status-row">
+      {% if _ps_success and payments_href != '#' %}
+        <a href="{{ payments_href }}?period={{ time_period }}&status=success" class="ttv2-acc-status-pill ttv2-acc-status-pill--success">
+      {% else %}
+        <div class="ttv2-acc-status-pill ttv2-acc-status-pill--success">
+      {% endif %}
+        <span class="ttv2-acc-status-icon"><i class="bx bx-check-circle"></i></span>
+        <span class="ttv2-acc-status-text">
+          <span class="ttv2-acc-status-label">Successful</span>
+          <span class="ttv2-acc-status-value">{{ _ps_success }}</span>
+        </span>
+      {% if _ps_success and payments_href != '#' %}</a>{% else %}</div>{% endif %}
+
+      {% if _ps_failed and payments_href != '#' %}
+        <a href="{{ payments_href }}?period={{ time_period }}&status=failed" class="ttv2-acc-status-pill ttv2-acc-status-pill--failed">
+      {% else %}
+        <div class="ttv2-acc-status-pill ttv2-acc-status-pill--failed">
+      {% endif %}
+        <span class="ttv2-acc-status-icon"><i class="bx bx-x-circle"></i></span>
+        <span class="ttv2-acc-status-text">
+          <span class="ttv2-acc-status-label">Failed</span>
+          <span class="ttv2-acc-status-value">{{ _ps_failed }}</span>
+        </span>
+      {% if _ps_failed and payments_href != '#' %}</a>{% else %}</div>{% endif %}
+
+      {% if _ps_pending and payments_href != '#' %}
+        <a href="{{ payments_href }}?period={{ time_period }}&status=pending" class="ttv2-acc-status-pill ttv2-acc-status-pill--pending">
+      {% else %}
+        <div class="ttv2-acc-status-pill ttv2-acc-status-pill--pending">
+      {% endif %}
+        <span class="ttv2-acc-status-icon"><i class="bx bx-time-five"></i></span>
+        <span class="ttv2-acc-status-text">
+          <span class="ttv2-acc-status-label">Pending</span>
+          <span class="ttv2-acc-status-value">{{ _ps_pending }}</span>
+        </span>
+      {% if _ps_pending and payments_href != '#' %}</a>{% else %}</div>{% endif %}
+    </div>
+  </div>
+
+  {# --- Prospects + Revenue by Source --- #}
+  <div class="ttv2-acc-2col">
+    <div class="ttv2-acc-section">
+      <div class="ttv2-acc-section-head">
+        <div class="ttv2-acc-section-titlewrap">
+          <span class="ttv2-acc-section-icon" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);"><i class="bx bx-pie-chart-alt-2"></i></span>
+          <h3 class="ttv2-acc-section-title">Prospects overview</h3>
+        </div>
+      </div>
+      <div class="ttv2-acc-prospects-body">
+        <div class="ttv2-acc-progress-circle" style="--p: {{ _conv_rate|round(0,'floor')|int }};">
+          <div class="ttv2-acc-progress-text">
+            <div class="ttv2-acc-progress-pct">{{ "%.1f"|format(_conv_rate) }}%</div>
+            <div class="ttv2-acc-progress-cap">Conversion</div>
+          </div>
+        </div>
+        <div class="ttv2-acc-prospects-list">
+          <div class="ttv2-acc-prospects-row">
+            <span>Total prospects</span>
+            <strong>{{ _total_pro }}</strong>
+          </div>
+          <div class="ttv2-acc-prospects-row is-converted">
+            <span>Converted</span>
+            <strong>{{ _conv_pro }}</strong>
+          </div>
+          <div class="ttv2-acc-prospects-row is-pending">
+            <span>Pending</span>
+            <strong>{{ _pen_pro }}</strong>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="col-md-6">
-    <div class="ttv2-card h-100">
-      <div class="card-title">Revenue by Source</div>
-      <div class="table-responsive mt-2">
-        <table class="table table-sm mb-0">
+
+    <div class="ttv2-acc-section">
+      <div class="ttv2-acc-section-head">
+        <div class="ttv2-acc-section-titlewrap">
+          <span class="ttv2-acc-section-icon" style="background: linear-gradient(135deg, #16a34a, #15803d);"><i class="bx bx-trending-up"></i></span>
+          <h3 class="ttv2-acc-section-title">Revenue by source</h3>
+        </div>
+      </div>
+      <div class="ttv2-acc-table-wrap table-responsive">
+        <table class="ttv2-acc-table">
           <thead>
-            <tr><th>Source</th><th>Revenue</th><th>Count</th></tr>
+            <tr>
+              <th style="width:60px;">#</th>
+              <th>Source</th>
+              <th style="text-align:right;">Revenue</th>
+              <th style="width:90px; text-align:center;">Count</th>
+            </tr>
           </thead>
           <tbody>
             {% for item in a.get('revenue_by_source', []) %}
               <tr>
-                <td>{{ item.get('metadata__source', 'Unknown') }}</td>
-                <td>₹{{ "%.2f"|format(item.get('revenue', 0)) }}</td>
-                <td>{{ item.get('count', 0) }}</td>
+                <td><span class="ttv2-acc-rank">{{ loop.index }}</span></td>
+                <td>
+                  <span class="ttv2-acc-source-pill">
+                    <i class="bx bx-tag"></i>
+                    {{ item.get('metadata__source', 'Unknown') }}
+                  </span>
+                </td>
+                <td style="text-align:right;">
+                  <span class="ttv2-acc-amount">₹{{ "%.2f"|format(item.get('revenue', 0)) }}</span>
+                </td>
+                <td style="text-align:center;">
+                  <span class="ttv2-acc-count-chip">{{ item.get('count', 0) }}</span>
+                </td>
               </tr>
             {% endfor %}
             {% if not a.get('revenue_by_source', []) %}
-              <tr><td colspan="3" class="text-center" style="color:var(--c-text3);">No data available</td></tr>
+              <tr class="ttv2-acc-empty-row">
+                <td colspan="4">
+                  <div class="ttv2-acc-empty">
+                    <span class="ttv2-acc-empty-icon"><i class="bx bx-line-chart"></i></span>
+                    <h5 class="ttv2-acc-empty-title">No revenue data yet</h5>
+                    <p class="ttv2-acc-empty-text">Once payments are collected, you'll see a breakdown by source here.</p>
+                  </div>
+                </td>
+              </tr>
             {% endif %}
           </tbody>
         </table>
       </div>
     </div>
   </div>
-</div>
 
-<div class="ttv2-card mb-3">
-  <div class="card-title">Failed Payments Analysis</div>
-  <div class="table-responsive mt-2">
-    <table class="table mb-0">
-      <thead><tr><th>Payment Type</th><th>Failure Count</th></tr></thead>
-      <tbody>
-        {% for item in a.get('failed_payments', []) %}
-          <tr><td>{{ item.get('event_name', 'Unknown') }}</td><td>{{ item.get('count', 0) }}</td></tr>
-        {% endfor %}
-        {% if not a.get('failed_payments', []) %}
-          <tr><td colspan="2" class="text-center" style="color:var(--c-text3);">No failed payments</td></tr>
-        {% endif %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="ttv2-card">
-  <div class="card-title">Pending Payments</div>
-  <div class="table-responsive mt-2">
-    <table class="table mb-0">
-      <thead><tr><th>User</th><th>Event</th><th>Value</th><th>Date</th></tr></thead>
-      <tbody>
-        {% for p in a.get('pending_payments_list', []) %}
+  {# --- Failed Payments Analysis --- #}
+  <div class="ttv2-acc-section">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);"><i class="bx bx-error-circle"></i></span>
+        <h3 class="ttv2-acc-section-title">Failed payments analysis</h3>
+      </div>
+    </div>
+    <div class="ttv2-acc-table-wrap table-responsive">
+      <table class="ttv2-acc-table">
+        <thead>
           <tr>
-            <td>{{ (p.get('user').email if p.get('user') else '-') }}</td>
-            <td>{{ p.get('event_name', 'Payment Pending') }}</td>
-            <td>₹{{ "%.2f"|format(p.get('amount', 0)) }}</td>
-            <td>
-              {% if p.get('created') %}
-                {{ p.get('created').strftime("%Y-%m-%d %H:%M") }}
-              {% else %}
-                -
-              {% endif %}
-            </td>
+            <th style="width:60px;">#</th>
+            <th>Payment type</th>
+            <th style="width:160px; text-align:right;">Failure count</th>
           </tr>
-        {% endfor %}
-        {% if not a.get('pending_payments_list', []) %}
-          <tr><td colspan="4" class="text-center" style="color:var(--c-text3);">No pending payments</td></tr>
-        {% endif %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% for item in a.get('failed_payments', []) %}
+            <tr>
+              <td><span class="ttv2-acc-rank">{{ loop.index }}</span></td>
+              <td>
+                <span class="ttv2-acc-event-pill">
+                  <i class="bx bx-error-alt"></i>
+                  {{ item.get('event_name', 'Unknown') }}
+                </span>
+              </td>
+              <td style="text-align:right;">
+                <span class="ttv2-acc-fail-chip">
+                  <i class="bx bx-x"></i>
+                  {{ item.get('count', 0) }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+          {% if not a.get('failed_payments', []) %}
+            <tr class="ttv2-acc-empty-row">
+              <td colspan="3">
+                <div class="ttv2-acc-empty">
+                  <span class="ttv2-acc-empty-icon" style="background: rgba(34, 197, 94, 0.1); color: #16a34a;"><i class="bx bx-check-shield"></i></span>
+                  <h5 class="ttv2-acc-empty-title">No failed payments</h5>
+                  <p class="ttv2-acc-empty-text">Great — every payment in this period succeeded.</p>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# --- Pending Payments --- #}
+  <div class="ttv2-acc-section">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="bx bx-time-five"></i></span>
+        <h3 class="ttv2-acc-section-title">Pending payments</h3>
+      </div>
+    </div>
+    <div class="ttv2-acc-table-wrap table-responsive">
+      <table class="ttv2-acc-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Event</th>
+            <th style="width:140px; text-align:right;">Value</th>
+            <th style="width:170px;">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in a.get('pending_payments_list', []) %}
+            {% set _email = (p.get('user').email if p.get('user') else '-') %}
+            {% set _initial = (_email[:1]|upper) if (_email and _email != '-') else '?' %}
+            <tr>
+              <td>
+                <span class="ttv2-acc-user-cell">
+                  <span class="ttv2-acc-user-avatar">{{ _initial }}</span>
+                  <span class="ttv2-acc-user-email" title="{{ _email }}">{{ _email }}</span>
+                </span>
+              </td>
+              <td>
+                <span class="ttv2-acc-event-pill">
+                  <i class="bx bx-time"></i>
+                  {{ p.get('event_name', 'Payment Pending') }}
+                </span>
+              </td>
+              <td style="text-align:right;">
+                <span class="ttv2-acc-amount" style="color: var(--c-acc-amber-2, #d97706);">₹{{ "%.2f"|format(p.get('amount', 0)) }}</span>
+              </td>
+              <td>
+                <span class="ttv2-acc-date">
+                  {% if p.get('created') %}
+                    {{ p.get('created').strftime("%d %b %Y, %H:%M") }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+          {% if not a.get('pending_payments_list', []) %}
+            <tr class="ttv2-acc-empty-row">
+              <td colspan="4">
+                <div class="ttv2-acc-empty">
+                  <span class="ttv2-acc-empty-icon" style="background: rgba(34, 197, 94, 0.1); color: #16a34a;"><i class="bx bx-check-double"></i></span>
+                  <h5 class="ttv2-acc-empty-title">No pending payments</h5>
+                  <p class="ttv2-acc-empty-text">All caught up — there are no pending transactions for this period.</p>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
-

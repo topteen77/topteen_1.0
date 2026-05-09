@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
 <link rel="stylesheet" href="{{ static('css/institute-master-dashboard-light.css') }}">
 <link rel="stylesheet" href="{{ static('css/institute-sidebar-shared.css') }}">
+<link rel="stylesheet" href="{{ static('css_new/ttv2_csv_upload_components.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -52,6 +53,7 @@
 </section>
 
 {% include 'template20/institute/includes/institute_quick_action_modals.html' %}
+{% include "template_v2/includes/ttv2_csv_dropzone_script.html" %}
 
 <script src="{{ static('js/heatmap-dashboard.js') }}"></script>
 <script>

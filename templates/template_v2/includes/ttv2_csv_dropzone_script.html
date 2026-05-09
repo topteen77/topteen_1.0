@@ -1,0 +1,69 @@
+{# CSV dropzone: drag-drop + selected filename (runs once globally). #}
+<script>
+(function(){
+  if (window.__ttv2CsvDropzoneInit) return;
+  window.__ttv2CsvDropzoneInit = true;
+
+  function emptyLabel(el){
+    try {
+      return (el.getAttribute('data-empty-label') || 'No file selected').trim();
+    } catch(e) { return 'No file selected'; }
+  }
+
+  function updateFilename(input){
+    var z = input.closest('[data-ttv2-csv-dropzone]');
+    if (!z) return;
+    var nameEl = z.querySelector('[data-ttv2-csv-filename]');
+    if (!nameEl) return;
+    var f = input.files && input.files[0];
+    nameEl.textContent = f ? f.name : emptyLabel(nameEl);
+    z.classList.toggle('has-file', !!(f && f.name));
+  }
+
+  document.addEventListener('change', function(e){
+    var t = e.target;
+    if (!t || t.tagName !== 'INPUT' || t.type !== 'file') return;
+    if (!t.closest || !t.closest('[data-ttv2-csv-dropzone]')) return;
+    updateFilename(t);
+  }, true);
+
+  document.addEventListener('dragenter', function(e){
+    var z = e.target && e.target.closest ? e.target.closest('[data-ttv2-csv-dropzone]') : null;
+    if (!z) return;
+    e.preventDefault();
+    z.classList.add('is-dragover');
+  }, true);
+
+  document.addEventListener('dragover', function(e){
+    var z = e.target && e.target.closest ? e.target.closest('[data-ttv2-csv-dropzone]') : null;
+    if (!z) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }, true);
+
+  document.addEventListener('dragleave', function(e){
+    var z = e.target && e.target.closest ? e.target.closest('[data-ttv2-csv-dropzone]') : null;
+    if (!z) return;
+    if (z.contains(e.relatedTarget)) return;
+    z.classList.remove('is-dragover');
+  }, true);
+
+  document.addEventListener('drop', function(e){
+    var z = e.target && e.target.closest ? e.target.closest('[data-ttv2-csv-dropzone]') : null;
+    if (!z) return;
+    e.preventDefault();
+    z.classList.remove('is-dragover');
+    var inp = z.querySelector('input[type="file"]');
+    if (!inp || !e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+    try {
+      var dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      inp.files = dt.files;
+    } catch (err) {
+      try { inp.files = e.dataTransfer.files; } catch (err2) { return; }
+    }
+    updateFilename(inp);
+    try { inp.dispatchEvent(new Event('change', { bubbles: true })); } catch (e3) {}
+  }, true);
+})();
+</script>

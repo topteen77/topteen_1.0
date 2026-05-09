@@ -1,0 +1,311 @@
+/* Marketing / institute-group dashboard chart cards & rich table view.
+   Shared by v1 (`template20/institute/marketing_group_dashboard.html`) and
+   v2 (rendered inside `body.ttv2-shell`). All selectors are namespaced so we
+   never leak into unrelated tables. */
+
+.marketing-group-dashboard #charts-section .card,
+.marketing-group-dashboard #seat-capacity-section.card,
+.marketing-group-dashboard #bottom-charts-section .card,
+.institute-group-dashboard #charts-section .card,
+.institute-group-dashboard #seat-capacity-section.card,
+.institute-group-dashboard #bottom-charts-section .card,
+body.ttv2-shell .ttv2-marketing-embed #charts-section .card,
+body.ttv2-shell .ttv2-marketing-embed #seat-capacity-section.card,
+body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section .card,
+body.ttv2-shell .ttv2-group-embed #charts-section .card,
+body.ttv2-shell .ttv2-group-embed #seat-capacity-section.card,
+body.ttv2-shell .ttv2-group-embed #bottom-charts-section .card{
+  border: 1px solid var(--c-border, rgba(17,24,39,0.08));
+  border-radius: 16px;
+  background: var(--c-bg2, #ffffff);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+.marketing-group-dashboard #charts-section .card .card-body,
+.marketing-group-dashboard #seat-capacity-section.card .card-body,
+.marketing-group-dashboard #bottom-charts-section .card .card-body,
+.institute-group-dashboard #charts-section .card .card-body,
+.institute-group-dashboard #seat-capacity-section.card .card-body,
+.institute-group-dashboard #bottom-charts-section .card .card-body,
+body.ttv2-shell .ttv2-marketing-embed #charts-section .card .card-body,
+body.ttv2-shell .ttv2-marketing-embed #seat-capacity-section.card .card-body,
+body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section .card .card-body,
+body.ttv2-shell .ttv2-group-embed #charts-section .card .card-body,
+body.ttv2-shell .ttv2-group-embed #seat-capacity-section.card .card-body,
+body.ttv2-shell .ttv2-group-embed #bottom-charts-section .card .card-body{
+  padding: 18px 20px;
+}
+.marketing-group-dashboard #charts-section .card-title,
+.marketing-group-dashboard #seat-capacity-section .card-title,
+.marketing-group-dashboard #bottom-charts-section .card-title,
+.institute-group-dashboard #charts-section .card-title,
+.institute-group-dashboard #seat-capacity-section .card-title,
+.institute-group-dashboard #bottom-charts-section .card-title,
+body.ttv2-shell .ttv2-marketing-embed #charts-section .card-title,
+body.ttv2-shell .ttv2-marketing-embed #seat-capacity-section .card-title,
+body.ttv2-shell .ttv2-marketing-embed #bottom-charts-section .card-title,
+body.ttv2-shell .ttv2-group-embed #charts-section .card-title,
+body.ttv2-shell .ttv2-group-embed #seat-capacity-section .card-title,
+body.ttv2-shell .ttv2-group-embed #bottom-charts-section .card-title{
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--c-text, #0f172a);
+}
+
+/* Rich table view (replaces the plain "label / value" rows).
+   Selectors are duplicated for the two namespaces in use today: the marketing
+   group dashboard (`data-mktg-table-wrap`) and the institute group dashboard
+   (`data-ig-table-wrap`). Anything new should also be applied to both. */
+[data-mktg-table-wrap] .table.ttv2-rich-table,
+[data-ig-table-wrap] .table.ttv2-rich-table{
+  margin-bottom: 0;
+  font-size: 13px;
+}
+[data-mktg-table-wrap] .table.ttv2-rich-table thead th,
+[data-ig-table-wrap] .table.ttv2-rich-table thead th{
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text3, #64748b);
+  background: rgba(108,125,255,0.05);
+  border-bottom: 1px solid var(--c-border, rgba(15,23,42,0.08));
+  padding: 11px 14px;
+  white-space: nowrap;
+}
+[data-mktg-table-wrap] .table.ttv2-rich-table tbody td,
+[data-ig-table-wrap] .table.ttv2-rich-table tbody td{
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--c-border, rgba(15,23,42,0.06));
+  vertical-align: middle;
+  color: var(--c-text, #0f172a);
+}
+[data-mktg-table-wrap] .table.ttv2-rich-table tbody tr:last-child td,
+[data-ig-table-wrap] .table.ttv2-rich-table tbody tr:last-child td{
+  border-bottom: none;
+}
+[data-mktg-table-wrap] .table.ttv2-rich-table tbody tr:hover,
+[data-ig-table-wrap] .table.ttv2-rich-table tbody tr:hover{
+  background: rgba(108,125,255,0.05);
+}
+
+[data-mktg-table-wrap] .ttv2-rank-pill,
+[data-ig-table-wrap] .ttv2-rank-pill{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(108,125,255,0.10);
+  color: #5249DF;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+[data-mktg-table-wrap] .ttv2-rich-table tbody tr:nth-child(1) .ttv2-rank-pill,
+[data-ig-table-wrap] .ttv2-rich-table tbody tr:nth-child(1) .ttv2-rank-pill{
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  color: #78350f;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+[data-mktg-table-wrap] .ttv2-rich-table tbody tr:nth-child(2) .ttv2-rank-pill,
+[data-ig-table-wrap] .ttv2-rich-table tbody tr:nth-child(2) .ttv2-rank-pill{
+  background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+  color: #1e293b;
+}
+[data-mktg-table-wrap] .ttv2-rich-table tbody tr:nth-child(3) .ttv2-rank-pill,
+[data-ig-table-wrap] .ttv2-rich-table tbody tr:nth-child(3) .ttv2-rank-pill{
+  background: linear-gradient(135deg, #fed7aa, #f97316);
+  color: #7c2d12;
+}
+
+[data-mktg-table-wrap] .ttv2-label-cell,
+[data-ig-table-wrap] .ttv2-label-cell{
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-mktg-table-wrap] .ttv2-bar-cell,
+[data-ig-table-wrap] .ttv2-bar-cell{
+  width: 36%;
+  min-width: 140px;
+}
+[data-mktg-table-wrap] .ttv2-bar-track,
+[data-ig-table-wrap] .ttv2-bar-track{
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: rgba(108,125,255,0.10);
+  border-radius: 999px;
+  overflow: hidden;
+}
+[data-mktg-table-wrap] .ttv2-bar-fill,
+[data-ig-table-wrap] .ttv2-bar-fill{
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6c7dff, #4cc9f0);
+  transition: width .35s ease;
+  min-width: 4px;
+}
+
+[data-mktg-table-wrap] .ttv2-value-cell,
+[data-ig-table-wrap] .ttv2-value-cell{
+  white-space: nowrap;
+  text-align: right;
+  width: 90px;
+}
+[data-mktg-table-wrap] .ttv2-value-chip,
+[data-ig-table-wrap] .ttv2-value-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(108,125,255,0.10);
+  color: #5249DF;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+}
+
+[data-mktg-table-wrap] .ttv2-rich-empty,
+[data-ig-table-wrap] .ttv2-rich-empty{
+  text-align: center;
+  padding: 28px 12px;
+  color: var(--c-text3, #94a3b8);
+  font-size: 12.5px;
+}
+
+/* Dark theme tweaks (only when shell is dark) */
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-mktg-table-wrap] .table.ttv2-rich-table thead th,
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-ig-table-wrap] .table.ttv2-rich-table thead th{
+  background: rgba(139,124,255,0.08);
+  color: rgba(240,242,255,0.6);
+  border-bottom-color: rgba(240,242,255,0.10);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-mktg-table-wrap] .table.ttv2-rich-table tbody td,
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-ig-table-wrap] .table.ttv2-rich-table tbody td{
+  color: rgba(240,242,255,0.85);
+  border-bottom-color: rgba(240,242,255,0.06);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-mktg-table-wrap] .table.ttv2-rich-table tbody tr:hover,
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-ig-table-wrap] .table.ttv2-rich-table tbody tr:hover{
+  background: rgba(139,124,255,0.07);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-mktg-table-wrap] .ttv2-rank-pill,
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-ig-table-wrap] .ttv2-rank-pill{
+  background: rgba(139,124,255,0.16);
+  color: var(--ttv2-accent, #8B7CFF);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-mktg-table-wrap] .ttv2-bar-track,
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-ig-table-wrap] .ttv2-bar-track{
+  background: rgba(139,124,255,0.14);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-mktg-table-wrap] .ttv2-value-chip,
+html[data-ttv2-theme="dark"] body.ttv2-shell [data-ig-table-wrap] .ttv2-value-chip{
+  background: rgba(139,124,255,0.14);
+  color: var(--ttv2-accent, #8B7CFF);
+}
+
+/* Chart / table segmented toggle — same pattern as institute dashboard analytics (.ttv2-view-toggle) */
+.ttv2-chart-view-toggle{
+  display: inline-flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 12px;
+  background: #eef0f5;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 1px 3px rgba(15, 23, 42, 0.06);
+  vertical-align: middle;
+}
+.ttv2-chart-view-toggle > .btn{
+  border: 0 !important;
+  box-shadow: none !important;
+}
+/* Overrides global [data-mktg-view-btn] / [data-ig-view-btn] rules from template_v2_dashboard.css */
+.ttv2-chart-view-toggle [data-mktg-view-btn],
+.ttv2-chart-view-toggle [data-ig-view-btn]{
+  width: auto !important;
+  min-width: 34px !important;
+  height: auto !important;
+  min-height: 32px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  border-radius: 9px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #475569 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.ttv2-chart-view-toggle [data-mktg-view-btn] i,
+.ttv2-chart-view-toggle [data-ig-view-btn] i{
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.ttv2-chart-view-toggle [data-mktg-view-btn]:hover,
+.ttv2-chart-view-toggle [data-ig-view-btn]:hover{
+  color: #0f172a !important;
+  background: rgba(111, 66, 193, 0.12) !important;
+  border-color: transparent !important;
+  transform: none !important;
+}
+.ttv2-chart-view-toggle [data-mktg-view-btn].active,
+.ttv2-chart-view-toggle [data-ig-view-btn].active{
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #6f42c1, #7c3aed) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 16px rgba(111, 66, 193, 0.38) !important;
+}
+.ttv2-chart-view-toggle [data-mktg-view-btn]:focus,
+.ttv2-chart-view-toggle [data-ig-view-btn]:focus{
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(111, 66, 193, 0.25) !important;
+}
+.ttv2-chart-view-toggle [data-mktg-view-btn].active:focus,
+.ttv2-chart-view-toggle [data-ig-view-btn].active:focus{
+  box-shadow:
+    0 4px 16px rgba(111, 66, 193, 0.38),
+    0 0 0 2px rgba(111, 66, 193, 0.3) !important;
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle{
+  background: color-mix(in srgb, var(--c-bg3, #1e2030) 92%, transparent);
+  border-color: rgba(240, 242, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle [data-mktg-view-btn],
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle [data-ig-view-btn],
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle [data-mktg-view-btn],
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle [data-ig-view-btn]{
+  color: rgba(240, 242, 255, 0.72) !important;
+  background: transparent !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle [data-mktg-view-btn]:hover,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle [data-ig-view-btn]:hover,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle [data-mktg-view-btn]:hover,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle [data-ig-view-btn]:hover{
+  color: rgba(240, 242, 255, 0.95) !important;
+  background: rgba(139, 124, 255, 0.14) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle [data-mktg-view-btn].active,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .ttv2-chart-view-toggle [data-ig-view-btn].active,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle [data-mktg-view-btn].active,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .ttv2-chart-view-toggle [data-ig-view-btn].active{
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--c-accent, #6f42c1), #8b5cf6) !important;
+  box-shadow: 0 4px 18px rgba(111, 66, 193, 0.45) !important;
+}

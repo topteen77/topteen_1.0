@@ -371,10 +371,10 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .modal-footer{
   clicks. Match the intended 1040 / 1060 pairing with v2 body specificity.
 */
 body.ttv2-shell .modal-backdrop.fade.show {
-  z-index: 1040 !important;
+  z-index:2222 !important;
 }
 body.ttv2-shell .modal {
-  z-index: 1060 !important;
+  z-index: 22222 !important;
 }
 
 /* Header toggle button */
@@ -1993,6 +1993,152 @@ body.ttv2-shell .ttv2-sp-hero-copy{
   max-width: 760px;
 }
 
+/* CSV upload buttons in the Students hero (Matric / Post-Matric) */
+body.ttv2-shell .ttv2-csv-upload-actions{
+  flex-shrink: 0;
+}
+body.ttv2-shell .ttv2-csv-upload-btn{
+  --ttv2-csv-grad-1: #5249df;
+  --ttv2-csv-grad-2: #7c4dff;
+  --ttv2-csv-shadow: rgba(82, 73, 223, 0.32);
+  --ttv2-csv-shadow-strong: rgba(82, 73, 223, 0.42);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 1rem 0.5rem 0.5rem;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, var(--ttv2-csv-grad-1) 0%, var(--ttv2-csv-grad-2) 100%);
+  color: #ffffff !important;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.08),
+    0 8px 22px var(--ttv2-csv-shadow);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+body.ttv2-shell .ttv2-csv-upload-btn::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 0;
+}
+body.ttv2-shell .ttv2-csv-upload-btn::after{
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(160% 80% at 50% 120%, rgba(255, 255, 255, 0.35), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+body.ttv2-shell .ttv2-csv-upload-btn:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.08),
+    0 14px 32px var(--ttv2-csv-shadow-strong);
+  color: #ffffff !important;
+  filter: saturate(1.04);
+}
+body.ttv2-shell .ttv2-csv-upload-btn:hover::after{ opacity: 1; }
+body.ttv2-shell .ttv2-csv-upload-btn:active{
+  transform: translateY(0);
+}
+body.ttv2-shell .ttv2-csv-upload-btn:focus-visible{
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(124, 77, 255, 0.32),
+    0 8px 22px var(--ttv2-csv-shadow);
+}
+
+body.ttv2-shell .ttv2-csv-upload-btn-icon{
+  position: relative;
+  z-index: 1;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transition: background 0.2s ease, transform 0.25s ease;
+}
+body.ttv2-shell .ttv2-csv-upload-btn:hover .ttv2-csv-upload-btn-icon{
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+body.ttv2-shell .ttv2-csv-upload-btn-icon i{ line-height: 1; }
+body.ttv2-shell .ttv2-csv-upload-btn-text{
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  text-align: left;
+  min-width: 0;
+}
+body.ttv2-shell .ttv2-csv-upload-btn-title{
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+body.ttv2-shell .ttv2-csv-upload-btn-sub{
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+}
+
+/* Matric — purple/indigo gradient (default vars above) */
+body.ttv2-shell .ttv2-csv-upload-btn--matric{
+  --ttv2-csv-grad-1: #4f46e5;
+  --ttv2-csv-grad-2: #7c3aed;
+  --ttv2-csv-shadow: rgba(79, 70, 229, 0.32);
+  --ttv2-csv-shadow-strong: rgba(79, 70, 229, 0.45);
+}
+/* Post-Matric — teal/cyan gradient for visual distinction */
+body.ttv2-shell .ttv2-csv-upload-btn--postmatric{
+  --ttv2-csv-grad-1: #0ea5e9;
+  --ttv2-csv-grad-2: #06b6d4;
+  --ttv2-csv-shadow: rgba(14, 165, 233, 0.32);
+  --ttv2-csv-shadow-strong: rgba(14, 165, 233, 0.45);
+}
+
+@media (max-width: 575.98px){
+  body.ttv2-shell .ttv2-csv-upload-actions{
+    width: 100%;
+  }
+  body.ttv2-shell .ttv2-csv-upload-btn{
+    flex: 1 1 0;
+    justify-content: flex-start;
+    padding: 0.55rem 0.85rem 0.55rem 0.55rem;
+  }
+  body.ttv2-shell .ttv2-csv-upload-btn-sub{
+    display: none;
+  }
+}
+
+/* Dark-mode tweaks: shadows already work, just keep border subtle */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-csv-upload-btn{
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 /* =========================
    Counselors page (v2 mimic)
    ========================= */
@@ -2591,6 +2737,66 @@ body.ttv2-shell .ttv2-student-card:hover{
 body.ttv2-shell .ttv2-student-card:focus-within{
   border-color: rgba(108,125,255,0.46);
   box-shadow: 0 0 0 3px rgba(108,125,255,0.16), 0 14px 28px rgba(15, 23, 42, 0.16);
+}
+
+/* Ghost / filler cards used to balance the last row in the 3-column desktop grid. */
+body.ttv2-shell .ttv2-student-card--ghost{
+  background: transparent;
+  border: 1.5px dashed rgba(108, 125, 255, 0.28);
+  box-shadow: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: default;
+  pointer-events: none;
+  color: var(--c-text3, #94a3b8);
+  gap: 6px;
+  padding: 18px 14px;
+}
+body.ttv2-shell .ttv2-student-card--ghost:hover{
+  transform: none;
+  border-color: rgba(108, 125, 255, 0.28);
+  box-shadow: none;
+}
+body.ttv2-shell .ttv2-student-card--ghost .ttv2-student-ghost-icon{
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(108, 125, 255, 0.12);
+  color: #6c7dff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+body.ttv2-shell .ttv2-student-card--ghost .ttv2-student-ghost-title{
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--c-text2, #475569);
+  letter-spacing: -0.005em;
+}
+body.ttv2-shell .ttv2-student-card--ghost .ttv2-student-ghost-text{
+  font-size: 0.75rem;
+  color: var(--c-text3, #94a3b8);
+  max-width: 80%;
+  line-height: 1.4;
+}
+@media (max-width: 1200px){
+  body.ttv2-shell .ttv2-student-card--ghost{ display: none; }
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-card--ghost{
+  border-color: rgba(139, 124, 255, 0.28);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-card--ghost .ttv2-student-ghost-icon{
+  background: rgba(139, 124, 255, 0.18);
+  color: rgba(204, 196, 255, 0.95);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-card--ghost .ttv2-student-ghost-title{
+  color: rgba(240, 242, 255, 0.85);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-card--ghost .ttv2-student-ghost-text{
+  color: rgba(240, 242, 255, 0.55);
 }
 body.ttv2-shell .ttv2-student-card-head{
   display:flex;
@@ -3588,4 +3794,120 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .institute-detail
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .institute-details-panel .panel-header h5,
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .institute-details-panel .panel-header h5{
   color: var(--ttv2-fg) !important;
+}
+
+/* ============================================================
+   Institute quick-action modals (v2)
+   Targets the legacy modals included by
+   template20/institute/includes/institute_quick_action_modals.html
+   when they're rendered inside the v2 shell.
+   ============================================================ */
+body.ttv2-shell .ttv2-quick-modal .modal-content{
+  background: var(--c-bg2, var(--ttv2-surface));
+  color: var(--c-text, var(--ttv2-fg));
+  border: 1px solid var(--c-border, var(--ttv2-border));
+  border-radius: 16px;
+  box-shadow: var(--ttv2-shadow-md);
+  overflow: hidden;
+}
+body.ttv2-shell .ttv2-quick-modal .modal-header{
+  background: linear-gradient(180deg, rgba(108,125,255,0.10), rgba(108,125,255,0.02));
+  border-bottom: 1px solid var(--c-border, var(--ttv2-border));
+  padding: 14px 20px;
+}
+body.ttv2-shell .ttv2-quick-modal .modal-title{
+  display: inline-flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text, var(--ttv2-fg));
+  letter-spacing: 0.1px;
+}
+body.ttv2-shell .ttv2-quick-modal .modal-title i{
+  font-size: 20px;
+  color: var(--ttv2-accent);
+}
+body.ttv2-shell .ttv2-quick-modal .modal-body{
+  padding: 18px 20px;
+}
+body.ttv2-shell .ttv2-quick-modal .modal-footer{
+  border-top: 1px solid var(--c-border, var(--ttv2-border));
+  padding: 12px 20px;
+  background: rgba(108,125,255,0.03);
+}
+body.ttv2-shell .ttv2-quick-modal .form-label{
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-text, var(--ttv2-fg));
+  margin-bottom: 6px;
+}
+body.ttv2-shell .ttv2-quick-modal .form-control,
+body.ttv2-shell .ttv2-quick-modal .form-select{
+  background: var(--c-bg, var(--ttv2-bg));
+  color: var(--c-text, var(--ttv2-fg));
+  border: 1px solid var(--c-border, var(--ttv2-border));
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+body.ttv2-shell .ttv2-quick-modal .form-control:focus,
+body.ttv2-shell .ttv2-quick-modal .form-select:focus{
+  border-color: rgba(108,125,255,0.55);
+  box-shadow: 0 0 0 3px rgba(108,125,255,0.15);
+  outline: none;
+}
+body.ttv2-shell .ttv2-quick-modal .alert{
+  border-radius: 10px;
+  border: 1px solid rgba(108,125,255,0.20);
+  background: rgba(108,125,255,0.07);
+  color: var(--c-text2, var(--ttv2-muted));
+  font-size: 12.5px;
+  padding: 10px 14px;
+}
+body.ttv2-shell .ttv2-quick-modal .alert a{
+  color: var(--ttv2-accent);
+  font-weight: 600;
+  text-decoration: underline;
+}
+body.ttv2-shell .ttv2-quick-modal .btn{
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+body.ttv2-shell .ttv2-quick-modal .btn-secondary{
+  background: transparent;
+  border-color: var(--c-border, var(--ttv2-border));
+  color: var(--c-text2, var(--ttv2-muted));
+}
+body.ttv2-shell .ttv2-quick-modal .btn-secondary:hover{
+  background: rgba(148,163,184,0.10);
+  color: var(--c-text, var(--ttv2-fg));
+}
+body.ttv2-shell .ttv2-quick-modal .btn.purple-button,
+body.ttv2-shell .ttv2-quick-modal .btn.custom-button{
+  background: linear-gradient(180deg, #6c7dff, #5249DF);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(108,125,255,0.30);
+}
+body.ttv2-shell .ttv2-quick-modal .btn.purple-button:hover,
+body.ttv2-shell .ttv2-quick-modal .btn.custom-button:hover{
+  filter: brightness(1.04);
+}
+body.ttv2-shell .ttv2-quick-modal .btn-close{
+  filter: var(--ttv2-btn-close-filter, none);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-quick-modal .btn-close{
+  filter: invert(1);
+  opacity: 0.85;
+}
+/* Stack guard: the body lock/blur uses the topmost modal — keep stacked
+   backdrops from showing through if two modals briefly co-exist. */
+body.ttv2-shell .modal-backdrop.show + .modal-backdrop.show{
+  opacity: 0;
 }

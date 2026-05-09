@@ -5403,14 +5403,19 @@ class InstituteDashboardView(TemplateView):
                     and s.class_and_section.stream == stream_filter
                 ]
 
-        per_page_param = request.GET.get("per_page", "10")
+        # Grid (cards) view fills a 3-column grid best with 12 per page (4 rows × 3).
+        # Use 12 as the default when no explicit per_page is supplied and we're in cards mode.
+        _display_param = (request.GET.get("display") or "").strip().lower()
+        _is_cards = _display_param == "cards"
+        _default_pp = "12" if _is_cards else "10"
+        per_page_param = request.GET.get("per_page", _default_pp)
         if per_page_param == "all":
             per_page_value = 10000
         else:
             try:
                 per_page_value = int(per_page_param)
             except (ValueError, TypeError):
-                per_page_value = 10
+                per_page_value = 12 if _is_cards else 10
 
         page_number = request.GET.get("page", 1)
         if test_taken_filter:
@@ -6635,22 +6640,24 @@ class CreateClassSectionView(TemplateView):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(institute_authenticated_user_only,name='dispatch')
 class InstituteHistoryLogView(TemplateView):
-    # template_name="topteenfrontend/user/institute_log.html"
-    template_name="template20/institute/institute_history_log.html"
+    # Uses the v2 dashboard shell (sidebar + topbar) — legacy template removed.
+    template_name = "template_v2/institute/institute_history_log.html"
 
     def html_head(self):
-        name='Institute Logs'
+        name = 'Institute Logs'
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args,**kwargs):
-        slug=kwargs.get("slug")
-        ctx={}
+    def get_context(self, request, *args, **kwargs):
+        slug = kwargs.get("slug")
+        institute = Institute.objects.filter(slug=slug).first() if slug else None
+        ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["institute_logs"]=InstituteLog.objects.filter(institute__slug=slug).order_by("-created")
+        ctx["institute"] = institute
+        ctx["institute_logs"] = InstituteLog.objects.filter(institute__slug=slug).order_by("-created")
         return ctx
-    
-    def get(self,request,*args,**kwargs):
-        return render(request, _dashboard_primary_template_name(self), self.get_context(request, *args, **kwargs))
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
