@@ -356,6 +356,7 @@
       this._typingMessageIndex = 0;
       this._typingInterval  = null;
       this._firstMessageSent = false;  // Track if first message has been sent
+      this._fabTooltipDismissed = false;
 
       injectStylesheet();
       loadMarked();         // async — loaded before first message in normal use
@@ -375,8 +376,10 @@
       this._fab        = el('button', { id: 'cb-fab', 'aria-label': 'Open chat' });
       this._fab.innerHTML = IC.chat;
       this._badge      = el('div', { id: 'cb-badge' }, '0');
+      this._fabTip     = el('div', { id: 'cb-fab-tooltip', role: 'status', textContent: 'Ask AI Career Counsellor' });
       fabWrap.appendChild(this._fab);
       fabWrap.appendChild(this._badge);
+      fabWrap.appendChild(this._fabTip);
 
       /* ---- Chat window ---- */
       this._win = el('div', { id: 'cb-window', 'aria-live': 'polite' });
@@ -513,7 +516,10 @@
 
     /* ── bind events ────────────────────────────────────────── */
     _bindEvents() {
-      this._fab.addEventListener('click', () => this._toggleWindow());
+      this._fab.addEventListener('click', () => {
+        this._hideFabTooltip();
+        this._toggleWindow();
+      });
 
       this._input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -528,6 +534,23 @@
         this._input.style.height = '46px';
         this._input.style.height = Math.min(this._input.scrollHeight, 120) + 'px';
       });
+
+      this._showFabTooltip();
+    }
+
+    _showFabTooltip() {
+      if (this._fabTooltipDismissed || !this._fabTip) return;
+      // Delay a bit so it feels intentional after first paint.
+      setTimeout(() => {
+        if (this._fabTooltipDismissed || !this._fabTip) return;
+        this._fabTip.classList.add('cb-visible');
+      }, 450);
+    }
+
+    _hideFabTooltip() {
+      this._fabTooltipDismissed = true;
+      if (!this._fabTip) return;
+      this._fabTip.classList.remove('cb-visible');
     }
 
     /* ── open / close window ────────────────────────────────── */

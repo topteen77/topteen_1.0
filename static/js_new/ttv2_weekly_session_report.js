@@ -214,7 +214,7 @@
           // simple empty state
           var chartWrap = widgetEl.querySelector('[data-ttv2-sess-chart-wrap]');
           if (chartWrap) {
-            chartWrap.innerHTML = '<div class="text-center py-4" style="color:var(--c-text3);font-size:12px;">No session data for this period yet.</div>';
+            chartWrap.innerHTML = '<div class="ttv2-card-empty-state">No session data for this period yet.</div>';
           }
           var body = widgetEl.querySelector('[data-ttv2-sess-table-body]');
           if (body) body.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--c-text3);font-size:12px;">No session data for this period yet.</td></tr>';
@@ -226,7 +226,7 @@
       .catch(function () {
         var chartWrap = widgetEl.querySelector('[data-ttv2-sess-chart-wrap]');
         if (chartWrap) {
-          chartWrap.innerHTML = '<div class="text-center py-4 text-danger" style="font-size:12px;">Could not load sessions.</div>';
+          chartWrap.innerHTML = '<div class="ttv2-card-empty-state" style="color:#dc2626;">Could not load sessions.</div>';
         }
       })
       .finally(function () {

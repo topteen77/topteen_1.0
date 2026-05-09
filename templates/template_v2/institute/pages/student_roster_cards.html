@@ -12,6 +12,9 @@
         {% set td = (r.test_details if (r and r.test_details) else {}) %}
         {% set tl = (r.test_labels if (r and r.test_labels) else []) %}
         {% set has4 = (td.get('test4') is not none) %}
+        {% set _cls = ((cas.class_and_section if (cas and cas.class_and_section) else '')|lower) %}
+        {% set is_class10 = ('10' in _cls) %}
+        {% set is_senior = (('11' in _cls) or ('12' in _cls)) %}
         {% set track = (r.track if (r and r.track) else '') %}
         {% set match = (r.match_pct if (r and r.match_pct) else '') %}
         {% set risk = (r.risk_score if (r and r.risk_score) else '') %}
@@ -36,7 +39,7 @@
            tabindex="0"
            data-ttv2-student-id="{{ u.id if u else '' }}"
            data-ttv2-student-name="{{ u.name if (u and u.name) else '' }}"
-           data-ttv2-report-url="{{ r.test_link if (r and r.test_status == 'completed' and r.test_link) else '' }}">
+           data-ttv2-report-url="{{ r.test_link if (r and r.test_link) else '' }}">
           <div class="ttv2-student-card-head">
             <div class="ttv2-student-avatar">{{ (u.name[0] if (u and u.name) else 'S')|upper }}</div>
             <div class="min-w-0">
@@ -106,47 +109,71 @@
 
           <div class="ttv2-student-hr" aria-hidden="true"></div>
 
-          <div class="ttv2-student-bars">
-            {% if tl and (tl|length) >= 3 %}
-              {% set items = [
-                (tl[0], td.get('test1')),
-                (tl[1], td.get('test2')),
-                (tl[2], td.get('test3')),
-              ] %}
-              {% if has4 and (tl|length) >= 4 %}
-                {% set items = items + [(tl[3], td.get('test4'))] %}
-              {% elif has4 %}
-                {% set items = items + [('Test 4', td.get('test4'))] %}
-              {% endif %}
+          <div class="ttv2-student-bars ttv2-student-assessment-list">
+            {% set _class10_labels = [
+              'Personality Assessment',
+              'Career Interest assessment',
+              'Comprehensive Aptitude assessment'
+            ] %}
+            {% set _class12_labels = [
+              'Career Assessment',
+              'Motivation Assessment',
+              'Career Interest Inventory',
+              'Aptitude Assessment'
+            ] %}
+
+            {% if is_class10 %}
+              {% set _labels = _class10_labels %}
+            {% elif is_senior %}
+              {% set _labels = _class12_labels %}
             {% else %}
-              {% set items = [
-                ('Test 1', td.get('test1')),
-                ('Test 2', td.get('test2')),
-                ('Test 3', td.get('test3')),
-              ] %}
-              {% if has4 %}
-                {% set items = items + [('Test 4', td.get('test4'))] %}
-              {% endif %}
+              {% set _labels = _class12_labels %}
             {% endif %}
-            {% for label, done in items %}
+
+            {% if is_class10 %}
+              {% set _values = [
+                td.get('personality_assessment', td.get('test3')),
+                td.get('career_interest_assessment', td.get('test1')),
+                td.get('comprehensive_aptitude_assessment', td.get('test2'))
+              ] %}
+            {% elif is_senior %}
+              {% set _values = [
+                td.get('career_assessment', td.get('personality_assessment', td.get('test1'))),
+                td.get('motivation_assessment', td.get('test2')),
+                td.get('career_interest_inventory', td.get('test3')),
+                td.get('aptitude_assessment', td.get('test4'))
+              ] %}
+            {% else %}
+              {% set _values = [td.get('test1'), td.get('test2'), td.get('test3'), td.get('test4')] %}
+            {% endif %}
+            {% for _label in _labels %}
+              {% set _v = _values[loop.index0] if (loop.index0 < (_values|length)) else none %}
+              {% set _s = (_v|string)|lower|trim %}
+              {% set _attempted = (_v is sameas true) or (_s in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
               <div class="ttv2-student-barrow">
-                <div class="ttv2-student-barlabel">{{ label }}</div>
-                <div class="ttv2-student-bartrack" aria-hidden="true">
-                  <div class="ttv2-student-barfill" style="width:{% if done %}100{% else %}12{% endif %}%"></div>
+                <div class="ttv2-student-barlabel">{{ _label }}</div>
+                <div style="display:flex;justify-content:flex-end;">
+                  <span class="ttv2-chip {% if _attempted %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
+                    {% if _attempted %}Attempted{% else %}Not attempted{% endif %}
+                  </span>
                 </div>
               </div>
             {% endfor %}
           </div>
 
           <div class="ttv2-student-actions">
-            <a class="btn btn-sm btn-outline-primary {% if not (r and r.test_status == 'completed' and r.test_link) %}disabled{% endif %}"
-               {% if r and r.test_status == 'completed' and r.test_link %}target="_blank" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
-              Report
-            </a>
-            <a class="btn btn-sm btn-outline-secondary {% if not (r and r.test_link) %}disabled{% endif %}"
-               {% if r and r.test_link %}target="_blank" rel="noopener" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
-              Profile
-            </a>
+            <div class="ttv2-student-actions-primary">
+              <a class="btn btn-sm btn-outline-primary {% if not (r and r.test_link) %}disabled{% endif %}"
+                 {% if r and r.test_link %}target="_blank" rel="noopener" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
+                <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
+                <span>Report</span>
+              </a>
+              <a class="btn btn-sm btn-outline-secondary {% if not (r and r.test_link) %}disabled{% endif %}"
+                 {% if r and r.test_link %}target="_blank" rel="noopener" href="{{ r.test_link }}"{% else %}href="#"{% endif %}>
+                <i class="bx bx-user-circle" aria-hidden="true"></i>
+                <span>Profile</span>
+              </a>
+            </div>
             {% if ttv2_followup_save_url is defined and ttv2_followup_save_url and _fu and _fu.show_followup_btn %}
               {% set _btn = _fu.smart_btn_label|default('Follow up') %}
               {% set _v = _fu.smart_btn_variant|default('secondary') %}

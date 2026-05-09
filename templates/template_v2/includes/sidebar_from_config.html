@@ -1,10 +1,10 @@
 {# Render sidebar from `ttv2_role_ctx.nav.sections` config #}
 <div class="ttv2-counselor-sidebar">
-  <div class="ttv2-counselor-brand">
+  <div class="ttv2-counselor-brand d-none">
     <div class="ttv2-counselor-brand-row">
       <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
       <button type="button" class="ttv2-sidebar-close-btn" aria-label="Close sidebar" data-ttv2-sidebar-close>
-        <i class='bx bx-x'></i>
+        <i class='bx bx-chevrons-left'></i>
       </button>
     </div>
     <div class="tagline">{{ ttv2_role_ctx.tagline|default('Dashboard v2.0') }}</div>
@@ -35,22 +35,32 @@
           {% if not _lookup %}
             {% set _lookup = (_label|default('')|lower|replace(' ', '_')|replace('-', '_')) %}
           {% endif %}
+          {% set _lookup_compact = _lookup|replace('&', 'and')|replace('_', '') %}
           {% set _icon_map = {
             'dashboard':'bx bxs-dashboard',
             'student':'bx bx-user',
             'students':'bx bx-user',
+            'student_table':'bx bx-user',
+            'student_roster':'bx bx-user',
+            'student_roster_cards':'bx bx-user',
             'assessments':'bx bx-notepad',
             'assessment':'bx bx-notepad',
             'counselor':'bx bx-user-voice',
             'counselors':'bx bx-user-voice',
+            'institute_counselors':'bx bx-user-voice',
             'sessions':'bx bx-calendar-event',
             'session':'bx bx-calendar-event',
+            'institute_sessions':'bx bx-calendar-event',
             'session_report':'bx bx-bar-chart-alt-2',
+            'weekly_session_report':'bx bx-bar-chart-alt-2',
+            'institute_session_report':'bx bx-bar-chart-alt-2',
             'heatmap':'bx bx-map-alt',
             'career_heatmap':'bx bx-map-alt',
+            'institute_heatmap':'bx bx-map-alt',
             'streams_capacity':'bx bx-git-branch',
             'streams_&_capacity':'bx bx-git-branch',
             'streams_and_capacity':'bx bx-git-branch',
+            'institute_streams_capacity':'bx bx-git-branch',
             'streams':'bx bx-git-branch',
             'credits':'bx bx-credit-card',
             'journey':'bx bx-line-chart',
@@ -58,7 +68,30 @@
             'reports':'bx bx-file',
             'logout':'bx bx-log-out'
           } %}
-          {% set _icon = _icon_map.get(_lookup, 'bx bx-category-alt') %}
+          {% set _icon = _icon_map.get(_lookup) %}
+          {% if not _icon %}
+            {% if 'dashboard' in _lookup_compact %}
+              {% set _icon = 'bx bxs-dashboard' %}
+            {% elif 'student' in _lookup_compact %}
+              {% set _icon = 'bx bx-user' %}
+            {% elif 'counselor' in _lookup_compact %}
+              {% set _icon = 'bx bx-user-voice' %}
+            {% elif 'sessionreport' in _lookup_compact or ('report' in _lookup_compact and 'session' in _lookup_compact) %}
+              {% set _icon = 'bx bx-bar-chart-alt-2' %}
+            {% elif 'session' in _lookup_compact %}
+              {% set _icon = 'bx bx-calendar-event' %}
+            {% elif 'heatmap' in _lookup_compact %}
+              {% set _icon = 'bx bx-map-alt' %}
+            {% elif 'stream' in _lookup_compact and ('capacity' in _lookup_compact or 'capacit' in _lookup_compact) %}
+              {% set _icon = 'bx bx-git-branch' %}
+            {% elif 'logout' in _lookup_compact %}
+              {% set _icon = 'bx bx-log-out' %}
+            {% elif 'report' in _lookup_compact %}
+              {% set _icon = 'bx bx-file' %}
+            {% else %}
+              {% set _icon = 'bx bx-category-alt' %}
+            {% endif %}
+          {% endif %}
         {% endif %}
         <a href="{{ _href|default('#') }}"
            {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}

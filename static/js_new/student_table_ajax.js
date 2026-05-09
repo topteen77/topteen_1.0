@@ -513,6 +513,22 @@ function ttv2BindInstituteStudentPanelOnce() {
 }
 
 function ttv2InitStudentTableAfterBodyInject() {
+  function syncDisplayButtons(mode) {
+    try {
+      var m = (mode || '').trim().toLowerCase();
+      if (!m) {
+        var inp = document.getElementById('ttv2DisplayInput');
+        m = (inp && inp.value ? String(inp.value) : 'cards').trim().toLowerCase() || 'cards';
+      }
+      document.querySelectorAll('[data-ttv2-display]').forEach(function (btn) {
+        var v = (btn.getAttribute('data-ttv2-display') || '').trim().toLowerCase();
+        var on = v === m;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    } catch (e) {}
+  }
+
   const filterForm = document.getElementById('filter-form');
   const filterDrawer = document.getElementById('ttv2StudentFilterDrawer');
   if (filterForm && !filterForm.dataset.ttv2StudentAjaxBound) {
@@ -609,6 +625,7 @@ function ttv2InitStudentTableAfterBodyInject() {
       if (!mode) return;
       const inp = document.getElementById('ttv2DisplayInput');
       if (inp) inp.value = mode;
+      syncDisplayButtons(mode);
       // Use AJAX path (same as filters) so the page doesn't reload.
       try {
         handleStudentFilterSubmit(new Event('submit'), 'filter-form');
@@ -685,6 +702,7 @@ function ttv2InitStudentTableAfterBodyInject() {
       url.searchParams.set('display', mode);
     }
   } catch (e) {}
+  syncDisplayButtons(url.searchParams.get('display') || '');
   loadStudentsTable(url.toString(), {
     onSuccess: function () {
       ttv2BindInstituteStudentPanelOnce();

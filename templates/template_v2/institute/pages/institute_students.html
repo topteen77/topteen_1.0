@@ -36,8 +36,8 @@
       'sessionsJson': sessions_data_json if sessions_data_json is defined and sessions_data_json else '[]'
     }|tojson }}</script>
 
-    <div class="row g-3 mb-3">
-      <div class="col-12 col-xl-6">
+    <div class="row g-3 mb-3 ttv2-students-chart-row">
+      <div class="col-12 col-sm-6">
         <div class="ttv2-card h-100" data-ttv2-psy>
           <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
             <div class="card-title mb-0">Psychometric participation</div>
@@ -66,7 +66,7 @@
           </div>
         </div>
       </div>
-      <div class="col-12 col-xl-6">
+      <div class="col-12 col-sm-6">
         {% include "template_v2/includes/ttv2_weekly_session_report_widget.html" %}
       </div>
     </div>
@@ -75,7 +75,7 @@
   <div class="ttv2-sp-card">
     <div class="ttv2-sp-block">
       <div class="ttv2-sp-labelrow">
-        <div class="ttv2-sp-label">Search students</div>
+        <div class="fs-14 fw-bold">Search students</div>
       </div>
     </div>
 
@@ -83,15 +83,6 @@
 
     <form method="GET" id="filter-form" class="ttv2-sp-filters">
       <input type="hidden" name="display" id="ttv2DisplayInput" value="{{ request.GET.get('display','cards') }}">
-      <div class="ttv2-sp-search">
-        <i class="bx bx-search" aria-hidden="true"></i>
-        <input type="search"
-               name="student_name"
-               id="student_name"
-               class="form-control"
-               placeholder="Name, class, email, or school…"
-               value="{{ request.GET.get('student_name','') }}">
-      </div>
       <div class="ttv2-sp-tip">
         Tip: try an email domain or school short name when scope is all schools.
         {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
@@ -121,6 +112,15 @@
             </button>
           </div>
           <div class="ttv2-sp-filterrow">
+            <div class="ttv2-sp-search ttv2-sp-search--inline">
+              <i class="bx bx-search" aria-hidden="true"></i>
+              <input type="search"
+                     name="student_name"
+                     id="student_name"
+                     class="form-control custom-input"
+                     placeholder="Name, class, email, or school…"
+                     value="{{ request.GET.get('student_name','') }}">
+            </div>
             <select name="class_and_section" id="classes" class="form-control custom-input">
               <option value="">All classes</option>
               {% for cas in class_and_sections %}
@@ -204,26 +204,26 @@
         {# Counselor: follow-up history. Institute: session report history. #}
         {% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
           <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}"
-             class="btn btn-sm btn-outline-primary"
+             class="btn btn-sm btn-outline-primary ttv2-history-btn"
              title="Follow-up history">
             <i class="bx bx-history me-1" aria-hidden="true"></i> History
           </a>
         {% elif institute is defined and institute and institute.slug %}
           <a href="{{ url('institute:institutedashboard_page', args=[institute.slug, 'sessions']) }}"
-             class="btn btn-sm btn-outline-primary"
+             class="btn btn-sm btn-outline-primary ttv2-history-btn"
              title="Session report">
             <i class="bx bx-history me-1" aria-hidden="true"></i> History
           </a>
         {% endif %}
         <div class="btn-group" role="group" aria-label="Display">
           <button type="button"
-                  class="btn btn-sm btn-outline-secondary {% if _display_mode == 'cards' %}active{% endif %}"
+                  class="btn btn-sm btn-outline-secondary ttv2-display-btn {% if _display_mode == 'cards' %}active{% endif %}"
                   data-ttv2-display="cards"
                   aria-pressed="{% if _display_mode == 'cards' %}true{% else %}false{% endif %}">
             Grid
           </button>
           <button type="button"
-                  class="btn btn-sm btn-outline-secondary {% if _display_mode == 'list' %}active{% endif %}"
+                  class="btn btn-sm btn-outline-secondary ttv2-display-btn {% if _display_mode == 'list' %}active{% endif %}"
                   data-ttv2-display="list"
                   aria-pressed="{% if _display_mode == 'list' %}true{% else %}false{% endif %}">
             List

@@ -145,6 +145,34 @@
     width: 20px;
     height: 20px;
   }
+
+  /* Keep input icons fixed inside fields */
+  .icon-input {
+    position: relative;
+  }
+  .icon-input .custom-input {
+    padding-left: 42px;
+  }
+  .icon-input::after {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 16px 16px;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+  .email-icon::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12' viewBox='0 0 16 12' fill='none'%3E%3Cpath d='M1.5 1H14.5C15.0523 1 15.5 1.44772 15.5 2V10C15.5 10.5523 15.0523 11 14.5 11H1.5C0.947715 11 0.5 10.5523 0.5 10V2C0.5 1.44772 0.947715 1 1.5 1Z' stroke='%236B7280'/%3E%3Cpath d='M1 2L8 7L15 2' stroke='%236B7280'/%3E%3C/svg%3E");
+  }
+  .phone-icon::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7.2 2.5H4.8C3.81 2.5 3 3.31 3 4.3C3 14.08 10.92 22 20.7 22C21.69 22 22.5 21.19 22.5 20.2V17.8C22.5 17.33 22.17 16.93 21.72 16.84L17.85 16.06C17.45 15.98 17.04 16.12 16.78 16.42L15.09 18.38C12.02 16.9 9.6 14.48 8.12 11.41L10.08 9.72C10.38 9.46 10.52 9.05 10.44 8.65L9.66 4.78C9.57 4.33 9.17 4 8.7 4H7.2V2.5Z' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
 </style>
 {% endblock %}
 

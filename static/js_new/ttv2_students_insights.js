@@ -147,6 +147,12 @@
           '[data-kpi-sub="unassigned"]',
           unass ? "Missing stream or class section" : "All assigned"
         );
+        try {
+          var unassSub = root.querySelector('[data-kpi-sub="unassigned"]');
+          if (unassSub) {
+            unassSub.classList.toggle("ttv2-kpi-sub--ok", !unass);
+          }
+        } catch (e) {}
 
         var sc = data.stream_counts || {};
         var streamLabels = Object.keys(sc);

@@ -6,33 +6,33 @@
   </div> -->
 
   <div class="ttv2-kpi-grid mb-3">
-    <div class="ttv2-kpi" style="border-top-color:#f472b6">
+    <div class="ttv2-kpi ttv2-kpi--total">
       <div class="ttv2-kpi-icon"><i class="bx bx-group" aria-hidden="true"></i></div>
       <div class="val" data-kpi="total">—</div>
       <div class="lbl" data-kpi-lbl="total">Total enrolled</div>
     </div>
-    <div class="ttv2-kpi" style="border-top-color:#6c7dff">
-      <div class="ttv2-kpi-icon"><i class="bx bx-book-content" aria-hidden="true"></i></div>
+    <div class="ttv2-kpi ttv2-kpi--class10">
+      <div class="ttv2-kpi-icon"><i class="bx bx-book-open" aria-hidden="true"></i></div>
       <div class="val" data-kpi="class10">—</div>
       <div class="lbl" data-kpi-lbl="class10">Class 10</div>
-      <div class="sub" data-kpi-sub="class10" style="font-size:10px;color:var(--c-text3);min-height:14px;"></div>
+      <div class="sub ttv2-kpi-sub ttv2-kpi-sub--stream" data-kpi-sub="class10"></div>
     </div>
-    <div class="ttv2-kpi" style="border-top-color:#34d399">
-      <div class="ttv2-kpi-icon"><i class="bx bx-line-chart" aria-hidden="true"></i></div>
+    <div class="ttv2-kpi ttv2-kpi--senior">
+      <div class="ttv2-kpi-icon"><i class="bx bx-trending-up" aria-hidden="true"></i></div>
       <div class="val" data-kpi="senior">—</div>
       <div class="lbl" data-kpi-lbl="senior">Class 11–12</div>
-      <div class="sub" data-kpi-sub="senior" style="font-size:10px;color:var(--c-text3);min-height:14px;"></div>
+      <div class="sub ttv2-kpi-sub ttv2-kpi-sub--grades" data-kpi-sub="senior"></div>
     </div>
-    <div class="ttv2-kpi" style="border-top-color:#fbbf24">
-      <div class="ttv2-kpi-icon"><i class="bx bx-error-circle" aria-hidden="true"></i></div>
+    <div class="ttv2-kpi ttv2-kpi--unassigned">
+      <div class="ttv2-kpi-icon"><i class="bx bx-git-branch" aria-hidden="true"></i></div>
       <div class="val" data-kpi="unassigned">—</div>
       <div class="lbl" data-kpi-lbl="unassigned">Unassigned stream / section</div>
-      <div class="sub" data-kpi-sub="unassigned" style="font-size:10px;color:var(--c-text3);min-height:14px;"></div>
+      <div class="sub ttv2-kpi-sub ttv2-kpi-sub--unassigned" data-kpi-sub="unassigned"></div>
     </div>
   </div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-12 col-xl-6">
+  <div class="row g-3 mb-3 ttv2-students-chart-row">
+    <div class="col-12 col-sm-6">
       <div class="ttv2-card ttv2-si-chart-card" data-chart-card="stream">
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
           <div class="card-title mb-0">Stream distribution</div>
@@ -61,7 +61,7 @@
         </div>
       </div>
     </div>
-    <div class="col-12 col-xl-6">
+    <div class="col-12 col-sm-6">
       <div class="ttv2-card ttv2-si-chart-card" data-chart-card="class">
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
           <div class="card-title mb-0">Class enrollment</div>
