@@ -65,10 +65,19 @@
       </button>
       <div class="ttv2-topbar-icon">{% include "notifications/includes/notification_bell.html" %}</div>
       <div class="ttv2-topbar-avatar-dropdown dropdown">
-        <span class="dropdown-toggle menu-link float-end" role="button" aria-label="Open profile menu">
+        <button type="button"
+                class="dropdown-toggle menu-link float-end ttv2-avatar-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-target="#ttv2CounselorUserDropdownMenu"
+                data-bs-display="static"
+                data-bs-auto-close="true"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-controls="ttv2CounselorUserDropdownMenu"
+                aria-label="Open profile menu">
           <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
-        </span>
-        <div class="dropdown-content login-content">
+        </button>
+        <div id="ttv2CounselorUserDropdownMenu" class="dropdown-menu dropdown-menu-end ttv2-user-dropdown-menu">
           <h6>User Dashboard</h6>
           <p class="text-gray fs-14">Welcome, {% if user.name and user.name != 'None' %}{{ user.name }}{% elif user.mobile %}{{ user.mobile }}{% elif user.first_name %}{{ user.first_name }}{% elif user.email %}{{ user.email|truncate(20) }}{% else %}User{% endif %}</p>
           <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
@@ -222,12 +231,59 @@
   })();
 </script>
 <script>
+  // Ensure avatar dropdown opens reliably on desktop Bootstrap shells.
+  (function(){
+    function forceShowState(toggle, menu, isOpen){
+      try { if (toggle) toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false'); } catch(e) {}
+      try { if (menu) menu.classList.toggle('show', !!isOpen); } catch(e) {}
+      try {
+        if (menu && menu.parentElement && menu.parentElement.classList) {
+          menu.parentElement.classList.toggle('show', !!isOpen);
+        }
+      } catch(e) {}
+    }
+    function bind(){
+      var wrap = document.querySelector('.ttv2-topbar-avatar-dropdown.dropdown');
+      if (!wrap || wrap.getAttribute('data-ttv2-avatar-bs-bound') === '1') return;
+      var toggle = wrap.querySelector('.ttv2-avatar-toggle[data-bs-toggle="dropdown"]');
+      var menu = wrap.querySelector('.ttv2-user-dropdown-menu.dropdown-menu');
+      if (!toggle || !menu) return;
+      wrap.setAttribute('data-ttv2-avatar-bs-bound', '1');
+
+      toggle.addEventListener('click', function(e){
+        try {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+          if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+            bootstrap.Dropdown.getOrCreateInstance(toggle).toggle();
+            setTimeout(function(){
+              var open = (toggle.getAttribute('aria-expanded') === 'true') || (menu && menu.classList.contains('show'));
+              forceShowState(toggle, menu, open);
+            }, 0);
+            return;
+          }
+          forceShowState(toggle, menu, !(menu && menu.classList.contains('show')));
+        } catch(err) {}
+      }, true);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+</script>
+
+<script>
   // Reference-like dropdown UX for topbar (avatar + notification):
   // - open on click (handled by existing JS/Bootstrap)
   // - close on outside click / ESC / scroll
   // - auto-close after a short delay when not hovering (so it never stays stuck)
   (function(){
     var AV_WRAP = document.querySelector('.ttv2-topbar-avatar-dropdown.dropdown');
+    var AV_TOGGLE = AV_WRAP ? AV_WRAP.querySelector('.ttv2-avatar-toggle[data-bs-toggle="dropdown"]') : null;
     var BELL_BTN = document.getElementById('ttNotificationBellBtn');
     var closeTimer = null;
     // Increase hover-out delay so menu doesn't disappear while moving cursor.
@@ -235,7 +291,16 @@
 
     function clearClose(){ if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } }
     function closeAvatarNow(){
-      if (!AV_WRAP || !AV_WRAP.classList.contains('dropdown-show')) return;
+      if (!AV_WRAP) return;
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown && AV_TOGGLE) {
+          bootstrap.Dropdown.getOrCreateInstance(AV_TOGGLE).hide();
+        }
+      } catch(err) {}
+      try {
+        var bsm = AV_WRAP.querySelector('.dropdown-menu');
+        if (bsm) bsm.classList.remove('show');
+      } catch(e2) {}
       var dd = AV_WRAP.querySelector('.dropdown-content');
       if (dd) dd.removeAttribute('style');
       AV_WRAP.classList.remove('dropdown-show');
@@ -248,7 +313,7 @@
     }
 
     if (AV_WRAP) {
-      var AV_MENU = AV_WRAP.querySelector('.dropdown-content');
+      var AV_MENU = AV_WRAP.querySelector('.dropdown-content, .dropdown-menu');
       // Do NOT auto-open on hover (match header behavior); only keep it open longer.
       AV_WRAP.addEventListener('mouseenter', function(){ clearClose(); });
       AV_WRAP.addEventListener('mouseleave', function(){
@@ -265,6 +330,16 @@
     if (BELL_BTN && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
       var bellWrap = BELL_BTN.closest('.tt-notification-bell-wrap');
       var bellDd = bootstrap.Dropdown.getOrCreateInstance(BELL_BTN);
+      if (AV_TOGGLE) {
+        AV_TOGGLE.addEventListener('show.bs.dropdown', function(){
+          try { bellDd.hide(); } catch(e) {}
+        });
+      }
+      BELL_BTN.addEventListener('show.bs.dropdown', function(){
+        try {
+          if (AV_TOGGLE) bootstrap.Dropdown.getOrCreateInstance(AV_TOGGLE).hide();
+        } catch(e) {}
+      });
       if (bellWrap) {
         var bellMenu = bellWrap.querySelector('.dropdown-menu');
         // Do NOT auto-open on hover (reference behavior). Only cancel close timer.

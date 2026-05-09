@@ -138,6 +138,7 @@
   fill: white;
   flex-shrink: 0;
   transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  transform: scaleX(-1);
 }
 
 /* Unread badge */
@@ -160,6 +161,39 @@
 }
 
 #cb-badge.visible { display: flex; }
+
+/* FAB helper tooltip (shown on initial load) */
+#cb-fab-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--cb-fab-size) + 12px);
+  background: #111827;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.28);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+#cb-fab-tooltip::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 100%;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: #111827 transparent transparent transparent;
+}
+#cb-fab-tooltip.cb-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 
 /* ============================================================

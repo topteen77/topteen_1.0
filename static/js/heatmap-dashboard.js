@@ -320,9 +320,13 @@
                     // Create cell content
                     const cellDiv = document.createElement('div');
                     cellDiv.className = 'heatmap-cell-content';
+                    if ((cellData.studentCount || 0) === 0) {
+                        cellDiv.classList.add('is-no-data');
+                    }
                     cellDiv.style.backgroundColor = cellData.color;
                     cellDiv.style.opacity = this.getIntensityOpacity(cellData.interest);
                     cellDiv.innerHTML = '<span class="heatmap-cell-text">' + cellData.studentCount + '</span>';
+                    cellDiv.title = cluster + ' | ' + demo + ' | ' + (cellData.studentCount || 0) + ' students';
                     
                     // Add hover events
                     const self = this;
@@ -350,6 +354,36 @@
             return 0.3 + (value / 100) * 0.7;
         },
 
+        // Escape html to keep tooltip rendering safe
+        escapeHtml: function(value) {
+            return String(value === null || value === undefined ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        },
+
+        getCategoryToneClass: function(category) {
+            if (category === 'High Risk') return 'is-risk';
+            if (category === 'Maintenance') return 'is-maintenance';
+            if (category === 'High Alignment') return 'is-alignment';
+            return 'is-neutral';
+        },
+
+        getCategoryHint: function(category) {
+            if (category === 'High Risk') {
+                return 'High interest with low pathway readiness. Prioritize orientation workshops and mentor checkpoints.';
+            }
+            if (category === 'Maintenance') {
+                return 'Current engagement is stable. Keep reinforcement activities and periodic exposure sessions.';
+            }
+            if (category === 'High Alignment') {
+                return 'Strong interest and knowledge match. Recommend advanced pathways and challenge projects.';
+            }
+            return 'Not enough student responses yet. Encourage participation to improve confidence.';
+        },
+
         // Show tooltip
         showTooltip: function(cellData, event) {
             this.hideTooltip(); // Remove existing tooltip
@@ -357,47 +391,46 @@
             const tooltip = document.createElement('div');
             tooltip.id = 'heatmap-tooltip';
             tooltip.className = 'heatmap-tooltip';
-            
-            const categoryClass = cellData.category === 'High Risk' ? 'text-red-600' :
-                                 cellData.category === 'Maintenance' ? 'text-yellow-600' :
-                                 cellData.category === 'High Alignment' ? 'text-green-600' :
-                                 'text-gray-600';
+
+            const category = this.escapeHtml(cellData.category || 'No Data');
+            const toneClass = this.getCategoryToneClass(cellData.category);
+            const safeCluster = this.escapeHtml(cellData.cluster);
+            const safeDemographic = this.escapeHtml(cellData.demographic);
+            const interest = Number(cellData.interest) || 0;
+            const knowledge = Number(cellData.knowledge) || 0;
+            const alignment = Number(cellData.alignment) || 0;
+            const clarityGap = Number(cellData.clarityGap) || 0;
+            const students = Number(cellData.studentCount) || 0;
+            const insight = this.escapeHtml(this.getCategoryHint(cellData.category));
 
             tooltip.innerHTML = `
-                <div class="font-bold text-gray-900 mb-2">${cellData.cluster}</div>
-                <div class="text-sm text-gray-600 mb-3">${cellData.demographic}</div>
-                <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Interest Level:</span>
-                        <span class="font-semibold text-gray-900">${cellData.interest}%</span>
+                <div class="heatmap-tooltip-head">
+                    <div>
+                        <div class="heatmap-tooltip-title">${safeCluster}</div>
+                        <div class="heatmap-tooltip-subtitle">${safeDemographic}</div>
                     </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Knowledge Level:</span>
-                        <span class="font-semibold text-gray-900">${cellData.knowledge}%</span>
+                    <div class="heatmap-tooltip-chip ${toneClass}">${category}</div>
+                </div>
+                <div class="heatmap-tooltip-count">${students} students in this segment</div>
+                <div class="heatmap-tooltip-metrics">
+                    <div class="heatmap-tooltip-row">
+                        <div class="heatmap-tooltip-row-label">Interest</div>
+                        <div class="heatmap-tooltip-row-val">${interest}%</div>
+                        <div class="heatmap-tooltip-bar"><span style="width:${interest}%;"></span></div>
                     </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">2030 Alignment:</span>
-                        <span class="font-semibold text-gray-900">${cellData.alignment}%</span>
+                    <div class="heatmap-tooltip-row">
+                        <div class="heatmap-tooltip-row-label">Knowledge</div>
+                        <div class="heatmap-tooltip-row-val">${knowledge}%</div>
+                        <div class="heatmap-tooltip-bar"><span style="width:${knowledge}%;"></span></div>
                     </div>
-                    <div class="border-t border-gray-200 pt-2 mt-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-700 font-medium">Clarity Gap:</span>
-                            <span class="font-bold text-blue-600">${cellData.clarityGap}%</span>
-                        </div>
-                        <div class="text-xs text-gray-500 mt-1">
-                            Gap between interest and pathway knowledge
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 p-2 rounded mt-2">
-                        <div class="text-xs text-gray-600">Category:</div>
-                        <div class="text-sm font-semibold ${categoryClass}">
-                            ${cellData.category}
-                        </div>
-                        <div class="text-xs text-gray-600 mt-1">
-                            ${cellData.studentCount} students in this segment
-                        </div>
+                    <div class="heatmap-tooltip-row">
+                        <div class="heatmap-tooltip-row-label">2030 Alignment</div>
+                        <div class="heatmap-tooltip-row-val">${alignment}%</div>
+                        <div class="heatmap-tooltip-bar"><span style="width:${alignment}%;"></span></div>
                     </div>
                 </div>
+                <div class="heatmap-tooltip-gap">Clarity Gap: <strong>${clarityGap}%</strong></div>
+                <div class="heatmap-tooltip-insight">${insight}</div>
             `;
 
             document.body.appendChild(tooltip);

@@ -449,8 +449,42 @@ def apply_student_table_display_enrichment(request, ctx):
                 rd.setdefault("track", "")
             rd.setdefault("match_pct", rd.get("match_pct") or "")
             rd.setdefault("risk_score", rd.get("risk_score") or "")
-            rd["mi_attempted"] = True if uid in mi_uids else False
-            rd["eq_attempted"] = True if uid in eq_uids else False
+
+            td = rd.get("test_details") if isinstance(rd, dict) else {}
+            if not isinstance(td, dict):
+                td = {}
+
+            def _attempted(v):
+                try:
+                    s = (str(v or "")).strip().lower()
+                except Exception:
+                    s = ""
+                return bool(v is True or s in ("1", "true", "yes", "y", "completed", "complete", "done", "attempted"))
+
+            # Primary source: dedicated MI/EQ assessment rows.
+            mi_attempted = True if uid in mi_uids else False
+            eq_attempted = True if uid in eq_uids else False
+
+            # Fallback source: class-wise combined report payload.
+            if not mi_attempted:
+                mi_attempted = any([
+                    _attempted(td.get("mi_assessment")),
+                    _attempted(td.get("multiple_intelligence_assessment")),
+                    _attempted(td.get("motivation_assessment")),
+                    _attempted(td.get("test2")),
+                ])
+            if not eq_attempted:
+                eq_attempted = any([
+                    _attempted(td.get("eq_assessment")),
+                    _attempted(td.get("emotional_intelligence_assessment")),
+                    _attempted(td.get("personality_assessment")),
+                    _attempted(td.get("career_assessment")),
+                    _attempted(td.get("test1")),
+                    _attempted(td.get("test3")),
+                ])
+
+            rd["mi_attempted"] = mi_attempted
+            rd["eq_attempted"] = eq_attempted
             rd["abroad_exploring"] = True if uid in abroad_uids else False
             results_data[uid] = rd
         ctx["results_data"] = results_data
@@ -2310,22 +2344,56 @@ class InstituteDashboardView(TemplateView):
     def _get_post_matric_test_result(self, user, test_sessions):
         """Handle post-matric students (class 11-12) using TestSession/TestResult"""
         try:
-            
-            # Initialize test completion status for 4 tests
-            # Based on actual test IDs from the database
             test_completion = {
-                1: False,  # Personality Assessment
-                2: False,  # Motivation Assessment
-                3: False,  # Career Interest Inventory  
-                4: False   # Aptitude Assessment
+                "personality_assessment": False,
+                "motivation_assessment": False,
+                "career_interest_inventory": False,
+                "aptitude_assessment": False,
             }
-            
-            # Check completed sessions
-            completed_sessions = test_sessions.filter(is_completed=True)
-            for session in completed_sessions:
-                test_id = session.test.id
-                if test_id in test_completion:
-                    test_completion[test_id] = True
+
+            # Prefer test title mapping (stable across DBs); keep ID fallback for legacy rows.
+            for session in test_sessions:
+                test_obj = getattr(session, "test", None)
+                # Consider attempted if marked completed OR any result payload exists.
+                has_result_payload = False
+                try:
+                    sr = getattr(session, "result", None)
+                    if sr and (
+                        getattr(sr, "score", None) is not None
+                        or bool(getattr(sr, "result_data", None))
+                        or bool(getattr(sr, "category_counts", None))
+                    ):
+                        has_result_payload = True
+                except Exception:
+                    has_result_payload = False
+                if not (getattr(session, "is_completed", False) or has_result_payload):
+                    continue
+                test_title = (getattr(test_obj, "title", "") or "").strip().lower()
+                matched = False
+                if test_title:
+                    if "aptitude" in test_title:
+                        test_completion["aptitude_assessment"] = True
+                        matched = True
+                    elif "motivation" in test_title:
+                        test_completion["motivation_assessment"] = True
+                        matched = True
+                    elif "career interest" in test_title:
+                        test_completion["career_interest_inventory"] = True
+                        matched = True
+                    elif "personality" in test_title or "career assessment" in test_title:
+                        test_completion["personality_assessment"] = True
+                        matched = True
+
+                if not matched and test_obj and getattr(test_obj, "id", None):
+                    legacy_map = {
+                        1: "personality_assessment",
+                        2: "motivation_assessment",
+                        3: "career_interest_inventory",
+                        4: "aptitude_assessment",
+                    }
+                    key = legacy_map.get(test_obj.id)
+                    if key:
+                        test_completion[key] = True
             
             # Count completed tests
             completed_tests = sum(test_completion.values())
@@ -2335,22 +2403,22 @@ class InstituteDashboardView(TemplateView):
             completed_list = []
             not_completed_list = []
             
-            if test_completion[1]:
+            if test_completion["personality_assessment"]:
                 completed_list.append("Personality")
             else:
                 not_completed_list.append("Personality")
                 
-            if test_completion[2]:
+            if test_completion["motivation_assessment"]:
                 completed_list.append("Motivation")
             else:
                 not_completed_list.append("Motivation")
                 
-            if test_completion[3]:
+            if test_completion["career_interest_inventory"]:
                 completed_list.append("Career Interest")
             else:
                 not_completed_list.append("Career Interest")
                 
-            if test_completion[4]:
+            if test_completion["aptitude_assessment"]:
                 completed_list.append("Aptitude")
             else:
                 not_completed_list.append("Aptitude")
@@ -2385,10 +2453,15 @@ class InstituteDashboardView(TemplateView):
                 "success_count": completed_tests,
                 "test_status": test_status,
                 "test_details": {
-                    "test1": test_completion[1],
-                    "test2": test_completion[2],
-                    "test3": test_completion[3],
-                    "test4": test_completion[4]
+                    "test1": test_completion["personality_assessment"],
+                    "test2": test_completion["motivation_assessment"],
+                    "test3": test_completion["career_interest_inventory"],
+                    "test4": test_completion["aptitude_assessment"],
+                    "personality_assessment": test_completion["personality_assessment"],
+                    "career_assessment": test_completion["personality_assessment"],
+                    "motivation_assessment": test_completion["motivation_assessment"],
+                    "career_interest_inventory": test_completion["career_interest_inventory"],
+                    "aptitude_assessment": test_completion["aptitude_assessment"],
                 },
                 "tooltip": tooltip
             }
@@ -2659,20 +2732,55 @@ class InstituteDashboardView(TemplateView):
     def _get_post_matric_test_result_optimized(self, user, test_sessions):
         """Optimized version using pre-fetched test_sessions"""
         try:
-            # Initialize test completion status for 4 tests
             test_completion = {
-                1: False,  # Personality Assessment
-                2: False,  # Motivation Assessment
-                3: False,  # Career Interest Inventory  
-                4: False   # Aptitude Assessment
+                "personality_assessment": False,
+                "motivation_assessment": False,
+                "career_interest_inventory": False,
+                "aptitude_assessment": False,
             }
-            
-            # Check completed sessions from pre-fetched data
+
+            # Prefer title-based mapping; IDs are not stable across environments.
             for session in test_sessions:
-                if session.is_completed and session.test:
-                    test_id = session.test.id
-                    if test_id in test_completion:
-                        test_completion[test_id] = True
+                test_obj = getattr(session, "test", None)
+                has_result_payload = False
+                try:
+                    sr = getattr(session, "result", None)
+                    if sr and (
+                        getattr(sr, "score", None) is not None
+                        or bool(getattr(sr, "result_data", None))
+                        or bool(getattr(sr, "category_counts", None))
+                    ):
+                        has_result_payload = True
+                except Exception:
+                    has_result_payload = False
+                if not ((getattr(session, "is_completed", False) or has_result_payload) and test_obj):
+                    continue
+                test_title = (getattr(test_obj, "title", "") or "").strip().lower()
+                matched = False
+                if test_title:
+                    if "aptitude" in test_title:
+                        test_completion["aptitude_assessment"] = True
+                        matched = True
+                    elif "motivation" in test_title:
+                        test_completion["motivation_assessment"] = True
+                        matched = True
+                    elif "career interest" in test_title:
+                        test_completion["career_interest_inventory"] = True
+                        matched = True
+                    elif "personality" in test_title or "career assessment" in test_title:
+                        test_completion["personality_assessment"] = True
+                        matched = True
+
+                if not matched:
+                    legacy_map = {
+                        1: "personality_assessment",
+                        2: "motivation_assessment",
+                        3: "career_interest_inventory",
+                        4: "aptitude_assessment",
+                    }
+                    key = legacy_map.get(getattr(test_obj, "id", None))
+                    if key:
+                        test_completion[key] = True
             
             # Count completed tests
             completed_tests = sum(test_completion.values())
@@ -2681,22 +2789,22 @@ class InstituteDashboardView(TemplateView):
             completed_list = []
             not_completed_list = []
             
-            if test_completion[1]:
+            if test_completion["personality_assessment"]:
                 completed_list.append("Personality")
             else:
                 not_completed_list.append("Personality")
                 
-            if test_completion[2]:
+            if test_completion["motivation_assessment"]:
                 completed_list.append("Motivation")
             else:
                 not_completed_list.append("Motivation")
                 
-            if test_completion[3]:
+            if test_completion["career_interest_inventory"]:
                 completed_list.append("Career Interest")
             else:
                 not_completed_list.append("Career Interest")
                 
-            if test_completion[4]:
+            if test_completion["aptitude_assessment"]:
                 completed_list.append("Aptitude")
             else:
                 not_completed_list.append("Aptitude")
@@ -2730,10 +2838,15 @@ class InstituteDashboardView(TemplateView):
                 "success_count": completed_tests,
                 "test_status": test_status,
                 "test_details": {
-                    "test1": test_completion[1],
-                    "test2": test_completion[2],
-                    "test3": test_completion[3],
-                    "test4": test_completion[4]
+                    "test1": test_completion["personality_assessment"],
+                    "test2": test_completion["motivation_assessment"],
+                    "test3": test_completion["career_interest_inventory"],
+                    "test4": test_completion["aptitude_assessment"],
+                    "personality_assessment": test_completion["personality_assessment"],
+                    "career_assessment": test_completion["personality_assessment"],
+                    "motivation_assessment": test_completion["motivation_assessment"],
+                    "career_interest_inventory": test_completion["career_interest_inventory"],
+                    "aptitude_assessment": test_completion["aptitude_assessment"],
                 },
                 "tooltip": tooltip
             }
@@ -5223,7 +5336,7 @@ class InstituteDashboardView(TemplateView):
             return tcm, pmm, rmap
         for tc in TestCompletion.objects.filter(user_id__in=uids).select_related("user"):
             tcm[tc.user_id] = tc
-        for s in PostMatricTestSession.objects.filter(user_id__in=uids).select_related("user", "test"):
+        for s in PostMatricTestSession.objects.filter(user_id__in=uids).select_related("user", "test", "result"):
             pmm.setdefault(s.user_id, []).append(s)
         for r in Results.objects.filter(user_id__in=uids).select_related("user"):
             rmap.setdefault(r.user_id, []).append(r)

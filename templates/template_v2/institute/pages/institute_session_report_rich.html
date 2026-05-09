@@ -6,6 +6,367 @@
 {% set weekly_note = (ttv2_sessions_weekly_note if ttv2_sessions_weekly_note is defined else '—') %}
 {% set next_actions = (ttv2_sessions_next_actions if ttv2_sessions_next_actions is defined else []) %}
 
+<style>
+  .ttv2-sr-kpi-grid {
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .ttv2-sr-kpi {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid #dce6f6 !important;
+    border-radius: 16px;
+    background:
+      radial-gradient(140px 60px at 100% -10%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 80%),
+      linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    padding: 12px 14px 12px;
+    min-height: 122px;
+  }
+  .ttv2-sr-kpi::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+  }
+  .ttv2-sr-kpi::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    right: -42px;
+    top: -48px;
+    border-radius: 999px;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 72%);
+    z-index: -1;
+    pointer-events: none;
+  }
+  .ttv2-sr-kpi:hover {
+    transform: translateY(-3px);
+    border-color: #c8d7ee;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.14);
+  }
+  .ttv2-sr-kpi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+  }
+  .ttv2-sr-kpi-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .ttv2-sr-kpi-chip {
+    font-size: 10px;
+    line-height: 1;
+    color: #1d4ed8;
+    background: rgba(37, 99, 235, 0.12);
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    border-radius: 999px;
+    padding: 5px 8px;
+    letter-spacing: .12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .ttv2-sr-kpi .val {
+    font-size: 32px;
+    line-height: 1.05;
+    font-weight: 800;
+    color: #0b1324;
+    margin-bottom: 6px;
+    letter-spacing: -0.55px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+  .ttv2-sr-kpi .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: .32px;
+    text-transform: uppercase;
+  }
+  .ttv2-sr-kpi .sub {
+    margin-top: 5px;
+    font-size: 12px !important;
+    color: #5f7088 !important;
+    line-height: 1.35;
+  }
+  .ttv2-sr-kpi:nth-child(2)::before { background: linear-gradient(90deg, #8b5cf6 0%, #d946ef 100%); }
+  .ttv2-sr-kpi:nth-child(3)::before { background: linear-gradient(90deg, #10b981 0%, #22c55e 100%); }
+  .ttv2-sr-kpi:nth-child(4)::before { background: linear-gradient(90deg, #f59e0b 0%, #fb7185 100%); }
+  .ttv2-sr-kpi:nth-child(5)::before { background: linear-gradient(90deg, #2563eb 0%, #06b6d4 100%); }
+  .ttv2-sr-kpi:nth-child(2)::after { background: radial-gradient(circle at center, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0) 72%); }
+  .ttv2-sr-kpi:nth-child(3)::after { background: radial-gradient(circle at center, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0) 72%); }
+  .ttv2-sr-kpi:nth-child(4)::after { background: radial-gradient(circle at center, rgba(251, 146, 60, 0.2) 0%, rgba(251, 146, 60, 0) 72%); }
+  .ttv2-sr-kpi:nth-child(5)::after { background: radial-gradient(circle at center, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0) 72%); }
+  .ttv2-sr-kpi:nth-child(2) .ttv2-sr-kpi-icon,
+  .ttv2-sr-kpi:nth-child(2) .ttv2-sr-kpi-chip {
+    color: #7e22ce;
+    background: rgba(168, 85, 247, 0.14);
+    border-color: rgba(168, 85, 247, 0.26);
+  }
+  .ttv2-sr-kpi:nth-child(3) .ttv2-sr-kpi-icon,
+  .ttv2-sr-kpi:nth-child(3) .ttv2-sr-kpi-chip {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(16, 185, 129, 0.28);
+  }
+  .ttv2-sr-kpi:nth-child(4) .ttv2-sr-kpi-icon,
+  .ttv2-sr-kpi:nth-child(4) .ttv2-sr-kpi-chip {
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+  .ttv2-sr-kpi:nth-child(5) .ttv2-sr-kpi-icon,
+  .ttv2-sr-kpi:nth-child(5) .ttv2-sr-kpi-chip {
+    color: #0e7490;
+    background: rgba(6, 182, 212, 0.15);
+    border-color: rgba(6, 182, 212, 0.3);
+  }
+
+
+  .btn-group.btn-group-sm.ttv2-view-toggle {
+  background: color-mix(in srgb, #f9f9f9 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 72%, transparent);
+  padding: 2px;
+  border-radius: 10px;
+  gap: 3px;
+}
+
+
+.ttv2-view-toggle .btn {
+  border: 0;
+  border-radius: 8px !important;
+  min-width: 31px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-text2, var(--ttv2-muted));
+  background: transparent;
+}
+.ttv2-view-toggle .btn i {
+  font-size: 1.02rem;
+}
+.ttv2-view-toggle .btn:hover {
+  color: var(--c-text, var(--ttv2-fg));
+  background: rgba(108, 125, 255, 0.12);
+}
+.ttv2-view-toggle .btn.active,
+.ttv2-view-toggle .btn:active,
+.ttv2-view-toggle .btn.show {
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-accent, #6c7dff), #7d4dff);
+  box-shadow: 0 8px 20px rgba(108, 125, 255, 0.35);
+}
+.ttv2-view-toggle .btn:focus,
+.ttv2-view-toggle .btn:focus-visible {
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--c-accent, #6c7dff) 36%, transparent);
+}
+
+  @media (max-width: 767.98px) {
+    .ttv2-sr-kpi { min-height: 106px; padding: 11px; }
+    .ttv2-sr-kpi .val { font-size: 27px; }
+    .ttv2-sr-kpi .sub { font-size: 11px !important; }
+  }
+
+  .ttv2-sr-mtd-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #dfe7f3;
+    border-radius: 18px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 62%, #f3f8ff 100%);
+  }
+  .ttv2-sr-mtd-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #14b8a6 48%, #22c55e 100%);
+  }
+  .ttv2-sr-mtd-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ttv2-sr-mtd-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f766e;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.28);
+  }
+  .ttv2-sr-mtd-headline {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .12px;
+    color: #0f172a;
+  }
+  .ttv2-sr-mtd-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .ttv2-sr-mtd-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    color: #64748b;
+    background: linear-gradient(180deg, #f8faff 0%, #f2f6fe 100%);
+    border-bottom: 1px solid #dbe6f5;
+    padding: 11px 12px;
+    white-space: nowrap;
+  }
+  .ttv2-sr-mtd-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf2f9;
+    vertical-align: middle;
+    color: #1e293b;
+  }
+  .ttv2-sr-mtd-table tbody tr {
+    transition: background-color .16s ease, transform .16s ease;
+  }
+  .ttv2-sr-mtd-table tbody tr:nth-child(even) {
+    background: #fbfdff;
+  }
+  .ttv2-sr-mtd-table tbody tr:hover {
+    background: #f2f7ff;
+  }
+  .ttv2-sr-mtd-table tbody tr[data-current-week="1"] {
+    background: linear-gradient(90deg, rgba(22, 163, 74, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+  }
+  .ttv2-sr-mtd-table tbody tr[data-current-week="1"] td:first-child {
+    border-left: 3px solid #22c55e;
+  }
+  .ttv2-sr-week {
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .ttv2-sr-period {
+    color: #334155;
+    font-weight: 600;
+  }
+  .ttv2-sr-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.1;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+  .ttv2-sr-pill-muted {
+    color: #475569;
+    background: #edf2f7;
+    border-color: #d8e2ef;
+  }
+  .ttv2-sr-pill-green {
+    color: #166534;
+    background: #dcfce7;
+    border-color: #86efac;
+  }
+  .ttv2-sr-pill-amber {
+    color: #92400e;
+    background: #fef3c7;
+    border-color: #fcd34d;
+  }
+  .ttv2-sr-pill-slate {
+    color: #334155;
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+  }
+  .ttv2-sr-rating {
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: .1px;
+  }
+  .ttv2-sr-rating-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: #a16207;
+    background: #fff7d6;
+    border: 1px solid #fde68a;
+    font-size: 11px;
+    line-height: 1.1;
+  }
+  .ttv2-sr-note-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #475569;
+    margin-bottom: 7px;
+    font-weight: 700;
+    letter-spacing: .16px;
+  }
+  .ttv2-sr-note-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e4ebf6;
+    border-radius: 14px;
+    padding: 12px 12px 12px 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 8px 20px rgba(15, 23, 42, 0.05);
+  }
+  .ttv2-sr-note-card::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 8px 8px 0;
+    background: linear-gradient(180deg, #3b82f6 0%, #22c55e 100%);
+  }
+  .ttv2-sr-note-text {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.5;
+  }
+  .ttv2-sr-empty-state {
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--c-text3);
+    font-size: 12px;
+    font-weight: 600;
+  }
+</style>
+
 <div class="ttv2-card mb-3">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
@@ -34,28 +395,48 @@
   </div>
 </div>
 
-<div class="ttv2-kpi-grid">
-  <div class="ttv2-kpi">
+<div class="ttv2-kpi-grid ttv2-sr-kpi-grid">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-calendar-check'></i></span>
+      <span class="ttv2-sr-kpi-chip">Weekly</span>
+    </div>
     <div class="val">{{ k.get('sessions_week', 0) }}</div>
     <div class="lbl">Sessions (this week)</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Follow-ups logged</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-user-check'></i></span>
+      <span class="ttv2-sr-kpi-chip">Coverage</span>
+    </div>
     <div class="val">{{ k.get('unique_students_week', 0) }}</div>
     <div class="lbl">Students engaged</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Unique students this week</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-check-double'></i></span>
+      <span class="ttv2-sr-kpi-chip">Done</span>
+    </div>
     <div class="val">{{ k.get('completed_week', 0) }}</div>
     <div class="lbl">Completed</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Completed follow-ups</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-trending-up'></i></span>
+      <span class="ttv2-sr-kpi-chip">Ratio</span>
+    </div>
     <div class="val">{{ k.get('completion_rate_week', 0) }}%</div>
     <div class="lbl">Completion rate</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Completed / total (week)</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-time-five'></i></span>
+      <span class="ttv2-sr-kpi-chip">Queue</span>
+    </div>
     <div class="val">{{ k.get('upcoming_followups', 0) }}</div>
     <div class="lbl">Upcoming</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Next follow-ups scheduled</div>
@@ -63,14 +444,18 @@
 </div>
 
 {% if mtd %}
-<div class="ttv2-card mt-3">
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-    <div class="card-title mb-0">Full {{ month_label }} session history — month-to-date</div>
+<div class="ttv2-card mt-3 ttv2-sr-mtd-card">
+  <div class="ttv2-sr-mtd-head mb-2">
+    <div class="card-title mb-0 ttv2-sr-mtd-headline">Full {{ month_label }} session history — month-to-date</div>
+    <div class="ttv2-sr-mtd-meta">
+      <i class='bx bx-line-chart' aria-hidden="true"></i>
+      Weekly trend
+    </div>
   </div>
   <div class="table-responsive">
-    <table class="table table-sm mb-0">
+    <table class="table table-sm ttv2-sr-mtd-table">
       <thead>
-        <tr style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-text3);">
+        <tr>
           <th>Week</th>
           <th>Period</th>
           <th class="text-center">Sessions</th>
@@ -86,18 +471,24 @@
         {% for r in mtd %}
           <tr data-ttv2-mtd-week="1"
               data-ttv2-week-start="{{ r.get('week_start','') }}"
-              {% if r.get('is_current') %}style="background:rgba(34,197,94,0.08)"{% endif %}>
-            <td>{{ r.get('week','—') }}</td>
-            <td>{{ r.get('period','—') }}</td>
+              {% if r.get('is_current') %}data-current-week="1"{% endif %}>
+            <td><span class="ttv2-sr-week">{{ r.get('week','—') }}</span></td>
+            <td><span class="ttv2-sr-period">{{ r.get('period','—') }}</span></td>
             <td class="text-center">
-              <span class="badge {% if (r.get('sessions',0) or 0) > 0 %}bg-success{% else %}bg-secondary{% endif %}">{{ r.get('sessions',0) }}</span>
+              <span class="ttv2-sr-pill {% if (r.get('sessions',0) or 0) > 0 %}ttv2-sr-pill-green{% else %}ttv2-sr-pill-muted{% endif %}">{{ r.get('sessions',0) }}</span>
             </td>
             <td class="text-center">{{ r.get('students_reached','0/0') }}</td>
-            <td class="text-center"><span class="badge bg-warning text-dark">{{ r.get('test_completion',0) }}%</span></td>
-            <td class="text-center"><span class="badge bg-warning text-dark">{{ r.get('clarity_gap',0) }}%</span></td>
+            <td class="text-center"><span class="ttv2-sr-pill ttv2-sr-pill-amber">{{ r.get('test_completion',0) }}%</span></td>
+            <td class="text-center"><span class="ttv2-sr-pill ttv2-sr-pill-amber">{{ r.get('clarity_gap',0) }}%</span></td>
             <td class="text-center">{{ r.get('paths',0) }}</td>
-            <td class="text-center"><span class="badge bg-secondary">{{ r.get('milestone','—') }}</span></td>
-            <td class="text-center" style="opacity:.7;">{% if r.get('rating',0) %}{{ r.get('rating') }}{% else %}—{% endif %}</td>
+            <td class="text-center"><span class="ttv2-sr-pill ttv2-sr-pill-slate">{{ r.get('milestone','—') }}</span></td>
+            <td class="text-center ttv2-sr-rating">
+              {% if r.get('rating',0) %}
+                <span class="ttv2-sr-rating-chip"><i class='bx bxs-star' aria-hidden="true"></i>{{ r.get('rating') }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>
@@ -106,22 +497,22 @@
 
   <div class="row g-3 mt-2">
     <div class="col-12 col-xl-6">
-      <div style="font-size:11px;color:var(--c-text3);margin-bottom:6px;">Weekly note</div>
-      <div class="ttv2-card" style="padding:12px;background:rgba(255,255,255,.02);">
-        <div style="font-size:12px;color:var(--c-text2);line-height:1.45;">{{ weekly_note }}</div>
+      <div class="ttv2-sr-note-label"><i class='bx bx-note' aria-hidden="true"></i>Weekly note</div>
+      <div class="ttv2-sr-note-card">
+        <div class="ttv2-sr-note-text">{{ weekly_note }}</div>
       </div>
     </div>
     <div class="col-12 col-xl-6">
-      <div style="font-size:11px;color:var(--c-text3);margin-bottom:6px;">Action items for next week</div>
-      <div class="ttv2-card" style="padding:12px;background:rgba(255,255,255,.02);">
+      <div class="ttv2-sr-note-label"><i class='bx bx-task' aria-hidden="true"></i>Action items for next week</div>
+      <div class="ttv2-sr-note-card">
         {% if next_actions and (next_actions|length > 0) %}
-          <ol class="mb-0" style="padding-left:16px;font-size:12px;color:var(--c-text2);line-height:1.55;">
+          <ol class="mb-0 ttv2-sr-note-text" style="padding-left:16px;">
             {% for a in next_actions %}
               <li>{{ a }}</li>
             {% endfor %}
           </ol>
         {% else %}
-          <div style="font-size:12px;color:var(--c-text2);line-height:1.45;">—</div>
+          <div class="ttv2-sr-note-text">—</div>
         {% endif %}
       </div>
     </div>
@@ -213,8 +604,8 @@
             {% endfor %}
           </div>
         {% else %}
-          <div class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
-            No follow-ups yet.
+          <div class="ttv2-sr-empty-state">
+            No data found.
           </div>
         {% endif %}
       </div>

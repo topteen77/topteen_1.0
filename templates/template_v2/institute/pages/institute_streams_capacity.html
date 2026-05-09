@@ -3,14 +3,185 @@
 {% set k = (p.get('kpis', {}) if p else {}) %}
 {% set streams_meta = (p.get('streams_meta', []) if p else []) %}
 {% set class_rows = (p.get('class_rows', []) if p else []) %}
+{% set occ_rows = (p.get('occupancy_by_stream', []) if p else []) %}
+{% set fill_pct = (k.get('fill_rate_pct', 0) or 0) %}
+{% set avail_pct = (100 - fill_pct) %}
+{% set top_stream = (occ_rows|max(attribute='pct') if occ_rows else None) %}
+{% set low_stream = (occ_rows|min(attribute='pct') if occ_rows else None) %}
 
 <script type="application/json" id="ttv2-streams-capacity-payload">{{ p|tojson }}</script>
+
+<style>
+  #sec-institute-streams-capacity .ttv2-headline{
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: .01em;
+  }
+  #sec-institute-streams-capacity .ttv2-subtitle{
+    color: var(--c-text3);
+    font-size: 12px;
+  }
+  .ttv2-capacity-card{
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.86));
+    min-height: 132px;
+    box-shadow: 0 6px 20px rgba(15,23,42,.05);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .ttv2-capacity-card:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(15,23,42,.08);
+  }
+  .ttv2-capacity-card .kpi-label{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--c-text3);
+    font-weight: 700;
+  }
+  .ttv2-capacity-card .kpi-value{
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 800;
+    margin: 8px 0 4px;
+    color: var(--c-text1);
+  }
+  .ttv2-capacity-card .kpi-hint{
+    color: var(--c-text3);
+    font-size: 11px;
+  }
+  .ttv2-capacity-card .progress{
+    height: 7px;
+    margin-top: 10px;
+    background: rgba(148,163,184,.2);
+    border-radius: 100px;
+  }
+  .ttv2-capacity-card .progress-bar{
+    border-radius: 100px;
+  }
+  .ttv2-progress-good{ background: linear-gradient(90deg,#10b981,#34d399); }
+  .ttv2-progress-warn{ background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+  .ttv2-progress-low{ background: linear-gradient(90deg,#ef4444,#f87171); }
+  .ttv2-progress-width-good{ width: 90%; }
+  .ttv2-progress-width-warn{ width: 60%; }
+  .ttv2-progress-width-low{ width: 30%; }
+  .ttv2-chart-title{
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .ttv2-chart-card{
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.86));
+    box-shadow: 0 6px 18px rgba(15,23,42,.04);
+  }
+  .ttv2-insight-chip{
+    border-radius: 999px;
+    border: 1px solid rgba(148,163,184,.2);
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--c-text2);
+    background: rgba(255,255,255,.75);
+  }
+  .ttv2-insight-chip strong{ color: var(--c-text1); }
+  .ttv2-table-wrap{
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(15,23,42,.04);
+  }
+  .ttv2-table-wrap thead th{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--c-text3);
+    border-bottom-color: rgba(148,163,184,.2);
+    background: rgba(248,250,252,.72);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .ttv2-table-wrap tbody td{
+    vertical-align: middle;
+    border-bottom-color: rgba(148,163,184,.14);
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-weight: 600;
+    color: var(--c-text2);
+    font-size: 14px;
+  }
+  .ttv2-table-wrap tbody tr:nth-child(odd):not(.ttv2-total-row){
+    background: rgba(248,250,252,.42);
+  }
+  .ttv2-table-wrap tbody tr:hover:not(.ttv2-total-row){
+    background: rgba(59,130,246,.05);
+  }
+  .ttv2-table-wrap .ttv2-col-idx{
+    color: var(--c-text3);
+    font-weight: 700;
+    width: 42px;
+  }
+  .ttv2-table-wrap .ttv2-num{
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--c-text1);
+  }
+  .ttv2-total-row{
+    border-top: 1px solid rgba(148,163,184,.18);
+    font-weight: 800;
+    background: linear-gradient(90deg, rgba(59,130,246,.06), rgba(167,139,250,.05));
+  }
+  .ttv2-class-pill{
+    background: rgba(59,130,246,.12);
+    color: #1d4ed8;
+    border: 1px solid rgba(59,130,246,.22);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-block;
+  }
+  .ttv2-fill-pill{
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-block;
+  }
+  .ttv2-fill-high{ background: rgba(16,185,129,.14); color: #047857; }
+  .ttv2-fill-mid{ background: rgba(245,158,11,.16); color: #b45309; }
+  .ttv2-fill-low{ background: rgba(239,68,68,.13); color: #b91c1c; }
+  .ttv2-mini-progress{
+    width: 74px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(148,163,184,.2);
+    margin-left: auto;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .ttv2-mini-progress > span{
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#60a5fa,#a78bfa);
+  }
+  .ttv2-mini-w-zero{ width: 0%; }
+  .ttv2-mini-w-high{ width: 90%; }
+  .ttv2-mini-w-mid{ width: 60%; }
+  .ttv2-mini-w-low{ width: 30%; }
+</style>
 
 <div class="ttv2-card" id="sec-institute-streams-capacity">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
-      <div class="card-title mb-0">Streams & seat capacity</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
+      <div class="ttv2-headline mb-0">Streams & seat capacity</div>
+      <div class="ttv2-subtitle">
         Stream assignment and seat capacity
       </div>
     </div>
@@ -32,39 +203,46 @@
 
 <div class="row g-3 mt-1">
   <div class="col-12 col-lg-4">
-    <div class="ttv2-card">
-      <div class="d-flex align-items-center justify-content-between">
-        <div>
-          <div style="font-size:26px;font-weight:800;line-height:1;">{{ k.get('total_capacity', 0) }}</div>
-          <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">Total seat capacity</div>
-          <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">
-            {{ k.get('streams_count', 0) }} streams • {{ k.get('classes_count', 0) }} classes • {{ k.get('capacity_per_stream_default', 0) }}
-          </div>
-        </div>
+    <div class="ttv2-capacity-card">
+      <div class="kpi-label">Total seat capacity</div>
+      <div class="kpi-value">{{ k.get('total_capacity', 0) }}</div>
+      <div class="kpi-hint">
+        {{ k.get('streams_count', 0) }} streams • {{ k.get('classes_count', 0) }} classes • {{ k.get('capacity_per_stream_default', 0) }} default per stream
       </div>
     </div>
   </div>
   <div class="col-12 col-lg-4">
-    <div class="ttv2-card">
-      <div style="font-size:26px;font-weight:800;line-height:1;">{{ k.get('seats_filled', 0) }}</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">Seats filled</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">{{ k.get('fill_rate_pct', 0) }}% fill rate</div>
+    <div class="ttv2-capacity-card">
+      <div class="kpi-label">Seats filled</div>
+      <div class="kpi-value">{{ k.get('seats_filled', 0) }}</div>
+      <div class="kpi-hint">{{ fill_pct|round(2) }}% fill rate</div>
+      {% set fill_bar_class = 'ttv2-progress-good' if fill_pct >= 80 else ('ttv2-progress-warn' if fill_pct >= 50 else 'ttv2-progress-low') %}
+      {% set fill_width_class = 'ttv2-progress-width-good' if fill_pct >= 80 else ('ttv2-progress-width-warn' if fill_pct >= 50 else 'ttv2-progress-width-low') %}
+      <div class="progress" role="progressbar" aria-label="Seats filled" aria-valuenow="{{ fill_pct|round(0) }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar {{ fill_bar_class }} {{ fill_width_class }}"></div>
+      </div>
     </div>
   </div>
   <div class="col-12 col-lg-4">
-    <div class="ttv2-card">
-      <div style="font-size:26px;font-weight:800;line-height:1;">{{ k.get('open_seats', 0) }}</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">Open seats</div>
-      <div class="text-muted" style="color:var(--c-text3)!important;font-size:11px;">{{ (100 - (k.get('fill_rate_pct', 0) or 0))|round(2) }}% available</div>
+    <div class="ttv2-capacity-card">
+      <div class="kpi-label">Open seats</div>
+      <div class="kpi-value">{{ k.get('open_seats', 0) }}</div>
+      <div class="kpi-hint">{{ avail_pct|round(2) }}% available</div>
+      {% set avail_bar_class = 'ttv2-progress-good' if avail_pct >= 50 else ('ttv2-progress-warn' if avail_pct >= 20 else 'ttv2-progress-low') %}
+      {% set avail_width_class = 'ttv2-progress-width-good' if avail_pct >= 50 else ('ttv2-progress-width-warn' if avail_pct >= 20 else 'ttv2-progress-width-low') %}
+      <div class="progress" role="progressbar" aria-label="Open seats" aria-valuenow="{{ avail_pct|round(0) }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar {{ avail_bar_class }} {{ avail_width_class }}"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="row g-3 mt-1">
   <div class="col-12 col-lg-7">
-    <div class="ttv2-card">
-      <div class="d-flex align-items-center justify-content-between mb-2">
-        <div style="font-weight:700;">Capacity by stream – 11th & 12th class</div>
+    <div class="ttv2-chart-card">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+        <div class="ttv2-chart-title">Capacity by stream - 11th & 12th class</div>
+        <div class="ttv2-insight-chip">Weekly snapshot</div>
       </div>
       <div style="height:240px;">
         <canvas id="ttv2StreamsCapacityByStream"></canvas>
@@ -72,20 +250,33 @@
     </div>
   </div>
   <div class="col-12 col-lg-5">
-    <div class="ttv2-card">
-      <div class="d-flex align-items-center justify-content-between mb-2">
-        <div style="font-weight:700;">Occupancy rate by stream</div>
+    <div class="ttv2-chart-card">
+      <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+        <div class="ttv2-chart-title">Occupancy rate by stream</div>
+        {% if top_stream %}
+          <div class="ttv2-insight-chip">Top: <strong>{{ top_stream.get('label', top_stream.get('code', '-')) }} {{ top_stream.get('pct', 0) }}%</strong></div>
+        {% endif %}
       </div>
       <div style="height:240px;">
         <canvas id="ttv2StreamsOccupancyByStream"></canvas>
       </div>
+      {% if low_stream %}
+        <div class="pt-2">
+          <span class="ttv2-insight-chip">Lowest: <strong>{{ low_stream.get('label', low_stream.get('code', '-')) }} {{ low_stream.get('pct', 0) }}%</strong></span>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>
 
-<div class="ttv2-card mt-3 p-0">
-  <div class="px-3 pt-3 pb-2" style="border-bottom:1px solid rgba(148,163,184,.12);">
-    <div style="font-weight:700;">Seat capacity – full table</div>
+<div class="ttv2-table-wrap mt-3">
+  <div class="px-3 pt-3 pb-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="border-bottom:1px solid rgba(148,163,184,.12);">
+    <div style="font-weight:700;">Seat capacity - full table</div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="ttv2-insight-chip">Capacity <strong>{{ k.get('total_capacity', 0) }}</strong></span>
+      <span class="ttv2-insight-chip">Filled <strong>{{ k.get('seats_filled', 0) }}</strong></span>
+      <span class="ttv2-insight-chip">Open <strong>{{ k.get('open_seats', 0) }}</strong></span>
+    </div>
   </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0">
@@ -105,34 +296,41 @@
       <tbody>
         {% for r in class_rows %}
           <tr>
-            <td>{{ r.get('idx', loop.index) }}</td>
+            <td class="ttv2-col-idx">{{ r.get('idx', loop.index) }}</td>
             <td>
-              <span class="badge bg-primary-subtle text-primary" style="font-weight:700;">
+              <span class="ttv2-class-pill">
                 {{ r.get('class_label','-') }}
               </span>
             </td>
             {% for sm in streams_meta %}
               {% set code = sm.get('code','') %}
               {% set cell = (r.get('streams', {}).get(code, {}) if r.get('streams') else {}) %}
-              <td class="text-end">{{ cell.get('cap', 0) }}</td>
+              <td class="text-end ttv2-num">{{ cell.get('cap', 0) }}</td>
             {% endfor %}
-            <td class="text-end">{{ r.get('total', 0) }}</td>
-            <td class="text-end">{{ r.get('filled', 0) }}</td>
-            <td class="text-end">{{ r.get('available', 0) }}</td>
-            <td class="text-end">{{ r.get('fill_pct', 0) }}%</td>
+            <td class="text-end ttv2-num">{{ r.get('total', 0) }}</td>
+            <td class="text-end ttv2-num">{{ r.get('filled', 0) }}</td>
+            <td class="text-end ttv2-num">{{ r.get('available', 0) }}</td>
+            {% set row_fill = (r.get('fill_pct', 0) or 0) %}
+            {% set row_fill_width = 'ttv2-mini-w-zero' if row_fill <= 0 else ('ttv2-mini-w-high' if row_fill >= 80 else ('ttv2-mini-w-mid' if row_fill >= 50 else 'ttv2-mini-w-low')) %}
+            <td class="text-end">
+              <span class="ttv2-fill-pill {% if row_fill >= 80 %}ttv2-fill-high{% elif row_fill >= 50 %}ttv2-fill-mid{% else %}ttv2-fill-low{% endif %}">
+                {{ row_fill }}%
+              </span>
+              <div class="ttv2-mini-progress"><span class="{{ row_fill_width }}"></span></div>
+            </td>
           </tr>
         {% endfor %}
-        <tr style="border-top:1px solid rgba(148,163,184,.18);font-weight:800;">
+        <tr class="ttv2-total-row">
           <td></td>
           <td>Total</td>
           {% for sm in streams_meta %}
             {% set code = sm.get('code','') %}
-            <td class="text-end">{{ (p.get('cap_map', {}).get(code, 0) or 0) * (p.get('classes', [])|length) }}</td>
+            <td class="text-end ttv2-num">{{ (p.get('cap_map', {}).get(code, 0) or 0) * (p.get('classes', [])|length) }}</td>
           {% endfor %}
-          <td class="text-end">{{ k.get('total_capacity', 0) }}</td>
-          <td class="text-end">{{ k.get('seats_filled', 0) }}</td>
-          <td class="text-end">{{ k.get('open_seats', 0) }}</td>
-          <td class="text-end">{{ k.get('fill_rate_pct', 0) }}%</td>
+          <td class="text-end ttv2-num">{{ k.get('total_capacity', 0) }}</td>
+          <td class="text-end ttv2-num">{{ k.get('seats_filled', 0) }}</td>
+          <td class="text-end ttv2-num">{{ k.get('open_seats', 0) }}</td>
+          <td class="text-end ttv2-num">{{ k.get('fill_rate_pct', 0) }}%</td>
         </tr>
       </tbody>
     </table>
