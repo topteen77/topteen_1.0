@@ -1095,21 +1095,17 @@ def get_results_data_for_students(students):
             mi_attempted = True if uid in mi_uids else False
             eq_attempted = True if uid in eq_uids else False
 
+            # Older payloads may store explicit MI/EQ flags directly.
+            # Do not infer MI/EQ from unrelated combined-report tests.
             if not mi_attempted:
                 mi_attempted = any([
                     _attempted(td.get("mi_assessment")),
                     _attempted(td.get("multiple_intelligence_assessment")),
-                    _attempted(td.get("motivation_assessment")),
-                    _attempted(td.get("test2")),
                 ])
             if not eq_attempted:
                 eq_attempted = any([
                     _attempted(td.get("eq_assessment")),
                     _attempted(td.get("emotional_intelligence_assessment")),
-                    _attempted(td.get("personality_assessment")),
-                    _attempted(td.get("career_assessment")),
-                    _attempted(td.get("test1")),
-                    _attempted(td.get("test3")),
                 ])
 
             rd["mi_attempted"] = mi_attempted

@@ -19,11 +19,23 @@
       var t = (document.documentElement.getAttribute('data-ttv2-theme') || '').toLowerCase();
       return (t === 'dark' || t === 'light') ? t : 'light';
     }
+    function syncThemeLogos(next) {
+      try {
+        var logos = document.querySelectorAll('[data-ttv2-logo-light][data-ttv2-logo-dark]');
+        logos.forEach(function (img) {
+          var lightSrc = img.getAttribute('data-ttv2-logo-light') || '';
+          var darkSrc = img.getAttribute('data-ttv2-logo-dark') || lightSrc;
+          var target = next === 'dark' ? darkSrc : lightSrc;
+          if (target && img.getAttribute('src') !== target) img.setAttribute('src', target);
+        });
+      } catch (e) {}
+    }
     function setTheme(next) {
       document.documentElement.setAttribute('data-ttv2-theme', next);
       try { localStorage.setItem(key, next); } catch (e) {}
       var btn = document.getElementById('ttv2ThemeToggle');
       if (btn) btn.innerHTML = next === 'dark' ? '<i class=\"bx bx-sun\"></i>' : '<i class=\"bx bx-moon\"></i>';
+      syncThemeLogos(next);
     }
     document.addEventListener('click', function (e) {
       var btn = e.target && (e.target.id === 'ttv2ThemeToggle' ? e.target : (e.target.closest ? e.target.closest('#ttv2ThemeToggle') : null));

@@ -31,7 +31,11 @@
   <div class="ttv2-counselor-topbar">
     <div class="d-flex align-items-center gap-2 ttv2-topbar-left">
       <a href="{{ url('core:home') }}" class="ttv2-topbar-brand" aria-label="TopTeen home">
-        <img class="ttv2-topbar-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+        <img class="ttv2-topbar-brand-logo"
+             src="{{ static('images_new/logos/logo.svg') }}"
+             data-ttv2-logo-light="{{ static('images_new/logos/logo.svg') }}"
+             data-ttv2-logo-dark="{{ static('images_new/logos/footer-logo.svg') }}"
+             alt="TopTeen" />
       </a>
       <button type="button" class="ttv2-sidebar-toggle" aria-label="Toggle sidebar" data-ttv2-sidebar-toggle>
         <i class='bx bx-menu'></i>

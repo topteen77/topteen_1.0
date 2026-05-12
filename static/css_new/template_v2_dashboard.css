@@ -2436,7 +2436,7 @@ body.ttv2-shell .ttv2-counselor-sidebar{
   height: calc(100vh - 58px);
   transform: translateX(0);
   transition: transform .2s ease;
-  background:#fff;
+  background: var(--c-bg2);
 }
 body.ttv2-shell .ttv2-sidebar-overlay{
   display: none;
@@ -4615,6 +4615,36 @@ body.ttv2-shell .ttv2-chip--risk{
 body.ttv2-shell .ttv2-chip--disabled{
   opacity:.45;
   filter:grayscale(1);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-chip{
+  border-color: rgba(148,163,184,.26);
+  background: rgba(148,163,184,.12);
+  color: var(--c-text2, var(--ttv2-fg));
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-chip--solid{
+  background: rgba(129,140,248,.18);
+  border-color: rgba(165,180,252,.30);
+  color: #e0e7ff;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-chip--blue{
+  background: rgba(59,130,246,.18);
+  border-color: rgba(96,165,250,.28);
+  color: #bfdbfe;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-chip--purple{
+  background: rgba(139,92,246,.18);
+  border-color: rgba(196,181,253,.28);
+  color: #ddd6fe;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-chip--risk{
+  background: rgba(244,63,94,.18);
+  border-color: rgba(251,113,133,.28);
+  color: #fecdd3;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-chip--disabled{
+  opacity: .82;
+  filter: none;
+  color: var(--c-text3, var(--ttv2-muted));
 }
 
 body.ttv2-shell .ttv2-student-hr{

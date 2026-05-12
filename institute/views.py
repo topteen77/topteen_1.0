@@ -501,22 +501,17 @@ def apply_student_table_display_enrichment(request, ctx):
             mi_attempted = True if uid in mi_uids else False
             eq_attempted = True if uid in eq_uids else False
 
-            # Fallback source: class-wise combined report payload.
+            # Fallback source: older payloads may store explicit MI/EQ keys directly.
+            # Do not infer MI/EQ from other psychometric tests like personality/test1.
             if not mi_attempted:
                 mi_attempted = any([
                     _attempted(td.get("mi_assessment")),
                     _attempted(td.get("multiple_intelligence_assessment")),
-                    _attempted(td.get("motivation_assessment")),
-                    _attempted(td.get("test2")),
                 ])
             if not eq_attempted:
                 eq_attempted = any([
                     _attempted(td.get("eq_assessment")),
                     _attempted(td.get("emotional_intelligence_assessment")),
-                    _attempted(td.get("personality_assessment")),
-                    _attempted(td.get("career_assessment")),
-                    _attempted(td.get("test1")),
-                    _attempted(td.get("test3")),
                 ])
 
             rd["mi_attempted"] = mi_attempted

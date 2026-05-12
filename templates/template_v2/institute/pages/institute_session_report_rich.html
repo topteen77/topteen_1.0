@@ -355,6 +355,150 @@
     color: #475569;
     line-height: 1.5;
   }
+  .ttv2-sr-badge--status-success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+  }
+  .ttv2-sr-badge--status-warning {
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+  }
+  .ttv2-sr-badge--status-info {
+    color: #0c4a6e;
+    background: #cffafe;
+    border: 1px solid #67e8f9;
+  }
+  .ttv2-sr-badge--status-neutral {
+    color: #475569;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi {
+    border-color: var(--c-border) !important;
+    background:
+      radial-gradient(140px 60px at 100% -10%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 80%),
+      linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%),
+      var(--c-bg2, #161820);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:hover {
+    border-color: rgba(255,255,255,0.14);
+    box-shadow: 0 22px 38px rgba(0, 0, 0, 0.30);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi .val {
+    color: var(--c-text);
+    text-shadow: none;
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi .lbl {
+    color: var(--c-text2);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi .sub {
+    color: var(--c-text3) !important;
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi-icon,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi-chip {
+    color: #bfdbfe;
+    background: rgba(59, 130, 246, 0.16);
+    border-color: rgba(96, 165, 250, 0.28);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(2) .ttv2-sr-kpi-icon,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(2) .ttv2-sr-kpi-chip {
+    color: #ddd6fe;
+    background: rgba(168, 85, 247, 0.16);
+    border-color: rgba(196, 181, 253, 0.28);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(3) .ttv2-sr-kpi-icon,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(3) .ttv2-sr-kpi-chip {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.16);
+    border-color: rgba(134, 239, 172, 0.24);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(4) .ttv2-sr-kpi-icon,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(4) .ttv2-sr-kpi-chip {
+    color: #fdba74;
+    background: rgba(249, 115, 22, 0.16);
+    border-color: rgba(253, 186, 116, 0.26);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(5) .ttv2-sr-kpi-icon,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-kpi:nth-child(5) .ttv2-sr-kpi-chip {
+    color: #67e8f9;
+    background: rgba(6, 182, 212, 0.16);
+    border-color: rgba(103, 232, 249, 0.24);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-card {
+    border-color: var(--c-border);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 62%, rgba(255,255,255,0.01) 100%),
+      var(--c-bg2, #161820);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.26);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-meta {
+    color: #99f6e4;
+    background: rgba(20, 184, 166, 0.16);
+    border-color: rgba(94, 234, 212, 0.28);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-headline,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-week,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-rating {
+    color: var(--c-text);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-period,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-note-label,
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-note-text {
+    color: var(--c-text2);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-table thead th {
+    color: var(--c-text3);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.03) 100%);
+    border-bottom-color: var(--c-border);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-table tbody td {
+    color: var(--c-text2);
+    border-bottom-color: rgba(255,255,255,0.06);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-table tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.02);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-table tbody tr:hover {
+    background: rgba(108, 125, 255, 0.08);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-mtd-table tbody tr[data-current-week="1"] {
+    background: linear-gradient(90deg, rgba(22, 163, 74, 0.18) 0%, rgba(34, 197, 94, 0.07) 100%);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-rating-chip {
+    color: #fcd34d;
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(252, 211, 77, 0.24);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-note-card {
+    border-color: var(--c-border);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%),
+      var(--c-bg3, #1e2030);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 22px rgba(0,0,0,0.18);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-badge--status-success {
+    color: #86efac;
+    background: rgba(22, 163, 74, 0.18);
+    border-color: rgba(134, 239, 172, 0.24);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-badge--status-warning {
+    color: #fcd34d;
+    background: rgba(217, 119, 6, 0.18);
+    border-color: rgba(252, 211, 77, 0.24);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-badge--status-info {
+    color: #67e8f9;
+    background: rgba(6, 182, 212, 0.18);
+    border-color: rgba(103, 232, 249, 0.24);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sr-badge--status-neutral {
+    color: var(--c-text2);
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.08);
+  }
   .ttv2-sr-empty-state {
     min-height: 140px;
     display: flex;
@@ -367,7 +511,7 @@
   }
 </style>
 
-<div class="ttv2-card mb-3">
+<div class="ttv2-card mb-3 ttv2-sr-hero-card">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
       <div class="card-title mb-0">Session report</div>
@@ -453,7 +597,7 @@
     </div>
   </div>
   <div class="table-responsive">
-    <table class="table table-sm ttv2-sr-mtd-table">
+    <table class="table table-sm mb-0 ttv2-sr-mtd-table">
       <thead>
         <tr>
           <th>Week</th>
@@ -475,13 +619,13 @@
             <td><span class="ttv2-sr-week">{{ r.get('week','—') }}</span></td>
             <td><span class="ttv2-sr-period">{{ r.get('period','—') }}</span></td>
             <td class="text-center">
-              <span class="ttv2-sr-pill {% if (r.get('sessions',0) or 0) > 0 %}ttv2-sr-pill-green{% else %}ttv2-sr-pill-muted{% endif %}">{{ r.get('sessions',0) }}</span>
+              <span class="ttv2-sr-statpill {% if (r.get('sessions',0) or 0) > 0 %}ttv2-sr-statpill-green{% else %}ttv2-sr-statpill-muted{% endif %}">{{ r.get('sessions',0) }}</span>
             </td>
             <td class="text-center">{{ r.get('students_reached','0/0') }}</td>
-            <td class="text-center"><span class="ttv2-sr-pill ttv2-sr-pill-amber">{{ r.get('test_completion',0) }}%</span></td>
-            <td class="text-center"><span class="ttv2-sr-pill ttv2-sr-pill-amber">{{ r.get('clarity_gap',0) }}%</span></td>
+            <td class="text-center"><span class="ttv2-sr-statpill ttv2-sr-statpill-amber">{{ r.get('test_completion',0) }}%</span></td>
+            <td class="text-center"><span class="ttv2-sr-statpill ttv2-sr-statpill-amber">{{ r.get('clarity_gap',0) }}%</span></td>
             <td class="text-center">{{ r.get('paths',0) }}</td>
-            <td class="text-center"><span class="ttv2-sr-pill ttv2-sr-pill-slate">{{ r.get('milestone','—') }}</span></td>
+            <td class="text-center"><span class="ttv2-sr-statpill ttv2-sr-statpill-slate">{{ r.get('milestone','—') }}</span></td>
             <td class="text-center ttv2-sr-rating">
               {% if r.get('rating',0) %}
                 <span class="ttv2-sr-rating-chip"><i class='bx bxs-star' aria-hidden="true"></i>{{ r.get('rating') }}</span>
@@ -525,7 +669,7 @@
     {% include "template_v2/includes/ttv2_weekly_session_report_widget.html" %}
   </div>
   <div class="col-12 col-xl-5">
-    <div class="ttv2-card">
+    <div class="ttv2-card ttv2-sr-students-card">
       <div class="d-flex align-items-start justify-content-between gap-2">
         <div class="min-w-0">
           <div class="card-title mb-0">Student sessions</div>
@@ -533,7 +677,7 @@
         </div>
       </div>
 
-      <div class="mt-2" style="border-top:1px solid var(--c-border);">
+      <div class="mt-2 ttv2-sr-students-wrap">
         {% if students %}
           <div class="ttv2-sr-students" data-ttv2-sr-students>
             {% for s in students %}
@@ -553,11 +697,11 @@
                       {{ wk }} session{{ 's' if wk != 1 else '' }} this week · {{ wkdone }} completed
                     </div>
                   </div>
-                  <div class="ms-auto d-flex align-items-center gap-2">
+                  <div class="ms-auto d-flex align-items-center gap-2 ttv2-sr-student-actions">
                     <span class="ttv2-sr-pill">
                       {{ done }} of {{ total }} done
                     </span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-sr-toggle>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ttv2-sr-toggle-btn" data-ttv2-sr-toggle>
                       Details
                     </button>
                   </div>
@@ -576,14 +720,14 @@
                             <div class="ttv2-sr-when">{{ r.get('when','—') }}</div>
                             <div class="ttv2-sr-chips">
                               {% if r.get('counselor') %}
-                                <span class="badge bg-dark">{{ r.get('counselor') }}</span>
+                                <span class="ttv2-sr-badge ttv2-sr-badge--advisor">{{ r.get('counselor') }}</span>
                               {% endif %}
-                              <span class="badge bg-secondary">{{ r.get('mode','—') }}</span>
-                              <span class="badge {% if (r.get('status')|lower) == 'completed' %}bg-success{% elif (r.get('status')|lower) == 'pending' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                              <span class="ttv2-sr-badge ttv2-sr-badge--mode">{{ r.get('mode','—') }}</span>
+                              <span class="ttv2-sr-badge {% if (r.get('status')|lower) == 'completed' %}ttv2-sr-badge--status-success{% elif (r.get('status')|lower) == 'pending' %}ttv2-sr-badge--status-warning{% elif (r.get('status')|lower) in ['follow-up','follow up','upcoming'] %}ttv2-sr-badge--status-info{% else %}ttv2-sr-badge--status-neutral{% endif %}">
                                 {{ r.get('status','—') }}
                               </span>
                               {% if r.get('next') %}
-                                <span class="badge bg-dark">Next: {{ r.get('next') }}</span>
+                                <span class="ttv2-sr-badge ttv2-sr-badge--next">Next: {{ r.get('next') }}</span>
                               {% endif %}
                             </div>
                           </div>
@@ -595,7 +739,7 @@
                     {% endfor %}
                   </div>
                   <div class="ttv2-sr-footer">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-ttv2-sr-loadall>
+                    <button type="button" class="btn btn-sm btn-outline-primary ttv2-sr-loadall-btn" data-ttv2-sr-loadall>
                       Load complete history
                     </button>
                   </div>
