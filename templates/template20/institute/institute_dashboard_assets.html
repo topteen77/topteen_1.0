@@ -740,14 +740,21 @@
     .institute-dashboard #students-table-container,
     .institute-dashboard .table-responsive {
       width: 100%;
+      max-width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .institute-dashboard .row>[class*="col-"] {
+      min-width: 0;
     }
 
     .institute-dashboard #students-table-wrapper table,
     .institute-dashboard #students-table-container table,
     .institute-dashboard .id-data-table {
-      min-width: 760px;
+      width: max-content;
+      min-width: 100%;
     }
 
     .institute-dashboard #students-table-wrapper .table th,
@@ -769,7 +776,8 @@
     .institute-dashboard .table-responsive>.table-bordered,
     .institute-dashboard .table-responsive>.table-striped,
     .institute-dashboard .table-responsive>.table-hover {
-      min-width: 760px;
+      width: max-content;
+      min-width: 100%;
       margin-bottom: 0;
     }
 

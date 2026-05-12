@@ -274,3 +274,8 @@
   {% include "template_v2/includes/ttv2_follow_up_modal.html" %}
 {% endif %}
 
+{# Institute/admin: read-only follow-up timeline viewer. #}
+{% if ttv2_students_role is not defined or ttv2_students_role != 'counselor' %}
+  {% include "template_v2/includes/ttv2_followup_history_modal.html" %}
+{% endif %}
+

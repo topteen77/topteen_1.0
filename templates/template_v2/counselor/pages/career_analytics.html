@@ -137,41 +137,62 @@
 
 <div class="row g-3 mt-0">
   <div class="col-12 col-xl-6">
-    <div class="ttv2-card">
-      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-        <div class="card-title mb-0">Student risk matrix</div>
-        <button type="button" class="btn btn-sm btn-outline-secondary" {% if is_dummy %}disabled{% endif %}>Advanced</button>
+    <div class="ttv2-card ttv2-ca-side-card h-100">
+      {% set risk = (ca.get('risk_matrix',[]) if ca is mapping else []) %}
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-3 flex-wrap">
+        <div>
+          <div class="card-title mb-0">Student risk matrix</div>
+          <div class="ttv2-ca-side-sub">Quick view of students who need attention first.</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="ttv2-ca-count-pill">{{ risk|length if risk else 0 }} students</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary ttv2-ca-ghost-btn" {% if is_dummy %}disabled{% endif %}>Advanced</button>
+        </div>
       </div>
-      <div class="ttv2-card p-0" style="background:transparent;border:none">
-        {% set risk = (ca.get('risk_matrix',[]) if ca is mapping else []) %}
+      <div class="ttv2-ca-risk-list">
         {% if risk and (risk|length > 0) %}
           {% for r in risk %}
-            <div class="d-flex align-items-center justify-content-between gap-2 py-2" style="border-bottom:1px solid var(--c-border);">
-              <div class="min-w-0">
-                <div class="fw-semibold text-truncate">{{ r.get('name','Student') }}</div>
-                <div style="font-size:11px;color:var(--c-text3)">{{ r.get('meta','') }}</div>
+            <div class="ttv2-ca-risk-item">
+              <div class="ttv2-ca-risk-main min-w-0">
+                <div class="ttv2-ca-risk-avatar">{{ (r.get('name','S')[:1])|upper }}</div>
+                <div class="min-w-0 flex-grow-1">
+                  <div class="ttv2-ca-risk-name">{{ r.get('name','Student') }}</div>
+                  <div class="ttv2-ca-risk-meta">{{ r.get('meta','') }}</div>
+                </div>
               </div>
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge {% if r.get('status')=='at_risk' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+              <div class="ttv2-ca-risk-actions">
+                <span class="badge ttv2-ca-risk-badge {% if r.get('status')=='at_risk' %}bg-warning text-dark{% else %}bg-success{% endif %}">
                   {{ 'At risk' if r.get('status')=='at_risk' else 'On track' }}
                 </span>
-                <button type="button" class="btn btn-sm btn-outline-secondary" {% if is_dummy %}disabled{% endif %}>Go</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary ttv2-ca-mini-btn" {% if is_dummy %}disabled{% endif %}>
+                  <i class="bx bx-right-arrow-alt"></i>
+                  <span>Go</span>
+                </button>
               </div>
             </div>
           {% endfor %}
         {% else %}
-          <div class="py-5 text-center" style="color:var(--c-text3);font-size:12px;">
-            No risk data available for the selected scope.
+          <div class="ttv2-ca-empty-state">
+            <i class="bx bx-shield-quarter"></i>
+            <div class="ttv2-ca-empty-title">No risk data yet</div>
+            <div class="ttv2-ca-empty-text">No risk data available for the selected scope.</div>
           </div>
         {% endif %}
       </div>
     </div>
   </div>
   <div class="col-12 col-xl-6">
-    <div class="ttv2-card">
-      <div class="card-title mb-2">Career paths shortlisted this week</div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
+    <div class="ttv2-card ttv2-ca-side-card h-100">
+      {% set paths = (ca.get('shortlisted',[]) if ca is mapping else []) %}
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-3 flex-wrap">
+        <div>
+          <div class="card-title mb-0">Career paths shortlisted this week</div>
+          <div class="ttv2-ca-side-sub">Weekly shortlist progress across your active students.</div>
+        </div>
+        <span class="ttv2-ca-count-pill">{{ paths|length if paths else 0 }} entries</span>
+      </div>
+      <div class="table-responsive ttv2-ca-shortlist-wrap">
+        <table class="table table-sm mb-0 ttv2-ca-shortlist-table">
           <thead>
             <tr>
               <th>Student</th>
@@ -183,22 +204,25 @@
             </tr>
           </thead>
           <tbody>
-            {% set paths = (ca.get('shortlisted',[]) if ca is mapping else []) %}
             {% if paths and (paths|length > 0) %}
               {% for p in paths %}
                 <tr {% if is_dummy %}style="opacity:.75"{% endif %}>
-                  <td>{{ p.get('student','—') }}</td>
-                  <td><span class="badge bg-secondary">{{ p.get('primary','—') }}</span></td>
-                  <td><span class="badge bg-secondary">{{ p.get('secondary','—') }}</span></td>
-                  <td><span class="badge bg-secondary">{{ p.get('tertiary','—') }}</span></td>
-                  <td>{{ p.get('next','—') }}</td>
-                  <td>{{ p.get('target','—') }}</td>
+                  <td class="ttv2-ca-student-col">{{ p.get('student','—') }}</td>
+                  <td><span class="badge ttv2-ca-path-badge">{{ p.get('primary','—') }}</span></td>
+                  <td><span class="badge ttv2-ca-path-badge">{{ p.get('secondary','—') }}</span></td>
+                  <td><span class="badge ttv2-ca-path-badge">{{ p.get('tertiary','—') }}</span></td>
+                  <td class="ttv2-ca-next-col">{{ p.get('next','—') }}</td>
+                  <td class="ttv2-ca-target-col">{{ p.get('target','—') }}</td>
                 </tr>
               {% endfor %}
             {% else %}
               <tr>
-                <td colspan="6" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
-                  No shortlisted careers found for this week.
+                <td colspan="6" class="p-0 border-0">
+                  <div class="ttv2-ca-empty-state ttv2-ca-empty-state--table">
+                    <i class="bx bx-compass"></i>
+                    <div class="ttv2-ca-empty-title">No shortlisted careers this week</div>
+                    <div class="ttv2-ca-empty-text">No shortlisted careers found for this week.</div>
+                  </div>
                 </td>
               </tr>
             {% endif %}

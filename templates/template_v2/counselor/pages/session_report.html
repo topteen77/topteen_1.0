@@ -6,7 +6,7 @@
 {% set weekly_note = (ttv2_sessions_weekly_note if ttv2_sessions_weekly_note is defined else '—') %}
 {% set next_actions = (ttv2_sessions_next_actions if ttv2_sessions_next_actions is defined else []) %}
 
-<div class="ttv2-card mb-3">
+<div class="ttv2-card mb-3 ttv2-sr-hero-card">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
       <div class="card-title mb-0">Session report</div>
@@ -34,28 +34,48 @@
   </div>
 </div>
 
-<div class="ttv2-kpi-grid">
-  <div class="ttv2-kpi">
+<div class="ttv2-kpi-grid ttv2-sr-kpi-grid">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-calendar-check'></i></span>
+      <span class="ttv2-sr-kpi-chip">Weekly</span>
+    </div>
     <div class="val">{{ k.get('sessions_week', 0) }}</div>
     <div class="lbl">Sessions (this week)</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Follow-ups logged</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-user-check'></i></span>
+      <span class="ttv2-sr-kpi-chip">Coverage</span>
+    </div>
     <div class="val">{{ k.get('unique_students_week', 0) }}</div>
     <div class="lbl">Students engaged</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Unique students this week</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-check-double'></i></span>
+      <span class="ttv2-sr-kpi-chip">Done</span>
+    </div>
     <div class="val">{{ k.get('completed_week', 0) }}</div>
     <div class="lbl">Completed</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Completed follow-ups</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-trending-up'></i></span>
+      <span class="ttv2-sr-kpi-chip">Ratio</span>
+    </div>
     <div class="val">{{ k.get('completion_rate_week', 0) }}%</div>
     <div class="lbl">Completion rate</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Completed / total (week)</div>
   </div>
-  <div class="ttv2-kpi">
+  <div class="ttv2-kpi ttv2-sr-kpi">
+    <div class="ttv2-sr-kpi-top">
+      <span class="ttv2-sr-kpi-icon" aria-hidden="true"><i class='bx bx-time-five'></i></span>
+      <span class="ttv2-sr-kpi-chip">Queue</span>
+    </div>
     <div class="val">{{ k.get('upcoming_followups', 0) }}</div>
     <div class="lbl">Upcoming</div>
     <div class="sub" style="font-size:11px;color:var(--c-text3);">Next follow-ups scheduled</div>
@@ -63,14 +83,18 @@
 </div>
 
 {% if mtd %}
-<div class="ttv2-card mt-3">
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-    <div class="card-title mb-0">Full {{ month_label }} session history — month-to-date</div>
+<div class="ttv2-card mt-3 ttv2-sr-mtd-card">
+  <div class="ttv2-sr-mtd-head mb-2">
+    <div class="card-title mb-0 ttv2-sr-mtd-headline">Full {{ month_label }} session history — month-to-date</div>
+    <div class="ttv2-sr-mtd-meta">
+      <i class='bx bx-line-chart' aria-hidden="true"></i>
+      Weekly trend
+    </div>
   </div>
   <div class="table-responsive">
-    <table class="table table-sm mb-0">
+    <table class="table table-sm mb-0 ttv2-sr-mtd-table">
       <thead>
-        <tr style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-text3);">
+        <tr>
           <th>Week</th>
           <th>Period</th>
           <th class="text-center">Sessions</th>
@@ -86,18 +110,24 @@
         {% for r in mtd %}
           <tr data-ttv2-mtd-week="1"
               data-ttv2-week-start="{{ r.get('week_start','') }}"
-              {% if r.get('is_current') %}style="background:rgba(34,197,94,0.08)"{% endif %}>
-            <td>{{ r.get('week','—') }}</td>
-            <td>{{ r.get('period','—') }}</td>
+              {% if r.get('is_current') %}data-current-week="1"{% endif %}>
+            <td><span class="ttv2-sr-week">{{ r.get('week','—') }}</span></td>
+            <td><span class="ttv2-sr-period">{{ r.get('period','—') }}</span></td>
             <td class="text-center">
-              <span class="badge {% if (r.get('sessions',0) or 0) > 0 %}bg-success{% else %}bg-secondary{% endif %}">{{ r.get('sessions',0) }}</span>
+              <span class="ttv2-sr-statpill {% if (r.get('sessions',0) or 0) > 0 %}ttv2-sr-statpill-green{% else %}ttv2-sr-statpill-muted{% endif %}">{{ r.get('sessions',0) }}</span>
             </td>
             <td class="text-center">{{ r.get('students_reached','0/0') }}</td>
-            <td class="text-center"><span class="badge bg-warning text-dark">{{ r.get('test_completion',0) }}%</span></td>
-            <td class="text-center"><span class="badge bg-warning text-dark">{{ r.get('clarity_gap',0) }}%</span></td>
+            <td class="text-center"><span class="ttv2-sr-statpill ttv2-sr-statpill-amber">{{ r.get('test_completion',0) }}%</span></td>
+            <td class="text-center"><span class="ttv2-sr-statpill ttv2-sr-statpill-amber">{{ r.get('clarity_gap',0) }}%</span></td>
             <td class="text-center">{{ r.get('paths',0) }}</td>
-            <td class="text-center"><span class="badge bg-secondary">{{ r.get('milestone','—') }}</span></td>
-            <td class="text-center" style="opacity:.7;">{% if r.get('rating',0) %}{{ r.get('rating') }}{% else %}—{% endif %}</td>
+            <td class="text-center"><span class="ttv2-sr-statpill ttv2-sr-statpill-slate">{{ r.get('milestone','—') }}</span></td>
+            <td class="text-center ttv2-sr-rating">
+              {% if r.get('rating',0) %}
+                <span class="ttv2-sr-rating-chip"><i class='bx bxs-star' aria-hidden="true"></i>{{ r.get('rating') }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>
@@ -106,22 +136,22 @@
 
   <div class="row g-3 mt-2">
     <div class="col-12 col-xl-6">
-      <div style="font-size:11px;color:var(--c-text3);margin-bottom:6px;">Counselor weekly note</div>
-      <div class="ttv2-card" style="padding:12px;background:rgba(255,255,255,.02);">
-        <div style="font-size:12px;color:var(--c-text2);line-height:1.45;">{{ weekly_note }}</div>
+      <div class="ttv2-sr-note-label"><i class='bx bx-note' aria-hidden="true"></i>Counselor weekly note</div>
+      <div class="ttv2-sr-note-card">
+        <div class="ttv2-sr-note-text">{{ weekly_note }}</div>
       </div>
     </div>
     <div class="col-12 col-xl-6">
-      <div style="font-size:11px;color:var(--c-text3);margin-bottom:6px;">Action items for next week</div>
-      <div class="ttv2-card" style="padding:12px;background:rgba(255,255,255,.02);">
+      <div class="ttv2-sr-note-label"><i class='bx bx-task' aria-hidden="true"></i>Action items for next week</div>
+      <div class="ttv2-sr-note-card">
         {% if next_actions and (next_actions|length > 0) %}
-          <ol class="mb-0" style="padding-left:16px;font-size:12px;color:var(--c-text2);line-height:1.55;">
+          <ol class="mb-0 ttv2-sr-note-text" style="padding-left:16px;">
             {% for a in next_actions %}
               <li>{{ a }}</li>
             {% endfor %}
           </ol>
         {% else %}
-          <div style="font-size:12px;color:var(--c-text2);line-height:1.45;">—</div>
+          <div class="ttv2-sr-note-text">—</div>
         {% endif %}
       </div>
     </div>
@@ -135,7 +165,7 @@
     {% include "template_v2/includes/ttv2_weekly_session_report_widget.html" %}
   </div>
   <div class="col-12 col-xl-5">
-    <div class="ttv2-card">
+    <div class="ttv2-card ttv2-sr-students-card">
       <div class="d-flex align-items-start justify-content-between gap-2">
         <div class="min-w-0">
           <div class="card-title mb-0">Student sessions</div>
@@ -143,7 +173,7 @@
         </div>
       </div>
 
-      <div class="mt-2" style="border-top:1px solid var(--c-border);">
+      <div class="mt-2 ttv2-sr-students-wrap">
         {% if students %}
           <div class="ttv2-sr-students" data-ttv2-sr-students>
             {% for s in students %}
@@ -164,11 +194,11 @@
                       {{ wk }} session{{ 's' if wk != 1 else '' }} this week · {{ wkdone }} completed
                     </div>
                   </div>
-                  <div class="ms-auto d-flex align-items-center gap-2">
+                  <div class="ms-auto d-flex align-items-center gap-2 ttv2-sr-student-actions">
                     <span class="ttv2-sr-pill">
                       {{ done }} of {{ total }} done
                     </span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-ttv2-sr-toggle>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ttv2-sr-toggle-btn" data-ttv2-sr-toggle>
                       Details
                     </button>
                   </div>
@@ -203,7 +233,7 @@
                     {% endfor %}
                   </div>
                   <div class="ttv2-sr-footer">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-ttv2-sr-loadall>
+                    <button type="button" class="btn btn-sm btn-outline-primary ttv2-sr-loadall-btn" data-ttv2-sr-loadall>
                       Load complete history
                     </button>
                   </div>
@@ -212,7 +242,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <div class="text-center py-5" style="color:var(--c-text3);font-size:12px;">
+          <div class="ttv2-sr-empty-state">
             No follow-ups yet.
           </div>
         {% endif %}

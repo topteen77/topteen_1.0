@@ -8,13 +8,34 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}{{ super() }} combined-report-page{% endblock %}
+{% block header %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
+
+{% block footer %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
+
+{% block bodyclass %}{{ super() }} combined-report-page{% if embed_mode %} report-embed-mode{% endif %}{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+{% if embed_mode %}
+<style>
+  body.report-embed-mode {
+    background: #fff;
+  }
+  body.report-embed-mode #pc-fab,
+  body.report-embed-mode #pc-win,
+  body.report-embed-mode #cb-root,
+  body.report-embed-mode .footer-cta,
+  body.report-embed-mode .chatbot-widget,
+  body.report-embed-mode .chatbot-container,
+  body.report-embed-mode .page-chat-widget {
+    display: none !important;
+    visibility: hidden !important;
+  }
+</style>
+{% endif %}
 <style>
   body {
     margin: 0;

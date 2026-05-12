@@ -5,7 +5,19 @@
 
 {% block footer_cta %}{% endblock %}
 
-{% block student_bodyclass %}combined-report-page user-dashboard user-dashboard-fullscreen{% endblock %}
+{% block student_bodyclass %}combined-report-page user-dashboard user-dashboard-fullscreen{% if embed_mode %} report-embed-mode{% endif %}{% endblock %}
+
+{% block student_shell_topbar %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
+
+{% block student_sidebar %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
+
+{% block student_main_col_class %}{% if embed_mode %}col-12{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block student_row_class %}{% if embed_mode %}row g-0{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block student_container_class %}{% if embed_mode %}container-fluid px-0{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block student_shell_offcanvas %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
 
 {% block student_shell_vars %}
 {{ super() }}
@@ -14,6 +26,33 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% if embed_mode %}
+<style>
+  body.report-embed-mode {
+    background: #fff;
+  }
+  body.report-embed-mode .std-shell-main {
+    padding-top: 0;
+  }
+  body.report-embed-mode .combined-report-wrap {
+    margin-top: 0 !important;
+  }
+  body.report-embed-mode .report-shell {
+    margin-top: 0;
+    padding-top: 12px !important;
+  }
+  body.report-embed-mode #pc-fab,
+  body.report-embed-mode #pc-win,
+  body.report-embed-mode #cb-root,
+  body.report-embed-mode .footer-cta,
+  body.report-embed-mode .chatbot-widget,
+  body.report-embed-mode .chatbot-container,
+  body.report-embed-mode .page-chat-widget {
+    display: none !important;
+    visibility: hidden !important;
+  }
+</style>
+{% endif %}
 <style>
   .std-shell-main {
     padding-top: 0px;
@@ -91,6 +130,7 @@
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 10px;
     max-width: 860px;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
@@ -102,6 +142,7 @@
     padding: 10px 12px;
     text-align: left;
     backdrop-filter: blur(6px);
+    min-width: 0;
   }
 
   .hero-meta-label {
@@ -115,6 +156,20 @@
     font-size: 15px;
     font-weight: 700;
     margin-top: 3px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  @media (max-width: 767.98px) {
+    .hero-meta-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    .hero-meta-value {
+      font-size: 14px;
+    }
   }
 
   .report-shell {
@@ -1219,22 +1274,45 @@
 <div class="mt-8 combined-report-wrap">
 
 
+  {% if not embed_mode %}
   <div class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 mt-4">
     {% include 'template20/includes/breadcrumb.html' %}
   </div>
+  {% endif %}
 
   <main class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 py-4 report-shell">
-    <div class="row justify-content-center mt-5">
+    <div class="row justify-content-center {% if embed_mode %}mt-0{% else %}mt-5{% endif %}">
       <div class="col-12">
         <div class="report-hero text-center text-white">
           <div class="report-hero-content">
             <h1 class="hero-title mb-2">Comprehensive Assessment Report</h1>
             <p class="hero-subtitle mb-0 text-white">Your complete progress view across personality, career interests, motivation, and aptitude.</p>
+            {% if embed_mode %}
+            <div class="hero-meta-grid">
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Student Name</div>
+                <div class="hero-meta-value">{{ report_student_name or '-' }}</div>
+              </div>
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Email ID</div>
+                <div class="hero-meta-value">{{ report_student_email or '-' }}</div>
+              </div>
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Mobile</div>
+                <div class="hero-meta-value">{{ report_student_mobile or '-' }}</div>
+              </div>
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Class</div>
+                <div class="hero-meta-value">{{ report_student_class or '-' }}</div>
+              </div>
+            </div>
+            {% else %}
             <div class="hero-chip-row">
               <span class="hero-chip"><i class="fas fa-chart-line"></i> Performance overview</span>
               <span class="hero-chip"><i class="fas fa-lightbulb"></i> Career insights</span>
               <span class="hero-chip"><i class="fas fa-bullseye"></i> Improvement focus</span>
             </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -1250,10 +1328,12 @@
         </div>
         <h3>No Results Found</h3>
         <p>{{ error|default('You need to complete all tests to generate a combined report.') }}</p>
+        {% if not embed_mode %}
         <a href="{{ url('post_matric:tests') }}" class="btn-primary mt-4">
           <i class="fas fa-arrow-right"></i>
           Take Tests
         </a>
+        {% endif %}
       </div>
     </div>
     {% else %}

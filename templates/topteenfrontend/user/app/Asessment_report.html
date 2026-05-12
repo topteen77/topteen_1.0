@@ -1,8 +1,51 @@
  {% extends 'base.html' %}
 {% load static %}
 {% block main %}
+  {% if embed_mode %}
+  <script>
+    (function() {
+      var host = document.currentScript && document.currentScript.parentElement;
+      function hideChrome() {
+        try {
+          document.querySelectorAll('#headerPanel, #sidebar, footer').forEach(function(el) {
+            if (el) el.style.display = 'none';
+          });
+          var top = host;
+          while (top && top.parentElement && top.parentElement.tagName !== 'BODY') top = top.parentElement;
+          var sib = top ? top.nextElementSibling : null;
+          while (sib) {
+            sib.style.display = 'none';
+            sib = sib.nextElementSibling;
+          }
+          if (document.body) document.body.classList.add('tt-report-embed');
+        } catch (e) {}
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideChrome);
+      } else {
+        hideChrome();
+      }
+    })();
+  </script>
+  {% endif %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    {% if embed_mode %}
+    body.tt-report-embed {
+      background: #fff;
+    }
+    body.tt-report-embed #pc-fab,
+    body.tt-report-embed #pc-win,
+    body.tt-report-embed #cb-root,
+    body.tt-report-embed footer,
+    body.tt-report-embed .footer-cta,
+    body.tt-report-embed .chatbot-widget,
+    body.tt-report-embed .chatbot-container,
+    body.tt-report-embed .page-chat-widget {
+      display: none !important;
+      visibility: hidden !important;
+    }
+    {% endif %}
     body {
       margin: 0;
       padding: 0;

@@ -7,6 +7,123 @@
       color: var(--c-text3);
       line-height: 1.35;
     }
+    #sec-institute-counselors .ttv2-roster-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.14);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.14), transparent 55%),
+        radial-gradient(90% 100% at 100% 0%, rgba(14, 165, 233, 0.10), transparent 52%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)),
+        var(--c-bg2);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 22px 44px rgba(15, 23, 42, 0.08);
+    }
+    #sec-institute-counselors .ttv2-roster-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 58%, #38bdf8 100%);
+      opacity: 0.95;
+      pointer-events: none;
+    }
+    #sec-institute-counselors .ttv2-roster-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    #sec-institute-counselors .ttv2-roster-title-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-roster-title-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 21px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #38bdf8 120%);
+      box-shadow: 0 14px 28px rgba(99, 102, 241, 0.26);
+    }
+    #sec-institute-counselors .ttv2-roster-kicker {
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6366f1;
+    }
+    #sec-institute-counselors .ttv2-roster-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    #sec-institute-counselors .ttv2-roster-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #4338ca;
+      background: rgba(99, 102, 241, 0.10);
+      border: 1px solid rgba(99, 102, 241, 0.16);
+    }
+    #sec-institute-counselors .ttv2-roster-meta-pill--success {
+      color: #059669;
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.18);
+    }
+    #sec-institute-counselors .ttv2-roster-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(248, 250, 252, 0.74);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    #sec-institute-counselors .ttv2-roster-control-copy {
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-roster-control-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--c-text3);
+    }
+    #sec-institute-counselors .ttv2-roster-control-sub {
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--c-text2);
+      line-height: 1.25;
+    }
+    #sec-institute-counselors .ttv2-roster-select {
+      min-width: 220px;
+      max-width: 290px;
+      border-radius: 12px;
+      border-color: rgba(99, 102, 241, 0.16);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
     #sec-institute-counselors .ttv2-card-title-row {
       display: flex;
       align-items: flex-start;
@@ -42,6 +159,17 @@
       overflow: hidden;
       border: 1px solid rgba(148, 163, 184, .25);
     }
+    #sec-institute-counselors .ttv2-roster-table-wrap {
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.28)),
+        rgba(248, 250, 252, 0.78);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 8px 18px rgba(15, 23, 42, 0.05);
+    }
     #sec-institute-counselors .ttv2-lb-table thead th {
       position: sticky;
       top: 0;
@@ -59,6 +187,133 @@
     }
     #sec-institute-counselors .ttv2-lb-table tbody tr:hover {
       background: rgba(99, 102, 241, .06);
+    }
+    #sec-institute-counselors .ttv2-roster-table {
+      --bs-table-bg: transparent;
+      --bs-table-striped-bg: transparent;
+      --bs-table-hover-bg: transparent;
+      margin-bottom: 0;
+    }
+    #sec-institute-counselors .ttv2-roster-table thead th {
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.76);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom-color: rgba(148, 163, 184, 0.18);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+    #sec-institute-counselors .ttv2-roster-table tbody tr {
+      transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    #sec-institute-counselors .ttv2-roster-table tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.34);
+    }
+    #sec-institute-counselors .ttv2-roster-table tbody tr:hover {
+      background: rgba(99, 102, 241, 0.06);
+      box-shadow: inset 3px 0 0 #6366f1;
+    }
+    #sec-institute-counselors .ttv2-roster-table tbody td {
+      padding: 0.92rem 1rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    #sec-institute-counselors .ttv2-roster-rank {
+      min-width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #4338ca;
+      background: rgba(99, 102, 241, 0.10);
+      border: 1px solid rgba(99, 102, 241, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    #sec-institute-counselors .ttv2-roster-email {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+    #sec-institute-counselors .ttv2-roster-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+      background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.22);
+    }
+    #sec-institute-counselors .ttv2-roster-email-main {
+      display: block;
+      color: var(--c-text);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    #sec-institute-counselors .ttv2-roster-email-sub {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--c-text3);
+      line-height: 1.25;
+    }
+    #sec-institute-counselors .ttv2-roster-date {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      white-space: nowrap;
+    }
+    #sec-institute-counselors .ttv2-roster-metric {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 6px 10px;
+      min-width: 74px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      background: rgba(99, 102, 241, 0.08);
+      color: #4338ca;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    #sec-institute-counselors .ttv2-roster-metric--warm {
+      color: #c2410c;
+      background: rgba(251, 146, 60, 0.12);
+      border-color: rgba(251, 146, 60, 0.16);
+    }
+    #sec-institute-counselors .ttv2-roster-metric--sky {
+      color: #0369a1;
+      background: rgba(14, 165, 233, 0.12);
+      border-color: rgba(14, 165, 233, 0.16);
+    }
+    #sec-institute-counselors .ttv2-roster-metric--success {
+      color: #059669;
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.18);
+    }
+    #sec-institute-counselors .ttv2-roster-metric--neutral {
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.16);
     }
     #sec-institute-counselors .ttv2-pill {
       display: inline-flex;
@@ -276,19 +531,217 @@
       position: relative;
       height: 240px;
     }
+    #sec-institute-counselors .ttv2-cc-toolbar {
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(99, 102, 241, 0.14);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.12), transparent 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.3)),
+        var(--c-bg2);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+    #sec-institute-counselors .ttv2-cc-toolbar-copy {
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-cc-toolbar-kicker {
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6366f1;
+    }
+    #sec-institute-counselors .ttv2-cc-toolbar-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--c-text);
+    }
+    #sec-institute-counselors .ttv2-cc-toolbar-sub {
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--c-text3);
+    }
+    #sec-institute-counselors .ttv2-cc-toolbar-actions {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+    #sec-institute-counselors .ttv2-cc-toolbar-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
     #sec-institute-counselors .ttv2-cc-toolbar .form-select,
     #sec-institute-counselors .ttv2-cc-toolbar input[type="date"] {
-      max-width: 160px;
+      min-width: 148px;
+      max-width: 180px;
+      border-radius: 12px;
+      border-color: rgba(99, 102, 241, 0.14);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    #sec-institute-counselors #ttv2CounselorsRangeApply {
+      border-radius: 12px;
+      padding-inline: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 18px rgba(99, 102, 241, 0.18);
+    }
+    #sec-institute-counselors .ttv2-analytics-card {
+      --ttv2-analytics-accent: #6366f1;
+      --ttv2-analytics-accent-soft: rgba(99, 102, 241, 0.12);
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.14);
+      background:
+        radial-gradient(140% 100% at 0% 0%, var(--ttv2-analytics-accent-soft), transparent 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.12)),
+        var(--c-bg2);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 20px 40px rgba(15, 23, 42, 0.07);
+    }
+    #sec-institute-counselors .ttv2-analytics-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--ttv2-analytics-accent), color-mix(in srgb, var(--ttv2-analytics-accent) 55%, white 45%));
+      opacity: 0.96;
+      pointer-events: none;
+    }
+    #sec-institute-counselors .ttv2-analytics-card--line {
+      --ttv2-analytics-accent: #6366f1;
+      --ttv2-analytics-accent-soft: rgba(99, 102, 241, 0.14);
+    }
+    #sec-institute-counselors .ttv2-analytics-card--coverage {
+      --ttv2-analytics-accent: #14b8a6;
+      --ttv2-analytics-accent-soft: rgba(20, 184, 166, 0.12);
+    }
+    #sec-institute-counselors .ttv2-analytics-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    #sec-institute-counselors .ttv2-analytics-head-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-analytics-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--ttv2-analytics-accent), color-mix(in srgb, var(--ttv2-analytics-accent) 55%, white 45%));
+      box-shadow: 0 14px 26px color-mix(in srgb, var(--ttv2-analytics-accent) 28%, transparent);
+    }
+    #sec-institute-counselors .ttv2-analytics-kicker {
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ttv2-analytics-accent);
+    }
+    #sec-institute-counselors .ttv2-analytics-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    #sec-institute-counselors .ttv2-analytics-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ttv2-analytics-accent);
+      background: color-mix(in srgb, var(--ttv2-analytics-accent) 10%, white 90%);
+      border: 1px solid color-mix(in srgb, var(--ttv2-analytics-accent) 14%, white 86%);
+    }
+    #sec-institute-counselors .ttv2-analytics-toggle {
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    #sec-institute-counselors .ttv2-analytics-toggle .btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 0;
+      border-radius: 999px !important;
+      color: var(--c-text2);
+      background: transparent;
+      box-shadow: none;
+    }
+    #sec-institute-counselors .ttv2-analytics-toggle .btn.active,
+    #sec-institute-counselors .ttv2-analytics-toggle .btn[aria-pressed="true"] {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--ttv2-analytics-accent), color-mix(in srgb, var(--ttv2-analytics-accent) 55%, white 45%));
+      box-shadow: 0 10px 18px color-mix(in srgb, var(--ttv2-analytics-accent) 26%, transparent);
+    }
+    #sec-institute-counselors .ttv2-analytics-card .ttv2-canvas-box {
+      height: 260px;
+      border-radius: 18px;
+      padding: 12px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18)),
+        rgba(248, 250, 252, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    #sec-institute-counselors .ttv2-cc-mini-wrap {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.18)),
+        rgba(248, 250, 252, 0.75);
     }
     #sec-institute-counselors .ttv2-cc-mini-table {
       font-size: 13px;
+      --bs-table-bg: transparent;
+      --bs-table-striped-bg: transparent;
     }
     #sec-institute-counselors .ttv2-cc-mini-table thead th {
+      padding: 0.9rem 1rem;
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: .03em;
+      letter-spacing: .08em;
       color: var(--c-text3);
-      border-bottom: 1px solid rgba(148, 163, 184, .22);
+      border-bottom: 1px solid rgba(148, 163, 184, .18);
+      background: rgba(255, 255, 255, 0.75);
+    }
+    #sec-institute-counselors .ttv2-cc-mini-table tbody td {
+      padding: 0.9rem 1rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      vertical-align: middle;
+    }
+    #sec-institute-counselors .ttv2-cc-mini-table tbody tr:hover {
+      background: rgba(99, 102, 241, 0.06);
     }
     #sec-institute-counselors .ttv2-cc-charts-refresh-wrap {
       position: relative;
@@ -339,24 +792,235 @@
       to { transform: rotate(360deg); }
     }
     #sec-institute-counselors .ttv2-sc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
       background: rgba(52, 211, 153, 0.15);
       color: #34d399;
       border: 1px solid rgba(52, 211, 153, 0.35);
     }
-    #sec-institute-counselors .ttv2-sc-table th {
+    #sec-institute-counselors .ttv2-sc-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+    }
+    #sec-institute-counselors .ttv2-sc-badge--idle {
+      background: rgba(148, 163, 184, 0.16);
+      color: #64748b;
+      border-color: rgba(148, 163, 184, 0.24);
+    }
+    #sec-institute-counselors .ttv2-sc-badge--warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #d97706;
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-card {
+      border-color: rgba(129, 140, 248, 0.20);
+      background:
+        radial-gradient(120% 120% at 0% 0%, rgba(99, 102, 241, 0.22), transparent 55%),
+        radial-gradient(90% 100% at 100% 0%, rgba(56, 189, 248, 0.12), transparent 52%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+        var(--c-bg2);
+      box-shadow:
+        0 1px 2px rgba(2, 6, 23, 0.35),
+        0 20px 42px rgba(2, 6, 23, 0.40);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-control,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-table-wrap {
+      background: rgba(15, 23, 42, 0.58);
+      border-color: rgba(148, 163, 184, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-table thead th {
+      background: rgba(15, 23, 42, 0.84);
+      border-bottom-color: rgba(148, 163, 184, 0.14);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-table tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-rank,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-meta-pill,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-metric {
+      box-shadow: none;
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-date,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-roster-metric--neutral,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-sc-badge--idle {
+      color: rgba(226, 232, 240, 0.78);
+      background: rgba(148, 163, 184, 0.14);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-sc-badge::before {
+      box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.45);
+    }
+    #sec-institute-counselors .ttv2-scorecard-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.16);
+      background:
+        radial-gradient(130% 100% at 0% 0%, rgba(16, 185, 129, 0.10), transparent 58%),
+        radial-gradient(100% 100% at 100% 0%, rgba(99, 102, 241, 0.08), transparent 56%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12)),
+        var(--c-bg2);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 20px 40px rgba(15, 23, 42, 0.07);
+    }
+    #sec-institute-counselors .ttv2-scorecard-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #10b981 0%, #22c55e 42%, #6366f1 100%);
+      opacity: 0.96;
+      pointer-events: none;
+    }
+    #sec-institute-counselors .ttv2-scorecard-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    #sec-institute-counselors .ttv2-scorecard-title-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-scorecard-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #10b981 0%, #22c55e 50%, #6366f1 120%);
+      box-shadow: 0 14px 28px rgba(16, 185, 129, 0.22);
+    }
+    #sec-institute-counselors .ttv2-scorecard-kicker {
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #10b981;
+    }
+    #sec-institute-counselors .ttv2-scorecard-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    #sec-institute-counselors .ttv2-scorecard-summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #047857;
+      background: rgba(16, 185, 129, 0.10);
+      border: 1px solid rgba(16, 185, 129, 0.16);
+    }
+    #sec-institute-counselors .ttv2-scorecard-summary-pill--indigo {
+      color: #4338ca;
+      background: rgba(99, 102, 241, 0.10);
+      border-color: rgba(99, 102, 241, 0.16);
+    }
+    #sec-institute-counselors .ttv2-scorecard-table-wrap {
+      margin-top: 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.18)),
+        rgba(248, 250, 252, 0.75);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    #sec-institute-counselors .ttv2-scorecard-table {
+      --bs-table-bg: transparent;
+      --bs-table-striped-bg: transparent;
+      margin-bottom: 0;
+    }
+    #sec-institute-counselors .ttv2-scorecard-table th {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: .04em;
+      letter-spacing: .08em;
       color: var(--c-text3);
-      border-bottom: 1px solid rgba(148, 163, 184, .22);
+      border-bottom: 1px solid rgba(148, 163, 184, .18);
+      background: rgba(255, 255, 255, 0.75);
+      padding: 0.95rem 1rem;
     }
-    #sec-institute-counselors .ttv2-sc-table td {
+    #sec-institute-counselors .ttv2-scorecard-table td {
       font-size: 13px;
       vertical-align: middle;
+      padding: 0.95rem 1rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+    }
+    #sec-institute-counselors .ttv2-scorecard-table tbody tr:hover {
+      background: rgba(16, 185, 129, 0.05);
+    }
+    #sec-institute-counselors .ttv2-scorecard-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 180px;
+    }
+    #sec-institute-counselors .ttv2-scorecard-metric-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--c-text);
+      line-height: 1.3;
+    }
+    #sec-institute-counselors .ttv2-scorecard-metric-sub {
+      font-size: 11px;
+      color: var(--c-text3);
+      line-height: 1.25;
+    }
+    #sec-institute-counselors .ttv2-scorecard-target {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+    #sec-institute-counselors .ttv2-scorecard-achieved {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 70px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+    #sec-institute-counselors .ttv2-scorecard-achieved.ttv2-sc-ok {
+      color: #059669;
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.18);
     }
     #sec-institute-counselors .ttv2-sc-ok {
       color: #34d399;
@@ -373,6 +1037,11 @@
       color: #6ee7b7;
       border: 1px solid rgba(52, 211, 153, 0.35);
     }
+    #sec-institute-counselors .ttv2-sc-pill--neutral {
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
     #sec-institute-counselors .ttv2-sc-pill-muted {
       background: rgba(148, 163, 184, 0.12);
       color: var(--c-text2);
@@ -385,11 +1054,398 @@
     #sec-institute-counselors .ttv2-sc-star {
       width: 14px;
       height: 14px;
-      border-radius: 4px;
-      background: rgba(251, 191, 36, 0.9);
+      border-radius: 999px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 6px 12px rgba(251, 191, 36, 0.18);
     }
     #sec-institute-counselors .ttv2-sc-star.off {
-      background: rgba(51, 65, 85, 0.55);
+      background: rgba(148, 163, 184, 0.35);
+      box-shadow: none;
+    }
+    #sec-institute-counselors .ttv2-scorecard-trend {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      min-width: 74px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+    #sec-institute-counselors .ttv2-scorecard-trend::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.85;
+    }
+    #sec-institute-counselors .ttv2-scorecard-trend--up {
+      color: #059669;
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.18);
+    }
+    #sec-institute-counselors .ttv2-scorecard-trend--flat {
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.16);
+    }
+    #sec-institute-counselors .ttv2-data-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    #sec-institute-counselors .ttv2-data-card-title-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-data-card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+      color: #ffffff;
+      box-shadow: 0 14px 28px rgba(99, 102, 241, 0.22);
+    }
+    #sec-institute-counselors .ttv2-data-card-kicker {
+      margin-bottom: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    #sec-institute-counselors .ttv2-data-card-summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(148, 163, 184, 0.10);
+      color: var(--c-text2);
+    }
+    #sec-institute-counselors .ttv2-activity-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(14, 165, 233, 0.16);
+      background:
+        radial-gradient(130% 100% at 0% 0%, rgba(14, 165, 233, 0.10), transparent 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.12)),
+        var(--c-bg2);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 18px 36px rgba(15, 23, 42, 0.07);
+    }
+    #sec-institute-counselors .ttv2-activity-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 46%, #6366f1 100%);
+      opacity: 0.96;
+      pointer-events: none;
+    }
+    #sec-institute-counselors .ttv2-activity-card .ttv2-data-card-icon {
+      background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 46%, #6366f1 120%);
+    }
+    #sec-institute-counselors .ttv2-activity-card .ttv2-data-card-kicker {
+      color: #0ea5e9;
+    }
+    #sec-institute-counselors .ttv2-activity-card .ttv2-data-card-summary-pill {
+      color: #0369a1;
+      background: rgba(14, 165, 233, 0.10);
+      border-color: rgba(14, 165, 233, 0.16);
+    }
+    #sec-institute-counselors .ttv2-activity-strip-wrap {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.16)),
+        rgba(248, 250, 252, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    #sec-institute-counselors .ttv2-activity-strip {
+      gap: 8px;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 0;
+    }
+    #sec-institute-counselors .ttv2-activity-pill {
+      flex: 1 1 0;
+      min-width: 12px;
+      height: 54px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.18), rgba(99, 102, 241, 0.58));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 8px 18px rgba(99, 102, 241, 0.14);
+    }
+    #sec-institute-counselors .ttv2-activity-note {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    #sec-institute-counselors .ttv2-activity-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #4338ca;
+      background: rgba(99, 102, 241, 0.10);
+      border: 1px solid rgba(99, 102, 241, 0.16);
+    }
+    #sec-institute-counselors .ttv2-activity-legend::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(245, 158, 11, 0.16);
+      background:
+        radial-gradient(130% 100% at 0% 0%, rgba(245, 158, 11, 0.10), transparent 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.12)),
+        var(--c-bg2);
+      box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.05),
+        0 18px 36px rgba(15, 23, 42, 0.07);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #f59e0b 0%, #fb923c 42%, #8b5cf6 100%);
+      opacity: 0.96;
+      pointer-events: none;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-card .ttv2-data-card-icon {
+      background: linear-gradient(135deg, #f59e0b 0%, #fb923c 46%, #8b5cf6 120%);
+      box-shadow: 0 14px 28px rgba(245, 158, 11, 0.22);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-card .ttv2-data-card-kicker {
+      color: #d97706;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-card .ttv2-data-card-summary-pill {
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.10);
+      border-color: rgba(245, 158, 11, 0.16);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-table-wrap {
+      margin-top: 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.16)),
+        rgba(248, 250, 252, 0.72);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-table {
+      --bs-table-bg: transparent;
+      --bs-table-striped-bg: transparent;
+      margin-bottom: 0;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-table thead th {
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.75);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--c-text3);
+      text-transform: uppercase;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-table tbody td {
+      padding: 0.9rem 1rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      vertical-align: middle;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-table tbody tr:hover {
+      background: rgba(245, 158, 11, 0.05);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-rank {
+      min-width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.10);
+      border: 1px solid rgba(245, 158, 11, 0.16);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 180px;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, #f59e0b 0%, #fb923c 46%, #8b5cf6 120%);
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.18);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-name-text {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--c-text);
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-name-sub {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--c-text3);
+      line-height: 1.25;
+    }
+    #sec-institute-counselors .ttv2-leaderboard-impact {
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.16);
+    }
+    #sec-institute-counselors .ttv2-leaderboard-metric {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 6px 10px;
+      min-width: 68px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--c-text2);
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-cc-toolbar,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-analytics-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-activity-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-leaderboard-card {
+      box-shadow:
+        0 1px 2px rgba(2, 6, 23, 0.35),
+        0 20px 40px rgba(2, 6, 23, 0.40);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-cc-toolbar,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-analytics-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-activity-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-leaderboard-card,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-cc-mini-wrap,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-table-wrap,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-analytics-card .ttv2-canvas-box,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-activity-strip-wrap,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-leaderboard-table-wrap {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+        rgba(15, 23, 42, 0.58);
+      border-color: rgba(148, 163, 184, 0.16);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-analytics-toggle {
+      background: rgba(15, 23, 42, 0.74);
+      border-color: rgba(148, 163, 184, 0.16);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-cc-mini-table thead th,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-table th,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-leaderboard-table th {
+      background: rgba(15, 23, 42, 0.84);
+      border-bottom-color: rgba(148, 163, 184, 0.14);
+    }
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-target,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-achieved,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-scorecard-trend,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-sc-pill--neutral,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-data-card-summary-pill,
+    html[data-ttv2-theme="dark"] body.ttv2-shell #sec-institute-counselors .ttv2-leaderboard-metric {
+      color: rgba(226, 232, 240, 0.82);
+      background: rgba(148, 163, 184, 0.14);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+    @media (max-width: 768px) {
+      #sec-institute-counselors .ttv2-roster-head {
+        align-items: stretch;
+      }
+      #sec-institute-counselors .ttv2-cc-toolbar,
+      #sec-institute-counselors .ttv2-analytics-head,
+      #sec-institute-counselors .ttv2-scorecard-head,
+      #sec-institute-counselors .ttv2-data-card-head {
+        align-items: stretch;
+      }
+      #sec-institute-counselors .ttv2-cc-toolbar-actions,
+      #sec-institute-counselors .ttv2-analytics-toggle {
+        width: 100%;
+      }
+      #sec-institute-counselors .ttv2-cc-toolbar .form-select,
+      #sec-institute-counselors .ttv2-cc-toolbar input[type="date"] {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+      }
+      #sec-institute-counselors #ttv2CounselorsRangeApply {
+        width: 100%;
+      }
+      #sec-institute-counselors .ttv2-roster-control {
+        width: 100%;
+      }
+      #sec-institute-counselors .ttv2-roster-select {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+      }
+      #sec-institute-counselors .ttv2-roster-email {
+        min-width: 180px;
+      }
+      #sec-institute-counselors .ttv2-roster-table tbody td,
+      #sec-institute-counselors .ttv2-roster-table thead th,
+      #sec-institute-counselors .ttv2-scorecard-table td,
+      #sec-institute-counselors .ttv2-scorecard-table th,
+      #sec-institute-counselors .ttv2-leaderboard-table td,
+      #sec-institute-counselors .ttv2-leaderboard-table th {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
     }
   </style>
 
@@ -460,25 +1516,42 @@
   {% set _cc = (ttv2_counselors_chart_controls|default({}, true)) %}
   {% set _sc = (ttv2_counselors_scorecard if ttv2_counselors_scorecard is defined else None) %}
   {% set _focus = (ttv2_counselors_focus_id if ttv2_counselors_focus_id is defined else None) %}
+  {% set _roster_stats = namespace(active=0) %}
+  {% for r in roster %}
+    {% if (r.status|default('')|lower) == 'active' %}
+      {% set _roster_stats.active = _roster_stats.active + 1 %}
+    {% endif %}
+  {% endfor %}
 
   {% if roster and (roster|length) %}
-    <div class="ttv2-card mb-3">
-      <div class="ttv2-card-title-row align-items-center">
-        <div>
-          <div class="card-title mb-0">Counselor roster</div>
-          <div class="ttv2-section-sub">Email, session counts, student coverage, and follow-up rows for this institute.</div>
+    <div class="ttv2-card ttv2-roster-card mb-3">
+      <div class="ttv2-roster-head">
+        <div class="ttv2-roster-title-wrap">
+          <div class="ttv2-roster-title-icon"><i class="bx bx-id-card" aria-hidden="true"></i></div>
+          <div>
+            <div class="ttv2-roster-kicker">Counselor desk</div>
+            <div class="card-title mb-0">Counselor roster</div>
+            <div class="ttv2-section-sub">Email, session counts, student coverage, and follow-up rows for this institute.</div>
+            <div class="ttv2-roster-meta">
+              <span class="ttv2-roster-meta-pill"><i class="bx bx-group" aria-hidden="true"></i>{{ roster|length }} counselors</span>
+              <span class="ttv2-roster-meta-pill ttv2-roster-meta-pill--success"><i class="bx bx-check-circle" aria-hidden="true"></i>{{ _roster_stats.active }} active</span>
+            </div>
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <label class="ttv2-muted mb-0" for="ttv2CounselorFocusSelect">Charts &amp; scorecard</label>
-          <select id="ttv2CounselorFocusSelect" class="form-select form-select-sm" style="min-width:200px;max-width:280px">
+        <div class="ttv2-roster-control">
+          <div class="ttv2-roster-control-copy">
+            <label class="ttv2-roster-control-label mb-0" for="ttv2CounselorFocusSelect">Charts &amp; scorecard</label>
+            <div class="ttv2-roster-control-sub">Switch the focused counselor for the panels below.</div>
+          </div>
+          <select id="ttv2CounselorFocusSelect" class="form-select form-select-sm ttv2-roster-select">
             {% for r in roster %}
               <option value="{{ r.id }}" {% if _focus and r.id == _focus %}selected{% endif %}>{{ r.label|default(r.email) }}</option>
             {% endfor %}
           </select>
         </div>
       </div>
-      <div class="table-responsive ttv2-lb-wrap mt-2">
-        <table class="table table-sm mb-0 ttv2-lb-table">
+      <div class="table-responsive ttv2-lb-wrap ttv2-roster-table-wrap">
+        <table class="table table-sm mb-0 ttv2-lb-table ttv2-roster-table">
           <thead>
             <tr>
               <th class="text-nowrap">#</th>
@@ -494,16 +1567,32 @@
           </thead>
           <tbody>
             {% for r in roster %}
+              {% set _status = (r.status|default('Unknown', true)) %}
+              {% set _status_key = _status|lower %}
+              {% set _status_class = 'ttv2-sc-badge' %}
+              {% if 'pending' in _status_key or 'review' in _status_key %}
+                {% set _status_class = _status_class + ' ttv2-sc-badge--warn' %}
+              {% elif _status_key != 'active' %}
+                {% set _status_class = _status_class + ' ttv2-sc-badge--idle' %}
+              {% endif %}
               <tr>
-                <td class="ttv2-num text-nowrap">{{ r.row_num|default(loop.index) }}</td>
-                <td class="min-w-0">{{ r.email }}</td>
-                <td class="text-nowrap">{{ r.joined }}</td>
-                <td class="text-end ttv2-num">{{ r.sessions_total }}</td>
-                <td class="text-end ttv2-num">{{ r.students_covered_num }} / {{ r.students_covered_den }}</td>
-                <td class="text-end ttv2-num">{{ r.students_counselled }}</td>
-                <td class="text-end ttv2-num">{{ r.followups }}</td>
-                <td class="text-end text-nowrap">{{ r.avg_session_label }}</td>
-                <td><span class="ttv2-sc-badge">{{ r.status }}</span></td>
+                <td class="text-nowrap"><span class="ttv2-roster-rank ttv2-num">{{ r.row_num|default(loop.index) }}</span></td>
+                <td class="min-w-0">
+                  <div class="ttv2-roster-email">
+                    <span class="ttv2-roster-avatar">{{ (r.email|default('?', true))[:1]|upper }}</span>
+                    <span class="min-w-0">
+                      <span class="ttv2-roster-email-main">{{ r.email|default('—', true) }}</span>
+                      <span class="ttv2-roster-email-sub">{{ r.label if r.label is defined and r.label and r.label != r.email else 'Counselor account' }}</span>
+                    </span>
+                  </div>
+                </td>
+                <td class="text-nowrap"><span class="ttv2-roster-date"><i class="bx bx-calendar" aria-hidden="true"></i>{{ r.joined|default('—', true) }}</span></td>
+                <td class="text-end"><span class="ttv2-roster-metric ttv2-num">{{ r.sessions_total }}</span></td>
+                <td class="text-end"><span class="ttv2-roster-metric ttv2-roster-metric--warm ttv2-num">{{ r.students_covered_num }} / {{ r.students_covered_den }}</span></td>
+                <td class="text-end"><span class="ttv2-roster-metric ttv2-roster-metric--sky ttv2-num">{{ r.students_counselled }}</span></td>
+                <td class="text-end"><span class="ttv2-roster-metric ttv2-roster-metric--success ttv2-num">{{ r.followups }}</span></td>
+                <td class="text-end text-nowrap"><span class="ttv2-roster-metric ttv2-roster-metric--neutral">{{ r.avg_session_label|default('—', true) }}</span></td>
+                <td><span class="{{ _status_class }}">{{ _status }}</span></td>
               </tr>
             {% endfor %}
           </tbody>
@@ -513,41 +1602,56 @@
 
     <div id="ttv2CounselorsChartsRefreshWrap" class="ttv2-cc-charts-refresh-wrap" aria-live="polite">
     <div class="d-flex flex-wrap align-items-end gap-2 mb-2 ttv2-cc-toolbar">
-      <div>
-        <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsRange">Chart period</label>
-        <select id="ttv2CounselorsRange" class="form-select form-select-sm" aria-label="Chart date range">
-          {% set _rk = (_cc.get('range_key') or '30d') %}
-          <option value="today" {% if _rk == 'today' %}selected{% endif %}>Today</option>
-          <option value="week" {% if _rk == 'week' %}selected{% endif %}>Last 7 days</option>
-          <option value="30d" {% if _rk == '30d' %}selected{% endif %}>Last 30 days</option>
-          <option value="year" {% if _rk == 'year' %}selected{% endif %}>Last 365 days</option>
-          <option value="custom" {% if _rk == 'custom' %}selected{% endif %}>Custom range</option>
-        </select>
+      <div class="ttv2-cc-toolbar-copy">
+        <div class="ttv2-cc-toolbar-kicker">Insights explorer</div>
+        <div class="ttv2-cc-toolbar-title">Chart period</div>
+        <div class="ttv2-cc-toolbar-sub">Refine the activity and coverage views for the selected counselor.</div>
       </div>
-      <div id="ttv2CounselorsCustomDates" class="d-flex flex-wrap align-items-end gap-2 {% if _rk != 'custom' %}d-none{% endif %}">
-        <div>
-          <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsFrom">From</label>
-          <input type="date" id="ttv2CounselorsFrom" class="form-control form-control-sm" value="{{ (_cc.get('from_iso') or '')[:10] }}" />
+      <div class="ttv2-cc-toolbar-actions">
+        <div class="ttv2-cc-toolbar-field">
+          <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsRange">Range</label>
+          <select id="ttv2CounselorsRange" class="form-select form-select-sm" aria-label="Chart date range">
+            {% set _rk = (_cc.get('range_key') or '30d') %}
+            <option value="today" {% if _rk == 'today' %}selected{% endif %}>Today</option>
+            <option value="week" {% if _rk == 'week' %}selected{% endif %}>Last 7 days</option>
+            <option value="30d" {% if _rk == '30d' %}selected{% endif %}>Last 30 days</option>
+            <option value="year" {% if _rk == 'year' %}selected{% endif %}>Last 365 days</option>
+            <option value="custom" {% if _rk == 'custom' %}selected{% endif %}>Custom range</option>
+          </select>
         </div>
-        <div>
-          <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsTo">To</label>
-          <input type="date" id="ttv2CounselorsTo" class="form-control form-control-sm" value="{{ (_cc.get('to_iso') or '')[:10] }}" />
+        <div id="ttv2CounselorsCustomDates" class="d-flex flex-wrap align-items-end gap-2 {% if _rk != 'custom' %}d-none{% endif %}">
+          <div class="ttv2-cc-toolbar-field">
+            <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsFrom">From</label>
+            <input type="date" id="ttv2CounselorsFrom" class="form-control form-control-sm" value="{{ (_cc.get('from_iso') or '')[:10] }}" />
+          </div>
+          <div class="ttv2-cc-toolbar-field">
+            <label class="ttv2-muted mb-0 d-block" for="ttv2CounselorsTo">To</label>
+            <input type="date" id="ttv2CounselorsTo" class="form-control form-control-sm" value="{{ (_cc.get('to_iso') or '')[:10] }}" />
+          </div>
+          <button type="button" class="btn btn-sm btn-primary" id="ttv2CounselorsRangeApply">Apply</button>
         </div>
-        <button type="button" class="btn btn-sm btn-primary" id="ttv2CounselorsRangeApply">Apply</button>
       </div>
     </div>
 
     <div class="row g-3 mb-3">
       <div class="col-12 col-xl-7">
-        <div class="ttv2-card h-100">
-          <div class="ttv2-card-title-row align-items-start">
-            <div class="min-w-0">
-              <div class="card-title mb-1">{{ (_charts.get('line') or {}).get('title', 'Session activity') }}</div>
-              <div class="ttv2-section-sub">
-                Follow-up rows by session day · {{ (_charts.get('line') or {}).get('subtitle', '') }} · {{ (_charts.get('focus_name') or '') }}
+        <div class="ttv2-card ttv2-analytics-card ttv2-analytics-card--line h-100">
+          <div class="ttv2-analytics-head">
+            <div class="ttv2-analytics-head-main">
+              <div class="ttv2-analytics-icon"><i class="bx bx-line-chart" aria-hidden="true"></i></div>
+              <div class="min-w-0">
+                <div class="ttv2-analytics-kicker">Activity trend</div>
+                <div class="card-title mb-1">{{ (_charts.get('line') or {}).get('title', 'Session activity') }}</div>
+                <div class="ttv2-section-sub">
+                  Follow-up rows by session day · {{ (_charts.get('line') or {}).get('subtitle', '') }} · {{ (_charts.get('focus_name') or '') }}
+                </div>
+                <div class="ttv2-analytics-meta">
+                  <span class="ttv2-analytics-meta-pill"><i class="bx bx-calendar-event" aria-hidden="true"></i>{{ _rk|upper }}</span>
+                  <span class="ttv2-analytics-meta-pill"><i class="bx bx-user-pin" aria-hidden="true"></i>{{ (_charts.get('focus_name') or 'Selected counselor') }}</span>
+                </div>
               </div>
             </div>
-            <div class="btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Session activity view">
+            <div class="btn-group btn-group-sm flex-shrink-0 ttv2-analytics-toggle" role="group" aria-label="Session activity view">
               <button type="button" class="btn btn-outline-secondary active" title="Chart" data-ttv2-cc-view data-ccard-body="ttv2-ccard-sess-line" data-view="chart" aria-pressed="true">
                 <i class="bx bx-line-chart" aria-hidden="true"></i>
               </button>
@@ -561,7 +1665,7 @@
               <canvas id="ttv2CounselorsLine" aria-label="Session activity chart"></canvas>
             </div>
             <div class="ttv2-ccard-view-table d-none">
-              <div class="table-responsive ttv2-lb-wrap">
+              <div class="table-responsive ttv2-lb-wrap ttv2-cc-mini-wrap">
                 <table class="table table-sm mb-0 ttv2-cc-mini-table">
                   <thead><tr><th>Period</th><th class="text-end">Follow-ups</th></tr></thead>
                   <tbody>
@@ -578,15 +1682,22 @@
         </div>
       </div>
       <div class="col-12 col-xl-5">
-        <div class="ttv2-card h-100">
-          <div class="ttv2-card-title-row align-items-start">
-            <div class="min-w-0">
-              <div class="card-title mb-1">Student coverage</div>
-              <div class="ttv2-section-sub">
-                Distinct students with completed follow-ups in the selected period vs assigned roster · {{ (_charts.get('focus_name') or '') }}.
+        <div class="ttv2-card ttv2-analytics-card ttv2-analytics-card--coverage h-100">
+          <div class="ttv2-analytics-head">
+            <div class="ttv2-analytics-head-main">
+              <div class="ttv2-analytics-icon"><i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i></div>
+              <div class="min-w-0">
+                <div class="ttv2-analytics-kicker">Coverage snapshot</div>
+                <div class="card-title mb-1">Student coverage</div>
+                <div class="ttv2-section-sub">
+                  Distinct students with completed follow-ups in the selected period vs assigned roster · {{ (_charts.get('focus_name') or '') }}.
+                </div>
+                <div class="ttv2-analytics-meta">
+                  <span class="ttv2-analytics-meta-pill"><i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i>Covered vs remaining</span>
+                </div>
               </div>
             </div>
-            <div class="btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Coverage view">
+            <div class="btn-group btn-group-sm flex-shrink-0 ttv2-analytics-toggle" role="group" aria-label="Coverage view">
               <button type="button" class="btn btn-outline-secondary active" title="Chart" data-ttv2-cc-view data-ccard-body="ttv2-ccard-cov-donut" data-view="chart" aria-pressed="true">
                 <i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i>
               </button>
@@ -600,7 +1711,7 @@
               <canvas id="ttv2CounselorsDonut" aria-label="Student coverage chart"></canvas>
             </div>
             <div class="ttv2-ccard-view-table d-none">
-              <div class="table-responsive ttv2-lb-wrap">
+              <div class="table-responsive ttv2-lb-wrap ttv2-cc-mini-wrap">
                 <table class="table table-sm mb-0 ttv2-cc-mini-table">
                   <thead><tr><th>Segment</th><th class="text-end">Students</th></tr></thead>
                   <tbody>
@@ -628,20 +1739,34 @@
     <script type="application/json" id="ttv2-counselors-charts-payload">{{ _charts|tojson }}</script>
 
     {% if _sc and _sc.rows %}
-      <div class="ttv2-card mb-3">
-        <div class="ttv2-card-title-row align-items-start">
-          <div>
-            <div class="card-title mb-1">
-              Performance scorecard — {{ _sc.email or 'Counselor' }} · Week of {{ _sc.week_label }}
+      {% set _sc_stats = namespace(ok=0) %}
+      {% for row in _sc.rows %}
+        {% if row.ok and not (row.na|default(false)) %}
+          {% set _sc_stats.ok = _sc_stats.ok + 1 %}
+        {% endif %}
+      {% endfor %}
+      <div class="ttv2-card ttv2-scorecard-card mb-3">
+        <div class="ttv2-scorecard-head">
+          <div class="ttv2-scorecard-title-wrap">
+            <div class="ttv2-scorecard-icon"><i class="bx bx-medal" aria-hidden="true"></i></div>
+            <div>
+              <div class="ttv2-scorecard-kicker">Weekly scorecard</div>
+              <div class="card-title mb-1">
+                Performance scorecard — {{ _sc.email or 'Counselor' }} · Week of {{ _sc.week_label }}
+              </div>
+              <div class="ttv2-section-sub">Targets are institute defaults; metrics are computed from follow-ups, tests, and career shortlists.</div>
+              <div class="ttv2-scorecard-summary">
+                <span class="ttv2-scorecard-summary-pill"><i class="bx bx-list-check" aria-hidden="true"></i>{{ _sc.rows|length }} metrics</span>
+                <span class="ttv2-scorecard-summary-pill ttv2-scorecard-summary-pill--indigo"><i class="bx bx-trending-up" aria-hidden="true"></i>{{ _sc_stats.ok }} on track</span>
+              </div>
             </div>
-            <div class="ttv2-section-sub">Targets are institute defaults; metrics are computed from follow-ups, tests, and career shortlists.</div>
           </div>
           {% if _sc.all_targets_met %}
             <span class="ttv2-sc-badge">All targets met</span>
           {% endif %}
         </div>
-        <div class="table-responsive mt-2">
-          <table class="table table-sm mb-0 ttv2-sc-table">
+        <div class="table-responsive ttv2-scorecard-table-wrap">
+          <table class="table table-sm mb-0 ttv2-sc-table ttv2-scorecard-table">
             <thead>
               <tr>
                 <th>Metric</th>
@@ -655,9 +1780,18 @@
             <tbody>
               {% for row in _sc.rows %}
                 <tr>
-                  <td>{{ row.metric }}</td>
-                  <td>{{ row.target }}</td>
-                  <td class="text-end {% if row.ok and not (row.na|default(false)) %}ttv2-sc-ok{% endif %}">{{ row.achieved }}</td>
+                  {% set _row_ok = (row.ok and not (row.na|default(false))) %}
+                  {% set _trend_has_value = (row.vs_prev and row.vs_prev != '—') %}
+                  <td>
+                    <div class="ttv2-scorecard-metric">
+                      <span class="ttv2-scorecard-metric-name">{{ row.metric }}</span>
+                      <span class="ttv2-scorecard-metric-sub">Institute target tracking</span>
+                    </div>
+                  </td>
+                  <td><span class="ttv2-scorecard-target">{{ row.target|default('—', true) }}</span></td>
+                  <td class="text-end">
+                    <span class="ttv2-scorecard-achieved{% if _row_ok %} ttv2-sc-ok{% endif %}">{{ row.achieved|default('—', true) }}</span>
+                  </td>
                   <td class="text-end">
                     {% if row.score and row.score != '—' %}
                       <span class="ttv2-sc-pill">{{ row.score }}</span>
@@ -665,7 +1799,9 @@
                       <span class="ttv2-sc-pill ttv2-sc-pill-muted">—</span>
                     {% endif %}
                   </td>
-                  <td class="text-end {% if row.vs_prev and row.vs_prev != '—' %}ttv2-sc-ok{% endif %}">{{ row.vs_prev }}</td>
+                  <td class="text-end">
+                    <span class="ttv2-scorecard-trend{% if _trend_has_value %} ttv2-scorecard-trend--up{% else %} ttv2-scorecard-trend--flat{% endif %}">{{ row.vs_prev|default('—', true) }}</span>
+                  </td>
                   <td class="text-end">
                     {% if row.rating and row.rating > 0 %}
                       <div class="ttv2-sc-stars justify-content-end">
@@ -698,33 +1834,42 @@
   {# Weekly activity heatmap (current week): tests + sessions #}
   {% set wa = (ttv2_counselors_week_activity if ttv2_counselors_week_activity is defined else {}) %}
   {% set days = (wa.get('days') if wa and wa.get('days') else []) %}
-  <div class="ttv2-card">
-    <div class="ttv2-card-title-row">
-      <div>
-        <div class="card-title mb-0">Weekly activity heatmap</div>
-        <div class="ttv2-section-sub">
-          Current week (tests + sessions){% if wa.get('week_start') and wa.get('week_end') %} · {{ wa.get('week_start') }} → {{ wa.get('week_end') }}{% endif %}
+  <div class="ttv2-card ttv2-activity-card">
+    <div class="ttv2-data-card-head">
+      <div class="ttv2-data-card-title-wrap">
+        <div class="ttv2-data-card-icon"><i class="bx bx-calendar" aria-hidden="true"></i></div>
+        <div>
+          <div class="ttv2-data-card-kicker">Weekly pulse</div>
+          <div class="card-title mb-0">Weekly activity heatmap</div>
+          <div class="ttv2-section-sub">
+            Current week (tests + sessions){% if wa.get('week_start') and wa.get('week_end') %} · {{ wa.get('week_start') }} → {{ wa.get('week_end') }}{% endif %}
+          </div>
         </div>
       </div>
       {% if days and (days|length) %}
         {% set _sum = 0 %}
         {% for d in days %}{% set _sum = _sum + (d.total|default(0)) %}{% endfor %}
-        <div class="ttv2-muted">Total activity: <span class="ttv2-num">{{ _sum }}</span></div>
+        <span class="ttv2-data-card-summary-pill"><i class="bx bx-line-chart" aria-hidden="true"></i>Total activity: <span class="ttv2-num">{{ _sum }}</span></span>
       {% endif %}
     </div>
 
     {% if days and (days|length) %}
-      <div class="ttv2-activity-strip" aria-label="Weekly activity (tests + sessions)">
-        {% for d in days %}
-          {% set inten = (d.intensity|default(0)) %}
-          {% set alpha = (0.18 + (inten * 0.72)) %}
-          <div class="ttv2-activity-pill"
-               role="img"
-               title="{{ d.label }} ({{ d.date }}): sessions {{ d.sessions }}, tests {{ d.tests }}, total {{ d.total }}"
-               style="background:rgba(99,102,241,{{ alpha }});"></div>
-        {% endfor %}
+      <div class="ttv2-activity-strip-wrap">
+        <div class="ttv2-activity-strip" aria-label="Weekly activity (tests + sessions)">
+          {% for d in days %}
+            {% set inten = (d.intensity|default(0)) %}
+            {% set alpha = (0.18 + (inten * 0.72)) %}
+            <div class="ttv2-activity-pill"
+                 role="img"
+                 title="{{ d.label }} ({{ d.date }}): sessions {{ d.sessions }}, tests {{ d.tests }}, total {{ d.total }}"
+                 style="background:rgba(99,102,241,{{ alpha }});"></div>
+          {% endfor %}
+        </div>
+        <div class="ttv2-activity-note">
+          <span class="ttv2-activity-legend">Activity = tests + sessions</span>
+          <div class="ttv2-muted">Hover a bar for daily details.</div>
+        </div>
       </div>
-      <div class="ttv2-muted mt-2">Hover a bar for details. Activity = tests + sessions.</div>
     {% else %}
       <div class="ttv2-empty-state">
         <span class="ttv2-empty-ico" aria-hidden="true"><i class="bx bx-calendar-x"></i></span>
@@ -734,13 +1879,17 @@
     {% endif %}
   </div>
 
-  <div class="ttv2-card">
-    <div class="ttv2-card-title-row">
-      <div>
-        <div class="card-title mb-0">Full leaderboard</div>
-        <div class="ttv2-section-sub">Ranked by impact score (volume + completion + student coverage) for this institute.</div>
+  <div class="ttv2-card ttv2-leaderboard-card">
+    <div class="ttv2-data-card-head">
+      <div class="ttv2-data-card-title-wrap">
+        <div class="ttv2-data-card-icon"><i class="bx bx-trophy" aria-hidden="true"></i></div>
+        <div>
+          <div class="ttv2-data-card-kicker">Institute ranking</div>
+          <div class="card-title mb-0">Full leaderboard</div>
+          <div class="ttv2-section-sub">Ranked by impact score (volume + completion + student coverage) for this institute.</div>
+        </div>
       </div>
-      <div class="ttv2-muted">All metrics are computed from live session data.</div>
+      <span class="ttv2-data-card-summary-pill"><i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>All metrics are computed from live session data.</span>
     </div>
     {% set lb = (ttv2_counselors_leaderboard if ttv2_counselors_leaderboard is defined else []) %}
     {% if lb and (lb|length) %}
@@ -751,8 +1900,8 @@
         {% if r.csat is not none %}{% set has_csat = true %}{% endif %}
         {% if r.avg_min is not none %}{% set has_avgmin = true %}{% endif %}
       {% endfor %}
-      <div class="table-responsive ttv2-lb-wrap mt-2">
-        <table class="table table-sm mb-0 ttv2-lb-table">
+      <div class="table-responsive ttv2-lb-wrap ttv2-leaderboard-table-wrap">
+        <table class="table table-sm mb-0 ttv2-lb-table ttv2-leaderboard-table">
           <thead>
             <tr>
               <th class="text-nowrap">#</th>
@@ -770,15 +1919,23 @@
           <tbody>
             {% for r in lb %}
               <tr>
-                <td class="text-nowrap ttv2-num">{{ r.rank|default(loop.index) }}</td>
-                <td class="min-w-0">{{ r.counselor|default('Counselor') }}</td>
-                <td class="text-end"><span class="ttv2-pill">{{ r.impact|default(0) }}</span></td>
-                <td class="text-end ttv2-num">{{ r.sessions|default(0) }}</td>
-                <td class="text-end ttv2-num">{{ r.this_mo|default(0) }}</td>
-                {% if has_csat %}<td class="text-end">{{ r.csat if r.csat is not none else '—' }}</td>{% endif %}
-                <td class="text-end ttv2-num">{{ (r.on_time|string) ~ '%' if r.on_time is not none else '—' }}</td>
-                <td class="text-end ttv2-num">{{ (r.follow_up|string) ~ '%' if r.follow_up is not none else '—' }}</td>
-                {% if has_avgmin %}<td class="text-end">{{ r.avg_min if r.avg_min is not none else '—' }}</td>{% endif %}
+                <td class="text-nowrap"><span class="ttv2-leaderboard-rank ttv2-num">{{ r.rank|default(loop.index) }}</span></td>
+                <td class="min-w-0">
+                  <div class="ttv2-leaderboard-name">
+                    <span class="ttv2-leaderboard-avatar">{{ (r.counselor|default('Counselor', true))[:1]|upper }}</span>
+                    <span class="min-w-0">
+                      <span class="ttv2-leaderboard-name-text">{{ r.counselor|default('Counselor', true) }}</span>
+                      <span class="ttv2-leaderboard-name-sub">Impact-based institute ranking</span>
+                    </span>
+                  </div>
+                </td>
+                <td class="text-end"><span class="ttv2-pill ttv2-leaderboard-impact">{{ r.impact|default(0) }}</span></td>
+                <td class="text-end"><span class="ttv2-leaderboard-metric ttv2-num">{{ r.sessions|default(0) }}</span></td>
+                <td class="text-end"><span class="ttv2-leaderboard-metric ttv2-num">{{ r.this_mo|default(0) }}</span></td>
+                {% if has_csat %}<td class="text-end"><span class="ttv2-leaderboard-metric">{{ r.csat if r.csat is not none else '—' }}</span></td>{% endif %}
+                <td class="text-end"><span class="ttv2-leaderboard-metric ttv2-num">{{ (r.on_time|string) ~ '%' if r.on_time is not none else '—' }}</span></td>
+                <td class="text-end"><span class="ttv2-leaderboard-metric ttv2-num">{{ (r.follow_up|string) ~ '%' if r.follow_up is not none else '—' }}</span></td>
+                {% if has_avgmin %}<td class="text-end"><span class="ttv2-leaderboard-metric">{{ r.avg_min if r.avg_min is not none else '—' }}</span></td>{% endif %}
                 <td>
                   <div class="ttv2-load">
                     <div class="ttv2-load-bar" aria-label="Load {{ r.load_pct|default(0) }}%" title="Load: {{ r.sessions|default(0) }} sessions">

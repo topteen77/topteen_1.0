@@ -104,19 +104,21 @@
   {% block additionalhead %}{% endblock %}
 </head>
 
-<body class="{% block bodyclass %}{% endblock %}">
+{% set _bodyclass = self.bodyclass()|trim %}
+{% set _is_ttv2_shell = 'ttv2-shell' in _bodyclass %}
+<body class="{{ _bodyclass }}">
   {% block header %}
   {% include 'template_v2/includes/header.html' %}
   {% endblock %}
 
-  <div class="container-fluid px-0">
-    <div class="row g-0">
-      <aside class="col-12 col-lg-3 col-xl-2">
+  <div class="container-fluid px-0{% if _is_ttv2_shell %} ttv2-layout-wrap{% endif %}">
+    <div class="{% if _is_ttv2_shell %}ttv2-layout{% else %}row g-0{% endif %}">
+      <aside class="{% if _is_ttv2_shell %}ttv2-layout-sidebar{% else %}col-12 col-lg-3 col-xl-2{% endif %}">
         {% block sidebar %}
         {% include 'template_v2/includes/dashboard_sidebar.html' %}
         {% endblock %}
       </aside>
-      <main class="col-12 col-lg-9 col-xl-10">
+      <main class="{% if _is_ttv2_shell %}ttv2-layout-main{% else %}col-12 col-lg-9 col-xl-10{% endif %}">
         {% block content %}{% endblock %}
       </main>
     </div>

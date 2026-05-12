@@ -776,6 +776,7 @@ def Assessment_pdf_inst_user(request, user_id=None):
     View to generate and display the final assessment report for the logged-in user.
     """
     
+    embed_mode = (request.GET.get("embed") or "").strip() == "1"
     # Fetch the user based on the provided user_id parameter or fallback to the current user
     user = get_object_or_404(User, id=user_id) if user_id else request.user
 
@@ -845,6 +846,7 @@ def Assessment_pdf_inst_user(request, user_id=None):
         'avg': avg,
         'above_avg': above_avg,
         'top_categories': top_categories,
+        'embed_mode': embed_mode,
     }
     return render(request, 'Asessment_report.html', context)
 
@@ -865,6 +867,7 @@ def class10_combined_report(request, user_id=None):
     Similar to Class 12's CombinedReport but adapted for Class 10 structure.
     """
     try:
+        embed_mode = (request.GET.get("embed") or "").strip() == "1"
         # Get the target user (student) whose report we want to view
         if user_id:
             target_user = get_object_or_404(User, id=user_id)
@@ -885,6 +888,7 @@ def class10_combined_report(request, user_id=None):
                     {'text': 'Dashboard', 'url': reverse('app:dashboard')},
                     {'text': 'Combined Report', 'url': ''},
                 ]),
+                'embed_mode': embed_mode,
             })
             return _add_no_cache_headers(resp)
         
@@ -914,6 +918,7 @@ def class10_combined_report(request, user_id=None):
                     {'text': 'Dashboard', 'url': reverse('app:dashboard')},
                     {'text': 'Combined Report', 'url': ''},
                 ]),
+                'embed_mode': embed_mode,
             })
             return _add_no_cache_headers(resp)
         
@@ -930,7 +935,8 @@ def class10_combined_report(request, user_id=None):
             resp = render(request, 'template20/app/class10_combined_report_new.html', {
                 'error': 'User hasn\'t attempted the test yet. Please complete the test first.',
                 'no_results': True,
-                'user': target_user
+                'user': target_user,
+                'embed_mode': embed_mode,
             })
             return _add_no_cache_headers(resp)
         except Exception as e:
@@ -1069,7 +1075,8 @@ def class10_combined_report(request, user_id=None):
             
             'no_results': False,
             'viewing_as_admin': user_id is not None and user_id != request.user.id,
-            'user_id': user_id if user_id else target_user.id
+            'user_id': user_id if user_id else target_user.id,
+            'embed_mode': embed_mode,
         }
         
         resp = render(request, 'template20/app/class10_combined_report_new.html', context)
@@ -1082,7 +1089,8 @@ def class10_combined_report(request, user_id=None):
         resp = render(request, 'template20/app/class10_combined_report_new.html', {
             'error': f'An error occurred: {str(e)}',
             'traceback': trace,
-            'no_results': True
+            'no_results': True,
+            'embed_mode': (request.GET.get("embed") or "").strip() == "1",
         })
         return _add_no_cache_headers(resp)
 

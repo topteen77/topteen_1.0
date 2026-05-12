@@ -81,7 +81,7 @@
         <h5 class="modal-title" id="ttv2StudentReportModalTitle">Student report</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0" style="min-height:70vh;">
+      <div class="modal-body p-0 px-4" style="min-height:70vh;">
         <iframe id="ttv2StudentReportModalFrame"
                 title="Student report"
                 src="about:blank"
@@ -229,20 +229,30 @@
 <script>
   // Shared: open student report popup
   (function(){
+    function getEmbeddedReportUrl(url){
+      try {
+        var u = new URL(url, window.location.origin);
+        u.searchParams.set('embed', '1');
+        return u.toString();
+      } catch (e) {
+        return url;
+      }
+    }
     window.ttv2OpenStudentReportModal = function(url, title){
       try {
+        var embedUrl = getEmbeddedReportUrl(url || '');
         if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
-          window.open(url, '_blank', 'noopener');
+          window.open(embedUrl, '_blank', 'noopener');
           return;
         }
         var m = document.getElementById('ttv2StudentReportModal');
         var f = document.getElementById('ttv2StudentReportModalFrame');
         var t = document.getElementById('ttv2StudentReportModalTitle');
         if (t) t.textContent = title || 'Student report';
-        if (f) f.src = url || 'about:blank';
+        if (f) f.src = embedUrl || 'about:blank';
         bootstrap.Modal.getOrCreateInstance(m).show();
       } catch (e) {
-        window.open(url, '_blank', 'noopener');
+        window.open(getEmbeddedReportUrl(url || ''), '_blank', 'noopener');
       }
     };
 
