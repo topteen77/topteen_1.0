@@ -174,6 +174,124 @@ function ttv2GetCookie(name) {
   }
 }
 
+/**
+ * Grid cards: assign / unassign advisor (delegated on document.body, capture phase).
+ */
+function ttv2BindAdvCardDelegatedActionsOnce() {
+  if (typeof document === 'undefined') return;
+  if (document.body.dataset.ttv2AdvCardDelegated === '1') return;
+  document.body.dataset.ttv2AdvCardDelegated = '1';
+
+  document.body.addEventListener(
+    'click',
+    function (e) {
+      var assignBtn =
+        e.target && e.target.closest
+          ? e.target.closest('[data-ttv2-adv-card-assign]')
+          : null;
+      if (assignBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var wrap = assignBtn.closest('.ttv2-adv-card-assign-wrap');
+        var sel = wrap ? wrap.querySelector('[data-ttv2-adv-card-select]') : null;
+        var url = assignBtn.getAttribute('data-set-url') || '#';
+        var smId = assignBtn.getAttribute('data-sm-id');
+        var counselorId = sel ? String(sel.value || '').trim() : '';
+        if (!url || url === '#' || !smId || !counselorId) {
+          try {
+            alert('Choose an advisor to assign.');
+          } catch (x) {}
+          return;
+        }
+        var csrftoken =
+          typeof ttv2GetCookie === 'function' ? ttv2GetCookie('csrftoken') : '';
+        assignBtn.disabled = true;
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken || '',
+          },
+          body: JSON.stringify({
+            student_management_id: smId,
+            counselor_id: counselorId,
+          }),
+        })
+          .then(function (r) {
+            return r.json().catch(function () {
+              return { ok: false };
+            });
+          })
+          .then(function (data) {
+            if (!(data && data.ok)) {
+              try {
+                alert(data && data.error ? data.error : 'Assign failed');
+              } catch (e2) {}
+            } else if (
+              typeof window.ttv2InitStudentTableAfterBodyInject === 'function'
+            ) {
+              window.ttv2InitStudentTableAfterBodyInject();
+            }
+          })
+          .catch(function () {
+            try {
+              alert('Assign failed');
+            } catch (e4) {}
+          })
+          .then(function () {
+            assignBtn.disabled = false;
+          });
+        return;
+      }
+
+      var unBtn =
+        e.target && e.target.closest
+          ? e.target.closest('[data-ttv2-adv-card-unassign]')
+          : null;
+      if (!unBtn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var url = unBtn.getAttribute('data-set-url') || '#';
+      var smId = unBtn.getAttribute('data-sm-id');
+      if (!url || url === '#' || !smId) return;
+      var csrftoken =
+        typeof ttv2GetCookie === 'function' ? ttv2GetCookie('csrftoken') : '';
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrftoken || '',
+        },
+        body: JSON.stringify({ student_management_id: smId, counselor_id: '' }),
+      })
+        .then(function (r) {
+          return r.json().catch(function () {
+            return { ok: false };
+          });
+        })
+        .then(function (data) {
+          if (!(data && data.ok)) {
+            try {
+              alert(data && data.error ? data.error : 'Unassign failed');
+            } catch (e2) {}
+          } else if (
+            typeof window.ttv2InitStudentTableAfterBodyInject === 'function'
+          ) {
+            window.ttv2InitStudentTableAfterBodyInject();
+          }
+        })
+        .catch(function () {
+          try {
+            alert('Unassign failed');
+          } catch (e4) {}
+        });
+    },
+    true
+  );
+}
+
 function ttv2InitCounselorRemarksControls() {
   if (document.body.dataset.ttv2RemarksBound === '1') return;
   document.body.dataset.ttv2RemarksBound = '1';
@@ -355,6 +473,7 @@ function ttv2InitCounselorFollowUpControls() {
     try {
       if (typeof loadStudentsTable !== 'function') return;
       var url = new URL(window.location.href);
+      url.searchParams.delete('ttv2_partial');
       url.searchParams.set('data_type', 'students');
       loadStudentsTable(url.toString());
     } catch (e) {}
@@ -607,6 +726,7 @@ try {
  */
 function updatePerPage(value, baseUrl = null) {
   const url = new URL(baseUrl || window.location.href);
+  url.searchParams.delete('ttv2_partial');
   url.searchParams.set('per_page', value);
   url.searchParams.delete('page'); // Reset to page 1 when changing per_page
   loadStudentsTable(url.toString());
@@ -622,22 +742,29 @@ function handleStudentFilterSubmit(event, formId = 'filter-form') {
   const form = document.getElementById(formId);
   if (!form) return;
 
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+
   const formData = new FormData(form);
-  const params = new URLSearchParams();
-  
-  // Add all form fields to URL params
-  for (const [key, value] of formData.entries()) {
+  const formKeys = new Set();
+  for (const [key] of formData.entries()) {
+    formKeys.add(key);
+  }
+  for (const key of formKeys) {
+    const value = formData.get(key);
     if (value) {
-      params.append(key, value);
+      params.set(key, String(value));
+    } else {
+      params.delete(key);
     }
   }
 
   // Reset to page 1 when filtering
   params.set('page', '1');
   params.set('data_type', 'students');
+  params.delete('ttv2_partial');
 
-  const url = window.location.pathname + '?' + params.toString();
-  loadStudentsTable(url);
+  loadStudentsTable(url.pathname + '?' + params.toString());
 }
 
 /**
@@ -665,6 +792,7 @@ function initStudentTableAJAX() {
     if (paginationLink && paginationLink.href) {
       e.preventDefault();
       const url = new URL(paginationLink.href);
+      url.searchParams.delete('ttv2_partial');
       url.searchParams.set('data_type', 'students');
       loadStudentsTable(url.toString());
     }
@@ -673,6 +801,7 @@ function initStudentTableAJAX() {
   // Load table on page load if not already loaded
   if (document.getElementById('students-table-wrapper') || document.getElementById('students-table-container')) {
     const url = new URL(window.location.href);
+    url.searchParams.delete('ttv2_partial');
     url.searchParams.set('data_type', 'students');
     // Only load if page is first load (no data_type in URL)
     if (!window.location.search.includes('data_type=')) {
@@ -791,7 +920,9 @@ function ttv2InitStudentTableAfterBodyInject() {
     filterForm.dataset.ttv2AutoApplyBound = '1';
 
     var searchEl = document.getElementById('student_name');
-    var t = null;
+    var instNameEl = document.getElementById('institute_name');
+    var tSearch = null;
+    var tInst = null;
     function submitIfOk() {
       try {
         // Use the same AJAX submit path
@@ -803,8 +934,11 @@ function ttv2InitStudentTableAfterBodyInject() {
     function onSearchChange() {
       if (!searchEl) return;
       var v = (searchEl.value || '').trim();
-      if (t) { clearTimeout(t); t = null; }
-      t = setTimeout(function(){
+      if (tSearch) {
+        clearTimeout(tSearch);
+        tSearch = null;
+      }
+      tSearch = setTimeout(function(){
         // Only search after 3+ chars; or reset when empty.
         if (v.length === 0 || v.length >= 3) {
           submitIfOk();
@@ -816,7 +950,25 @@ function ttv2InitStudentTableAfterBodyInject() {
       searchEl.addEventListener('input', onSearchChange);
     }
 
-    ['classes', 'streams', 'assessment'].forEach(function(id){
+    function onInstNameChange() {
+      if (!instNameEl) return;
+      var v = (instNameEl.value || '').trim();
+      if (tInst) {
+        clearTimeout(tInst);
+        tInst = null;
+      }
+      tInst = setTimeout(function () {
+        if (v.length === 0 || v.length >= 2) {
+          submitIfOk();
+        }
+      }, 350);
+    }
+    if (instNameEl && !instNameEl.dataset.ttv2Bound) {
+      instNameEl.dataset.ttv2Bound = '1';
+      instNameEl.addEventListener('input', onInstNameChange);
+    }
+
+    ['classes', 'streams', 'assessment', 'counselor_assigned', 'institute_slug_filter'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el || el.dataset.ttv2Bound) return;
       el.dataset.ttv2Bound = '1';
@@ -954,6 +1106,7 @@ function ttv2InitStudentTableAfterBodyInject() {
     return;
   }
   const url = new URL(window.location.href);
+  url.searchParams.delete('ttv2_partial');
   url.searchParams.set('data_type', 'students');
   // Default view: cards (server falls back to list when param missing)
   try {
@@ -975,6 +1128,12 @@ if (typeof window !== 'undefined') {
   window.ttv2BindInstituteStudentPanelOnce = ttv2BindInstituteStudentPanelOnce;
   window.ttv2InitStudentTableAfterBodyInject = ttv2InitStudentTableAfterBodyInject;
 }
+
+try {
+  if (typeof ttv2BindAdvCardDelegatedActionsOnce === 'function') {
+    ttv2BindAdvCardDelegatedActionsOnce();
+  }
+} catch (_eAdvDel) {}
 
 // Auto-initialize on DOM ready
 if (document.readyState === 'loading') {

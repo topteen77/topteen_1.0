@@ -33,9 +33,9 @@
                      class="form-control ttv2-phone10"
                      name="institute_contact"
                      inputmode="numeric"
-                     pattern="\\d{10}"
                      maxlength="10"
                      autocomplete="tel"
+                     title="Enter a 10-digit mobile number"
                      required>
             </div>
             <div class="col-md-6">
@@ -44,9 +44,9 @@
                      class="form-control ttv2-phone10"
                      name="institute_admin"
                      inputmode="numeric"
-                     pattern="\\d{10}"
                      maxlength="10"
                      autocomplete="tel"
+                     title="Enter a 10-digit mobile number"
                      required>
             </div>
             <div class="col-md-6">
@@ -55,7 +55,7 @@
                 <option value="">Select Group</option>
                 {% set _groups = (institute_groups if institute_groups is defined else (institute_group if institute_group is defined else [])) %}
                 {% for g in _groups %}
-                  <option value="{{ g.id }}">{{ g.group_name }}</option>
+                  <option value="{{ g.id }}" {% if _groups|length == 1 %}selected{% endif %}>{{ g.group_name }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -126,9 +126,9 @@
                      name="counselor_contact_info"
                      class="form-control ttv2-phone10"
                      inputmode="numeric"
-                     pattern="\\d{10}"
                      maxlength="10"
                      autocomplete="tel"
+                     title="Enter a 10-digit mobile number"
                      required>
             </div>
             <div class="col-md-6">

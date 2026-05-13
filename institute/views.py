@@ -34,6 +34,7 @@ from institute.models import Institute,StudentManagement,InstituteAccountDeletio
 from django.conf import settings
 from django.http import HttpResponse
 from institute.filters import StudentFilter
+from institute.counselor_component_data import build_institute_group_counselor_ui_maps
 from django.db import transaction
 from django.db.models import Count, Q, IntegerField, OuterRef, Subquery, Value, Sum
 from django.db.models.functions import Lower
@@ -94,6 +95,58 @@ def _ttv2_date_range_from_request(request):
     if wk:
         return wk, wk + timedelta(days=6)
     return None, None
+
+
+def _counselor_belongs_to_institute_group_admin(counselor, group_admin_user):
+    inst = counselor.counselor_admin
+    if not inst or not inst.institute_group_id:
+        return False
+    ig = inst.institute_group
+    return getattr(ig, "institute_group_admin_id", None) == group_admin_user.id
+
+
+def _counselor_profile_editable_by_user(user, counselor):
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    inst = counselor.counselor_admin
+    if not inst:
+        return False
+    if user == inst.created_by:
+        return True
+    ig = inst.institute_group
+    if ig and ig.institute_group_admin_id == user.id:
+        return True
+    return False
+
+
+def _ensure_counselor_clone_for_institute(source_coun, target_institute):
+    """
+    Ensure target_institute has a Counselor row for the same counselor user as source_coun
+    (student assignment is per institute via counselor_admin).
+    """
+    if source_coun.counselor_admin_id == target_institute.id:
+        return source_coun
+    qs = Counselor.objects.filter(counselor_admin_id=target_institute.id)
+    if source_coun.coun_user_id:
+        existing = qs.filter(coun_user_id=source_coun.coun_user_id).first()
+        if existing:
+            return existing
+    elif source_coun.counselor_email:
+        existing = qs.filter(counselor_email=source_coun.counselor_email).first()
+        if existing:
+            return existing
+    return Counselor.objects.create(
+        counselor_name=source_coun.counselor_name,
+        coun_user=source_coun.coun_user,
+        counselor_email=None,
+        counselor_address=source_coun.counselor_address,
+        counselor_contact_info=source_coun.counselor_contact_info,
+        counselor_education=source_coun.counselor_education,
+        counselor_gender=source_coun.counselor_gender,
+        counselor_admin=target_institute,
+    )
 
 
 def _search_suggest_limit(request, default=20, cap=40):
@@ -420,7 +473,44 @@ def user_manages_institute_for_api(user, institute):
     return False
 
 
-def apply_student_table_display_enrichment(request, ctx):
+def _normalize_csv_mobile_digits(raw):
+    """Strip non-digits and normalize common Indian prefixes for validation."""
+    import re
+
+    if raw is None:
+        return ""
+    digits = re.sub(r"\D+", "", str(raw).strip())
+    if len(digits) >= 12 and digits.startswith("91"):
+        digits = digits[-10:]
+    elif len(digits) == 11 and digits.startswith("0"):
+        digits = digits[1:]
+    elif len(digits) > 10:
+        digits = digits[-10:]
+    return digits
+
+
+def _csv_indian_mobile_ok(norm: str) -> bool:
+    import re
+
+    return bool(re.match(r"^[6789]\d{9}$", norm))
+
+
+def user_can_bulk_upload_students_for_institute(request, institute) -> bool:
+    """CSV bulk-upload permission aligned with roster/API institute scope."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return False
+    if request.user.is_superuser:
+        return True
+    return user_manages_institute_for_api(request.user, institute)
+
+
+def _institute_logo_url_safe(institute) -> str:
+    try:
+        if institute and getattr(institute, "logo", None):
+            return institute.logo.url or ""
+    except Exception:
+        pass
+    return ""
     """
     Augment results_data for student roster (list + cards). Shared across roles.
     """
@@ -541,7 +631,58 @@ def scoped_student_management_for_dashboard(request):
         inst = Institute.objects.filter(slug=raw).first()
         if inst and user_manages_institute_for_api(request.user, inst):
             return get_students_by_role(request.user, counselor=None, institute=inst)
+    if request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
+        return student_management_for_institute_group_admin(request.user)
     return get_students_by_role(request.user, counselor=None, institute=None)
+
+
+def apply_student_table_display_enrichment(request, ctx):
+    """
+    Normalize roster AJAX context for shared student table / card templates.
+
+    Counselor dashboards pass remark and follow-up POST URLs from counselor.views.
+    Institute and group/marketing rosters mostly rely on ``table_config``; this
+    hook remains for shared defaults and future role-specific URLs.
+    """
+    if not isinstance(ctx, dict):
+        return
+
+
+def _ttv2_counselor_options_by_institute_id(page_list):
+    """Dropdown options for assigning counselors on roster rows (group / multi-school views)."""
+    ids = {getattr(sm, "institute_id", None) for sm in page_list}
+    ids.discard(None)
+    if not ids:
+        return {}
+    out = {}
+    for row in (
+        Counselor.objects.filter(counselor_admin_id__in=ids)
+        .only("id", "counselor_name", "counselor_admin_id")
+        .order_by(Lower("counselor_name"))
+    ):
+        iid = getattr(row, "counselor_admin_id", None)
+        if iid is None:
+            continue
+        out.setdefault(str(iid), []).append(
+            {
+                "id": row.id,
+                "name": (getattr(row, "counselor_name", None) or "").strip()
+                or f"Counselor {row.id}",
+            }
+        )
+    return out
+
+
+def student_management_for_institute_group_admin(user):
+    """
+    All StudentManagement rows for institutes tied to institute groups owned by ``user``.
+    Matches institute listing / Count('student_management') semantics for group admins.
+    """
+    return StudentManagement.objects.filter(
+        institute_id__in=Institute.objects.filter(
+            institute_group__institute_group_admin=user
+        ).values_list("id", flat=True)
+    ).select_related("student", "class_and_section", "institute")
 
 
 def _ttv2_session_history_student_response(request, student_scope):
@@ -840,11 +981,31 @@ class InstituteCreateView(TemplateView):
 
         max_credits = get_global_remain_credits()
         if ins_em and name and address and contact and admin_contact and logo and 0 <= credit_counts <= max_credits:
-            # Attach institute to selected institute group (if any)
-            if institute_group_id:
-                ins_group=get_object_or_404(InstituteGroup,id=institute_group_id)
+            raw_ig = (institute_group_id or "").strip()
+            ins_group = None
+            if request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
+                owned_ig = InstituteGroup.objects.filter(
+                    institute_group_admin=request.user
+                ).order_by("id")
+                if raw_ig.isdigit():
+                    ins_group = get_object_or_404(InstituteGroup, id=int(raw_ig))
+                    if not owned_ig.filter(pk=ins_group.pk).exists():
+                        messages.error(request, "Invalid institute group selection.")
+                        return HttpResponseRedirect(referer)
+                elif owned_ig.count() == 1:
+                    ins_group = owned_ig.first()
+                elif owned_ig.count() > 1:
+                    messages.error(request, "Please select an institute group.")
+                    return HttpResponseRedirect(referer)
+                else:
+                    messages.error(
+                        request,
+                        "Your account has no institute group assigned. Contact support.",
+                    )
+                    return HttpResponseRedirect(referer)
             else:
-                ins_group=None
+                if raw_ig.isdigit():
+                    ins_group = get_object_or_404(InstituteGroup, id=int(raw_ig))
 
             # Attach institute to this user's marketing group (create one if missing — common for new admins)
             marketing_group = InstituteMarketingGroup.objects.filter(
@@ -1564,7 +1725,7 @@ class MarketingGroupDashboardView(TemplateView):
 
             stu_qs = (
                 scoped_student_management_for_dashboard(request)
-                .select_related("student", "class_and_section", "institute")
+                .select_related("student", "class_and_section", "institute", "counselor")
                 .prefetch_related("counselors")
             )
             iv = InstituteDashboardView()
@@ -1870,11 +2031,12 @@ class InstituteGroupDashboardView(TemplateView):
         return stream_counts
     
     def get_institute_group_info(self, group_admin, search_params=None):
-        # 1. List of institutes associated with the group admin's institute group
-        institute_group = InstituteGroup.objects.filter(institute_group_admin=group_admin).first()    
-        # Retrieve institutes in the group and annotate each with a student count
-        
-        institutes = Institute.objects.filter(institute_group=institute_group).annotate(student_count=Count('student_management'))
+        # All institutes in any group owned by this admin (avoid relying on .first()
+        # InstituteGroup row, which can diverge from decorator/user_type access paths).
+        institutes = Institute.objects.filter(
+            institute_group__institute_group_admin=group_admin
+        ).distinct()
+
         self.update_institute_streams(institutes)
 
         # Apply filters if provided
@@ -1884,46 +2046,34 @@ class InstituteGroupDashboardView(TemplateView):
                 institutes = institutes.filter(
                     name__icontains=search_params['institute']
                 )
-            
+
             # Location exact match
             if search_params.get('location'):
                 institutes = institutes.filter(
                     address__iexact=search_params['location']
                 )
-            
+
             # Location search
             if search_params.get('location_search'):
                 institutes = institutes.filter(
                     address__icontains=search_params['location_search']
                 )
 
-        # Annotate with student count
-        institutes = institutes.annotate(
-            student_count=Count('student_management')
-        )
+        institutes = institutes.annotate(student_count=Count("student_management"))
 
         # Get unique locations for dropdown
         locations = institutes.values_list('address', flat=True).distinct()
-        
-        # Prepare institute data
+
         institute_data = [
             {
                 'address': institute.address,
-                'student_count': institute.student_count
+                'student_count': institute.student_count,
             }
             for institute in institutes
         ]
-        # Prepare a list of dictionaries to pass to the template
-        institute_data = [
-            {
-                'address': institute.address,  # Assuming the address field exists
-                'student_count': institute.student_count
-            }
-            for institute in institutes
-        ]
-        
-        # 2. Count of students in all related institutes
-        tstudents = StudentManagement.objects.filter(institute__institute_group=institute_group)
+
+        # Students across every institute in groups this admin owns
+        tstudents = student_management_for_institute_group_admin(group_admin)
         results_data = {}
         for stu in tstudents:
             student_result = self.get_student_test_sreams(stu.student)
@@ -1937,8 +2087,10 @@ class InstituteGroupDashboardView(TemplateView):
             "institutes": institutes,
             "student_count": tstudents.count(),
             "counselor_count": Counselor.objects.filter(
-                counselor_admin__institute_group=institute_group)
-                .count(),
+                counselor_admin__institute_group__institute_group_admin=group_admin
+            )
+            .distinct()
+            .count(),
             "institute_data": institute_data,
             "tstudents": tstudents,
             "streams": self.get_stream(test_results) if 'test_results' in locals() else {},
@@ -1965,34 +2117,31 @@ class InstituteGroupDashboardView(TemplateView):
         }
 
         group_admin = request.user
-        institute_group = InstituteGroup.objects.filter(institute_group_admin=group_admin).first()
-        
+        institute_group = InstituteGroup.objects.filter(institute_group_admin=group_admin).order_by(
+            "id"
+        ).first()
+        ig_institutes_qs = Institute.objects.filter(
+            institute_group__institute_group_admin=group_admin
+        ).distinct()
+        ig_scope = ig_institutes_qs.exists()
+
         if is_ajax and data_type == 'stats':
             # AJAX request for statistics (credits, counts)
-            if institute_group:
-                institutes_in_group = Institute.objects.filter(institute_group=institute_group)
-                total_credits = sum(inst.credit_counts for inst in institutes_in_group)
-                remaining_credits = get_global_remain_credits()
-                ctx.update({
-                    'total_stu_count': StudentManagement.objects.filter(
-                        institute__institute_group=institute_group
-                    ).count(),
-                    'counselors_count': Counselor.objects.filter(
-                        counselor_admin__institute_group=institute_group
-                    ).count(),
-                    'total_credits': total_credits,
-                    'remaining_credits': remaining_credits,
-                })
-            else:
-                ctx.update({
-                    'total_stu_count': 0,
-                    'counselors_count': 0,
-                    'total_credits': 0,
-                    'remaining_credits': get_global_remain_credits(),
-                })
+            _stu_scope = student_management_for_institute_group_admin(group_admin)
+            remaining_credits = get_global_remain_credits()
+            ctx.update({
+                'total_stu_count': _stu_scope.count(),
+                'counselors_count': Counselor.objects.filter(
+                    counselor_admin__institute_group__institute_group_admin=group_admin
+                ).distinct().count(),
+                'total_credits': (
+                    sum(inst.credit_counts for inst in ig_institutes_qs) if ig_scope else 0
+                ),
+                'remaining_credits': remaining_credits,
+            })
         elif is_ajax and data_type == 'charts':
             # AJAX request for charts data - OPTIMIZED for performance
-            if not institute_group:
+            if not ig_scope:
                 ctx.update({
                     'institutes': [],
                     'total_students_count': 0,
@@ -2004,36 +2153,34 @@ class InstituteGroupDashboardView(TemplateView):
             else:
                 # OPTIMIZED: Get institute data for students per institute chart
                 institute_data = list(
-                    Institute.objects
-                    .filter(institute_group=institute_group)
-                    .annotate(student_count=Count('student_management'))
+                    ig_institutes_qs.annotate(student_count=Count('student_management'))
                     .values('id', 'name', 'student_count')
                     .order_by('-student_count')[:20]  # Top 20 institutes
                 )
-                
+
                 # Get full institute list for seat capacity table
                 seat_capacity_institutes = list(
-                    Institute.objects
-                    .filter(institute_group=institute_group)
-                    .values('id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb')
-                    .order_by('name')[:100]  # Limit to 100 institutes
+                    ig_institutes_qs.values(
+                        'id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb'
+                    ).order_by('name')[:100]  # Limit to 100 institutes
                 )
-                
+
                 # OPTIMIZED: Get total student count
-                total_students_count = StudentManagement.objects.filter(
-                    institute__institute_group=institute_group
+                total_students_count = student_management_for_institute_group_admin(
+                    group_admin
                 ).count()
-                
+
                 # OPTIMIZED: Get test result count
-                test_result_count = StudentManagement.objects.filter(
-                    institute__institute_group=institute_group
-                ).filter(
-                    student__results__test_paper='test3'
-                ).distinct().count()
-                
+                test_result_count = (
+                    student_management_for_institute_group_admin(group_admin)
+                    .filter(student__results__test_paper='test3')
+                    .distinct()
+                    .count()
+                )
+
                 # OPTIMIZED: Get streams data
-                sample_students = StudentManagement.objects.filter(
-                    institute__institute_group=institute_group
+                sample_students = student_management_for_institute_group_admin(
+                    group_admin
                 ).select_related('student')[:200]
                 
                 student_users = [stu.student for stu in sample_students]
@@ -2087,6 +2234,9 @@ class InstituteGroupDashboardView(TemplateView):
                 ctx['institutes_paginations'] = pages.get_page(1)
             ctx['search_params'] = search_params
             ctx['per_page'] = per_page
+            _icmap, _igsel = build_institute_group_counselor_ui_maps(ig_institutes_qs)
+            ctx["ig_institute_counselors_map"] = _icmap
+            ctx["ig_group_counselors_select"] = _igsel
         else:
             # Default page load - lightweight initial data
             info = self.get_institute_group_info(group_admin, search_params)
@@ -2102,22 +2252,22 @@ class InstituteGroupDashboardView(TemplateView):
             
             from core.ttv2_dashboard_analytics import build_ttv2_analytics, empty_ttv2_analytics
             from institute.counselor_component_data import (
-                build_counselor_data_list_for_institute_ids,
+                build_unique_counselor_identity_rows,
+                build_ig_counselor_placement_rows,
                 filter_counselor_data_list_by_query,
+                filter_ig_placement_rows_by_query,
             )
 
-            _sm_ig = (
-                StudentManagement.objects.filter(institute__institute_group=institute_group)
-                if institute_group
-                else StudentManagement.objects.none()
-            )
+            _sm_ig = student_management_for_institute_group_admin(group_admin)
             # v2 quick-links: used by modal dropdowns (add counselor / bulk upload)
             try:
                 ctx["ttv2_quicklink_institutes"] = list(
-                    Institute.objects.filter(institute_group=institute_group)
+                    Institute.objects.filter(
+                        institute_group__institute_group_admin=group_admin
+                    )
                     .values("id", "name", "slug")
                     .order_by(Lower("name"))[:500]
-                ) if institute_group else []
+                )
             except Exception:
                 ctx["ttv2_quicklink_institutes"] = []
             _dr_start, _dr_end = _ttv2_date_range_from_request(request)
@@ -2129,18 +2279,18 @@ class InstituteGroupDashboardView(TemplateView):
                     date_start=_dr_start,
                     date_end=_dr_end,
                 )
+                _roster_n = int(_sm_ig.count())
+                if isinstance(ctx.get("ttv2_analytics"), dict):
+                    ctx["ttv2_analytics"].setdefault("kpi", {})
+                    ctx["ttv2_analytics"]["kpi"]["total_students"] = _roster_n
             except Exception:
                 ctx["ttv2_analytics"] = empty_ttv2_analytics()
-            if institute_group:
-                _ig_counselor_iids = list(
-                    Institute.objects.filter(institute_group=institute_group).values_list(
-                        "id", flat=True
-                    )
-                )
-            else:
-                _ig_counselor_iids = []
-            ctx["counselor_data_list"] = build_counselor_data_list_for_institute_ids(
-                _ig_counselor_iids, include_institute_name=True
+            _ig_counselor_iids = list(
+                ig_institutes_qs.values_list("id", flat=True).distinct()
+            )
+            _ig_placement_rows = build_ig_counselor_placement_rows(_ig_counselor_iids)
+            ctx["counselor_data_list"] = build_unique_counselor_identity_rows(
+                _ig_counselor_iids
             )
             _ig_cq = (request.GET.get("counselor_q") or "").strip()
             ctx["counselor_q"] = _ig_cq
@@ -2148,10 +2298,17 @@ class InstituteGroupDashboardView(TemplateView):
                 ctx["counselor_data_list"] = filter_counselor_data_list_by_query(
                     ctx["counselor_data_list"], _ig_cq
                 )
+                _ig_placement_rows = filter_ig_placement_rows_by_query(
+                    _ig_placement_rows, _ig_cq
+                )
+            ctx["ig_counselor_placement_rows"] = _ig_placement_rows
+            _icmap, _igsel = build_institute_group_counselor_ui_maps(ig_institutes_qs)
+            ctx["ig_institute_counselors_map"] = _icmap
+            ctx["ig_group_counselors_select"] = _igsel
             ctx.update({
                 'institutes_paginations': institutes_paginations,
                 'total_institute_count': institutes_list.count() if institutes_list else 0,
-                'total_stu_count': info['student_count'],
+                'total_stu_count': _sm_ig.count(),
                 'counselors_count': info['counselor_count'],
                 'institutes': info['institute_data'],
                 'total_students_count': info['tstudents'],
@@ -2163,7 +2320,9 @@ class InstituteGroupDashboardView(TemplateView):
                 ) if institutes_list is not None else [],
                 'search_params': search_params,
                 "institute_group": institute_group,
-                "institute_groups": InstituteGroup.objects.all(),
+                "institute_groups": InstituteGroup.objects.filter(
+                    institute_group_admin=group_admin
+                ).order_by(Lower("group_name")),
                 "institute_types": choices.InstituteType.CHOICES
             })
         # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
@@ -2208,9 +2367,7 @@ class InstituteGroupDashboardView(TemplateView):
         data_type = request.GET.get('data_type', '')
         
         if is_ajax and data_type == 'students_analytics':
-            qs = StudentManagement.objects.filter(
-                institute__institute_group__institute_group_admin=request.user
-            )
+            qs = student_management_for_institute_group_admin(request.user)
             return JsonResponse(
                 build_students_analytics_payload(qs, week_start=_ttv2_week_start_from_request(request))
             )
@@ -2227,7 +2384,7 @@ class InstituteGroupDashboardView(TemplateView):
 
             stu_qs = (
                 scoped_student_management_for_dashboard(request)
-                .select_related("student", "class_and_section", "institute")
+                .select_related("student", "class_and_section", "institute", "counselor")
                 .prefetch_related("counselors")
             )
             iv = InstituteDashboardView()
@@ -5440,7 +5597,7 @@ class InstituteDashboardView(TemplateView):
             institute = get_object_or_404(Institute, slug=slug)
             stu_manage = (
                 get_students_by_role(request.user, institute=institute)
-                .select_related("student", "class_and_section", "institute")
+                .select_related("student", "class_and_section", "institute", "counselor")
                 .prefetch_related("counselors")
             )
 
@@ -5671,6 +5828,7 @@ class InstituteDashboardView(TemplateView):
             "stu": stu_value,
             "institute": institute,
             "ttv2_counselor_options": counselor_opts,
+            "ttv2_counselors_by_institute_id": _ttv2_counselor_options_by_institute_id(page_list),
             "ttv2_followup_latest_map": followup_latest_map,
         }
     
@@ -5860,6 +6018,12 @@ class SetStudentCounselorView(View):
         except Exception:
             return JsonResponse({"ok": False, "error": "unassign_failed"}, status=500)
 
+        try:
+            sm.counselor = None
+            sm.save(update_fields=["counselor"])
+        except Exception:
+            pass
+
         # Assign to new counselor if provided
         if counselor_id_int is not None:
             counselor = get_object_or_404(
@@ -5869,6 +6033,12 @@ class SetStudentCounselorView(View):
                 counselor.students.add(sm)
             except Exception:
                 return JsonResponse({"ok": False, "error": "assign_failed"}, status=500)
+
+            try:
+                sm.counselor = counselor
+                sm.save(update_fields=["counselor"])
+            except Exception:
+                pass
 
             # Notify counselor about assignment (same as assign endpoint)
             try:
@@ -6162,157 +6332,182 @@ class InstituteStudentCreateView(TemplateView):
 class InstituteCsvStudentCreateView(TemplateView):
 
     def post(self, request, *args, **kwargs):
-        import re
+        import csv
         import random
+        import re
+
+        referer = request.META.get("HTTP_REFERER") or reverse("institute:institutegroupdashboard")
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        mvalid = r'^(\+91|0)?[6789]\d{9}$'
-        institute_id = request.POST.get("institute")
-        institute = get_object_or_404(Institute, id=institute_id)
-        # Allow institute owner + superuser + parent admins (marketing / institute-group) within scope.
-        try:
-            if not request.user.is_superuser:
-                # institute owner
-                if getattr(institute, "created_by_id", None) == getattr(request.user, "id", None):
-                    pass
-                # marketing admin for this institute
-                elif (
-                    getattr(request.user, "user_type", None) == choices.UserType.MARKETINGGROUPADMIN
-                    and Institute.objects.filter(
-                        id=institute.id,
-                        marketing_group__marketing_group_admin=request.user,
-                    ).exists()
-                ):
-                    pass
-                # institute-group admin for this institute
-                elif (
-                    getattr(request.user, "user_type", None) == choices.UserType.INSTITUTEGROUPADMIN
-                    and Institute.objects.filter(
-                        id=institute.id,
-                        institute_group__institute_group_admin=request.user,
-                    ).exists()
-                ):
-                    pass
-                else:
-                    messages.error(request, "You don't have permission to upload students for this institute.")
-                    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
-        except Exception:
-            messages.error(request, "You don't have permission to upload students for this institute.")
-            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+        raw_inst = (request.POST.get("institute") or "").strip()
+        if not raw_inst.isdigit():
+            messages.error(request, "Please select an institute before uploading.")
+            return HttpResponseRedirect(referer)
+
+        institute = get_object_or_404(Institute, id=int(raw_inst))
+        if not user_can_bulk_upload_students_for_institute(request, institute):
+            messages.error(
+                request,
+                "You don't have permission to upload students for this institute.",
+            )
+            return HttpResponseRedirect(referer)
+
         if getattr(institute, "is_system_demo", False):
             messages.error(request, "Demo institute: cannot add new students.")
-            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
-        csv_file=request.FILES.get('stu_file')
-        
-        # Validate file exists
+            return HttpResponseRedirect(referer)
+
+        csv_file = request.FILES.get("stu_file")
         if not csv_file:
             messages.error(request, "No file uploaded")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        # Try to decode the file with error handling
+            return HttpResponseRedirect(referer)
+
         file_content = csv_file.read()
         try:
-            csvfile=file_content.decode('utf-8').splitlines()
+            csvfile = file_content.decode("utf-8").splitlines()
         except UnicodeDecodeError:
             try:
-                csvfile=file_content.decode('utf-8-sig').splitlines()
-            except:
-                csvfile=file_content.decode('latin-1').splitlines()
-        
-        import csv
-        stu_file=csv.reader(csvfile)
-        
-        # Get and normalize headers
+                csvfile = file_content.decode("utf-8-sig").splitlines()
+            except Exception:
+                csvfile = file_content.decode("latin-1").splitlines()
+
+        stu_file = csv.reader(csvfile)
+
         try:
-            header_raw=next(stu_file)
-            # Normalize headers: strip whitespace and convert to lowercase
+            header_raw = next(stu_file)
             header = [h.strip().lower() for h in header_raw]
         except StopIteration:
             messages.error(request, "CSV file is empty")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        # Validate required headers
-        required_headers = ['name', 'mobile', 'class_and_section']
+            return HttpResponseRedirect(referer)
+
+        required_headers = ["name", "mobile", "class_and_section"]
         missing_headers = [h for h in required_headers if h not in header]
         if missing_headers:
-            messages.error(request, f"CSV file is missing required columns: {', '.join(missing_headers)}. Required columns are: name, mobile, class_and_section. Email is optional.")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        error_list=[]
-        email_list=[]
-        row_number = 1  # Track row number for better error messages
-        
+            messages.error(
+                request,
+                "CSV file is missing required columns: "
+                + ", ".join(missing_headers)
+                + ". Required columns are: name, mobile, class_and_section. Email is optional.",
+            )
+            return HttpResponseRedirect(referer)
+
+        error_list = []
+        email_list = []
+        row_number = 1
+        imported_ok = 0
+
         for stu in stu_file:
             row_number += 1
-            # Skip empty rows
             if not any(stu) or len(stu) == 0:
                 continue
-            
-            email_list.append(stu)
-            # Normalize values: strip whitespace and handle empty strings
-            stu_d={header[i]:s.strip() if s and s.strip() else None for i,s in enumerate(stu) if i < len(header)}
-            stu_name=stu_d.get('name')
-            stu_mobile=stu_d.get('mobile')
-            stu_email=stu_d.get('email')
-            class_section=stu_d.get('class_and_section')
 
-            # If email is not present, generate a random email using the student's name
+            email_list.append(stu)
+            stu_d = {
+                header[i]: s.strip() if s and s.strip() else None
+                for i, s in enumerate(stu)
+                if i < len(header)
+            }
+            stu_name = stu_d.get("name")
+            stu_mobile_norm = _normalize_csv_mobile_digits(stu_d.get("mobile"))
+            stu_email = stu_d.get("email")
+            class_section = stu_d.get("class_and_section")
+
             if not stu_email:
                 random_number = str(random.randint(1000, 9999))
                 if stu_name:
-                    stu_email = f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                    stu_email = (
+                        f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                    )
                 else:
-                    # If name is also missing, use a default
                     stu_email = f"student_{random_number}@yopmail.com"
-            
-            if stu_name and stu_email and stu_mobile and class_section:
-                stu_exist=User.objects.filter(email=stu_email).exists()
-                stu_em=re.match(evalid,stu_email)
-                stu_mob=re.match(mvalid,stu_mobile)
-                if institute.is_valid_credit_count() and stu_em and stu_mob and class_section and not stu_exist:
-                    cas,_cas=_resolve_class_and_section(class_section)
-                    
-                    password=''.join([str(random.randint(0,10)) for _ in range(6)])
-                    user_dict={'name':stu_name,'mobile':stu_mobile,'email':stu_email,'password':password}
-                    student=User.create_user(**user_dict)
-                    stu_manage=StudentManagement(institute=institute,student=student,class_and_section=cas)
+
+            if stu_name and stu_email and stu_mobile_norm and class_section:
+                stu_exist = User.objects.filter(email=stu_email).exists()
+                stu_em = re.match(evalid, stu_email)
+                stu_mob_ok = _csv_indian_mobile_ok(stu_mobile_norm)
+                if (
+                    institute.is_valid_credit_count()
+                    and stu_em
+                    and stu_mob_ok
+                    and class_section
+                    and not stu_exist
+                ):
+                    cas, _cas = _resolve_class_and_section(class_section)
+
+                    password = "".join([str(random.randint(0, 10)) for _ in range(6)])
+                    user_dict = {
+                        "name": stu_name,
+                        "mobile": stu_mobile_norm,
+                        "email": stu_email,
+                        "password": password,
+                    }
+                    student = User.create_user(**user_dict)
+                    stu_manage = StudentManagement(
+                        institute=institute,
+                        student=student,
+                        class_and_section=cas,
+                    )
                     stu_manage.save()
-                    update_student_data.delay(institute.id,institute.name)
-                    create_student_and_send_mail.delay(stu_manage.id,stu_email,password,institute.name,institute.logo.url)
+                    update_student_data.delay(institute.id, institute.name)
+                    create_student_and_send_mail.delay(
+                        stu_manage.id,
+                        stu_email,
+                        password,
+                        institute.name,
+                        _institute_logo_url_safe(institute),
+                    )
+                    imported_ok += 1
                 else:
                     if stu_exist:
-                        messages.error(request,"{} Already Exist !!".format(stu_email))
+                        messages.error(request, "{} Already Exist !!".format(stu_email))
                         error_list.append(stu_email)
                     elif not institute.is_valid_credit_count():
-                        messages.error(request,"No remaining credits")
+                        messages.error(request, "No remaining credits")
                         error_list.append(stu_email)
                     elif not stu_em:
-                        messages.error(request,"{} Invalid Email !!".format(stu_email))
+                        messages.error(request, "{} Invalid Email !!".format(stu_email))
                         error_list.append(stu_email)
-                    elif not stu_mob:
-                        messages.error(request,"Invalid Mobile Number !!")
-                        error_list.append(stu_email)
+                    elif not stu_mob_ok:
+                        messages.error(
+                            request,
+                            "Invalid mobile number (row %s): use 10 digits starting 6–9, or +91 prefix."
+                            % row_number,
+                        )
+                        error_list.append(str(stu_mobile_norm))
                     elif not class_section:
-                        messages.error(request,"Class Not Selected")
+                        messages.error(request, "Class Not Selected")
                         error_list.append(stu_email)
                     else:
-                        messages.error(request,"Something Went Wrong !!")
+                        messages.error(request, "Something Went Wrong !!")
                         error_list.append(stu_email)
             else:
-                # Provide specific error message about what's missing
                 missing_fields = []
                 if not stu_name:
                     missing_fields.append("name")
-                if not stu_mobile:
+                if not stu_mobile_norm:
                     missing_fields.append("mobile")
                 if not class_section:
                     missing_fields.append("class_and_section")
-                
-                error_msg = f"Row {row_number}: Missing required fields - {', '.join(missing_fields)}"
+
+                error_msg = (
+                    f"Row {row_number}: Missing required fields - "
+                    + ", ".join(missing_fields)
+                )
                 messages.error(request, error_msg)
                 error_list.append(f"Row {row_number}: {error_msg}")
-        
-        create_institute_log.delay(institute.id,error_list,len(email_list))
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+        create_institute_log.delay(institute.id, error_list, len(email_list))
+        if imported_ok:
+            messages.success(
+                request,
+                "Successfully imported %s student(s)." % imported_ok,
+            )
+        elif email_list:
+            messages.error(
+                request,
+                "No students were imported. Fix the CSV errors above and try again.",
+            )
+
+        return HttpResponseRedirect(referer)
 
 
 # Post-Matric csv upload
@@ -6331,159 +6526,190 @@ def get_gender_value(gender_str):
 class InstitutePostMatricCsvStudentCreateView(TemplateView):
 
     def post(self, request, *args, **kwargs):
-        import re
+        import csv
         import random
+        import re
+
+        referer = request.META.get("HTTP_REFERER") or reverse("institute:institutegroupdashboard")
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        mvalid = r'^(\+91|0)?[6789]\d{9}$'
-        institute_id = request.POST.get("institute")
-        institute = get_object_or_404(Institute, id=institute_id)
-        # Allow institute owner + superuser + parent admins (marketing / institute-group) within scope.
-        try:
-            if not request.user.is_superuser:
-                if getattr(institute, "created_by_id", None) == getattr(request.user, "id", None):
-                    pass
-                elif (
-                    getattr(request.user, "user_type", None) == choices.UserType.MARKETINGGROUPADMIN
-                    and Institute.objects.filter(
-                        id=institute.id,
-                        marketing_group__marketing_group_admin=request.user,
-                    ).exists()
-                ):
-                    pass
-                elif (
-                    getattr(request.user, "user_type", None) == choices.UserType.INSTITUTEGROUPADMIN
-                    and Institute.objects.filter(
-                        id=institute.id,
-                        institute_group__institute_group_admin=request.user,
-                    ).exists()
-                ):
-                    pass
-                else:
-                    messages.error(request, "You don't have permission to upload students for this institute.")
-                    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
-        except Exception:
-            messages.error(request, "You don't have permission to upload students for this institute.")
-            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
-        csv_file=request.FILES.get('stu_file')
-        
-        # Validate file exists
+
+        raw_inst = (request.POST.get("institute") or "").strip()
+        if not raw_inst.isdigit():
+            messages.error(request, "Please select an institute before uploading.")
+            return HttpResponseRedirect(referer)
+
+        institute = get_object_or_404(Institute, id=int(raw_inst))
+        if not user_can_bulk_upload_students_for_institute(request, institute):
+            messages.error(
+                request,
+                "You don't have permission to upload students for this institute.",
+            )
+            return HttpResponseRedirect(referer)
+
+        if getattr(institute, "is_system_demo", False):
+            messages.error(request, "Demo institute: cannot add new students.")
+            return HttpResponseRedirect(referer)
+
+        csv_file = request.FILES.get("stu_file")
         if not csv_file:
             messages.error(request, "No file uploaded")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        # Try to decode the file with error handling
+            return HttpResponseRedirect(referer)
+
         file_content = csv_file.read()
         try:
-            csvfile=file_content.decode('utf-8').splitlines()
+            csvfile = file_content.decode("utf-8").splitlines()
         except UnicodeDecodeError:
             try:
-                csvfile=file_content.decode('utf-8-sig').splitlines()
-            except:
-                csvfile=file_content.decode('latin-1').splitlines()
-        
-        import csv
-        stu_file=csv.reader(csvfile)
-        
-        # Get and normalize headers
+                csvfile = file_content.decode("utf-8-sig").splitlines()
+            except Exception:
+                csvfile = file_content.decode("latin-1").splitlines()
+
+        stu_file = csv.reader(csvfile)
+
         try:
-            header_raw=next(stu_file)
-            # Normalize headers: strip whitespace and convert to lowercase
+            header_raw = next(stu_file)
             header = [h.strip().lower() for h in header_raw]
         except StopIteration:
             messages.error(request, "CSV file is empty")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        # Validate required headers for post-matric
-        required_headers = ['name', 'mobile', 'class_and_section']
+            return HttpResponseRedirect(referer)
+
+        required_headers = ["name", "mobile", "class_and_section"]
         missing_headers = [h for h in required_headers if h not in header]
         if missing_headers:
-            messages.error(request, f"CSV file is missing required columns: {', '.join(missing_headers)}. Required columns are: name, mobile, class_and_section. Email and gender are optional.")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        error_list=[]
-        email_list=[]
-        row_number = 1  # Track row number for better error messages
-        
+            messages.error(
+                request,
+                "CSV file is missing required columns: "
+                + ", ".join(missing_headers)
+                + ". Required columns are: name, mobile, class_and_section. Email and gender are optional.",
+            )
+            return HttpResponseRedirect(referer)
+
+        error_list = []
+        email_list = []
+        row_number = 1
+        imported_ok = 0
+
         for stu in stu_file:
             row_number += 1
-            # Skip empty rows
             if not any(stu) or len(stu) == 0:
                 continue
-            
-            email_list.append(stu)
-            # Normalize values: strip whitespace and handle empty strings
-            stu_d={header[i]:s.strip() if s and s.strip() else None for i,s in enumerate(stu) if i < len(header)}
-            stu_name=stu_d.get('name')
-            stu_mobile=stu_d.get('mobile')
-            stu_email=stu_d.get('email')
-            stu_gender=stu_d.get('gender')
-            class_section_stream=stu_d.get('stream')
-            class_section=stu_d.get('class_and_section')
 
-            # If email is not present, generate a random email using the student's name
+            email_list.append(stu)
+            stu_d = {
+                header[i]: s.strip() if s and s.strip() else None
+                for i, s in enumerate(stu)
+                if i < len(header)
+            }
+            stu_name = stu_d.get("name")
+            stu_mobile_norm = _normalize_csv_mobile_digits(stu_d.get("mobile"))
+            stu_email = stu_d.get("email")
+            stu_gender = stu_d.get("gender")
+            class_section_stream = stu_d.get("stream")
+            class_section = stu_d.get("class_and_section")
+
             if not stu_email:
                 random_number = str(random.randint(1000, 9999))
                 if stu_name:
-                    stu_email = f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                    stu_email = (
+                        f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
+                    )
                 else:
-                    # If name is also missing, use a default
                     stu_email = f"student_{random_number}@yopmail.com"
-            
-            if stu_name and stu_email and stu_mobile and class_section:
-                stu_exist=User.objects.filter(email=stu_email).exists()
-                stu_em=re.match(evalid,stu_email)
-                stu_mob=re.match(mvalid,stu_mobile)
-                if institute.is_valid_credit_count() and stu_em and stu_mob and class_section and not stu_exist:
-                    cas,_cas=_resolve_class_and_section(class_section, class_section_stream)
-                    
-                    password=''.join([str(random.randint(0,10)) for _ in range(6)])
-                    user_dict={'name':stu_name,'mobile':stu_mobile,'email':stu_email,'password':password}
-                    student=User.create_user(**user_dict)
-                    user_profile, created = UserProfile.objects.get_or_create(user=student)
+
+            if stu_name and stu_email and stu_mobile_norm and class_section:
+                stu_exist = User.objects.filter(email=stu_email).exists()
+                stu_em = re.match(evalid, stu_email)
+                stu_mob_ok = _csv_indian_mobile_ok(stu_mobile_norm)
+                if (
+                    institute.is_valid_credit_count()
+                    and stu_em
+                    and stu_mob_ok
+                    and class_section
+                    and not stu_exist
+                ):
+                    cas, _cas = _resolve_class_and_section(class_section, class_section_stream)
+
+                    password = "".join([str(random.randint(0, 10)) for _ in range(6)])
+                    user_dict = {
+                        "name": stu_name,
+                        "mobile": stu_mobile_norm,
+                        "email": stu_email,
+                        "password": password,
+                    }
+                    student = User.create_user(**user_dict)
+                    user_profile, _created = UserProfile.objects.get_or_create(user=student)
                     if stu_gender:
-                        stu_gender_raw = stu_d.get('gender')
-                        stu_gender = get_gender_value(stu_gender_raw)
-                        user_profile.gender = stu_gender
+                        stu_gender_raw = stu_d.get("gender")
+                        gv = get_gender_value(stu_gender_raw)
+                        user_profile.gender = gv
                         user_profile.save()
-                    stu_manage=StudentManagement(institute=institute,student=student,class_and_section=cas)
+                    stu_manage = StudentManagement(
+                        institute=institute,
+                        student=student,
+                        class_and_section=cas,
+                    )
                     stu_manage.save()
-                    update_student_data.delay(institute.id,institute.name)
-                    create_student_and_send_mail.delay(stu_manage.id,stu_email,password,institute.name,institute.logo.url)
+                    update_student_data.delay(institute.id, institute.name)
+                    create_student_and_send_mail.delay(
+                        stu_manage.id,
+                        stu_email,
+                        password,
+                        institute.name,
+                        _institute_logo_url_safe(institute),
+                    )
+                    imported_ok += 1
                 else:
                     if stu_exist:
-                        messages.error(request,"{} Already Exist !!".format(stu_email))
+                        messages.error(request, "{} Already Exist !!".format(stu_email))
                         error_list.append(stu_email)
                     elif not institute.is_valid_credit_count():
-                        messages.error(request,"No remaining credits")
+                        messages.error(request, "No remaining credits")
                         error_list.append(stu_email)
                     elif not stu_em:
-                        messages.error(request,"{} Invalid Email !!".format(stu_email))
+                        messages.error(request, "{} Invalid Email !!".format(stu_email))
                         error_list.append(stu_email)
-                    elif not stu_mob:
-                        messages.error(request,"Invalid Mobile Number !!")
-                        error_list.append(stu_email)
+                    elif not stu_mob_ok:
+                        messages.error(
+                            request,
+                            "Invalid mobile number (row %s): use 10 digits starting 6–9, or +91 prefix."
+                            % row_number,
+                        )
+                        error_list.append(str(stu_mobile_norm))
                     elif not class_section:
-                        messages.error(request,"Class Not Selected")
+                        messages.error(request, "Class Not Selected")
                         error_list.append(stu_email)
                     else:
-                        messages.error(request,"Something Went Wrong !!")
+                        messages.error(request, "Something Went Wrong !!")
                         error_list.append(stu_email)
             else:
-                # Provide specific error message about what's missing
                 missing_fields = []
                 if not stu_name:
                     missing_fields.append("name")
-                if not stu_mobile:
+                if not stu_mobile_norm:
                     missing_fields.append("mobile")
                 if not class_section:
                     missing_fields.append("class_and_section")
-                
-                error_msg = f"Row {row_number}: Missing required fields - {', '.join(missing_fields)}"
+
+                error_msg = (
+                    f"Row {row_number}: Missing required fields - "
+                    + ", ".join(missing_fields)
+                )
                 messages.error(request, error_msg)
                 error_list.append(f"Row {row_number}: {error_msg}")
-        
-        create_institute_log.delay(institute.id,error_list,len(email_list))
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+        create_institute_log.delay(institute.id, error_list, len(email_list))
+        if imported_ok:
+            messages.success(
+                request,
+                "Successfully imported %s student(s)." % imported_ok,
+            )
+        elif email_list:
+            messages.error(
+                request,
+                "No students were imported. Fix the CSV errors above and try again.",
+            )
+
+        return HttpResponseRedirect(referer)
 
 
 
@@ -6557,14 +6783,170 @@ class InstituteStudentChangePasswordView(TemplateView):
 @method_decorator(change_counselor_password_only,name='dispatch')  
 class CounselorChangePasswordView(TemplateView):
     def post(self, request, *args, **kwargs):
-        
-        id=request.POST.get("password_id")
-        password=request.POST.get("change_password")
-        user=get_object_or_404(User,id=id)
-        user.set_password(password)
-        user.save()
-        # send_new_student_credential.delay(user.email,password)
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        cid = (
+            request.POST.get("counselor_id")
+            or request.POST.get("coun_password_id")
+            or request.POST.get("password_id")
+        )
+        counselor = get_object_or_404(Counselor, id=cid)
+        new_password = (
+            request.POST.get("new_password")
+            or request.POST.get("change_password")
+            or ""
+        ).strip()
+        confirm = (
+            request.POST.get("confirm_password")
+            or request.POST.get("change_password")
+            or ""
+        ).strip()
+        if len(new_password) < 6:
+            messages.error(request, "Password must be at least 6 characters.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
+        if new_password != confirm:
+            messages.error(request, "Passwords do not match.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
+        coun_user = counselor.coun_user
+        if not coun_user:
+            messages.error(request, "Counselor has no login user.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
+        coun_user.set_password(new_password)
+        coun_user.save()
+        messages.success(request, "Password updated.")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER') or "/")
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(institute_group_user_only, name='dispatch')
+class InstituteGroupBulkAssignCounselorView(View):
+    """POST JSON { counselor_id }: clone/link counselor identity to every institute in the group."""
+
+    def post(self, request, *args, **kwargs):
+        try:
+            payload = json.loads((request.body or b"{}").decode("utf-8"))
+        except Exception:
+            payload = {}
+        try:
+            cid = int(payload.get("counselor_id"))
+        except Exception:
+            return JsonResponse({"ok": False, "error": "invalid_counselor"}, status=400)
+        src = get_object_or_404(Counselor, id=cid)
+        if not _counselor_belongs_to_institute_group_admin(src, request.user):
+            return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+        institutes = Institute.objects.filter(
+            institute_group__institute_group_admin=request.user
+        ).distinct()
+        created = 0
+        reused = 0
+        with transaction.atomic():
+            for ins in institutes.iterator():
+                had = False
+                if src.coun_user_id:
+                    had = Counselor.objects.filter(
+                        counselor_admin_id=ins.id,
+                        coun_user_id=src.coun_user_id,
+                    ).exists()
+                elif src.counselor_email:
+                    had = Counselor.objects.filter(
+                        counselor_admin_id=ins.id,
+                        counselor_email=src.counselor_email,
+                    ).exists()
+                row = _ensure_counselor_clone_for_institute(src, ins)
+                if had:
+                    reused += 1
+                elif row.id != src.id:
+                    created += 1
+                else:
+                    reused += 1
+        return JsonResponse({"ok": True, "created": created, "reused": reused})
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(institute_group_user_only, name='dispatch')
+class InstituteGroupInstituteCounselorView(View):
+    """POST JSON assign/unassign counselor on one institute."""
+
+    def post(self, request, *args, **kwargs):
+        try:
+            payload = json.loads((request.body or b"{}").decode("utf-8"))
+        except Exception:
+            payload = {}
+        action = (payload.get("action") or "").strip().lower()
+        slug = (payload.get("institute_slug") or "").strip()
+        institute = get_object_or_404(Institute, slug=slug)
+        if getattr(institute.institute_group, "institute_group_admin_id", None) != request.user.id:
+            return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+
+        if action == "assign":
+            try:
+                cid = int(payload.get("counselor_id"))
+            except Exception:
+                return JsonResponse({"ok": False, "error": "invalid_counselor"}, status=400)
+            src = get_object_or_404(Counselor, id=cid)
+            if not _counselor_belongs_to_institute_group_admin(src, request.user):
+                return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+            row = _ensure_counselor_clone_for_institute(src, institute)
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "counselor_id": row.id,
+                    "counselor_name": row.counselor_name or "",
+                }
+            )
+
+        if action == "unassign":
+            try:
+                cid = int(payload.get("counselor_id"))
+            except Exception:
+                return JsonResponse({"ok": False, "error": "invalid_counselor"}, status=400)
+            coun = get_object_or_404(Counselor, id=cid, counselor_admin=institute)
+            if not _counselor_belongs_to_institute_group_admin(coun, request.user):
+                return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+            if coun.students.exists():
+                return JsonResponse(
+                    {"ok": False, "error": "students_assigned"},
+                    status=400,
+                )
+            StudentManagement.objects.filter(counselor=coun).update(counselor=None)
+            coun.students.clear()
+            coun.delete()
+            return JsonResponse({"ok": True, "counselor_id": cid})
+
+        return JsonResponse({"ok": False, "error": "bad_action"}, status=400)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+class InstituteGroupCounselorProfileUpdateView(View):
+    """POST form: edit counselor profile (institute owner or institute-group admin)."""
+
+    def post(self, request, *args, **kwargs):
+        try:
+            cid = int(request.POST.get("counselor_id"))
+        except Exception:
+            messages.error(request, "Invalid counselor.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
+        counselor = get_object_or_404(Counselor, id=cid)
+        if not _counselor_profile_editable_by_user(request.user, counselor):
+            messages.error(request, "Not allowed.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
+        name = (request.POST.get("counselor_name") or "").strip()
+        address = (request.POST.get("counselor_address") or "").strip()
+        contact = (request.POST.get("counselor_contact_info") or "").strip()
+        education = (request.POST.get("counselor_education") or "").strip()
+        if name:
+            counselor.counselor_name = name[:250]
+        counselor.counselor_address = address[:350] if address else None
+        counselor.counselor_contact_info = contact[:250] if contact else None
+        counselor.counselor_education = education[:250] if education else None
+        counselor.save(
+            update_fields=[
+                "counselor_name",
+                "counselor_address",
+                "counselor_contact_info",
+                "counselor_education",
+            ]
+        )
+        messages.success(request, "Counselor updated.")
+        return HttpResponseRedirect(request.META.get("HTTP_REFERER") or "/")
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')

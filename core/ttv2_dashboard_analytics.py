@@ -379,14 +379,13 @@ def build_ttv2_analytics(
         )
 
     user_ids: List[int] = []
+    # KPI "total students" must match institute roster counts (Count(student_management)),
+    # including rows where student FK is still null; psychometrics use linked users only.
     n_students = 0
-    if student_management_qs is not None and hasattr(student_management_qs, "values_list"):
-        user_ids = list(
-            student_management_qs.values_list("student_id", flat=True).filter(
-                student__isnull=False
-            )
-        )
-        n_students = len(user_ids)
+    if student_management_qs is not None and hasattr(student_management_qs, "count"):
+        n_students = int(student_management_qs.count())
+        sm_alive = student_management_qs.filter(student__isnull=False)
+        user_ids = list(sm_alive.values_list("student_id", flat=True).distinct())
     student_management_ids: List[int] = []
     if student_management_qs is not None and hasattr(student_management_qs, "values_list"):
         student_management_ids = list(

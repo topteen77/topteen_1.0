@@ -661,6 +661,403 @@
     loadInstitutesTable(urlObj.pathname + urlObj.search);
   }
 
+  function ttv2IgGetCsrfToken() {
+    try {
+      var name = "csrftoken";
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        var cookies = document.cookie.split(";");
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      if (cookieValue) return cookieValue;
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      if (meta && meta.getAttribute("content")) return meta.getAttribute("content").trim();
+      var inp = document.querySelector('input[name="csrfmiddlewaretoken"]');
+      if (inp && inp.value) return String(inp.value).trim();
+      return "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  /** Visible feedback for institute-group advisor assign/unassign (alerts are often suppressed). */
+  window.ttv2IgCounselorFlashMsg = function (msg, variant) {
+    var text = msg || "";
+    var v = variant || "info";
+    var wrap = document.getElementById("ttv2IgCounselorFlash");
+    var span = document.getElementById("ttv2IgCounselorFlashText");
+    if (!wrap || !span) {
+      try {
+        window.alert(text);
+      } catch (e) {}
+      return;
+    }
+    wrap.classList.remove(
+      "d-none",
+      "alert-success",
+      "alert-danger",
+      "alert-warning",
+      "alert-info",
+      "alert-secondary"
+    );
+    wrap.classList.add(
+      "alert-" +
+        (v === "danger"
+          ? "danger"
+          : v === "success"
+            ? "success"
+            : v === "warning"
+              ? "warning"
+              : "info"),
+      "show"
+    );
+    span.textContent = text;
+    try {
+      wrap.scrollIntoView({ block: "nearest" });
+    } catch (e2) {}
+    clearTimeout(wrap._ttv2IgFlashT);
+    wrap._ttv2IgFlashT = setTimeout(function () {
+      try {
+        wrap.classList.remove("show");
+        wrap.classList.add("d-none");
+      } catch (e3) {}
+    }, 8000);
+  };
+
+  function ttv2IgParseJsonResponse(r) {
+    return r.text().then(function (text) {
+      var data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (e) {
+        data = { ok: false, error: text ? text.slice(0, 200) : "invalid_json" };
+      }
+      if (!r.ok) {
+        data.ok = false;
+        data.error = data.error || "HTTP " + r.status;
+      }
+      return data;
+    });
+  }
+
+  function ttv2IgUpdateAssignBlockVisibility(actionsWrap) {
+    if (!actionsWrap) return;
+    var assignBlock = actionsWrap.querySelector("[data-ttv2-ig-assign-block]");
+    if (!assignBlock) return;
+    var chips = actionsWrap.querySelector("[data-ttv2-ig-assigned-chips]");
+    var hasChip =
+      chips &&
+      chips.querySelector("span.badge[data-counselor-id]");
+    assignBlock.classList.toggle("d-none", !!hasChip);
+  }
+
+  function reloadIgInstitutesTableKeepingFilters() {
+    try {
+      var urlObj = new URL(window.location.href);
+      urlObj.searchParams.set("data_type", "institutes");
+      loadInstitutesTable(urlObj.pathname + urlObj.search);
+    } catch (e2) {}
+  }
+
+  function ttv2IgAppendAssignedChip(actionsWrap, counselorId, counselorName) {
+    var chips = actionsWrap.querySelector("[data-ttv2-ig-assigned-chips]");
+    if (!chips) return;
+    var sid = String(counselorId);
+    if (chips.querySelector('span.badge[data-counselor-id="' + sid + '"]')) return;
+    var badge = document.createElement("span");
+    badge.className = "badge bg-secondary d-inline-flex align-items-center gap-1";
+    badge.setAttribute("data-counselor-id", sid);
+    var nameSpan = document.createElement("span");
+    nameSpan.textContent = counselorName || "";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className =
+      "btn btn-sm btn-link p-0 text-dark text-opacity-75 text-decoration-none lh-1 border-0 align-middle";
+    btn.style.fontSize = "1.1rem";
+    btn.style.lineHeight = "1";
+    btn.style.minWidth = "1rem";
+    btn.setAttribute("data-ttv2-ig-unassign-chip", "");
+    btn.setAttribute("title", "Remove advisor");
+    btn.setAttribute("aria-label", "Remove advisor");
+    btn.appendChild(document.createTextNode("\u00d7"));
+    badge.appendChild(nameSpan);
+    badge.appendChild(btn);
+    chips.appendChild(badge);
+    ttv2IgUpdateAssignBlockVisibility(actionsWrap);
+  }
+
+  function ttv2IgRemoveAssignedChip(actionsWrap, counselorId) {
+    var chips = actionsWrap.querySelector("[data-ttv2-ig-assigned-chips]");
+    if (!chips) return;
+    var sid = String(counselorId);
+    var badge = chips.querySelector('span.badge[data-counselor-id="' + sid + '"]');
+    if (badge) badge.remove();
+    ttv2IgUpdateAssignBlockVisibility(actionsWrap);
+  }
+
+  function ttv2IgSyncCounselorsColumn(row, counselorId, counselorName, mode) {
+    var cell = row.querySelector("[data-ttv2-ig-counselors-cell]");
+    if (!cell) return;
+    var sid = String(counselorId);
+    if (mode === "add") {
+      var ph = cell.querySelector("[data-ttv2-ig-empty-placeholder]");
+      if (ph) ph.remove();
+      if (!cell.querySelector('[data-counselor-id="' + sid + '"]')) {
+        var b = document.createElement("span");
+        b.className = "badge bg-secondary me-1 mb-1";
+        b.setAttribute("data-counselor-id", sid);
+        b.textContent = counselorName || "";
+        cell.appendChild(b);
+      }
+    } else {
+      var el = cell.querySelector('[data-counselor-id="' + sid + '"]');
+      if (el) el.remove();
+      if (!cell.querySelector("[data-counselor-id]")) {
+        var placeholder = document.createElement("span");
+        placeholder.className = "text-muted";
+        placeholder.setAttribute("data-ttv2-ig-empty-placeholder", "");
+        placeholder.textContent = "\u2014";
+        cell.appendChild(placeholder);
+      }
+    }
+  }
+
+  function igCounselorDelegatedClickHandler(e) {
+    var flashDismiss = e.target.closest("[data-ttv2-ig-flash-dismiss]");
+    if (flashDismiss) {
+      e.preventDefault();
+      var fw = document.getElementById("ttv2IgCounselorFlash");
+      if (fw) {
+        clearTimeout(fw._ttv2IgFlashT);
+        fw.classList.remove("show");
+        fw.classList.add("d-none");
+      }
+      return;
+    }
+
+    var apiHost = document.getElementById("ttv2IgCounselorApiHost");
+    var instituteUrl =
+      apiHost && apiHost.getAttribute("data-institute-url")
+        ? apiHost.getAttribute("data-institute-url").trim()
+        : "";
+
+    var chipRm = e.target.closest("[data-ttv2-ig-unassign-chip]");
+    if (chipRm) {
+      e.preventDefault();
+      if (!instituteUrl) {
+        window.ttv2IgCounselorFlashMsg(
+          "Advisor actions are not initialized — refresh this page.",
+          "danger"
+        );
+        return;
+      }
+      var csrfChip = ttv2IgGetCsrfToken();
+      if (!csrfChip) {
+        window.ttv2IgCounselorFlashMsg(
+          "Missing CSRF token — refresh the page and try again.",
+          "danger"
+        );
+        return;
+      }
+      var badgeEl = chipRm.closest("span.badge[data-counselor-id]");
+      var cidChip = badgeEl ? badgeEl.getAttribute("data-counselor-id") : "";
+      var wrapChip = chipRm.closest("[data-ttv2-ig-inst-actions]");
+      var slugChip = wrapChip ? wrapChip.getAttribute("data-inst-slug") : "";
+      var rowChip = chipRm.closest("tr");
+      if (!slugChip || !cidChip) {
+        window.ttv2IgCounselorFlashMsg("Could not remove advisor.", "warning");
+        return;
+      }
+      chipRm.setAttribute("disabled", "disabled");
+      fetch(instituteUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrfChip,
+        },
+        body: JSON.stringify({
+          action: "unassign",
+          institute_slug: slugChip,
+          counselor_id: parseInt(cidChip, 10),
+        }),
+      })
+        .then(ttv2IgParseJsonResponse)
+        .then(function (data) {
+          if (!(data && data.ok)) {
+            var err = (data && data.error) || "Unassign failed.";
+            if (err === "students_assigned") {
+              err = "Cannot remove: this advisor still has students assigned.";
+            }
+            window.ttv2IgCounselorFlashMsg(err, "danger");
+          } else {
+            window.ttv2IgCounselorFlashMsg("Advisor removed.", "success");
+            if (wrapChip && rowChip && cidChip) {
+              ttv2IgRemoveAssignedChip(wrapChip, cidChip);
+              ttv2IgSyncCounselorsColumn(rowChip, cidChip, "", "remove");
+            }
+          }
+        })
+        .catch(function () {
+          window.ttv2IgCounselorFlashMsg("Unassign failed (network error).", "danger");
+        })
+        .then(function () {
+          chipRm.removeAttribute("disabled");
+        });
+      return;
+    }
+
+    var bulkBtn = e.target.closest("#ttv2IgBulkCounselorBtn");
+    if (bulkBtn) {
+      e.preventDefault();
+      var bar = document.getElementById("ttv2IgBulkCounselorBar");
+      var sel = document.getElementById("ttv2IgBulkCounselorSelect");
+      var bulkUrl =
+        ((bar && bar.getAttribute("data-bulk-url")) ||
+          (apiHost && apiHost.getAttribute("data-bulk-url")) ||
+          "").trim();
+      var cid = sel ? String(sel.value || "").trim() : "";
+      var csrf = ttv2IgGetCsrfToken();
+      if (!csrf) {
+        window.ttv2IgCounselorFlashMsg(
+          "Missing CSRF token — refresh the page and try again.",
+          "danger"
+        );
+        return;
+      }
+      if (!bulkUrl || !cid) {
+        window.ttv2IgCounselorFlashMsg("Choose a counselor first.", "warning");
+        return;
+      }
+      bulkBtn.disabled = true;
+      fetch(bulkUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrf,
+        },
+        body: JSON.stringify({ counselor_id: parseInt(cid, 10) }),
+      })
+        .then(ttv2IgParseJsonResponse)
+        .then(function (data) {
+          if (!(data && data.ok)) {
+            window.ttv2IgCounselorFlashMsg(
+              (data && data.error) || "Bulk assign failed.",
+              "danger"
+            );
+          } else {
+            window.ttv2IgCounselorFlashMsg("Advisor assigned across institutes.", "success");
+            reloadIgInstitutesTableKeepingFilters();
+          }
+        })
+        .catch(function () {
+          window.ttv2IgCounselorFlashMsg("Bulk assign failed (network error).", "danger");
+        })
+        .then(function () {
+          bulkBtn.disabled = false;
+        });
+      return;
+    }
+
+    var assignBtn = e.target.closest("[data-ttv2-ig-assign-btn]");
+    if (assignBtn) {
+      e.preventDefault();
+      if (!instituteUrl) {
+        window.ttv2IgCounselorFlashMsg(
+          "Advisor actions are not initialized — refresh this page.",
+          "danger"
+        );
+        return;
+      }
+      var csrf2 = ttv2IgGetCsrfToken();
+      if (!csrf2) {
+        window.ttv2IgCounselorFlashMsg(
+          "Missing CSRF token — refresh the page and try again.",
+          "danger"
+        );
+        return;
+      }
+      var wrap = assignBtn.closest("[data-ttv2-ig-inst-actions]");
+      var slug = wrap ? wrap.getAttribute("data-inst-slug") : "";
+      var row = assignBtn.closest("tr");
+      var asel = wrap ? wrap.querySelector("[data-ttv2-ig-assign-select]") : null;
+      var cid2 = asel ? String(asel.value || "").trim() : "";
+      if (!slug || !cid2) {
+        window.ttv2IgCounselorFlashMsg("Choose a counselor to assign.", "warning");
+        return;
+      }
+      assignBtn.disabled = true;
+      fetch(instituteUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrf2,
+        },
+        body: JSON.stringify({
+          action: "assign",
+          institute_slug: slug,
+          counselor_id: parseInt(cid2, 10),
+        }),
+      })
+        .then(ttv2IgParseJsonResponse)
+        .then(function (data) {
+          if (!(data && data.ok)) {
+            window.ttv2IgCounselorFlashMsg(
+              (data && data.error) || "Assign failed.",
+              "danger"
+            );
+          } else {
+            window.ttv2IgCounselorFlashMsg("Advisor assigned.", "success");
+            if (wrap && row && data.counselor_id != null) {
+              var nm =
+                typeof data.counselor_name === "string"
+                  ? data.counselor_name
+                  : "";
+              if (!nm && asel && asel.options && asel.selectedIndex >= 0) {
+                nm = (
+                  asel.options[asel.selectedIndex].textContent || ""
+                ).trim();
+              }
+              ttv2IgAppendAssignedChip(wrap, data.counselor_id, nm);
+              ttv2IgSyncCounselorsColumn(row, data.counselor_id, nm, "add");
+            }
+            if (asel) asel.selectedIndex = 0;
+          }
+        })
+        .catch(function () {
+          window.ttv2IgCounselorFlashMsg("Assign failed (network error).", "danger");
+        })
+        .then(function () {
+          assignBtn.disabled = false;
+        });
+      return;
+    }
+  }
+
+  function attachIgCounselorDelegationOnce() {
+    if (!document.body) return;
+    if (document.body.dataset.ttv2IgCounselorDelegated === "1") return;
+    document.body.dataset.ttv2IgCounselorDelegated = "1";
+    document.body.addEventListener("click", igCounselorDelegatedClickHandler, true);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", attachIgCounselorDelegationOnce);
+  } else {
+    attachIgCounselorDelegationOnce();
+  }
+
   function bindInstituteFilterFormOnce() {
     const searchForm = document.getElementById("institute-filter-form");
     if (!searchForm || searchForm.getAttribute("data-ttv2-ig-bound") === "1") {

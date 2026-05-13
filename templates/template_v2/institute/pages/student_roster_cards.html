@@ -69,18 +69,33 @@
         {% set _fu = (ttv2_followup_latest_map.get(sm.id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else none) %}
         {% set _is_counselor_roster = (ttv2_students_role is defined and ttv2_students_role == 'counselor') %}
         {% set _has_followup_modal = (ttv2_followup_save_url is defined and ttv2_followup_save_url) %}
-        {# Advisor / counselor name (first assigned) #}
+        {# Institute owner + institute-group admins: badge + assign advisor UX #}
+        {% set _role_inst_mgmt = (ttv2_students_role is not defined or ttv2_students_role == 'institute_group') %}
+        {# Advisor: M2M (counselors) or legacy FK (counselor) #}
         {% set _adv = '' %}
+        {% set _has_adv = false %}
         {% if sm and sm.counselors is defined %}
           {% set _adv_list = sm.counselors.all() %}
           {% if _adv_list and (_adv_list|length) > 0 %}
             {% set _adv = _adv_list[0].counselor_name|default('') %}
+            {% set _has_adv = true %}
           {% endif %}
         {% endif %}
-        {% set _set_counselor_url = '#' %}
-        {% if institute is defined and institute and institute.slug %}
-          {% set _set_counselor_url = url('institute:set_student_counselor', institute.slug) %}
+        {% if not _has_adv and sm is defined and sm.counselor %}
+          {% set _adv = sm.counselor.counselor_name|default('') %}
+          {% set _has_adv = true %}
         {% endif %}
+        {% set _assign_slug = '' %}
+        {% if institute is defined and institute and institute.slug %}
+          {% set _assign_slug = institute.slug %}
+        {% elif sm.institute is defined and sm.institute and sm.institute.slug %}
+          {% set _assign_slug = sm.institute.slug %}
+        {% endif %}
+        {% set _set_counselor_url = '#' %}
+        {% if _assign_slug %}
+          {% set _set_counselor_url = url('institute:set_student_counselor', _assign_slug) %}
+        {% endif %}
+        {% set _co_opts_card = ((ttv2_counselors_by_institute_id.get((sm.institute_id|string))) or []) if (ttv2_counselors_by_institute_id is defined and ttv2_counselors_by_institute_id and sm.institute_id) else [] %}
       <div class="ttv2-student-card"
            role="button"
            tabindex="0"
@@ -123,6 +138,8 @@
                     <span class="badge bg-success">Completed</span>
                   {% elif _k == 'scheduled_future' %}
                     <span class="badge bg-secondary">Next</span>
+                  {% elif _k == 'not_scheduled' and _role_inst_mgmt and not _has_adv %}
+                    <span class="badge bg-warning text-dark">Assign counselor</span>
                   {% else %}
                     <span class="badge bg-secondary">{{ _fu.smart_label|default('Not scheduled') }}</span>
                   {% endif %}
@@ -135,7 +152,29 @@
                 </div>
               {% else %}
                 <div style="margin-top:6px;">
-                  <span class="badge bg-secondary">Not scheduled</span>
+                  {% if _role_inst_mgmt and not _has_adv %}
+                    <span class="badge bg-warning text-dark">Assign counselor</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Not scheduled</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+              {% if _role_inst_mgmt and not _has_adv and _assign_slug and _co_opts_card %}
+                <div class="ttv2-adv-card-assign-wrap mt-2" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
+                  <label class="visually-hidden" for="ttv2-adv-card-sel-{{ sm.id }}">Assign advisor</label>
+                  <select id="ttv2-adv-card-sel-{{ sm.id }}" class="form-select form-select-sm" data-ttv2-adv-card-select style="max-width:100%;font-size:11px;">
+                    <option value="">Choose advisor…</option>
+                    {% for c in _co_opts_card %}
+                      <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="button"
+                          class="btn btn-sm btn-primary mt-1 w-100"
+                          data-ttv2-adv-card-assign
+                          data-set-url="{{ _set_counselor_url }}"
+                          data-sm-id="{{ sm.id }}">
+                    Assign
+                  </button>
                 </div>
               {% endif %}
             </div>
@@ -284,13 +323,19 @@
     {% endif %}
   </div>
 
+{% set _ttp = '&data_type=students'
+  ~ ('&counselor_assigned=' ~ (request.GET.get('counselor_assigned')|urlencode) if request.GET.get('counselor_assigned') else '')
+  ~ ('&institute_slug=' ~ (request.GET.get('institute_slug')|urlencode) if request.GET.get('institute_slug') else '')
+  ~ ('&institute_name=' ~ (request.GET.get('institute_name')|urlencode) if request.GET.get('institute_name') else '')
+%}
+
   {# Pagination (same querystring strategy as table) #}
   {% if students and students.paginator and students.paginator.num_pages > 1 %}
     <nav aria-label="Page navigation" class="mt-3">
       <ul class="pagination justify-content-center">
         {% if students.has_previous() %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">Previous</a>
+            <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}{{ _ttp }}">Previous</a>
           </li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">Previous</span></li>
@@ -301,7 +346,7 @@
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
           {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 1 and num <= students.number + 1) %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ num }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">{{ num }}</a>
+              <a class="page-link" href="?page={{ num }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}{{ _ttp }}">{{ num }}</a>
             </li>
           {% elif num == 4 or num == students.paginator.num_pages - 2 %}
             <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -310,7 +355,7 @@
 
         {% if students.has_next() %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">Next</a>
+            <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}{{ _ttp }}">Next</a>
           </li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">Next</span></li>

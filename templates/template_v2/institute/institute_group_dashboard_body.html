@@ -21,7 +21,7 @@
       'show_block': False,
       'show_followup': False,
       'show_institute': True,
-      'role': 'institute'
+      'role': 'institute_group'
     } %}
     {% set ttv2_students_action_urls = {} %}
     {% include "template_v2/institute/pages/institute_students.html" %}
@@ -40,6 +40,10 @@
       <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>
       <div style="font-size:12px;color:var(--c-text3);">{{ ttv2_page|default('This') }} page content here.</div>
     </div>
+  {% endif %}
+  {% if (ttv2_page|default('dashboard')) == 'counselors' %}
+    {% set counselor_component_group_scope = true %}
+    {% include 'template20/shared/counselors_modals_component.html' %}
   {% endif %}
 </div>
 

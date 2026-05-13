@@ -119,8 +119,16 @@
           {% set eq = (result.eq_attempted if (result and result.eq_attempted) else false) %}
           {% set mi_report_url = (result.mi_report_url if (result and result.mi_report_url) else '') %}
           {% set eq_report_url = (result.eq_report_url if (result and result.eq_report_url) else '') %}
+          {% set _role_inst_mgmt = (ttv2_students_role is not defined or ttv2_students_role == 'institute_group') %}
+          {% set _row_set_url = '#' %}
+          {% if institute is defined and institute and institute.slug %}
+            {% set _row_set_url = url('institute:set_student_counselor', institute.slug) %}
+          {% elif ts.institute is defined and ts.institute and ts.institute.slug %}
+            {% set _row_set_url = url('institute:set_student_counselor', ts.institute.slug) %}
+          {% endif %}
           <tr class="student-row"
               data-sm-id="{{ _sm_id }}"
+              data-ttv2-set-url="{{ _row_set_url }}"
               data-student-id="{{ _student.id if _student else '' }}"
               data-student-name="{{ _student.name if (_student and _student.name) else '-' }}"
               data-student-email="{{ _student.email if _student else '-' }}"
@@ -154,20 +162,32 @@
             {% endif %}
             <td>
               {% set _adv_name = '-' %}
+              {% set _has_row_adv = false %}
               {% if ts and ts.counselors is defined %}
                 {% set _adv_list = ts.counselors.all() %}
                 {% if _adv_list and (_adv_list|length) > 0 %}
                   {% set _adv_name = _adv_list[0].counselor_name|default('-') %}
+                  {% set _has_row_adv = true %}
                 {% endif %}
               {% endif %}
-
+              {% if not _has_row_adv and ts is defined and ts.counselor %}
+                {% set _adv_name = ts.counselor.counselor_name|default('-') %}
+                {% set _has_row_adv = true %}
+              {% endif %}
+              {% set _row_adv_opts = [] %}
               {% if table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined) %}
+                {% set _row_adv_opts = ttv2_counselor_options %}
+              {% elif table_config and table_config.role == 'institute_group' and (ttv2_counselors_by_institute_id is defined) and ts.institute_id %}
+                {% set _row_adv_opts = (ttv2_counselors_by_institute_id.get((ts.institute_id|string)) or []) %}
+              {% endif %}
+
+              {% if (table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined)) or (table_config and table_config.role == 'institute_group' and (ttv2_counselors_by_institute_id is defined)) %}
                 <div class="d-flex flex-column gap-1 ttv2-adv-cell">
                   <div class="ttv2-adv-name">{{ _adv_name }}</div>
                   <div class="d-flex gap-2 align-items-center ttv2-adv-controls">
                     <select class="form-select form-select-sm" style="max-width:180px" data-ttv2-adv-select>
                       <option value="">Unassigned</option>
-                      {% for c in ttv2_counselor_options %}
+                      {% for c in _row_adv_opts %}
                         <option value="{{ c.id }}">{{ c.name }}</option>
                       {% endfor %}
                     </select>
@@ -206,6 +226,8 @@
                       <span class="badge bg-success">Completed</span>
                     {% elif _k == 'scheduled_future' %}
                       <span class="badge bg-secondary">Next</span>
+                    {% elif _k == 'not_scheduled' and _role_inst_mgmt and not _has_row_adv %}
+                      <span class="badge bg-warning text-dark">Assign counselor</span>
                     {% else %}
                       <span class="badge bg-secondary">{{ _fu.smart_label|default('Not scheduled') }}</span>
                     {% endif %}
@@ -224,7 +246,11 @@
                     </div>
                   {% endif %}
                 {% else %}
-                  <span class="badge bg-secondary">Not scheduled</span>
+                  {% if _role_inst_mgmt and not _has_row_adv %}
+                    <span class="badge bg-warning text-dark">Assign counselor</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Not scheduled</span>
+                  {% endif %}
                 {% endif %}
               </div>
             </td>

@@ -116,12 +116,23 @@ def institute_change_student_password_only(view_func):
 
 def change_counselor_password_only(view_func):
     def wrap(request,*args,**kwargs):
-        id=request.POST.get("coun_password_id")
-        coun_manage=get_object_or_404(Counselor,id=id)        
-        if (request.user==coun_manage.institute.created_by) or request.user.is_superuser:
+        cid = (
+            request.POST.get("counselor_id")
+            or request.POST.get("coun_password_id")
+            or request.POST.get("password_id")
+        )
+        coun_manage = get_object_or_404(Counselor, id=cid)
+        inst = coun_manage.counselor_admin
+        owns_institute = inst and request.user == inst.created_by
+        group_admin_ok = False
+        if inst and inst.institute_group_id:
+            group_admin_ok = (
+                getattr(inst.institute_group, "institute_group_admin_id", None)
+                == request.user.id
+            )
+        if owns_institute or group_admin_ok or request.user.is_superuser:
             return view_func(request,*args,**kwargs)
-        else:
-            return HttpResponseRedirect("/")
+        return HttpResponseRedirect("/")
     return wrap
 
 def institute_profile_update_delete(view_func):

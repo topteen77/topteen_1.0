@@ -23,7 +23,7 @@ from .models import (
 )
 from .course_completion import is_course_fully_completed as _is_course_fully_completed
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Count, Q
+from django.db.models import Count, Exists, OuterRef, Q
 from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView
@@ -670,12 +670,17 @@ def apply_student_filters(students_data, request, results_data=None):
     class_filter = request.GET.get('class_and_section', '').strip()
     name_filter = request.GET.get('student_name', '').strip()
     test_taken_filter = request.GET.get('test_taken', '').strip()
-    
+    counselor_assigned = request.GET.get("counselor_assigned", "").strip().lower()
+    institute_name = request.GET.get("institute_name", "").strip()
+
     # Handle QuerySet
     if hasattr(students_data, 'filter'):
         # It's a QuerySet
         queryset = students_data
-        
+
+        if institute_name:
+            queryset = queryset.filter(institute__name__icontains=institute_name)
+
         # Apply class filter
         # Support both:
         # - numeric class_and_section_id (legacy counselor filter UI)
@@ -692,6 +697,20 @@ def apply_student_filters(students_data, request, results_data=None):
         # Apply name filter
         if name_filter:
             queryset = queryset.filter(student__name__icontains=name_filter)
+
+        if counselor_assigned in ("yes", "no"):
+            _m2m_adv = Exists(
+                Counselor.objects.filter(students__pk=OuterRef("pk"))
+            )
+            queryset = queryset.annotate(_ttv2_has_m2m_adv=_m2m_adv)
+            if counselor_assigned == "no":
+                queryset = queryset.filter(
+                    _ttv2_has_m2m_adv=False, counselor__isnull=True
+                )
+            else:
+                queryset = queryset.filter(
+                    Q(_ttv2_has_m2m_adv=True) | Q(counselor__isnull=False)
+                )
         
         # Apply test_taken filter (requires results_data)
         if test_taken_filter and results_data:
@@ -721,7 +740,20 @@ def apply_student_filters(students_data, request, results_data=None):
     else:
         # It's a list
         filtered_data = list(students_data)
-        
+
+        if institute_name:
+            il = institute_name.lower()
+
+            def _iname_ok(row):
+                inst = getattr(row, "institute", None)
+                if inst is None and hasattr(row, "get"):
+                    inner = row.get("student") or row.get("student_management")
+                    inst = getattr(inner, "institute", None)
+                name = getattr(inst, "name", "") or ""
+                return il in name.lower()
+
+            filtered_data = [s for s in filtered_data if _iname_ok(s)]
+
         # Apply class filter
         if class_filter:
             _cid = None
@@ -754,6 +786,26 @@ def apply_student_filters(students_data, request, results_data=None):
                 hasattr(s['student'], 'student') and
                 name_filter.lower() in s['student'].student.name.lower()
             ]
+
+        if counselor_assigned in ("yes", "no"):
+            def _list_row_adv_match(obj):
+                sm = obj.get("student") if hasattr(obj, "get") else obj
+                if sm is None:
+                    return False
+                try:
+                    if getattr(sm, "counselor_id", None):
+                        has_a = True
+                    else:
+                        has_a = (
+                            hasattr(sm, "counselors")
+                            and sm.counselors.exists()
+                        )
+                except Exception:
+                    has_a = False
+                want_yes = counselor_assigned == "yes"
+                return has_a if want_yes else not has_a
+
+            filtered_data = [s for s in filtered_data if _list_row_adv_match(s)]
         
         # Apply test_taken filter
         if test_taken_filter and results_data:

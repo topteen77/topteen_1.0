@@ -1,6 +1,5 @@
-<!-- Institutes Table Container (for AJAX loading) -->
+<!-- Institutes table fragment (injected into #institutes-table-container on the page) -->
 <div id="institutes-table-wrapper">
-<div id="institutes-table-container">
 <div class="px-2 py-2 mb-0 small border rounded-top bg-light text-secondary d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
   {% if institutes_paginations %}
     <span><strong class="text-dark">{{ institutes_paginations.paginator.count }}</strong> matching</span>
@@ -18,6 +17,8 @@
         <th>Name</th>
         <th>Email</th>
         <th>Locations</th>
+        <th>Counselors</th>
+        <th>Advisor actions</th>
         <th>Students</th>
         <th>Created</th>
       </tr>
@@ -26,6 +27,7 @@
       {% if institutes_paginations %}
         {% for ins in institutes_paginations %}
         {% set _ig_stu_href = url('institute:institutegroupdashboard_page', args=['students']) ~ '?institute_slug=' ~ (ins.slug|urlencode) %}
+        {% set cmap = (ig_institute_counselors_map.get(ins.id) if ig_institute_counselors_map is defined else []) or [] %}
         <tr class="institute-row"
             data-institute-slug="{{ ins.slug }}"
             data-institute-name="{{ ins.name }}"
@@ -38,6 +40,43 @@
           </td>
           <td>{{ ins.created_by.email if ins.created_by else '-' }}</td>
           <td>{{ ins.address if ins.address else '-' }}</td>
+          <td data-ttv2-ig-counselors-cell>
+            {% if cmap %}
+              {% for c in cmap %}<span class="badge bg-secondary me-1 mb-1" data-counselor-id="{{ c.id }}">{{ c.name }}</span>{% endfor %}
+            {% else %}
+              <span class="text-muted" data-ttv2-ig-empty-placeholder>—</span>
+            {% endif %}
+          </td>
+          <td class="align-top" style="min-width:200px;" data-ttv2-ig-actions-cell>
+            {% if ig_group_counselors_select is defined and ig_group_counselors_select|length > 0 %}
+            <div class="py-1" data-ttv2-ig-inst-actions data-inst-slug="{{ ins.slug }}">
+              <div class="d-flex flex-wrap gap-1 mb-2" data-ttv2-ig-assigned-chips>
+                {% for c in cmap %}
+                <span class="badge bg-secondary d-inline-flex align-items-center gap-1" data-counselor-id="{{ c.id }}">
+                  <span>{{ c.name }}</span>
+                  <button type="button"
+                          class="btn btn-sm btn-link p-0 text-dark text-opacity-75 text-decoration-none lh-1 border-0 align-middle"
+                          style="font-size:1.1rem;line-height:1;min-width:1rem;"
+                          data-ttv2-ig-unassign-chip
+                          title="Remove advisor"
+                          aria-label="Remove advisor {{ c.name }}">×</button>
+                </span>
+                {% endfor %}
+              </div>
+              <div class="d-flex flex-column gap-1{% if cmap %} d-none{% endif %}" data-ttv2-ig-assign-block>
+                <select class="form-select form-select-sm" data-ttv2-ig-assign-select aria-label="Assign counselor">
+                  <option value="">Assign counselor…</option>
+                  {% for opt in ig_group_counselors_select %}
+                  <option value="{{ opt.id }}">{{ opt.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="button" class="btn btn-sm btn-primary py-0" data-ttv2-ig-assign-btn>Assign</button>
+              </div>
+            </div>
+            {% else %}
+              <span class="text-muted small">No counselors in group</span>
+            {% endif %}
+          </td>
           <td>
             <a href="{{ _ig_stu_href }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ ins.student_count if ins.student_count else 0 }}</a>
           </td>
@@ -46,7 +85,7 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="text-center py-4">
+          <td colspan="8" class="text-center py-4">
             <i class='bx bx-building fs-48 text-muted mb-3'></i>
             <p class="text-muted">No institutes found</p>
           </td>
@@ -89,5 +128,4 @@
   </ul>
 </nav>
 {% endif %}
-</div>
 </div>

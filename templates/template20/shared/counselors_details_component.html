@@ -1,11 +1,12 @@
 {# Shared counselor table — set counselor_component_* before include (see institute / marketing / group bodies). #}
 {% set _wrap = counselor_component_wrap|default('institute') %}
 {% set _show_inst = counselor_component_show_institute_column|default(false) %}
+{% set _show_schools = counselor_component_show_schools_column|default(false) %}
 {% set _manage = counselor_component_show_manage_actions|default(true) %}
 {% set _allow_add = counselor_component_allow_add|default(false) %}
 {% set _sec_id = counselor_component_section_id|default('sec-counselors-details') %}
 {% set _title = counselor_component_title|default('Counselors Details') %}
-{% set _colspan = 6 + (1 if _show_inst else 0) + (2 if _manage else 0) %}
+{% set _colspan = 6 + (1 if _show_inst else 0) + (1 if _show_schools else 0) + (2 if _manage else 0) %}
 {% set _rows = counselor_data_list if counselor_data_list is defined else [] %}
 
 {% if _wrap == 'institute' %}
@@ -46,6 +47,7 @@
             <th>Name</th>
             <th>Email</th>
             {% if _show_inst %}<th>Institute</th>{% endif %}
+            {% if _show_schools %}<th>Schools covered</th>{% endif %}
             <th>Students Followed up</th>
             <th>Created</th>
             <th>Students Counselled</th>
@@ -70,6 +72,9 @@
               {% endif %}
             </td>
             {% endif %}
+            {% if _show_schools %}
+            <td>{{ coun.institutes_label|default('—') }}</td>
+            {% endif %}
             <td>{{ coun.sessions }}</td>
             <td>{% if coun.created %}{{ coun.created.strftime('%d-%m-%Y') }}{% else %}-{% endif %}</td>
             <td>{{ coun.students_counseled }}</td>
@@ -82,7 +87,7 @@
                 </button>
                 <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal"
                   data-bs-target="#changeCounselorPasswordModal"
-                  onclick="document.getElementById('coun_password_id').value='{{ coun.id }}'"
+                  onclick="document.getElementById('{{ counselor_component_password_hidden_id|default('coun_password_id') }}').value='{{ coun.id }}'"
                   title="Change Password">
                   <i class="bx bx-key text-info"></i>
                 </button>

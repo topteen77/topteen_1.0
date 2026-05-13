@@ -35,6 +35,21 @@ urlpatterns = [
 
     path("create_institute_group/",views.InstituteGroupCreateView.as_view(),name="createinstitutegroup"),
     path("institute_group_dashboard/",views.InstituteGroupDashboardView.as_view(),name="institutegroupdashboard"),
+    path(
+        "institute_group_dashboard/api/bulk-assign-counselor/",
+        views.InstituteGroupBulkAssignCounselorView.as_view(),
+        name="institutegroup_bulk_assign_counselor",
+    ),
+    path(
+        "institute_group_dashboard/api/institute-counselor/",
+        views.InstituteGroupInstituteCounselorView.as_view(),
+        name="institutegroup_institute_counselor",
+    ),
+    path(
+        "institute_group_dashboard/api/counselor-profile/",
+        views.InstituteGroupCounselorProfileUpdateView.as_view(),
+        name="institutegroup_counselor_profile_update",
+    ),
     path("institute_group_dashboard/<str:page>/", views.InstituteGroupDashboardView.as_view(), name="institutegroupdashboard_page"),
     path("institute_profile_edit/",views.InstituteProfileEditView.as_view(),name="instituteprofileedit"),
     path("institute_student_create/",views.InstituteStudentCreateView.as_view(),name="institutestudentcreate"),

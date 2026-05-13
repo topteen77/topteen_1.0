@@ -1,4 +1,16 @@
 <div class="ttv2-ig-subpage">
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" autocomplete="off" aria-hidden="true">
+  <div id="ttv2IgCounselorFlash"
+       class="alert alert-dismissible fade mb-3 py-2 ps-3 pe-2 d-none"
+       role="alert">
+    <div class="d-flex align-items-start gap-2">
+      <span id="ttv2IgCounselorFlashText" class="flex-grow-1"></span>
+      <button type="button"
+              class="btn-close flex-shrink-0 mt-1"
+              data-ttv2-ig-flash-dismiss=""
+              aria-label="Close"></button>
+    </div>
+  </div>
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h2 class="fs-20 mb-0">Institutes</h2>
     <div class="d-flex flex-wrap align-items-center gap-2">
@@ -8,7 +20,38 @@
       <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
     </div>
   </div>
-  <p class="text-muted small mb-3">Filter and review institutes in this group.</p>
+  <p class="text-muted small mb-3">Filter and review institutes in this group. Assign one advisor from the group to every school, or manage advisors per institute.</p>
+
+  <div id="ttv2IgCounselorApiHost" class="d-none" hidden
+       data-institute-url="{{ url('institute:institutegroup_institute_counselor') }}"
+       data-bulk-url="{{ url('institute:institutegroup_bulk_assign_counselor') }}"></div>
+
+  {% if ig_group_counselors_select is defined and ig_group_counselors_select|length > 0 %}
+  <div class="card mb-3 border-0 shadow-sm"
+       id="ttv2IgBulkCounselorBar"
+       data-bulk-url="{{ url('institute:institutegroup_bulk_assign_counselor') }}"
+       data-institute-url="{{ url('institute:institutegroup_institute_counselor') }}">
+    <div class="card-body py-3">
+      <div class="fw-semibold mb-2 fs-14">Bulk assign advisor</div>
+      <div class="d-flex flex-wrap align-items-end gap-2">
+        <div class="flex-grow-1" style="min-width:220px;max-width:420px;">
+          <label class="form-label small mb-1" for="ttv2IgBulkCounselorSelect">Counselor (from any institute in this group)</label>
+          <select id="ttv2IgBulkCounselorSelect" class="form-select form-select-sm">
+            <option value="">Choose counselor…</option>
+            {% for opt in ig_group_counselors_select %}
+              <option value="{{ opt.id }}">{{ opt.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="button" class="btn btn-sm btn-primary" id="ttv2IgBulkCounselorBtn">
+          Assign to all institutes
+        </button>
+      </div>
+      <div class="small text-muted mt-2 mb-0">Creates an advisor record under each institute when missing (same login as the chosen counselor).</div>
+    </div>
+  </div>
+  {% endif %}
+
   {% set ig_reset_href = url('institute:institutegroupdashboard_page', args=['institutes']) %}
   {% set ig_filter_action = url('institute:institutegroupdashboard_page', args=['institutes']) %}
   {% include "template_v2/institute/fragments/ig_institutes_filters_table.html" %}

@@ -14,10 +14,13 @@
             </form>
           </div>
         </div>
+        {% include 'template_v2/institute/fragments/ig_counselor_placements_table.html' %}
         {% set counselor_component_wrap = 'card' %}
         {% set counselor_component_allow_add = false %}
-        {% set counselor_component_show_manage_actions = false %}
-        {% set counselor_component_show_institute_column = true %}
+        {% set counselor_component_show_manage_actions = true %}
+        {% set counselor_component_password_hidden_id = 'ttv2IgGroupCounPwdId' %}
+        {% set counselor_component_show_institute_column = false %}
+        {% set counselor_component_show_schools_column = true %}
         {% set counselor_component_section_id = 'sec-group-counselors' %}
-        {% set counselor_component_title = 'Counselors (institute group)' %}
+        {% set counselor_component_title = 'Advisor profiles (unique)' %}
         {% include 'template20/shared/counselors_details_component.html' %}

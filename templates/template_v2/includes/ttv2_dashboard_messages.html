@@ -1,0 +1,39 @@
+{# Django messages for template_v2 dashboards (Bootstrap 5 alert mapping). #}
+{% if messages %}
+<div class="messages-container position-fixed top-0 start-50 translate-middle-x mt-3 px-2"
+     style="z-index:10870;max-width:560px;width:100%;pointer-events:none;">
+  {% for message in messages %}
+  {% set _t = ((message.tags or '')|string)|trim %}
+  {% set tag0 = '' %}
+  {% if _t %}
+    {% set _parts = _t.split() %}
+    {% if _parts %}
+      {% set tag0 = _parts[0] %}
+    {% endif %}
+  {% endif %}
+  {% set lvl = 'info' %}
+  {% if tag0 == 'error' %}
+    {% set lvl = 'danger' %}
+  {% elif tag0 == 'warning' %}
+    {% set lvl = 'warning' %}
+  {% elif tag0 == 'success' %}
+    {% set lvl = 'success' %}
+  {% endif %}
+  <div class="alert alert-{{ lvl }} alert-dismissible fade show shadow-sm mb-2"
+       role="alert"
+       style="pointer-events:auto;">
+    {% if lvl == 'danger' %}
+      <i class='bx bx-error-circle fs-18 me-2'></i>
+    {% elif lvl == 'success' %}
+      <i class='bx bx-check-circle fs-18 me-2'></i>
+    {% elif lvl == 'warning' %}
+      <i class='bx bx-error fs-18 me-2'></i>
+    {% else %}
+      <i class='bx bx-info-circle fs-18 me-2'></i>
+    {% endif %}
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

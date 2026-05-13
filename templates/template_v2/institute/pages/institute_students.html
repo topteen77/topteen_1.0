@@ -106,6 +106,9 @@
         {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
           <span class="d-block mt-1">Optional: add <code class="small">?institute_slug=…</code> to this page’s URL to narrow students to one institute you manage.</span>
         {% endif %}
+        {% if ttv2_students_role is not defined or ttv2_students_role in ('institute_group', 'marketing_group') %}
+          <span class="d-block mt-1 text-muted fs-12">Filter by <strong>No advisor assigned</strong> below, or use <code class="small">?counselor_assigned=no</code> (combine with <code class="small">institute_slug</code> when scoped to one school).</span>
+        {% endif %}
       </div>
       <div class="ttv2-sp-hr" aria-hidden="true"></div>
       <div class="ttv2-sp-mobile-toolbar d-lg-none">
@@ -139,6 +142,26 @@
                      placeholder="Name, class, email, or school…"
                      value="{{ request.GET.get('student_name','') }}">
             </div>
+            {% if ttv2_students_role is defined and ttv2_students_role in ('institute_group', 'marketing_group') %}
+            <div class="ttv2-sp-search ttv2-sp-search--inline">
+              <i class="bx bx-building-house" aria-hidden="true"></i>
+              <input type="search"
+                     name="institute_name"
+                     id="institute_name"
+                     class="form-control custom-input"
+                     placeholder="Institute name contains…"
+                     value="{{ request.GET.get('institute_name','') }}"
+                     autocomplete="organization">
+            </div>
+            {% endif %}
+            {% if ttv2_students_role is defined and ttv2_students_role in ('institute_group', 'marketing_group') and ttv2_quicklink_institutes is defined and ttv2_quicklink_institutes|length > 0 %}
+            <select name="institute_slug" id="institute_slug_filter" class="form-control custom-input" aria-label="Institute">
+              <option value="">All institutes</option>
+              {% for ii in ttv2_quicklink_institutes %}
+                <option value="{{ ii.slug }}" {% if request.GET.get('institute_slug') == ii.slug %}selected{% endif %}>{{ ii.name }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
             <select name="class_and_section" id="classes" class="form-control custom-input">
               <option value="">All classes</option>
               {% for cas in class_and_sections %}
@@ -163,6 +186,14 @@
               <option value="In Progress" {% if request.GET.get('test_taken')=='In Progress' %}selected{% endif %}>In progress</option>
               <option value="No" {% if request.GET.get('test_taken')=='No' %}selected{% endif %}>Not started</option>
             </select>
+
+            {% if ttv2_students_role is not defined or ttv2_students_role in ('institute_group', 'marketing_group') %}
+            <select name="counselor_assigned" id="counselor_assigned" class="form-control custom-input" aria-label="Advisor assignment">
+              <option value="">Advisor: all</option>
+              <option value="no" {% if request.GET.get('counselor_assigned')=='no' %}selected{% endif %}>No advisor assigned</option>
+              <option value="yes" {% if request.GET.get('counselor_assigned')=='yes' %}selected{% endif %}>Advisor assigned</option>
+            </select>
+            {% endif %}
 
             <a class="ttv2-sp-reset-icon d-none d-lg-inline-flex"
                href="{{ request.path }}"

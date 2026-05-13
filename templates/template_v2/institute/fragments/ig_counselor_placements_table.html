@@ -1,0 +1,49 @@
+{# Institute-group: one row per advisor placement (school + counselor record). #}
+{% set _prows = ig_counselor_placement_rows if ig_counselor_placement_rows is defined else [] %}
+<div class="card mb-4" id="sec-group-counselor-placements">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <h2 class="card-title fs-18 mb-0">Advisor placements by institute</h2>
+        <span class="badge bg-secondary rounded-pill">{{ _prows|length }} row{% if _prows|length != 1 %}s{% endif %}</span>
+      </div>
+    </div>
+    <p class="text-muted small mb-3 mb-md-2">Same person advising multiple schools appears once per institute.</p>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Sr.no.</th>
+            <th>Institute</th>
+            <th>Advisor name</th>
+            <th>Email</th>
+            <th>Students Followed up</th>
+            <th>Students Counselled</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pr in _prows %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+              {% if pr.institute_slug %}
+              <a href="{{ url('institute:institute_masterdashboard', args=[pr.institute_slug]) }}">{{ pr.institute_name }}</a>
+              {% else %}
+              {{ pr.institute_name }}
+              {% endif %}
+            </td>
+            <td>{{ pr.counselor_name }}</td>
+            <td>{{ pr.email }}</td>
+            <td>{{ pr.sessions }}</td>
+            <td>{{ pr.students_counseled }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No advisor placements in this group.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
