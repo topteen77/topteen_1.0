@@ -762,10 +762,10 @@
 
 /* The bubble itself */
 .cb-bubble {
-  max-width: 78%;           /* leave visible margin on the opposite side */
+  max-width: 78%;
   padding: 12px 16px;
-  font-size: 14.5px;
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 19px;
   word-break: break-word;
 }
 
@@ -856,7 +856,7 @@
 .cb-md h4 { font-size: 1.00em; }
 .cb-md h5, .cb-md h6 { font-size: .95em; }
 
-.cb-md p          { margin: 6px 0; }
+.cb-md p          { margin: 6px 0;font-size: 14px; line-height: 19px; }
 .cb-md p:first-child { margin-top: 0; }
 .cb-md p:last-child  { margin-bottom: 0; }
 

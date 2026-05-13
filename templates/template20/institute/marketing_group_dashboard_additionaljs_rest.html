@@ -202,6 +202,7 @@
     })
     .then(data => {
       console.log('Charts data received:', data);
+      try { window._ttv2MktgLastChartsData = data; } catch (e) {}
       // Show charts section
       document.getElementById('charts-section').style.display = 'block';
       
@@ -285,6 +286,35 @@
     return g;
   }
 
+  function _ttv2MktgIsDarkTheme() {
+    try {
+      return (document.documentElement.getAttribute('data-ttv2-theme') || '').toLowerCase() === 'dark';
+    } catch (e) {
+      return false;
+    }
+  }
+  /** Axis, grid, bar-end labels, and tooltips for Chart.js on marketing dashboard */
+  function _ttv2MktgChartPalette() {
+    if (_ttv2MktgIsDarkTheme()) {
+      return {
+        tick: 'rgba(232, 234, 240, 0.92)',
+        tickMuted: 'rgba(200, 206, 220, 0.72)',
+        grid: 'rgba(255, 255, 255, 0.10)',
+        barLabel: 'rgba(232, 234, 240, 0.95)',
+        tooltipBg: 'rgba(18, 20, 30, 0.96)',
+        tooltipBorder: 'rgba(255, 255, 255, 0.14)',
+      };
+    }
+    return {
+      tick: 'rgba(15, 23, 42, 0.72)',
+      tickMuted: 'rgba(15, 23, 42, 0.55)',
+      grid: 'rgba(15, 23, 42, 0.08)',
+      barLabel: 'rgba(15, 23, 42, 0.78)',
+      tooltipBg: 'rgba(15, 23, 42, 0.94)',
+      tooltipBorder: 'rgba(15, 23, 42, 0.2)',
+    };
+  }
+
   /* Chart.js plugin: draw the value at the end of each bar. Registered by id
      so we can opt-in per chart via plugins: { ttv2BarLabels: {...} } */
   const ttv2BarLabelsPlugin = {
@@ -296,7 +326,8 @@
       const horizontal = (chart.options && chart.options.indexAxis === 'y');
       ctx.save();
       ctx.font = '600 11px Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-      ctx.fillStyle = (opts && opts.color) || 'rgba(15,23,42,0.75)';
+      const pal = _ttv2MktgChartPalette();
+      ctx.fillStyle = (opts && opts.color) || pal.barLabel;
       chart.data.datasets.forEach((ds, dsIdx) => {
         const meta = chart.getDatasetMeta(dsIdx);
         if (!meta || meta.hidden) return;
@@ -412,7 +443,8 @@
       if (window.locationChartInstance) {
         window.locationChartInstance.destroy();
       }
-      
+
+      const pal = _ttv2MktgChartPalette();
       window.locationChartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
@@ -444,14 +476,14 @@
           layout: { padding: { top: 6, right: 36, bottom: 6, left: 6 } },
           scales: {
             x: {
-              title: { display: true, text: 'Students', color: 'rgba(15,23,42,0.55)', font: { size: 11, weight: '600' } },
-              ticks: { precision: 0, color: 'rgba(15,23,42,0.55)', font: { size: 11 } },
-              grid: { color: 'rgba(15,23,42,0.06)', drawBorder: false },
+              title: { display: true, text: 'Students', color: pal.tickMuted, font: { size: 11, weight: '600' } },
+              ticks: { precision: 0, color: pal.tickMuted, font: { size: 11 } },
+              grid: { color: pal.grid, drawBorder: false },
               border: { display: false },
             },
             y: {
               title: { display: false },
-              ticks: { color: 'rgba(15,23,42,0.7)', font: { size: 11.5, weight: '500' } },
+              ticks: { color: pal.tick, font: { size: 11.5, weight: '500' } },
               grid: { display: false, drawBorder: false },
               border: { display: false },
             }
@@ -459,7 +491,11 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(15,23,42,0.92)',
+              backgroundColor: pal.tooltipBg,
+              borderColor: pal.tooltipBorder,
+              borderWidth: 1,
+              titleColor: pal.tick,
+              bodyColor: pal.tickMuted,
               padding: 10,
               cornerRadius: 8,
               titleFont: { size: 12, weight: '600' },
@@ -476,7 +512,7 @@
                 }
               }
             },
-            ttv2BarLabels: { enabled: true, color: 'rgba(15,23,42,0.75)' }
+            ttv2BarLabels: { enabled: true, color: pal.barLabel }
           },
           animation: { duration: 700, easing: 'easeOutQuart' },
         }
@@ -506,7 +542,8 @@
         try { window.personalityChartInstance.destroy(); } catch (e) {}
         window.personalityChartInstance = null;
       }
-      
+
+      const pal = _ttv2MktgChartPalette();
       window.personalityChartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
@@ -538,7 +575,14 @@
           cutout: '62%',
           plugins: {
             legend: {
-              position: 'bottom'
+              position: 'bottom',
+              labels: {
+                color: pal.tick,
+                padding: 14,
+                font: { size: 12, weight: '600' },
+                usePointStyle: true,
+                pointStyle: 'circle',
+              }
             }
           },
           animation: {
@@ -595,7 +639,8 @@
       if (window.streamsChartInstance) {
         window.streamsChartInstance.destroy();
       }
-      
+
+      const pal = _ttv2MktgChartPalette();
       window.streamsChartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
@@ -630,7 +675,7 @@
                 maxRotation: 20,
                 minRotation: 20,
                 maxTicksLimit: 15,
-                color: 'rgba(15,23,42,0.7)',
+                color: pal.tick,
                 font: { size: 11, weight: '500' }
               },
               grid: { display: false, drawBorder: false },
@@ -638,16 +683,20 @@
             },
             y: {
               beginAtZero: true,
-              title: { display: true, text: 'Students', color: 'rgba(15,23,42,0.55)', font: { size: 11, weight: '600' } },
-              ticks: { precision: 0, color: 'rgba(15,23,42,0.55)', font: { size: 11 } },
-              grid: { color: 'rgba(15,23,42,0.06)', drawBorder: false },
+              title: { display: true, text: 'Students', color: pal.tickMuted, font: { size: 11, weight: '600' } },
+              ticks: { precision: 0, color: pal.tickMuted, font: { size: 11 } },
+              grid: { color: pal.grid, drawBorder: false },
               border: { display: false },
             }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(15,23,42,0.92)',
+              backgroundColor: pal.tooltipBg,
+              borderColor: pal.tooltipBorder,
+              borderWidth: 1,
+              titleColor: pal.tick,
+              bodyColor: pal.tickMuted,
               padding: 10,
               cornerRadius: 8,
               displayColors: false,
@@ -664,7 +713,7 @@
                 }
               }
             },
-            ttv2BarLabels: { enabled: true, color: 'rgba(15,23,42,0.75)' }
+            ttv2BarLabels: { enabled: true, color: pal.barLabel }
           },
           animation: { duration: 700, easing: 'easeOutQuart' },
         }
@@ -709,6 +758,7 @@
       window._mktgSeatCapacityChart = null;
     }
 
+    const pal = _ttv2MktgChartPalette();
     window._mktgSeatCapacityChart = new Chart(canvas, {
       type: 'bar',
       data: {
@@ -742,7 +792,7 @@
               autoSkip: false,
               maxRotation: 60,
               minRotation: 60,
-              color: 'rgba(15,23,42,0.7)',
+              color: pal.tick,
               font: { size: 10.5, weight: '500' },
               padding: 4,
             },
@@ -751,16 +801,20 @@
           },
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Seats', color: 'rgba(15,23,42,0.55)', font: { size: 11, weight: '600' } },
-            ticks: { precision: 0, color: 'rgba(15,23,42,0.55)', font: { size: 11 } },
-            grid: { color: 'rgba(15,23,42,0.06)', drawBorder: false },
+            title: { display: true, text: 'Seats', color: pal.tickMuted, font: { size: 11, weight: '600' } },
+            ticks: { precision: 0, color: pal.tickMuted, font: { size: 11 } },
+            grid: { color: pal.grid, drawBorder: false },
             border: { display: false },
           }
         },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(15,23,42,0.92)',
+            backgroundColor: pal.tooltipBg,
+            borderColor: pal.tooltipBorder,
+            borderWidth: 1,
+            titleColor: pal.tick,
+            bodyColor: pal.tickMuted,
             padding: 10,
             cornerRadius: 8,
             displayColors: false,
@@ -777,7 +831,7 @@
               }
             }
           },
-          ttv2BarLabels: { enabled: true, color: 'rgba(15,23,42,0.75)' }
+          ttv2BarLabels: { enabled: true, color: pal.barLabel }
         },
         animation: { duration: 700, easing: 'easeOutQuart' },
       }
@@ -1584,6 +1638,37 @@
     }
   }
   
+  function _ttv2MktgRedrawChartsForTheme() {
+    const data = window._ttv2MktgLastChartsData;
+    if (!data || !document.getElementById('charts-section')) return;
+    try {
+      if (data.institutes && data.institutes.length > 0 && document.getElementById('locationChart')) {
+        loadLocationChart(data.institutes);
+      }
+      if (data.total_students_count !== undefined && data.test_result_count !== undefined && document.getElementById('personalityChart')) {
+        loadPersonalityChart(data.total_students_count, data.test_result_count);
+      }
+      if (data.streams_chart_data && data.streams_chart_data.length > 0 && document.getElementById('streamsChart')) {
+        loadStreamsChart(data.streams_chart_data);
+      }
+      if (data.seat_capacity_institutes && data.seat_capacity_institutes.length > 0 && document.getElementById('seatCapacityDashboardChart')) {
+        loadSeatCapacityDashboardChart(data.seat_capacity_institutes);
+      }
+    } catch (e) { /* ignore */ }
+  }
+  window._ttv2MktgRedrawChartsForTheme = _ttv2MktgRedrawChartsForTheme;
+
+  if (!window._ttv2MktgThemeObsBound) {
+    window._ttv2MktgThemeObsBound = true;
+    try {
+      new MutationObserver(function () {
+        if (typeof window._ttv2MktgRedrawChartsForTheme === 'function') {
+          window._ttv2MktgRedrawChartsForTheme();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-ttv2-theme'] });
+    } catch (e) { /* ignore */ }
+  }
+
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
     initializeInstituteRowHover();

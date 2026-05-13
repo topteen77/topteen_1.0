@@ -1,3 +1,5 @@
+
+
 {# Shared v2 dashboard shell (counselor-style) for all roles #}
 {% extends 'template_v2/base_logged_in.html' %}
 
@@ -14,6 +16,11 @@
   position: relative;
   top: -7px;
   left: -9px;
+}
+
+.tt-notification-bell-wrap {
+  position: relative;
+  width: 36px;
 }
 
 </style>
@@ -34,7 +41,7 @@
         <img class="ttv2-topbar-brand-logo"
              src="{{ static('images_new/logos/logo.svg') }}"
              data-ttv2-logo-light="{{ static('images_new/logos/logo.svg') }}"
-             data-ttv2-logo-dark="{{ static('images_new/logos/footer-logo.svg') }}"
+             data-ttv2-logo-dark="{{ static('images_new/logos/dark-theme-logo.png') }}"
              alt="TopTeen" />
       </a>
       <button type="button" class="ttv2-sidebar-toggle" aria-label="Toggle sidebar" data-ttv2-sidebar-toggle>
@@ -42,14 +49,14 @@
       </button>
     </div>
     <div class="d-flex align-items-center gap-2 ttv2-topbar-right">
-      <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle" aria-label="Toggle theme">
+      <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle border rounded-circle p-2" aria-label="Toggle theme">
         <i class="bx bx-moon"></i>
       </button>
-      <div class="ttv2-topbar-icon">{% include "notifications/includes/notification_bell.html" %}</div>
+      <div class="ttv2-topbar-icon border rounded-circle p-2">{% include "notifications/includes/notification_bell.html" %}</div>
       <div class="ttv2-topbar-avatar-dropdown dropdown">
         <button type="button"
                 id="ttv2UserDropdownToggle"
-                class="ttv2-avatar-toggle"
+                class="ttv2-avatar-toggle border rounded-circle"
                 aria-expanded="false"
                 aria-haspopup="true"
                 aria-controls="ttv2UserDropdownMenu"

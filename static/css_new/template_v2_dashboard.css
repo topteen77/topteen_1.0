@@ -432,7 +432,9 @@ html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-counselor-shell{
 body.ttv2-shell .ttv2-counselor-shell{
   background: var(--c-bg);
   color: var(--c-text);
-  min-height: calc(100vh - 58px);
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: 58px;
 }
 
 body.ttv2-shell .ttv2-counselor-sidebar{
@@ -719,8 +721,10 @@ body.ttv2-shell .ttv2-counselor-topbar{
   background: var(--c-bg2);
   border-bottom: 1px solid var(--c-border);
   height: 58px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -2527,6 +2531,9 @@ body.ttv2-shell.ttv2-sidebar-collapsed .ttv2-counselor-content{
 }
 
 @media (max-width: 575.98px){
+  body.ttv2-shell .ttv2-counselor-shell{
+    padding-top: 54px;
+  }
   body.ttv2-shell .ttv2-counselor-topbar{
     height: 54px;
     padding: 0 10px;
@@ -3489,7 +3496,7 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-followup-card-btn.btn-outline
 }
 body.ttv2-shell .ttv2-followup-history-card-btn{
   width: 38px;
-  height: 38px;
+  height: 35px;
   padding: 0;
   border-radius: 14px;
   display: inline-flex;
@@ -4542,15 +4549,44 @@ body.ttv2-shell #students-table-wrapper .ttv2-table-action-stack a.btn.btn-link.
     padding: 3px 7px;
   }
   body.ttv2-shell .ttv2-student-actions{
-    gap: 7px;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  body.ttv2-shell .ttv2-student-actions .btn{
+  body.ttv2-shell .ttv2-student-actions-primary{
     width: 100%;
+  }
+  body.ttv2-shell .ttv2-student-actions-primary .btn{
+    width: 100%;
+    justify-content: center;
     text-align: center;
     margin-left: 0 !important;
   }
-  body.ttv2-shell .ttv2-student-actions-secondary .btn{
-    flex-basis: 100%;
+  body.ttv2-shell .ttv2-student-actions-secondary{
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  body.ttv2-shell .ttv2-student-actions-secondary .btn:not(.ttv2-followup-history-card-btn){
+    flex: 1 1 132px;
+    max-width: 100%;
+    min-width: 0;
+    width: auto;
+    text-align: center;
+    justify-content: center;
+    margin-left: 0 !important;
+    padding-left: 12px;
+    padding-right: 12px;
+    white-space: normal;
+  }
+  body.ttv2-shell .ttv2-student-actions-secondary .ttv2-followup-history-card-btn{
+    flex: 0 0 40px;
+    width: 40px;
+    min-width: 40px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 body.ttv2-shell #students-table-wrapper .pagination .page-item.active .page-link{
@@ -5021,6 +5057,16 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .card{
   color: var(--ttv2-fg) !important;
   border-color: var(--ttv2-border) !important;
 }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .card .card-title,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .card .card-title{
+  color: var(--ttv2-fg) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .card .text-gray,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .card .text-muted,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .card .text-gray,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .card .text-muted{
+  color: var(--ttv2-muted) !important;
+}
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-marketing-embed .form-control,
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-embed .form-control{
   background: rgba(255, 255, 255, 0.05) !important;
@@ -5412,4 +5458,20 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-quick-modal .btn-close{
    backdrops from showing through if two modals briefly co-exist. */
 body.ttv2-shell .modal-backdrop.show + .modal-backdrop.show{
   opacity: 0;
+}
+
+
+@media (max-width: 767.98px){
+  body.ttv2-shell .ttv2-counselor-sidebar{background: #fff !important;}
+
+  body.ttv2-shell .ttv2-sp-mobile-toolbar .btn {
+     display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+
+  #ttv2UnassignedStudents .ttv2-unassigned-table-wrap {
+     overflow:scroll !important;
+    }
 }
