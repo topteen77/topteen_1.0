@@ -1,0 +1,669 @@
+/**
+ * Accounts overview page (institute / institute-group / marketing-group).
+ * Modern KPI cards, status pills, prospects panel, and tables.
+ */
+
+.ttv2-accounts-page{
+  --c-acc-blue-1: #3b82f6;
+  --c-acc-blue-2: #2563eb;
+  --c-acc-green-1: #16a34a;
+  --c-acc-green-2: #15803d;
+  --c-acc-cyan-1: #06b6d4;
+  --c-acc-cyan-2: #0891b2;
+  --c-acc-amber-1: #f59e0b;
+  --c-acc-amber-2: #d97706;
+  --c-acc-red-1: #ef4444;
+  --c-acc-red-2: #dc2626;
+  --c-acc-violet-1: #7c3aed;
+  --c-acc-violet-2: #5b21b6;
+}
+
+/* --- Hero --- */
+.ttv2-accounts-page .ttv2-acc-hero{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+.ttv2-accounts-page .ttv2-acc-hero-copy h2{
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  font-weight: 750;
+  color: var(--c-text, #0f172a);
+  letter-spacing: -0.018em;
+  margin: 0 0 0.25rem;
+}
+.ttv2-accounts-page .ttv2-acc-hero-copy p{
+  font-size: 0.825rem;
+  color: var(--c-text3, #64748b);
+  margin: 0;
+}
+.ttv2-accounts-page .ttv2-acc-period{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.55rem;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.05);
+}
+.ttv2-accounts-page .ttv2-acc-period-icon{
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #5249df, #7c4dff);
+  color: #ffffff;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(82, 73, 223, 0.3);
+}
+.ttv2-accounts-page .ttv2-acc-period select{
+  border: none;
+  background: transparent;
+  font-weight: 650;
+  font-size: 0.815rem;
+  color: var(--c-text, #0f172a);
+  letter-spacing: -0.005em;
+  padding: 0 1.4rem 0 0.1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%235249df' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 8 10 12 14 8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  background-size: 14px 14px;
+  cursor: pointer;
+}
+.ttv2-accounts-page .ttv2-acc-period select:focus{
+  outline: none;
+  box-shadow: none;
+}
+
+/* --- KPI cards --- */
+.ttv2-accounts-page .ttv2-acc-kpis{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.ttv2-accounts-page .ttv2-acc-kpi{
+  position: relative;
+  background: var(--c-bg2, #ffffff);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 18px;
+  padding: 1.1rem 1.15rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 26px rgba(15, 23, 42, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  isolation: isolate;
+}
+.ttv2-accounts-page .ttv2-acc-kpi::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 100% 0%, var(--ttv2-acc-tint, rgba(82, 73, 223, 0.1)), transparent 60%);
+  z-index: 0;
+}
+.ttv2-accounts-page .ttv2-acc-kpi > *{ position: relative; z-index: 1; }
+.ttv2-accounts-page .ttv2-acc-kpi:hover{
+  transform: translateY(-2px);
+  border-color: var(--ttv2-acc-grad-1, rgba(82, 73, 223, 0.4));
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 22px 38px rgba(15, 23, 42, 0.08);
+}
+.ttv2-accounts-page .ttv2-acc-kpi-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+.ttv2-accounts-page .ttv2-acc-kpi-icon{
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--ttv2-acc-grad-1, #5249df), var(--ttv2-acc-grad-2, #7c4dff));
+  box-shadow: 0 8px 18px var(--ttv2-acc-glow, rgba(82, 73, 223, 0.32));
+}
+.ttv2-accounts-page .ttv2-acc-kpi-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ttv2-acc-grad-2, #5249df);
+  background: var(--ttv2-acc-tint, rgba(82, 73, 223, 0.1));
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+}
+.ttv2-accounts-page .ttv2-acc-kpi-label{
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text3, #64748b);
+  margin-bottom: 0.15rem;
+}
+.ttv2-accounts-page .ttv2-acc-kpi-value{
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--c-text, #0f172a);
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  word-break: break-word;
+}
+.ttv2-accounts-page .ttv2-acc-kpi-value a{
+  color: var(--ttv2-acc-grad-2, #5249df);
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+.ttv2-accounts-page .ttv2-acc-kpi-value a:hover{ filter: brightness(0.92); }
+.ttv2-accounts-page .ttv2-acc-kpi-sub{
+  font-size: 0.72rem;
+  color: var(--c-text3, #94a3b8);
+  margin-top: 0.45rem;
+}
+
+.ttv2-accounts-page .ttv2-acc-kpi--blue{
+  --ttv2-acc-grad-1: var(--c-acc-blue-1);
+  --ttv2-acc-grad-2: var(--c-acc-blue-2);
+  --ttv2-acc-tint: rgba(59, 130, 246, 0.12);
+  --ttv2-acc-glow: rgba(59, 130, 246, 0.32);
+}
+.ttv2-accounts-page .ttv2-acc-kpi--green{
+  --ttv2-acc-grad-1: #22c55e;
+  --ttv2-acc-grad-2: var(--c-acc-green-1);
+  --ttv2-acc-tint: rgba(34, 197, 94, 0.13);
+  --ttv2-acc-glow: rgba(34, 197, 94, 0.32);
+}
+.ttv2-accounts-page .ttv2-acc-kpi--cyan{
+  --ttv2-acc-grad-1: var(--c-acc-cyan-1);
+  --ttv2-acc-grad-2: var(--c-acc-cyan-2);
+  --ttv2-acc-tint: rgba(6, 182, 212, 0.13);
+  --ttv2-acc-glow: rgba(6, 182, 212, 0.32);
+}
+.ttv2-accounts-page .ttv2-acc-kpi--amber{
+  --ttv2-acc-grad-1: var(--c-acc-amber-1);
+  --ttv2-acc-grad-2: var(--c-acc-amber-2);
+  --ttv2-acc-tint: rgba(245, 158, 11, 0.14);
+  --ttv2-acc-glow: rgba(245, 158, 11, 0.32);
+}
+.ttv2-accounts-page .ttv2-acc-kpi--violet{
+  --ttv2-acc-grad-1: var(--c-acc-violet-1);
+  --ttv2-acc-grad-2: var(--c-acc-violet-2);
+  --ttv2-acc-tint: rgba(124, 58, 237, 0.14);
+  --ttv2-acc-glow: rgba(124, 58, 237, 0.32);
+}
+
+@media (max-width: 991.98px){
+  .ttv2-accounts-page .ttv2-acc-kpis{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 575.98px){
+  .ttv2-accounts-page .ttv2-acc-kpis{ grid-template-columns: 1fr; }
+}
+
+/* --- Section card (shared) --- */
+.ttv2-accounts-page .ttv2-acc-section{
+  background: var(--c-bg2, #ffffff);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
+  margin-bottom: 1.1rem;
+}
+.ttv2-accounts-page .ttv2-acc-section-head{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  background: linear-gradient(180deg, rgba(108, 125, 255, 0.05), rgba(108, 125, 255, 0));
+}
+.ttv2-accounts-page .ttv2-acc-section-titlewrap{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.ttv2-accounts-page .ttv2-acc-section-icon{
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #5249df, #7c4dff);
+  font-size: 1.05rem;
+  box-shadow: 0 5px 12px rgba(82, 73, 223, 0.3);
+}
+.ttv2-accounts-page .ttv2-acc-section-title{
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.ttv2-accounts-page .ttv2-acc-section-body{ padding: 1rem 1.15rem 1.1rem; }
+
+/* --- Payment status pills --- */
+.ttv2-accounts-page .ttv2-acc-status-row{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  padding: 1rem 1.15rem 1.1rem;
+}
+.ttv2-accounts-page .ttv2-acc-status-pill{
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 14px;
+  background: var(--ttv2-acc-status-bg, rgba(82, 73, 223, 0.08));
+  border: 1px solid var(--ttv2-acc-status-border, rgba(82, 73, 223, 0.16));
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.ttv2-accounts-page a.ttv2-acc-status-pill:hover{
+  transform: translateY(-1px);
+  border-color: var(--ttv2-acc-status-border-hover, rgba(82, 73, 223, 0.35));
+  box-shadow: 0 8px 18px rgba(82, 73, 223, 0.16);
+}
+.ttv2-accounts-page .ttv2-acc-status-icon{
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ttv2-acc-status-icon-bg, rgba(82, 73, 223, 0.18));
+  color: var(--ttv2-acc-status-icon-fg, #5249df);
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.ttv2-accounts-page .ttv2-acc-status-text{ display: flex; flex-direction: column; line-height: 1.2; }
+.ttv2-accounts-page .ttv2-acc-status-label{
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text3, #64748b);
+}
+.ttv2-accounts-page .ttv2-acc-status-value{
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ttv2-acc-status-fg, #5249df);
+  letter-spacing: -0.018em;
+  line-height: 1.15;
+  margin-top: 0.05rem;
+}
+
+.ttv2-accounts-page .ttv2-acc-status-pill--success{
+  --ttv2-acc-status-bg: rgba(34, 197, 94, 0.1);
+  --ttv2-acc-status-border: rgba(34, 197, 94, 0.22);
+  --ttv2-acc-status-border-hover: rgba(34, 197, 94, 0.45);
+  --ttv2-acc-status-icon-bg: rgba(34, 197, 94, 0.2);
+  --ttv2-acc-status-icon-fg: #15803d;
+  --ttv2-acc-status-fg: #15803d;
+}
+.ttv2-accounts-page .ttv2-acc-status-pill--failed{
+  --ttv2-acc-status-bg: rgba(239, 68, 68, 0.1);
+  --ttv2-acc-status-border: rgba(239, 68, 68, 0.22);
+  --ttv2-acc-status-border-hover: rgba(239, 68, 68, 0.45);
+  --ttv2-acc-status-icon-bg: rgba(239, 68, 68, 0.18);
+  --ttv2-acc-status-icon-fg: #dc2626;
+  --ttv2-acc-status-fg: #dc2626;
+}
+.ttv2-accounts-page .ttv2-acc-status-pill--pending{
+  --ttv2-acc-status-bg: rgba(245, 158, 11, 0.1);
+  --ttv2-acc-status-border: rgba(245, 158, 11, 0.22);
+  --ttv2-acc-status-border-hover: rgba(245, 158, 11, 0.45);
+  --ttv2-acc-status-icon-bg: rgba(245, 158, 11, 0.2);
+  --ttv2-acc-status-icon-fg: #b45309;
+  --ttv2-acc-status-fg: #b45309;
+}
+@media (max-width: 767.98px){
+  .ttv2-accounts-page .ttv2-acc-status-row{ grid-template-columns: 1fr; }
+}
+
+/* --- Prospects + Revenue grid --- */
+.ttv2-accounts-page .ttv2-acc-2col{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+@media (max-width: 991.98px){
+  .ttv2-accounts-page .ttv2-acc-2col{ grid-template-columns: 1fr; }
+}
+
+/* Prospects panel */
+.ttv2-accounts-page .ttv2-acc-prospects-body{
+  display: flex;
+  align-items: stretch;
+  gap: 1.15rem;
+  padding: 1rem 1.15rem 1.1rem;
+}
+.ttv2-accounts-page .ttv2-acc-progress-circle{
+  --p: 0;
+  --size: 100px;
+  width: var(--size);
+  height: var(--size);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(var(--c-acc-violet-1) calc(var(--p) * 1%), rgba(124, 58, 237, 0.12) 0);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.ttv2-accounts-page .ttv2-acc-progress-circle::before{
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--c-bg2, #ffffff);
+}
+.ttv2-accounts-page .ttv2-acc-progress-text{
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  line-height: 1.1;
+}
+.ttv2-accounts-page .ttv2-acc-progress-pct{
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--c-acc-violet-2, #5b21b6);
+  letter-spacing: -0.02em;
+}
+.ttv2-accounts-page .ttv2-acc-progress-cap{
+  font-size: 0.62rem;
+  color: var(--c-text3, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-top: 0.05rem;
+}
+.ttv2-accounts-page .ttv2-acc-prospects-list{
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ttv2-accounts-page .ttv2-acc-prospects-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.7rem;
+  background: rgba(15, 23, 42, 0.025);
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.05);
+}
+.ttv2-accounts-page .ttv2-acc-prospects-row span:first-child{
+  font-size: 0.78rem;
+  color: var(--c-text3, #64748b);
+  font-weight: 600;
+}
+.ttv2-accounts-page .ttv2-acc-prospects-row strong{
+  font-size: 0.95rem;
+  color: var(--c-text, #0f172a);
+  font-weight: 800;
+  letter-spacing: -0.018em;
+}
+.ttv2-accounts-page .ttv2-acc-prospects-row.is-converted strong{ color: var(--c-acc-green-1, #16a34a); }
+.ttv2-accounts-page .ttv2-acc-prospects-row.is-pending strong{ color: var(--c-acc-amber-2, #d97706); }
+
+@media (max-width: 575.98px){
+  .ttv2-accounts-page .ttv2-acc-prospects-body{ flex-direction: column; align-items: center; }
+  .ttv2-accounts-page .ttv2-acc-prospects-list{ width: 100%; }
+}
+
+/* --- Tables (Revenue / Failed / Pending) --- */
+.ttv2-accounts-page .ttv2-acc-table-wrap{
+  padding: 0.25rem 0 0.4rem;
+}
+.ttv2-accounts-page .ttv2-acc-table{
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.ttv2-accounts-page .ttv2-acc-table thead th{
+  background: rgba(248, 250, 252, 0.95);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.ttv2-accounts-page .ttv2-acc-table tbody td{
+  padding: 0.85rem 1.15rem;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 0.875rem;
+  color: var(--c-text, #0f172a);
+}
+.ttv2-accounts-page .ttv2-acc-table tbody tr:last-child td{ border-bottom: none; }
+.ttv2-accounts-page .ttv2-acc-table tbody tr{
+  transition: background 0.15s ease;
+}
+.ttv2-accounts-page .ttv2-acc-table tbody tr:hover{
+  background: linear-gradient(180deg, rgba(82, 73, 223, 0.04), rgba(82, 73, 223, 0));
+}
+.ttv2-accounts-page .ttv2-acc-rank{
+  display: inline-flex;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: rgba(82, 73, 223, 0.08);
+  color: #5249df;
+  font-weight: 700;
+  font-size: 0.72rem;
+  align-items: center;
+  justify-content: center;
+}
+.ttv2-accounts-page .ttv2-acc-source-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(82, 73, 223, 0.08);
+  color: #4338ca;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(82, 73, 223, 0.15);
+}
+.ttv2-accounts-page .ttv2-acc-source-pill i{ font-size: 0.95rem; opacity: 0.85; }
+.ttv2-accounts-page .ttv2-acc-amount{
+  font-weight: 700;
+  color: var(--c-acc-green-1, #16a34a);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.ttv2-accounts-page .ttv2-acc-count-chip{
+  display: inline-flex;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  color: var(--c-text2, #475569);
+  font-weight: 700;
+  font-size: 0.78rem;
+  align-items: center;
+  justify-content: center;
+}
+.ttv2-accounts-page .ttv2-acc-fail-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.ttv2-accounts-page .ttv2-acc-event-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.ttv2-accounts-page .ttv2-acc-event-pill i{ font-size: 0.9rem; opacity: 0.9; }
+
+.ttv2-accounts-page .ttv2-acc-user-cell{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.ttv2-accounts-page .ttv2-acc-user-avatar{
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #5249df, #7c4dff);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 0 4px 9px rgba(82, 73, 223, 0.28);
+}
+.ttv2-accounts-page .ttv2-acc-user-email{
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.ttv2-accounts-page .ttv2-acc-date{
+  font-size: 0.8rem;
+  color: var(--c-text2, #475569);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Empty state row */
+.ttv2-accounts-page .ttv2-acc-empty-row td{
+  padding: 2rem 1rem !important;
+  background: rgba(15, 23, 42, 0.02);
+}
+.ttv2-accounts-page .ttv2-acc-empty{
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ttv2-accounts-page .ttv2-acc-empty-icon{
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: rgba(82, 73, 223, 0.08);
+  color: #5249df;
+  font-size: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+.ttv2-accounts-page .ttv2-acc-empty-title{
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+  margin: 0;
+}
+.ttv2-accounts-page .ttv2-acc-empty-text{
+  font-size: 0.8rem;
+  color: var(--c-text3, #64748b);
+  max-width: 30rem;
+  margin: 0;
+}
+
+/* --- Dark mode --- */
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-period{
+  background: var(--c-bg3, #1e2030);
+  border-color: rgba(240, 242, 255, 0.1);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-period select{
+  color: rgba(240, 242, 255, 0.92);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-kpi,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-section{
+  background: var(--c-bg3, #1a1d2e);
+  border-color: rgba(240, 242, 255, 0.1);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-kpi-value{ color: rgba(240, 242, 255, 0.95); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-kpi-label{ color: rgba(240, 242, 255, 0.55); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-kpi-sub{ color: rgba(240, 242, 255, 0.5); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-section-head{
+  background: linear-gradient(180deg, rgba(139, 124, 255, 0.1), rgba(139, 124, 255, 0));
+  border-bottom-color: rgba(240, 242, 255, 0.08);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-section-title{ color: rgba(240, 242, 255, 0.95); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-prospects-row{
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(240, 242, 255, 0.06);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-prospects-row strong{ color: rgba(240, 242, 255, 0.95); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-table thead th{
+  background: rgba(20, 22, 34, 0.95);
+  color: rgba(240, 242, 255, 0.6);
+  border-bottom-color: rgba(240, 242, 255, 0.08);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-table tbody td{
+  border-bottom-color: rgba(240, 242, 255, 0.06);
+  color: rgba(240, 242, 255, 0.9);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-progress-circle::before{
+  background: var(--c-bg3, #1a1d2e);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-empty-row td{
+  background: rgba(255, 255, 255, 0.02);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-empty-title{ color: rgba(240, 242, 255, 0.95); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-empty-text{ color: rgba(240, 242, 255, 0.55); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-user-email{ color: rgba(240, 242, 255, 0.92); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-date{ color: rgba(240, 242, 255, 0.7); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-accounts-page .ttv2-acc-count-chip{
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(240, 242, 255, 0.78);
+  border-color: rgba(240, 242, 255, 0.08);
+}

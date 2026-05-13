@@ -54,16 +54,96 @@
     } catch (e) {}
   }
 
+  function _ttv2EscapeHtml(value) {
+    if (value === undefined || value === null) return "";
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+  function _ttv2FormatNumber(value) {
+    const n = Number(value || 0);
+    if (!isFinite(n)) return "0";
+    return n.toLocaleString();
+  }
+  function _ttv2MakeBarGradient(ctx, area, colors) {
+    if (!ctx || !area) return (colors && colors[0]) || "#6c7dff";
+    const c = colors || ["#6c7dff", "#4cc9f0"];
+    const isHorizontal = !!(area && area.right > area.left && (area.right - area.left) > (area.bottom - area.top) * 1.2);
+    const g = isHorizontal
+      ? ctx.createLinearGradient(area.left, 0, area.right, 0)
+      : ctx.createLinearGradient(0, area.bottom, 0, area.top);
+    g.addColorStop(0, c[0]);
+    g.addColorStop(1, c[1]);
+    return g;
+  }
+
+  /* Chart.js plugin: draw the value at the end of each bar.
+     Idempotent registration so this can coexist with the marketing dashboard
+     boot script (which registers its own copy under the same id). */
+  if (typeof Chart !== "undefined" && Chart && typeof Chart.register === "function" && !window.__ttv2BarLabelsRegistered) {
+    const ttv2BarLabelsPlugin = {
+      id: "ttv2BarLabels",
+      afterDatasetsDraw(chart, _args, opts) {
+        if (opts && opts.enabled === false) return;
+        const ctx = chart.ctx;
+        const horizontal = (chart.options && chart.options.indexAxis === "y");
+        ctx.save();
+        ctx.font = '600 11px Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        ctx.fillStyle = (opts && opts.color) || "rgba(15,23,42,0.75)";
+        chart.data.datasets.forEach(function (ds, dsIdx) {
+          const meta = chart.getDatasetMeta(dsIdx);
+          if (!meta || meta.hidden) return;
+          meta.data.forEach(function (bar, i) {
+            const raw = ds.data && ds.data[i];
+            if (raw === undefined || raw === null) return;
+            const v = Number(raw);
+            if (!v) return;
+            const label = v.toLocaleString();
+            if (horizontal) {
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillText(label, bar.x + 6, bar.y);
+            } else {
+              ctx.textAlign = "center";
+              ctx.textBaseline = "bottom";
+              ctx.fillText(label, bar.x, bar.y - 4);
+            }
+          });
+        });
+        ctx.restore();
+      }
+    };
+    try { Chart.register(ttv2BarLabelsPlugin); window.__ttv2BarLabelsRegistered = true; } catch (e) {}
+  }
+
   function renderIgSimpleTable(tbodyId, rows) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
     if (!rows || !rows.length) {
-      tbody.innerHTML = '<tr><td colspan="2" class="text-muted">No data available</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="ttv2-rich-empty">No data available</td></tr>';
       return;
     }
+    const max = rows.reduce(function (m, r) { return Math.max(m, Number(r.value || 0)); }, 0) || 1;
     tbody.innerHTML = rows
-      .map(function (r) {
-        return '<tr><td>' + (r.label || '-') + '</td><td class="text-end">' + (r.value || 0) + '</td></tr>';
+      .map(function (r, idx) {
+        const value = Number(r.value || 0);
+        const pct = Math.max(2, Math.round((value / max) * 100));
+        const safeLabel = _ttv2EscapeHtml(r.label || "-");
+        return (
+          "<tr>"
+          + '<td><span class="ttv2-rank-pill">#' + (idx + 1) + "</span></td>"
+          + '<td class="ttv2-label-cell" title="' + safeLabel + '">' + safeLabel + "</td>"
+          + '<td class="ttv2-bar-cell">'
+          +   '<div class="ttv2-bar-track" role="progressbar" aria-valuenow="' + value + '" aria-valuemin="0" aria-valuemax="' + max + '">'
+          +     '<div class="ttv2-bar-fill" style="width:' + pct + '%"></div>'
+          +   "</div>"
+          + "</td>"
+          + '<td class="ttv2-value-cell"><span class="ttv2-value-chip">' + _ttv2FormatNumber(value) + "</span></td>"
+          + "</tr>"
+        );
       })
       .join("");
   }
@@ -197,17 +277,56 @@
           {
             label: "Students",
             data: values,
-            backgroundColor: "rgba(63, 55, 201, 0.8)",
-            borderColor: "rgba(63, 55, 201, 1)",
-            borderWidth: 1,
+            backgroundColor: function (c) {
+              const ch = c && c.chart;
+              return _ttv2MakeBarGradient(ch && ch.ctx, ch && ch.chartArea, ["#6c7dff", "#4cc9f0"]);
+            },
+            hoverBackgroundColor: function (c) {
+              const ch = c && c.chart;
+              return _ttv2MakeBarGradient(ch && ch.ctx, ch && ch.chartArea, ["#5249DF", "#22d3ee"]);
+            },
+            borderColor: "transparent",
+            borderWidth: 0,
+            borderRadius: 8,
+            borderSkipped: false,
+            categoryPercentage: 0.85,
+            barPercentage: 0.85,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 22, right: 4, bottom: 4, left: 4 } },
         animation: { duration: 700, easing: "easeOutQuart" },
-        scales: { y: { beginAtZero: true } },
+        scales: {
+          x: {
+            ticks: { color: "rgba(15,23,42,0.7)", font: { size: 11, weight: "500" } },
+            grid: { display: false, drawBorder: false },
+            border: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: "rgba(15,23,42,0.55)", font: { size: 11 } },
+            grid: { color: "rgba(15,23,42,0.06)", drawBorder: false },
+            border: { display: false },
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15,23,42,0.92)",
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            titleFont: { size: 12, weight: "600" },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function (ctx) { return "Students: " + Number(ctx.raw || 0).toLocaleString(); }
+            }
+          },
+          ttv2BarLabels: { enabled: true, color: "rgba(15,23,42,0.75)" }
+        }
       },
     });
   }
@@ -225,11 +344,14 @@
       return;
     }
 
-    const labels = institutes.map(function (inst) { return inst.name || "Unknown"; });
+    const fullLabels = institutes.map(function (inst) { return inst.name || "Unknown"; });
+    const labels = fullLabels.map(function (name) {
+      return (name && name.length > 18) ? (name.substring(0, 18) + "\u2026") : name;
+    });
     const totals = institutes.map(function (inst) {
       return Number(inst.pcm || 0) + Number(inst.cbm || 0) + Number(inst.comm || 0) + Number(inst.hme || 0) + Number(inst.hmb || 0);
     });
-    renderIgSimpleTable("igSeatTableBody", labels.map(function (label, idx) { return { label: label, value: totals[idx] || 0 }; }));
+    renderIgSimpleTable("igSeatTableBody", fullLabels.map(function (label, idx) { return { label: label, value: totals[idx] || 0 }; }));
 
     if (loader) loader.style.display = "none";
     if (wrapper) wrapper.style.display = "block";
@@ -247,25 +369,67 @@
         datasets: [{
           label: "Total seats",
           data: totals,
-          backgroundColor: "rgba(167, 139, 250, 0.85)",
-          borderColor: "rgba(139, 92, 246, 1)",
-          borderWidth: 1
+          backgroundColor: function (c) {
+            const ch = c && c.chart;
+            return _ttv2MakeBarGradient(ch && ch.ctx, ch && ch.chartArea, ["#c4b5fd", "#7c3aed"]);
+          },
+          hoverBackgroundColor: function (c) {
+            const ch = c && c.chart;
+            return _ttv2MakeBarGradient(ch && ch.ctx, ch && ch.chartArea, ["#a78bfa", "#5b21b6"]);
+          },
+          borderColor: "transparent",
+          borderWidth: 0,
+          borderRadius: 8,
+          borderSkipped: false,
+          categoryPercentage: 0.85,
+          barPercentage: 0.85,
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 22, right: 4, bottom: 28, left: 4 } },
+        animation: { duration: 700, easing: "easeOutQuart" },
         scales: {
           x: {
             ticks: {
               autoSkip: false,
-              maxRotation: 90,
-              minRotation: 90
+              maxRotation: 60,
+              minRotation: 60,
+              color: "rgba(15,23,42,0.7)",
+              font: { size: 10.5, weight: "500" },
+              padding: 4,
+            },
+            grid: { display: false, drawBorder: false },
+            border: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: "rgba(15,23,42,0.55)", font: { size: 11 } },
+            grid: { color: "rgba(15,23,42,0.06)", drawBorder: false },
+            border: { display: false },
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15,23,42,0.92)",
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            titleFont: { size: 12, weight: "600" },
+            bodyFont: { size: 12 },
+            callbacks: {
+              title: function (items) {
+                if (!items || !items.length) return "";
+                const idx = items[0].dataIndex;
+                return fullLabels[idx] || "";
+              },
+              label: function (ctx) { return "Seats: " + Number(ctx.raw || 0).toLocaleString(); }
             }
           },
-          y: { beginAtZero: true }
-        },
-        plugins: { legend: { display: false } }
+          ttv2BarLabels: { enabled: true, color: "rgba(15,23,42,0.75)" }
+        }
       }
     });
   }
@@ -346,17 +510,39 @@
         datasets: [
           {
             data: [attempted, notAttempted],
-            backgroundColor: ["rgba(63, 55, 201, 0.8)", "rgba(200, 200, 200, 0.8)"],
-            borderColor: ["rgba(63, 55, 201, 1)", "rgba(200, 200, 200, 1)"],
-            borderWidth: 1,
+            backgroundColor: ["rgba(76, 201, 240, 0.85)", "rgba(108, 125, 255, 0.30)"],
+            borderColor: "#ffffff",
+            borderWidth: 2,
+            hoverOffset: 6,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: "62%",
+        layout: { padding: 6 },
         animation: { duration: 700, easing: "easeOutQuart" },
-        plugins: { legend: { position: "bottom" } },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { boxWidth: 10, boxHeight: 10, font: { size: 11.5, weight: "500" } }
+          },
+          tooltip: {
+            backgroundColor: "rgba(15,23,42,0.92)",
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function (ctx) {
+                const total = (ctx.dataset.data || []).reduce(function (a, b) { return a + Number(b || 0); }, 0) || 1;
+                const v = Number(ctx.raw || 0);
+                const pct = Math.round((v / total) * 100);
+                return ctx.label + ": " + v.toLocaleString() + " (" + pct + "%)";
+              }
+            }
+          }
+        },
       },
     });
   }
@@ -388,17 +574,56 @@
           {
             label: "Students",
             data: values,
-            backgroundColor: "rgba(111, 66, 193, 0.8)",
-            borderColor: "rgba(111, 66, 193, 1)",
-            borderWidth: 1,
+            backgroundColor: function (c) {
+              const ch = c && c.chart;
+              return _ttv2MakeBarGradient(ch && ch.ctx, ch && ch.chartArea, ["#a78bfa", "#6366f1"]);
+            },
+            hoverBackgroundColor: function (c) {
+              const ch = c && c.chart;
+              return _ttv2MakeBarGradient(ch && ch.ctx, ch && ch.chartArea, ["#8b5cf6", "#4f46e5"]);
+            },
+            borderColor: "transparent",
+            borderWidth: 0,
+            borderRadius: 8,
+            borderSkipped: false,
+            categoryPercentage: 0.85,
+            barPercentage: 0.85,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 22, right: 4, bottom: 4, left: 4 } },
         animation: { duration: 700, easing: "easeOutQuart" },
-        scales: { y: { beginAtZero: true } },
+        scales: {
+          x: {
+            ticks: { color: "rgba(15,23,42,0.7)", font: { size: 11, weight: "500" }, maxRotation: 30, minRotation: 0 },
+            grid: { display: false, drawBorder: false },
+            border: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: "rgba(15,23,42,0.55)", font: { size: 11 } },
+            grid: { color: "rgba(15,23,42,0.06)", drawBorder: false },
+            border: { display: false },
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15,23,42,0.92)",
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            titleFont: { size: 12, weight: "600" },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function (ctx) { return "Students: " + Number(ctx.raw || 0).toLocaleString(); }
+            }
+          },
+          ttv2BarLabels: { enabled: true, color: "rgba(15,23,42,0.75)" }
+        }
       },
     });
   }

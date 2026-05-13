@@ -238,7 +238,169 @@
           window.ttv2InitAdvisorChangeControls();
         }
       } catch (e4) {}
+
+      // Sidebar quick-links: open the legacy institute modals from URL hash
+      // (#ql-add-counselor, #ql-upload-matric, #ql-upload-postmatric,
+      // #ql-add-multiple, #ql-add-single). The modals are included by
+      // template_v2/institute/institute_dashboard_body.html on every partial.
+      try {
+        if (typeof window.ttv2InstituteOpenQuicklinkModalFromHash === 'function') {
+          window.ttv2InstituteOpenQuicklinkModalFromHash();
+        }
+      } catch (eQL) {}
     };
+
+    // Hash -> modal id map for the institute dashboard quick-links.
+    var QL_INSTITUTE_MAP = {
+      '#ql-add-multiple': 'addMultipleStudentsModal',
+      '#ql-add-single': 'addSingleStudentModal',
+      '#ql-add-counselor': 'addCounselorModal',
+      '#ql-upload-matric': 'addCsvStudentModal',
+      '#ql-upload-postmatric': 'addPostMatricCsvModal'
+    };
+
+    // Close every currently-open quick-action (or any) Bootstrap modal so we
+    // don't end up with two modals stacked on top of each other when the user
+    // clicks a different sidebar quick-link before dismissing the previous one.
+    function closeOtherOpenModals(exceptEl){
+      try {
+        if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+        var open = document.querySelectorAll('.modal.show');
+        for (var i = 0; i < open.length; i++) {
+          var m = open[i];
+          if (exceptEl && m === exceptEl) continue;
+          try {
+            var inst = bootstrap.Modal.getInstance(m);
+            if (inst) inst.hide();
+            else bootstrap.Modal.getOrCreateInstance(m).hide();
+          } catch (e) {}
+        }
+        // Stale backdrops sometimes linger when modals close in rapid
+        // succession (e.g. hashchange handler vs prior backdrop click). Clean
+        // up after Bootstrap's transition window.
+        setTimeout(function(){
+          try {
+            var visible = document.querySelectorAll('.modal.show').length;
+            if (visible > 0) return;
+            var bds = document.querySelectorAll('.modal-backdrop');
+            for (var j = bds.length - 1; j >= 0; j--) {
+              try { bds[j].parentNode && bds[j].parentNode.removeChild(bds[j]); } catch (e2) {}
+            }
+            try { document.body.classList.remove('modal-open'); } catch (e3) {}
+            try { document.body.style.removeProperty('overflow'); } catch (e3a) {}
+            try { document.body.style.removeProperty('padding-right'); } catch (e3b) {}
+          } catch (e4) {}
+        }, 350);
+      } catch (eX) {}
+    }
+
+    function showInstituteQuicklinkModal(id){
+      try {
+        if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return false;
+        var el = document.getElementById(id);
+        if (!el) return false;
+        // If we re-trigger the same modal that's already open, do nothing.
+        if (el.classList.contains('show')) return true;
+        closeOtherOpenModals(el);
+        bootstrap.Modal.getOrCreateInstance(el).show();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function openInstituteQuicklinkModalFromHash(){
+      try {
+        var h = (window.location.hash || '').trim();
+        var id = QL_INSTITUTE_MAP[h];
+        if (!id) {
+          // Hash is empty / unrelated → make sure no quick-action modal is left
+          // hanging open (e.g. user pressed back to clear the hash).
+          if (!h) closeOtherOpenModals(null);
+          return;
+        }
+        showInstituteQuicklinkModal(id);
+      } catch (e) {}
+    }
+    window.ttv2InstituteOpenQuicklinkModalFromHash = openInstituteQuicklinkModalFromHash;
+    window.ttv2InstituteCloseOtherModals = closeOtherOpenModals;
+
+    // Intercept sidebar quick-link clicks. If a quick-action modal is already
+    // open we close it first (and update the URL hash) before opening the new
+    // one — this avoids the visible "modal on top of modal" stacking even when
+    // the browser doesn't fire `hashchange` (same hash, different page, etc.).
+    if (!window.__ttv2InstituteQLBound) {
+      window.__ttv2InstituteQLBound = true;
+
+      document.addEventListener('click', function(ev){
+        try {
+          var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+          if (!a) return;
+          var href = a.getAttribute('href') || '';
+          var hashIdx = href.indexOf('#ql-');
+          if (hashIdx === -1) return;
+          var hash = href.slice(hashIdx);
+          var id = QL_INSTITUTE_MAP[hash];
+          if (!id) return;
+          // Same-document hash navigation: handle ourselves so we can close
+          // the previous modal first. The browser would otherwise just update
+          // the hash (and only fire hashchange if it actually changed).
+          var here = window.location.pathname + window.location.search;
+          var hereHash = window.location.hash || '';
+          var sameDoc = false;
+          try {
+            // Resolve the link against the current document so relative paths
+            // (Django's reverse() returns "/institute/<slug>/dashboard/")
+            // compare correctly with absolute window.location.
+            var resolved = new URL(href, window.location.href);
+            sameDoc = (resolved.origin === window.location.origin)
+              && (resolved.pathname === window.location.pathname)
+              && (resolved.search === window.location.search);
+          } catch (eU) {
+            // Fallback for older browsers / unusual hrefs.
+            var targetPath = href.split('#')[0];
+            sameDoc = (!targetPath) || targetPath === window.location.href.split('#')[0]
+              || targetPath === here || targetPath === window.location.pathname;
+          }
+          if (sameDoc) {
+            ev.preventDefault();
+            // Update the hash (history) but suppress our own hashchange
+            // handler so we don't fire openFromHash twice.
+            window.__ttv2InstituteSuppressHashHandler = true;
+            try {
+              if (hereHash !== hash) {
+                history.replaceState(null, '', here + hash);
+              }
+            } catch (e2) {}
+            setTimeout(function(){ window.__ttv2InstituteSuppressHashHandler = false; }, 50);
+            showInstituteQuicklinkModal(id);
+          }
+        } catch (e) {}
+      }, true);
+
+      window.addEventListener('hashchange', function(){
+        if (window.__ttv2InstituteSuppressHashHandler) return;
+        openInstituteQuicklinkModalFromHash();
+      });
+      document.addEventListener('DOMContentLoaded', openInstituteQuicklinkModalFromHash);
+
+      // Defensive: when any modal is fully hidden, double-check the body lock /
+      // backdrop is cleaned up (Bootstrap occasionally leaves padding-right
+      // when modals are hidden during another modal's transition).
+      document.addEventListener('hidden.bs.modal', function(){
+        setTimeout(function(){
+          try {
+            if (document.querySelectorAll('.modal.show').length === 0) {
+              var bds = document.querySelectorAll('.modal-backdrop');
+              for (var j = bds.length - 1; j >= 0; j--) {
+                try { bds[j].parentNode && bds[j].parentNode.removeChild(bds[j]); } catch (e2) {}
+              }
+              document.body.classList.remove('modal-open');
+              document.body.style.removeProperty('overflow');
+              document.body.style.removeProperty('padding-right');
+            }
+          } catch (e) {}
+        }, 100);
+      });
+    }
   })();
 </script>
 

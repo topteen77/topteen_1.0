@@ -511,14 +511,9 @@ def get_students_by_role(user, counselor=None, institute=None):
         user_type = user.user_type
         
         if user_type == choices.UserType.INSTITUTE:
-            # Institute users can only see their own institute
-            user_institute = Institute.objects.filter(created_by=user).first()
-            # If user has an institute, it must match the provided institute
-            # If user doesn't have an institute, they shouldn't see any students (unless decorator allows, but that's handled separately)
-            if not user_institute or user_institute.id != institute.id:
+            # Institute users can see any institute they own.
+            if not Institute.objects.filter(created_by=user, id=institute.id).exists():
                 return StudentManagement.objects.none()
-            # Use the user's own institute to ensure correct filtering
-            institute = user_institute
         elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
             # Any institute group owned by this user may contain the institute
             if (
@@ -1000,13 +995,19 @@ def get_results_data_for_students(students):
     from app.models import TestCompletion, Results
     from app_post_matric.models import TestSession
     from institute.models import StudentManagement
+    from core.models import MIAssessmentResult, EQAssessmentResult
     from django.urls import reverse
     import re
     
     results_data = {}
+    student_ids = []
+    student_map = {}
     
     for student_management in students:
         student = student_management.student  # Access the student related to StudentManagement
+        if student and getattr(student, "id", None):
+            student_ids.append(int(student.id))
+            student_map[int(student.id)] = student
         
         try:
             # Check student's class to determine which system to use
@@ -1057,7 +1058,69 @@ def get_results_data_for_students(students):
                 "test_status": "no_tests",
                 "tooltip": "No tests taken"
             }
-        
+
+    student_ids = list({x for x in student_ids if x})
+
+    try:
+        mi_uids = set()
+        eq_uids = set()
+        if student_ids:
+            mi_uids = set(
+                MIAssessmentResult.objects.filter(user_id__in=student_ids)
+                .values_list("user_id", flat=True)
+                .distinct()
+            )
+            eq_uids = set(
+                EQAssessmentResult.objects.filter(user_id__in=student_ids)
+                .values_list("user_id", flat=True)
+                .distinct()
+            )
+
+        def _attempted(v):
+            try:
+                s = (str(v or "")).strip().lower()
+            except Exception:
+                s = ""
+            return bool(v is True or s in ("1", "true", "yes", "y", "completed", "complete", "done", "attempted"))
+
+        for uid in student_ids:
+            student = student_map.get(uid)
+            if not student:
+                continue
+            rd = results_data.get(student) or results_data.get(uid) or {}
+            td = rd.get("test_details") if isinstance(rd, dict) else {}
+            if not isinstance(td, dict):
+                td = {}
+
+            mi_attempted = True if uid in mi_uids else False
+            eq_attempted = True if uid in eq_uids else False
+
+            # Older payloads may store explicit MI/EQ flags directly.
+            # Do not infer MI/EQ from unrelated combined-report tests.
+            if not mi_attempted:
+                mi_attempted = any([
+                    _attempted(td.get("mi_assessment")),
+                    _attempted(td.get("multiple_intelligence_assessment")),
+                ])
+            if not eq_attempted:
+                eq_attempted = any([
+                    _attempted(td.get("eq_assessment")),
+                    _attempted(td.get("emotional_intelligence_assessment")),
+                ])
+
+            rd["mi_attempted"] = mi_attempted
+            rd["eq_attempted"] = eq_attempted
+            rd["mi_report_url"] = (
+                "%s?inline=1" % reverse("core:mi_report_pdf_user", args=[uid]) if mi_attempted else ""
+            )
+            rd["eq_report_url"] = (
+                "%s?inline=1" % reverse("core:eq_report_pdf_user", args=[uid]) if eq_attempted else ""
+            )
+            results_data[student] = rd
+            results_data[uid] = rd
+    except Exception:
+        pass
+
     return results_data
 
 
@@ -3380,6 +3443,7 @@ def _get_counselor_student_table_ajax(request, counselor, coun_id):
         'ttv2_followup_latest_map': followup_latest_map,
         'ttv2_remark_save_url': reverse("counselor:save_student_remark", args=[coun_id]),
         'ttv2_followup_save_url': reverse("counselor:save_follow_up", args=[coun_id]),
+        'ttv2_students_role': 'counselor',
     }
     
     if template_version == "v2":

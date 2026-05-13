@@ -1,0 +1,31 @@
+{# Reusable follow-up history modal for institute/admin student cards. #}
+<div class="modal fade ttv2-quick-modal ttv2-followup-history-modal" id="ttv2FollowUpHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="ttv2FollowUpHistoryModalTitle">
+            <i class="bx bx-history me-2" aria-hidden="true"></i>
+            <span>Follow-up history</span>
+          </h5>
+          <div class="ttv2-followup-modal-subtitle">Review the full counseling timeline for this student.</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="ttv2FollowUpHistoryLoading" class="text-center py-4" hidden>
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="mt-3 text-muted small">Loading follow-up history...</div>
+        </div>
+        <div id="ttv2FollowUpHistoryEmpty" class="ttv2-followup-history-empty" hidden>
+          <i class="bx bx-history" aria-hidden="true"></i>
+          <div class="ttv2-followup-history-empty-title">No follow-up history yet</div>
+          <div class="ttv2-followup-history-empty-text">Timeline entries will appear here after counselors add follow-up notes.</div>
+        </div>
+        <div id="ttv2FollowUpHistoryTimeline" class="ttv2-followup-history-timeline" hidden></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,8 @@
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
 {% include 'template20/user/includes/student_shell_styles.html' %}
 <link rel="stylesheet" href="{{ static('css/heatmap-dashboard.css') }}">
+<link rel="stylesheet" href="{{ static('css_new/ttv2_csv_upload_components.css') }}">
+<link rel="stylesheet" href="{{ static('css_new/ttv2_accounts_page.css') }}">
 <style>
   :root {
     color-scheme: light;
@@ -738,14 +740,21 @@
     .institute-dashboard #students-table-container,
     .institute-dashboard .table-responsive {
       width: 100%;
+      max-width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .institute-dashboard .row>[class*="col-"] {
+      min-width: 0;
     }
 
     .institute-dashboard #students-table-wrapper table,
     .institute-dashboard #students-table-container table,
     .institute-dashboard .id-data-table {
-      min-width: 760px;
+      width: max-content;
+      min-width: 100%;
     }
 
     .institute-dashboard #students-table-wrapper .table th,
@@ -767,7 +776,8 @@
     .institute-dashboard .table-responsive>.table-bordered,
     .institute-dashboard .table-responsive>.table-striped,
     .institute-dashboard .table-responsive>.table-hover {
-      min-width: 760px;
+      width: max-content;
+      min-width: 100%;
       margin-bottom: 0;
     }
 

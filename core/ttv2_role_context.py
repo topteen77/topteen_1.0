@@ -83,6 +83,11 @@ def _annotate_nav_active(sections: List[Dict[str, Any]], request_path: str) -> N
             item["active"] = False
             if item.get("disabled"):
                 continue
+            # Quick-link items (e.g. "Add Counselor" → dash-url#ql-add-counselor)
+            # should never be highlighted just because their host URL matches the
+            # current path — they're actions, not navigation targets.
+            if item.get("quicklink"):
+                continue
             hpath = _nav_href_path(href)
             if hpath:
                 candidates.append((len(hpath), hpath, item))
@@ -266,6 +271,26 @@ def _nav_for_role(
         ]
 
     # Default: institute
+    dash_url = (
+        _safe_reverse("institute:institute_masterdashboard", args=[inst_slug])
+        if inst_slug
+        else "#"
+    )
+    history_url = (
+        _safe_reverse("institute:institutehistorylog", args=[inst_slug])
+        if inst_slug
+        else "#"
+    )
+
+    def _ql_href(hash_key: str) -> str:
+        # Quick-link hash anchors live on the master dashboard. If we're already on
+        # the dashboard the body's hash handler opens the modal; otherwise the
+        # browser navigates to the dashboard and the role boot script opens it
+        # after the partial loads.
+        if not inst_slug or dash_url == "#":
+            return "#"
+        return f"{dash_url}#{hash_key}"
+
     return [
         {
             "title": "Reports",
@@ -273,7 +298,7 @@ def _nav_for_role(
                 {
                     "label": "Dashboard",
                     "dot": "#6c7dff",
-                    "href": _safe_reverse("institute:institute_masterdashboard", args=[inst_slug]) if inst_slug else "#",
+                    "href": dash_url,
                 },
                 {
                     "label": "Students",
@@ -322,6 +347,42 @@ def _nav_for_role(
                     "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "streams_capacity"])
                     if inst_slug
                     else "#",
+                },
+            ],
+        },
+        {
+            "title": "Quick actions",
+            "items": [
+                {
+                    "label": "Add Counselor",
+                    "icon": "bx bx-user-voice",
+                    "href": _ql_href("ql-add-counselor"),
+                    "quicklink": True,
+                    "no_ajax": True,
+                    "disabled": not inst_slug,
+                },
+                {
+                    "label": "Matric-CSV Upload",
+                    "icon": "bx bx-upload",
+                    "href": _ql_href("ql-upload-matric"),
+                    "quicklink": True,
+                    "no_ajax": True,
+                    "disabled": not inst_slug,
+                },
+                {
+                    "label": "Post-Matric-CSV Upload",
+                    "icon": "bx bx-upload",
+                    "href": _ql_href("ql-upload-postmatric"),
+                    "quicklink": True,
+                    "no_ajax": True,
+                    "disabled": not inst_slug,
+                },
+                {
+                    "label": "Uploaded History Log",
+                    "icon": "bx bx-history",
+                    "href": history_url,
+                    "quicklink": True,
+                    "disabled": not inst_slug,
                 },
             ],
         },

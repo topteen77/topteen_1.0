@@ -154,9 +154,9 @@
             <div class="card-body">
               <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                 <h5 class="card-title mb-0">Total No. of Students in each institute</h5>
-                <div class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="students" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
-                  <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="students" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                <div class="btn-group ttv2-chart-view-toggle" role="group" aria-label="Chart or table view">
+                  <button type="button" class="btn active" data-ig-view-btn data-target="students" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                  <button type="button" class="btn" data-ig-view-btn data-target="students" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
                 </div>
               </div>
               <div id="students-chart-loader" class="text-center py-5">
@@ -168,7 +168,17 @@
                 <canvas id="studentsChart" style="display: none;"></canvas>
               </div>
               <div data-ig-table-wrap="students" class="table-responsive" style="display:none;max-height:300px;overflow:auto;">
-                <table class="table table-sm mb-0"><thead><tr><th>Institute</th><th class="text-end">Students</th></tr></thead><tbody id="igStudentsTableBody"></tbody></table>
+                <table class="table ttv2-rich-table mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width:56px;">#</th>
+                      <th>Institute</th>
+                      <th class="text-start">Distribution</th>
+                      <th class="text-end">Students</th>
+                    </tr>
+                  </thead>
+                  <tbody id="igStudentsTableBody"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -178,9 +188,9 @@
             <div class="card-body">
               <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                 <h5 class="card-title mb-0">Seat Capacity by School</h5>
-                <div class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="seat" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
-                  <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="seat" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                <div class="btn-group ttv2-chart-view-toggle" role="group" aria-label="Chart or table view">
+                  <button type="button" class="btn active" data-ig-view-btn data-target="seat" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                  <button type="button" class="btn" data-ig-view-btn data-target="seat" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
                 </div>
               </div>
               <div id="seat-capacity-loader" class="text-center py-5">
@@ -189,11 +199,21 @@
                 </div>
               </div>
               <div id="seat-capacity-table-wrapper" style="display: none;">
-                <div data-ig-chart-wrap="seat" style="height: 320px; position: relative; overflow: hidden;">
-                  <canvas id="igSeatCapacityDashboardChart" style="display: none; max-height: 320px; max-width: 100%;"></canvas>
+                <div data-ig-chart-wrap="seat" style="height: 420px; position: relative; overflow: hidden;">
+                  <canvas id="igSeatCapacityDashboardChart" style="display: none; max-height: 420px; max-width: 100%;"></canvas>
                 </div>
-                <div data-ig-table-wrap="seat" class="table-responsive" style="display:none;max-height:320px;overflow:auto;">
-                  <table class="table table-sm mb-0"><thead><tr><th>School</th><th class="text-end">Total seats</th></tr></thead><tbody id="igSeatTableBody"></tbody></table>
+                <div data-ig-table-wrap="seat" class="table-responsive" style="display:none;max-height:420px;overflow:auto;">
+                  <table class="table ttv2-rich-table mb-0">
+                    <thead>
+                      <tr>
+                        <th style="width:56px;">#</th>
+                        <th>School</th>
+                        <th class="text-start">Distribution</th>
+                        <th class="text-end">Total seats</th>
+                      </tr>
+                    </thead>
+                    <tbody id="igSeatTableBody"></tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -206,9 +226,9 @@
                 <div class="card-body">
                   <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                     <h5 class="card-title mb-0">Total No of students have attempts psychometric test</h5>
-                    <div class="btn-group btn-group-sm" role="group">
-                      <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="psych" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
-                      <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                    <div class="btn-group ttv2-chart-view-toggle" role="group" aria-label="Chart or table view">
+                      <button type="button" class="btn active" data-ig-view-btn data-target="psych" data-view="chart" title="Chart view"><i class="bx bx-donut-chart"></i></button>
+                      <button type="button" class="btn" data-ig-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
                     </div>
                   </div>
                   <div id="personality-chart-loader" class="text-center py-5" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
@@ -220,7 +240,17 @@
                     <canvas id="personalityChart" style="display: none;"></canvas>
                   </div>
                   <div data-ig-table-wrap="psych" class="table-responsive" style="display:none;max-height:300px;overflow:auto;">
-                    <table class="table table-sm mb-0"><thead><tr><th>Status</th><th class="text-end">Students</th></tr></thead><tbody id="igPsychTableBody"></tbody></table>
+                    <table class="table ttv2-rich-table mb-0">
+                      <thead>
+                        <tr>
+                          <th style="width:56px;">#</th>
+                          <th>Status</th>
+                          <th class="text-start">Distribution</th>
+                          <th class="text-end">Students</th>
+                        </tr>
+                      </thead>
+                      <tbody id="igPsychTableBody"></tbody>
+                    </table>
                   </div>
                 </div>
               </div>
@@ -230,9 +260,9 @@
                 <div class="card-body">
                   <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
                     <h5 class="card-title mb-0">Stream-based graph of all Institutes</h5>
-                    <div class="btn-group btn-group-sm" role="group">
-                      <button type="button" class="btn btn-outline-secondary active" data-ig-view-btn data-target="streams" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
-                      <button type="button" class="btn btn-outline-secondary" data-ig-view-btn data-target="streams" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
+                    <div class="btn-group ttv2-chart-view-toggle" role="group" aria-label="Chart or table view">
+                      <button type="button" class="btn active" data-ig-view-btn data-target="streams" data-view="chart" title="Chart view"><i class="bx bx-bar-chart-alt-2"></i></button>
+                      <button type="button" class="btn" data-ig-view-btn data-target="streams" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
                     </div>
                   </div>
                   <div id="streams-chart-loader" class="text-center py-5" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
@@ -244,7 +274,17 @@
                     <canvas id="streamsChart" style="display: none; max-height: 300px; max-width: 100%;"></canvas>
                   </div>
                   <div data-ig-table-wrap="streams" class="table-responsive" style="display:none;max-height:300px;overflow:auto;">
-                    <table class="table table-sm mb-0"><thead><tr><th>Stream</th><th class="text-end">Students</th></tr></thead><tbody id="igStreamsTableBody"></tbody></table>
+                    <table class="table ttv2-rich-table mb-0">
+                      <thead>
+                        <tr>
+                          <th style="width:56px;">#</th>
+                          <th>Stream</th>
+                          <th class="text-start">Distribution</th>
+                          <th class="text-end">Students</th>
+                        </tr>
+                      </thead>
+                      <tbody id="igStreamsTableBody"></tbody>
+                    </table>
                   </div>
                 </div>
               </div>

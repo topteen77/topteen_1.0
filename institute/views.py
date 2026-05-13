@@ -104,6 +104,41 @@ def _search_suggest_limit(request, default=20, cap=40):
     return max(1, min(n, cap))
 
 
+def _normalize_class_and_section_value(value):
+    value = (value or "").strip()
+    return value or None
+
+
+def _resolve_class_and_section(class_section, stream=None):
+    """
+    Reuse the first matching ClassAndSection when legacy duplicate rows already
+    exist, instead of letting get_or_create() raise MultipleObjectsReturned.
+    """
+    class_section = _normalize_class_and_section_value(class_section)
+    stream = _normalize_class_and_section_value(stream)
+
+    if not class_section:
+        return None, False
+
+    base_qs = ClassAndSection.objects.filter(class_and_section=class_section).order_by("id")
+
+    if stream:
+        existing = base_qs.filter(stream=stream).first()
+        if existing:
+            return existing, False
+        return ClassAndSection.objects.create(class_and_section=class_section, stream=stream), True
+
+    existing = base_qs.filter(Q(stream__isnull=True) | Q(stream="")).first()
+    if existing:
+        return existing, False
+
+    existing = base_qs.first()
+    if existing:
+        return existing, False
+
+    return ClassAndSection.objects.create(class_and_section=class_section), True
+
+
 @require_GET
 def marketing_search_suggest(request):
     """JSON autocomplete for marketing-scoped institute filters (min 3 chars)."""
@@ -441,7 +476,8 @@ def apply_student_table_display_enrichment(request, ctx):
                 uid = None
             if not uid:
                 continue
-            rd = results_data.get(uid) or {}
+            student_user = getattr(sm, "student", None) if sm else None
+            rd = results_data.get(uid) or (results_data.get(student_user) if student_user else None) or {}
             try:
                 cas = getattr(sm, "class_and_section", None)
                 rd.setdefault("track", (getattr(cas, "stream", "") or "").strip() or "")
@@ -465,28 +501,31 @@ def apply_student_table_display_enrichment(request, ctx):
             mi_attempted = True if uid in mi_uids else False
             eq_attempted = True if uid in eq_uids else False
 
-            # Fallback source: class-wise combined report payload.
+            # Fallback source: older payloads may store explicit MI/EQ keys directly.
+            # Do not infer MI/EQ from other psychometric tests like personality/test1.
             if not mi_attempted:
                 mi_attempted = any([
                     _attempted(td.get("mi_assessment")),
                     _attempted(td.get("multiple_intelligence_assessment")),
-                    _attempted(td.get("motivation_assessment")),
-                    _attempted(td.get("test2")),
                 ])
             if not eq_attempted:
                 eq_attempted = any([
                     _attempted(td.get("eq_assessment")),
                     _attempted(td.get("emotional_intelligence_assessment")),
-                    _attempted(td.get("personality_assessment")),
-                    _attempted(td.get("career_assessment")),
-                    _attempted(td.get("test1")),
-                    _attempted(td.get("test3")),
                 ])
 
             rd["mi_attempted"] = mi_attempted
             rd["eq_attempted"] = eq_attempted
+            rd["mi_report_url"] = (
+                "%s?inline=1" % reverse("core:mi_report_pdf_user", args=[uid]) if mi_attempted else ""
+            )
+            rd["eq_report_url"] = (
+                "%s?inline=1" % reverse("core:eq_report_pdf_user", args=[uid]) if eq_attempted else ""
+            )
             rd["abroad_exploring"] = True if uid in abroad_uids else False
             results_data[uid] = rd
+            if student_user:
+                results_data[student_user] = rd
         ctx["results_data"] = results_data
     except Exception:
         pass
@@ -503,6 +542,73 @@ def scoped_student_management_for_dashboard(request):
         if inst and user_manages_institute_for_api(request.user, inst):
             return get_students_by_role(request.user, counselor=None, institute=inst)
     return get_students_by_role(request.user, counselor=None, institute=None)
+
+
+def _ttv2_session_history_student_response(request, student_scope):
+    """
+    JSON: full follow-up history for a single student timeline.
+    Works for institute, marketing-group, and institute-group dashboards.
+    """
+    raw_sid = (request.GET.get("student_id") or "").strip()
+    try:
+        sm_id = int(raw_sid)
+    except Exception:
+        sm_id = 0
+    if not sm_id:
+        return JsonResponse({"ok": False, "items": []})
+
+    try:
+        if hasattr(student_scope, "filter"):
+            sm = student_scope.select_related("institute").filter(id=sm_id).first()
+        else:
+            sm = next((row for row in student_scope if int(getattr(row, "id", 0) or 0) == sm_id), None)
+    except Exception:
+        sm = None
+    if not sm:
+        return JsonResponse({"ok": False, "items": []})
+
+    from django.db.models.functions import TruncDate
+    from django.db import models as _models
+
+    def _fmt(d):
+        try:
+            return d.strftime("%a %d %b %Y") if d else ""
+        except Exception:
+            return ""
+
+    fu_qs = (
+        FollowUpStatus.objects.filter(
+            student_id=sm_id,
+            counselor__counselor_admin_id=getattr(sm, "institute_id", None),
+        )
+        .select_related("counselor")
+        .annotate(
+            _sess_day=Coalesce(
+                "last_follow_up_date",
+                TruncDate("created"),
+                output_field=_models.DateField(),
+            )
+        )
+        .order_by("-_sess_day", "-created")[:500]
+    )
+    items = []
+    for fu in fu_qs:
+        try:
+            items.append(
+                {
+                    "when": _fmt(getattr(fu, "_sess_day", None)) or "—",
+                    "counselor": (
+                        getattr(getattr(fu, "counselor", None), "counselor_name", None) or "—"
+                    ),
+                    "mode": (getattr(fu, "mode_of_follow_up", None) or "—"),
+                    "status": (getattr(fu, "follow_up_status", None) or "—"),
+                    "next": _fmt(getattr(fu, "next_follow_up_date", None)) or "",
+                    "message": (getattr(fu, "message", None) or "").strip(),
+                }
+            )
+        except Exception:
+            continue
+    return JsonResponse({"ok": True, "student_id": sm_id, "items": items})
 
 
 def _dashboard_template(v1_path: str, v2_path: str) -> str:
@@ -1445,6 +1551,11 @@ class MarketingGroupDashboardView(TemplateView):
             context = self.get_context(request, *args, **kwargs)
             html = render_to_string('template20/institute/marketing_institutes_table.html', context, request=request)
             return HttpResponse(html)
+        if is_ajax and data_type == "session_history_student":
+            return _ttv2_session_history_student_response(
+                request,
+                scoped_student_management_for_dashboard(request),
+            )
         if is_ajax and data_type == "students":
             from institute.student_table_helpers import (
                 get_student_action_urls,
@@ -2102,6 +2213,11 @@ class InstituteGroupDashboardView(TemplateView):
             )
             return JsonResponse(
                 build_students_analytics_payload(qs, week_start=_ttv2_week_start_from_request(request))
+            )
+        if is_ajax and data_type == "session_history_student":
+            return _ttv2_session_history_student_response(
+                request,
+                scoped_student_management_for_dashboard(request),
             )
         if is_ajax and data_type == "students":
             from institute.student_table_helpers import (
@@ -3734,64 +3850,12 @@ class InstituteDashboardView(TemplateView):
                 return JsonResponse({"sessions_data": out})
 
             if data_type == "session_history_student":
-                # JSON: full follow-up history for a single institute student (across counselors).
-                try:
-                    slug = kwargs.get("slug")
-                    institute = get_object_or_404(Institute, slug=slug)
-                except Exception:
-                    return JsonResponse({"ok": False, "items": []})
-
-                raw_sid = (request.GET.get("student_id") or "").strip()
-                try:
-                    sm_id = int(raw_sid)
-                except Exception:
-                    sm_id = 0
-                if not sm_id:
-                    return JsonResponse({"ok": False, "items": []})
-
-                if not StudentManagement.objects.filter(id=sm_id, institute=institute).exists():
-                    return JsonResponse({"ok": False, "items": []})
-
-                from django.db.models.functions import Coalesce, TruncDate
-                from django.db import models as _models
-
-                def _fmt(d):
-                    try:
-                        return d.strftime("%a %d %b %Y") if d else ""
-                    except Exception:
-                        return ""
-
-                fu_qs = (
-                    FollowUpStatus.objects.filter(
-                        counselor__counselor_admin=institute,
-                        student_id=sm_id,
-                    )
-                    .select_related("counselor")
-                    .annotate(
-                        _sess_day=Coalesce(
-                            "last_follow_up_date",
-                            TruncDate("created"),
-                            output_field=_models.DateField(),
-                        )
-                    )
-                    .order_by("-_sess_day", "-created")[:500]
+                slug = kwargs.get("slug")
+                institute = get_object_or_404(Institute, slug=slug)
+                return _ttv2_session_history_student_response(
+                    request,
+                    get_students_by_role(request.user, counselor=None, institute=institute),
                 )
-                items = []
-                for fu in fu_qs:
-                    try:
-                        items.append(
-                            {
-                                "when": _fmt(getattr(fu, "_sess_day", None)) or "—",
-                                "counselor": (getattr(getattr(fu, "counselor", None), "counselor_name", None) or "—"),
-                                "mode": (getattr(fu, "mode_of_follow_up", None) or "—"),
-                                "status": (getattr(fu, "follow_up_status", None) or "—"),
-                                "next": _fmt(getattr(fu, "next_follow_up_date", None)) or "",
-                                "message": (getattr(fu, "message", None) or "").strip(),
-                            }
-                        )
-                    except Exception:
-                        continue
-                return JsonResponse({"ok": True, "student_id": sm_id, "items": items})
             if data_type == 'students':
                 # Lightweight context for AJAX - only student table data
                 ctx = self.get_student_table_context_ajax(request, *args, **kwargs)
@@ -5403,14 +5467,19 @@ class InstituteDashboardView(TemplateView):
                     and s.class_and_section.stream == stream_filter
                 ]
 
-        per_page_param = request.GET.get("per_page", "10")
+        # Grid (cards) view fills a 3-column grid best with 12 per page (4 rows × 3).
+        # Use 12 as the default when no explicit per_page is supplied and we're in cards mode.
+        _display_param = (request.GET.get("display") or "").strip().lower()
+        _is_cards = _display_param == "cards"
+        _default_pp = "12" if _is_cards else "10"
+        per_page_param = request.GET.get("per_page", _default_pp)
         if per_page_param == "all":
             per_page_value = 10000
         else:
             try:
                 per_page_value = int(per_page_param)
             except (ValueError, TypeError):
-                per_page_value = 10
+                per_page_value = 12 if _is_cards else 10
 
         page_number = request.GET.get("page", 1)
         if test_taken_filter:
@@ -6060,7 +6129,7 @@ class InstituteStudentCreateView(TemplateView):
             stu_mob=re.match(mvalid,stu_mobile)
             if institute.is_valid_credit_count() and stu_em and stu_mob and class_section and not stu_exist:                
                 if class_section:
-                    cas,_cas=ClassAndSection.objects.get_or_create(class_and_section=class_section)
+                    cas,_cas=_resolve_class_and_section(class_section)
                 else:
                     cas=get_object_or_404(ClassAndSection,id=class_section)               
 
@@ -6200,7 +6269,7 @@ class InstituteCsvStudentCreateView(TemplateView):
                 stu_em=re.match(evalid,stu_email)
                 stu_mob=re.match(mvalid,stu_mobile)
                 if institute.is_valid_credit_count() and stu_em and stu_mob and class_section and not stu_exist:
-                    cas,_cas=ClassAndSection.objects.get_or_create(class_and_section=class_section)
+                    cas,_cas=_resolve_class_and_section(class_section)
                     
                     password=''.join([str(random.randint(0,10)) for _ in range(6)])
                     user_dict={'name':stu_name,'mobile':stu_mobile,'email':stu_email,'password':password}
@@ -6365,7 +6434,7 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                 stu_em=re.match(evalid,stu_email)
                 stu_mob=re.match(mvalid,stu_mobile)
                 if institute.is_valid_credit_count() and stu_em and stu_mob and class_section and not stu_exist:
-                    cas,_cas=ClassAndSection.objects.get_or_create(class_and_section=class_section,stream=class_section_stream)
+                    cas,_cas=_resolve_class_and_section(class_section, class_section_stream)
                     
                     password=''.join([str(random.randint(0,10)) for _ in range(6)])
                     user_dict={'name':stu_name,'mobile':stu_mobile,'email':stu_email,'password':password}
@@ -6635,22 +6704,24 @@ class CreateClassSectionView(TemplateView):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 @method_decorator(institute_authenticated_user_only,name='dispatch')
 class InstituteHistoryLogView(TemplateView):
-    # template_name="topteenfrontend/user/institute_log.html"
-    template_name="template20/institute/institute_history_log.html"
+    # Uses the v2 dashboard shell (sidebar + topbar) — legacy template removed.
+    template_name = "template_v2/institute/institute_history_log.html"
 
     def html_head(self):
-        name='Institute Logs'
+        name = 'Institute Logs'
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,*args,**kwargs):
-        slug=kwargs.get("slug")
-        ctx={}
+    def get_context(self, request, *args, **kwargs):
+        slug = kwargs.get("slug")
+        institute = Institute.objects.filter(slug=slug).first() if slug else None
+        ctx = {}
         ctx["html_head"] = self.html_head()
-        ctx["institute_logs"]=InstituteLog.objects.filter(institute__slug=slug).order_by("-created")
+        ctx["institute"] = institute
+        ctx["institute_logs"] = InstituteLog.objects.filter(institute__slug=slug).order_by("-created")
         return ctx
-    
-    def get(self,request,*args,**kwargs):
-        return render(request, _dashboard_primary_template_name(self), self.get_context(request, *args, **kwargs))
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')

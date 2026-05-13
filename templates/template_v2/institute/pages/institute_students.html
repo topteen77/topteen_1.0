@@ -9,12 +9,30 @@
         </p>
       </div>
       {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
-        <div class="d-flex flex-wrap align-items-center gap-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#ttv2MatricCsvUploadModal">
-            <i class="bx bx-upload"></i> Matric CSV
+        <div class="d-flex flex-wrap align-items-center gap-2 ttv2-csv-upload-actions">
+          <button type="button"
+                  class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--matric"
+                  data-bs-toggle="modal"
+                  data-bs-target="#ttv2MatricCsvUploadModal">
+            <span class="ttv2-csv-upload-btn-icon" aria-hidden="true">
+              <i class="bx bx-cloud-upload"></i>
+            </span>
+            <span class="ttv2-csv-upload-btn-text">
+              <span class="ttv2-csv-upload-btn-title">Matric CSV</span>
+              <span class="ttv2-csv-upload-btn-sub">Bulk upload Class 9–10</span>
+            </span>
           </button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#ttv2PostMatricCsvUploadModal">
-            <i class="bx bx-upload"></i> Post‑Matric CSV
+          <button type="button"
+                  class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--postmatric"
+                  data-bs-toggle="modal"
+                  data-bs-target="#ttv2PostMatricCsvUploadModal">
+            <span class="ttv2-csv-upload-btn-icon" aria-hidden="true">
+              <i class="bx bx-cloud-upload"></i>
+            </span>
+            <span class="ttv2-csv-upload-btn-text">
+              <span class="ttv2-csv-upload-btn-title">Post‑Matric CSV</span>
+              <span class="ttv2-csv-upload-btn-sub">Bulk upload Class 11–12</span>
+            </span>
           </button>
         </div>
       {% endif %}
@@ -254,5 +272,10 @@
 {# Counselor-only: add follow-up modal used by list + grid. #}
 {% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
   {% include "template_v2/includes/ttv2_follow_up_modal.html" %}
+{% endif %}
+
+{# Institute/admin: read-only follow-up timeline viewer. #}
+{% if ttv2_students_role is not defined or ttv2_students_role != 'counselor' %}
+  {% include "template_v2/includes/ttv2_followup_history_modal.html" %}
 {% endif %}
 

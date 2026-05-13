@@ -163,7 +163,7 @@
                 <div class=" col-md-12">
                     <div class="cp-footer">
                         <div class="cp-text">
-                            <p>© 2025 TopTeen. All rights reserved.</p>
+                            <p>© <span id="copyright-year"></span> TopTeen. All rights reserved.</p>
                         </div>
                         <div class="tt-ft-text">
                             <ul>
@@ -258,6 +258,14 @@
     
     </style>
 
+<script>
+    (function () {
+        var yearNode = document.getElementById('copyright-year');
+        if (yearNode) {
+            yearNode.textContent = new Date().getFullYear();
+        }
+    })();
+</script>
 </body>
 
 </html>

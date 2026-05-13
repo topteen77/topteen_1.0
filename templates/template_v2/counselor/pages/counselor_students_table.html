@@ -1,19 +1,18 @@
-{# Counselor v2: list view table (match old counselor roster table; no remarks textarea/save). #}
+{# Counselor v2: list view table with sticky identity column + horizontal detail scroll. #}
 <div id="students-table-container"
      {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}data-ttv2-followup-url="{{ ttv2_followup_save_url }}"{% endif %}
      {% if roster_filtered_total is defined %} data-ttv2-roster-total="{{ roster_filtered_total }}"{% endif %}>
-  <div class="table-responsive">
-    <table class="table counselor-dash-table table-hover mb-0">
+  <div class="table-responsive ttv2-students-table-shell">
+    <table class="table counselor-dash-table table-hover mb-0 ttv2-students-rich-table">
       <thead>
         <tr>
-          <th scope="col">S.No.</th>
+          <th scope="col" class="ttv2-col-index ttv2-sticky-col">S.No.</th>
+          <th scope="col" class="ttv2-col-student ttv2-sticky-col">Student</th>
           <th scope="col">Class</th>
           <th scope="col">Stream</th>
-          <th scope="col">Name</th>
-          <th scope="col">Email</th>
-          <th scope="col">Contact</th>
-          <th scope="col">Recent follow-up</th>
-          <th scope="col">Session attended</th>
+          <th scope="col">Advisor</th>
+          <th scope="col" class="ttv2-col-followup">Follow-up</th>
+          <th scope="col" class="ttv2-col-insights">Insights</th>
           <th scope="col">Psychometric report</th>
           <th scope="col">Action</th>
         </tr>
@@ -23,86 +22,200 @@
           {% for sm in students %}
             {% set u = sm.student %}
             {% set cas = sm.class_and_section %}
-            {# results_data is keyed by User object (see counselor.views.get_results_data_for_students) #}
             {% set r = (results_data.get(u) if (results_data and u and results_data.get(u) is not none) else (results_data.get(u.id) if (results_data and u) else none)) %}
             {% set fu = (ttv2_followup_latest_map.get(sm.id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else none) %}
+            {% set td = (r.test_details if (r and r.test_details) else {}) %}
+            {% set _cls = ((cas.class_and_section if (cas and cas.class_and_section) else '')|lower) %}
+            {% set is_class10 = ('10' in _cls) %}
+            {% set is_senior = (('11' in _cls) or ('12' in _cls)) %}
+            {% set _class10_labels = ['Personality', 'Career interest', 'Aptitude'] %}
+            {% set _class12_labels = ['Personality', 'Motivation', 'Career interest', 'Aptitude'] %}
+            {% if is_class10 %}
+              {% set _labels = _class10_labels %}
+              {% set _values = [
+                td.get('personality_assessment', td.get('test1')),
+                td.get('career_interest_assessment', td.get('test2')),
+                td.get('comprehensive_aptitude_assessment', td.get('test3'))
+              ] %}
+            {% elif is_senior %}
+              {% set _labels = _class12_labels %}
+              {% set _values = [
+                td.get('career_assessment', td.get('personality_assessment', td.get('test1'))),
+                td.get('motivation_assessment', td.get('test2')),
+                td.get('career_interest_inventory', td.get('test3')),
+                td.get('aptitude_assessment', td.get('test4'))
+              ] %}
+            {% else %}
+              {% set _labels = _class12_labels %}
+              {% set _values = [td.get('test1'), td.get('test2'), td.get('test3'), td.get('test4')] %}
+            {% endif %}
+            {% set _report_ns = namespace(all_attempted=true) %}
+            {% for _rv in _values %}
+              {% set _rs = (_rv|string)|lower|trim %}
+              {% set _row_attempted = (_rv is sameas true) or (_rs in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
+              {% if not _row_attempted %}
+                {% set _report_ns.all_attempted = false %}
+              {% endif %}
+            {% endfor %}
+            {% set report_url = (r.test_link if (r and r.test_link and _report_ns.all_attempted) else '') %}
+            {% set track = (r.track if (r and r.track) else '') %}
+            {% set match = (r.match_pct if (r and r.match_pct) else '') %}
+            {% set risk = (r.risk_score if (r and r.risk_score) else '') %}
+            {% set abroad = (r.abroad_exploring if (r and r.abroad_exploring) else false) %}
+            {% set _mi_raw = (r.mi_attempted if r else none) %}
+            {% set _mi_s = (_mi_raw|string)|lower|trim %}
+            {% set mi = (_mi_raw is sameas true) or (_mi_s in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
+            {% set _eq_raw = (r.eq_attempted if r else none) %}
+            {% set _eq_s = (_eq_raw|string)|lower|trim %}
+            {% set eq = (_eq_raw is sameas true) or (_eq_s in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
+            {% set mi_report_url = (r.mi_report_url if (r and r.mi_report_url) else '') %}
+            {% set eq_report_url = (r.eq_report_url if (r and r.eq_report_url) else '') %}
+            {% set _adv = '' %}
+            {% if sm and sm.counselors is defined %}
+              {% set _adv_list = sm.counselors.all() %}
+              {% if _adv_list and (_adv_list|length) > 0 %}
+                {% set _adv = _adv_list[0].counselor_name|default('') %}
+              {% endif %}
+            {% endif %}
             <tr>
-              <td>
+              <td class="ttv2-col-index ttv2-sticky-col">
                 {% if students.paginator %}
                   {{ (students.number - 1) * students.paginator.per_page + loop.index }}
                 {% else %}
                   {{ loop.index }}
                 {% endif %}
               </td>
+              <td class="ttv2-col-student ttv2-sticky-col">
+                <div class="ttv2-table-student-cell">
+                  <div class="ttv2-table-student-name">{{ u.name if (u and u.name) else '-' }}</div>
+                  <div class="ttv2-table-student-contact">
+                    <i class="bx bx-envelope" aria-hidden="true"></i>
+                    <span>{{ u.email if (u and u.email) else '-' }}</span>
+                  </div>
+                  <div class="ttv2-table-student-contact">
+                    <i class="bx bx-phone" aria-hidden="true"></i>
+                    <span>{{ u.mobile if (u and u.mobile) else '-' }}</span>
+                  </div>
+                </div>
+              </td>
               <td>{{ cas.class_and_section if (cas and cas.class_and_section) else '-' }}</td>
               <td>{{ cas.stream if (cas and cas.stream) else '-' }}</td>
-              <td>{{ u.name if (u and u.name) else '-' }}</td>
-              <td>{{ u.email if (u and u.email) else '-' }}</td>
-              <td>{{ u.mobile if (u and u.mobile) else '-' }}</td>
-              <td>
-                {% if fu and fu.when %}
-                  {{ fu.when }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-              <td>
-                {% if fu and fu.is_followed_up %}
-                  <span class="badge bg-success">Yes</span>
-                {% else %}
-                  <span class="badge bg-danger">No</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if r %}
-                  {% if r.test_status == "completed" and r.test_link %}
-                    <span class="badge bg-success position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
-                      <i class="bx bx-check-circle me-1"></i> Complete
-                    </span>
-                    <a href="{{ r.test_link }}" target="_blank" rel="noopener" class="btn btn-sm btn-link p-0 ms-2" title="View Report">
-                      <i class="bx bx-link-external"></i>
-                    </a>
-                  {% elif r.test_status == "completed" %}
-                    <span class="badge bg-success position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
-                      <i class="bx bx-check-circle me-1"></i> Complete
-                    </span>
-                  {% elif r.test_status == "in_progress" %}
-                    <span class="badge bg-secondary position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
-                      <i class="bx bx-hourglass me-1"></i> Pending
-                    </span>
+              <td>{{ _adv if _adv else '-' }}</td>
+              <td class="ttv2-col-followup">
+                <div class="ttv2-table-followup-cell">
+                  {% if fu %}
+                    {% set _k = fu.smart_key|default('') %}
+                    <div class="ttv2-table-followup-head">
+                      {% if _k == 'overdue' or _k == 'due_today' %}
+                        <span class="badge bg-danger">{{ fu.smart_label|default('Follow-up') }}</span>
+                      {% elif _k == 'upcoming' %}
+                        <span class="badge bg-warning text-dark">{{ fu.smart_label|default('Upcoming') }}</span>
+                      {% elif _k == 'completed_today' or _k == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                      {% elif _k == 'scheduled_future' %}
+                        <span class="badge bg-secondary">Next</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ fu.smart_label|default('Not scheduled') }}</span>
+                      {% endif %}
+                      {% if fu.when %}
+                        <span class="ttv2-table-inline-meta">Last: {{ fu.when }}</span>
+                      {% endif %}
+                      {% if fu.next %}
+                        <span class="ttv2-table-inline-meta">Next: {{ fu.next }}</span>
+                      {% endif %}
+                    </div>
+                    {% if fu.message %}
+                      <div class="ttv2-table-followup-note">
+                        <i class="bx bx-message-detail" aria-hidden="true"></i>
+                        <strong>{{ fu.message }}</strong>
+                      </div>
+                    {% endif %}
                   {% else %}
-                    <span class="badge bg-secondary position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
-                      <i class="bx bx-hourglass me-1"></i> Pending
-                    </span>
+                    <span class="badge bg-secondary">Not scheduled</span>
                   {% endif %}
-                {% else %}
-                  <span class="badge bg-secondary">-</span>
-                {% endif %}
+                </div>
+              </td>
+              <td class="ttv2-col-insights">
+                <div class="ttv2-table-chip-wrap">
+                  <span class="ttv2-chip {% if track %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
+                    {{ track if track else 'Track' }}
+                  </span>
+                  <span class="ttv2-chip {% if abroad %}ttv2-chip--blue{% else %}ttv2-chip--disabled{% endif %}">Abroad</span>
+                  <span class="ttv2-chip {% if match %}ttv2-chip--purple{% else %}ttv2-chip--disabled{% endif %}">
+                    Match {{ match if match else '—' }}{% if match %}%{% endif %}
+                  </span>
+                  <span class="ttv2-chip {% if risk %}ttv2-chip--risk{% else %}ttv2-chip--disabled{% endif %}">
+                    Risk {{ risk if risk else '—' }}
+                  </span>
+                  {% if mi and mi_report_url %}
+                    <a class="ttv2-chip ttv2-chip--solid" href="{{ mi_report_url }}" target="_blank" rel="noopener">MI</a>
+                  {% else %}
+                    <span class="ttv2-chip {% if mi %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">MI</span>
+                  {% endif %}
+                  {% if eq and eq_report_url %}
+                    <a class="ttv2-chip ttv2-chip--solid" href="{{ eq_report_url }}" target="_blank" rel="noopener">EQ</a>
+                  {% else %}
+                    <span class="ttv2-chip {% if eq %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">EQ</span>
+                  {% endif %}
+                </div>
               </td>
               <td>
-                {% if ttv2_followup_save_url is defined and ttv2_followup_save_url and fu and fu.show_followup_btn %}
-                  {% set _btn = fu.smart_btn_label|default('Follow up') %}
-                  {% set _v = fu.smart_btn_variant|default('secondary') %}
+                <div class="ttv2-table-report-cell">
+                  {% if r %}
+                    {% if r.test_status == "completed" %}
+                      <span class="badge bg-success position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
+                        <i class="bx bx-check-circle me-1"></i> Complete
+                      </span>
+                    {% elif r.test_status == "in_progress" %}
+                      <span class="badge bg-secondary position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
+                        <i class="bx bx-hourglass me-1"></i> Pending
+                      </span>
+                    {% else %}
+                      <span class="badge bg-secondary position-relative" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ r.tooltip }}">
+                        <i class="bx bx-hourglass me-1"></i> Pending
+                      </span>
+                    {% endif %}
+                    {% if report_url %}
+                      <button type="button"
+                              class="btn btn-sm btn-outline-primary ttv2-table-inline-btn"
+                              data-ttv2-open-report
+                              data-ttv2-report-url="{{ report_url }}"
+                              data-ttv2-report-title="{{ u.name if (u and u.name) else 'Student report' }}">
+                        <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
+                        <span>Open report</span>
+                      </button>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge bg-secondary">-</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td>
+                <div class="ttv2-table-action-stack">
+                  {% set _btn = (fu.smart_btn_label if (fu and fu.smart_btn_label) else 'Follow up') %}
+                  {% set _v = (fu.smart_btn_variant if (fu and fu.smart_btn_variant) else 'secondary') %}
                   <button type="button"
-                          class="btn btn-sm {% if _v == 'danger' %}btn-outline-danger{% elif _v == 'warning' %}btn-outline-warning{% else %}btn-outline-secondary{% endif %}"
+                          class="btn btn-sm ttv2-table-inline-btn {% if _v == 'danger' %}btn-outline-danger{% elif _v == 'warning' %}btn-outline-warning{% else %}btn-outline-secondary{% endif %}"
                           data-ttv2-followup-open
                           data-sm-id="{{ sm.id }}"
-                          data-student-name="{{ u.name if (u and u.name) else '-' }}">
-                    {{ _btn }}
+                          data-student-name="{{ u.name if (u and u.name) else '-' }}"
+                          data-ttv2-followup-mode="{{ fu.mode if fu else '' }}"
+                          data-ttv2-followup-status="{{ fu.status if fu else '' }}"
+                          data-ttv2-followup-last-date="{{ fu.last_raw if fu else '' }}"
+                          data-ttv2-followup-next-date="{{ fu.next_raw if fu else '' }}"
+                          data-ttv2-followup-message="{{ fu.message if fu else '' }}"
+                          data-ttv2-followup-is-followed="{% if fu and fu.is_followed_up %}1{% else %}0{% endif %}"
+                          data-ttv2-followup-label="{{ fu.smart_label if fu else '' }}">
+                    <i class="bx bx-phone-call" aria-hidden="true"></i>
+                    <span>{{ _btn }}</span>
                   </button>
-                {% elif fu and fu.smart_key == 'completed_today' and fu.next %}
-                  <span class="badge bg-success">Next: {{ fu.next }}</span>
-                {% elif fu and fu.next_raw %}
-                  <span class="text-muted" style="font-size:12px;">Next: {{ fu.next }}</span>
-                {% else %}
-                  <span class="text-muted" style="font-size:12px;">—</span>
-                {% endif %}
+                </div>
               </td>
             </tr>
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="10" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">No students found.</td>
+            <td colspan="9" class="text-center py-5" style="color:var(--c-text3);font-size:12px;">No students found.</td>
           </tr>
         {% endif %}
       </tbody>

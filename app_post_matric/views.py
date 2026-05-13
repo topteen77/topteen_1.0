@@ -1674,6 +1674,7 @@ def Results(request):
     
 def CombinedReport(request, user_id=None):
     try:
+        embed_mode = (request.GET.get("embed") or "").strip() == "1"
         print("user_id:", user_id)
         
         # Get the target user (student) whose report we want to view
@@ -1695,6 +1696,7 @@ def CombinedReport(request, user_id=None):
                 'error': 'No completed test found',
                 'no_results': True,
                 'user': target_user,
+                'embed_mode': embed_mode,
                 'breadcrumb': get_breadcrumb([
                     {'text': 'Tests', 'url': reverse('post_matric:tests')},
                     {'text': 'Results', 'url': reverse('post_matric:results_list')},
@@ -1703,11 +1705,32 @@ def CombinedReport(request, user_id=None):
             })
 
         user = target_user
+        report_student_name = getattr(user, 'name', None) or user.email or str(user)
+        report_student_email = getattr(user, 'email', None) or None
+        report_student_mobile = getattr(user, 'mobile', None) or None
+        report_student_class = None
+
         try:
             # Retrieve the UserProfile for the logged-in user (create if not exists)
             user_profile, created = UserProfile.objects.get_or_create(user=user)
         except UserProfile.DoesNotExist:
             user_profile = None
+
+        try:
+            from institute.models import StudentManagement
+            sm = (
+                StudentManagement.objects.filter(student=user)
+                .select_related("class_and_section")
+                .order_by("-modified")
+                .first()
+            )
+            if sm and getattr(sm, "class_and_section", None):
+                report_student_class = getattr(sm.class_and_section, "class_and_section", None) or None
+                _stream = getattr(sm.class_and_section, "stream", None) or ""
+                if report_student_class and _stream:
+                    report_student_class = f"{report_student_class} - {_stream}"
+        except Exception:
+            pass
 
         try:
             # Retrieve the UserProfile for the target user
@@ -1725,8 +1748,12 @@ def CombinedReport(request, user_id=None):
             else:
                 gender_display = "Unknown"  # Default fallback
             schoolname = user_profile.schoolname
-            student_name = user.email  # Assuming email is used as student name
+            student_name = getattr(user, 'name', None) or user.email or str(user)
             grade = user_profile.grade
+            if not report_student_class:
+                report_student_class = grade
+            if not report_student_mobile:
+                report_student_mobile = getattr(user_profile, 'mobile', None) or report_student_mobile
 
         except UserProfile.DoesNotExist:
             print("UserProfile does not exist.")
@@ -1737,12 +1764,17 @@ def CombinedReport(request, user_id=None):
             'completed_tests': [],
             'no_results': False,
             'viewing_as_admin': user_id is not None, # Flag to indicate admin view
+            'embed_mode': embed_mode,
             # Add user profile information
             'created_date': created_date if 'created_date' in locals() else None,
             'gender': gender_display if 'gender_display' in locals() else None,
             'schoolname': schoolname if 'schoolname' in locals() else None,
             'student_name': student_name if 'student_name' in locals() else None,
-            'grade': grade if 'grade' in locals() else None
+            'grade': grade if 'grade' in locals() else None,
+            'report_student_name': report_student_name,
+            'report_student_email': report_student_email,
+            'report_student_mobile': report_student_mobile,
+            'report_student_class': report_student_class,
         }
         
         latest_sessions = {}
@@ -2657,6 +2689,7 @@ def CombinedReport(request, user_id=None):
             'error': f'An error occurred: {str(e)}',
             'traceback': trace,
             'no_results': True,
+            'embed_mode': (request.GET.get("embed") or "").strip() == "1",
             'breadcrumb': get_breadcrumb([
                 {'text': 'Tests', 'url': reverse('post_matric:tests')},
                 {'text': 'Results', 'url': reverse('post_matric:results_list')},

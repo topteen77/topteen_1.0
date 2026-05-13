@@ -2,7 +2,11 @@
 <div class="ttv2-counselor-sidebar">
   <div class="ttv2-counselor-brand d-none">
     <div class="ttv2-counselor-brand-row">
-      <img class="ttv2-counselor-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+      <img class="ttv2-counselor-brand-logo"
+           src="{{ static('images_new/logos/logo.svg') }}"
+           data-ttv2-logo-light="{{ static('images_new/logos/logo.svg') }}"
+           data-ttv2-logo-dark="{{ static('images_new/logos/footer-logo.svg') }}"
+           alt="TopTeen" />
       <button type="button" class="ttv2-sidebar-close-btn" aria-label="Close sidebar" data-ttv2-sidebar-close>
         <i class='bx bx-chevrons-left'></i>
       </button>
@@ -29,6 +33,7 @@
         {% set _active = (item.get('active') if item is mapping else (item.active if item.active is defined else false)) %}
         {% set _disabled = (item.get('disabled') if item is mapping else (item.disabled if item.disabled is defined else false)) %}
         {% set _no_ajax = (item.get('no_ajax') if item is mapping else (item.no_ajax if item.no_ajax is defined else false)) %}
+        {% set _quicklink = (item.get('quicklink') if item is mapping else (item.quicklink if item.quicklink is defined else false)) %}
         {% set _label = (item.get('label') if item is mapping else (item.label if item.label is defined else 'Link')) %}
         {% if not _icon %}
           {% set _lookup = (_key|default('')|lower|replace(' ', '_')|replace('-', '_')) %}
@@ -93,6 +98,16 @@
             {% endif %}
           {% endif %}
         {% endif %}
+        {% if _quicklink %}
+        <a href="{{ _href|default('#') }}"
+           {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}
+           class="ttv2-counselor-quicklink{% if _active %} active{% endif %}{% if _disabled %} ttv2-nav-disabled{% endif %}"
+           {% if _disabled %}aria-disabled="true"{% endif %}
+           {% if _active %}aria-current="page"{% endif %}
+           {% if _no_ajax %}data-no-ttv2-ajax="1"{% endif %}>
+          <i class="{{ _icon }}" aria-hidden="true"></i> {{ _label|default('Link') }}
+        </a>
+        {% else %}
         <a href="{{ _href|default('#') }}"
            {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}
            class="ttv2-nav-link{% if _active %} active{% endif %}{% if _disabled %} ttv2-nav-disabled{% endif %}"
@@ -102,11 +117,12 @@
           <span class="ttv2-counselor-nav-icon" aria-hidden="true"><i class="{{ _icon }}"></i></span>
           <span class="ttv2-counselor-nav-label">{{ _label|default('Link') }}</span>
         </a>
+        {% endif %}
       {% endfor %}
     {% endfor %}
 
     <div class="ttv2-counselor-nav-title">Account</div>
-    <a href="{{ url('users:logout') }}" class="ttv2-counselor-quicklink">
+    <a href="{{ url('users:logout') }}" class="ttv2-counselor-quicklink text-danger">
       <i class='bx bx-log-out'></i> Logout
     </a>
   </div>

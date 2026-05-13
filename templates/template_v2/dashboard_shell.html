@@ -1,3 +1,5 @@
+
+
 {# Shared v2 dashboard shell (counselor-style) for all roles #}
 {% extends 'template_v2/base_logged_in.html' %}
 
@@ -7,12 +9,18 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}">
+<link rel="stylesheet" href="{{ static('css_new/ttv2_csv_upload_components.css') }}">
 
 <style>
 .btn .badge {
   position: relative;
   top: -7px;
   left: -9px;
+}
+
+.tt-notification-bell-wrap {
+  position: relative;
+  width: 36px;
 }
 
 </style>
@@ -30,21 +38,25 @@
   <div class="ttv2-counselor-topbar">
     <div class="d-flex align-items-center gap-2 ttv2-topbar-left">
       <a href="{{ url('core:home') }}" class="ttv2-topbar-brand" aria-label="TopTeen home">
-        <img class="ttv2-topbar-brand-logo" src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+        <img class="ttv2-topbar-brand-logo"
+             src="{{ static('images_new/logos/logo.svg') }}"
+             data-ttv2-logo-light="{{ static('images_new/logos/logo.svg') }}"
+             data-ttv2-logo-dark="{{ static('images_new/logos/dark-theme-logo.png') }}"
+             alt="TopTeen" />
       </a>
       <button type="button" class="ttv2-sidebar-toggle" aria-label="Toggle sidebar" data-ttv2-sidebar-toggle>
         <i class='bx bx-menu'></i>
       </button>
     </div>
     <div class="d-flex align-items-center gap-2 ttv2-topbar-right">
-      <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle" aria-label="Toggle theme">
+      <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle border rounded-circle p-2" aria-label="Toggle theme">
         <i class="bx bx-moon"></i>
       </button>
-      <div class="ttv2-topbar-icon">{% include "notifications/includes/notification_bell.html" %}</div>
+      <div class="ttv2-topbar-icon border rounded-circle p-2">{% include "notifications/includes/notification_bell.html" %}</div>
       <div class="ttv2-topbar-avatar-dropdown dropdown">
         <button type="button"
                 id="ttv2UserDropdownToggle"
-                class="ttv2-avatar-toggle"
+                class="ttv2-avatar-toggle border rounded-circle"
                 aria-expanded="false"
                 aria-haspopup="true"
                 aria-controls="ttv2UserDropdownMenu"
@@ -80,7 +92,7 @@
         <h5 class="modal-title" id="ttv2StudentReportModalTitle">Student report</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0" style="min-height:70vh;">
+      <div class="modal-body p-0 px-4" style="min-height:70vh;">
         <iframe id="ttv2StudentReportModalFrame"
                 title="Student report"
                 src="about:blank"
@@ -228,20 +240,30 @@
 <script>
   // Shared: open student report popup
   (function(){
+    function getEmbeddedReportUrl(url){
+      try {
+        var u = new URL(url, window.location.origin);
+        u.searchParams.set('embed', '1');
+        return u.toString();
+      } catch (e) {
+        return url;
+      }
+    }
     window.ttv2OpenStudentReportModal = function(url, title){
       try {
+        var embedUrl = getEmbeddedReportUrl(url || '');
         if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
-          window.open(url, '_blank', 'noopener');
+          window.open(embedUrl, '_blank', 'noopener');
           return;
         }
         var m = document.getElementById('ttv2StudentReportModal');
         var f = document.getElementById('ttv2StudentReportModalFrame');
         var t = document.getElementById('ttv2StudentReportModalTitle');
         if (t) t.textContent = title || 'Student report';
-        if (f) f.src = url || 'about:blank';
+        if (f) f.src = embedUrl || 'about:blank';
         bootstrap.Modal.getOrCreateInstance(m).show();
       } catch (e) {
-        window.open(url, '_blank', 'noopener');
+        window.open(getEmbeddedReportUrl(url || ''), '_blank', 'noopener');
       }
     };
 
@@ -714,6 +736,7 @@
     window.addEventListener('hashchange', openFromHash);
   })();
 </script>
+{% include "template_v2/includes/ttv2_csv_dropzone_script.html" %}
 {% endblock %}
 
 {# Disable chatbot for dashboards by default #}

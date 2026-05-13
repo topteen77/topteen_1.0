@@ -34,45 +34,30 @@
      {% if ttv2_remark_save_url is defined and ttv2_remark_save_url %}data-ttv2-remark-url="{{ ttv2_remark_save_url }}"{% endif %}
      {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}data-ttv2-followup-url="{{ ttv2_followup_save_url }}"{% endif %}
      {% if roster_filtered_total is defined %} data-ttv2-roster-total="{{ roster_filtered_total }}"{% endif %}>
-<div class="table-responsive ttv2-students-list-wrap">
-  <table class="table table-hover ttv2-students-list-table">
+<div class="table-responsive ttv2-students-list-wrap ttv2-students-table-shell">
+  <table class="table table-hover ttv2-students-list-table ttv2-students-rich-table">
     <thead>
       <tr>
-        <th>S. no.</th>
+        <th class="ttv2-col-index ttv2-sticky-col">S. no.</th>
+        <th class="ttv2-col-student ttv2-sticky-col">Student</th>
         <th>Class</th>
         {% if table_config and table_config.show_stream %}
         <th>Stream</th>
         {% endif %}
-        <th>Name</th>
         <th>Advisor</th>
-        {% if table_config and table_config.show_email %}
-        <th>Email</th>
-        {% endif %}
-        {% if table_config and table_config.show_contact %}
-        <th>Contact</th>
-        {% endif %}
         {% if table_config and table_config.show_institute %}
         <th>Institute</th>
         {% endif %}
         {% if table_config and table_config.show_created %}
         <th>Created</th>
         {% endif %}
-        {% if table_config and table_config.show_followup %}
-        <th>Recent Follow-up</th>
-        <th>Session Attended</th>
-        {% endif %}
-        {% if table_config and table_config.show_report %}
+        <th class="ttv2-col-followup">Follow-up</th>
+        <th class="ttv2-col-insights">Insights</th>
         <th>Report</th>
-        {% endif %}
         {% if table_config and table_config.show_remarks %}
         <th style="min-width:280px;">Counselling remarks</th>
         {% endif %}
-        {% if table_config and table_config.show_actions %}
         <th>Action</th>
-        {% endif %}
-        {% if table_config and table_config.show_block %}
-        <th>Block/Unblock</th>
-        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -87,31 +72,86 @@
             {% set follow_ups = None %}
           {% endif %}
           
+          {% set _sm_id = (ts.id if ts is defined else '') %}
+          {% set _student = (ts.student if (ts and ts.student) else none) %}
+          {% set _class_section = (ts.class_and_section if (ts and ts.class_and_section) else none) %}
+          {% set _fu = (ttv2_followup_latest_map.get(_sm_id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else none) %}
+          {% set result = (results_data.get(_student.id) if (results_data and _student and results_data.get(_student.id) is not none) else (results_data.get(_student) if (results_data and _student) else none)) %}
+          {% set td = (result.test_details if (result and result.test_details) else {}) %}
+          {% set _cls = ((_class_section.class_and_section if (_class_section and _class_section.class_and_section) else '')|lower) %}
+          {% set is_class10 = ('10' in _cls) %}
+          {% set is_senior = (('11' in _cls) or ('12' in _cls)) %}
+          {% set _class10_labels = ['Personality', 'Career interest', 'Aptitude'] %}
+          {% set _class12_labels = ['Personality', 'Motivation', 'Career interest', 'Aptitude'] %}
+          {% if is_class10 %}
+            {% set _labels = _class10_labels %}
+            {% set _values = [
+              td.get('personality_assessment', td.get('test1')),
+              td.get('career_interest_assessment', td.get('test2')),
+              td.get('comprehensive_aptitude_assessment', td.get('test3'))
+            ] %}
+          {% elif is_senior %}
+            {% set _labels = _class12_labels %}
+            {% set _values = [
+              td.get('career_assessment', td.get('personality_assessment', td.get('test1'))),
+              td.get('motivation_assessment', td.get('test2')),
+              td.get('career_interest_inventory', td.get('test3')),
+              td.get('aptitude_assessment', td.get('test4'))
+            ] %}
+          {% else %}
+            {% set _labels = _class12_labels %}
+            {% set _values = [td.get('test1'), td.get('test2'), td.get('test3'), td.get('test4')] %}
+          {% endif %}
+          {% set _report_ns = namespace(all_attempted=true) %}
+          {% for _rv in _values %}
+            {% set _rs = (_rv|string)|lower|trim %}
+            {% set _row_attempted = (_rv is sameas true) or (_rs in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
+            {% if not _row_attempted %}
+              {% set _report_ns.all_attempted = false %}
+            {% endif %}
+          {% endfor %}
+          {% set report_url = (result.test_link if (result and result.test_link and _report_ns.all_attempted) else '') %}
+          {% set track = (result.track if (result and result.track) else '') %}
+          {% set match = (result.match_pct if (result and result.match_pct) else '') %}
+          {% set risk = (result.risk_score if (result and result.risk_score) else '') %}
+          {% set abroad = (result.abroad_exploring if (result and result.abroad_exploring) else false) %}
+          {% set mi = (result.mi_attempted if (result and result.mi_attempted) else false) %}
+          {% set eq = (result.eq_attempted if (result and result.eq_attempted) else false) %}
+          {% set mi_report_url = (result.mi_report_url if (result and result.mi_report_url) else '') %}
+          {% set eq_report_url = (result.eq_report_url if (result and result.eq_report_url) else '') %}
           <tr class="student-row"
-              data-sm-id="{{ ts.id if ts is defined else '' }}"
-              data-student-id="{{ ts.student.id if ts.student else '' }}"
-              data-student-name="{{ ts.student.name if (ts.student and ts.student.name) else '-' }}"
-              data-student-email="{{ ts.student.email if ts.student else '-' }}"
-              data-student-contact="{{ ts.student.mobile if (ts.student and ts.student.mobile) else '-' }}"
-              data-student-class="{{ ts.class_and_section.class_and_section if (ts.class_and_section and ts.class_and_section.class_and_section) else '-' }}"
-              data-student-stream="{{ ts.class_and_section.stream if (ts.class_and_section and ts.class_and_section.stream) else '-' }}"
-              data-student-created="{{ ts.student.created.strftime('%d/%m/%Y') if (ts.student and ts.student.created) else '-' }}">
-            <td>
+              data-sm-id="{{ _sm_id }}"
+              data-student-id="{{ _student.id if _student else '' }}"
+              data-student-name="{{ _student.name if (_student and _student.name) else '-' }}"
+              data-student-email="{{ _student.email if _student else '-' }}"
+              data-student-contact="{{ _student.mobile if (_student and _student.mobile) else '-' }}"
+              data-student-class="{{ _class_section.class_and_section if (_class_section and _class_section.class_and_section) else '-' }}"
+              data-student-stream="{{ _class_section.stream if (_class_section and _class_section.stream) else '-' }}"
+              data-student-created="{{ _student.created.strftime('%d/%m/%Y') if (_student and _student.created) else '-' }}">
+            <td class="ttv2-col-index ttv2-sticky-col">
               {% if students.paginator %}
                 {{ (students.number - 1) * students.paginator.per_page + loop.index }}
               {% else %}
                 {{ loop.index }}
               {% endif %}
             </td>
-            <td>{% if ts.class_and_section and ts.class_and_section.class_and_section %}{{ ts.class_and_section.class_and_section }}{% else %}-{% endif %}</td>
-            {% if table_config and table_config.show_stream %}
-            <td>{% if ts.class_and_section and ts.class_and_section.stream %}{{ ts.class_and_section.stream }}{% else %}-{% endif %}</td>
-            {% endif %}
-            <td>
-              {% if ts.student and ts.student.name %}
-              <a href="#">{{ ts.student.name }}</a>
-              {% else %}-{% endif %}
+            <td class="ttv2-col-student ttv2-sticky-col">
+              <div class="ttv2-table-student-cell">
+                <div class="ttv2-table-student-name">{{ _student.name if (_student and _student.name) else '-' }}</div>
+                <div class="ttv2-table-student-contact">
+                  <i class="bx bx-envelope" aria-hidden="true"></i>
+                  <span>{{ _student.email if (_student and _student.email) else '-' }}</span>
+                </div>
+                <div class="ttv2-table-student-contact">
+                  <i class="bx bx-phone" aria-hidden="true"></i>
+                  <span>{{ _student.mobile if (_student and _student.mobile) else '-' }}</span>
+                </div>
+              </div>
             </td>
+            <td>{% if _class_section and _class_section.class_and_section %}{{ _class_section.class_and_section }}{% else %}-{% endif %}</td>
+            {% if table_config and table_config.show_stream %}
+            <td>{% if _class_section and _class_section.stream %}{{ _class_section.stream }}{% else %}-{% endif %}</td>
+            {% endif %}
             <td>
               {% set _adv_name = '-' %}
               {% if ts and ts.counselors is defined %}
@@ -132,7 +172,7 @@
                       {% endfor %}
                     </select>
                     <a href="#"
-                       class="btn btn-sm btn-link p-0 text-danger"
+                       class="btn btn-sm btn-link p-0 text-danger px-2"
                        style="text-decoration:none"
                        data-ttv2-adv-unassign
                        title="Unassign counselor">
@@ -147,70 +187,98 @@
                 {{ _adv_name }}
               {% endif %}
             </td>
-            {% if table_config and table_config.show_email %}
-            <td>{{ ts.student.email if ts.student else '-' }}</td>
-            {% endif %}
-            {% if table_config and table_config.show_contact %}
-            <td>{{ ts.student.mobile if (ts.student and ts.student.mobile) else '-' }}</td>
-            {% endif %}
             {% if table_config and table_config.show_institute %}
             <td>{% if ts.institute %}{{ ts.institute.name }}{% else %}-{% endif %}</td>
             {% endif %}
             {% if table_config and table_config.show_created %}
             <td>{% if ts.student and ts.student.created %}{{ ts.student.created.strftime("%d/%m/%Y") }}{% else %}-{% endif %}</td>
             {% endif %}
-            {% if table_config and table_config.show_followup %}
-            <td>
-              {% if follow_ups %}
-                {{ follow_ups[0].last_follow_up_date|default('-') if follow_ups[0] else '-' }}
-              {% else %}
-                -
-              {% endif %}
-            </td>
-            <td>
-              {% if follow_ups and follow_ups[0] %}
-                {% if follow_ups[0].is_followed_up %}
-                  <span class="badge bg-success">Yes</span>
-                {% else %}
-                  <span class="badge bg-danger">No</span>
-                {% endif %}
-              {% else %}
-                <span class="badge bg-danger">No</span>
-              {% endif %}
-            </td>
-            {% endif %}
-            {% if table_config and table_config.show_report %}
-            <td>
-              {% if results_data %}
-                {% if table_config and table_config.role == 'counselor' %}
-                  {% set student_user = ts.student %}
-                {% else %}
-                  {% set student_user = ts.student.id %}
-                {% endif %}
-                {% set result = results_data.get(student_user) %}
-                {% if result %}
-                  {% if result.test_status == "completed" and result.test_link %}
-                  <a target="_blank" href="{{ result.test_link }}">
-                    <span class="badge bg-success" title="{{ result.tooltip }}">Yes</span>
-                  </a>
-                  {% elif result.test_status == "completed" %}
-                  <span class="badge bg-success" title="{{ result.tooltip }}">Yes</span>
-                  {% elif result.test_status == "in_progress" %}
-                  <span class="badge bg-warning text-dark" title="{{ result.tooltip }}">In Progress</span>
-                  {% else %}
-                  <span class="badge bg-danger" title="{{ result.tooltip }}">No</span>
+            <td class="ttv2-col-followup">
+              <div class="ttv2-table-followup-cell">
+                {% if _fu %}
+                  {% set _k = _fu.smart_key|default('') %}
+                  <div class="ttv2-table-followup-head">
+                    {% if _k == 'overdue' or _k == 'due_today' %}
+                      <span class="badge bg-danger">{{ _fu.smart_label|default('Follow-up') }}</span>
+                    {% elif _k == 'upcoming' %}
+                      <span class="badge bg-warning text-dark">{{ _fu.smart_label|default('Upcoming') }}</span>
+                    {% elif _k == 'completed_today' or _k == 'completed' %}
+                      <span class="badge bg-success">Completed</span>
+                    {% elif _k == 'scheduled_future' %}
+                      <span class="badge bg-secondary">Next</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ _fu.smart_label|default('Not scheduled') }}</span>
+                    {% endif %}
+                    {% if _fu.when %}
+                      <span class="ttv2-table-inline-meta">Last: {{ _fu.when }}</span>
+                    {% endif %}
+                    {% if _fu.next %}
+                      <span class="ttv2-table-inline-meta">Next: {{ _fu.next }}</span>
+                    {% endif %}
+                  </div>
+                  {% if _fu.counselor_name %}
+                    <div class="ttv2-table-followup-note">
+                      <i class="bx bx-user-circle" aria-hidden="true"></i>
+                      <span>Advisor:</span>
+                      <strong>{{ _fu.counselor_name }}</strong>
+                    </div>
                   {% endif %}
                 {% else %}
-                <span class="badge bg-secondary">-</span>
+                  <span class="badge bg-secondary">Not scheduled</span>
                 {% endif %}
-              {% else %}
-              <span class="badge bg-secondary">-</span>
-              {% endif %}
+              </div>
             </td>
-            {% endif %}
+            <td class="ttv2-col-insights">
+              <div class="ttv2-table-chip-wrap">
+                <span class="ttv2-chip {% if track %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
+                  {{ track if track else 'Track' }}
+                </span>
+                <span class="ttv2-chip {% if abroad %}ttv2-chip--blue{% else %}ttv2-chip--disabled{% endif %}">Abroad</span>
+                <span class="ttv2-chip {% if match %}ttv2-chip--purple{% else %}ttv2-chip--disabled{% endif %}">
+                  Match {{ match if match else '—' }}{% if match %}%{% endif %}
+                </span>
+                <span class="ttv2-chip {% if risk %}ttv2-chip--risk{% else %}ttv2-chip--disabled{% endif %}">
+                  Risk {{ risk if risk else '—' }}
+                </span>
+                {% if mi and mi_report_url %}
+                  <a class="ttv2-chip ttv2-chip--solid" href="{{ mi_report_url }}" target="_blank" rel="noopener">MI</a>
+                {% else %}
+                  <span class="ttv2-chip {% if mi %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">MI</span>
+                {% endif %}
+                {% if eq and eq_report_url %}
+                  <a class="ttv2-chip ttv2-chip--solid" href="{{ eq_report_url }}" target="_blank" rel="noopener">EQ</a>
+                {% else %}
+                  <span class="ttv2-chip {% if eq %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">EQ</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="ttv2-table-report-cell">
+                {% if result %}
+                  {% if result.test_status == "completed" %}
+                    <span class="badge bg-success" title="{{ result.tooltip }}">Complete</span>
+                  {% elif result.test_status == "in_progress" %}
+                    <span class="badge bg-warning text-dark" title="{{ result.tooltip }}">In progress</span>
+                  {% else %}
+                    <span class="badge bg-secondary" title="{{ result.tooltip }}">Pending</span>
+                  {% endif %}
+                  {% if report_url %}
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary ttv2-table-inline-btn"
+                            data-ttv2-open-report
+                            data-ttv2-report-url="{{ report_url }}"
+                            data-ttv2-report-title="{{ _student.name if (_student and _student.name) else 'Student report' }}">
+                      <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
+                      <span>Open report</span>
+                    </button>
+                  {% endif %}
+                {% else %}
+                  <span class="badge bg-secondary">-</span>
+                {% endif %}
+              </div>
+            </td>
             {% if table_config and table_config.show_remarks %}
-            {% set _sm_id = (ts.id if ts is defined else '') %}
-            {% set _rm = (ttv2_followup_latest_map.get(_sm_id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else None) %}
+            {% set _rm = (_fu if _fu else None) %}
             <td>
               <div class="d-flex flex-column gap-1">
                 {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}
@@ -270,61 +338,71 @@
               </div>
             </td>
             {% endif %}
-            {% if table_config and table_config.show_actions %}
             <td>
-              <div class="d-flex gap-2">
+              <div class="ttv2-table-action-stack">
                 {% if not table_config or table_config.role != 'counselor' %}
-                  {% set result = results_data.get(ts.student.id) if results_data else None %}
-                  {% if result and result.test_success and action_urls and action_urls.delete %}
-                  <button type="button" 
-                          class="btn btn-sm btn-link p-0" 
-                          data-bs-toggle="modal" 
+                  <button type="button"
+                          class="btn btn-sm btn-outline-secondary ttv2-table-inline-btn"
+                          data-ttv2-followup-history-open
+                          data-sm-id="{{ _sm_id }}"
+                          data-student-name="{{ _student.name if (_student and _student.name) else '-' }}">
+                    <i class="bx bx-history" aria-hidden="true"></i>
+                    <span>History</span>
+                  </button>
+                {% elif ttv2_followup_save_url is defined and ttv2_followup_save_url %}
+                  <button type="button"
+                          class="btn btn-sm btn-outline-secondary ttv2-table-inline-btn"
+                          data-ttv2-followup-open
+                          data-sm-id="{{ _sm_id }}"
+                          data-student-name="{{ _student.name if (_student and _student.name) else '-' }}">
+                    <i class="bx bx-phone-call" aria-hidden="true"></i>
+                    <span>Follow up</span>
+                  </button>
+                {% endif %}
+                {% if action_urls and action_urls.delete and result and result.test_success %}
+                  <button type="button"
+                          class="btn btn-sm btn-link p-0"
+                          data-bs-toggle="modal"
                           data-bs-target="#deleteStudentModal"
-                          onclick="document.getElementById('student_id').value='{{ ts.student.id }}'"
+                          onclick="document.getElementById('student_id').value='{{ _student.id }}'"
                           title="Delete">
                     <i class='bx bx-trash text-danger'></i>
                   </button>
-                  {% endif %}
-                  {% if action_urls and action_urls.update %}
-                  <button type="button" 
-                          class="btn btn-sm btn-link p-0" 
-                          data-bs-toggle="modal" 
-                          data-bs-target="#updateStudentModal{{ ts.student.id }}"
-                          onclick="student('{{ ts.student.id }}')"
+                {% endif %}
+                {% if action_urls and action_urls.update %}
+                  <button type="button"
+                          class="btn btn-sm btn-link p-0"
+                          data-bs-toggle="modal"
+                          data-bs-target="#updateStudentModal{{ _student.id }}"
+                          onclick="student('{{ _student.id }}')"
                           title="Update">
                     <i class='bx bx-edit text-success'></i>
                   </button>
-                  {% endif %}
-                  {% if action_urls and action_urls.change_password %}
-                  <button type="button" 
-                          class="btn btn-sm btn-link p-0" 
-                          data-bs-toggle="modal" 
+                {% endif %}
+                {% if action_urls and action_urls.change_password %}
+                  <button type="button"
+                          class="btn btn-sm btn-link p-0"
+                          data-bs-toggle="modal"
                           data-bs-target="#changeStudentPasswordModal"
-                          onclick="document.getElementById('password_id').value='{{ ts.student.id }}'"
+                          onclick="document.getElementById('password_id').value='{{ _student.id }}'"
                           title="Change Password">
                     <i class='bx bx-key text-info'></i>
                   </button>
-                  {% endif %}
+                {% endif %}
+                {% if action_urls and action_urls.block %}
+                  <a href="{{ url(action_urls.block, args=[_student.id]) }}"
+                     class="btn btn-sm btn-link p-0"
+                     title="Click to block">
+                    <i class='bx bx-block text-success'></i>
+                  </a>
                 {% endif %}
               </div>
             </td>
-            {% endif %}
-            {% if table_config and table_config.show_block %}
-            <td>
-              {% if action_urls and action_urls.block %}
-              <a href="{{ url(action_urls.block, args=[ts.student.id]) }}" 
-                 class="btn btn-sm btn-link p-0" 
-                 title="Click to block">
-                <i class='bx bx-block text-success'></i>
-              </a>
-              {% endif %}
-            </td>
-            {% endif %}
           </tr>
         {% endfor %}
       {% else %}
       <tr>
-        <td colspan="{% set col_count = 2 %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_email %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_contact %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_followup %}{% set col_count = col_count + 2 %}{% endif %}{% if table_config.show_report %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_actions %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_block %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
+        <td colspan="{% set col_count = 8 %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
           <div class="d-flex flex-column align-items-center">
             <i class='bx bx-user-x fs-48 text-gray mb-3'></i>
             <h4 class="fs-18 fw-semibold mb-2">No Students Found</h4>

@@ -1,18 +1,62 @@
 {# Reusable v2 follow-up modal (AJAX save). Requires JS bindings in student_table_ajax.js. #}
-<div class="modal fade" id="ttv2FollowUpModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade ttv2-quick-modal ttv2-followup-modal" id="ttv2FollowUpModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="ttv2FollowUpModalTitle">Create follow up</h5>
+        <div>
+          <h5 class="modal-title" id="ttv2FollowUpModalTitle">
+            <i class="bx bx-phone-call me-2" aria-hidden="true"></i>
+            <span>Follow up</span>
+          </h5>
+          <div class="ttv2-followup-modal-subtitle">Track the latest interaction and schedule the next counselor step.</div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="ttv2FollowUpForm" autocomplete="off">
         <div class="modal-body">
           <input type="hidden" id="ttv2FollowUpSmId" name="sm_id" value="">
-          <div class="row g-2">
+          <div id="ttv2FollowUpCurrentWrap" class="ttv2-followup-current mb-4" hidden>
+            <div class="ttv2-followup-current-head">
+              <div>
+                <div class="ttv2-followup-section-title mb-1">Latest follow up</div>
+                <div class="ttv2-followup-section-subtitle">Most recent update already saved for this student.</div>
+              </div>
+              <span class="badge" id="ttv2FollowUpCurrentLabel">Saved</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-6 col-md-3">
+                <div class="ttv2-followup-stat-label">Mode</div>
+                <div class="ttv2-followup-stat-value" id="ttv2FollowUpCurrentMode">-</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="ttv2-followup-stat-label">Status</div>
+                <div class="ttv2-followup-stat-value" id="ttv2FollowUpCurrentStatus">-</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="ttv2-followup-stat-label">Last follow up</div>
+                <div class="ttv2-followup-stat-value" id="ttv2FollowUpCurrentLastDate">-</div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="ttv2-followup-stat-label">Next follow up</div>
+                <div class="ttv2-followup-stat-value" id="ttv2FollowUpCurrentNextDate">-</div>
+              </div>
+              <div class="col-12" id="ttv2FollowUpCurrentMessageWrap" hidden>
+                <div class="ttv2-followup-stat-label">Latest message</div>
+                <div class="ttv2-followup-message-preview" id="ttv2FollowUpCurrentMessage"></div>
+              </div>
+            </div>
+          </div>
+          <div id="ttv2FollowUpEmptyState" class="ttv2-followup-empty mb-4">
+            <i class="bx bx-note" aria-hidden="true"></i>
+            <div>
+              <div class="ttv2-followup-section-title mb-1">No previous follow up</div>
+              <div class="ttv2-followup-section-subtitle">Saving this form will create the first follow-up entry for this counselor.</div>
+            </div>
+          </div>
+          <div class="row g-3">
             <div class="col-12">
-              <label class="form-label">Mode of follow up</label>
-              <select class="form-control custom-input" id="ttv2FollowUpMode" required>
+              <label class="form-label ttv2-followup-label">Mode of follow up</label>
+              <select class="form-select custom-input" id="ttv2FollowUpMode" required>
                 <option value="">Select mode</option>
                 <option value="call">Call</option>
                 <option value="email">Email</option>
@@ -20,8 +64,8 @@
               </select>
             </div>
             <div class="col-12">
-              <label class="form-label">Follow up status</label>
-              <select class="form-control custom-input" id="ttv2FollowUpStatus" required>
+              <label class="form-label ttv2-followup-label">Follow up status</label>
+              <select class="form-select custom-input" id="ttv2FollowUpStatus" required>
                 <option value="">Select status</option>
                 <option value="completed">Completed</option>
                 <option value="pending">Pending</option>
@@ -29,30 +73,31 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Last follow up date</label>
+              <label class="form-label ttv2-followup-label">Last follow up date</label>
               <input type="date" class="form-control custom-input" id="ttv2FollowUpLastDate">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Next follow up date</label>
+              <label class="form-label ttv2-followup-label">Next follow up date</label>
               <input type="date" class="form-control custom-input" id="ttv2FollowUpNextDate">
             </div>
             <div class="col-12">
-              <label class="form-label">Message</label>
-              <textarea class="form-control custom-input" rows="3" id="ttv2FollowUpMessage" placeholder="Enter follow-up message"></textarea>
+              <label class="form-label ttv2-followup-label">Message</label>
+              <textarea class="form-control custom-input" rows="4" id="ttv2FollowUpMessage" placeholder="Write a short follow-up note"></textarea>
             </div>
             <div class="col-12">
-              <div class="form-check">
+              <div class="form-check ttv2-followup-check">
                 <input type="checkbox" class="form-check-input" id="ttv2FollowUpIsFollowed">
                 <label class="form-check-label" for="ttv2FollowUpIsFollowed">Mark as followed up</label>
               </div>
             </div>
             <div class="col-12">
-              <div class="text-muted" style="font-size:12px;" id="ttv2FollowUpFormStatus"></div>
+              <div class="ttv2-followup-status-note" id="ttv2FollowUpFormStatus"></div>
+              <div class="ttv2-followup-helptext mt-2">Saving adds a new follow-up entry for this counselor.</div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-secondary ttv2-followup-cancel-btn" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn custom-button purple-button" id="ttv2FollowUpSaveBtn">Save follow up</button>
         </div>
       </form>

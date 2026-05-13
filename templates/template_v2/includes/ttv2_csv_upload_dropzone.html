@@ -1,0 +1,16 @@
+{# CSV drag-drop field — include inside {% with field_id='uniqueId' %} … {% endwith %} #}
+<div class="ttv2-csv-dropzone" data-ttv2-csv-dropzone>
+  <input type="file"
+         id="{{ field_id|default('ttv2CsvFile') }}"
+         name="stu_file"
+         class="ttv2-csv-dropzone-input"
+         accept=".csv,text/csv"
+         required
+         aria-label="Upload CSV file">
+  <div class="ttv2-csv-dropzone-ui">
+    <span class="ttv2-csv-dropzone-icon" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
+    <span class="ttv2-csv-dropzone-title">Drop CSV here or click to browse</span>
+    <span class="ttv2-csv-dropzone-hint">Accepted: comma-separated values (.csv)</span>
+    <span class="ttv2-csv-dropzone-filename" data-ttv2-csv-filename data-empty-label="No file selected">No file selected</span>
+  </div>
+</div>

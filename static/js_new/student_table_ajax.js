@@ -120,6 +120,13 @@ function loadStudentsTable(url, options = {}) {
         }
       } catch (eF) {}
 
+      // Institute/admin: follow-up history timeline viewer.
+      try {
+        if (typeof window !== 'undefined' && typeof window.ttv2InitFollowUpHistoryViewer === 'function') {
+          window.ttv2InitFollowUpHistoryViewer();
+        }
+      } catch (eH) {}
+
       // Call success callback
       if (config.onSuccess) {
         config.onSuccess(html);
@@ -233,12 +240,51 @@ function ttv2InitCounselorFollowUpControls() {
   if (document.body.dataset.ttv2FollowUpBound === '1') return;
   document.body.dataset.ttv2FollowUpBound = '1';
 
+  function autoSizeFollowupTextarea(el) {
+    if (!el) return;
+    try {
+      var maxHeight = 220;
+      el.style.height = 'auto';
+      var nextHeight = Math.min(el.scrollHeight || 0, maxHeight);
+      el.style.height = Math.max(nextHeight, 112) + 'px';
+      el.style.overflowY = (el.scrollHeight || 0) > maxHeight ? 'auto' : 'hidden';
+    } catch (e0) {}
+  }
+
   function getFollowupUrl() {
     var container = document.getElementById('students-table-container');
     return container ? (container.getAttribute('data-ttv2-followup-url') || '').trim() : '';
   }
 
-  function openModal(smId, studentName) {
+  function formatDateLabel(rawValue) {
+    var value = (rawValue || '').trim();
+    if (!value) return '-';
+    try {
+      var dt = new Date(value + 'T00:00:00');
+      if (!isNaN(dt.getTime())) {
+        return dt.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+      }
+    } catch (e0) {}
+    return value;
+  }
+
+  function normalizeFollowupLabel(rawValue, fallback) {
+    var value = (rawValue || '').trim();
+    if (!value) return fallback || '-';
+    return value
+      .split(/[-_\s]+/)
+      .filter(Boolean)
+      .map(function (part) {
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join(' ');
+  }
+
+  function openModal(smId, studentName, details) {
     if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
     var modalEl = document.getElementById('ttv2FollowUpModal');
     if (!modalEl) return;
@@ -253,20 +299,57 @@ function ttv2InitCounselorFollowUpControls() {
     var chkEl = document.getElementById('ttv2FollowUpIsFollowed');
     var stEl = document.getElementById('ttv2FollowUpFormStatus');
     var saveBtn = document.getElementById('ttv2FollowUpSaveBtn');
+    var currentWrap = document.getElementById('ttv2FollowUpCurrentWrap');
+    var emptyState = document.getElementById('ttv2FollowUpEmptyState');
+    var currentLabel = document.getElementById('ttv2FollowUpCurrentLabel');
+    var currentMode = document.getElementById('ttv2FollowUpCurrentMode');
+    var currentStatus = document.getElementById('ttv2FollowUpCurrentStatus');
+    var currentLast = document.getElementById('ttv2FollowUpCurrentLastDate');
+    var currentNext = document.getElementById('ttv2FollowUpCurrentNextDate');
+    var currentMsgWrap = document.getElementById('ttv2FollowUpCurrentMessageWrap');
+    var currentMsg = document.getElementById('ttv2FollowUpCurrentMessage');
+    var mode = details && details.mode ? String(details.mode).trim() : '';
+    var status = details && details.status ? String(details.status).trim() : '';
+    var lastDate = details && details.lastDate ? String(details.lastDate).trim() : '';
+    var nextDate = details && details.nextDate ? String(details.nextDate).trim() : '';
+    var message = details && details.message ? String(details.message) : '';
+    var smartLabel = details && details.smartLabel ? String(details.smartLabel).trim() : '';
+    var isFollowed = !!(details && details.isFollowed);
+    var hasExisting = !!(mode || status || lastDate || nextDate || message || isFollowed);
 
-    if (titleEl) titleEl.textContent = 'Create follow up - ' + (studentName || 'Student');
+    if (titleEl) {
+      var titleTextEl = titleEl.querySelector ? titleEl.querySelector('span') : null;
+      if (titleTextEl) titleTextEl.textContent = 'Follow up - ' + (studentName || 'Student');
+      else titleEl.textContent = 'Follow up - ' + (studentName || 'Student');
+    }
     if (smInp) smInp.value = String(smId || '');
-    if (modeEl) modeEl.value = '';
-    if (statusEl) statusEl.value = '';
-    if (lastEl) lastEl.value = '';
-    if (nextEl) nextEl.value = '';
-    if (msgEl) msgEl.value = '';
-    if (chkEl) chkEl.checked = false;
+    if (modeEl) modeEl.value = mode;
+    if (statusEl) statusEl.value = status;
+    if (lastEl) lastEl.value = lastDate;
+    if (nextEl) nextEl.value = nextDate;
+    if (msgEl) msgEl.value = message;
+    autoSizeFollowupTextarea(msgEl);
+    if (chkEl) chkEl.checked = isFollowed;
     if (stEl) stEl.textContent = '';
     if (saveBtn) saveBtn.disabled = false;
+    if (currentWrap) currentWrap.hidden = !hasExisting;
+    if (emptyState) emptyState.hidden = hasExisting;
+    if (currentLabel) currentLabel.textContent = normalizeFollowupLabel(smartLabel, 'Saved');
+    if (currentMode) currentMode.textContent = normalizeFollowupLabel(mode, '-');
+    if (currentStatus) currentStatus.textContent = normalizeFollowupLabel(status, isFollowed ? 'Completed' : '-');
+    if (currentLast) currentLast.textContent = formatDateLabel(lastDate);
+    if (currentNext) currentNext.textContent = formatDateLabel(nextDate);
+    if (currentMsgWrap) currentMsgWrap.hidden = !message;
+    if (currentMsg) currentMsg.textContent = message || '';
 
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
   }
+
+  document.body.addEventListener('input', function (e) {
+    var textarea = e.target;
+    if (!textarea || textarea.id !== 'ttv2FollowUpMessage') return;
+    autoSizeFollowupTextarea(textarea);
+  }, true);
 
   function reloadRoster() {
     try {
@@ -285,7 +368,15 @@ function ttv2InitCounselorFollowUpControls() {
     var smId = (btn.getAttribute('data-sm-id') || '').trim();
     if (!smId) return;
     var studentName = (btn.getAttribute('data-student-name') || '').trim();
-    openModal(smId, studentName);
+    openModal(smId, studentName, {
+      mode: (btn.getAttribute('data-ttv2-followup-mode') || '').trim(),
+      status: (btn.getAttribute('data-ttv2-followup-status') || '').trim(),
+      lastDate: (btn.getAttribute('data-ttv2-followup-last-date') || '').trim(),
+      nextDate: (btn.getAttribute('data-ttv2-followup-next-date') || '').trim(),
+      message: btn.getAttribute('data-ttv2-followup-message') || '',
+      smartLabel: (btn.getAttribute('data-ttv2-followup-label') || '').trim(),
+      isFollowed: (btn.getAttribute('data-ttv2-followup-is-followed') || '').trim() === '1'
+    });
   }, true);
 
   document.body.addEventListener('submit', function (e) {
@@ -356,6 +447,157 @@ function ttv2InitCounselorFollowUpControls() {
 
 try {
   window.ttv2InitCounselorFollowUpControls = ttv2InitCounselorFollowUpControls;
+} catch (e0) {}
+
+function ttv2InitFollowUpHistoryViewer() {
+  if (document.body.dataset.ttv2FollowUpHistoryBound === '1') return;
+  document.body.dataset.ttv2FollowUpHistoryBound = '1';
+
+  function getHistoryUrl(smId) {
+    var u = new URL(window.location.href);
+    u.searchParams.set('data_type', 'session_history_student');
+    u.searchParams.set('student_id', String(smId || ''));
+    return u.toString();
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function badgeForStatus(status) {
+    var normalized = String(status || '').toLowerCase();
+    if (normalized === 'completed') return 'bg-success';
+    if (normalized === 'pending') return 'bg-warning text-dark';
+    return 'bg-info text-dark';
+  }
+
+  function iconForMode(mode) {
+    var normalized = String(mode || '').toLowerCase();
+    if (normalized === 'email') return 'bx-envelope';
+    if (normalized === 'meeting') return 'bx-group';
+    return 'bx-phone-call';
+  }
+
+  function renderItems(items) {
+    if (!items || !items.length) return '';
+    return items
+      .map(function (item) {
+        var when = escapeHtml(item.when || '—');
+        var counselor = escapeHtml(item.counselor || '');
+        var mode = escapeHtml(item.mode || '—');
+        var status = escapeHtml(item.status || '—');
+        var next = escapeHtml(item.next || '');
+        var message = escapeHtml(item.message || '');
+        var modeIcon = iconForMode(item.mode || '');
+        return (
+          '<div class="ttv2-sr-session">' +
+            '<div class="ttv2-sr-dot" aria-hidden="true"></div>' +
+            '<div class="ttv2-sr-session-main min-w-0">' +
+              '<div class="ttv2-sr-card">' +
+                '<div class="ttv2-sr-session-top">' +
+                  '<div class="ttv2-sr-when">' + when + '</div>' +
+                  '<div class="ttv2-sr-chips">' +
+                    (counselor ? '<span class="badge ttv2-sr-badge ttv2-sr-badge--advisor"><i class="bx bx-user-circle"></i><span>' + counselor + '</span></span>' : '') +
+                    '<span class="badge ttv2-sr-badge ttv2-sr-badge--mode"><i class="bx ' + modeIcon + '"></i><span>' + mode + '</span></span>' +
+                    '<span class="badge ttv2-sr-badge ' + badgeForStatus(status) + '"><span>' + status + '</span></span>' +
+                    (next ? '<span class="badge ttv2-sr-badge ttv2-sr-badge--next"><i class="bx bx-calendar-event"></i><span>Next: ' + next + '</span></span>' : '') +
+                  '</div>' +
+                '</div>' +
+                (message ? '<div class="ttv2-sr-msg"><div class="ttv2-sr-msg-label">Latest note</div><div class="ttv2-sr-msg-text">' + message + '</div></div>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      })
+      .join('');
+  }
+
+  function setModalLoading(isLoading) {
+    var loading = document.getElementById('ttv2FollowUpHistoryLoading');
+    if (loading) loading.hidden = !isLoading;
+  }
+
+  function setModalEmpty(isEmpty, titleText, bodyText) {
+    var empty = document.getElementById('ttv2FollowUpHistoryEmpty');
+    if (!empty) return;
+    empty.hidden = !isEmpty;
+    var titleEl = empty.querySelector('.ttv2-followup-history-empty-title');
+    var bodyEl = empty.querySelector('.ttv2-followup-history-empty-text');
+    if (titleEl && titleText) titleEl.textContent = titleText;
+    if (bodyEl && bodyText) bodyEl.textContent = bodyText;
+  }
+
+  function setModalTimeline(html, hasItems) {
+    var timeline = document.getElementById('ttv2FollowUpHistoryTimeline');
+    if (!timeline) return;
+    timeline.innerHTML = hasItems ? html : '';
+    timeline.hidden = !hasItems;
+  }
+
+  document.body.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-followup-history-open]') : null;
+    if (!btn) return;
+    e.preventDefault();
+
+    var modalEl = document.getElementById('ttv2FollowUpHistoryModal');
+    if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+
+    var smId = (btn.getAttribute('data-sm-id') || '').trim();
+    if (!smId) return;
+
+    var studentName = (btn.getAttribute('data-student-name') || '').trim() || 'Student';
+    var titleEl = document.getElementById('ttv2FollowUpHistoryModalTitle');
+    if (titleEl) {
+      var titleTextEl = titleEl.querySelector ? titleEl.querySelector('span') : null;
+      if (titleTextEl) titleTextEl.textContent = 'Follow-up history - ' + studentName;
+      else titleEl.textContent = 'Follow-up history - ' + studentName;
+    }
+
+    setModalTimeline('', false);
+    setModalEmpty(false, '', '');
+    setModalLoading(true);
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    fetch(getHistoryUrl(smId), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        var items = data && data.items ? data.items : [];
+        if (!data || !data.ok) throw new Error('Failed to load history');
+        if (!items.length) {
+          setModalTimeline('', false);
+          setModalEmpty(
+            true,
+            'No follow-up history yet',
+            'Timeline entries will appear here after counselors add follow-up notes.'
+          );
+          return;
+        }
+        setModalEmpty(false, '', '');
+        setModalTimeline(renderItems(items), true);
+      })
+      .catch(function () {
+        setModalTimeline('', false);
+        setModalEmpty(
+          true,
+          'Unable to load follow-up history',
+          'Please try again in a moment.'
+        );
+      })
+      .finally(function () {
+        setModalLoading(false);
+      });
+  }, true);
+}
+
+try {
+  window.ttv2InitFollowUpHistoryViewer = ttv2InitFollowUpHistoryViewer;
 } catch (e0) {}
 
 /**
@@ -455,6 +697,9 @@ function ttv2BindInstituteStudentPanelOnce() {
   }
   wrapper.setAttribute('data-ttv2-panel-delegation', '1');
   wrapper.addEventListener('click', function (ev) {
+    if (ev.target && ev.target.closest && ev.target.closest('a,button,input,select,textarea,label')) {
+      return;
+    }
     const row = ev.target.closest('.student-row');
     if (!row) {
       return;
@@ -644,6 +889,22 @@ function ttv2InitStudentTableAfterBodyInject() {
   const wrapper = document.getElementById('students-table-wrapper');
   if (wrapper && !wrapper.dataset.ttv2CardPopupBound) {
     wrapper.dataset.ttv2CardPopupBound = '1';
+    wrapper.addEventListener('click', function (e) {
+      const reportBtn = e.target && e.target.closest ? e.target.closest('[data-ttv2-open-report]') : null;
+      if (!reportBtn) return;
+      const url = (reportBtn.getAttribute('data-ttv2-report-url') || '').trim();
+      if (!url) return;
+      e.preventDefault();
+      try {
+        if (typeof window.ttv2OpenStudentReportModal === 'function') {
+          window.ttv2OpenStudentReportModal(url, reportBtn.getAttribute('data-ttv2-report-title') || 'Student report');
+        } else {
+          window.open(url, '_blank', 'noopener');
+        }
+      } catch (err) {
+        window.open(url, '_blank', 'noopener');
+      }
+    });
     wrapper.addEventListener('click', function (e) {
       // Ignore explicit clicks on links/buttons inside the card.
       if (e.target && e.target.closest && e.target.closest('a,button,input,select,textarea')) {

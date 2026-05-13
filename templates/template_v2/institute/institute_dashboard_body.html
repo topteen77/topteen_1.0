@@ -29,5 +29,12 @@
       <div style="font-size:12px;color:var(--c-text3);">{{ ttv2_page|default('This') }} page content here.</div>
     </div>
   {% endif %}
+
+  {# Sidebar quick-action modals (Add Counselor, Matric/Post-Matric CSV upload, etc.).
+     Loaded with every institute partial so hash quicklinks (#ql-add-counselor,
+     #ql-upload-matric, #ql-upload-postmatric) work on any institute v2 page. #}
+  {% if institute is defined and institute %}
+    {% include "template20/institute/includes/institute_quick_action_modals.html" %}
+  {% endif %}
 </div>
 

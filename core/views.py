@@ -41,6 +41,7 @@ from django.shortcuts import HttpResponse,HttpResponseRedirect
 from skilllab.models import SkillLabCourse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import get_user_model
 from django.views.decorators.http import require_http_methods, require_GET, require_POST
 from rest_framework.views import APIView
 from django.http import JsonResponse
@@ -48,6 +49,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from pathlib import Path
+
+User = get_user_model()
 
 
 class FreetrailContentMixin:
@@ -2493,10 +2496,64 @@ def _docx_path_to_html(docx_path):
             return None
 
 
+def _can_view_assessment_report(viewer, target_user):
+    if not getattr(viewer, "is_authenticated", False):
+        return False
+    if getattr(viewer, "is_superuser", False):
+        return True
+    if getattr(viewer, "id", None) == getattr(target_user, "id", None):
+        return True
+    try:
+        from counselor.models import Counselor
+        from institute.models import StudentManagement
+
+        student_rows = (
+            StudentManagement.objects.filter(student=target_user)
+            .select_related("institute", "institute__institute_group", "institute__marketing_group")
+        )
+        for sm in student_rows:
+            institute = getattr(sm, "institute", None)
+            if not institute:
+                continue
+            if getattr(institute, "created_by_id", None) == viewer.id:
+                return True
+            if getattr(institute, "institute_group_id", None):
+                admin_id = getattr(getattr(institute, "institute_group", None), "institute_group_admin_id", None)
+                if admin_id == viewer.id:
+                    return True
+            if getattr(institute, "marketing_group_id", None):
+                admin_id = getattr(getattr(institute, "marketing_group", None), "marketing_group_admin_id", None)
+                if admin_id == viewer.id:
+                    return True
+            if Counselor.objects.filter(coun_user=viewer, counselor_admin=institute).exists():
+                return True
+    except Exception:
+        return False
+    return False
+
+
+def _resolve_assessment_report_user(request, user_id=None):
+    target_user = request.user
+    if user_id:
+        target_user = get_object_or_404(User, id=user_id)
+        if not _can_view_assessment_report(request.user, target_user):
+            return None, HttpResponse("You are not allowed to view this assessment report.", status=403)
+    return target_user, None
+
+
+def _assessment_report_filename(target_user, suffix):
+    raw_name = getattr(target_user, "name", None) or getattr(target_user, "email", "student")
+    safe_name = re.sub(r"[^\w\s-]", "", str(raw_name)).strip()[:50] or "student"
+    return f"{safe_name}-{suffix}.pdf"
+
+
 @login_required(login_url=None)
-def mi_report_pdf(request):
+def mi_report_pdf(request, user_id=None):
     """Generate and download MI report PDF from docx content + user's latest result."""
-    latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+    target_user, denied = _resolve_assessment_report_user(request, user_id)
+    if denied:
+        return denied
+    latest = MIAssessmentResult.objects.filter(user=target_user).order_by("-updated_at").first()
     if not latest:
         return HttpResponse("No MI assessment result found. Complete the assessment first.", status=404)
     base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
@@ -2674,15 +2731,20 @@ def mi_report_pdf(request):
     except Exception as e:
         logger.exception("MI PDF generation failed")
         return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+    inline_preview = (request.GET.get("inline") or "").strip() == "1"
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="Learning-Style-Report.pdf"'
+    filename = _assessment_report_filename(target_user, "Learning-Style-Report")
+    response["Content-Disposition"] = '%s; filename="%s"' % ("inline" if inline_preview else "attachment", filename)
     return response
 
 
 @login_required(login_url=None)
-def eq_report_pdf(request):
+def eq_report_pdf(request, user_id=None):
     """Generate and download EQ report PDF from docx content + user's latest result."""
-    latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+    target_user, denied = _resolve_assessment_report_user(request, user_id)
+    if denied:
+        return denied
+    latest = EQAssessmentResult.objects.filter(user=target_user).order_by("-updated_at").first()
     if not latest:
         return HttpResponse("No EQ assessment result found. Complete the assessment first.", status=404)
     base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
@@ -2859,6 +2921,8 @@ def eq_report_pdf(request):
     except Exception as e:
         logger.exception("EQ PDF generation failed")
         return HttpResponse("PDF generation failed: %s" % str(e), status=500)
+    inline_preview = (request.GET.get("inline") or "").strip() == "1"
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="Emotional-Intelligence-Report.pdf"'
+    filename = _assessment_report_filename(target_user, "Emotional-Intelligence-Report")
+    response["Content-Disposition"] = '%s; filename="%s"' % ("inline" if inline_preview else "attachment", filename)
     return response

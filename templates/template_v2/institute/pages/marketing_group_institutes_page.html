@@ -1,14 +1,20 @@
-<div class="ttv2-mktg-subpage">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h2 class="fs-20 mb-0">Institutes</h2>
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ttv2AddInstituteModal">
-        <i class="bx bx-plus"></i> Add institute
+<div class="ttv2-mktg-subpage ttv2-mktg-institutes-page">
+  <div class="ttv2-mktg-page-hero d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <h2 class="ttv2-mktg-page-title mb-1">Institutes</h2>
+      <p class="ttv2-mktg-page-lead mb-0">Filter and review institutes in your marketing scope.</p>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 ttv2-mktg-hero-actions">
+      <button type="button" class="btn ttv2-mktg-btn ttv2-mktg-btn--primary" data-bs-toggle="modal" data-bs-target="#ttv2AddInstituteModal">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-plus"></i></span>
+        <span class="ttv2-mktg-btn-label">Add institute</span>
       </button>
-      <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+      <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn ttv2-mktg-btn ttv2-mktg-btn--ghost">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-arrow-back"></i></span>
+        <span class="ttv2-mktg-btn-label">Back to dashboard</span>
+      </a>
     </div>
   </div>
-  <p class="text-muted small mb-3">Filter and review institutes in your marketing scope.</p>
   {% include "template_v2/institute/fragments/mktg_registration_insights.html" %}
   {% set mktg_reset_href = url('institute:marketinggroupdashboard_page', args=['institutes']) %}
   {% include "template_v2/institute/fragments/mktg_institutes_filters_table.html" %}
