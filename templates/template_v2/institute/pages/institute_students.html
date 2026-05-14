@@ -104,11 +104,11 @@
       <div class="ttv2-sp-tip">
         Tip: try an email domain or school short name when scope is all schools.
         {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
-          <span class="d-block mt-1">Optional: add <code class="small">?institute_slug=…</code> to this page’s URL to narrow students to one institute you manage.</span>
+          <span class="d-block mt-1">Pick one school from the <strong>Institute</strong> dropdown (below), then apply filters — bulk assign/unassign appears for that school only.</span>
         {% endif %}
         {% if ttv2_students_role is not defined or ttv2_students_role in ('institute_group', 'marketing_group') %}
-          <span class="d-block mt-1 text-muted fs-12">Filter by <strong>No advisor assigned</strong> below, or use <code class="small">?counselor_assigned=no</code> (combine with <code class="small">institute_slug</code> when scoped to one school).</span>
-          <span class="d-block mt-1 text-muted fs-12">Bulk assign (list): use <strong>Select page</strong>, <strong>Advisor for selected…</strong> (shows school in the label), then <strong>Assign selected</strong>. Students must match that advisor&apos;s institute.</span>
+          <span class="d-block mt-1 text-muted fs-12">Filter by <strong>No advisor assigned</strong> below, or add <code class="small">?counselor_assigned=no</code> to the URL (with an institute selected when you need one school).</span>
+          <span class="d-block mt-1 text-muted fs-12">Institute group: <strong>Select Unassigned</strong> / <strong>Select Assigned</strong> narrow row selection for bulk assign or bulk unassign. Marketing group: <strong>Select page</strong> selects every row on this page for bulk assign only.</span>
         {% endif %}
       </div>
       <div class="ttv2-sp-hr" aria-hidden="true"></div>
@@ -279,6 +279,17 @@
             List
           </button>
         </div>
+      </div>
+    </div>
+    <div id="ttv2StudentRosterFlash"
+         class="alert alert-dismissible fade mb-2 py-2 ps-3 pe-2 d-none"
+         role="alert">
+      <div class="d-flex align-items-start gap-2">
+        <span id="ttv2StudentRosterFlashText" class="flex-grow-1"></span>
+        <button type="button"
+                class="btn-close flex-shrink-0 mt-1"
+                data-ttv2-student-roster-flash-dismiss=""
+                aria-label="Close"></button>
       </div>
     </div>
     <div id="students-loader" class="text-center py-5" style="display: none;">

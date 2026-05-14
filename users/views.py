@@ -7,7 +7,7 @@ from django.views.generic import TemplateView,View
 from django.http import Http404, HttpResponse, HttpResponseRedirect,JsonResponse
 from django.shortcuts import render, redirect
 from communication.models import OTP
-from counselor.models import Counselor
+from counselor.models import Counselor, primary_counselor_for_user
 from .backends import CustomUserBackend
 from .models import (
     User,
@@ -633,11 +633,9 @@ class DemoLoginView(View):
                 if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
                     return reverse('institute:marketinggroupdashboard')
             if user.user_type == choices.UserType.COUNSELOR:
-                try:
-                    coun = Counselor.objects.get(coun_user=user)
+                coun = primary_counselor_for_user(user)
+                if coun:
                     return reverse('counselor:CounselorDashboardView', args=[coun.id])
-                except Counselor.DoesNotExist:
-                    pass
             if user.user_type == choices.UserType.PARENT:
                 return reverse('parents_dashboard')
             redirect_url = _compute_student_destination(user)
@@ -1971,11 +1969,10 @@ class SignUpPassword(APIView):
                     
                     # Redirect based on user type
                     if user.user_type == choices.UserType.COUNSELOR:
-                        try:
-                            from counselor.models import Counselor
-                            coun = Counselor.objects.get(coun_user=user)
+                        coun = primary_counselor_for_user(user)
+                        if coun:
                             data['redirect_url'] = request.build_absolute_uri(reverse('counselor:CounselorDashboardView', args=[coun.id]))
-                        except Counselor.DoesNotExist:
+                        else:
                             data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                     elif user.user_type == choices.UserType.INSTITUTE:
                         from institute.models import Institute
@@ -2197,11 +2194,10 @@ class LoginPassword(APIView):
                 # Redirect based on user type
                 # Check for counselor first
                 if user.user_type == choices.UserType.COUNSELOR:
-                    try:
-                        from counselor.models import Counselor
-                        coun = Counselor.objects.get(coun_user=user)
+                    coun = primary_counselor_for_user(user)
+                    if coun:
                         data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
-                    except Counselor.DoesNotExist:
+                    else:
                         data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
                 # Check for institute users
                 elif user.user_type == choices.UserType.INSTITUTE:
@@ -2329,11 +2325,9 @@ class GetUserDashboardUrl(APIView):
             
             # Check for counselor
             elif user.user_type == choices.UserType.COUNSELOR:
-                try:
-                    coun = Counselor.objects.get(coun_user=user)
+                coun = primary_counselor_for_user(user)
+                if coun:
                     redirect_url = reverse('counselor:CounselorDashboardView', args=[coun.id])
-                except Counselor.DoesNotExist:
-                    pass  # Keep default
 
             elif user.user_type == choices.UserType.PARENT:
                 redirect_url = reverse('parents_dashboard')

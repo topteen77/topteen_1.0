@@ -36,7 +36,7 @@ from django.http import HttpResponse
 from institute.filters import StudentFilter
 from institute.counselor_component_data import build_institute_group_counselor_ui_maps
 from django.db import transaction
-from django.db.models import Count, Q, IntegerField, OuterRef, Subquery, Value, Sum
+from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Sum, Value
 from django.db.models.functions import Lower
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -45,6 +45,7 @@ from app.models import Results, TestCompletion
 from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_institute, get_empty_heatmap_data
 # Dashboard template switch (v1/v2)
 from core.models import Configuration
+from core.ttv2_partial_request import request_wants_ttv2_dashboard_body_partial
 # Create your views here.
 
 def _ttv2_dbg(payload: dict):
@@ -97,26 +98,39 @@ def _ttv2_date_range_from_request(request):
     return None, None
 
 
-def _counselor_assigned_rows_in_group_institutes(counselor, group_institute_ids):
-    """Counselor rows tied to schools in this institute group (assigned, not detached)."""
-    ids = list(group_institute_ids)
-    if not ids:
-        return Counselor.objects.none()
-    qs = Counselor.objects.filter(counselor_admin_id__in=ids)
-    uid = counselor.coun_user_id
-    if uid:
-        return qs.filter(coun_user_id=uid)
-    email = (counselor.counselor_email or "").strip()
-    if email:
-        return qs.filter(counselor_email__iexact=email)
-    return qs.filter(pk=counselor.pk)
+def _followup_for_institute_counselors_q(institute):
+    """Follow-ups logged by counselors placed at this institute (primary or group placement)."""
+    return Q(counselor__counselor_admin=institute) | Q(
+        counselor__institute_placements=institute
+    )
+
+
+def _counselor_group_assigned_institute_ids(counselor, group_institute_ids):
+    """Institute ids in this group where counselor has primary or additional placement."""
+    gset = {int(x) for x in group_institute_ids}
+    if not gset:
+        return set()
+    out = set()
+    cid = counselor.counselor_admin_id
+    if cid and cid in gset:
+        out.add(cid)
+    for iid in counselor.institute_placements.filter(pk__in=gset).values_list(
+        "pk", flat=True
+    ):
+        out.add(int(iid))
+    return out
 
 
 def _counselor_belongs_to_institute_group_admin(counselor, group_admin_user):
     inst = counselor.counselor_admin
     if inst and inst.institute_group_id:
         ig = inst.institute_group
-        return getattr(ig, "institute_group_admin_id", None) == group_admin_user.id
+        if getattr(ig, "institute_group_admin_id", None) == group_admin_user.id:
+            return True
+    for inst in counselor.institute_placements.select_related("institute_group").all():
+        ig = getattr(inst, "institute_group", None)
+        if ig and getattr(ig, "institute_group_admin_id", None) == group_admin_user.id:
+            return True
     dg = getattr(counselor, "detached_from_institute_group", None)
     return bool(
         dg and getattr(dg, "institute_group_admin_id", None) == group_admin_user.id
@@ -135,45 +149,58 @@ def _counselor_profile_editable_by_user(user, counselor):
         ig = inst.institute_group
         if ig and ig.institute_group_admin_id == user.id:
             return True
+    for inst in counselor.institute_placements.all():
+        if user == inst.created_by:
+            return True
+        ig = getattr(inst, "institute_group", None)
+        if ig and ig.institute_group_admin_id == user.id:
+            return True
     dg = getattr(counselor, "detached_from_institute_group", None)
     if dg and dg.institute_group_admin_id == user.id:
         return True
     return False
 
 
+def _canonical_counselor_row(source_coun):
+    if source_coun.coun_user_id:
+        row = (
+            Counselor.objects.filter(coun_user_id=source_coun.coun_user_id)
+            .order_by("id")
+            .first()
+        )
+        if row:
+            return row
+    email = (source_coun.counselor_email or "").strip()
+    if email:
+        row = (
+            Counselor.objects.filter(counselor_email__iexact=email)
+            .order_by("id")
+            .first()
+        )
+        if row:
+            return row
+    return source_coun
+
+
 def _ensure_counselor_clone_for_institute(source_coun, target_institute):
     """
-    Ensure target_institute has a Counselor row for the same counselor user as source_coun
-    (student assignment is per institute via counselor_admin).
+    Ensure the counselor identity from source_coun is available at target_institute
+    without creating duplicate Counselor rows: use counselor_admin plus institute_placements.
     """
-    if source_coun.counselor_admin_id == target_institute.id:
-        return source_coun
-    qs = Counselor.objects.filter(counselor_admin_id=target_institute.id)
-    if source_coun.coun_user_id:
-        existing = qs.filter(coun_user_id=source_coun.coun_user_id).first()
-        if existing:
-            return existing
-    elif source_coun.counselor_email:
-        existing = qs.filter(counselor_email=source_coun.counselor_email).first()
-        if existing:
-            return existing
-    if source_coun.counselor_admin_id is None:
-        source_coun.counselor_admin = target_institute
-        source_coun.detached_from_institute_group = None
-        source_coun.save(
+    canon = _canonical_counselor_row(source_coun)
+    if canon.counselor_admin_id == target_institute.id:
+        return canon
+    if canon.institute_placements.filter(pk=target_institute.pk).exists():
+        return canon
+    if canon.counselor_admin_id is None:
+        canon.counselor_admin = target_institute
+        canon.detached_from_institute_group = None
+        canon.save(
             update_fields=["counselor_admin", "detached_from_institute_group"]
         )
-        return source_coun
-    return Counselor.objects.create(
-        counselor_name=source_coun.counselor_name,
-        coun_user=source_coun.coun_user,
-        counselor_email=None,
-        counselor_address=source_coun.counselor_address,
-        counselor_contact_info=source_coun.counselor_contact_info,
-        counselor_education=source_coun.counselor_education,
-        counselor_gender=source_coun.counselor_gender,
-        counselor_admin=target_institute,
-    )
+        return canon
+    canon.institute_placements.add(target_institute)
+    return canon
 
 
 def _search_suggest_limit(request, default=20, cap=40):
@@ -495,7 +522,7 @@ def user_manages_institute_for_api(user, institute):
         return True
     if institute.marketing_group_id and institute.marketing_group.marketing_group_admin_id == user.id:
         return True
-    if Counselor.objects.filter(coun_user=user, counselor_admin=institute).exists():
+    if Counselor.qs_for_institute(institute).filter(coun_user=user).exists():
         return True
     return False
 
@@ -705,19 +732,162 @@ def _ttv2_counselor_options_by_institute_id(page_list):
     ids.discard(None)
     if not ids:
         return {}
+    id_list = [int(x) for x in ids]
+    id_set = set(id_list)
     out = {}
-    for row in (
-        Counselor.objects.filter(counselor_admin_id__in=ids)
+    counselors = (
+        Counselor.objects.filter(
+            Q(counselor_admin_id__in=id_list)
+            | Q(institute_placements__id__in=id_list)
+        )
+        .prefetch_related("institute_placements")
+        .distinct()
         .only("id", "counselor_name", "counselor_admin_id")
         .order_by(Lower("counselor_name"))
-    ):
-        iid = getattr(row, "counselor_admin_id", None)
-        if iid is None:
-            continue
-        out.setdefault(str(iid), []).append(
-            _ttv2_counselor_dropdown_row(row.id, getattr(row, "counselor_name", None))
-        )
+    )
+    for row in counselors:
+        placed = set()
+        if row.counselor_admin_id and row.counselor_admin_id in id_set:
+            placed.add(int(row.counselor_admin_id))
+        for inst in row.institute_placements.all():
+            if inst.id in id_set:
+                placed.add(int(inst.id))
+        for iid in placed:
+            bucket = out.setdefault(str(iid), [])
+            if any(int(x.get("id", 0)) == int(row.id) for x in bucket):
+                continue
+            bucket.append(
+                _ttv2_counselor_dropdown_row(
+                    row.id, getattr(row, "counselor_name", None)
+                )
+            )
     return out
+
+
+def _ttv2_fill_institute_group_session_report_ctx(
+    request, group_admin, ctx, ig_institutes_qs
+):
+    """
+    Session report for institute-group admins: follow-ups for students in any school
+    in the group (not scoped to a single institute row).
+    """
+    from django.db import models as _models
+    from django.db.models.functions import Coalesce, TruncDate
+
+    from counselor.models import Counselor as _Counselor
+
+    ctx["ttv2_session_report_subtitle"] = (
+        "Showing counselor follow-ups for students across your institute group."
+    )
+
+    _sm_ig = student_management_for_institute_group_admin(group_admin)
+    sm_ids = list(_sm_ig.values_list("id", flat=True))
+
+    raw_from = (request.GET.get("from") or "").strip()
+    raw_to = (request.GET.get("to") or "").strip()
+    raw_coun = (request.GET.get("counselor") or "").strip()
+    raw_mode = (request.GET.get("mode") or "").strip()
+    raw_status = (request.GET.get("status") or "").strip()
+    raw_class = (request.GET.get("class") or "").strip()
+    date_from = None
+    date_to = None
+    try:
+        if raw_from:
+            date_from = datetime.strptime(raw_from, "%Y-%m-%d").date()
+    except Exception:
+        date_from = None
+    try:
+        if raw_to:
+            date_to = datetime.strptime(raw_to, "%Y-%m-%d").date()
+    except Exception:
+        date_to = None
+
+    iids = list(ig_institutes_qs.values_list("id", flat=True))
+    try:
+        ctx["ttv2_session_report_counselors"] = list(
+            _Counselor.objects.filter(
+                Q(counselor_admin_id__in=iids)
+                | Q(institute_placements__id__in=iids)
+            )
+            .distinct()
+            .order_by("counselor_name")
+            .values("id", name=F("counselor_name"))
+        )
+    except Exception:
+        ctx["ttv2_session_report_counselors"] = []
+
+    rows = []
+    if sm_ids:
+        try:
+            qs = (
+                FollowUpStatus.objects.filter(student_id__in=sm_ids)
+                .select_related("counselor", "student", "student__student")
+                .annotate(
+                    _sess_day=Coalesce(
+                        "last_follow_up_date",
+                        TruncDate("created"),
+                        output_field=_models.DateField(),
+                    )
+                )
+            )
+            if date_from:
+                qs = qs.filter(_sess_day__gte=date_from)
+            if date_to:
+                qs = qs.filter(_sess_day__lte=date_to)
+            if raw_coun:
+                try:
+                    qs = qs.filter(counselor_id=int(raw_coun))
+                except Exception:
+                    pass
+            if raw_mode:
+                qs = qs.filter(mode_of_follow_up__iexact=raw_mode)
+            if raw_status:
+                qs = qs.filter(follow_up_status__iexact=raw_status)
+            if raw_class:
+                try:
+                    qs = qs.filter(student__class_and_section_id=int(raw_class))
+                except Exception:
+                    pass
+            qs = qs.order_by("-_sess_day", "-created")[:200]
+            for fu in qs:
+                sm = getattr(fu, "student", None)
+                u = getattr(sm, "student", None) if sm else None
+                rows.append(
+                    {
+                        "when": getattr(fu, "last_follow_up_date", None).strftime("%Y-%m-%d")
+                        if getattr(fu, "last_follow_up_date", None)
+                        else (
+                            getattr(fu, "created", None).strftime("%Y-%m-%d")
+                            if getattr(fu, "created", None)
+                            else "-"
+                        ),
+                        "counselor": getattr(getattr(fu, "counselor", None), "counselor_name", None)
+                        or "-",
+                        "student": getattr(u, "name", None)
+                        or getattr(u, "email", None)
+                        or (getattr(sm, "student_name", None) if sm else None)
+                        or "-",
+                        "mode": getattr(fu, "mode_of_follow_up", None) or "-",
+                        "status": getattr(fu, "follow_up_status", None) or "-",
+                        "next": getattr(fu, "next_follow_up_date", None).strftime("%Y-%m-%d")
+                        if getattr(fu, "next_follow_up_date", None)
+                        else "-",
+                    }
+                )
+        except Exception:
+            rows = []
+
+    ctx["ttv2_sessions_is_dummy"] = False
+    ctx["ttv2_sessions"] = rows
+    ctx["ttv2_session_report_rows"] = rows
+    ctx["ttv2_sessions_filters"] = {
+        "from": raw_from,
+        "to": raw_to,
+        "counselor": raw_coun,
+        "mode": raw_mode,
+        "status": raw_status,
+        "class": raw_class,
+    }
 
 
 def student_management_for_institute_group_admin(user):
@@ -764,21 +934,23 @@ def _ttv2_session_history_student_response(request, student_scope):
         except Exception:
             return ""
 
-    fu_qs = (
-        FollowUpStatus.objects.filter(
-            student_id=sm_id,
-            counselor__counselor_admin_id=getattr(sm, "institute_id", None),
-        )
-        .select_related("counselor")
-        .annotate(
-            _sess_day=Coalesce(
-                "last_follow_up_date",
-                TruncDate("created"),
-                output_field=_models.DateField(),
+    inst = getattr(sm, "institute", None)
+    if inst is None:
+        fu_qs = FollowUpStatus.objects.none()
+    else:
+        fu_qs = (
+            FollowUpStatus.objects.filter(student_id=sm_id)
+            .filter(_followup_for_institute_counselors_q(inst))
+            .select_related("counselor")
+            .annotate(
+                _sess_day=Coalesce(
+                    "last_follow_up_date",
+                    TruncDate("created"),
+                    output_field=_models.DateField(),
+                )
             )
+            .order_by("-_sess_day", "-created")[:500]
         )
-        .order_by("-_sess_day", "-created")[:500]
-    )
     items = []
     for fu in fu_qs:
         try:
@@ -1835,7 +2007,7 @@ class MarketingGroupDashboardView(TemplateView):
                 ).strip()
             except Exception:
                 template_version = "v1"
-            if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+            if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
                 return render(request, "template_v2/dashboard_unified_body.html", ctx)
             return render(request, _dashboard_primary_template_name(self), ctx)
     
@@ -2383,6 +2555,10 @@ class InstituteGroupDashboardView(TemplateView):
             })
         # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
         ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
+        if ctx["ttv2_page"] == "session_report":
+            _ttv2_fill_institute_group_session_report_ctx(
+                request, group_admin, ctx, ig_institutes_qs
+            )
         if ctx["ttv2_page"] == "students":
             sm_scope = scoped_student_management_for_dashboard(request)
             ctx["total_students_count"] = sm_scope.count()
@@ -2502,7 +2678,7 @@ class InstituteGroupDashboardView(TemplateView):
                 ).strip()
             except Exception:
                 template_version = "v1"
-            if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+            if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
                 return render(request, "template_v2/dashboard_unified_body.html", ctx)
             return render(request, _dashboard_primary_template_name(self), ctx)
 
@@ -3444,7 +3620,7 @@ class InstituteDashboardView(TemplateView):
         total_students_count_list = stu_manage.count() if hasattr(stu_manage, 'count') else len(list(stu_manage))
         
         # Optimize: Batch fetch counselor data and FollowUpStatus records
-        counselors = Counselor.objects.filter(counselor_admin=institute).select_related('counselor_admin')
+        counselors = Counselor.qs_for_institute(institute).select_related('counselor_admin')
         counselor_ids = [c.id for c in counselors]
 
         # v2 dashboard: Unassigned students (not mapped to any counselor)
@@ -3966,7 +4142,7 @@ class InstituteDashboardView(TemplateView):
 
                 base_qs = (
                     FollowUpStatus.objects.filter(
-                        counselor__counselor_admin=institute,
+                        _followup_for_institute_counselors_q(institute),
                         student_id__in=sm_ids,
                     )
                     .annotate(
@@ -4417,7 +4593,9 @@ class InstituteDashboardView(TemplateView):
                 except Exception:
                     date_to = None
 
-                qs = FollowUpStatus.objects.filter(counselor__counselor_admin=institute).select_related(
+                qs = FollowUpStatus.objects.filter(
+                    _followup_for_institute_counselors_q(institute)
+                ).select_related(
                     "counselor", "student", "student__student"
                 )
                 # Stable "session day" like v2 session report widgets.
@@ -4526,7 +4704,7 @@ class InstituteDashboardView(TemplateView):
                 # For session_report filters: counselor dropdown options (all institute counselors).
                 try:
                     ctx["ttv2_session_report_counselors"] = list(
-                        _Counselor.objects.filter(counselor_admin=institute)
+                        _Counselor.qs_for_institute(institute)
                         .order_by("counselor_name")
                         .values("id", name=_models.F("counselor_name"))
                     )
@@ -4534,7 +4712,7 @@ class InstituteDashboardView(TemplateView):
                     try:
                         ctx["ttv2_session_report_counselors"] = [
                             {"id": x.id, "name": x.counselor_name}
-                            for x in _Counselor.objects.filter(counselor_admin=institute).order_by("counselor_name")
+                            for x in _Counselor.qs_for_institute(institute).order_by("counselor_name")
                         ]
                     except Exception:
                         ctx["ttv2_session_report_counselors"] = []
@@ -4576,7 +4754,7 @@ class InstituteDashboardView(TemplateView):
 
                 fu_base = (
                     FollowUpStatus.objects.filter(
-                        counselor__counselor_admin=institute,
+                        _followup_for_institute_counselors_q(institute),
                         student_id__in=sm_ids,
                     )
                     .annotate(
@@ -4598,7 +4776,7 @@ class InstituteDashboardView(TemplateView):
                 try:
                     upcoming = int(
                         FollowUpStatus.objects.filter(
-                            counselor__counselor_admin=institute,
+                            _followup_for_institute_counselors_q(institute),
                             student_id__in=sm_ids,
                             next_follow_up_date__isnull=False,
                             next_follow_up_date__gte=today,
@@ -4788,7 +4966,7 @@ class InstituteDashboardView(TemplateView):
                     raise Exception("no institute")
 
                 counselor_ids = list(
-                    Counselor.objects.filter(counselor_admin=institute).values_list("id", flat=True)
+                    Counselor.qs_for_institute(institute).values_list("id", flat=True)
                 )
                 sm_ids = list(
                     StudentManagement.objects.filter(institute=institute).values_list("id", flat=True)
@@ -4959,7 +5137,7 @@ class InstituteDashboardView(TemplateView):
                 from core.ttv2_dashboard_analytics import _psych_and_risk
 
                 counselors_pref = (
-                    Counselor.objects.filter(counselor_admin=institute)
+                    Counselor.qs_for_institute(institute)
                     .order_by("counselor_name")
                     .prefetch_related(
                         Prefetch(
@@ -5595,7 +5773,7 @@ class InstituteDashboardView(TemplateView):
             template_version = (Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1").strip()
         except Exception:
             template_version = "v1"
-        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+        if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
             return render(request, "template_v2/dashboard_unified_body.html", ctx)
 
         return render(request, _dashboard_primary_template_name(self), ctx )
@@ -5868,7 +6046,7 @@ class InstituteDashboardView(TemplateView):
         if institute:
             counselor_opts = [
                 _ttv2_counselor_dropdown_row(c.id, getattr(c, "counselor_name", "") or "")
-                for c in Counselor.objects.filter(counselor_admin=institute).only(
+                for c in Counselor.qs_for_institute(institute).only(
                     "id", "counselor_name"
                 ).order_by(Lower("counselor_name"))
             ]
@@ -5889,7 +6067,7 @@ class InstituteDashboardView(TemplateView):
                                 getattr(c, "counselor_name", "") or "",
                                 institute_id=_inst_scope.id,
                             )
-                            for c in Counselor.objects.filter(counselor_admin=_inst_scope)
+                            for c in Counselor.qs_for_institute(_inst_scope)
                             .only("id", "counselor_name")
                             .order_by(Lower("counselor_name"))
                         ]
@@ -5923,22 +6101,38 @@ class InstituteDashboardView(TemplateView):
                         pass
                 if iids_set:
                     try:
+                        i_sorted = sorted(iids_set)
+                        placement_q = (
+                            Q(counselor_admin_id__in=i_sorted)
+                            | Q(institute_placements__id__in=i_sorted)
+                        )
                         for c in (
-                            Counselor.objects.filter(counselor_admin_id__in=sorted(iids_set))
+                            Counselor.objects.filter(placement_q)
                             .select_related("counselor_admin")
+                            .prefetch_related("institute_placements")
                             .only("id", "counselor_name", "counselor_admin_id")
+                            .distinct()
                             .order_by(Lower("counselor_name"), "id")
                         ):
-                            admin = c.counselor_admin
-                            iname = getattr(admin, "name", "") or "—"
-                            bulk_counselor_opts.append(
-                                _ttv2_counselor_dropdown_row(
-                                    c.id,
-                                    getattr(c, "counselor_name", None),
-                                    institute_id=c.counselor_admin_id,
-                                    institute_nm_suffix=iname,
+                            placements_out = []
+                            aid = c.counselor_admin_id
+                            if aid and aid in iids_set:
+                                placements_out.append((aid, c.counselor_admin))
+                            for inst in c.institute_placements.all():
+                                if inst.id in iids_set and inst.id != aid:
+                                    placements_out.append((inst.id, inst))
+                            if not placements_out:
+                                continue
+                            for iid, admin in placements_out:
+                                iname = getattr(admin, "name", "") or "—"
+                                bulk_counselor_opts.append(
+                                    _ttv2_counselor_dropdown_row(
+                                        c.id,
+                                        getattr(c, "counselor_name", None),
+                                        institute_id=iid,
+                                        institute_nm_suffix=iname,
+                                    )
                                 )
-                            )
                     except Exception:
                         bulk_counselor_opts = []
 
@@ -6032,7 +6226,9 @@ class AssignStudentToCounselorView(View):
             return JsonResponse({"ok": False, "error": "invalid_params"}, status=400)
 
         institute = get_object_or_404(Institute, slug=slug)
-        counselor = get_object_or_404(Counselor, id=counselor_id, counselor_admin=institute)
+        counselor = get_object_or_404(
+            Counselor.qs_for_institute(institute), id=counselor_id
+        )
         sm = get_object_or_404(StudentManagement, id=sm_id, institute=institute)
 
         try:
@@ -6066,7 +6262,7 @@ class AssignStudentToCounselorView(View):
                         "counselor_id": counselor.id,
                     },
                     source_obj=sm,
-                    dedupe_key=f"institute.student_assigned:{sm.id}:{counselor.id}",
+                    dedupe_key=f"institute.student_assigned:sm{sm.id}:u{counselor_user.id}",
                 )
 
                 # Email (best-effort)
@@ -6140,7 +6336,7 @@ class SetStudentCounselorView(View):
 
         # Remove from any counselors of this institute (avoid cross-institute bleed)
         try:
-            for c in Counselor.objects.filter(counselor_admin=institute, students=sm):
+            for c in Counselor.qs_for_institute(institute).filter(students=sm):
                 c.students.remove(sm)
         except Exception:
             return JsonResponse({"ok": False, "error": "unassign_failed"}, status=500)
@@ -6154,7 +6350,7 @@ class SetStudentCounselorView(View):
         # Assign to new counselor if provided
         if counselor_id_int is not None:
             counselor = get_object_or_404(
-                Counselor, id=counselor_id_int, counselor_admin=institute
+                Counselor.qs_for_institute(institute), id=counselor_id_int
             )
             try:
                 counselor.students.add(sm)
@@ -6193,7 +6389,7 @@ class SetStudentCounselorView(View):
                             "counselor_id": counselor.id,
                         },
                         source_obj=sm,
-                        dedupe_key=f"institute.student_assigned:{sm.id}:{counselor.id}",
+                        dedupe_key=f"institute.student_assigned:sm{sm.id}:u{counselor_user.id}",
                     )
 
                     # Email (best-effort)
@@ -6962,28 +7158,18 @@ class InstituteGroupBulkAssignCounselorView(View):
         institutes = Institute.objects.filter(
             institute_group__institute_group_admin=request.user
         ).distinct()
+        canon_pk = _canonical_counselor_row(src).pk
         created = 0
         reused = 0
         with transaction.atomic():
             for ins in institutes.iterator():
-                had = False
-                if src.coun_user_id:
-                    had = Counselor.objects.filter(
-                        counselor_admin_id=ins.id,
-                        coun_user_id=src.coun_user_id,
-                    ).exists()
-                elif src.counselor_email:
-                    had = Counselor.objects.filter(
-                        counselor_admin_id=ins.id,
-                        counselor_email=src.counselor_email,
-                    ).exists()
-                row = _ensure_counselor_clone_for_institute(src, ins)
-                if had:
+                canon = Counselor.objects.get(pk=canon_pk)
+                before = canon.serves_institute(ins)
+                _ensure_counselor_clone_for_institute(canon, ins)
+                if before:
                     reused += 1
-                elif row.id != src.id:
-                    created += 1
                 else:
-                    reused += 1
+                    created += 1
         return JsonResponse({"ok": True, "created": created, "reused": reused})
 
 
@@ -7025,7 +7211,7 @@ class InstituteGroupInstituteCounselorView(View):
                 cid = int(payload.get("counselor_id"))
             except Exception:
                 return JsonResponse({"ok": False, "error": "invalid_counselor"}, status=400)
-            coun = get_object_or_404(Counselor, id=cid, counselor_admin=institute)
+            coun = get_object_or_404(Counselor.qs_for_institute(institute), id=cid)
             if not _counselor_belongs_to_institute_group_admin(coun, request.user):
                 return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
             if coun.students.exists():
@@ -7033,43 +7219,63 @@ class InstituteGroupInstituteCounselorView(View):
                     {"ok": False, "error": "students_assigned"},
                     status=400,
                 )
+
+            gid = getattr(institute, "institute_group_id", None)
+            group_inst_ids = list(
+                Institute.objects.filter(institute_group_id=gid).values_list(
+                    "id", flat=True
+                )
+            )
+            assigned = (
+                _counselor_group_assigned_institute_ids(coun, group_inst_ids)
+                if group_inst_ids
+                else set()
+            )
+
             uid_chk = coun.coun_user_id
             email_chk = (coun.counselor_email or "").strip()
-            if uid_chk or email_chk:
-                gid = getattr(institute, "institute_group_id", None)
-                if gid:
-                    group_inst_ids = Institute.objects.filter(
-                        institute_group_id=gid
-                    ).values_list("id", flat=True)
-                    peers_qs = _counselor_assigned_rows_in_group_institutes(
-                        coun, group_inst_ids
-                    )
-                    if peers_qs.count() <= 1:
-                        return JsonResponse(
-                            {
-                                "ok": False,
-                                "error": "last_placement",
-                                "message": (
-                                    "This advisor must stay linked to at least one institute "
-                                    "in your group. Assign them to another school first, then "
-                                    "remove them from this one."
-                                ),
-                            },
-                            status=400,
-                        )
+            if (uid_chk or email_chk) and group_inst_ids and len(assigned) <= 1:
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "error": "last_placement",
+                        "message": (
+                            "This advisor must stay linked to at least one institute "
+                            "in your group. Assign them to another school first, then "
+                            "remove them from this one."
+                        ),
+                    },
+                    status=400,
+                )
+
             ig = getattr(institute, "institute_group", None)
             with transaction.atomic():
-                StudentManagement.objects.filter(counselor=coun).update(counselor=None)
-                coun.students.clear()
-                # Always detach — never delete the Counselor row (login profile stays in the group pool).
-                coun.counselor_admin = None
-                coun.detached_from_institute_group = ig
-                coun.save(
-                    update_fields=[
-                        "counselor_admin",
-                        "detached_from_institute_group",
-                    ]
-                )
+                if coun.counselor_admin_id != institute.id:
+                    coun.institute_placements.remove(institute)
+                elif len(assigned) > 1:
+                    others = sorted(x for x in assigned if x != institute.id)
+                    new_primary = Institute.objects.get(pk=others[0])
+                    coun.counselor_admin = new_primary
+                    if coun.institute_placements.filter(pk=new_primary.pk).exists():
+                        coun.institute_placements.remove(new_primary)
+                    coun.save(update_fields=["counselor_admin"])
+                else:
+                    StudentManagement.objects.filter(counselor=coun).update(counselor=None)
+                    coun.students.clear()
+                    if group_inst_ids:
+                        g_pl = list(
+                            coun.institute_placements.filter(pk__in=group_inst_ids)
+                        )
+                        if g_pl:
+                            coun.institute_placements.remove(*g_pl)
+                    coun.counselor_admin = None
+                    coun.detached_from_institute_group = ig
+                    coun.save(
+                        update_fields=[
+                            "counselor_admin",
+                            "detached_from_institute_group",
+                        ]
+                    )
             return JsonResponse({"ok": True, "counselor_id": cid})
 
         return JsonResponse({"ok": False, "error": "bad_action"}, status=400)
@@ -7296,7 +7502,7 @@ class MarketingGroupHeatmapView(TemplateView):
             ).strip()
         except Exception:
             template_version = "v1"
-        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+        if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
             return render(request, "template_v2/institute/marketing_group_heatmap_body.html", ctx)
         return render(request, _dashboard_primary_template_name(self), ctx)
 
@@ -7333,7 +7539,7 @@ class InstituteGroupHeatmapView(TemplateView):
             ).strip()
         except Exception:
             template_version = "v1"
-        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+        if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
             return render(request, "template_v2/institute/institute_group_heatmap_body.html", ctx)
         return render(request, _dashboard_primary_template_name(self), ctx)
 
@@ -7382,7 +7588,7 @@ class InstituteHeatmapView(TemplateView):
                 )
             except Exception:
                 pass
-        if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+        if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
             return render(request, "template_v2/institute/institute_heatmap_body.html", ctx)
         return render(request, _dashboard_primary_template_name(self), ctx)
 

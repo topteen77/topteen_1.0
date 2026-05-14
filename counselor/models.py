@@ -361,6 +361,12 @@ class Counselor(BaseModel):
         related_name="detached_counselor_rows",
         help_text="When set, this profile is not linked to a school but remains in the group for re-assignment.",
     )
+    institute_placements = models.ManyToManyField(
+        Institute,
+        blank=True,
+        related_name="counselors_additional_placements",
+        help_text="Extra schools (e.g. other institutes in the same group) where this advisor is placed. Primary school remains counselor_admin.",
+    )
 
     # Many-to-Many relationship with StudentManagement
     students = models.ManyToManyField('institute.StudentManagement', related_name='counselors', blank=True)
@@ -368,9 +374,65 @@ class Counselor(BaseModel):
     def __str__(self):
         return self.counselor_name
 
+    def serves_institute(self, institute):
+        if institute is None:
+            return False
+        iid = institute.id if hasattr(institute, "id") else int(institute)
+        if self.counselor_admin_id == iid:
+            return True
+        return self.institute_placements.filter(pk=iid).exists()
+
+    @classmethod
+    def qs_for_institute(cls, institute):
+        from django.db.models import Q
+
+        return cls.objects.filter(
+            Q(counselor_admin=institute) | Q(institute_placements=institute)
+        ).distinct()
+
     def get_students(self, institute):
         """Return students assigned to this counselor within the specified institute."""
+        from django.db.models import Q
+
+        uid = getattr(self, "coun_user_id", None)
+        inst = institute if institute is not None else getattr(self, "counselor_admin", None)
+        inst_id = getattr(inst, "id", None) if inst is not None else None
+        if uid and inst_id:
+            c_ids = list(
+                Counselor.objects.filter(coun_user_id=uid)
+                .filter(
+                    Q(counselor_admin_id=inst_id)
+                    | Q(institute_placements__id=inst_id)
+                )
+                .values_list("id", flat=True)
+                .distinct()
+            )
+            if not c_ids:
+                return self.students.filter(institute=inst)
+            from institute.models import StudentManagement
+
+            return (
+                StudentManagement.objects.filter(institute_id=inst_id)
+                .filter(Q(counselor_id__in=c_ids) | Q(counselors__id__in=c_ids))
+                .distinct()
+            )
         return self.students.filter(institute=institute)
+
+
+def primary_counselor_for_user(user):
+    """
+    One Counselor row for this login user (used for redirects / login API).
+
+    Multiple ``Counselor`` rows may reference the same ``coun_user`` (legacy data);
+    ``.get()`` would raise MultipleObjectsReturned. This returns the lowest-id row.
+    """
+    if user is None:
+        return None
+    uid = getattr(user, "pk", None)
+    if not uid:
+        return None
+    return Counselor.objects.filter(coun_user_id=uid).order_by("id").first()
+
 
 class FollowUpStatus(BaseModel):
 

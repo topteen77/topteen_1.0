@@ -360,7 +360,20 @@ def build_ttv2_analytics(
     """
     counselor_ids: List[int] = []
     if role == "counselor" and counselor is not None:
-        counselor_ids = [int(counselor.id)]
+        uid = getattr(counselor, "coun_user_id", None)
+        inst_id = getattr(getattr(counselor, "counselor_admin", None), "id", None)
+        if uid and inst_id:
+            counselor_ids = list(
+                Counselor.objects.filter(coun_user_id=uid)
+                .filter(
+                    Q(counselor_admin_id=inst_id)
+                    | Q(institute_placements__id=inst_id)
+                )
+                .values_list("id", flat=True)
+                .distinct()
+            )
+        if not counselor_ids:
+            counselor_ids = [int(counselor.id)]
     elif role in ("marketing_group", "institute_group") and student_management_qs is not None:
         iids = list(
             student_management_qs.values_list("institute_id", flat=True)
@@ -370,12 +383,19 @@ def build_ttv2_analytics(
         if iids:
             counselor_ids = list(
                 Counselor.objects.filter(
-                    counselor_admin_id__in=iids
-                ).values_list("id", flat=True)
+                    Q(counselor_admin_id__in=iids)
+                    | Q(institute_placements__id__in=iids)
+                )
+                .values_list("id", flat=True)
+                .distinct()
             )
     elif institute is not None:
         counselor_ids = list(
-            Counselor.objects.filter(counselor_admin=institute).values_list("id", flat=True)
+            Counselor.objects.filter(
+                Q(counselor_admin=institute) | Q(institute_placements=institute)
+            )
+            .values_list("id", flat=True)
+            .distinct()
         )
 
     user_ids: List[int] = []

@@ -11,11 +11,10 @@
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
       <div class="card-title mb-0">Session report</div>
-      <div style="font-size:11px;color:var(--c-text3);">Showing counselor follow-ups for this institute.</div>
+      <div style="font-size:11px;color:var(--c-text3);">{% if ttv2_session_report_subtitle is defined and ttv2_session_report_subtitle %}{{ ttv2_session_report_subtitle }}{% else %}Showing counselor follow-ups for this institute.{% endif %}</div>
     </div>
 
     <form class="d-flex align-items-center gap-2 flex-wrap" method="get">
-      <input type="hidden" name="ttv2_partial" value="{{ request.GET.get('ttv2_partial')|default('') }}">
       <input type="date" class="form-control form-control-sm" name="from" value="{{ _from }}" {{ _disabled }} style="min-width:150px" aria-label="From date">
       <input type="date" class="form-control form-control-sm" name="to" value="{{ _to }}" {{ _disabled }} style="min-width:150px" aria-label="To date">
       <select class="form-select form-select-sm" name="counselor" {{ _disabled }} style="min-width:180px" aria-label="Counselor">

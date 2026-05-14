@@ -364,7 +364,7 @@ class InstituteDashboardView(TemplateView):
         test_results = list(results_data.values())
         streams = self.get_stream(test_results)
         # results_data = {stu.student: self.get_student_test_result(stu.student) for stu in stu_manage}        
-        counselors = Counselor.objects.filter(counselor_admin=institute)
+        counselors = Counselor.qs_for_institute(institute)
         counselor_data_list = []
         couns_sessions_data = []
 

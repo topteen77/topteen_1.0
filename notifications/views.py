@@ -52,6 +52,65 @@ def _api_payload_for_notification(row):
     return out
 
 
+def _student_assignment_dedupe_key(payload):
+    """Collapse duplicate institute.student_assigned alerts for the same student."""
+    if not isinstance(payload, dict):
+        return None
+    smid = payload.get('student_management_id')
+    if smid is not None:
+        try:
+            return ('sm', int(smid))
+        except Exception:
+            return None
+    sid = payload.get('student_id')
+    if sid is not None:
+        try:
+            return ('stu', int(sid))
+        except Exception:
+            return None
+    return None
+
+
+def _dedupe_assignment_notifications(rows):
+    """Keep the newest row per student for institute.student_assigned (ordered newest first)."""
+    seen = set()
+    out = []
+    for r in rows:
+        if r.event_type == 'institute.student_assigned':
+            dk = _student_assignment_dedupe_key(r.payload)
+            if dk is not None:
+                if dk in seen:
+                    continue
+                seen.add(dk)
+        out.append(r)
+    return out
+
+
+def _unread_count_for_user(user):
+    """
+    Unread total; institute.student_assigned counts once per student (payload), not per duplicate row.
+    """
+    other = Notification.objects.filter(recipient=user, is_read=False).exclude(
+        event_type='institute.student_assigned'
+    ).count()
+    assign_qs = (
+        Notification.objects.filter(
+            recipient=user, is_read=False, event_type='institute.student_assigned'
+        )
+        .order_by('-created')[:2000]
+    )
+    seen = set()
+    n_assign = 0
+    for r in assign_qs:
+        dk = _student_assignment_dedupe_key(r.payload)
+        if dk is not None:
+            if dk in seen:
+                continue
+            seen.add(dk)
+        n_assign += 1
+    return int(other) + int(n_assign)
+
+
 @login_required
 def notifications_page(request):
     ensure_default_notification_types()
@@ -81,8 +140,11 @@ def notifications_page(request):
 @require_GET
 def notifications_latest_api(request):
     # Show all notifications regardless of stored environment (dev / production / etc.).
-    rows = Notification.objects.filter(recipient=request.user).order_by('-created')[:10]
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+    raw = list(
+        Notification.objects.filter(recipient=request.user).order_by('-created')[:80]
+    )
+    rows = _dedupe_assignment_notifications(raw)[:10]
+    unread_count = _unread_count_for_user(request.user)
     return JsonResponse(
         {
             'success': True,

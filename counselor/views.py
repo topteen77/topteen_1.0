@@ -43,6 +43,7 @@ from django.views.decorators.cache import never_cache
 User = get_user_model()
 
 from core.models import Configuration
+from core.ttv2_partial_request import request_wants_ttv2_dashboard_body_partial
 
 
 def _counselor_course_access_for_user(user, counselor_course):
@@ -469,6 +470,30 @@ class CounselorCourseDetailView(TemplateView):
     
 #     return render(request, 'topteenfrontend/user/app/counselor_dashboard.html')
 
+def _counselor_has_any_placement(counselor):
+    if not counselor:
+        return False
+    return bool(counselor.counselor_admin_id) or counselor.institute_placements.exists()
+
+
+def _counselor_assigned_students_queryset(counselor, institute=None):
+    """Assigned students for this counselor; optionally limited to one institute."""
+    if institute is not None:
+        if not counselor.serves_institute(institute):
+            return StudentManagement.objects.none()
+        return counselor.get_students(institute=institute).select_related(
+            "student", "class_and_section", "institute"
+        )
+    if not _counselor_has_any_placement(counselor):
+        return StudentManagement.objects.none()
+    qs_agg = StudentManagement.objects.none()
+    if counselor.counselor_admin_id:
+        qs_agg = qs_agg | counselor.get_students(institute=counselor.counselor_admin)
+    for inst in counselor.institute_placements.all():
+        qs_agg = qs_agg | counselor.get_students(institute=inst)
+    return qs_agg.distinct().select_related("student", "class_and_section", "institute")
+
+
 def get_students_by_role(user, counselor=None, institute=None):
     """
     Centralized function to get students based on user role.
@@ -491,19 +516,8 @@ def get_students_by_role(user, counselor=None, institute=None):
     # If counselor is provided, always return only assigned students for that counselor
     # This takes priority over institute filtering to ensure correct data when viewing counselor dashboard
     if counselor:
-        if not counselor.counselor_admin:
-            return StudentManagement.objects.none()
-        
-        # If institute is also provided, verify it matches the counselor's institute
-        if institute and counselor.counselor_admin.id != institute.id:
-            return StudentManagement.objects.none()
-        
-        institute = counselor.counselor_admin
-        # Return only assigned students (not unassigned) - matching production code
-        students = counselor.get_students(institute=institute)
-        # Optimize with select_related to avoid N+1 queries
-        return students.select_related('student', 'class_and_section', 'institute')
-    
+        return _counselor_assigned_students_queryset(counselor, institute)
+
     # If a specific institute is provided (but no counselor), filter by that institute regardless of role
     # This ensures that when viewing a specific institute page, only that institute's data is shown
     if institute:
@@ -530,71 +544,36 @@ def get_students_by_role(user, counselor=None, institute=None):
         elif user_type == choices.UserType.COUNSELOR:
             # Counselor can see students from their assigned institute
             if not counselor:
-                try:
-                    counselor = Counselor.objects.select_related('counselor_admin', 'coun_user').get(coun_user=user)
-                except Counselor.DoesNotExist:
+                from counselor.models import primary_counselor_for_user
+
+                counselor = primary_counselor_for_user(user)
+                if not counselor:
                     return StudentManagement.objects.none()
-            
-            # If counselor is associated with an institute, they can only see that institute's students
-            if counselor.counselor_admin:
-                if institute and counselor.counselor_admin.id != institute.id:
-                    return StudentManagement.objects.none()
-            else:
-                # If counselor is not associated with any institute, they can only see students with no institute
+
+            if not _counselor_has_any_placement(counselor):
                 if institute is not None:
                     return StudentManagement.objects.none()
-        
+            elif institute and not counselor.serves_institute(institute):
+                return StudentManagement.objects.none()
+
         # Return students for the specific institute (or None if institute is None)
         if institute:
             return StudentManagement.objects.filter(institute=institute).select_related('student', 'class_and_section', 'institute')
         else:
             return StudentManagement.objects.filter(institute__isnull=True).select_related('student', 'class_and_section', 'institute')
-    
-    # If counselor is provided, always return only assigned students for that counselor
-    # This ensures that when viewing a counselor dashboard (even by marketing/institute users),
-    # only the counselor's assigned students are shown
-    if counselor:
-        if not counselor.counselor_admin:
-            return StudentManagement.objects.none()
-        
-        institute = counselor.counselor_admin
-        # Return only assigned students (not unassigned) - matching production code
-        students = counselor.get_students(institute=institute)
-        # Optimize with select_related to avoid N+1 queries
-        return students.select_related('student', 'class_and_section', 'institute')
-    
-    # If counselor is explicitly provided, return only assigned students for that counselor
-    # This ensures that when viewing a counselor dashboard (even as a marketing user),
-    # we show only the counselor's assigned students, not all students in the marketing group
-    if counselor:
-        if not counselor.counselor_admin:
-            return StudentManagement.objects.none()
-        
-        institute = counselor.counselor_admin
-        # Return only assigned students (not unassigned) - matching production code
-        students = counselor.get_students(institute=institute)
-        # Optimize with select_related to avoid N+1 queries
-        return students.select_related('student', 'class_and_section', 'institute')
-    
+
     # If no specific institute provided, use role-based logic
     user_type = user.user_type
     
     if user_type == choices.UserType.COUNSELOR:
         # Counselor sees only their assigned students (matching production code)
-        # Try to get counselor from user
-        try:
-            counselor = Counselor.objects.select_related('counselor_admin', 'coun_user').get(coun_user=user)
-        except Counselor.DoesNotExist:
+        from counselor.models import primary_counselor_for_user
+
+        counselor = primary_counselor_for_user(user)
+        if not counselor:
             return StudentManagement.objects.none()
-        
-        if not counselor.counselor_admin:
-            return StudentManagement.objects.none()
-        
-        institute = counselor.counselor_admin
-        # Return only assigned students (not unassigned) - matching production code
-        students = counselor.get_students(institute=institute)
-        # Optimize with select_related to avoid N+1 queries
-        return students.select_related('student', 'class_and_section', 'institute')
+
+        return _counselor_assigned_students_queryset(counselor, None)
     
     elif user_type == choices.UserType.INSTITUTE:
         # Institute sees all students in their own institute
@@ -1027,15 +1006,25 @@ def get_students_in_institute(counselor):
     Note: This function is kept for backward compatibility but now only returns assigned students.
     Use get_students_by_role() for new code.
     """
-    if not counselor or not counselor.counselor_admin:
-        return StudentManagement.objects.none(), StudentManagement.objects.none(), StudentManagement.objects.none()
-    
-    institute = counselor.counselor_admin
-    all_institute_students = StudentManagement.objects.filter(institute=institute)
-    
-    # Get assigned students only
-    assigned_students = counselor.get_students(institute=institute)
-    assigned_student_ids = assigned_students.values_list('id', flat=True)
+    if not counselor:
+        qs_none = StudentManagement.objects.none()
+        return qs_none, qs_none, qs_none
+
+    institutes = []
+    if counselor.counselor_admin_id:
+        institutes.append(counselor.counselor_admin)
+    institutes.extend(list(counselor.institute_placements.all()))
+    if not institutes:
+        qs_none = StudentManagement.objects.none()
+        return qs_none, qs_none, qs_none
+
+    all_institute_students = StudentManagement.objects.filter(institute__in=institutes)
+
+    assigned_students = StudentManagement.objects.none()
+    for inst in institutes:
+        assigned_students = assigned_students | counselor.get_students(institute=inst)
+    assigned_students = assigned_students.distinct()
+    assigned_student_ids = assigned_students.values_list("id", flat=True)
     unassigned_students = all_institute_students.exclude(id__in=assigned_student_ids)
 
     # Counselor should only see assigned students, not unassigned
@@ -1431,9 +1420,9 @@ def ttv2_save_student_remark(request, coun_id: int):
     if not sm_id or not msg:
         return JsonResponse({"success": False, "error": "Missing student or message"}, status=400)
 
-    # Only allow for assigned students
+    # Only allow for assigned students (any institute where this counselor is placed)
     try:
-        assigned_students = counselor.get_students(institute=counselor.counselor_admin) if counselor.counselor_admin else counselor.students.all()
+        assigned_students = _counselor_assigned_students_queryset(counselor, None)
         sm = assigned_students.get(id=int(sm_id))
     except Exception:
         return JsonResponse({"success": False, "error": "Student not assigned"}, status=403)
@@ -1494,11 +1483,7 @@ def ttv2_save_follow_up(request, coun_id: int):
         return JsonResponse({"success": False, "error": "Invalid status"}, status=400)
 
     try:
-        assigned_students = (
-            counselor.get_students(institute=counselor.counselor_admin)
-            if counselor.counselor_admin
-            else counselor.students.all()
-        )
+        assigned_students = _counselor_assigned_students_queryset(counselor, None)
         sm = assigned_students.get(id=int(sm_id))
     except Exception:
         return JsonResponse({"success": False, "error": "Student not assigned"}, status=403)
@@ -1546,27 +1531,34 @@ def Students_follow_up(request, coun_id):
         if counselor.coun_user != request.user:
             raise Http404("You don't have permission to access this counselor's follow-up page.")
     
-    # Get counselor's associated institute
+    # Get counselor's primary institute (for templates); optional extra placements only
     counselor_institute = counselor.counselor_admin
-    
-    # Use centralized role-based function to get students - ALL students from counselor's institute (if associated)
-    # Pass both counselor and institute to ensure correct filtering regardless of logged-in user's role
+    if counselor_institute is None:
+        counselor_institute = counselor.institute_placements.first()
+
+    # Pass counselor without scoping to a single institute so roster includes every placement
     students_to_display = (
-        get_students_by_role(request.user, counselor=counselor, institute=counselor_institute)
+        get_students_by_role(request.user, counselor=counselor, institute=None)
         .select_related("student", "class_and_section", "institute")
         .prefetch_related("counselors")
     )
-    
+
     # Get assigned student IDs separately for follow-up filtering
     # Follow-ups should only be shown for students actually assigned to this counselor
-    if counselor.counselor_admin:
-        # Get students assigned to this counselor from their institute
-        assigned_students = counselor.get_students(institute=counselor.counselor_admin)
-        assigned_student_ids = assigned_students.values_list('id', flat=True) if hasattr(assigned_students, 'values_list') else [s.id for s in assigned_students]
+    if _counselor_has_any_placement(counselor):
+        assigned_students = _counselor_assigned_students_queryset(counselor, None)
+        assigned_student_ids = (
+            assigned_students.values_list("id", flat=True)
+            if hasattr(assigned_students, "values_list")
+            else [s.id for s in assigned_students]
+        )
     else:
-        # If no institute, get assigned students (though this might be empty)
         assigned_students = counselor.students.filter(institute__isnull=True)
-        assigned_student_ids = assigned_students.values_list('id', flat=True) if hasattr(assigned_students, 'values_list') else [s.id for s in assigned_students]
+        assigned_student_ids = (
+            assigned_students.values_list("id", flat=True)
+            if hasattr(assigned_students, "values_list")
+            else [s.id for s in assigned_students]
+        )
     
     # Initialize follow_up_data as an empty list
     follow_up_data = []
@@ -2563,19 +2555,36 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
             # Consider last 7 days as "new" (and also covers unread if you don't dismiss).
             cutoff = timezone.now() - timedelta(days=7)
             new_qs = qs.filter(created__gte=cutoff)
-            context["ttv2_new_assigned_count"] = int(new_qs.count())
-            # For filtering on Students page (?new_assigned=1)
+            # Distinct students: duplicate Counselor DB rows + notification retries can inflate raw counts.
+            distinct_keys = set()
+            for p in new_qs.values_list("payload", flat=True)[:2000]:
+                if not isinstance(p, dict):
+                    continue
+                smid = p.get("student_management_id")
+                sid = p.get("student_id")
+                key = None
+                try:
+                    if smid is not None:
+                        key = ("sm", int(smid))
+                    elif sid is not None:
+                        key = ("u", int(sid))
+                except Exception:
+                    key = None
+                if key:
+                    distinct_keys.add(key)
+            context["ttv2_new_assigned_count"] = len(distinct_keys)
+            # For filtering on Students page (?new_assigned=1) — user ids when available
             try:
-                ids = []
+                uids = set()
                 for p in new_qs.values_list("payload", flat=True)[:500]:
                     if isinstance(p, dict):
                         sid = p.get("student_id")
                         if sid:
                             try:
-                                ids.append(int(sid))
+                                uids.add(int(sid))
                             except Exception:
                                 pass
-                context["ttv2_new_assigned_student_ids"] = list({x for x in ids if x})
+                context["ttv2_new_assigned_student_ids"] = list(uids)
             except Exception:
                 context["ttv2_new_assigned_student_ids"] = []
         else:
@@ -3245,7 +3254,7 @@ def CounselorDashboard(request, coun_id=None, initial_view=None):
     )
 
     # v2 partial rendering for fast AJAX shell boot
-    if template_version == "v2" and request.GET.get("ttv2_partial") == "1":
+    if template_version == "v2" and request_wants_ttv2_dashboard_body_partial(request):
         return render(request, "template_v2/dashboard_unified_body.html", context)
     return render(request, tpl, context)
 
@@ -4200,7 +4209,7 @@ class CounselorEnrolledCoursesListView(View):
         # only the body section (NOT the full dashboard shell), otherwise it nests layouts and
         # feels like an iframe.
         try:
-            if request.GET.get("ttv2_partial") == "1":
+            if request_wants_ttv2_dashboard_body_partial(request):
                 return render(request, self.partial_template_name, ctx)
         except Exception:
             pass

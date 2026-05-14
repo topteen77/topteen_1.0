@@ -2525,7 +2525,7 @@ def _can_view_assessment_report(viewer, target_user):
                 admin_id = getattr(getattr(institute, "marketing_group", None), "marketing_group_admin_id", None)
                 if admin_id == viewer.id:
                     return True
-            if Counselor.objects.filter(coun_user=viewer, counselor_admin=institute).exists():
+            if Counselor.qs_for_institute(institute).filter(coun_user=viewer).exists():
                 return True
     except Exception:
         return False

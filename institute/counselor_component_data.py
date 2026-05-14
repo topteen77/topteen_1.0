@@ -41,7 +41,10 @@ def build_institute_group_counselor_ui_maps(
     if not ids and not detached_institute_group_id:
         return {}, []
 
-    q_inst = Q(counselor_admin_id__in=ids) if ids else None
+    if ids:
+        q_inst = Q(counselor_admin_id__in=ids) | Q(institute_placements__id__in=ids)
+    else:
+        q_inst = None
     q_det = (
         Q(
             counselor_admin__isnull=True,
@@ -61,12 +64,20 @@ def build_institute_group_counselor_ui_maps(
     counselors = (
         Counselor.objects.filter(counselor_filter)
         .select_related("counselor_admin")
+        .prefetch_related("institute_placements")
+        .distinct()
         .order_by(Lower("counselor_name"), "id")
     )
     by_identity: Dict[Tuple[str, str], List[Counselor]] = defaultdict(list)
     for c in counselors:
-        aid = c.counselor_admin_id
-        if aid:
+        id_set = set(ids or [])
+        placed_ids = []
+        if c.counselor_admin_id and c.counselor_admin_id in id_set:
+            placed_ids.append(c.counselor_admin_id)
+        for ip in c.institute_placements.all():
+            if ip.id in id_set and ip.id not in placed_ids:
+                placed_ids.append(ip.id)
+        for aid in placed_ids:
             cmap[aid].append({"id": c.id, "name": c.counselor_name})
         by_identity[_counselor_select_identity_tuple(c)].append(c)
 
@@ -105,7 +116,12 @@ def build_counselor_data_list_for_institute_ids(
         return []
 
     counselors = list(
-        Counselor.objects.filter(counselor_admin_id__in=ids).select_related("counselor_admin")
+        Counselor.objects.filter(
+            Q(counselor_admin_id__in=ids) | Q(institute_placements__id__in=ids)
+        )
+        .select_related("counselor_admin")
+        .prefetch_related("institute_placements")
+        .distinct()
     )
     counselor_ids = [c.id for c in counselors]
     if not counselor_ids:
@@ -135,8 +151,15 @@ def build_counselor_data_list_for_institute_ids(
             "students_counseled": students_counseled_count,
             "created": counselor.created,
         }
-        if include_institute_name and counselor.counselor_admin:
-            admin = counselor.counselor_admin
+        if include_institute_name:
+            admin = None
+            if counselor.counselor_admin_id and counselor.counselor_admin_id in ids:
+                admin = counselor.counselor_admin
+            if admin is None:
+                for inst in counselor.institute_placements.all():
+                    if inst.id in ids:
+                        admin = inst
+                        break
             row["institute_name"] = getattr(admin, "name", "") or "—"
             row["institute_slug"] = getattr(admin, "slug", "") or ""
         rows.append(row)
@@ -170,13 +193,19 @@ def _counselor_identity_key(counselor: Counselor) -> Tuple[str, str]:
 
 
 def build_ig_counselor_placement_rows(institute_ids: Sequence[int]) -> List[Dict]:
-    """One row per Counselor record (institute placement), with follow-up aggregates for that placement."""
+    """One row per (counselor, institute) placement in the id set, with follow-up aggregates."""
     ids = sorted({int(x) for x in institute_ids if x})
     if not ids:
         return []
+    id_set = set(ids)
 
     counselors = list(
-        Counselor.objects.filter(counselor_admin_id__in=ids).select_related("counselor_admin")
+        Counselor.objects.filter(
+            Q(counselor_admin_id__in=ids) | Q(institute_placements__id__in=ids)
+        )
+        .select_related("counselor_admin")
+        .prefetch_related("institute_placements")
+        .distinct()
     )
     counselor_ids = [c.id for c in counselors]
     if not counselor_ids:
@@ -188,32 +217,40 @@ def build_ig_counselor_placement_rows(institute_ids: Sequence[int]) -> List[Dict
     ):
         followups_by_counselor.setdefault(followup.counselor_id, []).append(followup)
 
-    counselors_sorted = sorted(
-        counselors,
-        key=lambda c: (
-            (getattr(c.counselor_admin, "name", "") or "").lower(),
-            (c.counselor_name or "").lower(),
-            c.id,
-        ),
-    )
-
     rows: List[Dict] = []
-    for counselor in counselors_sorted:
-        admin = counselor.counselor_admin
+    for counselor in counselors:
         followups = followups_by_counselor.get(counselor.id, [])
         sessions_count = len(followups)
         students_counseled_count = sum(1 for f in followups if f.follow_up_status == "completed")
-        rows.append(
-            {
-                "counselor_record_id": counselor.id,
-                "institute_name": getattr(admin, "name", "") or "—",
-                "institute_slug": getattr(admin, "slug", "") or "",
-                "counselor_name": counselor.counselor_name,
-                "email": counselor.counselor_email or "",
-                "sessions": sessions_count,
-                "students_counseled": students_counseled_count,
-            }
+        placed = []
+        if counselor.counselor_admin_id and counselor.counselor_admin_id in id_set:
+            placed.append(counselor.counselor_admin)
+        for inst in counselor.institute_placements.all():
+            if inst.id in id_set and all(p.id != inst.id for p in placed):
+                placed.append(inst)
+        sort_placed = sorted(
+            placed,
+            key=lambda i: ((getattr(i, "name", "") or "").lower(), i.id),
         )
+        for admin in sort_placed:
+            rows.append(
+                {
+                    "counselor_record_id": counselor.id,
+                    "institute_name": getattr(admin, "name", "") or "—",
+                    "institute_slug": getattr(admin, "slug", "") or "",
+                    "counselor_name": counselor.counselor_name,
+                    "email": counselor.counselor_email or "",
+                    "sessions": sessions_count,
+                    "students_counseled": students_counseled_count,
+                }
+            )
+    rows.sort(
+        key=lambda r: (
+            (r.get("institute_name") or "").lower(),
+            (r.get("counselor_name") or "").lower(),
+            r.get("counselor_record_id") or 0,
+        )
+    )
     return rows
 
 
@@ -250,7 +287,9 @@ def build_unique_counselor_identity_rows(
 
     parts: List[Q] = []
     if ids:
-        parts.append(Q(counselor_admin_id__in=ids))
+        parts.append(
+            Q(counselor_admin_id__in=ids) | Q(institute_placements__id__in=ids)
+        )
     if detached_institute_group_id:
         parts.append(
             Q(
@@ -265,7 +304,12 @@ def build_unique_counselor_identity_rows(
     for extra in parts[1:]:
         counselor_filter |= extra
 
-    counselors = list(Counselor.objects.filter(counselor_filter).select_related("counselor_admin"))
+    counselors = list(
+        Counselor.objects.filter(counselor_filter)
+        .select_related("counselor_admin")
+        .prefetch_related("institute_placements")
+        .distinct()
+    )
     if not counselors:
         return []
 
@@ -296,15 +340,22 @@ def build_unique_counselor_identity_rows(
             for c in members
         )
 
+        id_set = set(ids) if ids else None
         institute_names: List[str] = []
         seen_admin: Dict[int, None] = {}
         for c in members:
             admin = c.counselor_admin
             aid = getattr(admin, "id", None)
-            if aid is None or aid in seen_admin:
-                continue
-            seen_admin[aid] = None
-            institute_names.append(getattr(admin, "name", "") or "—")
+            if aid is not None and aid not in seen_admin:
+                if id_set is None or aid in id_set:
+                    seen_admin[aid] = None
+                    institute_names.append(getattr(admin, "name", "") or "—")
+            for inst in c.institute_placements.all():
+                iid = inst.id
+                if iid not in seen_admin:
+                    if id_set is None or iid in id_set:
+                        seen_admin[iid] = None
+                        institute_names.append(getattr(inst, "name", "") or "—")
         institute_names.sort(key=lambda x: x.lower())
         if not institute_names:
             if any(getattr(c, "detached_from_institute_group_id", None) for c in members):

@@ -34,10 +34,33 @@
      {% if ttv2_remark_save_url is defined and ttv2_remark_save_url %}data-ttv2-remark-url="{{ ttv2_remark_save_url }}"{% endif %}
      {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}data-ttv2-followup-url="{{ ttv2_followup_save_url }}"{% endif %}
      {% if roster_filtered_total is defined %} data-ttv2-roster-total="{{ roster_filtered_total }}"{% endif %}>
-{% set _bulk_assign = (ttv2_bulk_counselor_options is defined and ttv2_bulk_counselor_options|length > 0) %}
-{% if _bulk_assign %}
+{% set _bulk_opts = (ttv2_bulk_counselor_options is defined and ttv2_bulk_counselor_options|length > 0) %}
+{% set _ig_bulk_unassign = (ttv2_students_role is defined and ttv2_students_role == 'institute_group') %}
+{% set _ig_inst_slug = (request.GET.get('institute_slug') or '')|trim %}
+{# Institute group: bulk assign/unassign only after picking one institute (dropdown), so advisor list matches one school. #}
+{% set _show_row_select = _bulk_opts and ((not _ig_bulk_unassign) or _ig_inst_slug) %}
+{% if _show_row_select %}
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2 px-2 py-2 border rounded bg-light"
      data-ttv2-bulk-adv-bar>
+  {% if _ig_bulk_unassign %}
+  <label class="small mb-0 d-inline-flex align-items-center gap-2">
+    <input type="checkbox" data-ttv2-select-master="unassigned" aria-label="Select unassigned students on this page">
+    <span>Select Unassigned</span>
+  </label>
+  <select class="form-select form-select-sm" style="max-width:220px" data-ttv2-bulk-adv-counselor aria-label="Advisor for bulk assign">
+    <option value="">Advisor for selected…</option>
+    {% for c in ttv2_bulk_counselor_options %}
+      <option value="{{ c.id }}" data-counselor-inst-id="{{ c.institute_id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+    {% endfor %}
+  </select>
+  <button type="button" class="btn btn-sm btn-primary" data-ttv2-bulk-adv-apply>Assign selected</button>
+  <label class="small mb-0 d-inline-flex align-items-center gap-2">
+    <input type="checkbox" data-ttv2-select-master="assigned" aria-label="Select assigned students on this page">
+    <span>Select Assigned</span>
+  </label>
+  <button type="button" class="btn btn-sm btn-outline-danger" data-ttv2-bulk-adv-unapply>Unassign selected</button>
+  <span class="text-muted small mb-0 flex-grow-1" style="min-width:240px;">Bulk assign: use <strong>Select Unassigned</strong> (or pick unassigned rows), choose an advisor, then assign. Bulk unassign: use <strong>Select Assigned</strong> (or pick assigned rows), then unassign.</span>
+  {% else %}
   <label class="small mb-0 d-inline-flex align-items-center gap-2">
     <input type="checkbox" data-ttv2-select-all-sm aria-label="Select all students on this page">
     <span>Select page</span>
@@ -49,14 +72,15 @@
     {% endfor %}
   </select>
   <button type="button" class="btn btn-sm btn-primary" data-ttv2-bulk-adv-apply>Assign selected</button>
-  <span class="text-muted small mb-0">Select students, pick the advisor that matches their school, then assign.</span>
+  <span class="text-muted small mb-0">Select students on this page, pick the advisor that matches their school, then assign.</span>
+  {% endif %}
 </div>
 {% endif %}
 <div class="table-responsive ttv2-students-list-wrap ttv2-students-table-shell">
   <table class="table table-hover ttv2-students-list-table ttv2-students-rich-table">
     <thead>
       <tr>
-        {% if _bulk_assign %}
+        {% if _show_row_select %}
         <th class="ttv2-col-select align-middle" scope="col">
           <span class="visually-hidden">Select</span>
         </th>
@@ -149,10 +173,34 @@
           {% elif ts.institute is defined and ts.institute and ts.institute.slug %}
             {% set _row_set_url = url('institute:set_student_counselor', ts.institute.slug) %}
           {% endif %}
+          {% set _adv_name = '-' %}
+          {% set _has_row_adv = false %}
+          {% set _assigned_coun_id = none %}
+          {% if ts is defined and ts.counselor_id %}
+            {% set _assigned_coun_id = ts.counselor_id %}
+            {% set _adv_name = ts.counselor.counselor_name|default('-') %}
+            {% set _has_row_adv = true %}
+          {% elif ts and ts.counselors is defined %}
+            {% set _adv_list = ts.counselors.all() %}
+            {% if _adv_list and (_adv_list|length) > 0 %}
+              {% set _adv_name = _adv_list[0].counselor_name|default('-') %}
+              {% set _assigned_coun_id = _adv_list[0].id %}
+              {% set _has_row_adv = true %}
+            {% endif %}
+          {% endif %}
+          {% set _row_adv_opts = [] %}
+          {% if table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined) %}
+            {% set _row_adv_opts = ttv2_counselor_options %}
+          {% elif table_config and table_config.role in ('institute_group', 'marketing') and (ttv2_counselors_by_institute_id is defined) and ts.institute_id %}
+            {% set _row_adv_opts = (ttv2_counselors_by_institute_id.get((ts.institute_id|string)) or []) %}
+          {% endif %}
+          {% set _show_adv_assign_ui = (table_config and ((table_config.role == 'institute' and (ttv2_counselor_options is defined)) or (table_config.role in ('institute_group', 'marketing') and (ttv2_counselors_by_institute_id is defined)))) %}
           <tr class="student-row"
               data-sm-id="{{ _sm_id }}"
               data-sm-inst-id="{{ ts.institute_id|default('') }}"
               data-ttv2-set-url="{{ _row_set_url }}"
+              {% if _show_row_select and _show_adv_assign_ui and not _has_row_adv %}data-ttv2-adv-unassigned="1"{% endif %}
+              {% if _show_row_select and _show_adv_assign_ui and _has_row_adv %}data-ttv2-adv-assigned="1"{% endif %}
               data-student-id="{{ _student.id if _student else '' }}"
               data-student-name="{{ _student.name if (_student and _student.name) else '-' }}"
               data-student-email="{{ _student.email if _student else '-' }}"
@@ -160,7 +208,7 @@
               data-student-class="{{ _class_section.class_and_section if (_class_section and _class_section.class_and_section) else '-' }}"
               data-student-stream="{{ _class_section.stream if (_class_section and _class_section.stream) else '-' }}"
               data-student-created="{{ _student.created.strftime('%d/%m/%Y') if (_student and _student.created) else '-' }}">
-            {% if _bulk_assign %}
+            {% if _show_row_select %}
             <td class="ttv2-col-select align-middle" onclick="event.stopPropagation();">
               <input type="checkbox"
                      data-ttv2-sm-select
@@ -192,30 +240,7 @@
             <td>{% if _class_section and _class_section.stream %}{{ _class_section.stream }}{% else %}-{% endif %}</td>
             {% endif %}
             <td>
-              {% set _adv_name = '-' %}
-              {% set _has_row_adv = false %}
-              {% set _assigned_coun_id = none %}
-              {% if ts is defined and ts.counselor_id %}
-                {% set _assigned_coun_id = ts.counselor_id %}
-                {% set _adv_name = ts.counselor.counselor_name|default('-') %}
-                {% set _has_row_adv = true %}
-              {% elif ts and ts.counselors is defined %}
-                {% set _adv_list = ts.counselors.all() %}
-                {% if _adv_list and (_adv_list|length) > 0 %}
-                  {% set _adv_name = _adv_list[0].counselor_name|default('-') %}
-                  {% set _assigned_coun_id = _adv_list[0].id %}
-                  {% set _has_row_adv = true %}
-                {% endif %}
-              {% endif %}
-              {% set _row_adv_opts = [] %}
-              {% if table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined) %}
-                {% set _row_adv_opts = ttv2_counselor_options %}
-              {% elif table_config and table_config.role in ('institute_group', 'marketing') and (ttv2_counselors_by_institute_id is defined) and ts.institute_id %}
-                {% set _row_adv_opts = (ttv2_counselors_by_institute_id.get((ts.institute_id|string)) or []) %}
-              {% endif %}
-              {% set _show_adv_assign_ui = (table_config and ((table_config.role == 'institute' and (ttv2_counselor_options is defined)) or (table_config.role in ('institute_group', 'marketing') and (ttv2_counselors_by_institute_id is defined)))) %}
-
-              {% if _show_adv_assign_ui %}
+            {% if _show_adv_assign_ui %}
                 <div class="d-flex flex-column gap-1 ttv2-adv-cell" data-ttv2-adv-cell {% if _has_row_adv %}data-ttv2-adv-assigned="1"{% endif %}>
                   {% if _has_row_adv %}
                     <div class="d-flex flex-wrap align-items-center gap-2">
@@ -483,7 +508,7 @@
         {% endfor %}
       {% else %}
       <tr>
-        <td colspan="{% set col_count = 8 %}{% if _bulk_assign %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
+        <td colspan="{% set col_count = 8 %}{% if _show_row_select %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
           <div class="d-flex flex-column align-items-center">
             <i class='bx bx-user-x fs-48 text-gray mb-3'></i>
             <h4 class="fs-18 fw-semibold mb-2">No Students Found</h4>

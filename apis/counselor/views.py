@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from users.models import User
-from counselor.models import Counselor
+from counselor.models import primary_counselor_for_user
 from core import choices
 
 
@@ -74,10 +74,8 @@ class CounselorLoginAPI(APIView):
                 data['errMsg'] = 'Account Blocked: Sorry, but your access has been restricted. For more information, kindly get in touch with our support team.'
                 return Response(data, status=status.HTTP_200_OK)
 
-            # Check if counselor exists
-            try:
-                counselor = Counselor.objects.get(coun_user=user)
-            except Counselor.DoesNotExist:
+            counselor = primary_counselor_for_user(user)
+            if not counselor:
                 data['success'] = False
                 data['message'] = 'No counselor profile found for this account'
                 data['errMsg'] = 'No counselor profile found for this account'
