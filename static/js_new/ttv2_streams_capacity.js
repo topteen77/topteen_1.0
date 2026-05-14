@@ -34,8 +34,13 @@
     var classes = Array.isArray(payload.classes) ? payload.classes : [];
     var capMap = payload.cap_map && typeof payload.cap_map === "object" ? payload.cap_map : {};
     var occ = Array.isArray(payload.occupancy_by_stream) ? payload.occupancy_by_stream : [];
-    var chartTextColor = "#475569";
-    var chartGrid = "rgba(148, 163, 184, 0.18)";
+    var theme =
+      (document.documentElement.getAttribute("data-ttv2-theme") || "").toLowerCase() === "dark"
+        ? "dark"
+        : "light";
+    var chartTextColor = theme === "dark" ? "rgba(232, 234, 240, 0.82)" : "#475569";
+    var chartGrid =
+      theme === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(148, 163, 184, 0.18)";
 
     function gradientFill(ctx, top, bottom) {
       var g = ctx.createLinearGradient(0, 0, 0, 260);
@@ -179,5 +184,20 @@
   document.addEventListener("DOMContentLoaded", window.ttv2InitStreamsCapacityCharts);
   document.addEventListener("ttv2:content:loaded", window.ttv2InitStreamsCapacityCharts);
   document.addEventListener("ttv2:afterAjaxContentLoad", window.ttv2InitStreamsCapacityCharts);
+
+  /** Re-render charts when v2 light/dark theme toggles (no custom event from theme script). */
+  (function observeThemeForCharts() {
+    var deb;
+    var obs = new MutationObserver(function () {
+      if (!document.getElementById("ttv2StreamsCapacityByStream")) return;
+      clearTimeout(deb);
+      deb = setTimeout(function () {
+        window.ttv2InitStreamsCapacityCharts();
+      }, 80);
+    });
+    try {
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ttv2-theme"] });
+    } catch (e) {}
+  })();
 })();
 

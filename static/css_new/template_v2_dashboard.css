@@ -866,6 +866,66 @@ body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .text-muted{
 body.ttv2-shell .ttv2-counselor-topbar .tt-notification-item:hover{
   background: rgba(255,255,255,.04) !important;
 }
+
+/* Notification dropdown: inner regions use hardcoded light colors in the include;
+   override so titles/body/meta stay readable on var(--c-bg2) in dark (and stay
+   consistent in light v2). */
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-header{
+  color: var(--c-text) !important;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--c-bg2, #fff) 94%, var(--c-text) 6%) 0%,
+    var(--c-bg2, #fff) 100%
+  ) !important;
+  border-bottom: 1px solid var(--c-border, var(--ttv2-border)) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-latest-scroll{
+  scrollbar-color: color-mix(in srgb, var(--c-text3) 55%, transparent) transparent;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-latest-scroll::-webkit-scrollbar-thumb{
+  background: color-mix(in srgb, var(--c-text3) 50%, transparent);
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-item{
+  border-bottom-color: var(--c-border, var(--ttv2-border)) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-title{
+  color: var(--c-text) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-body{
+  color: var(--c-text2) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-meta{
+  color: var(--c-text3) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-item.tt-notification-item--unread{
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-accent, var(--ttv2-accent)) 22%, transparent) 0%,
+    transparent 55%
+  ) !important;
+  box-shadow: inset 3px 0 0 var(--c-accent, var(--ttv2-accent)) !important;
+}
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-item:hover{
+  background: color-mix(in srgb, var(--c-text) 4%, var(--c-bg2, #fff)) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-footer{
+  background: color-mix(in srgb, var(--c-bg2, #fff) 96%, var(--c-text) 4%) !important;
+  border-top: 1px solid var(--c-border, var(--ttv2-border)) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-view-all{
+  border-color: var(--c-accent, var(--ttv2-accent)) !important;
+  color: var(--c-accent, var(--ttv2-accent)) !important;
+  background: transparent !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-view-all:hover{
+  background: color-mix(in srgb, var(--c-accent, var(--ttv2-accent)) 14%, var(--c-bg2, #fff)) !important;
+  color: var(--c-accent, var(--ttv2-accent)) !important;
+  border-color: var(--c-accent, var(--ttv2-accent)) !important;
+}
+body.ttv2-shell .ttv2-counselor-topbar .tt-notification-dropdown .tt-notification-empty{
+  color: var(--c-text3) !important;
+}
+
 body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content h6,
 body.ttv2-shell .ttv2-topbar-avatar-dropdown .ttv2-user-dropdown-menu h6{
   color: var(--c-text) !important;
@@ -2570,9 +2630,7 @@ body.ttv2-shell.ttv2-sidebar-collapsed .ttv2-counselor-content{
     max-width: calc(100vw - 16px) !important;
   }
   /* On very small screens keep bell + profile visible and avoid overlap. */
-  body.ttv2-shell #ttv2ThemeToggle{
-    display: none !important;
-  }
+ 
 }
 
 /* =========================
@@ -3159,6 +3217,28 @@ html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-sp-filterrow .form-control{
 }
 html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-sp-filterrow select.form-control.custom-input{
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%2364748b' d='M4.47 6.97a.75.75 0 0 1 1.06 0L8 9.44l2.47-2.47a.75.75 0 1 1 1.06 1.06L8.53 11a.75.75 0 0 1-1.06 0L4.47 8.03a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+
+/*
+  Native <select> popup: with color: var(--c-text) (light) on dark pages, some UAs
+  still paint the option list with a light background → “white on white”. Hint
+  dark form controls and set option colors where supported (Chrome/Edge/Firefox).
+*/
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sp-filterrow select.form-control.custom-input{
+  color-scheme: dark;
+  background-color: color-mix(in srgb, var(--c-bg3) 92%, var(--c-bg2) 8%) !important;
+  color: var(--c-text) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sp-filterrow select.form-control.custom-input option{
+  background-color: var(--c-bg3);
+  color: var(--c-text);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-sp-filterrow .form-control.custom-input:focus{
+  color: var(--c-text) !important;
+  background-color: color-mix(in srgb, var(--c-bg3) 88%, var(--c-accent) 12%) !important;
+  border-color: color-mix(in srgb, var(--c-accent) 45%, var(--c-border2)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-accent) 20%, transparent);
 }
 
 body.ttv2-shell .ttv2-sp-reset-icon{
@@ -5461,8 +5541,20 @@ body.ttv2-shell .modal-backdrop.show + .modal-backdrop.show{
 }
 
 
+html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-counselor-sidebar{    background: #fff;
+  border-right: 1px solid #f0e9e9;}
+
+
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-counselor-sidebar{    background: radial-gradient(1200px 420px at 10% -15%, rgba(59, 130, 246, 0.16), transparent 60%),
+    radial-gradient(900px 360px at 100% -8%, rgba(16, 185, 129, 0.13), transparent 62%),
+    linear-gradient(180deg, #0f1117 0%, #141925 100%);
+    border-right: 1px solid #f0e9e9;}
+  
+
 @media (max-width: 767.98px){
-  body.ttv2-shell .ttv2-counselor-sidebar{background: #fff !important;}
+  body.ttv2-shell .ttv2-counselor-sidebar{background: #fff ;}
+
+  html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-counselor-sidebar{background: #000 ;}
 
   body.ttv2-shell .ttv2-sp-mobile-toolbar .btn {
      display: flex;

@@ -16,168 +16,236 @@
     font-size: 20px;
     font-weight: 800;
     letter-spacing: .01em;
+    color: var(--c-text);
   }
   #sec-institute-streams-capacity .ttv2-subtitle{
-    color: var(--c-text3);
+    color: var(--c-text2);
     font-size: 12px;
   }
-  .ttv2-capacity-card{
-    border: 1px solid rgba(148,163,184,.18);
-    border-radius: 14px;
+  #sec-institute-streams-capacity .ttv2-streams-capacity__week-btn{
+    border-color: var(--c-border2) !important;
+    color: var(--c-text2);
+    background: color-mix(in srgb, var(--c-bg3) 55%, transparent);
+  }
+  #sec-institute-streams-capacity .ttv2-streams-capacity__week-btn:hover{
+    color: var(--c-text);
+    background: color-mix(in srgb, var(--c-text) 6%, var(--c-bg3));
+  }
+  #sec-institute-streams-capacity .ttv2-capacity-card,
+  #sec-institute-streams-capacity .ttv2-chart-card{
+    border: 1px solid var(--c-border2);
+    border-radius: 16px;
     padding: 14px 16px;
-    background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.86));
+    background:
+      radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--c-accent) 16%, transparent), transparent 52%),
+      linear-gradient(180deg, color-mix(in srgb, var(--c-bg3) 70%, var(--c-bg2) 30%), var(--c-bg2));
+    min-height: 0;
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--c-text) 6%, transparent) inset,
+      0 12px 36px color-mix(in srgb, var(--c-text) 8%, transparent);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  #sec-institute-streams-capacity .ttv2-capacity-card{
     min-height: 132px;
-    box-shadow: 0 6px 20px rgba(15,23,42,.05);
-    transition: transform .2s ease, box-shadow .2s ease;
   }
-  .ttv2-capacity-card:hover{
+  #sec-institute-streams-capacity .ttv2-capacity-card:hover,
+  #sec-institute-streams-capacity .ttv2-chart-card:hover{
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(15,23,42,.08);
+    border-color: color-mix(in srgb, var(--c-accent) 35%, var(--c-border2));
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--c-text) 8%, transparent) inset,
+      0 16px 44px color-mix(in srgb, var(--c-accent) 18%, transparent);
   }
-  .ttv2-capacity-card .kpi-label{
+  #sec-institute-streams-capacity .ttv2-capacity-card .kpi-label{
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: .06em;
     color: var(--c-text3);
     font-weight: 700;
   }
-  .ttv2-capacity-card .kpi-value{
+  #sec-institute-streams-capacity .ttv2-capacity-card .kpi-value{
     font-size: 34px;
     line-height: 1;
     font-weight: 800;
     margin: 8px 0 4px;
-    color: var(--c-text1);
+    color: var(--c-text);
+    letter-spacing: -0.02em;
   }
-  .ttv2-capacity-card .kpi-hint{
-    color: var(--c-text3);
+  #sec-institute-streams-capacity .ttv2-capacity-card .kpi-hint{
+    color: var(--c-text2);
     font-size: 11px;
   }
-  .ttv2-capacity-card .progress{
-    height: 7px;
+  #sec-institute-streams-capacity .ttv2-capacity-card .progress{
+    height: 8px;
     margin-top: 10px;
-    background: rgba(148,163,184,.2);
+    background: color-mix(in srgb, var(--c-text) 12%, var(--c-bg2));
     border-radius: 100px;
   }
-  .ttv2-capacity-card .progress-bar{
+  #sec-institute-streams-capacity .ttv2-capacity-card .progress-bar{
     border-radius: 100px;
+    min-width: 0;
   }
-  .ttv2-progress-good{ background: linear-gradient(90deg,#10b981,#34d399); }
-  .ttv2-progress-warn{ background: linear-gradient(90deg,#f59e0b,#fbbf24); }
-  .ttv2-progress-low{ background: linear-gradient(90deg,#ef4444,#f87171); }
-  .ttv2-progress-width-good{ width: 90%; }
-  .ttv2-progress-width-warn{ width: 60%; }
-  .ttv2-progress-width-low{ width: 30%; }
-  .ttv2-chart-title{
+  #sec-institute-streams-capacity .ttv2-progress-good{ background: linear-gradient(90deg,#10b981,#34d399); }
+  #sec-institute-streams-capacity .ttv2-progress-warn{ background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+  #sec-institute-streams-capacity .ttv2-progress-low{ background: linear-gradient(90deg,#ef4444,#f87171); }
+  #sec-institute-streams-capacity .ttv2-chart-title{
     font-weight: 700;
     font-size: 14px;
+    color: var(--c-text);
   }
-  .ttv2-chart-card{
-    border: 1px solid rgba(148,163,184,.18);
-    border-radius: 14px;
-    padding: 12px 14px;
-    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.86));
-    box-shadow: 0 6px 18px rgba(15,23,42,.04);
-  }
-  .ttv2-insight-chip{
+  #sec-institute-streams-capacity .ttv2-insight-chip{
     border-radius: 999px;
-    border: 1px solid rgba(148,163,184,.2);
-    padding: 4px 10px;
+    border: 1px solid var(--c-border2);
+    padding: 5px 11px;
     font-size: 11px;
     font-weight: 700;
     color: var(--c-text2);
-    background: rgba(255,255,255,.75);
+    background: color-mix(in srgb, var(--c-bg3) 88%, var(--c-accent) 12%);
   }
-  .ttv2-insight-chip strong{ color: var(--c-text1); }
-  .ttv2-table-wrap{
-    border: 1px solid rgba(148,163,184,.18);
-    border-radius: 14px;
+  #sec-institute-streams-capacity .ttv2-insight-chip strong{
+    color: var(--c-text);
+    font-weight: 800;
+  }
+  #sec-institute-streams-capacity .ttv2-table-wrap{
+    border: 1px solid var(--c-border2);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 22px rgba(15,23,42,.04);
+    background: var(--c-bg2);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--c-text) 5%, transparent) inset,
+      0 12px 36px color-mix(in srgb, var(--c-text) 7%, transparent);
   }
-  .ttv2-table-wrap thead th{
+  #sec-institute-streams-capacity .ttv2-table-wrap .table{
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--c-text2);
+    margin-bottom: 0;
+  }
+  #sec-institute-streams-capacity .ttv2-table-wrap thead th{
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: .05em;
-    color: var(--c-text3);
-    border-bottom-color: rgba(148,163,184,.2);
-    background: rgba(248,250,252,.72);
+    color: var(--c-text2);
+    border-bottom: 1px solid var(--c-border2);
+    background: color-mix(in srgb, var(--c-bg3) 82%, var(--c-accent) 18%);
     white-space: nowrap;
     position: sticky;
     top: 0;
     z-index: 1;
   }
-  .ttv2-table-wrap tbody td{
+  #sec-institute-streams-capacity .ttv2-table-wrap tbody td{
     vertical-align: middle;
-    border-bottom-color: rgba(148,163,184,.14);
+    border-bottom-color: var(--c-border);
     padding-top: 12px;
     padding-bottom: 12px;
     font-weight: 600;
     color: var(--c-text2);
     font-size: 14px;
   }
-  .ttv2-table-wrap tbody tr:nth-child(odd):not(.ttv2-total-row){
-    background: rgba(248,250,252,.42);
+  #sec-institute-streams-capacity .ttv2-table-wrap tbody tr:nth-child(odd):not(.ttv2-total-row){
+    background: color-mix(in srgb, var(--c-text) 3.5%, var(--c-bg2));
   }
-  .ttv2-table-wrap tbody tr:hover:not(.ttv2-total-row){
-    background: rgba(59,130,246,.05);
+  #sec-institute-streams-capacity .ttv2-table-wrap tbody tr:hover:not(.ttv2-total-row){
+    background: color-mix(in srgb, var(--c-accent) 10%, var(--c-bg2)) !important;
   }
-  .ttv2-table-wrap .ttv2-col-idx{
+  #sec-institute-streams-capacity .ttv2-table-wrap .ttv2-col-idx{
     color: var(--c-text3);
     font-weight: 700;
     width: 42px;
   }
-  .ttv2-table-wrap .ttv2-num{
+  #sec-institute-streams-capacity .ttv2-table-wrap .ttv2-num{
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-    color: var(--c-text1);
+    color: var(--c-text);
   }
-  .ttv2-total-row{
-    border-top: 1px solid rgba(148,163,184,.18);
+  #sec-institute-streams-capacity .ttv2-total-row{
+    border-top: 1px solid var(--c-border2);
     font-weight: 800;
-    background: linear-gradient(90deg, rgba(59,130,246,.06), rgba(167,139,250,.05));
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--c-accent) 14%, var(--c-bg2)),
+      color-mix(in srgb, #a78bfa 12%, var(--c-bg2))
+    );
   }
-  .ttv2-class-pill{
-    background: rgba(59,130,246,.12);
-    color: #1d4ed8;
-    border: 1px solid rgba(59,130,246,.22);
+  #sec-institute-streams-capacity .ttv2-total-row td{
+    color: var(--c-text);
+    border-bottom: none;
+  }
+  #sec-institute-streams-capacity .ttv2-class-pill{
+    background: color-mix(in srgb, var(--c-accent) 18%, var(--c-bg2));
+    color: var(--c-accent);
+    border: 1px solid color-mix(in srgb, var(--c-accent) 38%, var(--c-border2));
     border-radius: 999px;
     padding: 4px 10px;
     font-size: 11px;
     font-weight: 700;
     display: inline-block;
   }
-  .ttv2-fill-pill{
+  #sec-institute-streams-capacity .ttv2-table-wrap tbody tr:nth-child(even):not(.ttv2-total-row) .ttv2-class-pill{
+    background: color-mix(in srgb, #a78bfa 16%, var(--c-bg2));
+    color: #c4b5fd;
+    border-color: color-mix(in srgb, #a78bfa 36%, var(--c-border2));
+  }
+  html[data-ttv2-theme="light"] #sec-institute-streams-capacity .ttv2-table-wrap tbody tr:nth-child(even):not(.ttv2-total-row) .ttv2-class-pill{
+    color: #5b21b6;
+    background: color-mix(in srgb, #8b5cf6 14%, var(--c-bg2));
+    border-color: color-mix(in srgb, #8b5cf6 28%, var(--c-border2));
+  }
+  #sec-institute-streams-capacity .ttv2-fill-pill{
     border-radius: 999px;
     padding: 3px 10px;
     font-size: 11px;
     font-weight: 700;
     display: inline-block;
   }
-  .ttv2-fill-high{ background: rgba(16,185,129,.14); color: #047857; }
-  .ttv2-fill-mid{ background: rgba(245,158,11,.16); color: #b45309; }
-  .ttv2-fill-low{ background: rgba(239,68,68,.13); color: #b91c1c; }
-  .ttv2-mini-progress{
+  #sec-institute-streams-capacity .ttv2-fill-high{
+    background: color-mix(in srgb, var(--c-green) 22%, var(--c-bg2));
+    color: #065f46;
+  }
+  #sec-institute-streams-capacity .ttv2-fill-mid{
+    background: color-mix(in srgb, var(--c-amber) 24%, var(--c-bg2));
+    color: #92400e;
+  }
+  #sec-institute-streams-capacity .ttv2-fill-low{
+    background: color-mix(in srgb, #ef4444 22%, var(--c-bg2));
+    color: #991b1b;
+  }
+  html[data-ttv2-theme="dark"] #sec-institute-streams-capacity .ttv2-fill-high{
+    color: #bbf7d0;
+  }
+  html[data-ttv2-theme="dark"] #sec-institute-streams-capacity .ttv2-fill-mid{
+    color: #fde68a;
+  }
+  html[data-ttv2-theme="dark"] #sec-institute-streams-capacity .ttv2-fill-low{
+    color: #fecaca;
+  }
+  #sec-institute-streams-capacity .ttv2-mini-progress{
     width: 74px;
     height: 6px;
     border-radius: 999px;
-    background: rgba(148,163,184,.2);
+    background: color-mix(in srgb, var(--c-text) 14%, var(--c-bg2));
     margin-left: auto;
     margin-top: 4px;
     overflow: hidden;
   }
-  .ttv2-mini-progress > span{
+  #sec-institute-streams-capacity .ttv2-mini-progress > span{
     display: block;
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg,#60a5fa,#a78bfa);
+    min-width: 0;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c-accent) 85%, #fff), #a78bfa);
   }
-  .ttv2-mini-w-zero{ width: 0%; }
-  .ttv2-mini-w-high{ width: 90%; }
-  .ttv2-mini-w-mid{ width: 60%; }
-  .ttv2-mini-w-low{ width: 30%; }
+  #sec-institute-streams-capacity .ttv2-table-toolbar{
+    border-bottom: 1px solid var(--c-border2);
+  }
+  #sec-institute-streams-capacity .ttv2-table-toolbar-title{
+    font-weight: 700;
+    color: var(--c-text);
+    font-size: 14px;
+  }
 </style>
 
-<div class="ttv2-card" id="sec-institute-streams-capacity">
+<div id="sec-institute-streams-capacity" class="ttv2-streams-capacity">
+<div class="ttv2-card ttv2-streams-capacity__head">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
       <div class="ttv2-headline mb-0">Streams & seat capacity</div>
@@ -187,11 +255,10 @@
     </div>
     <div class="d-flex align-items-center gap-2">
       <button type="button"
-              class="btn btn-sm btn-outline-secondary"
+              class="btn btn-sm btn-outline-secondary ttv2-streams-capacity__week-btn"
               id="ttv2WeekDropdownBtn"
               data-bs-toggle="dropdown"
-              aria-expanded="false"
-              style="border-color:rgba(148,163,184,.35);">
+              aria-expanded="false">
         Week
       </button>
       <ul class="dropdown-menu dropdown-menu-end" id="ttv2WeekDropdownMenu" aria-labelledby="ttv2WeekDropdownBtn">
@@ -217,9 +284,9 @@
       <div class="kpi-value">{{ k.get('seats_filled', 0) }}</div>
       <div class="kpi-hint">{{ fill_pct|round(2) }}% fill rate</div>
       {% set fill_bar_class = 'ttv2-progress-good' if fill_pct >= 80 else ('ttv2-progress-warn' if fill_pct >= 50 else 'ttv2-progress-low') %}
-      {% set fill_width_class = 'ttv2-progress-width-good' if fill_pct >= 80 else ('ttv2-progress-width-warn' if fill_pct >= 50 else 'ttv2-progress-width-low') %}
+      {% set fill_w = ([0, (fill_pct or 0)|float, 100]|sort)[1] %}
       <div class="progress" role="progressbar" aria-label="Seats filled" aria-valuenow="{{ fill_pct|round(0) }}" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar {{ fill_bar_class }} {{ fill_width_class }}"></div>
+        <div class="progress-bar {{ fill_bar_class }}" style="width: {{ fill_w }}%;"></div>
       </div>
     </div>
   </div>
@@ -229,9 +296,9 @@
       <div class="kpi-value">{{ k.get('open_seats', 0) }}</div>
       <div class="kpi-hint">{{ avail_pct|round(2) }}% available</div>
       {% set avail_bar_class = 'ttv2-progress-good' if avail_pct >= 50 else ('ttv2-progress-warn' if avail_pct >= 20 else 'ttv2-progress-low') %}
-      {% set avail_width_class = 'ttv2-progress-width-good' if avail_pct >= 50 else ('ttv2-progress-width-warn' if avail_pct >= 20 else 'ttv2-progress-width-low') %}
+      {% set avail_w = ([0, (avail_pct or 0)|float, 100]|sort)[1] %}
       <div class="progress" role="progressbar" aria-label="Open seats" aria-valuenow="{{ avail_pct|round(0) }}" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar {{ avail_bar_class }} {{ avail_width_class }}"></div>
+        <div class="progress-bar {{ avail_bar_class }}" style="width: {{ avail_w }}%;"></div>
       </div>
     </div>
   </div>
@@ -270,8 +337,8 @@
 </div>
 
 <div class="ttv2-table-wrap mt-3">
-  <div class="px-3 pt-3 pb-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="border-bottom:1px solid rgba(148,163,184,.12);">
-    <div style="font-weight:700;">Seat capacity - full table</div>
+  <div class="px-3 pt-3 pb-2 d-flex align-items-center justify-content-between flex-wrap gap-2 ttv2-table-toolbar">
+    <div class="ttv2-table-toolbar-title">Seat capacity - full table</div>
     <div class="d-flex align-items-center gap-2">
       <span class="ttv2-insight-chip">Capacity <strong>{{ k.get('total_capacity', 0) }}</strong></span>
       <span class="ttv2-insight-chip">Filled <strong>{{ k.get('seats_filled', 0) }}</strong></span>
@@ -311,12 +378,12 @@
             <td class="text-end ttv2-num">{{ r.get('filled', 0) }}</td>
             <td class="text-end ttv2-num">{{ r.get('available', 0) }}</td>
             {% set row_fill = (r.get('fill_pct', 0) or 0) %}
-            {% set row_fill_width = 'ttv2-mini-w-zero' if row_fill <= 0 else ('ttv2-mini-w-high' if row_fill >= 80 else ('ttv2-mini-w-mid' if row_fill >= 50 else 'ttv2-mini-w-low')) %}
+            {% set row_fill_w = ([0, row_fill|float, 100]|sort)[1] %}
             <td class="text-end">
               <span class="ttv2-fill-pill {% if row_fill >= 80 %}ttv2-fill-high{% elif row_fill >= 50 %}ttv2-fill-mid{% else %}ttv2-fill-low{% endif %}">
                 {{ row_fill }}%
               </span>
-              <div class="ttv2-mini-progress"><span class="{{ row_fill_width }}"></span></div>
+              <div class="ttv2-mini-progress"><span style="width: {{ row_fill_w }}%;"></span></div>
             </td>
           </tr>
         {% endfor %}
@@ -336,4 +403,4 @@
     </table>
   </div>
 </div>
-
+</div>
