@@ -353,6 +353,14 @@ class Counselor(BaseModel):
     counselor_education=models.CharField(max_length=250,null=True,blank=True)
     counselor_gender=models.PositiveSmallIntegerField(choices=choices.GenderChoices.CHOICES,default=choices.GenderChoices.MALE)
     counselor_admin = models.ForeignKey(Institute,on_delete=models.SET_NULL,null=True,blank=True,related_name="coun_institute")
+    detached_from_institute_group = models.ForeignKey(
+        "institute.InstituteGroup",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="detached_counselor_rows",
+        help_text="When set, this profile is not linked to a school but remains in the group for re-assignment.",
+    )
 
     # Many-to-Many relationship with StudentManagement
     students = models.ManyToManyField('institute.StudentManagement', related_name='counselors', blank=True)

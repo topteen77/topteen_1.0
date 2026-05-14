@@ -165,7 +165,7 @@
                   <select id="ttv2-adv-card-sel-{{ sm.id }}" class="form-select form-select-sm" data-ttv2-adv-card-select style="max-width:100%;font-size:11px;">
                     <option value="">Choose advisor…</option>
                     {% for c in _co_opts_card %}
-                      <option value="{{ c.id }}">{{ c.name }}</option>
+                      <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
                     {% endfor %}
                   </select>
                   <button type="button"

@@ -34,10 +34,33 @@
      {% if ttv2_remark_save_url is defined and ttv2_remark_save_url %}data-ttv2-remark-url="{{ ttv2_remark_save_url }}"{% endif %}
      {% if ttv2_followup_save_url is defined and ttv2_followup_save_url %}data-ttv2-followup-url="{{ ttv2_followup_save_url }}"{% endif %}
      {% if roster_filtered_total is defined %} data-ttv2-roster-total="{{ roster_filtered_total }}"{% endif %}>
+{% set _bulk_assign = (ttv2_bulk_counselor_options is defined and ttv2_bulk_counselor_options|length > 0) %}
+{% if _bulk_assign %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2 px-2 py-2 border rounded bg-light"
+     data-ttv2-bulk-adv-bar>
+  <label class="small mb-0 d-inline-flex align-items-center gap-2">
+    <input type="checkbox" data-ttv2-select-all-sm aria-label="Select all students on this page">
+    <span>Select page</span>
+  </label>
+  <select class="form-select form-select-sm" style="max-width:220px" data-ttv2-bulk-adv-counselor aria-label="Advisor for bulk assign">
+    <option value="">Advisor for selected…</option>
+    {% for c in ttv2_bulk_counselor_options %}
+      <option value="{{ c.id }}" data-counselor-inst-id="{{ c.institute_id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+    {% endfor %}
+  </select>
+  <button type="button" class="btn btn-sm btn-primary" data-ttv2-bulk-adv-apply>Assign selected</button>
+  <span class="text-muted small mb-0">Select students, pick the advisor that matches their school, then assign.</span>
+</div>
+{% endif %}
 <div class="table-responsive ttv2-students-list-wrap ttv2-students-table-shell">
   <table class="table table-hover ttv2-students-list-table ttv2-students-rich-table">
     <thead>
       <tr>
+        {% if _bulk_assign %}
+        <th class="ttv2-col-select align-middle" scope="col">
+          <span class="visually-hidden">Select</span>
+        </th>
+        {% endif %}
         <th class="ttv2-col-index ttv2-sticky-col">S. no.</th>
         <th class="ttv2-col-student ttv2-sticky-col">Student</th>
         <th>Class</th>
@@ -128,6 +151,7 @@
           {% endif %}
           <tr class="student-row"
               data-sm-id="{{ _sm_id }}"
+              data-sm-inst-id="{{ ts.institute_id|default('') }}"
               data-ttv2-set-url="{{ _row_set_url }}"
               data-student-id="{{ _student.id if _student else '' }}"
               data-student-name="{{ _student.name if (_student and _student.name) else '-' }}"
@@ -136,6 +160,13 @@
               data-student-class="{{ _class_section.class_and_section if (_class_section and _class_section.class_and_section) else '-' }}"
               data-student-stream="{{ _class_section.stream if (_class_section and _class_section.stream) else '-' }}"
               data-student-created="{{ _student.created.strftime('%d/%m/%Y') if (_student and _student.created) else '-' }}">
+            {% if _bulk_assign %}
+            <td class="ttv2-col-select align-middle" onclick="event.stopPropagation();">
+              <input type="checkbox"
+                     data-ttv2-sm-select
+                     aria-label="Select {% if _student and _student.name %}{{ _student.name }}{% else %}student{% endif %}">
+            </td>
+            {% endif %}
             <td class="ttv2-col-index ttv2-sticky-col">
               {% if students.paginator %}
                 {{ (students.number - 1) * students.paginator.per_page + loop.index }}
@@ -163,45 +194,69 @@
             <td>
               {% set _adv_name = '-' %}
               {% set _has_row_adv = false %}
-              {% if ts and ts.counselors is defined %}
+              {% set _assigned_coun_id = none %}
+              {% if ts is defined and ts.counselor_id %}
+                {% set _assigned_coun_id = ts.counselor_id %}
+                {% set _adv_name = ts.counselor.counselor_name|default('-') %}
+                {% set _has_row_adv = true %}
+              {% elif ts and ts.counselors is defined %}
                 {% set _adv_list = ts.counselors.all() %}
                 {% if _adv_list and (_adv_list|length) > 0 %}
                   {% set _adv_name = _adv_list[0].counselor_name|default('-') %}
+                  {% set _assigned_coun_id = _adv_list[0].id %}
                   {% set _has_row_adv = true %}
                 {% endif %}
-              {% endif %}
-              {% if not _has_row_adv and ts is defined and ts.counselor %}
-                {% set _adv_name = ts.counselor.counselor_name|default('-') %}
-                {% set _has_row_adv = true %}
               {% endif %}
               {% set _row_adv_opts = [] %}
               {% if table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined) %}
                 {% set _row_adv_opts = ttv2_counselor_options %}
-              {% elif table_config and table_config.role == 'institute_group' and (ttv2_counselors_by_institute_id is defined) and ts.institute_id %}
+              {% elif table_config and table_config.role in ('institute_group', 'marketing') and (ttv2_counselors_by_institute_id is defined) and ts.institute_id %}
                 {% set _row_adv_opts = (ttv2_counselors_by_institute_id.get((ts.institute_id|string)) or []) %}
               {% endif %}
+              {% set _show_adv_assign_ui = (table_config and ((table_config.role == 'institute' and (ttv2_counselor_options is defined)) or (table_config.role in ('institute_group', 'marketing') and (ttv2_counselors_by_institute_id is defined)))) %}
 
-              {% if (table_config and table_config.role == 'institute' and (ttv2_counselor_options is defined)) or (table_config and table_config.role == 'institute_group' and (ttv2_counselors_by_institute_id is defined)) %}
-                <div class="d-flex flex-column gap-1 ttv2-adv-cell">
-                  <div class="ttv2-adv-name">{{ _adv_name }}</div>
-                  <div class="d-flex gap-2 align-items-center ttv2-adv-controls">
-                    <select class="form-select form-select-sm" style="max-width:180px" data-ttv2-adv-select>
-                      <option value="">Unassigned</option>
-                      {% for c in _row_adv_opts %}
-                        <option value="{{ c.id }}">{{ c.name }}</option>
-                      {% endfor %}
-                    </select>
-                    <a href="#"
-                       class="btn btn-sm btn-link p-0 text-danger px-2"
-                       style="text-decoration:none"
-                       data-ttv2-adv-unassign
-                       title="Unassign counselor">
+              {% if _show_adv_assign_ui %}
+                <div class="d-flex flex-column gap-1 ttv2-adv-cell" data-ttv2-adv-cell {% if _has_row_adv %}data-ttv2-adv-assigned="1"{% endif %}>
+                  {% if _has_row_adv %}
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                      <span class="badge bg-secondary">{{ _adv_name }}</span>
+                      <button type="button"
+                              class="btn btn-link btn-sm p-0 text-muted text-decoration-none"
+                              data-ttv2-adv-toggle-change
+                              aria-expanded="false">
+                        Change advisor
+                      </button>
+                    </div>
+                    <div class="d-none flex-column gap-1 ps-0 pt-1 border-start border-2 ms-1 ps-2 ttv2-adv-change-panel" data-ttv2-adv-change-panel>
+                      <select class="form-select form-select-sm" style="max-width:220px" data-ttv2-adv-select-change-save>
+                        <option value="">Unassigned</option>
+                        {% for c in _row_adv_opts %}
+                          <option value="{{ c.id }}" {% if _assigned_coun_id is not none and c.id == _assigned_coun_id %}selected{% endif %} title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+                        {% endfor %}
+                      </select>
+                      <span class="text-muted" style="font-size:11px;">Saving applies immediately.</span>
+                    </div>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger py-0 align-self-start"
+                            data-ttv2-adv-unassign>
                       Unassign
-                    </a>
-                  </div>
-                  <div style="font-size:11px;color:var(--c-text3);">
-                    Changing the dropdown saves automatically.
-                  </div>
+                    </button>
+                  {% else %}
+                    <div class="d-flex flex-column gap-1 align-items-start">
+                      <select class="form-select form-select-sm" style="max-width:220px" data-ttv2-adv-select-unassigned>
+                        <option value="">Choose advisor…</option>
+                        {% for c in _row_adv_opts %}
+                          <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="button"
+                              class="btn btn-sm btn-primary py-0"
+                              data-ttv2-adv-assign>
+                        Assign
+                      </button>
+                      <span class="text-muted" style="font-size:11px;">Pick an advisor, then click Assign.</span>
+                    </div>
+                  {% endif %}
                 </div>
               {% else %}
                 {{ _adv_name }}
@@ -428,7 +483,7 @@
         {% endfor %}
       {% else %}
       <tr>
-        <td colspan="{% set col_count = 8 %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
+        <td colspan="{% set col_count = 8 %}{% if _bulk_assign %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_stream %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_institute %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_created %}{% set col_count = col_count + 1 %}{% endif %}{% if table_config.show_remarks %}{% set col_count = col_count + 1 %}{% endif %}{{ col_count }}" class="text-center py-5">
           <div class="d-flex flex-column align-items-center">
             <i class='bx bx-user-x fs-48 text-gray mb-3'></i>
             <h4 class="fs-18 fw-semibold mb-2">No Students Found</h4>

@@ -175,6 +175,226 @@ function ttv2GetCookie(name) {
 }
 
 /**
+ * Institute / institute-group / marketing list view: advisor assign, bulk assign, unassign.
+ * Uses per-row data-ttv2-set-url (institute slug). Defined here so shells without role_boot/institute.html still bind.
+ */
+function ttv2InitAdvisorChangeControls() {
+  try {
+    var container = document.getElementById('students-table-container');
+    if (!container || container.__ttv2AdvBound) {
+      return;
+    }
+    container.__ttv2AdvBound = true;
+
+    function postSet(smId, counselorId, cb, rowUrlOverride) {
+      var url =
+        rowUrlOverride ||
+        container.getAttribute('data-ttv2-set-counselor-url') ||
+        '#';
+      if (!url || url === '#') {
+        return;
+      }
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': ttv2GetCookie('csrftoken') || ''
+        },
+        body: JSON.stringify({ student_management_id: smId, counselor_id: counselorId })
+      })
+        .then(function (r) {
+          return r.json().catch(function () {
+            return { ok: false };
+          });
+        })
+        .then(function (data) {
+          if (cb) cb(data);
+        })
+        .catch(function () {
+          if (cb) cb({ ok: false });
+        });
+    }
+
+    container.addEventListener('click', function (e) {
+      var toggleBtn =
+        e.target && e.target.closest ? e.target.closest('[data-ttv2-adv-toggle-change]') : null;
+      if (toggleBtn) {
+        e.preventDefault();
+        var cell = toggleBtn.closest('[data-ttv2-adv-cell]');
+        var panel = cell ? cell.querySelector('[data-ttv2-adv-change-panel]') : null;
+        if (!panel) return;
+        var willShow = panel.classList.contains('d-none');
+        panel.classList.toggle('d-none', !willShow);
+        toggleBtn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+        return;
+      }
+
+      var assignRowBtn =
+        e.target && e.target.closest ? e.target.closest('[data-ttv2-adv-assign]') : null;
+      if (assignRowBtn) {
+        e.preventDefault();
+        var trA = assignRowBtn.closest('tr[data-sm-id]');
+        if (!trA) return;
+        var selU = trA.querySelector('[data-ttv2-adv-select-unassigned]');
+        var counselorPick = selU ? String(selU.value || '').trim() : '';
+        if (!counselorPick) {
+          try {
+            alert('Choose an advisor first.');
+          } catch (ePick) {}
+          return;
+        }
+        var smIdA = trA.getAttribute('data-sm-id');
+        var rowUrlA = (trA.getAttribute('data-ttv2-set-url') || '').trim();
+        assignRowBtn.disabled = true;
+        postSet(smIdA, counselorPick, function (data) {
+          assignRowBtn.disabled = false;
+          if (!(data && data.ok)) {
+            try {
+              alert((data && data.error) ? data.error : 'Assign failed');
+            } catch (e2) {}
+            return;
+          }
+          try {
+            if (typeof window.ttv2InitStudentTableAfterBodyInject === 'function') {
+              window.ttv2InitStudentTableAfterBodyInject();
+            }
+          } catch (e3) {}
+        }, rowUrlA || undefined);
+        return;
+      }
+
+      var bulkApply =
+        e.target && e.target.closest ? e.target.closest('[data-ttv2-bulk-adv-apply]') : null;
+      if (bulkApply) {
+        e.preventDefault();
+        var bulkBar = bulkApply.closest('[data-ttv2-bulk-adv-bar]');
+        var bulkSel = bulkBar ? bulkBar.querySelector('[data-ttv2-bulk-adv-counselor]') : null;
+        var opt =
+          bulkSel && bulkSel.selectedIndex >= 0 ? bulkSel.options[bulkSel.selectedIndex] : null;
+        var instScope = opt ? String(opt.getAttribute("data-counselor-inst-id") || "").trim() : "";
+        var bulkCid = bulkSel ? String(bulkSel.value || "").trim() : "";
+        if (!bulkCid) {
+          try {
+            alert("Choose an advisor for the selected students.");
+          } catch (eB0) {}
+          return;
+        }
+        var picked = container.querySelectorAll(
+          "tbody tr.student-row[data-sm-id] input[data-ttv2-sm-select]:checked"
+        );
+        if (!picked.length) {
+          try {
+            alert("Select at least one student on this page.");
+          } catch (eB1) {}
+          return;
+        }
+        bulkApply.disabled = true;
+        var prevBulk = bulkApply.textContent;
+        bulkApply.textContent = "Assigning…";
+        var seq = Promise.resolve();
+        var skipped = 0;
+        picked.forEach(function (inp) {
+          var trb = inp.closest("tr[data-sm-id]");
+          if (!trb) return;
+          var smIdb = trb.getAttribute("data-sm-id");
+          var rowUrlb = (trb.getAttribute("data-ttv2-set-url") || "").trim();
+          var rowInst = String(trb.getAttribute("data-sm-inst-id") || "").trim();
+          if (instScope && rowInst && instScope !== rowInst) {
+            skipped += 1;
+            return;
+          }
+          seq = seq.then(function () {
+            return new Promise(function (resolve) {
+              postSet(smIdb, bulkCid, function () {
+                resolve();
+              }, rowUrlb || undefined);
+            });
+          });
+        });
+        seq
+          .catch(function () {})
+          .then(function () {
+            bulkApply.disabled = false;
+            bulkApply.textContent = prevBulk || "Assign selected";
+            if (skipped > 0) {
+              try {
+                alert(
+                  skipped +
+                    " row(s) skipped — they are not at the same institute as the advisor you picked."
+                );
+              } catch (eSk) {}
+            }
+            try {
+              if (typeof window.ttv2InitStudentTableAfterBodyInject === "function") {
+                window.ttv2InitStudentTableAfterBodyInject();
+              }
+            } catch (eBr) {}
+          });
+        return;
+      }
+
+      var unBtn = e.target && e.target.closest ? e.target.closest("[data-ttv2-adv-unassign]") : null;
+      if (!unBtn) return;
+      e.preventDefault();
+      var tr = e.target.closest('tr[data-sm-id]');
+      if (!tr) return;
+      var smId = tr.getAttribute('data-sm-id');
+      var rowUrl = (tr.getAttribute('data-ttv2-set-url') || '').trim();
+      postSet(smId, '', function (data) {
+        if (!(data && data.ok)) {
+          try {
+            alert((data && data.error) ? data.error : 'Unassign failed');
+          } catch (e2) {}
+          return;
+        }
+        try {
+          if (typeof window.ttv2InitStudentTableAfterBodyInject === 'function') {
+            window.ttv2InitStudentTableAfterBodyInject();
+          }
+        } catch (e3) {}
+      }, rowUrl || undefined);
+    });
+
+    container.addEventListener('change', function (e) {
+      var master =
+        e.target && e.target.closest ? e.target.closest('[data-ttv2-select-all-sm]') : null;
+      if (master) {
+        var on = master.checked;
+        container
+          .querySelectorAll('tbody tr.student-row[data-sm-id] input[data-ttv2-sm-select]')
+          .forEach(function (cb) {
+            cb.checked = on;
+          });
+        return;
+      }
+
+      var sel =
+        e.target && e.target.closest ? e.target.closest('[data-ttv2-adv-select-change-save]') : null;
+      if (!sel) return;
+      var tr = sel.closest('tr[data-sm-id]');
+      if (!tr) return;
+      var smId = tr.getAttribute('data-sm-id');
+      var counselorId = sel.value || '';
+      var rowUrl = (tr.getAttribute('data-ttv2-set-url') || '').trim();
+      postSet(smId, counselorId, function (data) {
+        if (!(data && data.ok)) {
+          try {
+            alert((data && data.error) ? data.error : 'Update failed');
+          } catch (e2) {}
+          return;
+        }
+        try {
+          if (typeof window.ttv2InitStudentTableAfterBodyInject === 'function') {
+            window.ttv2InitStudentTableAfterBodyInject();
+          }
+        } catch (e3) {}
+      }, rowUrl || undefined);
+    });
+  } catch (e0) {}
+}
+
+/**
  * Grid cards: assign / unassign advisor (delegated on document.body, capture phase).
  */
 function ttv2BindAdvCardDelegatedActionsOnce() {
@@ -1127,6 +1347,7 @@ function ttv2InitStudentTableAfterBodyInject() {
 if (typeof window !== 'undefined') {
   window.ttv2BindInstituteStudentPanelOnce = ttv2BindInstituteStudentPanelOnce;
   window.ttv2InitStudentTableAfterBodyInject = ttv2InitStudentTableAfterBodyInject;
+  window.ttv2InitAdvisorChangeControls = ttv2InitAdvisorChangeControls;
 }
 
 try {

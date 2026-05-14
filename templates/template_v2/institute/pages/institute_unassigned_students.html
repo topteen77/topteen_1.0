@@ -181,7 +181,7 @@
                 <select class="form-select form-select-sm ttv2-unassigned-select" data-ttv2-counselor>
                   <option value="">Select counselor</option>
                   {% for c in counselors %}
-                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
                   {% endfor %}
                 </select>
               </td>

@@ -894,11 +894,22 @@
           if (!(data && data.ok)) {
             var err = (data && data.error) || "Unassign failed.";
             if (err === "students_assigned") {
-              err = "Cannot remove: this advisor still has students assigned.";
+              err =
+                "Cannot remove: this advisor still has students assigned at this institute.";
             }
-            window.ttv2IgCounselorFlashMsg(err, "danger");
+            if (err === "last_placement") {
+              err =
+                "Keep at least one institute assigned to this advisor in your group (add another placement first, then remove from this school).";
+            }
+            window.ttv2IgCounselorFlashMsg(
+              (data && data.message) || err,
+              "danger"
+            );
           } else {
-            window.ttv2IgCounselorFlashMsg("Advisor removed.", "success");
+            window.ttv2IgCounselorFlashMsg(
+              "Advisor unassigned from this institute (still available to assign elsewhere).",
+              "success"
+            );
             if (wrapChip && rowChip && cidChip) {
               ttv2IgRemoveAssignedChip(wrapChip, cidChip);
               ttv2IgSyncCounselorsColumn(rowChip, cidChip, "", "remove");

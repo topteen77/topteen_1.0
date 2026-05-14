@@ -9,32 +9,83 @@ from typing import Dict, List, Sequence, Tuple
 
 from django.db.models.functions import Lower
 
+from django.db.models import Q
+
 from counselor.models import Counselor, FollowUpStatus
 
 
-def build_institute_group_counselor_ui_maps(institutes_qs) -> Tuple[Dict[int, List[Dict]], List[Dict]]:
+def _counselor_select_identity_tuple(counselor: Counselor) -> Tuple[str, str]:
+    """Stable key for deduplicating institute-group assign dropdown rows."""
+    uid = getattr(counselor, "coun_user_id", None)
+    if uid:
+        return ("u", str(int(uid)))
+    em = (counselor.counselor_email or "").strip().lower()
+    if em:
+        return ("e", em)
+    return ("i", str(int(counselor.pk)))
+
+
+def build_institute_group_counselor_ui_maps(
+    institutes_qs,
+    *,
+    detached_institute_group_id: int | None = None,
+) -> Tuple[Dict[int, List[Dict]], List[Dict]]:
     """
     For institute-group institutes listing: map institute_id -> counselors there,
     plus flat select options for bulk/per-row assign (one Counselor row per institute admin).
+
+    Counselors detached from every school but pending reassignment in this group are included
+    in the select list (not in cmap until assigned again).
     """
     ids = list(institutes_qs.values_list("id", flat=True))
-    if not ids:
+    if not ids and not detached_institute_group_id:
         return {}, []
 
+    q_inst = Q(counselor_admin_id__in=ids) if ids else None
+    q_det = (
+        Q(
+            counselor_admin__isnull=True,
+            detached_from_institute_group_id=int(detached_institute_group_id),
+        )
+        if detached_institute_group_id
+        else None
+    )
+    if q_inst is not None and q_det is not None:
+        counselor_filter = q_inst | q_det
+    elif q_inst is not None:
+        counselor_filter = q_inst
+    else:
+        counselor_filter = q_det
+
     cmap: Dict[int, List[Dict]] = defaultdict(list)
-    select_opts: List[Dict] = []
     counselors = (
-        Counselor.objects.filter(counselor_admin_id__in=ids)
+        Counselor.objects.filter(counselor_filter)
         .select_related("counselor_admin")
         .order_by(Lower("counselor_name"), "id")
     )
+    by_identity: Dict[Tuple[str, str], List[Counselor]] = defaultdict(list)
     for c in counselors:
-        cmap[c.counselor_admin_id].append({"id": c.id, "name": c.counselor_name})
-        admin = c.counselor_admin
+        aid = c.counselor_admin_id
+        if aid:
+            cmap[aid].append({"id": c.id, "name": c.counselor_name})
+        by_identity[_counselor_select_identity_tuple(c)].append(c)
+
+    select_opts: List[Dict] = []
+    for _ident in sorted(by_identity.keys(), key=lambda t: (t[0], t[1])):
+        rows_for_id = by_identity[_ident]
+        rows_for_id.sort(
+            key=lambda c: (
+                0 if c.counselor_admin_id else 1,
+                (c.counselor_name or "").lower(),
+                c.id,
+            )
+        )
+        rep = rows_for_id[0]
+        admin = rep.counselor_admin
         select_opts.append(
             {
-                "id": c.id,
-                "name": c.counselor_name,
+                "id": rep.id,
+                "name": rep.counselor_name,
                 "institute_name": getattr(admin, "name", "") or "—",
             }
         )
@@ -182,18 +233,39 @@ def filter_ig_placement_rows_by_query(rows: List[Dict], query: str) -> List[Dict
     return out
 
 
-def build_unique_counselor_identity_rows(institute_ids: Sequence[int]) -> List[Dict]:
+def build_unique_counselor_identity_rows(
+    institute_ids: Sequence[int],
+    *,
+    detached_institute_group_id: int | None = None,
+) -> List[Dict]:
     """
     One logical advisor per linked login user (or shared email); aggregates counts across placements.
     Canonical ``id`` is the smallest Counselor pk in the group (edit/password target).
+
+    Optionally includes counselors detached from all schools but scoped to ``detached_institute_group_id``.
     """
     ids = sorted({int(x) for x in institute_ids if x})
-    if not ids:
+    if not ids and not detached_institute_group_id:
         return []
 
-    counselors = list(
-        Counselor.objects.filter(counselor_admin_id__in=ids).select_related("counselor_admin")
-    )
+    parts: List[Q] = []
+    if ids:
+        parts.append(Q(counselor_admin_id__in=ids))
+    if detached_institute_group_id:
+        parts.append(
+            Q(
+                counselor_admin__isnull=True,
+                detached_from_institute_group_id=int(detached_institute_group_id),
+            )
+        )
+    if not parts:
+        return []
+
+    counselor_filter = parts[0]
+    for extra in parts[1:]:
+        counselor_filter |= extra
+
+    counselors = list(Counselor.objects.filter(counselor_filter).select_related("counselor_admin"))
     if not counselors:
         return []
 
@@ -234,6 +306,9 @@ def build_unique_counselor_identity_rows(institute_ids: Sequence[int]) -> List[D
             seen_admin[aid] = None
             institute_names.append(getattr(admin, "name", "") or "—")
         institute_names.sort(key=lambda x: x.lower())
+        if not institute_names:
+            if any(getattr(c, "detached_from_institute_group_id", None) for c in members):
+                institute_names.append("(Not assigned to a school)")
 
         created_times = [c.created for c in members if getattr(c, "created", None)]
         created_val = min(created_times) if created_times else None

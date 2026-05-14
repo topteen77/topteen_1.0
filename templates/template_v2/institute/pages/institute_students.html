@@ -108,6 +108,7 @@
         {% endif %}
         {% if ttv2_students_role is not defined or ttv2_students_role in ('institute_group', 'marketing_group') %}
           <span class="d-block mt-1 text-muted fs-12">Filter by <strong>No advisor assigned</strong> below, or use <code class="small">?counselor_assigned=no</code> (combine with <code class="small">institute_slug</code> when scoped to one school).</span>
+          <span class="d-block mt-1 text-muted fs-12">Bulk assign (list): use <strong>Select page</strong>, <strong>Advisor for selected…</strong> (shows school in the label), then <strong>Assign selected</strong>. Students must match that advisor&apos;s institute.</span>
         {% endif %}
       </div>
       <div class="ttv2-sp-hr" aria-hidden="true"></div>

@@ -32,6 +32,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+<script src="{{ staticv('js_new/student_table_ajax.js') }}"></script>
 <script src="{{ static('js_new/institute_group_dashboard_boot.js') }}"></script>
 <script>
   // Page-specific boot after the v2 shell injects ?ttv2_partial=1 into #ttv2AjaxContent
