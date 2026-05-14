@@ -250,6 +250,17 @@ def _nav_for_role(
                 ],
             },
             {
+                "title": "Guidance",
+                "items": [
+                    {
+                        "label": "Session report",
+                        "dot": "#fb923c",
+                        "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["session_report"]),
+                        "key": "sessions",
+                    },
+                ],
+            },
+            {
                 "title": "Analytics",
                 "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:marketinggroupheatmap")}],
             },

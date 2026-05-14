@@ -889,6 +889,500 @@ def _ttv2_fill_institute_group_session_report_ctx(
         "class": raw_class,
     }
 
+    try:
+        _ttv2_fill_session_report_rich_from_student_scope(
+            request,
+            ctx,
+            _sm_ig.select_related("student", "class_and_section", "institute"),
+        )
+    except Exception:
+        ctx.setdefault("ttv2_sessions_kpis", {})
+        ctx.setdefault("ttv2_sessions_mtd_rows", [])
+        ctx.setdefault("ttv2_sessions_students", [])
+        ctx.setdefault("ttv2_sessions_month_label", "")
+        ctx.setdefault("ttv2_sessions_weekly_note", "—")
+        ctx.setdefault("ttv2_sessions_next_actions", [])
+
+
+def _ttv2_fill_session_report_rich_from_student_scope(request, ctx, sm_qs):
+    """
+    KPI + month-to-date + student cards for session report, scoped by StudentManagement queryset
+    (institute group, marketing group, or any multi-school scope). Matches InstituteDashboardView
+    session_report rich block but uses follow-ups for students in sm_qs only.
+    """
+    import calendar
+
+    from django.db import models as _models
+    from django.db.models import Count, Q
+    from django.db.models.functions import Coalesce, TruncDate
+
+    if sm_qs is None:
+        raise ValueError("sm_qs required")
+
+    sm_ids = list(sm_qs.values_list("id", flat=True))
+    total_students = int(len(sm_ids))
+
+    today = timezone.localdate()
+    week_start = _ttv2_week_start_from_request(request) or (today - timedelta(days=today.weekday()))
+    week_end = week_start + timedelta(days=6)
+
+    fu_base = FollowUpStatus.objects.filter(student_id__in=sm_ids).annotate(
+        _sess_day=Coalesce(
+            "last_follow_up_date",
+            TruncDate("created"),
+            output_field=_models.DateField(),
+        )
+    )
+
+    fu_week = fu_base.filter(_sess_day__gte=week_start, _sess_day__lte=week_end)
+    sessions_week = int(fu_week.count())
+    completed_week = int(fu_week.filter(follow_up_status="completed").count())
+    unique_students_week = int(fu_week.values("student_id").distinct().count())
+    completion_rate = int(round((100.0 * completed_week / sessions_week), 0)) if sessions_week else 0
+
+    upcoming = 0
+    try:
+        upcoming = int(
+            FollowUpStatus.objects.filter(
+                student_id__in=sm_ids,
+                next_follow_up_date__isnull=False,
+                next_follow_up_date__gte=today,
+            )
+            .values("student_id")
+            .distinct()
+            .count()
+        )
+    except Exception:
+        upcoming = 0
+
+    ctx["ttv2_sessions_kpis"] = {
+        "sessions_week": sessions_week,
+        "unique_students_week": unique_students_week,
+        "completed_week": completed_week,
+        "completion_rate_week": completion_rate,
+        "upcoming_followups": upcoming,
+    }
+
+    month_ref = week_start or today
+    month_first = month_ref.replace(day=1)
+    month_last = month_ref.replace(day=calendar.monthrange(month_ref.year, month_ref.month)[1])
+    month_end = (
+        min(today, month_last)
+        if (month_ref.year == today.year and month_ref.month == today.month)
+        else month_last
+    )
+
+    def _month_week_ranges(start_d, end_d):
+        out = []
+        cur = start_d
+        idx = 1
+        while cur <= end_d:
+            nxt = min(end_d, cur + timedelta(days=6))
+            out.append((idx, cur, nxt))
+            idx += 1
+            cur = nxt + timedelta(days=1)
+        return out
+
+    month_weeks = _month_week_ranges(month_first, month_end)
+    fu_month = fu_base.filter(_sess_day__gte=month_first, _sess_day__lte=month_end)
+
+    try:
+        clarity_gap = float((ctx.get("ttv2_analytics") or {}).get("kpi", {}).get("clarity_gap", 0) or 0)
+    except Exception:
+        clarity_gap = 0.0
+    try:
+        test_completion = int((ctx.get("ttv2_analytics") or {}).get("kpi", {}).get("psych_pct", 0) or 0)
+    except Exception:
+        test_completion = 0
+
+    mtd_rows = []
+    for widx, ws, we in month_weeks:
+        try:
+            qs_w = fu_month.filter(_sess_day__gte=ws, _sess_day__lte=we)
+            sessions_cnt = int(qs_w.count())
+            students_reached = int(qs_w.values("student_id").distinct().count())
+        except Exception:
+            sessions_cnt = 0
+            students_reached = 0
+        mtd_rows.append(
+            {
+                "week": f"Week {widx}",
+                "period": f"{ws:%b} {ws.day}–{we.day}",
+                "week_start": ws.isoformat(),
+                "sessions": sessions_cnt,
+                "students_reached": f"{students_reached}/{total_students}" if total_students else f"{students_reached}/0",
+                "test_completion": test_completion,
+                "clarity_gap": clarity_gap,
+                "paths": 0,
+                "milestone": "—",
+                "rating": 0,
+                "is_current": bool(ws <= week_start <= we),
+            }
+        )
+    ctx["ttv2_sessions_month_label"] = f"{month_first:%B} {month_first.year}"
+    ctx["ttv2_sessions_mtd_rows"] = mtd_rows
+    ctx["ttv2_sessions_weekly_note"] = "—"
+    ctx["ttv2_sessions_next_actions"] = []
+
+    try:
+        totals = {
+            int(r["student_id"]): {"total": int(r["n"] or 0), "done": int(r["done"] or 0)}
+            for r in fu_base.values("student_id").annotate(
+                n=Count("id"),
+                done=Count("id", filter=Q(follow_up_status="completed")),
+            )
+        }
+        week_map = {
+            int(r["student_id"]): {"week_total": int(r["n"] or 0), "week_done": int(r["done"] or 0)}
+            for r in fu_week.values("student_id").annotate(
+                n=Count("id"),
+                done=Count("id", filter=Q(follow_up_status="completed")),
+            )
+        }
+    except Exception:
+        totals, week_map = {}, {}
+
+    previews = {}
+    try:
+        recent_fu = list(fu_base.select_related("counselor").order_by("-_sess_day", "-created")[:400])
+
+        def _fmt(d):
+            try:
+                return d.strftime("%a %d %b %Y") if d else ""
+            except Exception:
+                return ""
+
+        for fu in recent_fu:
+            sid = int(getattr(fu, "student_id", 0) or 0)
+            if not sid:
+                continue
+            arr = previews.setdefault(sid, [])
+            if len(arr) >= 2:
+                continue
+            arr.append(
+                {
+                    "when": _fmt(getattr(fu, "_sess_day", None)) or "—",
+                    "counselor": (getattr(getattr(fu, "counselor", None), "counselor_name", None) or ""),
+                    "mode": (getattr(fu, "mode_of_follow_up", None) or "—"),
+                    "status": (getattr(fu, "follow_up_status", None) or "—"),
+                    "next": _fmt(getattr(fu, "next_follow_up_date", None)) or "",
+                    "message": (getattr(fu, "message", None) or "").strip(),
+                }
+            )
+    except Exception:
+        previews = {}
+
+    top_ids = sorted(
+        list(week_map.keys()),
+        key=lambda x: int(week_map.get(x, {}).get("week_total", 0)),
+        reverse=True,
+    )[:12]
+    if not top_ids:
+        top_ids = sorted(
+            list(totals.keys()),
+            key=lambda x: int(totals.get(x, {}).get("total", 0)),
+            reverse=True,
+        )[:12]
+
+    sm_by_id = {int(sm.id): sm for sm in sm_qs.filter(id__in=top_ids)}
+    out_students = []
+    for sm_id in top_ids:
+        sm = sm_by_id.get(int(sm_id))
+        if not sm:
+            continue
+        u = getattr(sm, "student", None)
+        name = (getattr(u, "name", "") or "").strip() or f"Student {sm_id}"
+        cas = getattr(sm, "class_and_section", None)
+        meta = ""
+        try:
+            cls = (getattr(cas, "class_and_section", "") or "").strip()
+            st = (getattr(cas, "stream", "") or "").strip()
+            inst_name = (getattr(getattr(sm, "institute", None), "name", "") or "").strip()
+            meta = " · ".join([x for x in [cls, st, inst_name] if x])
+        except Exception:
+            meta = ""
+        t = totals.get(int(sm_id), {})
+        w = week_map.get(int(sm_id), {})
+        out_students.append(
+            {
+                "student_id": int(sm_id),
+                "student": name,
+                "meta": meta,
+                "total": int(t.get("total", 0) or 0),
+                "done": int(t.get("done", 0) or 0),
+                "week_total": int(w.get("week_total", 0) or 0),
+                "week_done": int(w.get("week_done", 0) or 0),
+                "preview": previews.get(int(sm_id), []),
+            }
+        )
+    ctx["ttv2_sessions_students"] = out_students
+
+
+def _ttv2_fill_marketing_group_session_report_ctx(request, ctx):
+    """Session report for marketing-group admins: table filters + rich KPIs (same as institute group)."""
+    from django.db import models as _models
+    from django.db.models.functions import Coalesce, TruncDate
+
+    from counselor.models import Counselor as _Counselor
+
+    group_admin = request.user
+    ctx["ttv2_session_report_subtitle"] = (
+        "Showing counselor follow-ups for students across your marketing network."
+    )
+    sm_mkt = StudentManagement.objects.filter(
+        institute__marketing_group__marketing_group_admin=group_admin
+    )
+    sm_ids = list(sm_mkt.values_list("id", flat=True))
+
+    raw_from = (request.GET.get("from") or "").strip()
+    raw_to = (request.GET.get("to") or "").strip()
+    raw_coun = (request.GET.get("counselor") or "").strip()
+    raw_mode = (request.GET.get("mode") or "").strip()
+    raw_status = (request.GET.get("status") or "").strip()
+    raw_class = (request.GET.get("class") or "").strip()
+    date_from = None
+    date_to = None
+    try:
+        if raw_from:
+            date_from = datetime.strptime(raw_from, "%Y-%m-%d").date()
+    except Exception:
+        date_from = None
+    try:
+        if raw_to:
+            date_to = datetime.strptime(raw_to, "%Y-%m-%d").date()
+    except Exception:
+        date_to = None
+
+    mkt_iids = list(
+        Institute.objects.filter(marketing_group__marketing_group_admin=group_admin).values_list(
+            "id", flat=True
+        )
+    )
+    try:
+        ctx["ttv2_session_report_counselors"] = list(
+            _Counselor.objects.filter(
+                Q(counselor_admin_id__in=mkt_iids) | Q(institute_placements__id__in=mkt_iids)
+            )
+            .distinct()
+            .order_by("counselor_name")
+            .values("id", name=F("counselor_name"))
+        )
+    except Exception:
+        ctx["ttv2_session_report_counselors"] = []
+
+    rows = []
+    if sm_ids:
+        try:
+            qs = (
+                FollowUpStatus.objects.filter(student_id__in=sm_ids)
+                .select_related("counselor", "student", "student__student")
+                .annotate(
+                    _sess_day=Coalesce(
+                        "last_follow_up_date",
+                        TruncDate("created"),
+                        output_field=_models.DateField(),
+                    )
+                )
+            )
+            if date_from:
+                qs = qs.filter(_sess_day__gte=date_from)
+            if date_to:
+                qs = qs.filter(_sess_day__lte=date_to)
+            if raw_coun:
+                try:
+                    qs = qs.filter(counselor_id=int(raw_coun))
+                except Exception:
+                    pass
+            if raw_mode:
+                qs = qs.filter(mode_of_follow_up__iexact=raw_mode)
+            if raw_status:
+                qs = qs.filter(follow_up_status__iexact=raw_status)
+            if raw_class:
+                try:
+                    qs = qs.filter(student__class_and_section_id=int(raw_class))
+                except Exception:
+                    pass
+            qs = qs.order_by("-_sess_day", "-created")[:200]
+            for fu in qs:
+                sm = getattr(fu, "student", None)
+                u = getattr(sm, "student", None) if sm else None
+                rows.append(
+                    {
+                        "when": getattr(fu, "last_follow_up_date", None).strftime("%Y-%m-%d")
+                        if getattr(fu, "last_follow_up_date", None)
+                        else (
+                            getattr(fu, "created", None).strftime("%Y-%m-%d")
+                            if getattr(fu, "created", None)
+                            else "-"
+                        ),
+                        "counselor": getattr(getattr(fu, "counselor", None), "counselor_name", None)
+                        or "-",
+                        "student": getattr(u, "name", None)
+                        or getattr(u, "email", None)
+                        or (getattr(sm, "student_name", None) if sm else None)
+                        or "-",
+                        "mode": getattr(fu, "mode_of_follow_up", None) or "-",
+                        "status": getattr(fu, "follow_up_status", None) or "-",
+                        "next": getattr(fu, "next_follow_up_date", None).strftime("%Y-%m-%d")
+                        if getattr(fu, "next_follow_up_date", None)
+                        else "-",
+                    }
+                )
+        except Exception:
+            rows = []
+
+    ctx["ttv2_sessions_is_dummy"] = False
+    ctx["ttv2_sessions"] = rows
+    ctx["ttv2_session_report_rows"] = rows
+    ctx["ttv2_sessions_filters"] = {
+        "from": raw_from,
+        "to": raw_to,
+        "counselor": raw_coun,
+        "mode": raw_mode,
+        "status": raw_status,
+        "class": raw_class,
+    }
+
+    try:
+        _ttv2_fill_session_report_rich_from_student_scope(
+            request,
+            ctx,
+            sm_mkt.select_related("student", "class_and_section", "institute"),
+        )
+    except Exception:
+        ctx.setdefault("ttv2_sessions_kpis", {})
+        ctx.setdefault("ttv2_sessions_mtd_rows", [])
+        ctx.setdefault("ttv2_sessions_students", [])
+        ctx.setdefault("ttv2_sessions_month_label", "")
+        ctx.setdefault("ttv2_sessions_weekly_note", "—")
+        ctx.setdefault("ttv2_sessions_next_actions", [])
+
+
+def _ttv2_json_weekly_sessions_for_student_scope(request, sm_qs):
+    """Weekly session chart JSON (same shape as institute dashboard ?data_type=sessions)."""
+    from django.db import models as _models
+    from django.db.models import Count
+    from django.db.models.functions import Coalesce, TruncDate
+
+    try:
+        sm_qs = sm_qs.select_related("student")
+        sm_ids = list(sm_qs.values_list("id", flat=True))
+        if not sm_ids:
+            return JsonResponse({"sessions_data": []})
+
+        group = (request.GET.get("group") or "").strip().lower()
+        wk = _ttv2_week_start_from_request(request) or timezone.localdate()
+        week_start = wk - timedelta(days=wk.weekday())
+        week_end = week_start + timedelta(days=6)
+        days = [week_start + timedelta(days=i) for i in range(7)]
+        day_keys = [d.isoformat() for d in days]
+
+        base_qs = (
+            FollowUpStatus.objects.filter(student_id__in=sm_ids)
+            .annotate(
+                _sess_day=Coalesce(
+                    "last_follow_up_date",
+                    TruncDate("created"),
+                    output_field=_models.DateField(),
+                )
+            )
+            .filter(_sess_day__gte=week_start, _sess_day__lte=week_end)
+        )
+
+        if group == "student":
+            top_n = 8
+            try:
+                top_ids = list(
+                    base_qs.values("student_id")
+                    .annotate(n=Count("id"))
+                    .order_by("-n")[:top_n]
+                )
+                top_ids = [int(r["student_id"]) for r in top_ids if r.get("student_id")]
+            except Exception:
+                top_ids = []
+
+            name_map = {}
+            try:
+                for sm in sm_qs.filter(id__in=top_ids):
+                    u = getattr(sm, "student", None)
+                    name_map[int(sm.id)] = (getattr(u, "name", "") or "").strip() or f"Student {sm.id}"
+            except Exception:
+                for sid in top_ids:
+                    name_map[int(sid)] = f"Student {sid}"
+
+            counts = {}
+            try:
+                for r in (
+                    base_qs.filter(student_id__in=top_ids)
+                    .values("student_id", "_sess_day")
+                    .annotate(n=Count("id"))
+                ):
+                    sid = int(r.get("student_id") or 0)
+                    d = r.get("_sess_day")
+                    if not sid or not d:
+                        continue
+                    counts[(sid, d.isoformat())] = int(r.get("n") or 0)
+            except Exception:
+                counts = {}
+
+            out = []
+            for sid in top_ids:
+                series = [{"day": dk, "session_count": int(counts.get((int(sid), dk), 0))} for dk in day_keys]
+                out.append(
+                    {
+                        "series_id": int(sid),
+                        "series_name": name_map.get(int(sid)) or f"Student {sid}",
+                        "sessions": series,
+                    }
+                )
+            return JsonResponse({"sessions_data": out})
+
+        top_n = 8
+        try:
+            top_c = list(
+                base_qs.values("counselor_id").annotate(n=Count("id")).order_by("-n")[:top_n]
+            )
+            top_cids = [int(r["counselor_id"]) for r in top_c if r.get("counselor_id")]
+        except Exception:
+            top_cids = []
+
+        name_map = {}
+        try:
+            for c in Counselor.objects.filter(id__in=top_cids).only("id", "counselor_name"):
+                name_map[int(c.id)] = (getattr(c, "counselor_name", "") or "").strip() or f"Counselor {c.id}"
+        except Exception:
+            for cid in top_cids:
+                name_map[int(cid)] = f"Counselor {cid}"
+
+        counts = {}
+        try:
+            for r in (
+                base_qs.filter(counselor_id__in=top_cids)
+                .values("counselor_id", "_sess_day")
+                .annotate(n=Count("id"))
+            ):
+                cid = int(r.get("counselor_id") or 0)
+                d = r.get("_sess_day")
+                if not cid or not d:
+                    continue
+                counts[(cid, d.isoformat())] = int(r.get("n") or 0)
+        except Exception:
+            counts = {}
+
+        out = []
+        for cid in top_cids:
+            series = [{"day": dk, "session_count": int(counts.get((int(cid), dk), 0))} for dk in day_keys]
+            out.append(
+                {
+                    "counselor_id": int(cid),
+                    "counselor_name": name_map.get(int(cid)) or f"Counselor {cid}",
+                    "sessions": series,
+                }
+            )
+        return JsonResponse({"sessions_data": out})
+    except Exception:
+        return JsonResponse({"sessions_data": []})
+
 
 def student_management_for_institute_group_admin(user):
     """
@@ -1900,6 +2394,8 @@ class MarketingGroupDashboardView(TemplateView):
             ctx['institute_table_query_string'] = urlencode(_qs)
         # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
         ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
+        if ctx["ttv2_page"] == "session_report":
+            _ttv2_fill_marketing_group_session_report_ctx(request, ctx)
         if ctx["ttv2_page"] == "students":
             sm_scope = scoped_student_management_for_dashboard(request)
             ctx["total_students_count"] = sm_scope.count()
@@ -1935,6 +2431,14 @@ class MarketingGroupDashboardView(TemplateView):
             return _ttv2_session_history_student_response(
                 request,
                 scoped_student_management_for_dashboard(request),
+            )
+        if is_ajax and data_type == "sessions":
+            group_admin = request.user
+            return _ttv2_json_weekly_sessions_for_student_scope(
+                request,
+                StudentManagement.objects.filter(
+                    institute__marketing_group__marketing_group_admin=group_admin
+                ),
             )
         if is_ajax and data_type == "students":
             from institute.student_table_helpers import (
@@ -2607,6 +3111,11 @@ class InstituteGroupDashboardView(TemplateView):
             return _ttv2_session_history_student_response(
                 request,
                 scoped_student_management_for_dashboard(request),
+            )
+        if is_ajax and data_type == "sessions":
+            return _ttv2_json_weekly_sessions_for_student_scope(
+                request,
+                student_management_for_institute_group_admin(request.user),
             )
         if is_ajax and data_type == "students":
             from institute.student_table_helpers import (

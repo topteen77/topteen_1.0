@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block dashboard_body %}
-  {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+  {% if (ttv2_page|default('dashboard')) in ['dashboard', 'session_report'] %}
     {% include "template_v2/includes/ttv2_week_header_bar.html" %}
   {% endif %}
   <div id="ttv2AjaxContent"

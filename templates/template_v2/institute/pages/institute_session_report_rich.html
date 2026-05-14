@@ -516,7 +516,11 @@
     <div>
       <div class="card-title mb-0">Session report</div>
       <div style="font-size:11px;color:var(--c-text3);">
-        Institute-wide: includes all counselors and students.
+        {% if ttv2_session_report_subtitle is defined and ttv2_session_report_subtitle %}
+          {{ ttv2_session_report_subtitle }}
+        {% else %}
+          Institute-wide: includes all counselors and students.
+        {% endif %}
       </div>
     </div>
     <div class="d-flex align-items-center gap-2">
