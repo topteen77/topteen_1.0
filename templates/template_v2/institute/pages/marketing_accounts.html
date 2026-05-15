@@ -1,0 +1,162 @@
+{# Marketing — business & collections dashboard (institutes in scope) #}
+<link rel="stylesheet" href="{{ static('css_new/ttv2_accounts_page.css') }}">
+{% set acc = ttv2_accounts if ttv2_accounts is defined else {} %}
+{% set tieup = acc.tieup if acc.tieup is defined else {} %}
+{% set period = acc.period|default('this_month') %}
+{% set pk = acc.product_key|default('all') %}
+
+<div class="ttv2-accounts-page" id="ttv2MarketingAccounts">
+  <div class="ttv2-acc-hero">
+    <div class="ttv2-acc-hero-copy">
+      <h2>Marketing business overview</h2>
+      <p>Collections, pending tie-up revenue, and product sales across <strong>{{ acc.institute_count|default(0) }} institutes</strong> — {{ acc.period_label|default('This month') }}.</p>
+    </div>
+    <form class="ttv2-acc-period d-flex flex-wrap gap-2 align-items-center" method="get" action="">
+      <span class="ttv2-acc-period-icon"><i class="bx bx-calendar-event"></i></span>
+      <select name="period" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+        <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>This month</option>
+        <option value="6months" {% if period == '6months' %}selected{% endif %}>Past 6 months</option>
+        <option value="lifetime" {% if period == 'lifetime' %}selected{% endif %}>Lifetime</option>
+        <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom range</option>
+      </select>
+      {% if period == 'custom' %}
+      <input type="date" name="date_from" class="form-control form-control-sm" value="{{ acc.date_from|default('') }}" style="width:auto">
+      <input type="date" name="date_to" class="form-control form-control-sm" value="{{ acc.date_to|default('') }}" style="width:auto">
+      {% endif %}
+      <select name="product" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+        {% for key, label in acc.product_filter_labels.items() %}
+        <option value="{{ key }}" {% if pk == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+    </form>
+  </div>
+
+  <div class="ttv2-acc-kpis">
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--green">
+      <div class="ttv2-acc-kpi-head"><span class="ttv2-acc-kpi-icon"><i class="bx bx-check-circle"></i></span><span class="ttv2-acc-kpi-pill">Collected</span></div>
+      <div class="ttv2-acc-kpi-label">Revenue received</div>
+      <div class="ttv2-acc-kpi-value">₹{{ tieup.collected|default('0') }}</div>
+      <div class="ttv2-acc-kpi-sub">{{ tieup.success_count|default(0) }} successful tie-up / B2B lines</div>
+    </div>
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--amber">
+      <div class="ttv2-acc-kpi-head"><span class="ttv2-acc-kpi-icon"><i class="bx bx-time-five"></i></span><span class="ttv2-acc-kpi-pill">Pending</span></div>
+      <div class="ttv2-acc-kpi-label">Expected business (pending)</div>
+      <div class="ttv2-acc-kpi-value">₹{{ tieup.pending_business|default('0') }}</div>
+      <div class="ttv2-acc-kpi-sub">{{ tieup.pending_count|default(0) }} line items awaiting payment</div>
+    </div>
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--red" style="--ttv2-acc-tint: rgba(239,68,68,.12);">
+      <div class="ttv2-acc-kpi-head"><span class="ttv2-acc-kpi-icon"><i class="bx bx-x-circle"></i></span><span class="ttv2-acc-kpi-pill">Failed</span></div>
+      <div class="ttv2-acc-kpi-label">Failed / not collected</div>
+      <div class="ttv2-acc-kpi-value">₹{{ tieup.failed_amount|default('0') }}</div>
+      <div class="ttv2-acc-kpi-sub">{{ tieup.failed_count|default(0) }} failed payments</div>
+    </div>
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--blue">
+      <div class="ttv2-acc-kpi-head"><span class="ttv2-acc-kpi-icon"><i class="bx bx-buildings"></i></span><span class="ttv2-acc-kpi-pill">Scope</span></div>
+      <div class="ttv2-acc-kpi-label">Institutes</div>
+      <div class="ttv2-acc-kpi-value">{{ acc.institute_count|default(0) }}</div>
+      <div class="ttv2-acc-kpi-sub"><a href="{{ url('institute:marketinggroupdashboard_page', args=['payments']) }}">Open payments &amp; invoices →</a></div>
+    </div>
+  </div>
+
+  <div class="ttv2-acc-section">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon"><i class="bx bx-package"></i></span>
+        <h3 class="ttv2-acc-section-title">Tie-up products — qty &amp; revenue (B2B)</h3>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover ttv2-acc-table mb-0">
+        <thead><tr><th>Product</th><th class="text-end">Qty sold</th><th class="text-end">Revenue</th><th class="text-end">Qty pending</th><th class="text-end">Pending ₹</th></tr></thead>
+        <tbody>
+          {% for row in tieup.product_rows|default([]) %}
+          <tr>
+            <td>{{ row.product }}</td>
+            <td class="text-end">{{ row.qty_sold }}</td>
+            <td class="text-end">₹{{ row.revenue }}</td>
+            <td class="text-end">{{ row.qty_pending }}</td>
+            <td class="text-end">₹{{ row.pending }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if acc.student_rows is defined and acc.student_rows|length > 0 %}
+  <div class="ttv2-acc-section mt-3">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><i class="bx bx-user"></i></span>
+        <h3 class="ttv2-acc-section-title">Student payments (institute students)</h3>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover ttv2-acc-table mb-0">
+        <thead><tr><th>Category</th><th class="text-end">Successful</th><th class="text-end">Revenue</th><th class="text-end">Failed / incomplete</th></tr></thead>
+        <tbody>
+          {% for row in acc.student_rows %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td class="text-end">{{ row.qty_sold }}</td>
+            <td class="text-end">₹{{ row.revenue }}</td>
+            <td class="text-end">{{ row.pending_count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="ttv2-acc-section mt-3">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon" style="background:linear-gradient(135deg,#16a34a,#15803d)"><i class="bx bx-line-chart"></i></span>
+        <h3 class="ttv2-acc-section-title">Collections trend (last 6 months)</h3>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-end px-1 pb-2" style="min-height:120px">
+      {% set trend = acc.monthly_trend|default([]) %}
+      {% set max_amt = acc.trend_max|default(1) %}
+      {% for m in trend %}
+      <div class="text-center" style="flex:1;min-width:48px">
+        <div style="height:{{ (m.amount_float / max_amt * 80)|int + 8 }}px;background:linear-gradient(180deg,#34d399,#059669);border-radius:6px 6px 0 0;margin:0 auto;width:70%"></div>
+        <div class="small text-muted mt-1">{{ m.label }}</div>
+        <div class="small fw-semibold">₹{{ m.amount }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="ttv2-acc-section mt-3">
+    <div class="ttv2-acc-section-head">
+      <div class="ttv2-acc-section-titlewrap">
+        <span class="ttv2-acc-section-icon" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i class="bx bx-purchase-tag"></i></span>
+        <h3 class="ttv2-acc-section-title">Coupon codes — created &amp; used</h3>
+      </div>
+      <a href="{{ url('institute:marketinggroupdashboard_page', args=['payments']) }}" class="btn btn-sm btn-outline-primary">Create coupon</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead><tr><th>Code</th><th>Institute</th><th>Offer</th><th class="text-center">Used</th><th class="text-center">Max</th><th class="text-center">Remaining</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for c in acc.coupons|default([]) %}
+          <tr>
+            <td class="fw-semibold">{{ c.code }}</td>
+            <td><a href="{{ url('institute:institute_masterdashboard', args=[c.institute_slug]) }}">{{ c.institute_name }}</a></td>
+            <td class="small">{{ c.label }}</td>
+            <td class="text-center">{{ c.times_used }}</td>
+            <td class="text-center">{{ c.max_uses if c.max_uses is not none else '∞' }}</td>
+            <td class="text-center">{{ c.uses_remaining if c.uses_remaining is not none else '—' }}</td>
+            <td>{% if c.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No coupons created yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

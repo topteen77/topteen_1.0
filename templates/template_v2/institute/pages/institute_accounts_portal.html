@@ -1,0 +1,127 @@
+{# Institute / group — tie-up business summary + coupons (available & used) #}
+<link rel="stylesheet" href="{{ static('css_new/ttv2_accounts_page.css') }}">
+{% set acc = ttv2_accounts if ttv2_accounts is defined else {} %}
+{% set tieup = acc.tieup if acc.tieup is defined else {} %}
+{% set period = acc.period|default('this_month') %}
+{% set pk = acc.product_key|default('all') %}
+{% set is_group = (acc.role|default('')) == 'institute_group' %}
+
+<div class="ttv2-accounts-page" id="ttv2InstituteAccounts">
+  <div class="ttv2-acc-hero">
+    <div class="ttv2-acc-hero-copy">
+      <h2>{% if is_group %}Group business overview{% else %}Accounts &amp; billing{% endif %}</h2>
+      <p>
+        {% if is_group %}
+          Tie-up revenue across {{ acc.institute_count|default(0) }} institutes in your group — {{ acc.period_label|default('This month') }}.
+        {% elif institute is defined and institute %}
+          {{ institute.name }} — {{ acc.period_label|default('This month') }}.
+        {% else %}
+          {{ acc.period_label|default('This month') }}.
+        {% endif %}
+      </p>
+    </div>
+    <form class="ttv2-acc-period d-flex flex-wrap gap-2 align-items-center" method="get" action="">
+      <span class="ttv2-acc-period-icon"><i class="bx bx-calendar-event"></i></span>
+      <select name="period" class="form-select form-select-sm" style="width:auto" onchange="if(this.value!=='custom')this.form.submit()">
+        <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>This month</option>
+        <option value="6months" {% if period == '6months' %}selected{% endif %}>Past 6 months</option>
+        <option value="lifetime" {% if period == 'lifetime' %}selected{% endif %}>Lifetime</option>
+        <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom range</option>
+      </select>
+      {% if period == 'custom' %}
+      <input type="date" name="date_from" class="form-control form-control-sm" value="{{ acc.date_from|default('') }}" style="width:auto">
+      <input type="date" name="date_to" class="form-control form-control-sm" value="{{ acc.date_to|default('') }}" style="width:auto">
+      {% endif %}
+      <select name="product" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+        {% for key, label in acc.product_filter_labels.items() %}
+        <option value="{{ key }}" {% if pk == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+    </form>
+  </div>
+
+  <div class="ttv2-acc-kpis">
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--green">
+      <div class="ttv2-acc-kpi-label">Collected</div>
+      <div class="ttv2-acc-kpi-value">₹{{ tieup.collected|default('0') }}</div>
+      <div class="ttv2-acc-kpi-sub">{{ tieup.success_count|default(0) }} received</div>
+    </div>
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--amber">
+      <div class="ttv2-acc-kpi-label">Expected pending</div>
+      <div class="ttv2-acc-kpi-value">₹{{ tieup.pending_business|default('0') }}</div>
+      <div class="ttv2-acc-kpi-sub">{{ tieup.pending_count|default(0) }} pending lines</div>
+    </div>
+    <div class="ttv2-acc-kpi ttv2-acc-kpi--blue">
+      <div class="ttv2-acc-kpi-label">Pay &amp; history</div>
+      <div class="ttv2-acc-kpi-value" style="font-size:1rem">
+        {% if is_group %}
+          <a href="{{ url('institute:institutegroupdashboard_page', args=['payments']) }}">Open payments →</a>
+        {% elif institute is defined and institute.slug %}
+          <a href="{{ url('institute:institutedashboard_page', args=[institute.slug, 'payments']) }}">Open payments →</a>
+        {% else %}—{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="ttv2-acc-section">
+    <h3 class="ttv2-acc-section-title mb-3">Product breakdown</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Product</th><th class="text-end">Qty sold</th><th class="text-end">Revenue</th><th class="text-end">Pending ₹</th></tr></thead>
+        <tbody>
+          {% for row in tieup.product_rows|default([]) %}
+          <tr>
+            <td>{{ row.product }}</td>
+            <td class="text-end">{{ row.qty_sold }}</td>
+            <td class="text-end">₹{{ row.revenue }}</td>
+            <td class="text-end">₹{{ row.pending }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-lg-6">
+      <div class="ttv2-acc-section h-100">
+        <h3 class="ttv2-acc-section-title mb-2"><i class="bx bx-purchase-tag me-1"></i> Available coupons</h3>
+        <p class="small text-muted">Active codes you can apply on the payments page{% if not is_group %} (including applicable to your current pending order){% endif %}.</p>
+        <ul class="list-group list-group-flush small">
+          {% for c in acc.coupons_available|default([]) %}
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <span>
+              <strong>{{ c.code }}</strong> — {{ c.label }}
+              {% if is_group and c.institute_name is defined %}<br><span class="text-muted">{{ c.institute_name }}</span>{% endif %}
+              {% if c.applicable_now %}<span class="badge bg-success ms-1">Applicable now</span>{% endif %}
+            </span>
+            <span class="text-muted">Used {{ c.times_used }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted px-0">No available coupons.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="ttv2-acc-section h-100">
+        <h3 class="ttv2-acc-section-title mb-2"><i class="bx bx-check-double me-1"></i> Used coupons</h3>
+        <p class="small text-muted">Codes that have been redeemed at least once.</p>
+        <ul class="list-group list-group-flush small">
+          {% for c in acc.coupons_used|default([]) %}
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <span>
+              <strong>{{ c.code }}</strong> — {{ c.label }}
+              {% if is_group and c.institute_name is defined %}<br><span class="text-muted">{{ c.institute_name }}</span>{% endif %}
+            </span>
+            <span class="badge bg-secondary">Used {{ c.times_used }}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted px-0">No coupons used yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

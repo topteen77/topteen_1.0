@@ -138,7 +138,45 @@
     color: #1d4ed8;
     border-color: #1d4ed8;
   }
-  .tt-notification-empty {
+  .tt-notification-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease;
+  }
+  .tt-notification-summary-row:last-child {
+    border-bottom: none;
+  }
+  .tt-notification-summary-row:hover {
+    background: #f8fafc;
+  }
+  .tt-notification-summary-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: #0f172a;
+    line-height: 1.35;
+  }
+  .tt-notification-summary-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 1.75rem;
+    text-align: center;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4338ca;
+  }
+  .tt-notification-summary-count.tt-notification-summary-count--zero {
+    background: #f1f5f9;
+    color: #94a3b8;
+    font-weight: 600;
+  }
     padding: 28px 20px;
     text-align: center;
     color: #94a3b8;
@@ -155,6 +193,7 @@
   (function () {
     var latestUrl = '{{ url("notifications:latest_api") }}';
     var markReadUrl = '{{ url("notifications:mark_read_api") }}';
+    var markBucketReadUrl = '{{ url("notifications:mark_bucket_read_api") }}';
     var badgeEl = document.getElementById('ttNotificationBadge');
     var listEl = document.getElementById('ttNotificationLatestList');
     if (!listEl) return;
@@ -180,6 +219,16 @@
       }).then(function (r) { return r.json(); });
     }
 
+    function markBucketRead(bucketKey) {
+      var fd = new FormData();
+      fd.append('bucket', bucketKey);
+      return fetch(markBucketReadUrl, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest'},
+        body: fd
+      }).then(function (r) { return r.json(); });
+    }
+
     function setBadgeCount(c) {
       if (!badgeEl) return;
       if (c > 0) {
@@ -189,6 +238,47 @@
         badgeEl.style.display = 'none';
         badgeEl.textContent = '0';
       }
+    }
+
+    function renderSummaryBuckets(buckets) {
+      var rows = (buckets || []).map(function (b) {
+        var c = parseInt(b.count, 10) || 0;
+        var zeroClass = c > 0 ? '' : ' tt-notification-summary-count--zero';
+        var url = b.url || '#';
+        var clearAttr = (b.clear_on_click === false) ? '0' : '1';
+        return (
+          '<a href="' + esc(url) + '" class="tt-notification-summary-row" data-bucket="' + esc(b.key || '') + '" data-url="' + esc(url) + '" data-clear-on-click="' + clearAttr + '">' +
+          '<span class="tt-notification-summary-label">' + esc(b.label || '') + '</span>' +
+          '<span class="tt-notification-summary-count' + zeroClass + '">' + String(c) + '</span>' +
+          '</a>'
+        );
+      }).join('');
+      if (!rows) {
+        listEl.innerHTML = '<div class="tt-notification-empty">No notifications yet.</div>';
+        return;
+      }
+      listEl.innerHTML = rows;
+      listEl.querySelectorAll('a.tt-notification-summary-row').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.preventDefault();
+          var key = el.getAttribute('data-bucket');
+          var href = el.getAttribute('data-url') || '#';
+          var clearOnClick = el.getAttribute('data-clear-on-click') !== '0';
+          function go() {
+            window.location.href = href;
+          }
+          if (!clearOnClick) {
+            go();
+            return;
+          }
+          markBucketRead(key).then(function (data) {
+            if (data && data.success && typeof data.unread_count === 'number') {
+              setBadgeCount(data.unread_count);
+            }
+            go();
+          }).catch(go);
+        });
+      });
     }
 
     function render(items) {
@@ -251,7 +341,11 @@
         .then(function (data) {
           if (!data.success) return;
           setBadgeCount(data.unread_count || 0);
-          render(data.notifications || []);
+          if (data.summary_mode && data.buckets) {
+            renderSummaryBuckets(data.buckets);
+          } else {
+            render(data.notifications || []);
+          }
         })
         .catch(function () {
           listEl.innerHTML = '<div class="tt-notification-load-err">Could not load notifications.</div>';

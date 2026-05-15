@@ -4,16 +4,19 @@
    - Add institute reuses institute:createinstitute (allowed for marketing + institute-group admins via decorator). #}
 
 {# Add Institute #}
-<div class="modal fade" id="ttv2AddInstituteModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class='bx bx-plus me-2'></i> Create Institute</h5>
+<div class="modal fade ttv2-create-institute-modal" id="ttv2AddInstituteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered ttv2-create-institute-modal__dialog">
+    <div class="modal-content border-0 shadow ttv2-create-institute-modal__content">
+      <div class="modal-header border-bottom pb-3 flex-shrink-0">
+        <div>
+          <h5 class="modal-title fw-semibold mb-1">Create institute</h5>
+          <p class="text-muted small mb-0">Institute profile, login, and tie-up packages.</p>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="POST" action="{{ url('institute:createinstitute') }}" enctype="multipart/form-data">
+      <form method="POST" action="{{ url('institute:createinstitute') }}" enctype="multipart/form-data" class="ttv2-create-institute-modal__form d-flex flex-column flex-grow-1 min-h-0">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <div class="modal-body">
+        <div class="modal-body ttv2-create-institute-modal__body pt-3">
           <div class="row g-3">
             <div class="col-12">
               <label class="form-label">Email <span class="text-danger">*</span></label>
@@ -59,20 +62,19 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">Exam Credits <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" name="ins_credits" required>
-            </div>
             <div class="col-12">
               <label class="form-label">Institute Logo <span class="text-danger">*</span></label>
               <input type="file" class="form-control" name="institute_logo" accept=".jpg,.png" required>
               <small class="text-muted">Accepted formats: JPG, PNG</small>
             </div>
+            {% with tieup_exam_credits_required=true, tieup_hide_coupon=true %}
+            {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
+            {% endwith %}
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class='bx bx-save me-2'></i>Create Institute</button>
+        <div class="modal-footer border-top pt-3 flex-shrink-0 bg-white">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary px-4">Create institute</button>
         </div>
       </form>
     </div>

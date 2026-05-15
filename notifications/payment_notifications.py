@@ -13,9 +13,21 @@ from .models import NotificationCategory
 from .services import (
     emit_notification,
     format_notification_message,
-    get_admin_and_accounts_users,
+    get_business_dashboard_notification_recipients,
     get_parent_users_for_student,
 )
+
+
+def _dedupe_recipients_by_id(users):
+    seen = set()
+    out = []
+    for u in users:
+        uid = getattr(u, 'id', None)
+        if not uid or uid in seen:
+            continue
+        seen.add(uid)
+        out.append(u)
+    return out
 
 
 def payment_currency_code(payment):
@@ -184,7 +196,7 @@ def notify_payment_transition(payment, previous_is_success, created):
 
     recipients = [payment.user]
     recipients.extend(list(get_parent_users_for_student(payment.user_id)))
-    staff = list(get_admin_and_accounts_users())
+    ops_recipients = get_business_dashboard_notification_recipients()
 
     became_success = payment.is_success == choices.YesNoChoices.YES and (
         created or previous_is_success != choices.YesNoChoices.YES
@@ -304,7 +316,7 @@ def notify_payment_transition(payment, previous_is_success, created):
             event_type='payment.status_updated',
             title=title,
             body=body,
-            recipients=staff,
+            recipients=ops_recipients,
             category=NotificationCategory.PAYMENT,
             source_obj=payment,
             payload={
@@ -341,7 +353,7 @@ def notify_payment_transition(payment, previous_is_success, created):
             event_type='payment.failed',
             title=title,
             body=body,
-            recipients=recipients,
+            recipients=_dedupe_recipients_by_id(list(recipients) + ops_recipients),
             category=NotificationCategory.PAYMENT,
             source_obj=payment,
             payload={

@@ -619,30 +619,7 @@ class DemoLoginView(View):
         return redirect(redirect_url)
 
     def _redirect_url(self, request, user):
-        try:
-            if user.is_staff or user.is_superuser:
-                return reverse('user_analytics:business_dashboard')
-            if user.user_type == choices.UserType.INSTITUTE:
-                institute = Institute.objects.filter(created_by=user).last()
-                if institute:
-                    return reverse('institute:institute_masterdashboard', args=[institute.slug])
-            if user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                    return reverse('institute:institutegroupdashboard')
-            if user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                    return reverse('institute:marketinggroupdashboard')
-            if user.user_type == choices.UserType.COUNSELOR:
-                coun = primary_counselor_for_user(user)
-                if coun:
-                    return reverse('counselor:CounselorDashboardView', args=[coun.id])
-            if user.user_type == choices.UserType.PARENT:
-                return reverse('parents_dashboard')
-            redirect_url = _compute_student_destination(user)
-            return _apply_institute_student_mobile_gate(request, user, redirect_url)
-        except Exception:
-            pass
-        return reverse('users:userdashboard')
+        return get_dashboard_url_for_user(request, user)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -737,7 +714,7 @@ class ParentsDashboardView(TemplateView):
         if not request.user.is_authenticated:
             return redirect('parents_login')
         if request.user.user_type != choices.UserType.PARENT:
-            return redirect('users:userdashboard')
+            return redirect(get_dashboard_url_for_user(request, request.user))
         from users.models import ParentStudentLink
         linked = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
         students = [x.student for x in linked if x.student]
@@ -1490,6 +1467,40 @@ def _compute_student_destination(user):
     except Exception:
         pass
     return reverse('users:userdashboard')
+
+
+def get_dashboard_url_for_user(request, user, *, apply_mobile_gate=True):
+    """
+    Relative URL for the authenticated user's role-appropriate home dashboard.
+    ``/user/dashboard/`` (users:userdashboard) is the student (and parent) area only;
+    institute, marketing, group, counselor, and staff users are routed elsewhere.
+    """
+    try:
+        if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+            return reverse("user_analytics:business_dashboard")
+        ut = user.user_type
+        if ut == choices.UserType.INSTITUTE:
+            institute = Institute.objects.filter(created_by=user).last()
+            if institute:
+                return reverse("institute:institute_masterdashboard", args=[institute.slug])
+        elif ut == choices.UserType.INSTITUTEGROUPADMIN:
+            return reverse("institute:institutegroupdashboard")
+        elif ut == choices.UserType.MARKETINGGROUPADMIN:
+            return reverse("institute:marketinggroupdashboard")
+        elif ut == choices.UserType.COUNSELOR:
+            coun = primary_counselor_for_user(user)
+            if coun:
+                return reverse("counselor:CounselorDashboardView", args=[coun.id])
+        elif ut == choices.UserType.PARENT:
+            return reverse("parents_dashboard")
+        elif ut == choices.UserType.STUDENT:
+            dest = _compute_student_destination(user)
+            if apply_mobile_gate and request is not None:
+                return _apply_institute_student_mobile_gate(request, user, dest)
+            return dest
+    except Exception:
+        pass
+    return reverse("users:userdashboard")
 
 
 def _apply_institute_student_mobile_gate(request, user, desired_redirect):
@@ -2303,45 +2314,7 @@ class GetUserDashboardUrl(APIView):
     
     def get(self, request):
         """Return the correct dashboard URL for the authenticated user"""
-        user = request.user
-        redirect_url = reverse('app:test_buttons')  # Default
-        
-        try:
-            # Check for institute users
-            if user.user_type == choices.UserType.INSTITUTE:
-                institute = Institute.objects.filter(created_by=user).last()
-                if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                    redirect_url = reverse('institute:institute_masterdashboard', args=[institute.slug])
-            
-            # Check for institute group admin
-            elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                    redirect_url = reverse('institute:institutegroupdashboard')
-            
-            # Check for marketing group admin
-            elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                    redirect_url = reverse('institute:marketinggroupdashboard')
-            
-            # Check for counselor
-            elif user.user_type == choices.UserType.COUNSELOR:
-                coun = primary_counselor_for_user(user)
-                if coun:
-                    redirect_url = reverse('counselor:CounselorDashboardView', args=[coun.id])
-
-            elif user.user_type == choices.UserType.PARENT:
-                redirect_url = reverse('parents_dashboard')
-            
-            # Check for students - check if in class 11 or 12
-            else:
-                redirect_url = _compute_student_destination(user)
-
-            redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
-        
-        except Exception as e:
-            print(f"Error getting dashboard URL: {e}")
-        
-        # Return absolute URI to avoid 404 issues
+        redirect_url = get_dashboard_url_for_user(request, request.user)
         absolute_url = request.build_absolute_uri(redirect_url)
         return Response({'redirect_url': absolute_url}, status=status.HTTP_200_OK)
 
@@ -2948,6 +2921,15 @@ class ViewProfile(TemplateView):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserDashboard(TemplateView):
     template_name ="template20/user/user_dashboard.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        if user.is_authenticated and user.user_type not in (
+            choices.UserType.STUDENT,
+            choices.UserType.PARENT,
+        ):
+            return redirect(get_dashboard_url_for_user(request, user))
+        return super().dispatch(request, *args, **kwargs)
 
     def html_head(self):
         name='User Profile'

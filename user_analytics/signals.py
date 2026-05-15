@@ -124,6 +124,40 @@ def track_user_registration(sender, instance, created, **kwargs):
                         "Registration event tracking returned no result for user %s",
                         instance.id,
                     )
+                try:
+                    from notifications.models import NotificationCategory
+                    from notifications.services import emit_notification
+
+                    recipients = list(
+                        User.objects.filter(
+                            user_type=choices.UserType.MARKETINGGROUPADMIN,
+                            is_active=True,
+                        )
+                    )
+                    if recipients:
+                        emit_notification(
+                            event_type='accounts.new_registration',
+                            title='New registration',
+                            body='User {0} ({1}) registered from {2}.'.format(
+                                instance.name or '-',
+                                instance.email,
+                                source_name,
+                            ),
+                            recipients=recipients,
+                            category=NotificationCategory.MARKETING,
+                            source_obj=instance,
+                            payload={
+                                'user_id': instance.id,
+                                'email': instance.email,
+                            },
+                            dedupe_key='accounts_registration_{}'.format(instance.id),
+                        )
+                except Exception as notify_exc:
+                    logger.warning(
+                        'Could not emit registration notification for user %s: %s',
+                        instance.id,
+                        notify_exc,
+                    )
             transaction.on_commit(_track_registration)
         except Exception as e:
             logger.error(f"Error tracking user registration: {e}", exc_info=True)

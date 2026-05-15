@@ -298,10 +298,67 @@ class PaymentObjectType(object):
     PYSCHOMETRICTESTDETAIL=10
     SKILLLABCOURSE=20
     COUNSELOR=30
+    INSTITUTE_TIEUP=40
     CHOICES=(
         (PYSCHOMETRICTESTDETAIL,"PsychometricTestDetail"),
         (SKILLLABCOURSE,"Skilllabcourse"),
         (COUNSELOR,"Counselor"),
+        (INSTITUTE_TIEUP,"Institute Tie-Up"),
+    )
+
+
+class TieUpProductType(object):
+    STUDENT_TEST_CREDITS=10
+    COUNSELOR_COURSE_SEATS=20
+    CAREER_READINESS_SKILLLAB=30
+    CHOICES=(
+        (STUDENT_TEST_CREDITS,"Exam credits"),
+        (COUNSELOR_COURSE_SEATS,"Counsellor Course"),
+        (CAREER_READINESS_SKILLLAB,"College & Career Readiness"),
+    )
+
+
+class TieUpPaymentStatus(object):
+    PENDING=10
+    RECEIVED=20
+    FAILED=30
+    CHOICES=(
+        (PENDING,"Pending"),
+        (RECEIVED,"Received"),
+        (FAILED,"Failed"),
+    )
+
+
+class TieUpOrderStatus(object):
+    DRAFT=10
+    ACTIVE=20
+    CANCELLED=30
+    CHOICES=(
+        (DRAFT,"Draft"),
+        (ACTIVE,"Active"),
+        (CANCELLED,"Cancelled"),
+    )
+
+
+class CouponDiscountType(object):
+    PERCENT="percent"
+    FIXED="fixed"
+    CHOICES=(
+        (PERCENT,"Percentage"),
+        (FIXED,"Fixed amount"),
+    )
+
+
+class CouponAppliesTo(object):
+    ALL="all"
+    STUDENT_TEST_CREDITS="student_test_credits"
+    COUNSELOR_COURSE_SEATS="counselor_course_seats"
+    CAREER_READINESS_SKILLLAB="career_readiness_skilllab"
+    CHOICES=(
+        (ALL,"All products"),
+        (STUDENT_TEST_CREDITS,"Exam credits"),
+        (COUNSELOR_COURSE_SEATS,"Counsellor Course"),
+        (CAREER_READINESS_SKILLLAB,"College & Career Readiness"),
     )
 
 class GenderChoices(object):

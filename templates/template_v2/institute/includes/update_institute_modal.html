@@ -1,0 +1,74 @@
+{# Full institute edit modal — profile, approval, tie-up billing (marketing / group admin) #}
+{% set _ti = ins.tieup_form_initial if ins.tieup_form_initial is defined else {} %}
+<div class="modal fade ttv2-update-institute-modal" id="updateInstituteModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable ttv2-create-institute-modal__dialog">
+    <div class="modal-content border-0 shadow ttv2-create-institute-modal__content">
+      <div class="modal-header border-bottom pb-3 flex-shrink-0">
+        <div>
+          <h5 class="modal-title fw-semibold mb-1">Update institute</h5>
+          <p class="text-muted small mb-0">{{ ins.name }} — profile, tie-up billing, and approval</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="updateInstituteForm{{ ins.id }}" method="POST" enctype="multipart/form-data" class="ttv2-create-institute-modal__form d-flex flex-column flex-grow-1 min-h-0">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute_id" value="{{ ins.id }}">
+        <div class="modal-body ttv2-create-institute-modal__body pt-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Institute name <span class="text-danger">*</span></label>
+              <input type="text" name="institute_name" class="form-control" value="{{ ins.name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Approval status</label>
+              <select name="institute_status" class="form-select" aria-label="Approval status">
+                <option value="3" {% if ins.institute_status == 3 %}selected{% endif %}>Pending</option>
+                <option value="1" {% if ins.institute_status == 1 %}selected{% endif %}>Approved</option>
+                <option value="2" {% if ins.institute_status == 2 %}selected{% endif %}>Rejected</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <input type="text" name="institute_address" class="form-control" value="{{ ins.address|default('') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contact no</label>
+              <input type="tel" class="form-control ttv2-phone10" name="institute_contact" maxlength="10" value="{{ ins.contact_info|default('') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Admin contact</label>
+              <input type="tel" class="form-control ttv2-phone10" name="institute_admin" maxlength="10" value="{{ ins.administrator_contact|default('') }}">
+            </div>
+            {% if institute_group is defined and institute_group %}
+            <div class="col-md-6">
+              <label class="form-label">Institute group</label>
+              <select class="form-select" name="institute_group">
+                <option value="">— None —</option>
+                {% for g in institute_group %}
+                <option value="{{ g.id }}" {% if ins.institute_group_id == g.id %}selected{% endif %}>{{ g.group_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            <div class="col-md-6">
+              <label class="form-label">Institute logo</label>
+              <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">
+              <small class="text-muted">Leave empty to keep current logo</small>
+            </div>
+            <div class="col-12">
+              {% with tieup_exam_credits_required=true, tieup_hide_coupon=true, tieup_initial=_ti, tieup_edit_mode=true %}
+              {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top pt-3 flex-shrink-0 bg-white">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bx bx-save me-1"></i> Update institute
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

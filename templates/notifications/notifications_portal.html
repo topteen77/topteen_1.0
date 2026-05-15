@@ -1,0 +1,39 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}Notifications | Top Teen{% endblock %}
+{% block description_content %}Notifications for your dashboard.{% endblock %}
+
+{% block bodyclass %}{{ super() }} ttv2-shell ttv2-notifications-page{% endblock %}
+
+{% block dashboard_title %}Notifications{% endblock %}
+{% block dashboard_subtitle %}Track your latest updates and activity{% endblock %}
+
+{% block dashboard_home_url %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' and ttv2_role_ctx.counselor %}
+    {{ url('counselor:CounselorDashboardView', args=[ttv2_role_ctx.counselor.id]) }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+    {{ url('institute:marketinggroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+    {{ url('institute:institutegroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.institute and ttv2_role_ctx.institute.slug %}
+    {{ url('institute:institute_masterdashboard', args=[ttv2_role_ctx.institute.slug]) }}
+  {% else %}
+    {{ url('users:userdashboard') }}
+  {% endif %}
+{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebar_router.html" %}
+{% endblock %}
+
+{% block dashboard_body %}
+  {% include "notifications/includes/notifications_list_panel.html" %}
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

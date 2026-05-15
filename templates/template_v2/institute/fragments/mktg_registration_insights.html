@@ -103,10 +103,13 @@
                 </div>
                 {% if row.id %}
                   <div class="d-inline-flex align-items-center gap-1 flex-shrink-0">
-                    <a href="{{ url('institute:instituteapprove', args=[row.id]) }}"
-                       class="btn btn-sm ttv2-mktg-pill-approve">
+                    <button type="button"
+                            class="btn btn-sm ttv2-mktg-pill-approve"
+                            data-ttv2-approve-billing="1"
+                            data-institute-id="{{ row.id }}"
+                            data-institute-name="{{ row.name }}">
                       Approve
-                    </a>
+                    </button>
                     <a href="{{ url('institute:institutereject', args=[row.id]) }}"
                        class="btn btn-sm ttv2-mktg-pill-reject">
                       Reject

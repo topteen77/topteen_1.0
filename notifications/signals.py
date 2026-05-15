@@ -9,6 +9,7 @@ from user_analytics.models import Lead
 
 from .models import NotificationCategory
 from .payment_notifications import (
+    _dedupe_recipients_by_id,
     format_currency_amount,
     notify_payment_transition,
     payment_amount_display,
@@ -20,6 +21,7 @@ from .payment_notifications import (
 from .services import (
     emit_notification,
     format_notification_message,
+    get_business_dashboard_notification_recipients,
     get_parent_users_for_student,
 )
 
@@ -134,8 +136,11 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
     if not created or instance.event_type != 'payment_failed' or not instance.user_id:
         return
 
-    recipients = [instance.user]
-    recipients.extend(list(get_parent_users_for_student(instance.user_id)))
+    recipients = _dedupe_recipients_by_id(
+        [instance.user]
+        + list(get_parent_users_for_student(instance.user_id))
+        + get_business_dashboard_notification_recipients()
+    )
 
     metadata = instance.metadata or {}
     payment_id = metadata.get('payment_id') or instance.object_id

@@ -1,0 +1,224 @@
+{# Tie-up billing — create / edit institute & approve institute #}
+{% set _hide_coupon = tieup_hide_coupon|default(false) %}
+{% set _create_mode = tieup_exam_credits_required|default(false) %}
+{% set _edit_mode = tieup_edit_mode|default(false) %}
+{% set _ti = tieup_initial if tieup_initial is defined else {} %}
+<div class="tieup-billing-block tieup-billing-panel mt-2">
+  <div class="tieup-billing-panel__head">
+    <div>
+      <h6 class="tieup-billing-panel__title mb-0">Tie-up billing</h6>
+      <p class="tieup-billing-panel__subtitle mb-0">
+        {% if _edit_mode %}
+        Update exam credits and package pricing. Changes apply to pending payment lines.
+        {% elif _create_mode %}
+        Set exam credit allocation and optional package pricing. Quantities cannot be negative.
+        {% else %}
+        Required before approval. Enter quantity and unit price for each product (INR).
+        {% endif %}
+      </p>
+    </div>
+    <div class="tieup-billing-panel__total-wrap">
+      <span class="tieup-billing-panel__total-label">Order total</span>
+      <span class="tieup-billing-panel__total tieup-order-total">₹0.00</span>
+    </div>
+  </div>
+
+  <div class="table-responsive tieup-billing-table-wrap">
+    <table class="table table-sm tieup-billing-table mb-0">
+      <thead>
+        <tr>
+          <th scope="col">Product</th>
+          <th scope="col" class="text-end" style="width:7rem;">Qty</th>
+          <th scope="col" class="text-end" style="width:8rem;">₹ / unit</th>
+          <th scope="col" class="text-end" style="width:7.5rem;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tieup-billing-product">
+            Exam credits{% if _create_mode %} <span class="text-danger">*</span>{% endif %}
+            {% if _create_mode %}<span class="tieup-billing-hint d-block">Allocates institute exam credits</span>{% endif %}
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-qty" name="tieup_student_test_credits_qty" min="0" step="1" placeholder="0" data-unit="tieup_student_test_credits_price" value="{{ _ti.tieup_student_test_credits_qty|default('') }}"{% if _create_mode %} required{% endif %}>
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-price" name="tieup_student_test_credits_price" min="0" step="0.01" placeholder="0.00" value="{{ _ti.tieup_student_test_credits_price|default('') }}">
+          </td>
+          <td class="text-end tieup-billing-subtotal tieup-subtotal" data-for="tieup_student_test_credits_qty">₹0.00</td>
+        </tr>
+        <tr>
+          <td class="tieup-billing-product">
+            Counsellor Course
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-qty" name="tieup_counselor_seats_qty" min="0" step="1" placeholder="0" data-unit="tieup_counselor_seats_price" value="{{ _ti.tieup_counselor_seats_qty|default('') }}">
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-price" name="tieup_counselor_seats_price" min="0" step="0.01" placeholder="0.00" value="{{ _ti.tieup_counselor_seats_price|default('') }}">
+          </td>
+          <td class="text-end tieup-billing-subtotal tieup-subtotal" data-for="tieup_counselor_seats_qty">₹0.00</td>
+        </tr>
+        <tr>
+          <td class="tieup-billing-product">
+            College &amp; Career Readiness
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-qty" name="tieup_skilllab_qty" min="0" step="1" placeholder="0" data-unit="tieup_skilllab_price" value="{{ _ti.tieup_skilllab_qty|default('') }}">
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-price" name="tieup_skilllab_price" min="0" step="0.01" placeholder="0.00" value="{{ _ti.tieup_skilllab_price|default('') }}">
+          </td>
+          <td class="text-end tieup-billing-subtotal tieup-subtotal" data-for="tieup_skilllab_qty">₹0.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if not _hide_coupon %}
+  <div class="tieup-billing-coupon row g-2 align-items-end mt-2 pt-2">
+    <div class="col-md-6">
+      <label class="form-label small mb-1">Coupon code <span class="text-muted fw-normal">(optional)</span></label>
+      <input type="text" class="form-control form-control-sm" name="tieup_coupon_code" placeholder="e.g. INSTITUTE10" style="text-transform:uppercase;" autocomplete="off">
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.tieup-billing-panel {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fafbff 0%, #f4f6fb 100%);
+  padding: 1rem 1.1rem 1.1rem;
+}
+.tieup-billing-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+.tieup-billing-panel__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+.tieup-billing-panel__subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+  max-width: 28rem;
+  line-height: 1.45;
+}
+.tieup-billing-panel__total-wrap {
+  text-align: right;
+  flex-shrink: 0;
+}
+.tieup-billing-panel__total-label {
+  display: block;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.tieup-billing-panel__total {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #4f46e5;
+  font-variant-numeric: tabular-nums;
+}
+.tieup-billing-table-wrap {
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: #fff;
+}
+.tieup-billing-table thead th {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  font-weight: 600;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.5rem 0.65rem;
+  white-space: nowrap;
+}
+.tieup-billing-table tbody td {
+  vertical-align: middle;
+  padding: 0.55rem 0.65rem;
+  border-color: #f1f5f9;
+  font-size: 0.8125rem;
+}
+.tieup-billing-product {
+  font-weight: 500;
+  color: #1e293b;
+  min-width: 10rem;
+}
+.tieup-billing-hint {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+.tieup-billing-subtotal {
+  font-weight: 600;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tieup-billing-table .form-control-sm {
+  min-width: 4.5rem;
+}
+.tieup-billing-coupon {
+  border-top: 1px dashed rgba(15, 23, 42, 0.08);
+}
+</style>
+<script>
+(function(){
+  function formatInr(n) {
+    return '₹' + n.toFixed(2);
+  }
+  function recalc(root){
+    if(!root) return;
+    var total = 0;
+    root.querySelectorAll('.tieup-qty').forEach(function(qtyEl){
+      var qty = parseFloat(qtyEl.value) || 0;
+      if (qty < 0) {
+        qty = 0;
+        qtyEl.value = '0';
+      }
+      var priceName = qtyEl.getAttribute('data-unit');
+      var priceEl = root.querySelector('[name="'+priceName+'"]');
+      var price = priceEl ? (parseFloat(priceEl.value) || 0) : 0;
+      if (price < 0 && priceEl) {
+        price = 0;
+        priceEl.value = '0';
+      }
+      var sub = qty * price;
+      total += sub;
+      var subEl = root.querySelector('.tieup-subtotal[data-for="'+qtyEl.name+'"]');
+      if(subEl) subEl.textContent = formatInr(sub);
+    });
+    root.querySelectorAll('.tieup-order-total').forEach(function(totEl){
+      totEl.textContent = formatInr(total);
+    });
+  }
+  document.addEventListener('input', function(e){
+    var t = e.target;
+    if(!t || (!t.classList.contains('tieup-qty') && !t.classList.contains('tieup-price'))) return;
+    var root = t.closest('.tieup-billing-block');
+    recalc(root);
+  });
+  document.addEventListener('shown.bs.modal', function(e){
+    var modal = e.target;
+    if(!modal) return;
+    modal.querySelectorAll('.tieup-billing-block').forEach(recalc);
+  });
+})();
+</script>

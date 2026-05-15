@@ -1,5 +1,6 @@
 from django.urls import path, include
 from . import views
+from . import tieup_views
 from users.views import DemoLoginView
 
 app_name = "institute"
@@ -23,6 +24,61 @@ urlpatterns = [
     path("marketing_profile_edit/",views.InstituteMarketingProfileEditView.as_view(),name="marketingprofileedit"),
     path("update_seat_capacity/",views.UpdateSeatCapacityView.as_view(),name="updateseatcapacity"),
     path("institute_approve/<int:id>/", views.InstituteApproveView.as_view(), name="instituteapprove"),
+    path(
+        "institute_approve_billing/<int:id>/",
+        tieup_views.InstituteApproveWithBillingView.as_view(),
+        name="instituteapprovebilling",
+    ),
+    path(
+        "marketing_tieup_mark_received/",
+        tieup_views.MarketingTieUpMarkReceivedView.as_view(),
+        name="marketing_tieup_mark_received",
+    ),
+    path(
+        "marketing_tieup_coupon_create/",
+        tieup_views.MarketingTieUpCouponCreateView.as_view(),
+        name="marketing_tieup_coupon_create",
+    ),
+    path(
+        "<slug:slug>/tieup-pay/",
+        tieup_views.InstituteTieUpPayView.as_view(),
+        name="institute_tieup_pay",
+    ),
+    path(
+        "<slug:slug>/tieup-create-order/",
+        tieup_views.institute_tieup_create_order,
+        name="institute_tieup_create_order",
+    ),
+    path(
+        "<slug:slug>/tieup-coupon-preview/",
+        tieup_views.institute_tieup_coupon_preview,
+        name="institute_tieup_coupon_preview",
+    ),
+    path(
+        "<slug:slug>/tieup-list-coupons/",
+        tieup_views.institute_tieup_list_coupons,
+        name="institute_tieup_list_coupons",
+    ),
+    path(
+        "tieup-payment-verify/",
+        tieup_views.institute_tieup_payment_verify,
+        name="institute_tieup_payment_verify",
+    ),
+    path(
+        "tieup-invoice/<int:invoice_id>/download/",
+        tieup_views.institute_tieup_invoice_download,
+        name="institute_tieup_invoice_download",
+    ),
+    path(
+        "tieup-payment-success/<path:enc_id>/",
+        tieup_views.InstituteTieUpPaymentSuccessView.as_view(),
+        name="institute_tieup_payment_success",
+    ),
+    path(
+        "tieup-payment-fail/<path:enc_id>/",
+        tieup_views.InstituteTieUpPaymentFailView.as_view(),
+        name="institute_tieup_payment_fail",
+    ),
     path("institute_reject/<int:id>/", views.InstituteRejectView.as_view(), name="institutereject"),
     path(
         "institute_hard_delete/<int:id>/",
@@ -70,6 +126,7 @@ urlpatterns = [
     path("download_student_sample_csv/",views.students_csv_sample_file,name="download_student_sample_csv"),
     path("p0ost_matric_student_sample_data/",views.post_matric_student_sample_data,name="post_matric_student_sample_csv"),
     # Must be before <slug:slug>/ so the API is never mistaken for an institute slug
+    path("api/tieup-pay-status/", tieup_views.tieup_pay_status_api, name="tieup_pay_status_api"),
     path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),
     path("api/marketing_search_suggest/", views.marketing_search_suggest, name="marketing_search_suggest"),
     path("api/institute_group_search_suggest/", views.institute_group_search_suggest, name="institute_group_search_suggest"),

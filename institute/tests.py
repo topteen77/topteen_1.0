@@ -73,3 +73,67 @@ class InstituteDashboardScopeTests(SimpleTestCase):
         institute_filter_mock.assert_called_once_with(created_by=owner, id=60)
         student_management_filter_mock.assert_called_once_with(institute=institute)
         self.assertIs(scoped, expected_qs)
+
+
+class ValidateInstituteCouponTests(SimpleTestCase):
+    def test_valid_percent_coupon(self):
+        from decimal import Decimal
+        from unittest.mock import MagicMock, patch
+
+        from institute.tieup_billing import validate_institute_coupon
+
+        institute = MagicMock()
+        coupon = MagicMock()
+        coupon.is_active = True
+        coupon.applies_to = choices.CouponAppliesTo.ALL
+        coupon.valid_from = None
+        coupon.valid_until = None
+        coupon.max_uses = None
+        coupon.times_used = 0
+        coupon.discount_type = choices.CouponDiscountType.PERCENT
+        coupon.value = Decimal("10")
+
+        qs = MagicMock()
+        qs.first.return_value = coupon
+        lines = [
+            {
+                "product_type": choices.TieUpProductType.STUDENT_TEST_CREDITS,
+                "quantity": 100,
+                "unit_price": Decimal("10"),
+            }
+        ]
+        with patch(
+            "institute.tieup_billing.InstituteDiscountCoupon.objects.filter",
+            return_value=qs,
+        ):
+            discount, err = validate_institute_coupon(
+                "TIEUP10", institute, lines, Decimal("1000")
+            )
+        self.assertIsNone(err)
+        self.assertEqual(discount, Decimal("100.00"))
+
+    def test_invalid_coupon_code(self):
+        from decimal import Decimal
+        from unittest.mock import MagicMock, patch
+
+        from institute.tieup_billing import validate_institute_coupon
+
+        institute = MagicMock()
+        qs = MagicMock()
+        qs.first.return_value = None
+        lines = [
+            {
+                "product_type": choices.TieUpProductType.STUDENT_TEST_CREDITS,
+                "quantity": 1,
+                "unit_price": Decimal("10"),
+            }
+        ]
+        with patch(
+            "institute.tieup_billing.InstituteDiscountCoupon.objects.filter",
+            return_value=qs,
+        ):
+            discount, err = validate_institute_coupon(
+                "BADCODE", institute, lines, Decimal("10")
+            )
+        self.assertEqual(discount, Decimal("0"))
+        self.assertEqual(err, "Invalid coupon code.")

@@ -1,7 +1,22 @@
-from django.contrib import admin
+import random
+import string
+
+from django import forms
+from django.contrib import admin, messages
 from django.contrib.admin import RelatedOnlyFieldListFilter
 from django.db.models import Count
-from institute.models import Institute,StudentManagement,InstituteAccountDeletion,InstituteLog,ClassAndSection,InstituteGroup,InstituteMarketingGroup
+from institute.models import (
+    Institute,
+    StudentManagement,
+    InstituteAccountDeletion,
+    InstituteLog,
+    ClassAndSection,
+    InstituteGroup,
+    InstituteMarketingGroup,
+    InstituteDiscountCoupon,
+    InstituteTieUpOrder,
+    InstituteTieUpLineItem,
+)
 from users.models import User
 from core import choices
 from django.utils.html import format_html
@@ -115,6 +130,13 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
 admin.site.register(InstituteMarketingGroup,InstituteMarketingGroupAdmin)
 
 class InstituteAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        if not change:
+            from institute.models import institute_status_for_creator
+
+            obj.institute_status = institute_status_for_creator(request.user)
+        super().save_model(request, obj, form, change)
+
     list_display = [
         "name",
         "marketing_group_column",
@@ -271,3 +293,94 @@ class InstituteGroupAdmin(admin.ModelAdmin):
     readonly_fields=["created","modified"]
 
 admin.site.register(InstituteGroup,InstituteGroupAdmin)
+
+
+def _generate_random_coupon_code(prefix, length=8):
+    chars = string.ascii_uppercase + string.digits
+    return prefix + "_" + "".join(random.choices(chars, k=length))
+
+
+class InstituteDiscountCouponAdminForm(forms.ModelForm):
+    generate_count = forms.IntegerField(
+        min_value=0,
+        max_value=100,
+        required=False,
+        initial=0,
+        help_text="Generate additional coupon codes with same settings (PREFIX_random).",
+    )
+
+    class Meta:
+        model = InstituteDiscountCoupon
+        fields = "__all__"
+
+
+class InstituteDiscountCouponAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "institute",
+        "discount_type",
+        "value",
+        "applies_to",
+        "times_used",
+        "max_uses",
+        "is_active",
+        "valid_from",
+        "valid_until",
+        "created",
+    )
+    list_filter = ("is_active", "discount_type", "applies_to")
+    search_fields = ("code", "institute__name")
+    readonly_fields = ("times_used", "created", "modified")
+    form = InstituteDiscountCouponAdminForm
+    autocomplete_fields = ("institute",)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.created_by_id:
+            obj.created_by = request.user
+        if obj.institute_id and not obj.marketing_group_id:
+            obj.marketing_group = getattr(obj.institute, "marketing_group", None)
+        super().save_model(request, obj, form, change)
+        generate_count = form.cleaned_data.get("generate_count") or 0
+        if generate_count > 0:
+            prefix = (obj.code or "").strip().upper()
+            created = []
+            for _ in range(generate_count):
+                new_code = _generate_random_coupon_code(prefix)
+                while InstituteDiscountCoupon.objects.filter(code__iexact=new_code).exists():
+                    new_code = _generate_random_coupon_code(prefix)
+                dup = InstituteDiscountCoupon(
+                    institute=obj.institute,
+                    marketing_group=obj.marketing_group,
+                    created_by=request.user,
+                    code=new_code.upper() if new_code else new_code,
+                    discount_type=obj.discount_type,
+                    value=obj.value,
+                    applies_to=obj.applies_to,
+                    valid_from=obj.valid_from,
+                    valid_until=obj.valid_until,
+                    max_uses=obj.max_uses,
+                    is_active=obj.is_active,
+                )
+                dup.save()
+                created.append(dup.code)
+            messages.success(
+                request, f"Generated {len(created)} coupon(s): {', '.join(created)}"
+            )
+
+
+class InstituteTieUpLineItemInline(admin.TabularInline):
+    model = InstituteTieUpLineItem
+    extra = 0
+    readonly_fields = ("line_subtotal", "total_amount", "created", "modified")
+
+
+class InstituteTieUpOrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "institute", "status", "subtotal", "discount_amount", "total_amount", "created")
+    list_filter = ("status",)
+    search_fields = ("institute__name",)
+    inlines = [InstituteTieUpLineItemInline]
+    readonly_fields = ("created", "modified")
+
+
+admin.site.register(InstituteDiscountCoupon, InstituteDiscountCouponAdmin)
+admin.site.register(InstituteTieUpOrder, InstituteTieUpOrderAdmin)

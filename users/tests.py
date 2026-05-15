@@ -4,10 +4,10 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import Resolver404, resolve, reverse
 
 from core import choices
-from institute.models import StudentManagement
+from institute.models import InstituteMarketingGroup, StudentManagement
 from app.models import TestCompletion
 from users.models import User, UserProfile
-from users.views import _apply_institute_student_mobile_gate
+from users.views import _apply_institute_student_mobile_gate, get_dashboard_url_for_user
 
 
 def _add_session(request):
@@ -16,6 +16,41 @@ def _add_session(request):
     middleware.process_request(request)
     request.session.save()
     return request
+
+
+class TestRoleDashboardRouting(TestCase):
+    def test_marketing_admin_userdashboard_redirects_to_marketing_dashboard(self):
+        img = SimpleUploadedFile("u.jpg", b"fake-image-bytes", content_type="image/jpeg")
+        user = User(
+            email="mktg@example.com",
+            name="Marketing Admin",
+            user_type=choices.UserType.MARKETINGGROUPADMIN,
+            image=img,
+        )
+        user.set_password("pass1234")
+        user.save()
+        InstituteMarketingGroup.objects.create(
+            m_group_name="Test marketing group",
+            marketing_group_admin=user,
+        )
+        self.client.force_login(user, backend="users.backends.CustomUserBackend")
+        resp = self.client.get(reverse("users:userdashboard"), follow=False)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, reverse("institute:marketinggroupdashboard"))
+
+    def test_get_dashboard_url_for_marketing_admin(self):
+        img = SimpleUploadedFile("u.jpg", b"fake-image-bytes", content_type="image/jpeg")
+        user = User(
+            email="mktg2@example.com",
+            name="Marketing Admin 2",
+            user_type=choices.UserType.MARKETINGGROUPADMIN,
+            image=img,
+        )
+        user.set_password("pass1234")
+        user.save()
+        req = _add_session(RequestFactory().get("/"))
+        url = get_dashboard_url_for_user(req, user, apply_mobile_gate=False)
+        self.assertEqual(url, reverse("institute:marketinggroupdashboard"))
 
 
 class TestInstituteStudentMobileGateAfterCompletion(TestCase):

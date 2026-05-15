@@ -51,6 +51,12 @@ DEFAULT_TYPE_CONFIGS = {
     'course.allocated': dict(category=NotificationCategory.COURSE, description='Course allocated', requires_celery=False, requires_email=False),
     'institute.student_registered': dict(category=NotificationCategory.INSTITUTE, description='Institute student registration', requires_celery=False, requires_email=False),
     'marketing.new_lead': dict(category=NotificationCategory.MARKETING, description='New lead for marketing team', requires_celery=False, requires_email=False),
+    'accounts.new_registration': dict(
+        category=NotificationCategory.MARKETING,
+        description='New end-user registration (analytics)',
+        requires_celery=False,
+        requires_email=False,
+    ),
     'institute.student_assigned': dict(
         category=NotificationCategory.INSTITUTE,
         description='Student assigned to counselor',
@@ -620,6 +626,22 @@ def get_admin_and_accounts_users():
     ).filter(
         Q(is_superuser=True) | Q(is_staff=True, groups__name__in=['Accounts', 'Accounts staff'])
     ).distinct()
+
+
+def get_business_dashboard_notification_recipients():
+    """
+    Users who should see business payment / ops alerts and bell summary counts:
+    superuser, Accounts (staff) group, and marketing dashboard admins.
+    """
+    return list(
+        User.objects.filter(is_active=True)
+        .filter(
+            Q(is_superuser=True)
+            | Q(is_staff=True, groups__name__in=['Accounts', 'Accounts staff'])
+            | Q(user_type=choices.UserType.MARKETINGGROUPADMIN)
+        )
+        .distinct()
+    )
 
 
 def get_parent_users_for_student(student_user_id):

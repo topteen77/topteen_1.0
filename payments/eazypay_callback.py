@@ -104,4 +104,10 @@ def _eazypay_redirect_url(payment, payment_status, user_id):
         if payment_status == choices.YesNoChoices.YES:
             return urls.get('success_url')
         return urls.get('fail_url')
+    if payment.obj_type == choices.PaymentObjectType.INSTITUTE_TIEUP:
+        from institute.tieup_billing import tieup_payment_result_url
+
+        url = tieup_payment_result_url(payment)
+        if url:
+            return url
     return None

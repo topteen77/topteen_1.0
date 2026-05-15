@@ -1,0 +1,41 @@
+{# Approve institute with tie-up billing #}
+<div class="modal fade" id="ttv2ApproveInstituteBillingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bx bx-check-circle me-2"></i> Approve institute</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="ttv2ApproveBillingForm" action="#">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="modal-body">
+          <p class="text-muted small">Approve <strong id="ttv2ApproveInstName">—</strong> and capture tie-up billing (required).</p>
+          {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Approve with billing</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest?e.target.closest('[data-ttv2-approve-billing]'):null;
+    if(!btn) return;
+    e.preventDefault();
+    var id=btn.getAttribute('data-institute-id');
+    var name=btn.getAttribute('data-institute-name')||'';
+    var form=document.getElementById('ttv2ApproveBillingForm');
+    var nameEl=document.getElementById('ttv2ApproveInstName');
+    if(form&&id){
+      form.action='{{ url("institute:instituteapprovebilling", args=[0]) }}'.replace('/0/','/'+id+'/');
+    }
+    if(nameEl) nameEl.textContent=name;
+    var modal=document.getElementById('ttv2ApproveInstituteBillingModal');
+    if(modal&&window.bootstrap) new bootstrap.Modal(modal).show();
+  });
+})();
+</script>

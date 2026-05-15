@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -38,6 +39,19 @@ def _resolve_institute_for_user(user) -> Optional[Institute]:
     except Exception:
         pass
     return None
+
+
+def _resolve_institute_from_request(request) -> Optional[Institute]:
+    """Institute slug from /institute/<slug>/… so Pay now matches the active dashboard."""
+    path = getattr(request, "path", "") or ""
+    m = re.match(r"^/institute/([^/]+)/", path)
+    if not m:
+        return None
+    slug = m.group(1)
+    try:
+        return Institute.objects.filter(slug=slug).first()
+    except Exception:
+        return None
 
 
 def _resolve_counselor_for_user(user) -> Optional[Counselor]:
@@ -182,7 +196,18 @@ def _nav_for_role(
             },
         ]
 
+    def _group_ql_href(page_url: str, hash_key: str) -> str:
+        if not page_url or page_url == "#":
+            return "#"
+        return f"{page_url}#{hash_key}"
+
     if role == "institute_group":
+        ig_institutes_url = _safe_reverse(
+            "institute:institutegroupdashboard_page", args=["institutes"]
+        )
+        ig_counselors_url = _safe_reverse(
+            "institute:institutegroupdashboard_page", args=["counselors"]
+        )
         return [
             {
                 "title": "Reports",
@@ -222,9 +247,44 @@ def _nav_for_role(
                 "title": "Analytics",
                 "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:institutegroupheatmap")}],
             },
+            {
+                "title": "Quick actions",
+                "items": [
+                    {
+                        "label": "Add Institute",
+                        "icon": "bx bx-buildings",
+                        "href": _group_ql_href(ig_institutes_url, "ql-add-institute"),
+                        "quicklink": True,
+                        "no_ajax": True,
+                    },
+                    {
+                        "label": "Add Counselor",
+                        "icon": "bx bx-user-voice",
+                        "href": _group_ql_href(ig_counselors_url, "ql-add-counselor"),
+                        "quicklink": True,
+                        "no_ajax": True,
+                    },
+                ],
+            },
+            {
+                "title": "Accounts",
+                "items": [
+                    {
+                        "label": "Payments",
+                        "dot": "#34d399",
+                        "href": _safe_reverse("institute:institutegroupdashboard_page", args=["payments"]),
+                    },
+                ],
+            },
         ]
 
     if role == "marketing_group":
+        mktg_institutes_url = _safe_reverse(
+            "institute:marketinggroupdashboard_page", args=["institutes"]
+        )
+        mktg_counselors_url = _safe_reverse(
+            "institute:marketinggroupdashboard_page", args=["counselors"]
+        )
         return [
             {
                 "title": "Reports",
@@ -268,6 +328,25 @@ def _nav_for_role(
                         "label": "Institute credits",
                         "dot": "#22c55e",
                         "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["credits"]),
+                    },
+                ],
+            },
+            {
+                "title": "Quick actions",
+                "items": [
+                    {
+                        "label": "Add Institute",
+                        "icon": "bx bx-buildings",
+                        "href": _group_ql_href(mktg_institutes_url, "ql-add-institute"),
+                        "quicklink": True,
+                        "no_ajax": True,
+                    },
+                    {
+                        "label": "Add Counselor",
+                        "icon": "bx bx-user-voice",
+                        "href": _group_ql_href(mktg_counselors_url, "ql-add-counselor"),
+                        "quicklink": True,
+                        "no_ajax": True,
                     },
                 ],
             },
@@ -404,6 +483,18 @@ def _nav_for_role(
                 },
             ],
         },
+        {
+            "title": "Billing",
+            "items": [
+                {
+                    "label": "Payments & invoices",
+                    "dot": "#34d399",
+                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "payments"])
+                    if inst_slug
+                    else "#",
+                },
+            ],
+        },
     ]
 
 
@@ -432,7 +523,9 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
     if role == "counselor":
         institute = getattr(counselor, "counselor_admin", None) if counselor else None
     elif role == "institute":
-        institute = _resolve_institute_for_user(user)
+        institute = _resolve_institute_from_request(request) or _resolve_institute_for_user(
+            user
+        )
 
     display_name = _display_name_for_user(user)
     sections = _nav_for_role(role=role, institute=institute, counselor=counselor)
@@ -487,7 +580,20 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
         "can_block_students": role == "institute",
     }
 
-    return {
+    tieup_pay_cta = None
+    try:
+        if role == "institute" and institute:
+            from institute.tieup_billing import tieup_pay_cta_for_institute
+
+            tieup_pay_cta = tieup_pay_cta_for_institute(institute, user)
+        elif role == "institute_group":
+            from institute.tieup_billing import tieup_pay_cta_for_group_admin
+
+            tieup_pay_cta = tieup_pay_cta_for_group_admin(user)
+    except Exception:
+        tieup_pay_cta = None
+
+    out = {
         "ttv2_role_ctx": {
             "role": role,
             "user": user,
@@ -500,4 +606,7 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             "permissions": permissions,
         }
     }
+    if tieup_pay_cta:
+        out["ttv2_tieup_pay_cta"] = tieup_pay_cta
+    return out
 

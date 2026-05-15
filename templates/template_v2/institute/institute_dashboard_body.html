@@ -2,6 +2,12 @@
 <div class="ttv2-institute-embed">
   <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
   {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+    {% if ttv2_tieup_pending_banner is defined and ttv2_tieup_pending_banner %}
+    <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <span><strong>Pending tie-up payment:</strong> ₹{{ pending_total|default(0) }} due.</span>
+      <a href="{{ ttv2_tieup_payments_url|default('#') }}" class="btn btn-sm btn-warning">Pay now</a>
+    </div>
+    {% endif %}
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
     {% include "template_v2/institute/pages/institute_unassigned_students.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
@@ -10,9 +16,9 @@
   {% elif (ttv2_page|default('dashboard')) == 'counselors' %}
     {% include "template_v2/institute/pages/institute_counselors.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
-    {% include "template_v2/institute/pages/institute_accounts.html" %}
+    {% include "template_v2/institute/pages/institute_accounts_portal.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'payments' %}
-    {% include "template_v2/institute/pages/institute_payments.html" %}
+    {% include "template_v2/institute/pages/institute_tieup_billing.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'sessions' %}
     {% include "template_v2/institute/pages/institute_sessions.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'session_report' %}

@@ -1,0 +1,13 @@
+{% extends "template_v2/dashboard_unified.html" %}
+{% block dashboard_body %}
+<div class="ttv2-card text-center py-5">
+  <i class="bx bx-check-circle text-success" style="font-size:48px;"></i>
+  <h4 class="mt-3">Payment successful</h4>
+  {% if payment %}<p class="text-muted">Transaction: {{ payment.gateway_payment_id|default(payment.gateway_order_id) }}</p>{% endif %}
+  {% if billing_back_url is defined and billing_back_url %}
+  <a href="{{ billing_back_url }}" class="btn btn-primary mt-2">Back to billing</a>
+  {% elif institute is defined and institute %}
+  <a href="{{ url('institute:institutedashboard_page', args=[institute.slug, 'payments']) }}" class="btn btn-primary mt-2">Back to billing</a>
+  {% endif %}
+</div>
+{% endblock %}

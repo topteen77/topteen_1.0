@@ -1,0 +1,41 @@
+{# Shared coupon UI for institute + group institute tie-up Pay Now (same behaviour) #}
+<div class="col-lg-7">
+  <label class="form-label small fw-semibold">Discount coupon</label>
+  <label class="form-label small text-muted mb-1 d-block">Choose from available codes</label>
+  <select id="tieupCouponSelect" class="form-select form-select-sm mb-2" aria-label="Available coupon codes">
+    <option value="">— No coupon —</option>
+    {% for c in applicable_coupons|default([]) %}
+    <option value="{{ c.code }}"
+            data-discount="{{ c.discount_amount }}"
+            data-final="{{ c.final_amount }}">
+      {{ c.code }} — {{ c.label }} → pay ₹{{ c.final_amount }}
+    </option>
+    {% endfor %}
+  </select>
+  <div class="d-flex flex-wrap gap-2 mb-2">
+    <button type="button" class="btn btn-sm btn-primary" id="tieupApplySelectedCoupon" {% if not applicable_coupons|default([])|length %}disabled{% endif %}>
+      Apply selected coupon
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="tieupClearCoupon">Clear</button>
+  </div>
+  <label class="form-label small text-muted mb-1">Or enter a code manually</label>
+  <div class="input-group input-group-sm">
+    <input type="text" id="tieupCouponCode" class="form-control" placeholder="Coupon code" style="text-transform:uppercase;" autocomplete="off">
+    <button type="button" class="btn btn-outline-primary" id="tieupApplyCoupon">Apply</button>
+  </div>
+  <div id="tieupCouponMsg" class="small mt-2"></div>
+  {% if coupons_available is defined and coupons_available|length > 0 %}
+  <details class="small mt-2 text-muted">
+    <summary class="cursor-pointer">All active coupons ({{ coupons_available|length }})</summary>
+    <ul class="list-unstyled mb-0 mt-1 ps-2">
+      {% for c in coupons_available %}
+      <li class="py-1">
+        <strong>{{ c.code }}</strong> — {{ c.label }}
+        {% if c.applicable_now %}<span class="badge bg-success ms-1">Applicable now</span>{% endif %}
+        <span class="text-muted"> · used {{ c.times_used }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+</div>

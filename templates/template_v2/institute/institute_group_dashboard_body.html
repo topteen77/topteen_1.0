@@ -28,9 +28,9 @@
   {% elif (ttv2_page|default('dashboard')) == 'streams_capacity' %}
     {% include "template_v2/institute/pages/institute_group_streams_capacity.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
-    {% include "template_v2/institute/pages/institute_accounts.html" %}
+    {% include "template_v2/institute/pages/institute_accounts_portal.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'payments' %}
-    {% include "template_v2/institute/pages/institute_payments.html" %}
+    {% include "template_v2/institute/pages/institute_tieup_billing.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'session_report' %}
     {% include "template_v2/institute/pages/institute_session_report_rich.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'session_plan' %}

@@ -23,6 +23,53 @@
   width: 36px;
 }
 
+body.ttv2-shell .ttv2-topbar-pay-now {
+  border-radius: 999px;
+  padding-left: 0.85rem;
+  padding-right: 0.85rem;
+  font-size: 0.8125rem;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.25);
+}
+
+/* Create institute modal — wider dialog, scrollable body, fixed header/footer */
+#ttv2AddInstituteModal .ttv2-create-institute-modal__dialog,
+#addInstituteModal .ttv2-create-institute-modal__dialog {
+  max-width: min(920px, 96vw);
+  width: 96vw;
+  margin: 0.75rem auto;
+  max-height: calc(100vh - 1.5rem);
+}
+#ttv2AddInstituteModal .ttv2-create-institute-modal__content,
+#addInstituteModal .ttv2-create-institute-modal__content {
+  max-height: calc(100vh - 1.5rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#ttv2AddInstituteModal .ttv2-create-institute-modal__form,
+#addInstituteModal .ttv2-create-institute-modal__form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+#ttv2AddInstituteModal .ttv2-create-institute-modal__body,
+#addInstituteModal .ttv2-create-institute-modal__body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(100vh - 11.5rem);
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 575.98px) {
+  #ttv2AddInstituteModal .ttv2-create-institute-modal__body,
+  #addInstituteModal .ttv2-create-institute-modal__body {
+    max-height: calc(100vh - 10rem);
+  }
+}
+
 </style>
 
 {% endblock %}
@@ -49,6 +96,18 @@
       </button>
     </div>
     <div class="d-flex align-items-center gap-2 ttv2-topbar-right">
+      <div id="ttv2TopbarPayNowSlot" class="d-flex align-items-center gap-2 flex-shrink-0">
+      {% if ttv2_tieup_pay_cta is defined and ttv2_tieup_pay_cta and ttv2_tieup_pay_cta.show %}
+      {% if ttv2_tieup_pay_cta.institute_slug and not ttv2_tieup_pay_cta.is_group|default(false) %}
+      <span class="d-none d-md-inline text-muted ttv2-topbar-institute-slug" style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ ttv2_tieup_pay_cta.institute_name }}">{{ ttv2_tieup_pay_cta.institute_slug }}</span>
+      {% endif %}
+      <a href="{{ ttv2_tieup_pay_cta.payments_url }}"
+         class="btn btn-sm btn-warning fw-semibold ttv2-topbar-pay-now flex-shrink-0"
+         title="{% if ttv2_tieup_pay_cta.is_group|default(false) %}Pending tie-up payments across institutes{% else %}Pay pending tie-up amount for {{ ttv2_tieup_pay_cta.institute_name }}{% endif %}">
+        Pay now · ₹{{ ttv2_tieup_pay_cta.pending_total }}{% if ttv2_tieup_pay_cta.is_group|default(false) and (ttv2_tieup_pay_cta.pending_institute_count|default(1)) > 1 %} ({{ ttv2_tieup_pay_cta.pending_institute_count }} institutes){% endif %}
+      </a>
+      {% endif %}
+      </div>
       <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle border rounded-circle p-2" aria-label="Toggle theme">
         <i class="bx bx-moon"></i>
       </button>
@@ -115,6 +174,53 @@
 <script src="{{ staticv('js_new/ttv2_students_insights.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_week_dropdown.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_streams_capacity.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_tieup_billing.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_tieup_payment_history.js') }}"></script>
+<script>
+(function () {
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+  function renderTtv2PayCta(slot, cta) {
+    if (!slot) return;
+    if (!cta || !cta.show) {
+      slot.innerHTML = '';
+      return;
+    }
+    var slugHtml = '';
+    if (cta.institute_slug && !cta.is_group) {
+      slugHtml = '<span class="d-none d-md-inline text-muted ttv2-topbar-institute-slug" style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(cta.institute_name) + '">' + esc(cta.institute_slug) + '</span>';
+    }
+    var label = 'Pay now · ₹' + esc(cta.pending_total);
+    if (cta.is_group && (parseInt(cta.pending_institute_count, 10) || 0) > 1) {
+      label += ' (' + esc(cta.pending_institute_count) + ' institutes)';
+    }
+    var title = cta.is_group ? 'Pending tie-up payments' : ('Pay for ' + esc(cta.institute_name));
+    slot.innerHTML = slugHtml +
+      '<a href="' + esc(cta.payments_url) + '" class="btn btn-sm btn-warning fw-semibold ttv2-topbar-pay-now flex-shrink-0" title="' + title + '">' + label + '</a>';
+  }
+  function loadTtv2PayCta() {
+    var slot = document.getElementById('ttv2TopbarPayNowSlot');
+    if (!slot) return;
+    var slug = '';
+    var m = window.location.pathname.match(/\/institute\/([^/]+)\//);
+    if (m) slug = m[1];
+    var url = '{{ url("institute:tieup_pay_status_api") }}';
+    if (slug) url += (url.indexOf('?') >= 0 ? '&' : '?') + 'slug=' + encodeURIComponent(slug);
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.success) renderTtv2PayCta(slot, d.cta); })
+      .catch(function () {});
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var slot = document.getElementById('ttv2TopbarPayNowSlot');
+    if (slot && !slot.querySelector('.ttv2-topbar-pay-now')) loadTtv2PayCta();
+  });
+  document.addEventListener('ttv2:content:loaded', loadTtv2PayCta);
+  document.addEventListener('ttv2:afterAjaxContentLoad', loadTtv2PayCta);
+})();
+</script>
+<link rel="stylesheet" href="{{ static('css_new/ttv2_accounts_page.css') }}">
 <script src="{{ static('js/heatmap-dashboard.js') }}"></script>
 {# Theme toggle + Bootstrap scripts: template_v2/base_logged_in.html → logged_in_footer_scripts.html #}
 <script>
@@ -506,6 +612,8 @@
       try { if (typeof window.ttv2InitSessionReportMtdWeekClick === 'function') window.ttv2InitSessionReportMtdWeekClick(); } catch(e) {}
       try { if (typeof window.ttv2InitStudentsInsightsBlocks === 'function') window.ttv2InitStudentsInsightsBlocks(true); } catch(e) {}
       try { if (typeof window.ttv2InitStudentsTable === 'function') window.ttv2InitStudentsTable(); } catch(e) {}
+      try { if (typeof window.ttv2InitTieupBilling === 'function') window.ttv2InitTieupBilling(); } catch(e) {}
+      try { if (typeof window.ttv2InitTieupPaymentHistory === 'function') window.ttv2InitTieupPaymentHistory(); } catch(e) {}
       try {
         var host = document.getElementById('ttv2AjaxContent');
         if (host) {

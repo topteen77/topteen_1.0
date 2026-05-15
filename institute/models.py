@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from core import choices
 from core.models import BaseModel,SlugModel
@@ -90,6 +91,24 @@ def resolve_marketing_group_for_public_registration(selected_group):
     if selected_group is not None:
         return selected_group
     return get_default_marketing_group_for_direct_registration()
+
+
+def institute_status_for_creator(creator):
+    """
+    Institutes created by marketing / institute-group admins or staff are approved immediately.
+    Public self-registration and institute-owned signups stay pending.
+    """
+    if not creator or not getattr(creator, "is_authenticated", False):
+        return choices.InstituteStatus.PENDING
+    if creator.is_superuser or getattr(creator, "is_staff", False):
+        return choices.InstituteStatus.APPROVED
+    ut = getattr(creator, "user_type", None)
+    if ut in (
+        choices.UserType.MARKETINGGROUPADMIN,
+        choices.UserType.INSTITUTEGROUPADMIN,
+    ):
+        return choices.InstituteStatus.APPROVED
+    return choices.InstituteStatus.PENDING
 
 
 class Institute(BaseModel, SlugModel):
@@ -218,6 +237,13 @@ class Institute(BaseModel, SlugModel):
         """String representation of the Institute."""
         return self.name
 
+    @property
+    def tieup_form_initial(self):
+        """Tie-up billing field defaults for marketing edit institute modal."""
+        from institute.tieup_billing import get_tieup_billing_form_initial
+
+        return get_tieup_billing_form_initial(self)
+
     def get_current_credits_count(self):
         """
         Calculate and return the current available credits.
@@ -317,3 +343,137 @@ class InstituteLog(BaseModel):
             return 0
         else:
             return stu_counts
+
+
+class InstituteDiscountCoupon(BaseModel):
+    """B2B tie-up coupon scoped to an institute (ported from counselor_project DiscountCoupon)."""
+    institute = models.ForeignKey(
+        Institute, on_delete=models.CASCADE, related_name="discount_coupons"
+    )
+    marketing_group = models.ForeignKey(
+        InstituteMarketingGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="discount_coupons",
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="institute_coupons_created",
+    )
+    code = models.CharField(max_length=64, unique=True, db_index=True)
+    discount_type = models.CharField(
+        max_length=20,
+        choices=choices.CouponDiscountType.CHOICES,
+        default=choices.CouponDiscountType.PERCENT,
+    )
+    value = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Percentage (e.g. 10) or fixed amount in INR",
+    )
+    applies_to = models.CharField(
+        max_length=40,
+        choices=choices.CouponAppliesTo.CHOICES,
+        default=choices.CouponAppliesTo.ALL,
+    )
+    valid_from = models.DateTimeField(null=True, blank=True)
+    valid_until = models.DateTimeField(null=True, blank=True)
+    max_uses = models.PositiveIntegerField(null=True, blank=True)
+    times_used = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name_plural = "Institute discount coupons"
+        ordering = ("-created",)
+
+    def save(self, *args, **kwargs):
+        if self.code:
+            self.code = self.code.strip().upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.code} ({self.discount_type} {self.value})"
+
+
+class InstituteTieUpOrder(BaseModel):
+    institute = models.ForeignKey(
+        Institute, on_delete=models.CASCADE, related_name="tieup_orders"
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tieup_orders_created",
+    )
+    status = models.SmallIntegerField(
+        choices=choices.TieUpOrderStatus.CHOICES,
+        default=choices.TieUpOrderStatus.ACTIVE,
+    )
+    notes = models.TextField(blank=True, default="")
+    coupon = models.ForeignKey(
+        InstituteDiscountCoupon,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ("-created",)
+
+    def __str__(self):
+        return f"Tie-up order #{self.pk} — {self.institute}"
+
+
+class InstituteTieUpLineItem(BaseModel):
+    order = models.ForeignKey(
+        InstituteTieUpOrder, on_delete=models.CASCADE, related_name="line_items"
+    )
+    product_type = models.SmallIntegerField(choices=choices.TieUpProductType.CHOICES)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    line_subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    line_discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    payment_status = models.SmallIntegerField(
+        choices=choices.TieUpPaymentStatus.CHOICES,
+        default=choices.TieUpPaymentStatus.PENDING,
+    )
+    payment = models.ForeignKey(
+        "payments.Payment",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tieup_line_items",
+    )
+    received_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tieup_lines_received",
+    )
+    received_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("id",)
+
+    def save(self, *args, **kwargs):
+        qty = int(self.quantity or 0)
+        unit = self.unit_price or Decimal("0")
+        self.line_subtotal = (Decimal(qty) * unit).quantize(Decimal("0.01"))
+        disc = self.line_discount or Decimal("0")
+        self.total_amount = max(
+            self.line_subtotal - disc, Decimal("0")
+        ).quantize(Decimal("0.01"))
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.get_product_type_display()} x{self.quantity}"

@@ -2,6 +2,7 @@
 <div class="ttv2-marketing-embed">
   <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
   {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
+    {% include "template_v2/institute/includes/approve_institute_billing_modal.html" %}
     {% include "template_v2/includes/ttv2_dashboard_analytics_section.html" %}
     {% include "template20/institute/marketing_group_dashboard_body.html" %}
     {% include "template_v2/includes/ttv2_dashboard_banners.html" %}
@@ -30,9 +31,9 @@
   {% elif (ttv2_page|default('dashboard')) == 'credits' %}
     {% include "template_v2/institute/pages/marketing_group_credits_page.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
-    {% include "template_v2/institute/pages/institute_accounts.html" %}
+    {% include "template_v2/institute/pages/marketing_accounts.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'payments' %}
-    {% include "template_v2/institute/pages/institute_payments.html" %}
+    {% include "template_v2/institute/pages/marketing_group_tieup_payments.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'session_report' %}
     {% include "template_v2/institute/pages/institute_session_report_rich.html" %}
   {% else %}

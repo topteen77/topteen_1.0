@@ -46,4 +46,8 @@ def finalize_side_effects_after_gateway_success(payment):
                 send_pychometric_test_payment_success_mail.delay(test.id)
             except Exception:
                 logger.exception('Psychometric success mail failed (reconciliation)')
+    elif payment.obj_type == choices.PaymentObjectType.INSTITUTE_TIEUP:
+        from institute.tieup_billing import finalize_tieup_payment
+
+        finalize_tieup_payment(payment)
     # COUNSELOR: invoice + analytics from Payment signals only.

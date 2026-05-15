@@ -690,6 +690,21 @@ def _institute_logo_url_safe(institute) -> str:
         pass
 
 
+def _render_ttv2_tieup_payments_partial(request, ctx):
+    """AJAX fragment for tie-up payments status tabs (no full dashboard reload)."""
+    if (ctx.get("ttv2_page") or "").strip().lower() != "payments":
+        return None
+    if (request.GET.get("ttv2_payments_partial") or "").strip() != "1":
+        return None
+    if ctx.get("is_group_view"):
+        template = "template_v2/institute/pages/institute_tieup_payment_history.html"
+    elif "/marketing_group_dashboard/" in (request.path or ""):
+        template = "template_v2/institute/pages/marketing_group_tieup_payments.html"
+    else:
+        template = "template_v2/institute/pages/institute_tieup_payment_history.html"
+    return render(request, template, ctx)
+
+
 def scoped_student_management_for_dashboard(request):
     """
     Role-scoped StudentManagement queryset for marketing / institute-group dashboards.
@@ -1829,7 +1844,6 @@ class InstituteCreateView(TemplateView):
         address = (request.POST.get("institute_address") or "").strip()
         contact = _norm_phone(request.POST.get("institute_contact"))
         admin_contact = _norm_phone(request.POST.get("institute_admin"))
-        credit_counts_raw = request.POST.get("ins_credits")
         institute_group_id = request.POST.get("institute_group")
         logo = request.FILES.get("institute_logo")
         referer = request.META.get('HTTP_REFERER') or reverse('institute:marketinggroupdashboard')
@@ -1850,10 +1864,11 @@ class InstituteCreateView(TemplateView):
             )
             return HttpResponseRedirect(referer)
 
-        try:
-            credit_counts = int(credit_counts_raw)
-        except (TypeError, ValueError):
-            messages.error(request, "Enter a valid number for exam credits.")
+        from institute.tieup_billing import parse_exam_credits_qty_from_post
+
+        credit_counts, credits_err = parse_exam_credits_qty_from_post(request.POST)
+        if credits_err:
+            messages.error(request, credits_err)
             return HttpResponseRedirect(referer)
 
         if contact and not re.match(phone10, contact):
@@ -1908,7 +1923,10 @@ class InstituteCreateView(TemplateView):
             password=''.join([str(random.randint(0,10)) for _ in range(6)])
             user_dict={'email':ins_email,'password':password,'user_type':choices.UserType.INSTITUTE}
             ins_user=User.create_user(**user_dict)
-            ins=Institute(
+            from institute.models import institute_status_for_creator
+
+            initial_status = institute_status_for_creator(request.user)
+            ins = Institute(
                 name=name,
                 created_by=ins_user,
                 logo=logo,
@@ -1917,11 +1935,39 @@ class InstituteCreateView(TemplateView):
                 administrator_contact=admin_contact,
                 credit_counts=credit_counts,
                 institute_group=ins_group,
-                marketing_group=marketing_group
+                marketing_group=marketing_group,
+                institute_status=initial_status,
             )
             ins.save()
-            send_institute_mail.delay(ins.created_by.email,password)
-            messages.success(request, "Institute Created")
+            from institute.tieup_billing import (
+                create_tieup_order,
+                tieup_lines_for_institute_create,
+            )
+
+            tieup_lines = tieup_lines_for_institute_create(request.POST, credit_counts)
+            if tieup_lines:
+                coupon_code = (request.POST.get("tieup_coupon_code") or "").strip()
+                try:
+                    create_tieup_order(
+                        ins,
+                        request.user,
+                        tieup_lines,
+                        coupon_code=coupon_code or None,
+                    )
+                except ValueError as e:
+                    messages.warning(
+                        request,
+                        f"Institute created but tie-up billing failed: {e}",
+                    )
+            elif credit_counts > 0:
+                from institute.tieup_billing import ensure_pending_tieup_order_for_institute
+
+                ensure_pending_tieup_order_for_institute(ins, request.user)
+            send_institute_mail.delay(ins.created_by.email, password)
+            if initial_status == choices.InstituteStatus.APPROVED:
+                messages.success(request, "Institute created and approved.")
+            else:
+                messages.success(request, "Institute created.")
         else:
             if credit_counts > max_credits:
                 messages.error(request, "No remaining credits for this allocation.")
@@ -2620,6 +2666,69 @@ class MarketingGroupDashboardView(TemplateView):
                 "used": tot_u,
                 "remaining": tot_r,
             }
+        if ctx["ttv2_page"] == "payments":
+            from institute.tieup_billing import build_marketing_payments_rows
+
+            status_filter = (request.GET.get("status") or "").strip().lower() or None
+            institute_filter = (request.GET.get("institute") or "").strip()
+            institutes_qs = Institute.objects.filter(
+                marketing_group__marketing_group_admin=request.user
+            ).order_by("name")
+            ctx["ttv2_tieup_payments"] = build_marketing_payments_rows(
+                request.user,
+                status_filter,
+                institute_slug=institute_filter or None,
+            )
+            ctx["ttv2_payments_status_filter"] = status_filter or ""
+            ctx["ttv2_payments_institute_filter"] = institute_filter
+            ctx["tieup_payment_institutes"] = list(
+                institutes_qs.values("id", "name", "slug")
+            )
+            ctx["mark_received_url"] = reverse("institute:marketing_tieup_mark_received")
+            ctx["coupon_create_url"] = reverse("institute:marketing_tieup_coupon_create")
+            ctx["mktg_coupon_institutes"] = ctx["tieup_payment_institutes"]
+            ctx["tieup_coupon_institutes"] = ctx["tieup_payment_institutes"]
+            ctx["show_tieup_coupon_create"] = True
+            ctx["show_tieup_mark_received"] = True
+            ctx["is_marketing_view"] = True
+            from institute.tieup_billing import get_tieup_pay_coupon_context
+            from institute.models import InstituteTieUpOrder
+
+            all_available = []
+            all_used = []
+            for inst in institutes_qs:
+                order = (
+                    InstituteTieUpOrder.objects.filter(
+                        institute=inst, status=choices.TieUpOrderStatus.ACTIVE
+                    )
+                    .prefetch_related("line_items")
+                    .order_by("-created")
+                    .first()
+                )
+                pending_objs = []
+                if order:
+                    pending_objs = [
+                        li
+                        for li in order.line_items.all()
+                        if li.payment_status == choices.TieUpPaymentStatus.PENDING
+                    ]
+                cctx = get_tieup_pay_coupon_context(inst, pending_objs)
+                for row in cctx.get("coupons_available", []):
+                    item = dict(row)
+                    item["institute_name"] = inst.name
+                    item["institute_slug"] = inst.slug
+                    all_available.append(item)
+                for row in cctx.get("coupons_used", []):
+                    item = dict(row)
+                    item["institute_name"] = inst.name
+                    item["institute_slug"] = inst.slug
+                    all_used.append(item)
+            ctx["coupons_available"] = all_available
+            ctx["coupons_used"] = all_used
+        if ctx["ttv2_page"] == "accounts":
+            from institute.accounts_analytics import build_marketing_accounts_ctx
+
+            ctx["ttv2_accounts"] = build_marketing_accounts_ctx(request.user, request)
 
         return ctx
     
@@ -2724,6 +2833,9 @@ class MarketingGroupDashboardView(TemplateView):
         else:
             # Regular page load (support v2 partial for AJAX shell boot)
             ctx = self.get_context(request, *args, **kwargs)
+            payments_partial = _render_ttv2_tieup_payments_partial(request, ctx)
+            if payments_partial is not None:
+                return payments_partial
             try:
                 template_version = (
                     Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
@@ -2835,7 +2947,6 @@ class InstituteMarketingProfileEditView(TemplateView):
         ins_address=request.POST.get("institute_address")
         ins_contact=request.POST.get("institute_contact")
         ins_admin=request.POST.get("institute_admin")
-        ins_credits=request.POST.get("upd_credits")
         ins_group=request.POST.get("institute_group")
         ins_logo=request.FILES.get("institute_logo")
         ins_status_raw = request.POST.get("institute_status")
@@ -2865,25 +2976,50 @@ class InstituteMarketingProfileEditView(TemplateView):
                 ins.institute_status = s
                 status_updated = True
 
-        if ins_name or ins_address or ins_contact or ins_admin or ins_logo or ins_credits or ins_group or status_updated:
+        from institute.tieup_billing import (
+            parse_line_items_from_post,
+            sync_institute_tieup_from_post,
+        )
+
+        tieup_qty_raw = (
+            request.POST.get("tieup_student_test_credits_qty")
+            or request.POST.get("upd_credits")
+            or ""
+        ).strip()
+        profile_changed = bool(
+            ins_name
+            or ins_address
+            or ins_contact
+            or ins_admin
+            or ins_logo
+            or ins_group
+            or status_updated
+            or tieup_qty_raw
+            or parse_line_items_from_post(request.POST)
+        )
+        if profile_changed:
             if ins_name:
-                update_student_data.delay(ins.id,ins_name)
-                ins.name=ins_name
+                update_student_data.delay(ins.id, ins_name)
+                ins.name = ins_name
             if ins_address:
-                ins.address=ins_address
+                ins.address = ins_address
             if ins_contact:
-                ins.contact_info=ins_contact
+                ins.contact_info = ins_contact
             if ins_admin:
-                ins.administrator_contact=ins_admin
-            if ins_credits and (0<=int(ins_credits)<=(ins.credit_counts+get_global_remain_credits())):
-                ins.credit_counts=ins_credits
+                ins.administrator_contact = ins_admin
             if ins_group:
-                institute_group=get_object_or_404(InstituteGroup,id=ins_group)
-                ins.institute_group=institute_group
-            
+                institute_group = get_object_or_404(InstituteGroup, id=ins_group)
+                ins.institute_group = institute_group
             if ins_logo:
-                ins.logo=ins_logo
+                ins.logo = ins_logo
             ins.save()
+            try:
+                sync_institute_tieup_from_post(ins, request.user, request.POST)
+            except ValueError as e:
+                messages.warning(
+                    request,
+                    f"Institute profile saved; tie-up billing was not updated: {e}",
+                )
             messages.success(request, f"Institute {ins.name} updated successfully.")
         else:
             messages.info(request, "No changes were made.")
@@ -3293,6 +3429,29 @@ class InstituteGroupDashboardView(TemplateView):
                 request.user, sm_scope
             )
             ctx["unique_streams"] = get_unique_streams_by_role(request.user, sm_scope)
+        from institute.tieup_billing import attach_group_tieup_payment_ctx
+
+        status_filter = None
+        institute_filter = ""
+        if ctx["ttv2_page"] == "payments":
+            status_filter = (request.GET.get("status") or "").strip().lower() or None
+            institute_filter = (request.GET.get("institute") or "").strip()
+        attach_group_tieup_payment_ctx(
+            ctx,
+            request.user,
+            status_filter=status_filter,
+            institute_slug=institute_filter or None,
+        )
+        if ctx["ttv2_page"] == "payments":
+            ctx["ttv2_tieup_payments"] = ctx.get("tieup_payment_rows") or ctx.get("rows", [])
+            ctx["ttv2_payments_status_filter"] = status_filter or ""
+            ctx["ttv2_payments_institute_filter"] = institute_filter
+            ctx["tieup_payment_institutes"] = ctx.get("tieup_coupon_institutes") or []
+            ctx["is_group_view"] = True
+        if ctx["ttv2_page"] == "accounts":
+            from institute.accounts_analytics import build_group_accounts_ctx
+
+            ctx["ttv2_accounts"] = build_group_accounts_ctx(request.user, request)
         return ctx
     
     def get_search_parameters(self, request):
@@ -3404,6 +3563,9 @@ class InstituteGroupDashboardView(TemplateView):
         else:
             # Regular page load (support v2 partial for AJAX shell boot)
             ctx = self.get_context(request, *args, **kwargs)
+            payments_partial = _render_ttv2_tieup_payments_partial(request, ctx)
+            if payments_partial is not None:
+                return payments_partial
             try:
                 template_version = (
                     Configuration.get("DASHBOARD_TEMPLATE_VERSION", "v1", editable=True) or "v1"
@@ -4548,6 +4710,18 @@ class InstituteDashboardView(TemplateView):
                 },
             }
         )
+        if institute:
+            from institute.tieup_billing import attach_institute_tieup_payment_ctx
+
+            status_filter = None
+            if ctx["ttv2_page"] == "payments":
+                status_filter = (request.GET.get("status") or "").strip().lower() or None
+            attach_institute_tieup_payment_ctx(
+                ctx, institute, request.user, status_filter=status_filter
+            )
+            if ctx["ttv2_page"] in ("payments", "dashboard"):
+                ctx["ttv2_tieup_payments"] = ctx.get("tieup_payment_rows") or ctx.get("rows", [])
+                ctx["ttv2_payments_status_filter"] = status_filter or ""
 
         # Students page: Psychometric assessment PDF stats (MI/EI attempts in scope)
         try:
@@ -5011,283 +5185,14 @@ class InstituteDashboardView(TemplateView):
             data=ctx.get('stu')
             return self.get_filter_data(request,data)
 
-        # v2 "Payments" page: show payments scoped to this institute's students.
-        if (ctx.get("ttv2_page") or "").strip().lower() == "payments":
-            try:
-                stu_qs = ctx.get("stu")
-                if hasattr(stu_qs, "values_list"):
-                    uids = [int(x) for x in stu_qs.values_list("student_id", flat=True) if x]
-                else:
-                    uids = []
-
-                uids = list({x for x in uids if x})
-                payments_rows = []
-                status_filter = (request.GET.get("status") or "").strip().lower()
-                # allow: success / failed / pending
-                if uids:
-                    from payments.models import Payment
-                    from psychometric_tests.models import PsychometricTestPayment
-                    from skilllab.models import SkilllabCoursePayment
-                    from core import choices as core_choices
-
-                    def _yesno_to_status(v):
-                        try:
-                            return "Successful" if int(v) == int(core_choices.YesNoChoices.YES) else "Failed"
-                        except Exception:
-                            return "—"
-
-                    # Psychometric test payments
-                    for p in (
-                        PsychometricTestPayment.objects.filter(user_id__in=uids)
-                        .select_related("user")
-                        .order_by("-created")[:500]
-                    ):
-                        st = _yesno_to_status(getattr(p, "is_success", None))
-                        if status_filter in ("success", "successful") and st != "Successful":
-                            continue
-                        if status_filter in ("failed", "fail") and st != "Failed":
-                            continue
-                        payments_rows.append(
-                            {
-                                "when": getattr(p, "created", None).strftime("%Y-%m-%d %H:%M") if getattr(p, "created", None) else "-",
-                                "user": (getattr(getattr(p, "user", None), "email", "") or "-"),
-                                "kind": getattr(p, "get_test_name", lambda: "Psychometric Test")(),
-                                "amount": getattr(p, "amount", 0) or 0,
-                                "status": st,
-                            }
-                        )
-
-                    # Skilllab course payments
-                    for p in (
-                        SkilllabCoursePayment.objects.filter(user_id__in=uids)
-                        .select_related("user", "skilllab_course")
-                        .order_by("-created")[:500]
-                    ):
-                        course = getattr(p, "skilllab_course", None)
-                        st = _yesno_to_status(getattr(p, "is_success", None))
-                        if status_filter in ("success", "successful") and st != "Successful":
-                            continue
-                        if status_filter in ("failed", "fail") and st != "Failed":
-                            continue
-                        payments_rows.append(
-                            {
-                                "when": getattr(p, "created", None).strftime("%Y-%m-%d %H:%M") if getattr(p, "created", None) else "-",
-                                "user": (getattr(getattr(p, "user", None), "email", "") or "-"),
-                                "kind": ("Skilllab: %s" % (getattr(course, "name", "") or "Course")),
-                                "amount": getattr(p, "amount", 0) or 0,
-                                "status": st,
-                            }
-                        )
-
-                    # Generic gateway payments (if used elsewhere)
-                    for p in (
-                        Payment.objects.filter(user_id__in=uids)
-                        .select_related("user")
-                        .order_by("-created")[:500]
-                    ):
-                        st = _yesno_to_status(getattr(p, "is_success", None))
-                        # "pending" filter: failed rows that look like pending attempt (order id exists, payment id missing)
-                        if status_filter in ("pending",):
-                            if not (
-                                getattr(p, "gateway_order_id", None)
-                                and not getattr(p, "gateway_payment_id", None)
-                                and st == "Failed"
-                            ):
-                                continue
-                            st = "Pending"
-                        elif status_filter in ("success", "successful") and st != "Successful":
-                            continue
-                        elif status_filter in ("failed", "fail") and st != "Failed":
-                            continue
-                        payments_rows.append(
-                            {
-                                "when": getattr(p, "created", None).strftime("%Y-%m-%d %H:%M") if getattr(p, "created", None) else "-",
-                                "user": (getattr(getattr(p, "user", None), "email", "") or "-"),
-                                "kind": getattr(p, "get_obj_type_display", lambda: "Payment")(),
-                                "amount": getattr(p, "amount", 0) or 0,
-                                "status": st,
-                            }
-                        )
-
-                # Sort combined rows newest-first (string date format is sortable here).
-                payments_rows.sort(key=lambda r: r.get("when") or "", reverse=True)
-                ctx["ttv2_institute_payments"] = payments_rows
-            except Exception:
-                ctx["ttv2_institute_payments"] = []
-
-        # v2 "Accounts" page: institute-scoped accounts analytics (similar to user_analytics accounts dashboard).
         if (ctx.get("ttv2_page") or "").strip().lower() == "accounts":
-            try:
-                from django.utils import timezone as _tz
-                from datetime import timedelta as _td
-                from django.db.models import Sum
-                from core import choices as core_choices
-                from users.models import User
-                from payments.models import Payment
-                from psychometric_tests.models import PsychometricTestPayment
-                from skilllab.models import SkilllabCoursePayment
+            from institute.accounts_analytics import build_institute_accounts_ctx
 
-                def _date_range_from_period(period, default_days=30):
-                    end = _tz.now()
-                    p = (period or "").strip()
-                    if p == "today":
-                        start = end.replace(hour=0, minute=0, second=0, microsecond=0)
-                    elif p == "yesterday":
-                        start = (end - _td(days=1)).replace(
-                            hour=0, minute=0, second=0, microsecond=0
-                        )
-                        end = start + _td(days=1)
-                    elif p == "7days":
-                        start = end - _td(days=7)
-                    elif p == "30days":
-                        start = end - _td(days=30)
-                    elif p == "90days":
-                        start = end - _td(days=90)
-                    elif p == "alltime":
-                        return None, None
-                    else:
-                        start = end - _td(days=default_days)
-                    return start, end
-
-                def _status_label(is_success):
-                    try:
-                        return (
-                            "Successful"
-                            if int(is_success) == int(core_choices.YesNoChoices.YES)
-                            else "Failed"
-                        )
-                    except Exception:
-                        return "—"
-
-                stu_qs = ctx.get("stu")
-                if hasattr(stu_qs, "values_list"):
-                    uids = [int(x) for x in stu_qs.values_list("student_id", flat=True) if x]
-                else:
-                    uids = []
-                uids = list({x for x in uids if x})
-
-                time_period = (request.GET.get("period") or "30days").strip()
-                start_date, end_date = _date_range_from_period(time_period, default_days=30)
-
-                # Registrations: count institute students created in the selected period.
-                reg_qs = User.objects.filter(id__in=uids)
-                if start_date is not None:
-                    reg_qs = reg_qs.filter(created__gte=start_date, created__lte=end_date)
-                total_registrations = reg_qs.count()
-
-                # Payments / revenue across models.
-                def _filter_by_date(qs):
-                    if start_date is None:
-                        return qs
-                    return qs.filter(created__gte=start_date, created__lte=end_date)
-
-                ptp_s = _filter_by_date(
-                    PsychometricTestPayment.objects.filter(
-                        user_id__in=uids, is_success=core_choices.YesNoChoices.YES
-                    )
+            institute = ctx.get("institute")
+            if institute:
+                ctx["ttv2_accounts"] = build_institute_accounts_ctx(
+                    institute, request.user, request
                 )
-                ptp_f = _filter_by_date(
-                    PsychometricTestPayment.objects.filter(
-                        user_id__in=uids, is_success=core_choices.YesNoChoices.NO
-                    )
-                )
-                slp_s = _filter_by_date(
-                    SkilllabCoursePayment.objects.filter(
-                        user_id__in=uids, is_success=core_choices.YesNoChoices.YES
-                    )
-                )
-                slp_f = _filter_by_date(
-                    SkilllabCoursePayment.objects.filter(
-                        user_id__in=uids, is_success=core_choices.YesNoChoices.NO
-                    )
-                )
-                pay_s = _filter_by_date(
-                    Payment.objects.filter(user_id__in=uids, is_success=core_choices.YesNoChoices.YES)
-                )
-                pay_f = _filter_by_date(
-                    Payment.objects.filter(user_id__in=uids, is_success=core_choices.YesNoChoices.NO)
-                )
-
-                total_revenue = 0
-                for qs in (ptp_s, slp_s, pay_s):
-                    try:
-                        total_revenue += float(qs.aggregate(total=Sum("amount"))["total"] or 0)
-                    except Exception:
-                        pass
-
-                payment_status = {
-                    "success": int(ptp_s.count() + slp_s.count() + pay_s.count()),
-                    "failed": int(ptp_f.count() + slp_f.count() + pay_f.count()),
-                    "pending": 0,
-                }
-
-                # Pending: best-effort from gateway Payment rows without payment id (order created, not completed).
-                pending_qs = Payment.objects.filter(user_id__in=uids, is_success=core_choices.YesNoChoices.NO)
-                pending_qs = pending_qs.exclude(gateway_order_id__isnull=True).exclude(gateway_order_id__exact="")
-                pending_qs = pending_qs.filter(gateway_payment_id__isnull=True)
-                if start_date is not None:
-                    pending_qs = pending_qs.filter(created__gte=start_date, created__lte=end_date)
-                payment_status["pending"] = int(pending_qs.count())
-
-                # Prospects: not tracked per institute here (set to 0 for institute dashboards).
-                total_prospects = 0
-                converted_prospects = 0
-                pending_prospects = 0
-
-                # Revenue by source: not reliably available per institute (no UTM/source on payment models).
-                # Show a single "Unknown" bucket for now so UI matches.
-                success_count = payment_status["success"]
-                revenue_by_source = []
-                if success_count > 0 and total_revenue > 0:
-                    revenue_by_source = [
-                        {"metadata__source": "Unknown", "revenue": float(total_revenue), "count": int(success_count)}
-                    ]
-
-                failed_payments = []
-                if payment_status["failed"] > 0:
-                    if int(ptp_f.count()) > 0:
-                        failed_payments.append({"event_name": "Psychometric Test Payment", "count": int(ptp_f.count())})
-                    if int(slp_f.count()) > 0:
-                        failed_payments.append({"event_name": "Skilllab Course Payment", "count": int(slp_f.count())})
-                    if int(pay_f.count()) > 0:
-                        failed_payments.append({"event_name": "Gateway Payment", "count": int(pay_f.count())})
-
-                pending_payments_list = []
-                for p in pending_qs.select_related("user").order_by("-created")[:20]:
-                    pending_payments_list.append(
-                        {
-                            "user": getattr(p, "user", None),
-                            "event_name": "Payment Pending",
-                            "amount": getattr(p, "amount", 0) or 0,
-                            "created": getattr(p, "created", None),
-                        }
-                    )
-
-                ctx["ttv2_accounts"] = {
-                    "time_period": time_period,
-                    "total_registrations": int(total_registrations),
-                    "total_revenue": float(total_revenue),
-                    "total_prospects": int(total_prospects),
-                    "converted_prospects": int(converted_prospects),
-                    "pending_prospects": int(pending_prospects),
-                    "payment_status": payment_status,
-                    "revenue_by_source": revenue_by_source,
-                    "failed_payments": failed_payments,
-                    "pending_payments_list": pending_payments_list,
-                }
-            except Exception:
-                ctx["ttv2_accounts"] = {
-                    "time_period": (request.GET.get("period") or "30days").strip(),
-                    "total_registrations": 0,
-                    "total_revenue": 0,
-                    "total_prospects": 0,
-                    "converted_prospects": 0,
-                    "pending_prospects": 0,
-                    "payment_status": {"success": 0, "failed": 0, "pending": 0},
-                    "revenue_by_source": [],
-                    "failed_payments": [],
-                    "pending_payments_list": [],
-                }
 
         # v2 sessions-like pages: show counselor follow-ups for this institute.
         # - sessions: legacy table
@@ -6493,12 +6398,9 @@ class InstituteDashboardView(TemplateView):
                 "occupancy_by_stream": occ_by_stream,
             }
 
-        # v2: allow AJAX refresh of payments page without full reload
-        if (
-            (ctx.get("ttv2_page") or "").strip().lower() == "payments"
-            and (request.GET.get("ttv2_payments_partial") or "").strip() == "1"
-        ):
-            return render(request, "template_v2/institute/pages/institute_payments.html", ctx)
+        payments_partial = _render_ttv2_tieup_payments_partial(request, ctx)
+        if payments_partial is not None:
+            return payments_partial
 
         # v2 partial rendering for fast AJAX shell boot
         try:
