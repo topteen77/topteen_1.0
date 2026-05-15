@@ -55,6 +55,7 @@ class SkillLabCourseList(TemplateView):
         
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Skill Lab Course', 'url': ''}])
+        ctx['course_count'] = SkillLabCourse.objects.count()
         return ctx
     
     def get_fallback_context(self, request):
@@ -71,7 +72,8 @@ class SkillLabCourseList(TemplateView):
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         ctx['skilllab'] = page_obj
-        
+        ctx['course_count'] = courses.count()
+
         return ctx
     
     def get(self, request,*args, **kwargs):      
