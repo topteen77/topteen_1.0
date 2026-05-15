@@ -1,0 +1,77 @@
+<div class="ttv2-mktg-subpage">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="fs-20 mb-0">Institute credits</h2>
+    <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+  </div>
+  <p class="text-muted small mb-3">
+    Allocated credits are the seat cap per institute. Used counts enrolled students. Remaining is capped at zero per school.
+  </p>
+
+  {% set totals = mktg_credits_totals if mktg_credits_totals is defined else None %}
+  {% if totals %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total allocated</div>
+          <div class="fs-22 fw-semibold">{{ totals.allocated }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total used</div>
+          <div class="fs-22 fw-semibold text-warning">{{ totals.used }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total remaining</div>
+          <div class="fs-22 fw-semibold text-success">{{ totals.remaining }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-3">By institute</h5>
+      <div class="table-responsive">
+        <table class="table table-hover ttv2-rich-table mb-0">
+          <thead>
+            <tr>
+              <th style="width:56px;">#</th>
+              <th>Institute</th>
+              <th class="text-end">Allocated</th>
+              <th class="text-end">Used</th>
+              <th class="text-end">Remaining</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if mktg_credits_rows is defined and mktg_credits_rows|length > 0 %}
+              {% for row in mktg_credits_rows %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  <a href="{{ url('institute:marketinggroupdashboard_page', args=['institutes']) }}?institute={{ row.name|urlencode }}" class="text-decoration-none">{{ row.name }}</a>
+                </td>
+                <td class="text-end">{{ row.allocated }}</td>
+                <td class="text-end">{{ row.used }}</td>
+                <td class="text-end">{{ row.remaining }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-muted text-center py-4">No institutes in this marketing group.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

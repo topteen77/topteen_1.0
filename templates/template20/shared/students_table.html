@@ -527,7 +527,7 @@
   <ul class="pagination justify-content-center">
     {% if students.has_previous() %}
     <li class="page-item">
-      <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">Previous</a>
+      <a class="page-link" href="?page={{ students.previous_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}{% if request.GET.get('filter_counselor') %}&filter_counselor={{ request.GET.get('filter_counselor') }}{% endif %}{% if request.GET.get('counselor_activity') %}&counselor_activity={{ request.GET.get('counselor_activity') }}{% endif %}">Previous</a>
     </li>
     {% else %}
     <li class="page-item disabled">
@@ -542,7 +542,7 @@
       </li>
       {% elif num <= 3 or num > students.paginator.num_pages - 3 or (num >= students.number - 1 and num <= students.number + 1) %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ num }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">{{ num }}</a>
+        <a class="page-link" href="?page={{ num }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}{% if request.GET.get('filter_counselor') %}&filter_counselor={{ request.GET.get('filter_counselor') }}{% endif %}{% if request.GET.get('counselor_activity') %}&counselor_activity={{ request.GET.get('counselor_activity') }}{% endif %}">{{ num }}</a>
       </li>
       {% elif num == 4 or num == students.paginator.num_pages - 2 %}
       <li class="page-item disabled">
@@ -553,7 +553,7 @@
     
     {% if students.has_next() %}
     <li class="page-item">
-      <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}">Next</a>
+      <a class="page-link" href="?page={{ students.next_page_number() }}{% if request.GET.get('class_and_section') %}&class_and_section={{ request.GET.get('class_and_section') }}{% endif %}{% if request.GET.get('stream') %}&stream={{ request.GET.get('stream') }}{% endif %}{% if request.GET.get('test_taken') %}&test_taken={{ request.GET.get('test_taken') }}{% endif %}{% if request.GET.get('student_name') %}&student_name={{ request.GET.get('student_name') }}{% endif %}{% if request.GET.get('per_page') %}&per_page={{ request.GET.get('per_page') }}{% endif %}{% if request.GET.get('display') %}&display={{ request.GET.get('display') }}{% endif %}{% if request.GET.get('filter_counselor') %}&filter_counselor={{ request.GET.get('filter_counselor') }}{% endif %}{% if request.GET.get('counselor_activity') %}&counselor_activity={{ request.GET.get('counselor_activity') }}{% endif %}">Next</a>
     </li>
     {% else %}
     <li class="page-item disabled">

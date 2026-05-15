@@ -20,7 +20,16 @@
       else (url('institute:institutegroupdashboard_page', args=['students']) if _ttv2_role == 'institute_group'
       else '')))
     ) %}
-    {% set _psych_graph_href = '#ttv2DaPsych' %}
+    {% if _students_href %}
+      {% set _psych_students_href = _students_href ~ ('&' if ('?' in _students_href) else '?') ~ 'psychometric_complete=1' %}
+    {% else %}
+      {% set _psych_students_href = '' %}
+    {% endif %}
+    {% set _credits_detail_href = (
+      url('institute:marketinggroupdashboard_page', args=['credits']) if _ttv2_role == 'marketing_group'
+      else (url('institute:institutegroupdashboard_page', args=['institutes']) if _ttv2_role == 'institute_group'
+      else (url('institute:institutedashboard_page', args=[_inst_slug, 'payments']) if _inst_slug else ''))
+    ) %}
     {% set _couns_href = (
       url('institute:institutedashboard_page', args=[_inst_slug, 'counselors'])
       if _inst_slug
@@ -45,9 +54,10 @@
       </div>
     </a>
 
-    <a class="id-stat-card ttv2-stat-link"
-       href="{{ _psych_graph_href }}"
-       data-no-ttv2-ajax="1">
+    <a class="id-stat-card ttv2-stat-link {% if not _psych_students_href %}ttv2-stat-link--disabled{% endif %}"
+       href="{{ _psych_students_href if _psych_students_href else '#' }}"
+       title="Open student roster filtered to completed psychometric assessments"
+       {% if not _psych_students_href %}aria-disabled="true"{% endif %}>
       <div class="id-stat-icon id-stat-icon--blue"><i class="bx bx-brain" aria-hidden="true"></i></div>
       <div class="id-stat-body">
         <p class="id-stat-value">{{ ttv2_analytics.kpi.psychometric_count|default(0) }}</p>
@@ -70,14 +80,20 @@
 
     {# Credits + counselors KPI cards should be hidden only for counselor dashboards. #}
     {% if _ttv2_role != 'counselor' %}
-      <div class="id-stat-card">
+      <a class="id-stat-card ttv2-stat-link {% if not _credits_detail_href %}ttv2-stat-link--disabled{% endif %}"
+         href="{{ _credits_detail_href if _credits_detail_href else '#' }}"
+         title="View credit allocation and usage by institute"
+         {% if not _credits_detail_href %}aria-disabled="true"{% endif %}>
         <div class="id-stat-icon id-stat-icon--pink"><i class="bx bx-credit-card" aria-hidden="true"></i></div>
         <div class="id-stat-body">
           <p class="id-stat-value">{{ ttv2_analytics.kpi.total_credits|default(0) }}</p>
           <p class="id-stat-label lh-sm">Total Credits</p>
         </div>
-      </div>
-      <div class="id-stat-card">
+      </a>
+      <a class="id-stat-card ttv2-stat-link {% if not _credits_detail_href %}ttv2-stat-link--disabled{% endif %}"
+         href="{{ _credits_detail_href if _credits_detail_href else '#' }}"
+         title="View credit allocation and usage by institute"
+         {% if not _credits_detail_href %}aria-disabled="true"{% endif %}>
         <div class="id-stat-icon id-stat-icon--green"><i class="bx bx-wallet" aria-hidden="true"></i></div>
       <div class="id-stat-body">
           <p class="id-stat-value">{{ ttv2_analytics.kpi.credits_remaining|default(0) }}</p>
@@ -86,7 +102,7 @@
           <p class="mb-0 ttv2-topup-pill-wrap"><span class="badge bg-warning text-dark ttv2-topup-pill">Top-up</span></p>
           {% endif %}
         </div>
-      </div>
+      </a>
       <a class="id-stat-card ttv2-stat-link {% if not _couns_href %}ttv2-stat-link--disabled{% endif %}"
          href="{{ _couns_href if _couns_href else '#' }}"
          {% if not _couns_href %}aria-disabled="true"{% endif %}>

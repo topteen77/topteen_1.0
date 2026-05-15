@@ -1376,6 +1376,52 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-filters-card select.cust
 .ttv2-mktg-counselors-person:hover .ttv2-mktg-counselors-name{
   color: #5249df;
 }
+.ttv2-mktg-counselors-person.is-static:hover .ttv2-mktg-counselors-name{
+  color: var(--c-text, #0f172a);
+}
+.ttv2-mktg-counselors-person.is-static:hover .ttv2-mktg-counselors-avatar{
+  box-shadow: 0 4px 10px rgba(82, 73, 223, 0.3);
+}
+a.ttv2-mktg-counselors-stat-chip--link{
+  text-decoration: none;
+  cursor: pointer;
+}
+a.ttv2-mktg-counselors-stat-chip--link:hover{
+  filter: brightness(0.97);
+}
+button.ttv2-mktg-counselors-stat-chip--btn{
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  font: inherit;
+  line-height: inherit;
+  text-align: center;
+}
+button.ttv2-mktg-counselors-stat-chip--btn:hover{
+  filter: brightness(0.97);
+}
+button.ttv2-mktg-counselors-stat-chip--btn:focus-visible{
+  outline: 2px solid rgba(82, 73, 223, 0.45);
+  outline-offset: 2px;
+}
+.ttv2-mktg-followups-modal .modal-header{
+  padding-bottom: 0.35rem;
+}
+.ttv2-mktg-followups-modal-headline{
+  font-size: 0.9rem;
+  padding-top: 0.5rem !important;
+}
+.ttv2-mktg-followups-table thead th{
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  white-space: nowrap;
+}
+.ttv2-mktg-followups-table td{
+  font-size: 0.84rem;
+  vertical-align: middle;
+}
 .ttv2-mktg-counselors-email{
   font-size: 0.755rem;
   color: var(--c-text3, #64748b);
@@ -1446,6 +1492,11 @@ a.ttv2-mktg-counselors-institute-pill:hover{
   background: rgba(34, 197, 94, 0.12);
   color: #15803d;
   border-color: rgba(34, 197, 94, 0.22);
+}
+.ttv2-mktg-counselors-stat-chip.is-assigned{
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.22);
 }
 
 .ttv2-mktg-counselors-date{
@@ -1547,7 +1598,8 @@ a.ttv2-mktg-counselors-institute-pill:hover{
     content: attr(data-label);
   }
   .ttv2-mktg-counselors-table tbody td.ttv2-mktg-counselors-col-num-stat:nth-of-type(4)::before{ content: "Followed up"; color: #64748b; font-size: 0.75rem; font-weight: 600; }
-  .ttv2-mktg-counselors-table tbody td.ttv2-mktg-counselors-col-num-stat:nth-of-type(6)::before{ content: "Counselled"; color: #64748b; font-size: 0.75rem; font-weight: 600; }
+  .ttv2-mktg-counselors-table tbody td.ttv2-mktg-counselors-col-num-stat:nth-of-type(6)::before{ content: "Assigned"; color: #64748b; font-size: 0.75rem; font-weight: 600; }
+  .ttv2-mktg-counselors-table tbody td.ttv2-mktg-counselors-col-num-stat:nth-of-type(7)::before{ content: "Counselled"; color: #64748b; font-size: 0.75rem; font-weight: 600; }
   .ttv2-mktg-counselors-table tbody td.ttv2-mktg-counselors-col-institute::before{ content: "Institute"; color: #64748b; font-size: 0.75rem; font-weight: 600; }
   .ttv2-mktg-counselors-table tbody td.ttv2-mktg-counselors-col-date::before{ content: "Created"; color: #64748b; font-size: 0.75rem; font-weight: 600; }
 }
@@ -1594,6 +1646,9 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-table tbody t
   background: linear-gradient(180deg, rgba(139, 124, 255, 0.08), rgba(139, 124, 255, 0));
 }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-name{ color: rgba(240, 242, 255, 0.95); }
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-person.is-static:hover .ttv2-mktg-counselors-name{
+  color: rgba(240, 242, 255, 0.95);
+}
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-email{ color: rgba(240, 242, 255, 0.55); }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-date{ color: rgba(240, 242, 255, 0.78); }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-rank{
@@ -1614,6 +1669,11 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-stat-chip.is-
   background: rgba(34, 197, 94, 0.18);
   color: rgba(187, 247, 208, 0.95);
   border-color: rgba(34, 197, 94, 0.3);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-stat-chip.is-assigned{
+  background: rgba(14, 165, 233, 0.18);
+  color: rgba(186, 230, 253, 0.95);
+  border-color: rgba(14, 165, 233, 0.3);
 }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-institute-pill{
   background: rgba(139, 124, 255, 0.14);

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render
 from django.core.paginator import Paginator
-from app.models import Answer, Results
+from app.models import Answer, Results, TestCompletion
 from institute.filters import StudentFilter
 from institute.models import ClassAndSection, Institute, StudentManagement
 from .models import (
@@ -690,6 +690,31 @@ def apply_student_filters(students_data, request, results_data=None):
                 queryset = queryset.filter(
                     Q(_ttv2_has_m2m_adv=True) | Q(counselor__isnull=False)
                 )
+
+        _psych_complete = (request.GET.get("psychometric_complete") or "").strip().lower()
+        if _psych_complete in ("1", "true", "yes", "completed"):
+            queryset = queryset.filter(student_id__isnull=False).filter(
+                Exists(Results.objects.filter(user_id=OuterRef("student_id"))),
+                Exists(
+                    TestCompletion.objects.filter(
+                        user_id=OuterRef("student_id"),
+                        test1_complete=True,
+                        test2_complete=True,
+                        test3_complete=True,
+                    )
+                ),
+            )
+
+        # Roster drill-down: students with follow-up activity for a specific counselor
+        # (marketing / institute-group counselors list → students tab).
+        _fc_raw = (request.GET.get("filter_counselor") or "").strip()
+        _fca = (request.GET.get("counselor_activity") or "").strip().lower()
+        if _fc_raw.isdigit() and _fca in ("followups", "completed"):
+            _cid = int(_fc_raw)
+            _fu_sub = FollowUpStatus.objects.filter(counselor_id=_cid, student_id=OuterRef("pk"))
+            if _fca == "completed":
+                _fu_sub = _fu_sub.filter(follow_up_status__iexact="completed")
+            queryset = queryset.filter(Exists(_fu_sub))
         
         # Apply test_taken filter (requires results_data)
         if test_taken_filter and results_data:
@@ -785,7 +810,22 @@ def apply_student_filters(students_data, request, results_data=None):
                 return has_a if want_yes else not has_a
 
             filtered_data = [s for s in filtered_data if _list_row_adv_match(s)]
-        
+
+        _fc_raw_list = (request.GET.get("filter_counselor") or "").strip()
+        _fca_list = (request.GET.get("counselor_activity") or "").strip().lower()
+        if _fc_raw_list.isdigit() and _fca_list in ("followups", "completed"):
+            _cid_l = int(_fc_raw_list)
+            _fu_q = FollowUpStatus.objects.filter(counselor_id=_cid_l)
+            if _fca_list == "completed":
+                _fu_q = _fu_q.filter(follow_up_status__iexact="completed")
+            _allowed_sm = set(_fu_q.values_list("student_id", flat=True))
+
+            def _list_row_sm_id(obj):
+                sm = obj.get("student") if hasattr(obj, "get") else obj
+                return int(getattr(sm, "id", 0) or 0) if sm is not None else 0
+
+            filtered_data = [s for s in filtered_data if _list_row_sm_id(s) in _allowed_sm]
+
         # Apply test_taken filter
         if test_taken_filter and results_data:
             filtered_list = []

@@ -49,6 +49,110 @@
       } catch (err) { /* no-op */ }
     };
 
+    (function(){
+      if (window.__ttv2MktgFollowupsDocBound) return;
+      window.__ttv2MktgFollowupsDocBound = true;
+
+      function ttv2Esc(s){
+        if (s == null || s === undefined) return '';
+        var d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+      }
+
+      document.addEventListener('click', function(ev){
+        var btn = ev.target && ev.target.closest && ev.target.closest('[data-ttv2-mktg-counselor-followups]');
+        if (!btn) return;
+        ev.preventDefault();
+
+        var modalEl = document.getElementById('ttv2MktgCounselorFollowupsModal');
+        if (!modalEl || typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+
+        var sec = document.getElementById('sec-marketing-counselors');
+        var base = (sec && sec.getAttribute('data-ttv2-mktg-followups-url')) || '';
+        if (!base) return;
+
+        var cid = (btn.getAttribute('data-counselor-id') || '').trim();
+        var activity = (btn.getAttribute('data-counselor-activity') || 'followups').trim();
+        var loadEl = document.getElementById('ttv2MktgFollowupsLoading');
+        var errEl = document.getElementById('ttv2MktgFollowupsError');
+        var wrapEl = document.getElementById('ttv2MktgFollowupsTableWrap');
+        var tbody = document.getElementById('ttv2MktgFollowupsTbody');
+        var hc = document.getElementById('ttv2MktgFollowupsHdrCounselor');
+        var hi = document.getElementById('ttv2MktgFollowupsHdrInstitute');
+        var sub = document.getElementById('ttv2MktgFollowupsSubtitle');
+
+        if (loadEl) loadEl.classList.remove('d-none');
+        if (errEl) { errEl.classList.add('d-none'); errEl.textContent = ''; }
+        if (wrapEl) wrapEl.classList.add('d-none');
+        if (tbody) tbody.innerHTML = '';
+        if (hc) hc.textContent = '—';
+        if (hi) hi.textContent = '—';
+        if (sub) {
+          sub.textContent = activity === 'completed'
+            ? 'Completed follow-up sessions'
+            : activity === 'assigned'
+              ? 'Students assigned as advisor (primary and/or roster)'
+              : 'All follow-up sessions';
+        }
+
+        var sep = base.indexOf('?') >= 0 ? '&' : '?';
+        var url = base + sep + 'data_type=counselor_followups'
+          + '&counselor_id=' + encodeURIComponent(cid)
+          + '&counselor_activity=' + encodeURIComponent(activity);
+
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function(r){
+            var ct = (r.headers.get('content-type') || '').toLowerCase();
+            if (ct.indexOf('application/json') === -1) {
+              return r.text().then(function(){
+                return { ok: false, j: { ok: false, error: 'bad_response' } };
+              });
+            }
+            return r.json().then(function(j){ return { ok: r.ok, j: j }; });
+          })
+          .then(function(pack){
+            if (loadEl) loadEl.classList.add('d-none');
+            var j = pack.j || {};
+            if (!pack.ok || !j.ok) {
+              if (errEl) {
+                var msg = (j && j.error) ? String(j.error) : 'Could not load data.';
+                if (msg === 'not_found') msg = 'Counselor not found in your scope.';
+                if (msg === 'invalid_params') msg = 'Invalid request.';
+                if (msg === 'bad_response') msg = 'Session may have expired — refresh the page.';
+                errEl.textContent = msg;
+                errEl.classList.remove('d-none');
+              }
+              return;
+            }
+            if (hc) hc.textContent = j.counselor_name || 'Counselor';
+            if (hi) hi.textContent = j.institute_name || '—';
+            if (tbody) {
+              var rows = j.rows || [];
+              if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-4">No records found.</td></tr>';
+              } else {
+                tbody.innerHTML = rows.map(function(r){
+                  return '<tr><td>' + ttv2Esc(r.sno) + '</td><td>' + ttv2Esc(r.name) + '</td><td>'
+                    + ttv2Esc(r['class']) + '</td><td>' + ttv2Esc(r.kind) + '</td><td>' + ttv2Esc(r.when) + '</td></tr>';
+                }).join('');
+              }
+            }
+            if (wrapEl) wrapEl.classList.remove('d-none');
+          })
+          .catch(function(){
+            if (loadEl) loadEl.classList.add('d-none');
+            if (errEl) {
+              errEl.textContent = 'Network error.';
+              errEl.classList.remove('d-none');
+            }
+          });
+      }, false);
+    })();
+
     window.ttv2AfterAjaxContentLoad = function(){
       try {
         if (typeof window.ttv2BootMarketingGroupDashboard === 'function') {

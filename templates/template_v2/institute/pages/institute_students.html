@@ -101,6 +101,12 @@
 
     <form method="GET" id="filter-form" class="ttv2-sp-filters">
       <input type="hidden" name="display" id="ttv2DisplayInput" value="{{ request.GET.get('display','cards') }}">
+      {% if request.GET.get('filter_counselor') %}
+        <input type="hidden" name="filter_counselor" value="{{ request.GET.get('filter_counselor') }}">
+      {% endif %}
+      {% if request.GET.get('counselor_activity') %}
+        <input type="hidden" name="counselor_activity" value="{{ request.GET.get('counselor_activity') }}">
+      {% endif %}
       <div class="ttv2-sp-tip">
         Tip: try an email domain or school short name when scope is all schools.
         {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}

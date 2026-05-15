@@ -282,11 +282,13 @@ def get_heatmap_data_for_group(group_admin, group_type='institute', demographic_
         institute_group = InstituteGroup.objects.filter(institute_group_admin=group_admin).first()
         if not institute_group:
             return get_empty_heatmap_data()
-        students = StudentManagement.objects.filter(institute__institute_group=institute_group)
+        students = StudentManagement.objects.filter(institute__institute_group=institute_group).select_related(
+            "student", "class_and_section", "institute"
+        )
     else:  # marketing — all students under institutes whose marketing group lists this admin
         students = StudentManagement.objects.filter(
             institute__marketing_group__marketing_group_admin=group_admin
-        )
+        ).select_related("student", "class_and_section", "institute")
     
     # Aggregate data first
     heatmap_data = aggregate_student_career_data(students, demographic_type)
@@ -364,7 +366,9 @@ def get_heatmap_data_for_institute(institute, demographic_type='grade'):
     if not institute:
         return get_empty_heatmap_data()
     
-    students = StudentManagement.objects.filter(institute=institute)
+    students = StudentManagement.objects.filter(institute=institute).select_related(
+        "student", "class_and_section", "institute"
+    )
     
     # Aggregate data first
     heatmap_data = aggregate_student_career_data(students, demographic_type)

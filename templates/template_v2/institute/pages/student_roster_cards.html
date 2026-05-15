@@ -327,6 +327,8 @@
   ~ ('&counselor_assigned=' ~ (request.GET.get('counselor_assigned')|urlencode) if request.GET.get('counselor_assigned') else '')
   ~ ('&institute_slug=' ~ (request.GET.get('institute_slug')|urlencode) if request.GET.get('institute_slug') else '')
   ~ ('&institute_name=' ~ (request.GET.get('institute_name')|urlencode) if request.GET.get('institute_name') else '')
+  ~ ('&filter_counselor=' ~ (request.GET.get('filter_counselor')|urlencode) if request.GET.get('filter_counselor') else '')
+  ~ ('&counselor_activity=' ~ (request.GET.get('counselor_activity')|urlencode) if request.GET.get('counselor_activity') else '')
 %}
 
   {# Pagination (same querystring strategy as table) #}

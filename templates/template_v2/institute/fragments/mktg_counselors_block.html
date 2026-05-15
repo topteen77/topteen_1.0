@@ -1,6 +1,7 @@
 {# Marketing-group counselors: modern search bar + table. #}
 {% set _coun_rows = counselor_data_list if counselor_data_list is defined else [] %}
 {% set _coun_q = (counselor_q|default('')) %}
+{% set _mktg_followups_url = url('institute:marketinggroupdashboard_page', args=['counselors']) %}
 
 <div class="ttv2-mktg-counselors-search-card mb-4">
   <form method="get"
@@ -38,7 +39,9 @@
   </form>
 </div>
 
-<div class="ttv2-mktg-counselors-card mb-4" id="sec-marketing-counselors">
+<div class="ttv2-mktg-counselors-card mb-4"
+     id="sec-marketing-counselors"
+     data-ttv2-mktg-followups-url="{{ _mktg_followups_url }}">
   <div class="ttv2-mktg-counselors-head">
     <div class="ttv2-mktg-counselors-head-titlewrap">
       <span class="ttv2-mktg-counselors-head-icon"><i class="bx bx-group"></i></span>
@@ -63,6 +66,7 @@
           <th class="ttv2-mktg-counselors-col-institute">Institute</th>
           <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">followed up</span></th>
           <th class="ttv2-mktg-counselors-col-date">Created</th>
+          <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">assigned</span></th>
           <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">counselled</span></th>
         </tr>
       </thead>
@@ -75,13 +79,13 @@
               <span class="ttv2-mktg-counselors-rank">{{ loop.index }}</span>
             </td>
             <td class="ttv2-mktg-counselors-col-person">
-              <a class="ttv2-mktg-counselors-person" href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}">
+              <div class="ttv2-mktg-counselors-person is-static">
                 <span class="ttv2-mktg-counselors-avatar">{{ _initial }}</span>
                 <span class="ttv2-mktg-counselors-person-text">
                   <span class="ttv2-mktg-counselors-name">{{ _name|default('—') }}</span>
                   <span class="ttv2-mktg-counselors-email">{{ coun.email|default('—') }}</span>
                 </span>
-              </a>
+              </div>
             </td>
             <td class="ttv2-mktg-counselors-col-institute">
               {% if coun.institute_slug|default('') %}
@@ -97,9 +101,14 @@
               {% endif %}
             </td>
             <td class="ttv2-mktg-counselors-col-num-stat">
-              <span class="ttv2-mktg-counselors-stat-chip{% if (coun.sessions|default(0))|int > 0 %} is-active{% endif %}">
+              <button type="button"
+                      class="ttv2-mktg-counselors-stat-chip ttv2-mktg-counselors-stat-chip--btn{% if (coun.sessions|default(0))|int > 0 %} is-active{% endif %}"
+                      data-ttv2-mktg-counselor-followups
+                      data-counselor-id="{{ coun.id }}"
+                      data-counselor-activity="followups"
+                      title="View follow-up sessions for students in your scope">
                 {{ coun.sessions|default(0) }}
-              </span>
+              </button>
             </td>
             <td class="ttv2-mktg-counselors-col-date">
               {% if coun.created %}
@@ -109,14 +118,29 @@
               {% endif %}
             </td>
             <td class="ttv2-mktg-counselors-col-num-stat">
-              <span class="ttv2-mktg-counselors-stat-chip{% if (coun.students_counseled|default(0))|int > 0 %} is-success{% endif %}">
+              <button type="button"
+                      class="ttv2-mktg-counselors-stat-chip ttv2-mktg-counselors-stat-chip--btn{% if (coun.students_assigned|default(0))|int > 0 %} is-assigned{% endif %}"
+                      data-ttv2-mktg-counselor-followups
+                      data-counselor-id="{{ coun.id }}"
+                      data-counselor-activity="assigned"
+                      title="View students assigned to this advisor in your scope">
+                {{ coun.students_assigned|default(0) }}
+              </button>
+            </td>
+            <td class="ttv2-mktg-counselors-col-num-stat">
+              <button type="button"
+                      class="ttv2-mktg-counselors-stat-chip ttv2-mktg-counselors-stat-chip--btn{% if (coun.students_counseled|default(0))|int > 0 %} is-success{% endif %}"
+                      data-ttv2-mktg-counselor-followups
+                      data-counselor-id="{{ coun.id }}"
+                      data-counselor-activity="completed"
+                      title="View completed follow-up sessions for students in your scope">
                 {{ coun.students_counseled|default(0) }}
-              </span>
+              </button>
             </td>
           </tr>
         {% else %}
           <tr>
-            <td colspan="6" class="ttv2-mktg-counselors-empty-cell">
+            <td colspan="7" class="ttv2-mktg-counselors-empty-cell">
               <div class="ttv2-mktg-counselors-empty">
                 <span class="ttv2-mktg-counselors-empty-icon"><i class="bx bx-user-plus"></i></span>
                 <h4 class="ttv2-mktg-counselors-empty-title">No counselors found</h4>
@@ -139,5 +163,51 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+
+{# Same-page drill-down: follow-up rows for this marketing scope #}
+<div class="modal fade"
+     id="ttv2MktgCounselorFollowupsModal"
+     tabindex="-1"
+     aria-labelledby="ttv2MktgCounselorFollowupsModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content ttv2-mktg-followups-modal">
+      <div class="modal-header flex-column align-items-stretch gap-2 border-0 pb-0">
+        <div class="d-flex justify-content-between align-items-start gap-2 w-100">
+          <div class="min-w-0">
+            <h5 class="modal-title fs-16 mb-0" id="ttv2MktgCounselorFollowupsModalLabel">Student follow-ups</h5>
+            <div class="ttv2-mktg-followups-modal-sub text-muted small mt-1" id="ttv2MktgFollowupsSubtitle"></div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="ttv2-mktg-followups-modal-headline d-flex flex-wrap justify-content-between gap-2 pt-1 border-top">
+          <div class="fw-semibold text-truncate" id="ttv2MktgFollowupsHdrCounselor">—</div>
+          <div class="text-muted text-end flex-grow-1" id="ttv2MktgFollowupsHdrInstitute" style="min-width: 120px;">—</div>
+        </div>
+      </div>
+      <div class="modal-body pt-2">
+        <div id="ttv2MktgFollowupsLoading" class="text-center py-4 text-muted">
+          <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
+          <div class="small mt-2">Loading…</div>
+        </div>
+        <div id="ttv2MktgFollowupsError" class="alert alert-danger py-2 d-none" role="alert"></div>
+        <div id="ttv2MktgFollowupsTableWrap" class="table-responsive d-none">
+          <table class="table table-sm table-hover align-middle mb-0 ttv2-mktg-followups-table">
+            <thead class="table-light">
+              <tr>
+                <th style="width:52px;">S.No</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Follow-up / counselling</th>
+                <th style="white-space:nowrap;">Date &amp; time</th>
+              </tr>
+            </thead>
+            <tbody id="ttv2MktgFollowupsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

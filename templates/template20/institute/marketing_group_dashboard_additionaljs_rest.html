@@ -149,14 +149,16 @@
     .then(data => {
       setText('students-count', data.total_stu_count || 0);
       setText('counselors-count', data.counselors_count || 0);
-      setText('credits-count', data.total_credits || 0);
+      const allocated = Number(data.credits_allocated_total ?? 0);
+      const used = Number(data.credits_used_total ?? 0);
+      const remaining = Number(
+        data.credits_remaining_total ?? Math.max(0, allocated - used)
+      );
+      setText('credits-count', used.toLocaleString());
       setText('events-count', data.total_events || 0);
-      const totalCredits = data.global_credits || 5000;
-      const usedCredits = data.total_credits || 0;
-      const remainingCredits = totalCredits - usedCredits;
-      setText('sidebar-total-credits', totalCredits.toLocaleString());
-      setText('sidebar-used-credits', usedCredits.toLocaleString());
-      setText('sidebar-remaining-credits', remainingCredits.toLocaleString());
+      setText('sidebar-total-credits', allocated.toLocaleString());
+      setText('sidebar-used-credits', used.toLocaleString());
+      setText('sidebar-remaining-credits', remaining.toLocaleString());
     })
     .catch(error => {
       console.error('Error loading statistics:', error);

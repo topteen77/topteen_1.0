@@ -582,9 +582,64 @@
       if (!host) return;
       var u = withPartial(url);
       setBusy(host, true);
+      try { host.style.position = 'relative'; } catch(e0) {}
+
+      var slowTimer = null;
+      var progressTimer = null;
+      var nowFn = (typeof performance !== 'undefined' && performance.now) ? function(){ return performance.now(); } : function(){ return Date.now(); };
+      var loadStarted = nowFn();
+
+      function clearTimers(){
+        if (slowTimer) { clearTimeout(slowTimer); slowTimer = null; }
+        if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+      }
+      function removeOverlay(){
+        var el = host.querySelector('.ttv2-ajax-page-loader');
+        if (el && el.parentNode) {
+          try { el.parentNode.removeChild(el); } catch(eR) {}
+        }
+      }
+      function updateOverlayPct(overlay, pct){
+        if (!overlay || !overlay.parentNode) return;
+        var p = Math.min(100, Math.max(0, pct));
+        var ring = overlay.querySelector('.ttv2-chart-slot-loader__donut');
+        var lab = overlay.querySelector('.ttv2-chart-slot-loader__pct');
+        if (ring) {
+          try { ring.style.setProperty('--ttv2-load-pct', String(p)); } catch(eS) { ring.style.cssText = '--ttv2-load-pct:' + p + ';'; }
+        }
+        if (lab) lab.textContent = Math.round(p) + '%';
+      }
+      function appendSlowOverlay(){
+        if (host.getAttribute('aria-busy') !== 'true') return;
+        removeOverlay();
+        var wrap = document.createElement('div');
+        wrap.className = 'ttv2-chart-slot-loader ttv2-ajax-page-loader';
+        wrap.setAttribute('role', 'status');
+        wrap.innerHTML = '<div class="ttv2-chart-slot-loader__donut-wrap">' +
+          '<div class="ttv2-chart-slot-loader__donut" style="--ttv2-load-pct:3"></div>' +
+          '<div class="ttv2-chart-slot-loader__pct">3%</div></div>' +
+          '<div class="ttv2-chart-slot-loader__status">Loading page</div>';
+        host.appendChild(wrap);
+        var pct = 3;
+        progressTimer = setInterval(function(){
+          if (host.getAttribute('aria-busy') !== 'true' || !wrap.parentNode) return;
+          var elapsed = nowFn() - loadStarted;
+          var target = Math.min(94, 10 + (elapsed / 5200) * 84);
+          pct = pct + (target - pct) * 0.14;
+          updateOverlayPct(wrap, pct);
+        }, 150);
+      }
+
+      slowTimer = setTimeout(function(){
+        slowTimer = null;
+        appendSlowOverlay();
+      }, 400);
+
       fetch(u.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
         .then(function(r){ return r.text(); })
         .then(function(html){
+          clearTimers();
+          removeOverlay();
           host.innerHTML = html;
           host.setAttribute('data-ttv2-loaded','1');
           setBusy(host, false);
@@ -601,6 +656,8 @@
           } catch(e) {}
         })
         .catch(function(){
+          clearTimers();
+          removeOverlay();
           setBusy(host, false);
           host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load page</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
         });

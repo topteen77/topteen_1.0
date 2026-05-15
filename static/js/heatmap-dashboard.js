@@ -6,6 +6,12 @@
 (function() {
     'use strict';
 
+    // Prevent double-registration when dashboard_shell + page both included this file.
+    if (window.__ttv2HeatmapDashboardJsLoaded) {
+        return;
+    }
+    window.__ttv2HeatmapDashboardJsLoaded = true;
+
     // State management using plain JavaScript object
     const HeatmapDashboard = {
         state: {
@@ -138,14 +144,29 @@
                 },
                 credentials: 'same-origin'
             })
-            .then(response => {
+            .then(response => response.text().then(function(text) {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    var msg = 'Could not load heatmap data (' + response.status + ')';
+                    try {
+                        var errObj = JSON.parse(text);
+                        if (errObj && errObj.error) {
+                            msg = errObj.error;
+                        }
+                    } catch (e) {}
+                    throw new Error(msg);
                 }
-                return response.json();
-            })
+                var data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e2) {
+                    throw new Error('Invalid response from server (not JSON). Try signing in again.');
+                }
+                return data;
+            }))
             .then(data => {
-                console.log('Heatmap API Response:', data);
+                if (data && data.error && !Array.isArray(data.heatmapData)) {
+                    throw new Error(typeof data.error === 'string' ? data.error : 'Heatmap data unavailable');
+                }
                 self.state.heatmapData = data.heatmapData || [];
                 // Ensure demographics object has all keys
                 self.state.demographics = {
@@ -154,14 +175,6 @@
                     stream: (data.demographics && data.demographics.stream) || []
                 };
                 self.state.stats = data.stats || { highRisk: 0, aligned: 0, avgClarityGap: 0 };
-                console.log('Heatmap Data:', self.state.heatmapData.length, 'items');
-                if (self.state.heatmapData.length > 0) {
-                    console.log('Heatmap Data Sample:', self.state.heatmapData[0]);
-                }
-                console.log('Demographics object:', JSON.stringify(self.state.demographics));
-                console.log('Current view:', self.state.view);
-                console.log('Demographics for current view:', self.state.demographics[self.state.view]);
-                console.log('Demographics array length:', self.state.demographics[self.state.view] ? self.state.demographics[self.state.view].length : 0);
                 self.render();
                 self.state.loading = false;
                 self.updateLoadingState(false);
@@ -170,7 +183,8 @@
                 console.error('Error loading heatmap data:', error);
                 self.state.loading = false;
                 self.updateLoadingState(false);
-                alert('Error loading heatmap data. Please try again.');
+                var msg = (error && error.message) ? error.message : 'Error loading heatmap data. Please try again.';
+                alert(msg);
             });
         },
 
@@ -236,11 +250,6 @@
 
             const demoCats = this.state.demographics[this.state.view] || [];
             const heatmapData = this.state.heatmapData;
-
-            console.log('Rendering heatmap - demoCats:', demoCats.length, 'heatmapData:', heatmapData.length);
-            console.log('Demographics object:', JSON.stringify(this.state.demographics));
-            console.log('Current view:', this.state.view);
-            console.log('Demographics for view:', this.state.demographics[this.state.view]);
 
             if (demoCats.length === 0 || heatmapData.length === 0) {
                 const message = demoCats.length === 0 
@@ -346,7 +355,6 @@
 
             table.appendChild(tbody);
             container.appendChild(table);
-            console.log('Heatmap table rendered with', clusters.length, 'clusters and', demoCats.length, 'demographics');
         },
 
         // Get intensity opacity based on interest value
@@ -536,6 +544,8 @@
             }
         } catch (e) {}
         try {
+            // Partial inject can finish before ttv2:content:loaded; always bind delegated handlers first.
+            HeatmapDashboard.bindEvents();
             HeatmapDashboard.loadData();
         } catch (e2) {
             console.warn('ttv2HeatmapReinitAfterPartialLoad', e2);

@@ -192,7 +192,17 @@ def _nav_for_role(
                     },
                 ],
             },
-            {"title": "Analytics", "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:marketinggroupheatmap")}]},
+            {
+                "title": "Analytics",
+                "items": [
+                    {"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:marketinggroupheatmap")},
+                    {
+                        "label": "Institute credits",
+                        "dot": "#22c55e",
+                        "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["credits"]),
+                    },
+                ],
+            },
         ]
 
     # Default: institute

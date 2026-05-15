@@ -11,7 +11,31 @@ from django.db.models.functions import Lower
 
 from django.db.models import Q
 
+from institute.models import StudentManagement
+
 from counselor.models import Counselor, FollowUpStatus
+
+
+def _assigned_student_count_by_counselor_id(
+    counselor_ids: Sequence[int], institute_ids: Sequence[int]
+) -> Dict[int, int]:
+    """
+    Distinct StudentManagement rows per counselor in ``institute_ids`` scope where the
+    student is linked via legacy FK (counselor_id) and/or M2M ``counselors``.
+    """
+    iids = [int(x) for x in institute_ids if x]
+    cids = [int(x) for x in counselor_ids if x]
+    if not iids or not cids:
+        return {}
+    combined: Dict[int, set] = defaultdict(set)
+    base = StudentManagement.objects.filter(institute_id__in=iids)
+    for sm_id, cid in base.filter(counselor_id__in=cids).values_list("id", "counselor_id"):
+        if cid:
+            combined[int(cid)].add(int(sm_id))
+    for sm_id, cid in base.filter(counselors__id__in=cids).values_list("id", "counselors__id"):
+        if cid:
+            combined[int(cid)].add(int(sm_id))
+    return {cid: len(sids) for cid, sids in combined.items()}
 
 
 def _counselor_select_identity_tuple(counselor: Counselor) -> Tuple[str, str]:
@@ -109,7 +133,8 @@ def build_counselor_data_list_for_institute_ids(
     include_institute_name: bool = False,
 ) -> List[Dict]:
     """
-    Counselors whose `counselor_admin_id` is in `institute_ids`, with session / counseled counts.
+    Counselors whose primary or placement school is in ``institute_ids``, with follow-up,
+    counselled, and assigned-student counts (assigned = distinct students via FK and/or M2M).
     """
     ids = sorted({int(x) for x in institute_ids if x})
     if not ids:
@@ -126,6 +151,8 @@ def build_counselor_data_list_for_institute_ids(
     counselor_ids = [c.id for c in counselors]
     if not counselor_ids:
         return []
+
+    assigned_counts = _assigned_student_count_by_counselor_id(counselor_ids, ids)
 
     followups_by_counselor: Dict[int, list] = {}
     for followup in FollowUpStatus.objects.filter(counselor_id__in=counselor_ids).select_related(
@@ -149,6 +176,7 @@ def build_counselor_data_list_for_institute_ids(
             "education": counselor.counselor_education or "",
             "sessions": sessions_count,
             "students_counseled": students_counseled_count,
+            "students_assigned": int(assigned_counts.get(counselor_id, 0)),
             "created": counselor.created,
         }
         if include_institute_name:

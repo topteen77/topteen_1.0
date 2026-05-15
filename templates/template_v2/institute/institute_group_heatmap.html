@@ -29,35 +29,6 @@
 
 {% block additionaljs %}
 {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
-<script>
-  (function(){
-    function load(){
-      var host = document.getElementById('ttv2AjaxContent');
-      if (!host) return;
-      if (host.getAttribute('data-ttv2-loaded') === '1') return;
-      var src = host.getAttribute('data-ttv2-src');
-      if (!src) return;
-      host.setAttribute('aria-busy','true');
-      fetch(src, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-        .then(function(r){ return r.text(); })
-        .then(function(html){
-          host.innerHTML = html;
-          host.setAttribute('data-ttv2-loaded','1');
-          host.setAttribute('aria-busy','false');
-          if (typeof window.ttv2HeatmapReinitAfterPartialLoad === 'function') {
-            window.ttv2HeatmapReinitAfterPartialLoad();
-          }
-        })
-        .catch(function(){
-          host.setAttribute('aria-busy','false');
-          host.innerHTML = '<div class="ttv2-card"><div class="card-title">Could not load heatmap</div><div style="font-size:11px;color:var(--c-text3)">Please refresh.</div></div>';
-        });
-    }
-    document.addEventListener('DOMContentLoaded', load);
-  })();
-</script>
 {% endblock %}
 
 {% block chatbot_css %}{% endblock %}

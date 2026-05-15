@@ -1007,6 +1007,9 @@ body.ttv2-shell .ttv2-ajax-progress{
 body.ttv2-shell .ttv2-ajax-content-host{
   min-height: 120px;
 }
+body.ttv2-shell .ttv2-ajax-content-host[aria-busy="true"]{
+  min-height: 260px;
+}
 body.ttv2-shell .ttv2-ajax-content-pending{
   min-height: 200px;
   border-radius: 14px;

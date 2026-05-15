@@ -27,6 +27,8 @@
     {% include "template_v2/institute/pages/institute_students.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'streams_capacity' %}
     {% include "template_v2/institute/pages/marketing_group_streams_capacity.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'credits' %}
+    {% include "template_v2/institute/pages/marketing_group_credits_page.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'accounts' %}
     {% include "template_v2/institute/pages/institute_accounts.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'payments' %}

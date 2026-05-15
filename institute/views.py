@@ -36,7 +36,7 @@ from django.http import HttpResponse
 from institute.filters import StudentFilter
 from institute.counselor_component_data import build_institute_group_counselor_ui_maps
 from django.db import transaction
-from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Sum, Value
+from django.db.models import Count, Exists, F, IntegerField, OuterRef, Q, Subquery, Sum, Value
 from django.db.models.functions import Lower
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -63,6 +63,21 @@ def _ttv2_dbg(payload: dict):
             f.write(json.dumps(payload, ensure_ascii=False) + "\n")
     except Exception:
         pass
+
+def _sm_primary_psychometric_tests_complete_exists():
+    """
+    StudentManagement filter: linked student finished app psychometric battery
+    (test1 + test2 + test3 on TestCompletion).
+    """
+    return Exists(
+        TestCompletion.objects.filter(
+            user_id=OuterRef("student_id"),
+            test1_complete=True,
+            test2_complete=True,
+            test3_complete=True,
+        )
+    )
+
 
 def _ttv2_week_start_from_request(request):
     """
@@ -688,6 +703,162 @@ def scoped_student_management_for_dashboard(request):
     if request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
         return student_management_for_institute_group_admin(request.user)
     return get_students_by_role(request.user, counselor=None, institute=None)
+
+
+def _ttv2_marketing_counselor_followups_response(request, group_admin):
+    """
+    JSON rows for marketing counselors drill-down modal (scoped follow-ups or roster).
+    GET: counselor_id, counselor_activity=followups|completed|assigned
+    """
+    raw_id = (request.GET.get("counselor_id") or "").strip()
+    activity = (request.GET.get("counselor_activity") or "").strip().lower()
+    if not raw_id.isdigit() or activity not in ("followups", "completed", "assigned"):
+        return JsonResponse({"ok": False, "error": "invalid_params"}, status=400)
+    cid = int(raw_id)
+
+    scoped_inst = Institute.objects.filter(marketing_group__marketing_group_admin=group_admin)
+    scoped_ids = list(scoped_inst.values_list("id", flat=True))
+    if not scoped_ids:
+        return JsonResponse(
+            {
+                "ok": True,
+                "counselor_name": "",
+                "institute_name": "",
+                "rows": [],
+            }
+        )
+
+    counselor = (
+        Counselor.objects.filter(
+            Q(counselor_admin_id__in=scoped_ids) | Q(institute_placements__id__in=scoped_ids),
+            id=cid,
+        )
+        .select_related("counselor_admin")
+        .prefetch_related("institute_placements")
+        .distinct()
+        .first()
+    )
+    if not counselor:
+        return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+
+    id_set = set(scoped_ids)
+    inst_name = "—"
+    admin = None
+    if counselor.counselor_admin_id and counselor.counselor_admin_id in id_set:
+        admin = counselor.counselor_admin
+    if admin is None:
+        for inst in counselor.institute_placements.all():
+            if inst.id in id_set:
+                admin = inst
+                break
+    if admin is not None:
+        inst_name = getattr(admin, "name", "") or "—"
+
+    if activity == "assigned":
+        sms = (
+            StudentManagement.objects.filter(institute_id__in=scoped_ids)
+            .filter(Q(counselor_id=cid) | Q(counselors__id=cid))
+            .select_related("student", "class_and_section")
+            .prefetch_related("counselors")
+            .distinct()
+            .order_by("-created")[:400]
+        )
+        rows = []
+        for i, sm in enumerate(sms, start=1):
+            stu = getattr(sm, "student", None)
+            name = (getattr(stu, "name", None) or "").strip() or "—"
+            cas = getattr(sm, "class_and_section", None)
+            cls_txt = (getattr(cas, "class_and_section", None) or "").strip() if cas else ""
+            stream = (getattr(cas, "stream", None) or "").strip() if cas else ""
+            class_parts = [x for x in [cls_txt, stream] if x]
+            class_str = " · ".join(class_parts) if class_parts else "—"
+            is_primary = getattr(sm, "counselor_id", None) == cid
+            in_m2m = any(c.id == cid for c in sm.counselors.all())
+            if is_primary and in_m2m:
+                kind = "Primary advisor · Roster"
+            elif is_primary:
+                kind = "Primary advisor"
+            elif in_m2m:
+                kind = "Roster advisor"
+            else:
+                kind = "Assigned"
+            try:
+                dt = timezone.localtime(sm.created)
+                when = dt.strftime("%d %b %Y, %H:%M")
+            except Exception:
+                when = ""
+            rows.append(
+                {
+                    "sno": i,
+                    "name": name,
+                    "class": class_str,
+                    "kind": kind,
+                    "when": when,
+                }
+            )
+        return JsonResponse(
+            {
+                "ok": True,
+                "counselor_name": (counselor.counselor_name or "").strip() or f"Counselor {cid}",
+                "institute_name": inst_name,
+                "rows": rows,
+            }
+        )
+
+    fu = (
+        FollowUpStatus.objects.filter(
+            counselor_id=cid,
+            student__institute_id__in=scoped_ids,
+            student_id__isnull=False,
+        )
+        .select_related("student", "student__student", "student__class_and_section")
+    )
+    if activity == "completed":
+        fu = fu.filter(follow_up_status__iexact="completed")
+    fu = fu.order_by("-created")[:400]
+
+    mode_labels = dict(FollowUpStatus.MODE_CHOICES)
+    status_labels = dict(FollowUpStatus.STATUS_CHOICES)
+
+    rows = []
+    for i, f in enumerate(fu, start=1):
+        sm = f.student
+        stu = getattr(sm, "student", None) if sm else None
+        name = (getattr(stu, "name", None) or "").strip() or "—"
+        cas = getattr(sm, "class_and_section", None) if sm else None
+        cls_txt = (getattr(cas, "class_and_section", None) or "").strip() if cas else ""
+        stream = (getattr(cas, "stream", None) or "").strip() if cas else ""
+        class_parts = [x for x in [cls_txt, stream] if x]
+        class_str = " · ".join(class_parts) if class_parts else "—"
+        mode_raw = (getattr(f, "mode_of_follow_up", None) or "").strip()
+        stat_raw = (getattr(f, "follow_up_status", None) or "").strip()
+        mode_disp = mode_labels.get(mode_raw, mode_raw.title() if mode_raw else "—")
+        stat_disp = status_labels.get(stat_raw, stat_raw.title() if stat_raw else "—")
+        kind = f"{mode_disp} · {stat_disp}"
+        try:
+            dt = timezone.localtime(f.created)
+            when = dt.strftime("%d %b %Y, %H:%M")
+        except Exception:
+            when = ""
+
+        rows.append(
+            {
+                "sno": i,
+                "name": name,
+                "class": class_str,
+                "kind": kind,
+                "when": when,
+            }
+        )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "counselor_name": (counselor.counselor_name or "").strip() or f"Counselor {cid}",
+            "institute_name": inst_name,
+            "rows": rows,
+        }
+    )
 
 
 def apply_student_table_display_enrichment(request, ctx):
@@ -2298,11 +2469,15 @@ class MarketingGroupDashboardView(TemplateView):
         elif data_type == 'stats':
             # AJAX request for statistics
             group_admin = request.user
-            from django.conf import settings
             institutes_in_group = Institute.objects.filter(
                 marketing_group__marketing_group_admin=group_admin
+            ).annotate(_used=Count("student_management"))
+            cred_rows = list(institutes_in_group.values("credit_counts", "_used"))
+            credits_allocated_total = sum(int(r["credit_counts"] or 0) for r in cred_rows)
+            credits_used_total = sum(int(r["_used"] or 0) for r in cred_rows)
+            credits_remaining_total = sum(
+                max(0, int(r["credit_counts"] or 0) - int(r["_used"] or 0)) for r in cred_rows
             )
-            total_credits = sum(inst.credit_counts for inst in institutes_in_group)
             ctx.update({
                 'total_stu_count': StudentManagement.objects.filter(
                     institute__marketing_group__marketing_group_admin=group_admin
@@ -2310,8 +2485,9 @@ class MarketingGroupDashboardView(TemplateView):
                 'counselors_count': Counselor.objects.filter(
                     counselor_admin__marketing_group__marketing_group_admin=group_admin
                 ).count(),
-                'total_credits': total_credits,
-                'global_credits': settings.CREDIT_LIMIT,
+                'credits_allocated_total': credits_allocated_total,
+                'credits_used_total': credits_used_total,
+                'credits_remaining_total': credits_remaining_total,
                 'total_events': 0,  # Placeholder - add actual events count if available
             })
         elif data_type == 'charts':
@@ -2333,14 +2509,23 @@ class MarketingGroupDashboardView(TemplateView):
             total_students_count = StudentManagement.objects.filter(
                 institute__marketing_group__marketing_group_admin=group_admin
             ).count()
-            test_result_count = StudentManagement.objects.filter(
-                institute__marketing_group__marketing_group_admin=group_admin
-            ).filter(
-                student__results__test_paper='test3'
-            ).distinct().count()
-            sample_students = StudentManagement.objects.filter(
-                institute__marketing_group__marketing_group_admin=group_admin
-            ).select_related('student')[:200]
+            _psych_done = _sm_primary_psychometric_tests_complete_exists()
+            test_result_count = (
+                StudentManagement.objects.filter(
+                    institute__marketing_group__marketing_group_admin=group_admin,
+                    student_id__isnull=False,
+                )
+                .filter(_psych_done)
+                .count()
+            )
+            sample_students = (
+                StudentManagement.objects.filter(
+                    institute__marketing_group__marketing_group_admin=group_admin,
+                    student_id__isnull=False,
+                )
+                .filter(_psych_done)
+                .select_related("student")[:200]
+            )
             student_users = [stu.student for stu in sample_students]
             test_results_queryset = Results.objects.filter(
                 user__in=student_users,
@@ -2403,6 +2588,38 @@ class MarketingGroupDashboardView(TemplateView):
                 request.user, sm_scope
             )
             ctx["unique_streams"] = get_unique_streams_by_role(request.user, sm_scope)
+        if ctx["ttv2_page"] == "credits":
+            group_admin = request.user
+            _scoped_cr = (
+                Institute.objects.filter(marketing_group__marketing_group_admin=group_admin)
+                .annotate(_used=Count("student_management"))
+                .order_by(Lower("name"))
+            )
+            mktg_rows = []
+            tot_a = tot_u = tot_r = 0
+            for inst in _scoped_cr:
+                alloc = int(inst.credit_counts or 0)
+                used = int(inst._used or 0)
+                rem = max(0, alloc - used)
+                tot_a += alloc
+                tot_u += used
+                tot_r += rem
+                mktg_rows.append(
+                    {
+                        "id": inst.id,
+                        "name": inst.name,
+                        "slug": inst.slug,
+                        "allocated": alloc,
+                        "used": used,
+                        "remaining": rem,
+                    }
+                )
+            ctx["mktg_credits_rows"] = mktg_rows
+            ctx["mktg_credits_totals"] = {
+                "allocated": tot_a,
+                "used": tot_u,
+                "remaining": tot_r,
+            }
 
         return ctx
     
@@ -2422,6 +2639,8 @@ class MarketingGroupDashboardView(TemplateView):
             return JsonResponse(
                 build_students_analytics_payload(qs, week_start=_ttv2_week_start_from_request(request))
             )
+        if is_ajax and data_type == "counselor_followups":
+            return _ttv2_marketing_counselor_followups_response(request, request.user)
         if is_ajax and data_type == 'institutes':
             # Return institute table partial
             context = self.get_context(request, *args, **kwargs)
@@ -2895,18 +3114,22 @@ class InstituteGroupDashboardView(TemplateView):
                     group_admin
                 ).count()
 
-                # OPTIMIZED: Get test result count
+                # OPTIMIZED: Get test result count (primary psychometric battery complete)
+                _psych_done_ig = _sm_primary_psychometric_tests_complete_exists()
                 test_result_count = (
                     student_management_for_institute_group_admin(group_admin)
-                    .filter(student__results__test_paper='test3')
-                    .distinct()
+                    .filter(student_id__isnull=False)
+                    .filter(_psych_done_ig)
                     .count()
                 )
 
-                # OPTIMIZED: Get streams data
-                sample_students = student_management_for_institute_group_admin(
-                    group_admin
-                ).select_related('student')[:200]
+                # OPTIMIZED: Get streams data (completed students only)
+                sample_students = (
+                    student_management_for_institute_group_admin(group_admin)
+                    .filter(student_id__isnull=False)
+                    .filter(_psych_done_ig)
+                    .select_related("student")[:200]
+                )
                 
                 student_users = [stu.student for stu in sample_students]
                 test_results_queryset = Results.objects.filter(
