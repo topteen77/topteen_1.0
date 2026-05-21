@@ -158,6 +158,15 @@ class WebsiteSettingsForm(forms.Form):
         label="Dashboard template version",
         help_text="Global switch for Institute/Group/Marketing/Counselor dashboards layout templates.",
     )
+    TTV2_PAGE_LOADER_ENABLED = forms.BooleanField(
+        required=False,
+        label="Template v2 page loader (donut %)",
+        help_text=(
+            "When enabled, v2 dashboard sidebar navigation shows the centralized "
+            "loading overlay (percent ring + “Loading page”) while AJAX content loads. "
+            "When disabled, pages still load in the background with no overlay."
+        ),
+    )
 
 
 DEFAULT_MINDMAP_CONFIG_KEY = 'DEFAULT_MINDMAP_TYPE'
@@ -424,6 +433,12 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config.value = val
                 config.save()
 
+                key = 'TTV2_PAGE_LOADER_ENABLED'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
+
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
@@ -442,6 +457,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 'CHATBOT_DEFAULT_MODE': Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default',
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
                 'DASHBOARD_TEMPLATE_VERSION': dashboard_template_version,
+                'TTV2_PAGE_LOADER_ENABLED': _config_bool('TTV2_PAGE_LOADER_ENABLED'),
             })
 
         context = {

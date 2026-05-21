@@ -543,8 +543,10 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 <script>
   // Shared: AJAX page navigation into #ttv2AjaxContent (PJAX-style).
   // - Sidebar links are real URLs (so refresh/deeplink works)
-  // - Click loads ?ttv2_partial=1 into the content host, shows loader, updates URL via history.pushState
+  // - Click loads ?ttv2_partial=1 into the content host; optional donut loader (admin: TTV2_PAGE_LOADER_ENABLED)
   (function(){
+    var TTV2_PAGE_LOADER_ENABLED = {% if ttv2_role_ctx is defined %}{% if ttv2_role_ctx.page_loader_enabled %}true{% else %}false{% endif %}{% else %}true{% endif %};
+
     function normalizeUrl(url){
       try {
         var u = new URL(url, window.location.href);
@@ -753,10 +755,12 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         }, 150);
       }
 
-      slowTimer = setTimeout(function(){
-        slowTimer = null;
-        appendSlowOverlay();
-      }, 400);
+      if (TTV2_PAGE_LOADER_ENABLED) {
+        slowTimer = setTimeout(function(){
+          slowTimer = null;
+          appendSlowOverlay();
+        }, 400);
+      }
 
       fetch(u.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
         .then(function(r){ return r.text(); })

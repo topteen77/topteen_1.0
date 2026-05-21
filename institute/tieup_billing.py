@@ -306,6 +306,14 @@ def user_can_download_tieup_invoice(user, payment):
     return user_can_create_tieup_coupons(user, institute)
 
 
+def _is_payable_amount(amount):
+    """True when tie-up amount due is strictly greater than zero (Pay Now / gateway)."""
+    try:
+        return Decimal(str(amount or 0)) > Decimal("0")
+    except Exception:
+        return False
+
+
 def _pending_lines_subtotal(pending_lines):
     return sum((ln.line_subtotal or Decimal("0")) for ln in pending_lines).quantize(
         Decimal("0.01")
@@ -635,6 +643,8 @@ def get_pending_pay_institutes(institutes_qs):
         if not pending_lines:
             continue
         pending_total = sum(li.total_amount for li in pending_lines)
+        if not _is_payable_amount(pending_total):
+            continue
         slug = inst.slug
         result.append(
             {
@@ -825,7 +835,8 @@ def build_institute_group_billing_ctx(
         "tieup_payment_rows": rows,
         "pending_order_lines": pending_order_lines,
         "pending_total": pending_total,
-        "has_pending": bool(pending_pay_institutes),
+        "has_pending": bool(pending_order_lines),
+        "tieup_amount_payable": _is_payable_amount(pending_total),
         "is_group_view": True,
         "pending_pay_institutes": pending_pay_institutes,
         "pay_order_id": first_pending["order_id"] if first_pending else None,
@@ -914,8 +925,9 @@ def build_institute_billing_ctx(institute, user=None, status_filter=None):
         "pending_order_lines": pending_lines,
         "pending_total": pending_total,
         "has_pending": bool(pending_lines),
+        "tieup_amount_payable": _is_payable_amount(pending_total),
         "pay_order": pay_order,
-        "pay_order_id": pay_order.id if pay_order else None,
+        "pay_order_id": pay_order.id if pay_order and _is_payable_amount(pending_total) else None,
         "is_group_view": False,
         "institute_slug": institute.slug,
         "tieup_can_pay": user_can_access_tieup_institute(user, institute) if user else False,
@@ -961,9 +973,11 @@ def tieup_pay_cta_for_institute(institute, user):
     ensure_pending_tieup_order_for_institute(institute, user)
     billing = build_institute_billing_ctx(institute, user)
     pay_order_id = billing.get("pay_order_id")
-    if not pay_order_id or not billing.get("has_pending"):
-        return None
     pending_total = billing.get("pending_total") or 0
+    if not pay_order_id or not billing.get("has_pending") or not _is_payable_amount(
+        pending_total
+    ):
+        return None
     from django.urls import reverse
 
     slug = institute.slug
@@ -1000,6 +1014,8 @@ def tieup_pay_cta_for_group_admin(user):
     from django.urls import reverse
 
     total_pending = sum(p.get("pending_total") or 0 for p in pending_list)
+    if not _is_payable_amount(total_pending):
+        return None
     first = pending_list[0]
     return {
         "show": True,
@@ -1059,7 +1075,7 @@ def attach_institute_tieup_payment_ctx(ctx, institute, user, status_filter=None)
     ctx["tieup_pay_url"] = reverse("institute:institute_tieup_pay", kwargs={"slug": slug})
     payments_url = reverse("institute:institutedashboard_page", args=[slug, "payments"])
     ctx["ttv2_tieup_payments_url"] = payments_url
-    if billing.get("has_pending") and billing.get("pay_order_id"):
+    if billing.get("tieup_amount_payable") and billing.get("pay_order_id"):
         ctx["ttv2_tieup_pending_banner"] = True
     ctx["tieup_payment_rows"] = billing.get("tieup_payment_rows") or billing.get("rows") or []
     ctx["ttv2_tieup_payments"] = ctx["tieup_payment_rows"]
@@ -1089,7 +1105,7 @@ def attach_group_tieup_payment_ctx(
     ctx["ttv2_tieup_payments_url"] = reverse(
         "institute:institutegroupdashboard_page", args=["payments"]
     )
-    if billing.get("has_pending") and billing.get("pay_order_id"):
+    if billing.get("tieup_amount_payable") and billing.get("pay_order_id"):
         ctx["ttv2_tieup_pending_banner"] = True
     ctx["tieup_payment_rows"] = billing.get("tieup_payment_rows") or billing.get("rows") or []
     ctx["ttv2_tieup_payments"] = ctx["tieup_payment_rows"]

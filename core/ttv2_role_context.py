@@ -10,6 +10,29 @@ from core import choices
 from counselor.models import Counselor
 from institute.models import Institute
 
+TTV2_PAGE_LOADER_CONFIG_KEY = "TTV2_PAGE_LOADER_ENABLED"
+
+
+def _config_truthy(val: object, *, default: bool = True) -> bool:
+    if val is None:
+        return default
+    return str(val).strip().lower() in ("true", "1", "yes", "on")
+
+
+def ttv2_page_loader_enabled() -> bool:
+    """Admin flag: donut % overlay while v2 dashboard AJAX pages load (Configuration)."""
+    try:
+        from core.models import Configuration
+
+        # Read-only: never use Configuration.get() here — get_or_create can raise
+        # IntegrityError when a soft-deleted row still holds the unique key.
+        row = Configuration.objects.filter(key=TTV2_PAGE_LOADER_CONFIG_KEY).first()
+        if not row:
+            return True
+        return _config_truthy(row.value, default=True)
+    except Exception:
+        return True
+
 
 def _safe_reverse(viewname: str, *, args: Optional[list] = None, kwargs: Optional[dict] = None) -> str:
     try:
@@ -500,8 +523,16 @@ def _nav_for_role(
 
 def ttv2_role_ctx(request) -> Dict[str, Any]:
     user = getattr(request, "user", None)
+    page_loader_enabled = ttv2_page_loader_enabled()
     if not user or not getattr(user, "is_authenticated", False):
-        return {"ttv2_role_ctx": {"role": "anonymous", "user": user, "nav": {"sections": []}}}
+        return {
+            "ttv2_role_ctx": {
+                "role": "anonymous",
+                "user": user,
+                "nav": {"sections": []},
+                "page_loader_enabled": page_loader_enabled,
+            }
+        }
 
     try:
         user_type = int(getattr(user, "user_type", 0) or 0)
@@ -604,6 +635,7 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             "profile": profile,
             "nav": {"sections": sections},
             "permissions": permissions,
+            "page_loader_enabled": page_loader_enabled,
         }
     }
     if tieup_pay_cta:
