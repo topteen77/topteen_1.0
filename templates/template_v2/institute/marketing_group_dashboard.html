@@ -38,6 +38,9 @@
 {# NOTE: Keep the rest of the original marketing dashboard JS inline for now.
    It will be executed from the v2 footer include via self.additionaljs(). #}
 {% include 'template20/institute/marketing_group_dashboard_additionaljs_rest.html' %}
+{% include "template_v2/includes/ttv2_quick_action_modals_group_mktg.html" %}
+{% include "template_v2/institute/includes/mktg_institute_row_csv_upload_modals.html" %}
+{% include "template_v2/includes/role_boot/marketing_group.html" %}
 <script>
   // Page-specific boot after the v2 shell injects ?ttv2_partial=1 into #ttv2AjaxContent
   (function(){
@@ -50,6 +53,9 @@
       try {
         if (typeof window.ttv2InitMktgFilterDrawer === 'function') window.ttv2InitMktgFilterDrawer();
       } catch (e4) {}
+      try {
+        if (typeof window.ttv2InitMktgRowCsvUploadModals === 'function') window.ttv2InitMktgRowCsvUploadModals();
+      } catch (e5) {}
       try {
         var host = document.getElementById('ttv2AjaxContent');
         var marker = host ? host.querySelector('[data-ttv2-page]') : null;
@@ -69,8 +75,6 @@
     };
   })();
 </script>
-
-{% include "template_v2/includes/ttv2_quick_action_modals_group_mktg.html" %}
 {% endblock %}
 
 {# Disable chatbot for marketing group dashboard #}

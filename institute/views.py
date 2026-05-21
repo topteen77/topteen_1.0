@@ -2228,7 +2228,7 @@ class MarketingGroupDashboardView(TemplateView):
                 Subquery(group_count_sq, output_field=IntegerField()),
                 Value(0),
             ),
-        ).select_related("institute_group")
+        ).select_related("institute_group", "created_by")
 
         # Get unique locations for dropdown
         locations = institutes.values_list('address', flat=True).distinct()

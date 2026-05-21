@@ -1,0 +1,80 @@
+{# Per-institute CSV upload from marketing institutes list (institute pre-selected, no dropdown). #}
+<div class="modal fade ttv2-quick-modal" id="ttv2MktgRowMatricCsvUploadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0"><i class='bx bx-upload me-2'></i> Bulk upload — Class 10</h5>
+          <p class="text-muted small mb-0 mt-1" id="ttv2MktgRowMatricInstituteLabel">—</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="ttv2MktgRowMatricCsvUploadForm" method="POST" action="{{ url('institute:institutecsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" id="ttv2MktgRowMatricInstituteId" value="">
+        <div class="modal-body">
+          <div class="ttv2-csv-format-hint">
+            <div class="ttv2-csv-format-hint-icon" aria-hidden="true"><i class="bx bx-spreadsheet"></i></div>
+            <div class="ttv2-csv-format-hint-body">
+              <div class="ttv2-csv-format-hint-label">File format</div>
+              <p class="ttv2-csv-format-hint-text mb-0">
+                Use our column template for bulk import (Class 9–10).
+                <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
+              </p>
+            </div>
+          </div>
+          <div class="mb-0">
+            <label class="form-label" for="mktgRowCsvMatric">CSV file <span class="text-danger">*</span></label>
+            {% with field_id='mktgRowCsvMatric' %}
+            {% include "template_v2/includes/ttv2_csv_upload_dropzone.html" %}
+            {% endwith %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class='bx bx-upload me-1'></i> Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade ttv2-quick-modal" id="ttv2MktgRowPostMatricCsvUploadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0"><i class='bx bx-upload me-2'></i> Bulk upload — Class 12</h5>
+          <p class="text-muted small mb-0 mt-1" id="ttv2MktgRowPostMatricInstituteLabel">—</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="ttv2MktgRowPostMatricCsvUploadForm" method="POST" action="{{ url('institute:institutepostmatriccsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" id="ttv2MktgRowPostMatricInstituteId" value="">
+        <div class="modal-body">
+          <div class="ttv2-csv-format-hint">
+            <div class="ttv2-csv-format-hint-icon" aria-hidden="true"><i class="bx bx-spreadsheet"></i></div>
+            <div class="ttv2-csv-format-hint-body">
+              <div class="ttv2-csv-format-hint-label">File format</div>
+              <p class="ttv2-csv-format-hint-text mb-0">
+                Post-matric layout differs from matric (Class 11–12).
+                <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
+              </p>
+            </div>
+          </div>
+          <div class="mb-0">
+            <label class="form-label" for="mktgRowCsvPostMatric">CSV file <span class="text-danger">*</span></label>
+            {% with field_id='mktgRowCsvPostMatric' %}
+            {% include "template_v2/includes/ttv2_csv_upload_dropzone.html" %}
+            {% endwith %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class='bx bx-upload me-1'></i> Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

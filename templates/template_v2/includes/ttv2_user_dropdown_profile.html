@@ -1,0 +1,27 @@
+{# Profile summary in topbar user dropdown — display name (title case, bold) + login email. #}
+{% if ttv2_role_ctx is defined and ttv2_role_ctx.display_name %}
+  {% set _profile_raw = ttv2_role_ctx.display_name %}
+{% elif user.name and user.name != 'None' %}
+  {% set _profile_raw = user.name %}
+{% elif user.first_name %}
+  {% set _profile_raw = user.first_name %}
+{% elif user.mobile %}
+  {% set _profile_raw = user.mobile|string %}
+{% elif user.email %}
+  {% set _profile_raw = user.email.split('@')[0] %}
+{% else %}
+  {% set _profile_raw = 'User' %}
+{% endif %}
+{% if '@' in _profile_raw %}
+  {% set _profile_label = _profile_raw.split('@')[0] %}
+{% else %}
+  {% set _profile_label = _profile_raw %}
+{% endif %}
+<div class="ttv2-user-dropdown-profile mb-2">
+  <p class="ttv2-user-dropdown-welcome text-gray fs-14 mb-1">
+    Welcome, <strong class="ttv2-user-dropdown-name">{{ _profile_label|title }}</strong>
+  </p>
+  {% if user.email %}
+  <p class="ttv2-user-dropdown-email text-gray mb-0" title="Logged in email">{{ user.email }}</p>
+  {% endif %}
+</div>

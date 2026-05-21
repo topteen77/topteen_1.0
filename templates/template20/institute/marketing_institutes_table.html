@@ -22,10 +22,14 @@
         <th>Group Name</th>
         {% else %}
         <th>School Name</th>
+        <th>Login email</th>
         <th>Group Name</th>
         {% endif %}
         <th>Group Institutes</th>
         <th>Students</th>
+        {% if not _is_group_mode %}
+        <th>Bulk upload</th>
+        {% endif %}
         <th>Credits</th>
         {% if not _is_group_mode %}
         <th>Action</th>
@@ -54,6 +58,9 @@
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
+          </td>
+          <td class="ttv2-mktg-cell-login-email">
+            {% include "template_v2/institute/includes/mktg_institute_login_email_cell.html" %}
           </td>
           {% endif %}
           {% if not _is_group_mode %}
@@ -90,6 +97,11 @@
             <a href="{{ _mktg_stu_href }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ _mktg_stu_cnt }}</a>
             {% endif %}
           </td>
+          {% if not _is_group_mode %}
+          <td class="ttv2-mktg-cell-upload">
+            {% include "template_v2/institute/includes/mktg_institute_row_upload_buttons.html" %}
+          </td>
+          {% endif %}
           <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
           {% if not _is_group_mode %}
           <td>
@@ -101,13 +113,15 @@
                       title="Update">
                 <i class='bx bx-edit text-primary'></i>
               </button>
+              {% if ins.created_by %}
               <button type="button" 
                       class="btn btn-sm btn-link p-0" 
                       data-bs-toggle="modal" 
                       data-bs-target="#changePasswordModal{{ ins.id }}"
-                      title="Change Password">
+                      title="Change login password">
                 <i class='bx bx-key text-info'></i>
               </button>
+              {% endif %}
               {% if not ins.is_system_demo and (ins.student_count or 0) == 0 %}
               <button type="button"
                       class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
@@ -164,6 +178,9 @@
               {{ ins.name }}
             </a>
           </td>
+          <td class="ttv2-mktg-cell-login-email">
+            {% include "template_v2/institute/includes/mktg_institute_login_email_cell.html" %}
+          </td>
           {% endif %}
           {% if not _is_group_mode %}
           <td>
@@ -194,6 +211,11 @@
             <a href="{{ _mktg_stu_href2 }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ _mktg_stu_cnt2 }}</a>
             {% endif %}
           </td>
+          {% if not _is_group_mode %}
+          <td class="ttv2-mktg-cell-upload">
+            {% include "template_v2/institute/includes/mktg_institute_row_upload_buttons.html" %}
+          </td>
+          {% endif %}
           <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
           {% if not _is_group_mode %}
           <td>
@@ -205,13 +227,15 @@
                       title="Update">
                 <i class='bx bx-edit text-primary'></i>
               </button>
+              {% if ins.created_by %}
               <button type="button" 
                       class="btn btn-sm btn-link p-0" 
                       data-bs-toggle="modal" 
                       data-bs-target="#changePasswordModal{{ ins.id }}"
-                      title="Change Password">
+                      title="Change login password">
                 <i class='bx bx-key text-info'></i>
               </button>
+              {% endif %}
               {% if not ins.is_system_demo and (ins.student_count or 0) == 0 %}
               <button type="button"
                       class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
@@ -249,7 +273,7 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="{% if _is_group_mode %}5{% else %}8{% endif %}" class="text-center text-gray">No institutes found</td>
+          <td colspan="{% if _is_group_mode %}5{% else %}10{% endif %}" class="text-center text-gray">No institutes found</td>
         </tr>
       {% endif %}
     </tbody>
@@ -321,71 +345,11 @@
 {% if institutes_paginations %}
   {% for ins in institutes_paginations %}
   {% include "template_v2/institute/includes/update_institute_modal.html" %}
-
-  <!-- Change Password Modal -->
-  <div class="modal fade" id="changePasswordModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Change Institute Password</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="changePasswordForm{{ ins.id }}" method="POST">
-          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-          <input type="hidden" name="institute_id" value="{{ ins.id }}">
-          <input type="hidden" name="change_password" value="1">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">New Password</label>
-              <input type="password" name="new_password" class="form-control" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Confirm Password</label>
-              <input type="password" name="confirm_password" class="form-control" required>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn custom-button purple-button">Change Password</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  {% include "template_v2/institute/includes/mktg_institute_change_password_modal.html" %}
   {% endfor %}
 {% elif institutes_list_all %}
   {% for ins in institutes_list_all %}
   {% include "template_v2/institute/includes/update_institute_modal.html" %}
-
-  <!-- Change Password Modal -->
-  <div class="modal fade" id="changePasswordModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Change Institute Password</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="changePasswordForm{{ ins.id }}" method="POST">
-          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-          <input type="hidden" name="institute_id" value="{{ ins.id }}">
-          <input type="hidden" name="change_password" value="1">
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">New Password</label>
-              <input type="password" name="new_password" class="form-control" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Confirm Password</label>
-              <input type="password" name="confirm_password" class="form-control" required>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn custom-button purple-button">Change Password</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  {% include "template_v2/institute/includes/mktg_institute_change_password_modal.html" %}
   {% endfor %}
 {% endif %}

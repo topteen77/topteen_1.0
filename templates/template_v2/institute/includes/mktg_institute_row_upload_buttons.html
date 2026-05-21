@@ -1,0 +1,25 @@
+{# Bulk CSV upload triggers for one institute row (marketing institutes list). #}
+{% if ins.institute_status != 3 and ins.institute_status != 2 and not ins.is_system_demo %}
+<div class="ttv2-mktg-row-upload-actions">
+  <button type="button"
+          class="btn btn-sm ttv2-mktg-row-csv-btn ttv2-mktg-row-csv-btn--matric"
+          data-bs-toggle="modal"
+          data-bs-target="#ttv2MktgRowMatricCsvUploadModal"
+          data-institute-id="{{ ins.id }}"
+          data-institute-name="{{ ins.name }}"
+          title="Bulk upload students — Class 10">
+    <i class="bx bx-cloud-upload" aria-hidden="true"></i>
+    <span>Class 10</span>
+  </button>
+  <button type="button"
+          class="btn btn-sm ttv2-mktg-row-csv-btn ttv2-mktg-row-csv-btn--postmatric"
+          data-bs-toggle="modal"
+          data-bs-target="#ttv2MktgRowPostMatricCsvUploadModal"
+          data-institute-id="{{ ins.id }}"
+          data-institute-name="{{ ins.name }}"
+          title="Bulk upload students — Class 12">
+    <i class="bx bx-cloud-upload" aria-hidden="true"></i>
+    <span>Class 12</span>
+  </button>
+</div>
+{% endif %}

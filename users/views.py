@@ -36,6 +36,7 @@ from django.urls import reverse,reverse_lazy
 from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from users.decorators import institute_dashboard_roles_only
 from django.views.decorators.csrf import ensure_csrf_cookie
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
@@ -2594,6 +2595,66 @@ class SetPassword(APIView):
             print(traceback.format_exc())
             data['message'] = "An error occurred while setting your password"
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+@method_decorator(institute_dashboard_roles_only, name="dispatch")
+class ChangeOwnPasswordView(View):
+    """
+    Marketing / institute-group / institute users change their own login password.
+    Requires current password plus new password confirmation.
+    """
+
+    MIN_PASSWORD_LEN = 8
+
+    def post(self, request, *args, **kwargs):
+        old_password = (request.POST.get("old_password") or "").strip()
+        new_password = (request.POST.get("new_password") or "").strip()
+        confirm_password = (request.POST.get("confirm_password") or "").strip()
+        is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+        def respond(success, message, status_code=200):
+            if is_ajax:
+                payload = {"success": success, "message": message}
+                if not success:
+                    payload["error"] = message
+                return JsonResponse(payload, status=status_code)
+            if success:
+                messages.success(request, message)
+            else:
+                messages.error(request, message)
+            referer = request.META.get("HTTP_REFERER") or reverse("users:userdashboard")
+            return HttpResponseRedirect(referer)
+
+        if not old_password or not new_password or not confirm_password:
+            return respond(False, "All password fields are required.", 400)
+        if new_password != confirm_password:
+            return respond(False, "New password and confirmation do not match.", 400)
+        if len(new_password) < self.MIN_PASSWORD_LEN:
+            return respond(
+                False,
+                f"New password must be at least {self.MIN_PASSWORD_LEN} characters.",
+                400,
+            )
+        if old_password == new_password:
+            return respond(
+                False,
+                "New password must be different from your current password.",
+                400,
+            )
+
+        user = request.user
+        if not user.check_password(old_password):
+            return respond(False, "Current password is incorrect.", 400)
+
+        try:
+            user.set_password(new_password)
+            user.save(update_fields=["password"])
+            login(request, user, backend="users.backends.CustomUserBackend")
+        except Exception:
+            return respond(False, "Could not update password. Please try again.", 500)
+
+        return respond(True, "Your password has been updated successfully.")
 
 
 class ForgotPassword(APIView):
