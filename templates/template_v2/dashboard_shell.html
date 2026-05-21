@@ -126,9 +126,20 @@ body.ttv2-shell .ttv2-topbar-pay-now {
              class="dropdown-menu dropdown-menu-end ttv2-user-dropdown-menu"
              aria-labelledby="ttv2UserDropdownToggle">
           <h6>User Dashboard</h6>
-          <p class="text-gray fs-14">Welcome, {% if user.name and user.name != 'None' %}{{ user.name }}{% elif user.mobile %}{{ user.mobile }}{% elif user.first_name %}{{ user.first_name }}{% elif user.email %}{{ user.email|truncate(20) }}{% else %}User{% endif %}</p>
+          {% include "template_v2/includes/ttv2_user_dropdown_profile.html" %}
           {% set _dashboard_home_href %}{% block dashboard_home_url %}{{ url('users:userdashboard') }}{% endblock %}{% endset %}
-          <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+          {% set _can_change_own_pwd = ttv2_role_ctx is defined and ttv2_role_ctx.role in ('marketing_group', 'institute_group', 'institute') %}
+          {% if _can_change_own_pwd %}
+          <div class="py-2 border-top">
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary w-100"
+                    data-bs-toggle="modal"
+                    data-bs-target="#ttv2ChangeOwnPasswordModal">
+              <i class="bx bx-lock-alt me-1"></i> Change password
+            </button>
+          </div>
+          {% endif %}
+          <div class="hero-button d-flex flex-row {% if not _can_change_own_pwd %}border-top{% endif %} border-bottom py-3 justify-content-center">
             <a href="{{ _dashboard_home_href|trim }}" class="btn custom-button purple-button me-3">Dashboard</a>
             <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
           </div>
@@ -144,6 +155,10 @@ body.ttv2-shell .ttv2-topbar-pay-now {
   </div>
 </div>
 <div class="ttv2-sidebar-overlay" data-ttv2-sidebar-overlay hidden></div>
+
+{% if ttv2_role_ctx is defined and ttv2_role_ctx.role in ('marketing_group', 'institute_group', 'institute') %}
+{% include "template_v2/includes/ttv2_change_own_password_modal.html" %}
+{% endif %}
 
 {# Student report popup (reuses existing report pages inside an iframe) #}
 <div class="modal fade" id="ttv2StudentReportModal" tabindex="-1" aria-hidden="true">
@@ -904,6 +919,101 @@ body.ttv2-shell .ttv2-topbar-pay-now {
   })();
 </script>
 {% include "template_v2/includes/ttv2_csv_dropzone_script.html" %}
+<script>
+  (function(){
+    if (window.__ttv2ChangeOwnPwdBound) return;
+    window.__ttv2ChangeOwnPwdBound = true;
+
+    function showOwnPwdAlert(msg){
+      var el = document.getElementById('ttv2ChangeOwnPasswordAlert');
+      if (!el) return;
+      if (msg) {
+        el.textContent = msg;
+        el.classList.remove('d-none');
+      } else {
+        el.textContent = '';
+        el.classList.add('d-none');
+      }
+    }
+
+    function toastOwnPwdSuccess(msg){
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Password updated',
+          text: msg || 'Your password has been updated.',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        return;
+      }
+      alert(msg || 'Your password has been updated.');
+    }
+
+    document.addEventListener('hidden.bs.modal', function(ev){
+      if (!ev.target || ev.target.id !== 'ttv2ChangeOwnPasswordModal') return;
+      var form = document.getElementById('ttv2ChangeOwnPasswordForm');
+      if (form) form.reset();
+      showOwnPwdAlert('');
+    });
+
+    document.addEventListener('submit', function(ev){
+      var form = ev.target;
+      if (!form || form.id !== 'ttv2ChangeOwnPasswordForm') return;
+      ev.preventDefault();
+      showOwnPwdAlert('');
+
+      var newPwd = (form.querySelector('[name="new_password"]') || {}).value || '';
+      var confirmPwd = (form.querySelector('[name="confirm_password"]') || {}).value || '';
+      if (newPwd !== confirmPwd) {
+        showOwnPwdAlert('New password and confirmation do not match.');
+        return;
+      }
+
+      var submitBtn = document.getElementById('ttv2ChangeOwnPasswordSubmit');
+      var originalHtml = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bx bx-loader bx-spin me-1"></i> Updating…';
+      }
+
+      fetch(form.getAttribute('action') || '', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      })
+        .then(function(r){
+          return r.json().then(function(j){ return { ok: r.ok, j: j }; });
+        })
+        .then(function(res){
+          var j = res.j || {};
+          if (!res.ok || !j.success) {
+            throw new Error(j.error || j.message || 'Could not update password.');
+          }
+          var modalEl = document.getElementById('ttv2ChangeOwnPasswordModal');
+          if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            var inst = bootstrap.Modal.getInstance(modalEl);
+            if (inst) inst.hide();
+          }
+          form.reset();
+          toastOwnPwdSuccess(j.message);
+        })
+        .catch(function(err){
+          showOwnPwdAlert(err.message || 'Could not update password.');
+        })
+        .finally(function(){
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHtml;
+          }
+        });
+    }, true);
+  })();
+</script>
 {% endblock %}
 
 {# Disable chatbot for dashboards by default #}

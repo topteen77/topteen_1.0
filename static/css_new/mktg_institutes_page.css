@@ -957,6 +957,62 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-filter-reset:hover{
 .ttv2-mktg-cell-name a:hover{
   text-decoration: underline;
 }
+.ttv2-mktg-cell-login-email{
+  max-width: min(220px, 32vw);
+  min-width: 140px;
+}
+.ttv2-mktg-login-email{
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--c-text2, #475569);
+  text-decoration: none;
+  vertical-align: middle;
+}
+a.ttv2-mktg-login-email:hover{
+  color: var(--c-accent, #5249df);
+  text-decoration: underline;
+}
+.ttv2-mktg-login-cell{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+.ttv2-mktg-change-pwd-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  line-height: 1.2;
+  border-radius: 999px;
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  background: rgba(14, 165, 233, 0.08);
+  color: #0369a1;
+}
+.ttv2-mktg-change-pwd-btn:hover{
+  background: rgba(14, 165, 233, 0.16);
+  color: #075985;
+  border-color: rgba(14, 165, 233, 0.4);
+}
+.ttv2-mktg-change-pwd-btn i{
+  font-size: 0.9rem;
+  line-height: 1;
+}
+.ttv2-mktg-login-cell-hint{
+  font-size: 0.6875rem;
+  line-height: 1.2;
+}
+.ttv2-mktg-change-pwd-modal .ttv2-mktg-change-pwd-email{
+  font-weight: 600;
+  color: var(--c-text2, #475569);
+}
 .ttv2-mktg-action-bar{
   display: inline-flex;
   align-items: center;
@@ -975,6 +1031,50 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-filter-reset:hover{
 }
 .ttv2-mktg-action-bar .btn:hover{
   background: rgba(82, 73, 223, 0.12);
+}
+.ttv2-mktg-cell-upload{
+  min-width: 148px;
+}
+.ttv2-mktg-row-upload-actions{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.ttv2-mktg-row-csv-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  line-height: 1.2;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.ttv2-mktg-row-csv-btn i{
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.ttv2-mktg-row-csv-btn--matric{
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.22);
+}
+.ttv2-mktg-row-csv-btn--matric:hover{
+  background: rgba(59, 130, 246, 0.18);
+  color: #1e40af;
+}
+.ttv2-mktg-row-csv-btn--postmatric{
+  color: #6d28d9;
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.22);
+}
+.ttv2-mktg-row-csv-btn--postmatric:hover{
+  background: rgba(139, 92, 246, 0.18);
+  color: #5b21b6;
 }
 .ttv2-mktg-status-pill{
   display: inline-flex;

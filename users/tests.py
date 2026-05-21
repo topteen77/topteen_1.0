@@ -138,6 +138,76 @@ class TestInstituteStudentMobileGateAfterCompletion(TestCase):
         self.assertEqual(session.get("post_mobile_redirect"), reverse("app:test_buttons"))
 
 
+class TestChangeOwnPasswordView(TestCase):
+    def _make_role_user(self, user_type, email):
+        img = SimpleUploadedFile("u.jpg", b"fake-image-bytes", content_type="image/jpeg")
+        user = User(email=email, name="Role User", user_type=user_type, image=img)
+        user.set_password("OldPass123")
+        user.save()
+        return user
+
+    def test_marketing_admin_can_change_own_password(self):
+        user = self._make_role_user(
+            choices.UserType.MARKETINGGROUPADMIN, "mktg-pwd@example.com"
+        )
+        InstituteMarketingGroup.objects.create(
+            m_group_name="Pwd group",
+            marketing_group_admin=user,
+        )
+        self.client.force_login(user, backend="users.backends.CustomUserBackend")
+        resp = self.client.post(
+            reverse("users:changeownpassword"),
+            {
+                "old_password": "OldPass123",
+                "new_password": "NewPass456",
+                "confirm_password": "NewPass456",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data.get("success"))
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("NewPass456"))
+        self.assertFalse(user.check_password("OldPass123"))
+
+    def test_wrong_old_password_rejected(self):
+        user = self._make_role_user(
+            choices.UserType.INSTITUTEGROUPADMIN, "ig-pwd@example.com"
+        )
+        self.client.force_login(user, backend="users.backends.CustomUserBackend")
+        resp = self.client.post(
+            reverse("users:changeownpassword"),
+            {
+                "old_password": "WrongOld",
+                "new_password": "NewPass456",
+                "confirm_password": "NewPass456",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(resp.json().get("success"))
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("OldPass123"))
+
+    def test_student_cannot_change_own_password_via_endpoint(self):
+        user = self._make_role_user(choices.UserType.STUDENT, "stu-pwd@example.com")
+        self.client.force_login(user, backend="users.backends.CustomUserBackend")
+        resp = self.client.post(
+            reverse("users:changeownpassword"),
+            {
+                "old_password": "OldPass123",
+                "new_password": "NewPass456",
+                "confirm_password": "NewPass456",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.endswith("/") or resp.url == "/")
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("OldPass123"))
+
+
 class TestInstituteStudentDashboardShowsNoBuy(TestCase):
     def test_institute_student_class10_has_test_payment_true_without_payment_record(self):
         # Create institute student (no psychometric payment record)

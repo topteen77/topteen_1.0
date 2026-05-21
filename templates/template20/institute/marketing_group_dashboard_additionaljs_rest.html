@@ -1672,5 +1672,10 @@
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
     initializeInstituteRowHover();
+    try {
+      if (typeof window.ttv2InitMktgRowCsvUploadModals === 'function') {
+        window.ttv2InitMktgRowCsvUploadModals();
+      }
+    } catch (e) {}
   });
 </script>

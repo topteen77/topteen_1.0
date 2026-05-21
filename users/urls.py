@@ -20,6 +20,7 @@ urlpatterns = [
    path('loginotp/',views.LoginOTP.as_view(),name='loginotp'),
    path('loginpwd/',views.LoginPassword.as_view(),name="loginpwd"),
    path('set-password/',views.SetPassword.as_view(),name="setpassword"),
+   path('change-own-password/', views.ChangeOwnPasswordView.as_view(), name="changeownpassword"),
    path('get-dashboard-url/',views.GetUserDashboardUrl.as_view(),name="getdashboardurl"),
    path('forgotpassword/',views.ForgotPassword.as_view(),name="forgotpassword"),
    path('forgotpasswordotp/',views.ForgotPasswordVerifyOTP.as_view(),name="forgotpasswordotp"),

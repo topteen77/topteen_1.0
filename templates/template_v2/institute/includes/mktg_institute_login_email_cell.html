@@ -1,0 +1,18 @@
+{# Login email + change-password action for marketing institutes list row. #}
+{% set _login_email = ins.created_by.email if ins.created_by and ins.created_by.email else '' %}
+<div class="ttv2-mktg-login-cell">
+  {% if _login_email %}
+  <a href="mailto:{{ _login_email }}" class="ttv2-mktg-login-email" title="Institute login email">{{ _login_email }}</a>
+  <button type="button"
+          class="btn btn-sm ttv2-mktg-change-pwd-btn"
+          data-bs-toggle="modal"
+          data-bs-target="#changePasswordModal{{ ins.id }}"
+          title="Set a new login password for this institute">
+    <i class="bx bx-key" aria-hidden="true"></i>
+    <span>Change password</span>
+  </button>
+  {% else %}
+  <span class="text-muted">—</span>
+  <span class="ttv2-mktg-login-cell-hint text-muted">No login user</span>
+  {% endif %}
+</div>

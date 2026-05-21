@@ -153,6 +153,74 @@
       }, false);
     })();
 
+    // Institutes list: per-row bulk CSV upload — bind on Bootstrap show.bs.modal (works with data-bs-toggle).
+    window.ttv2InitMktgRowCsvUploadModals = window.ttv2InitMktgRowCsvUploadModals || function(){
+      if (!document.getElementById('ttv2MktgRowMatricCsvUploadModal')
+          && !document.getElementById('ttv2MktgRowPostMatricCsvUploadModal')) {
+        return;
+      }
+
+      function resetDropzone(form){
+        if (!form) return;
+        try {
+          var input = form.querySelector('.ttv2-csv-dropzone-input');
+          if (input) {
+            input.value = '';
+            var fn = form.querySelector('[data-ttv2-csv-filename]');
+            if (fn) {
+              var empty = fn.getAttribute('data-empty-label') || 'No file selected';
+              fn.textContent = empty;
+            }
+          }
+        } catch (e) {}
+      }
+
+      function bindRowModal(modalId, hiddenId, labelId, formId){
+        var modalEl = document.getElementById(modalId);
+        if (!modalEl || modalEl.getAttribute('data-ttv2-mktg-row-csv-bound') === '1') return;
+        modalEl.setAttribute('data-ttv2-mktg-row-csv-bound', '1');
+        modalEl.addEventListener('show.bs.modal', function(ev){
+          var btn = ev.relatedTarget;
+          if (!btn) return;
+          var hiddenEl = document.getElementById(hiddenId);
+          var labelEl = document.getElementById(labelId);
+          var formEl = document.getElementById(formId);
+          if (hiddenEl) {
+            hiddenEl.value = (btn.getAttribute('data-institute-id') || '').trim();
+          }
+          if (labelEl) {
+            var name = (btn.getAttribute('data-institute-name') || '').trim();
+            labelEl.textContent = name ? ('Institute: ' + name) : '—';
+          }
+          resetDropzone(formEl);
+        });
+        modalEl.addEventListener('hidden.bs.modal', function(){
+          resetDropzone(document.getElementById(formId));
+        });
+      }
+
+      bindRowModal(
+        'ttv2MktgRowMatricCsvUploadModal',
+        'ttv2MktgRowMatricInstituteId',
+        'ttv2MktgRowMatricInstituteLabel',
+        'ttv2MktgRowMatricCsvUploadForm'
+      );
+      bindRowModal(
+        'ttv2MktgRowPostMatricCsvUploadModal',
+        'ttv2MktgRowPostMatricInstituteId',
+        'ttv2MktgRowPostMatricInstituteLabel',
+        'ttv2MktgRowPostMatricCsvUploadForm'
+      );
+    };
+    function ttv2EnsureMktgRowCsvModals(){
+      try { window.ttv2InitMktgRowCsvUploadModals(); } catch (e) {}
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ttv2EnsureMktgRowCsvModals);
+    } else {
+      ttv2EnsureMktgRowCsvModals();
+    }
+
     window.ttv2AfterAjaxContentLoad = function(){
       try {
         if (typeof window.ttv2BootMarketingGroupDashboard === 'function') {
@@ -160,6 +228,7 @@
         }
       } catch (e) {}
       try { window.ttv2InitMktgFilterDrawer(); } catch (e4) {}
+      try { window.ttv2InitMktgRowCsvUploadModals(); } catch (e5) {}
       // Students tab: SSR only has counts/filters; rows load via data_type=students (same as institute v2).
       try {
         var host = document.getElementById('ttv2AjaxContent');

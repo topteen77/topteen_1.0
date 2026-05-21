@@ -934,6 +934,23 @@ body.ttv2-shell .ttv2-topbar-avatar-dropdown .dropdown-content.login-content .te
 body.ttv2-shell .ttv2-topbar-avatar-dropdown .ttv2-user-dropdown-menu .text-gray{
   color: var(--c-text3) !important;
 }
+body.ttv2-shell .ttv2-user-dropdown-profile{
+  padding-bottom: 2px;
+}
+body.ttv2-shell .ttv2-user-dropdown-welcome{
+  line-height: 1.35;
+}
+body.ttv2-shell .ttv2-user-dropdown-name{
+  font-weight: 700;
+  color: var(--c-text) !important;
+}
+body.ttv2-shell .ttv2-user-dropdown-email{
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--c-text2) !important;
+  word-break: break-all;
+  line-height: 1.3;
+}
 body.ttv2-shell .ttv2-counselor-topbar .title{
   font-size: 15px;
   font-weight: 600;
