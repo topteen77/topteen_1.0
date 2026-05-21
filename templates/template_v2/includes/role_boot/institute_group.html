@@ -1,6 +1,51 @@
 <script>
   // Institute group: boot hooks after AJAX inject
   (function(){
+    window.ttv2InitMktgFilterDrawer = window.ttv2InitMktgFilterDrawer || function(){
+      try {
+        var section = document.getElementById('ttv2MktgFiltersSection');
+        if (!section || section.getAttribute('data-ttv2-mktg-filter-bound') === '1') return;
+        section.setAttribute('data-ttv2-mktg-filter-bound', '1');
+
+        var drawer = section.querySelector('#ttv2MktgFiltersDrawer');
+        var openBtn = section.querySelector('[data-ttv2-mktg-filter-open]');
+        var mqMobile = window.matchMedia('(max-width: 991.98px)');
+
+        function setOpen(open){
+          if (!drawer) return;
+          section.classList.toggle('is-open', !!open);
+          if (openBtn) openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          document.body.classList.toggle('ttv2-mktg-filter-open-lock', !!open && mqMobile.matches);
+          if (open) {
+            try { drawer.focus({ preventScroll: true }); } catch (err) { try { drawer.focus(); } catch(e2) {} }
+          }
+        }
+
+        section.addEventListener('click', function(e){
+          var openTrigger = e.target.closest && e.target.closest('[data-ttv2-mktg-filter-open]');
+          if (openTrigger) { e.preventDefault(); setOpen(true); return; }
+          var closeTrigger = e.target.closest && e.target.closest('[data-ttv2-mktg-filter-close]');
+          if (closeTrigger) { e.preventDefault(); setOpen(false); return; }
+        });
+
+        section.__ttv2MktgEsc = function(e){
+          if (e.key === 'Escape' && section.classList.contains('is-open')) setOpen(false);
+        };
+        document.addEventListener('keydown', section.__ttv2MktgEsc);
+
+        if (mqMobile.addEventListener) {
+          mqMobile.addEventListener('change', function(ev){ if (!ev.matches) setOpen(false); });
+        } else if (mqMobile.addListener) {
+          mqMobile.addListener(function(ev){ if (!ev.matches) setOpen(false); });
+        }
+
+        var form = section.querySelector('#institute-filter-form');
+        if (form) {
+          form.addEventListener('submit', function(){ if (mqMobile.matches) setOpen(false); });
+        }
+      } catch (err) { /* no-op */ }
+    };
+
     window.ttv2AfterAjaxContentLoad = function(){
       try {
         window._ttv2InstituteGroupDashboardBooted = false;
@@ -8,6 +53,7 @@
           window.ttv2BootInstituteGroupDashboard();
         }
       } catch (e) {}
+      try { window.ttv2InitMktgFilterDrawer(); } catch (e4) {}
       try {
         var host = document.getElementById('ttv2AjaxContent');
         var marker = host ? host.querySelector('[data-ttv2-page]') : null;
@@ -25,6 +71,13 @@
         }
       } catch (e2) {}
     };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function(){ try { window.ttv2InitMktgFilterDrawer(); } catch(e){} });
+    } else {
+      try { window.ttv2InitMktgFilterDrawer(); } catch(e){}
+    }
+    document.addEventListener('ttv2:content:loaded', function(){ try { window.ttv2InitMktgFilterDrawer(); } catch(e){} });
   })();
 </script>
 

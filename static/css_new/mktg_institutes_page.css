@@ -1695,3 +1695,314 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-counselors-empty-icon{
   background: rgba(139, 124, 255, 0.16);
   color: rgba(204, 196, 255, 0.95);
 }
+
+/* ===========================================================
+   Institute-group Institutes subpage
+   =========================================================== */
+
+.ttv2-ig-institutes-page .ttv2-mktg-filter-row,
+.ttv2-ig-institutes-filters .ttv2-mktg-filter-row{
+  grid-template-columns: 1fr;
+}
+@media (min-width: 992px){
+  .ttv2-ig-institutes-page .ttv2-mktg-filter-row,
+  .ttv2-ig-institutes-filters .ttv2-mktg-filter-row{
+    grid-template-columns: minmax(200px, 1.4fr) minmax(200px, 1.4fr) auto;
+    gap: 0.75rem;
+  }
+  .ttv2-ig-institutes-page .ttv2-mktg-filter-actions,
+  .ttv2-ig-institutes-filters .ttv2-mktg-filter-actions{
+    grid-column: 3;
+  }
+}
+
+/* Bulk assign card */
+.ttv2-ig-bulk-card{
+  border-radius: 16px;
+  border: 1px solid rgba(82, 73, 223, 0.14);
+  background:
+    linear-gradient(135deg, rgba(82, 73, 223, 0.06), rgba(76, 201, 240, 0.04)),
+    var(--c-bg2, #ffffff);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(82, 73, 223, 0.08);
+  padding: 1.1rem 1.2rem 1.15rem;
+}
+.ttv2-ig-bulk-card__head{
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.ttv2-ig-bulk-card__icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5249df, #7c4dff);
+  color: #fff;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(82, 73, 223, 0.32);
+}
+.ttv2-ig-bulk-card__title{
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--c-text, #0f172a);
+}
+.ttv2-ig-bulk-card__hint{
+  font-size: 0.75rem;
+  color: var(--c-text3, #64748b);
+  margin-top: 0.1rem;
+}
+.ttv2-ig-bulk-card__body{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.ttv2-ig-bulk-card__field{
+  flex: 1 1 220px;
+  min-width: min(100%, 220px);
+  max-width: 420px;
+}
+.ttv2-ig-bulk-card__field .form-label{
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text3, #64748b);
+  margin-bottom: 0.35rem;
+}
+.ttv2-ig-bulk-card__field .form-select{
+  min-height: 42px;
+  border-radius: 10px;
+  border-color: rgba(15, 23, 42, 0.1);
+  font-size: 0.875rem;
+}
+.ttv2-ig-bulk-card__btn{
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+.ttv2-ig-bulk-card__note{
+  font-size: 0.75rem;
+  color: var(--c-text3, #64748b);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(15, 23, 42, 0.08);
+}
+
+/* Table section header inside card */
+.ttv2-ig-table-head__icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(82, 73, 223, 0.12);
+  color: #5249df;
+  font-size: 1.05rem;
+}
+.ttv2-ig-table-head__title{
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--c-text, #0f172a);
+}
+
+/* Table cells */
+.ttv2-ig-row-num{
+  display: inline-flex;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: rgba(82, 73, 223, 0.08);
+  color: #5249df;
+  font-weight: 700;
+  font-size: 0.75rem;
+  align-items: center;
+  justify-content: center;
+}
+.ttv2-ig-cell-muted{
+  color: var(--c-text2, #475569);
+  font-size: 0.8125rem;
+  max-width: 220px;
+  word-break: break-word;
+}
+.ttv2-ig-cell-empty{
+  color: var(--c-text3, #94a3b8);
+}
+.ttv2-ig-student-link{
+  display: inline-flex;
+  min-width: 32px;
+  height: 30px;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #5249df !important;
+  background: rgba(82, 73, 223, 0.1);
+  border: 1px solid rgba(82, 73, 223, 0.18);
+  text-decoration: none !important;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.ttv2-ig-student-link:hover{
+  background: rgba(82, 73, 223, 0.18);
+  border-color: rgba(82, 73, 223, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Counselor chips */
+.ttv2-ig-counselor-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem 0.55rem 0.28rem 0.65rem;
+  margin: 0 0.25rem 0.25rem 0;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.07);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: var(--c-text, #1e293b);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.ttv2-ig-counselor-chip--readonly{
+  background: rgba(82, 73, 223, 0.1);
+  border-color: rgba(82, 73, 223, 0.16);
+  color: #4338ca;
+}
+.ttv2-ig-counselor-chip__remove{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--c-text2, #64748b);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.ttv2-ig-counselor-chip__remove:hover{
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.ttv2-ig-counselor-chip__remove i{
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* Per-row assign controls */
+.ttv2-ig-actions-col{
+  min-width: 200px;
+}
+.ttv2-ig-assign-panel{
+  padding: 0.15rem 0;
+}
+.ttv2-ig-assign-row{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ttv2-ig-assign-row .form-select{
+  flex: 1 1 140px;
+  min-width: 120px;
+  max-width: 200px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+.ttv2-ig-assign-btn{
+  background: linear-gradient(135deg, #5249df, #7c4dff) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 650;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(82, 73, 223, 0.28);
+}
+.ttv2-ig-assign-btn:hover{
+  filter: brightness(1.06);
+  color: #fff !important;
+}
+
+/* Empty state */
+.ttv2-ig-table-empty{
+  text-align: center;
+  padding: 2.5rem 1.25rem !important;
+}
+.ttv2-ig-table-empty__icon{
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(82, 73, 223, 0.1);
+  color: #5249df;
+  font-size: 1.6rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.65rem;
+}
+.ttv2-ig-table-empty__title{
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+.ttv2-ig-table-empty__text{
+  font-size: 0.8125rem;
+  color: var(--c-text3, #64748b);
+}
+
+/* Flash alert polish */
+.ttv2-ig-institutes-page #ttv2IgCounselorFlash{
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+@media (max-width: 575.98px){
+  .ttv2-ig-bulk-card__body{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ttv2-ig-bulk-card__btn{
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-bulk-card{
+  background:
+    linear-gradient(135deg, rgba(139, 124, 255, 0.1), rgba(76, 201, 240, 0.05)),
+    var(--c-bg3, #1a1d2e);
+  border-color: rgba(139, 124, 255, 0.22);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-bulk-card__title,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-table-head__title{
+  color: rgba(240, 242, 255, 0.95);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-counselor-chip{
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(240, 242, 255, 0.1);
+  color: rgba(240, 242, 255, 0.9);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-counselor-chip--readonly{
+  background: rgba(139, 124, 255, 0.16);
+  border-color: rgba(139, 124, 255, 0.24);
+  color: rgba(204, 196, 255, 0.95);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-student-link{
+  background: rgba(139, 124, 255, 0.16);
+  border-color: rgba(139, 124, 255, 0.28);
+  color: rgba(204, 196, 255, 0.95) !important;
+}

@@ -1,57 +1,114 @@
 {% set _ig_reset = ig_reset_href|default(url('institute:institutegroupdashboard')) %}
 {% set _ig_action = ig_filter_action|default(url('institute:institutegroupdashboard')) %}
-        <div class="table-card mb-4">
-          <form method="get" action="{{ _ig_action }}" id="institute-filter-form" class="row g-3">
-            <div class="col-md-4">
-              <label for="institute" class="form-label">Institute Name</label>
-              <input type="text"
-                     name="institute"
-                     id="institute"
-                     list="ig_institute_name_suggestions"
-                     class="form-control"
-                     placeholder="Search institute..."
-                     value="{% if search_params and search_params.institute %}{{ search_params.institute }}{% endif %}">
-              <datalist id="ig_institute_name_suggestions">
-                {% for ins_name in (institute_names|default([])) %}
-                  <option value="{{ ins_name }}"></option>
-                {% endfor %}
-              </datalist>
-            </div>
-            <div class="col-md-4">
-              <label for="location" class="form-label">Location</label>
-              <input type="text"
-                     name="location"
-                     id="location"
-                     list="ig_location_suggestions"
-                     class="form-control"
-                     placeholder="Type or select location..."
-                     value="{% if search_params and search_params.location %}{{ search_params.location }}{% endif %}">
-              <datalist id="ig_location_suggestions">
-                {% if locations %}
-                  {% for location in locations %}
-                    <option value="{{ location }}"></option>
-                  {% endfor %}
-                {% endif %}
-              </datalist>
-            </div>
-            <div class="col-md-12 d-flex align-items-end gap-2">
-              <button type="submit" class="btn btn-primary" title="Search" aria-label="Search">
-                <i class='bx bx-search'></i>
-              </button>
-              <a href="{{ _ig_reset }}" class="btn btn-secondary" title="Reset" aria-label="Reset">
-                <i class='bx bx-refresh'></i>
-              </a>
-            </div>
-          </form>
-        </div>
+{% set _has_search_active = (search_params is defined and (
+    search_params.institute|default('') or
+    search_params.location|default('')
+  )) %}
 
-        <div class="table-card mb-4">
-          <h5 class="mb-3">Institute Management</h5>
-          <div id="institutes-table-loader" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
+<div class="ttv2-mktg-filters-section ttv2-ig-institutes-filters mb-4" id="ttv2MktgFiltersSection">
+  <div class="ttv2-mktg-filter-mobile-bar d-flex d-lg-none align-items-center gap-2 mb-3">
+    <button type="button"
+            class="btn ttv2-mktg-filter-toggle flex-grow-1"
+            data-ttv2-mktg-filter-open
+            aria-controls="ttv2MktgFiltersDrawer"
+            aria-expanded="false">
+      <span class="ttv2-mktg-filter-toggle-icon"><i class="bx bx-filter-alt"></i></span>
+      <span class="ttv2-mktg-filter-toggle-label">
+        <span class="ttv2-mktg-filter-toggle-title">Filters &amp; search</span>
+        <span class="ttv2-mktg-filter-toggle-sub">Tap to refine the list</span>
+      </span>
+      {% if _has_search_active %}
+        <span class="ttv2-mktg-filter-toggle-dot" aria-hidden="true"></span>
+      {% endif %}
+      <span class="ttv2-mktg-filter-toggle-chev"><i class="bx bx-chevron-right"></i></span>
+    </button>
+  </div>
+
+  <div class="ttv2-mktg-filter-backdrop" data-ttv2-mktg-filter-close aria-hidden="true"></div>
+
+  <div class="card ttv2-mktg-filters-card border-0 shadow-sm" id="ttv2MktgFiltersDrawer" tabindex="-1" aria-label="Filters">
+    <div class="ttv2-mktg-filter-drawer-head d-lg-none">
+      <div class="ttv2-mktg-filter-drawer-title">
+        <i class="bx bx-filter-alt"></i>
+        <span>Filters</span>
+      </div>
+      <button type="button" class="ttv2-mktg-filter-close-x" data-ttv2-mktg-filter-close aria-label="Close filters">
+        <i class="bx bx-x"></i>
+      </button>
+    </div>
+    <div class="card-body">
+      <form method="get" action="{{ _ig_action }}" id="institute-filter-form" class="ttv2-mktg-filter-form">
+        <div class="ttv2-mktg-filter-row">
+          <div class="ttv2-mktg-filter-field ttv2-mktg-filter-field--grow">
+            <label for="institute" class="form-label">Institute name</label>
+            <input type="text"
+                   name="institute"
+                   id="institute"
+                   list="ig_institute_name_suggestions"
+                   class="form-control custom-input"
+                   placeholder="Search institute…"
+                   value="{% if search_params and search_params.institute %}{{ search_params.institute }}{% endif %}">
+            <datalist id="ig_institute_name_suggestions">
+              {% for ins_name in (institute_names|default([])) %}
+                <option value="{{ ins_name }}"></option>
+              {% endfor %}
+            </datalist>
           </div>
-          <div id="institutes-table-container" style="display: none;">
+          <div class="ttv2-mktg-filter-field ttv2-mktg-filter-field--grow">
+            <label for="location" class="form-label">Location</label>
+            <input type="text"
+                   name="location"
+                   id="location"
+                   list="ig_location_suggestions"
+                   class="form-control custom-input"
+                   placeholder="Type or select location…"
+                   value="{% if search_params and search_params.location %}{{ search_params.location }}{% endif %}">
+            <datalist id="ig_location_suggestions">
+              {% if locations %}
+                {% for location in locations %}
+                  <option value="{{ location }}"></option>
+                {% endfor %}
+              {% endif %}
+            </datalist>
+          </div>
+          <div class="ttv2-mktg-filter-actions">
+            <button type="submit"
+                    class="btn ttv2-mktg-filter-search"
+                    title="Search"
+                    aria-label="Search">
+              <i class='bx bx-search'></i>
+              <span class="ttv2-mktg-filter-btn-label">Search</span>
+            </button>
+            <a href="{{ _ig_reset }}"
+               class="btn ttv2-mktg-filter-reset"
+               title="Reset filters"
+               aria-label="Reset filters">
+              <i class='bx bx-refresh'></i>
+              <span class="ttv2-mktg-filter-btn-label">Reset</span>
+            </a>
           </div>
         </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card ttv2-mktg-table-card border-0 shadow-sm mb-4 position-relative">
+  <div class="card-body p-0">
+    <div class="ttv2-ig-table-head px-3 px-md-4 pt-3 pb-2">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="ttv2-ig-table-head__icon" aria-hidden="true"><i class="bx bx-buildings"></i></span>
+          <h3 class="ttv2-ig-table-head__title mb-0">Institute management</h3>
+        </div>
+      </div>
+    </div>
+    <div id="institutes-table-loader" class="text-center py-5 px-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading…</span>
+      </div>
+      <p class="mt-3 text-muted small mb-0">Loading institutes…</p>
+    </div>
+    <div id="institutes-table-container" style="display: none;"></div>
+  </div>
+</div>

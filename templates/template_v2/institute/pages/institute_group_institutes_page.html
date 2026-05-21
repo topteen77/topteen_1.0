@@ -1,5 +1,6 @@
-<div class="ttv2-ig-subpage">
+<div class="ttv2-ig-subpage ttv2-mktg-subpage ttv2-ig-institutes-page">
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" autocomplete="off" aria-hidden="true">
+
   <div id="ttv2IgCounselorFlash"
        class="alert alert-dismissible fade mb-3 py-2 ps-3 pe-2 d-none"
        role="alert">
@@ -11,44 +12,56 @@
               aria-label="Close"></button>
     </div>
   </div>
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h2 class="fs-20 mb-0">Institutes</h2>
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ttv2AddInstituteModal">
-        <i class="bx bx-plus"></i> Add institute
+
+  <div class="ttv2-mktg-page-hero d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <h2 class="ttv2-mktg-page-title mb-1">Institutes</h2>
+      <p class="ttv2-mktg-page-lead mb-0">Filter and review institutes in this group. Assign one advisor from the group to every school, or manage advisors per institute.</p>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 ttv2-mktg-hero-actions">
+      <button type="button" class="btn ttv2-mktg-btn ttv2-mktg-btn--primary" data-bs-toggle="modal" data-bs-target="#ttv2AddInstituteModal">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-plus"></i></span>
+        <span class="ttv2-mktg-btn-label">Add institute</span>
       </button>
-      <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+      <a href="{{ url('institute:institutegroupdashboard') }}" class="btn ttv2-mktg-btn ttv2-mktg-btn--ghost">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-arrow-back"></i></span>
+        <span class="ttv2-mktg-btn-label">Back to dashboard</span>
+      </a>
     </div>
   </div>
-  <p class="text-muted small mb-3">Filter and review institutes in this group. Assign one advisor from the group to every school, or manage advisors per institute.</p>
 
   <div id="ttv2IgCounselorApiHost" class="d-none" hidden
        data-institute-url="{{ url('institute:institutegroup_institute_counselor') }}"
        data-bulk-url="{{ url('institute:institutegroup_bulk_assign_counselor') }}"></div>
 
   {% if ig_group_counselors_select is defined and ig_group_counselors_select|length > 0 %}
-  <div class="card mb-3 border-0 shadow-sm"
+  <div class="ttv2-ig-bulk-card mb-4"
        id="ttv2IgBulkCounselorBar"
        data-bulk-url="{{ url('institute:institutegroup_bulk_assign_counselor') }}"
        data-institute-url="{{ url('institute:institutegroup_institute_counselor') }}">
-    <div class="card-body py-3">
-      <div class="fw-semibold mb-2 fs-14">Bulk assign advisor</div>
-      <div class="d-flex flex-wrap align-items-end gap-2">
-        <div class="flex-grow-1" style="min-width:220px;max-width:420px;">
-          <label class="form-label small mb-1" for="ttv2IgBulkCounselorSelect">Counselor (from any institute in this group)</label>
-          <select id="ttv2IgBulkCounselorSelect" class="form-select form-select-sm">
-            <option value="">Choose counselor…</option>
-            {% for opt in ig_group_counselors_select %}
-              <option value="{{ opt.id }}">{{ opt.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <button type="button" class="btn btn-sm btn-primary" id="ttv2IgBulkCounselorBtn">
-          Assign to all institutes
-        </button>
+    <div class="ttv2-ig-bulk-card__head">
+      <span class="ttv2-ig-bulk-card__icon" aria-hidden="true"><i class="bx bx-user-check"></i></span>
+      <div>
+        <div class="ttv2-ig-bulk-card__title">Bulk assign advisor</div>
+        <p class="ttv2-ig-bulk-card__hint mb-0">Apply the same counselor to every institute in this group at once.</p>
       </div>
-      <div class="small text-muted mt-2 mb-0">Links the same advisor login to each selected school without creating duplicate counselor profiles (extra schools are stored on the same record).</div>
     </div>
+    <div class="ttv2-ig-bulk-card__body">
+      <div class="ttv2-ig-bulk-card__field">
+        <label class="form-label" for="ttv2IgBulkCounselorSelect">Counselor (from any institute in this group)</label>
+        <select id="ttv2IgBulkCounselorSelect" class="form-select">
+          <option value="">Choose counselor…</option>
+          {% for opt in ig_group_counselors_select %}
+            <option value="{{ opt.id }}">{{ opt.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="button" class="btn ttv2-mktg-btn ttv2-mktg-btn--primary ttv2-ig-bulk-card__btn" id="ttv2IgBulkCounselorBtn">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-check-double"></i></span>
+        <span class="ttv2-mktg-btn-label">Assign to all institutes</span>
+      </button>
+    </div>
+    <p class="ttv2-ig-bulk-card__note mb-0">Links the same advisor login to each school without creating duplicate counselor profiles (extra schools are stored on the same record).</p>
   </div>
   {% endif %}
 

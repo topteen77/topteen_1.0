@@ -769,26 +769,24 @@
     var chips = actionsWrap.querySelector("[data-ttv2-ig-assigned-chips]");
     if (!chips) return;
     var sid = String(counselorId);
-    if (chips.querySelector('span.badge[data-counselor-id="' + sid + '"]')) return;
-    var badge = document.createElement("span");
-    badge.className = "badge bg-secondary d-inline-flex align-items-center gap-1";
-    badge.setAttribute("data-counselor-id", sid);
+    if (chips.querySelector('.ttv2-ig-counselor-chip[data-counselor-id="' + sid + '"]')) return;
+    var chip = document.createElement("span");
+    chip.className = "ttv2-ig-counselor-chip";
+    chip.setAttribute("data-counselor-id", sid);
     var nameSpan = document.createElement("span");
     nameSpan.textContent = counselorName || "";
     var btn = document.createElement("button");
     btn.type = "button";
-    btn.className =
-      "btn btn-sm btn-link p-0 text-dark text-opacity-75 text-decoration-none lh-1 border-0 align-middle";
-    btn.style.fontSize = "1.1rem";
-    btn.style.lineHeight = "1";
-    btn.style.minWidth = "1rem";
+    btn.className = "ttv2-ig-counselor-chip__remove";
     btn.setAttribute("data-ttv2-ig-unassign-chip", "");
     btn.setAttribute("title", "Remove advisor");
     btn.setAttribute("aria-label", "Remove advisor");
-    btn.appendChild(document.createTextNode("\u00d7"));
-    badge.appendChild(nameSpan);
-    badge.appendChild(btn);
-    chips.appendChild(badge);
+    var icon = document.createElement("i");
+    icon.className = "bx bx-x";
+    btn.appendChild(icon);
+    chip.appendChild(nameSpan);
+    chip.appendChild(btn);
+    chips.appendChild(chip);
     ttv2IgUpdateAssignBlockVisibility(actionsWrap);
   }
 
@@ -796,8 +794,8 @@
     var chips = actionsWrap.querySelector("[data-ttv2-ig-assigned-chips]");
     if (!chips) return;
     var sid = String(counselorId);
-    var badge = chips.querySelector('span.badge[data-counselor-id="' + sid + '"]');
-    if (badge) badge.remove();
+    var chip = chips.querySelector('.ttv2-ig-counselor-chip[data-counselor-id="' + sid + '"]');
+    if (chip) chip.remove();
     ttv2IgUpdateAssignBlockVisibility(actionsWrap);
   }
 
@@ -810,7 +808,7 @@
       if (ph) ph.remove();
       if (!cell.querySelector('[data-counselor-id="' + sid + '"]')) {
         var b = document.createElement("span");
-        b.className = "badge bg-secondary me-1 mb-1";
+        b.className = "ttv2-ig-counselor-chip ttv2-ig-counselor-chip--readonly";
         b.setAttribute("data-counselor-id", sid);
         b.textContent = counselorName || "";
         cell.appendChild(b);
@@ -820,7 +818,7 @@
       if (el) el.remove();
       if (!cell.querySelector("[data-counselor-id]")) {
         var placeholder = document.createElement("span");
-        placeholder.className = "text-muted";
+        placeholder.className = "ttv2-ig-cell-empty";
         placeholder.setAttribute("data-ttv2-ig-empty-placeholder", "");
         placeholder.textContent = "\u2014";
         cell.appendChild(placeholder);

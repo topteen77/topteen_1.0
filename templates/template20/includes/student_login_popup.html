@@ -139,11 +139,13 @@
     <button type="button" class="profile-completion-close" onclick="closeLoginRequiredPopup()" aria-label="Close">
       <i class='bx bx-x'></i>
     </button>
-    <p class="text-center text-gray fs-14 mb-0 pb-2" style="margin-top: -8px;">Sign in to continue</p>
+   
 
     <div id="studentLoginPanel" class="student-popup-panel active">
-      <div class="student-popup-icon"><i class='bx bxs-graduation'></i></div>
-      <h2 class="student-popup-title text-center">Student Login</h2>
+
+      <div class="logo-popup d-flex justify-content-center align-items-center"> <img src="{{ static('images_new/logos/logo.svg') }}" alt="Logo" /></div>
+ 
+      <h2 class="student-popup-title text-center mt-4">Student Login</h2>
       <p class="student-popup-sub text-center">Login using your email or mobile number.</p>
       <div class="student-popup-tabs">
         <button type="button" class="student-popup-tab active" data-tab="email">Email Login</button>
@@ -185,8 +187,9 @@
     </div>
 
     <div id="studentSignupPanel" class="student-popup-panel">
-      <div class="student-popup-icon"><i class='bx bxs-graduation'></i></div>
-      <h2 class="student-popup-title text-center">Create Account</h2>
+      <div class="logo-popup d-flex justify-content-center align-items-center"> <img src="{{ static('images_new/logos/logo.svg') }}" alt="Logo" /></div>
+ 
+      <h2 class="student-popup-title text-center mt-4">Create Account</h2>
       <p class="student-popup-sub text-center">Sign up using your email or mobile number.</p>
       <p id="studentSignupErr" class="student-popup-err"></p>
       <div class="student-popup-input-wrap">

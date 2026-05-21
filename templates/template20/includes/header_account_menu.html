@@ -1,0 +1,53 @@
+{# Requires hdr_user in context #}
+<span class="dropdown-toggle menu-link tt-header-account-toggle" role="button" tabindex="0" aria-label="Account menu">
+  <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" width="40" height="40" />
+</span>
+<div class="dropdown-content login-content">
+  {% if hdr_user.is_authenticated %}
+  <h6 class="pt-2">{% if hdr_user.user_type == 1 %}Dashboard{% else %}User Dashboard{% endif %}</h6>
+  <p class="text-gray fs-14">Welcome, {% if hdr_user.name and hdr_user.name != 'None' %}{{ hdr_user.name }}{% elif hdr_user.mobile %}{{ hdr_user.mobile }}{% elif hdr_user.first_name %}{{ hdr_user.first_name }}{% elif hdr_user.email %}{{ hdr_user.email|truncate(20) }}{% else %}User{% endif %}</p>
+  {% if hdr_user.user_type == 1 and hdr_user.get_display_student_id() %}
+  <p class="text-gray fs-12 mb-0">Student ID: <strong>{{ hdr_user.get_display_student_id() }}</strong></p>
+  {% endif %}
+  <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+    {% if hdr_user.is_superuser %}
+      <a href="{{ url('user_analytics:admin_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+    {% elif hdr_user.is_staff %}
+      <a href="{{ url('user_analytics:business_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+    {% elif hdr_user.user_type == 5 %}
+      <a href="{{ url('institute:marketinggroupdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+    {% elif hdr_user.user_type == 3 %}
+      <a href="{{ url('institute:institutegroupdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+    {% elif hdr_user.user_type == 2 %}
+      {% set institute_obj = hdr_user.institute_created.last() %}
+      {% if institute_obj and institute_obj.slug %}
+        <a href="{{ url('institute:institute_masterdashboard', args=[institute_obj.slug]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+      {% else %}
+        <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+      {% endif %}
+    {% elif hdr_user.user_type == 4 %}
+      {% set counselor_list = hdr_user.counselor.all() %}
+      {% if counselor_list|length > 0 %}
+        {% set counselor_obj = counselor_list[0] %}
+        <a href="{{ url('counselor:CounselorDashboardView', args=[counselor_obj.id]) }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+      {% else %}
+        <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+      {% endif %}
+    {% elif hdr_user.user_type == 6 %}
+      <a href="{{ url('parents_dashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+    {% elif hdr_user.user_type == 1 %}
+      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">Dashboard</a>
+    {% else %}
+      <a href="{{ url('users:userdashboard') }}" class="btn custom-button purple-button me-3">User Dashboard</a>
+    {% endif %}
+    <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
+  </div>
+  {% else %}
+  <h6 class="pt-2">Dashboard</h6>
+  <p class="text-gray fs-14">Login and Sign Up to access your dashboard</p>
+  <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
+    <a href="{{ url('student_login') }}" class="btn custom-button purple-button me-3" role="button">Sign In</a>
+    <a href="{{ url('student_signup') }}" class="btn custom-button blue-button d-flex align-items-center">Sign Up</a>
+  </div>
+  {% endif %}
+</div>

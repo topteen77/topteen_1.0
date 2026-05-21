@@ -15,15 +15,18 @@
 </div>
 <style>
   .tt-notification-bell-wrap { position: relative; }
+
   .tt-notification-bell {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 50px;
     border: 1px solid rgba(15, 23, 42, 0.08);
     background: #fff;
     transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    width: 40px;
+    height: 40px;
   }
   .tt-notification-bell:hover {
     background: #f8fafc;
@@ -31,14 +34,18 @@
   }
   .tt-notification-bell-icon { display: block; flex-shrink: 0; color: #475569; }
   .tt-notification-badge {
-    position: absolute;
+    position: absolute !important;
     top: -6px;
-    right: -6px;
+    right: 0px;
     font-size: 10px;
-    min-width: 1.1rem;
+    min-width: 1rem;
     padding: 0.15em 0.35em;
     border-radius: 999px;
     font-weight: 600;
+    height: 1rem;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
   .tt-notification-dropdown {
     min-width: min(380px, calc(100vw - 24px));
@@ -65,6 +72,17 @@
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
   }
+
+  .tt-notification-empty {
+	display: flex;
+	justify-content: center;
+	height: 150px;
+	align-items: center;
+	font-size: 13px;
+	color: gray;
+}
+
+
   .tt-notification-latest-scroll::-webkit-scrollbar {
     width: 6px;
   }
@@ -177,17 +195,15 @@
     color: #94a3b8;
     font-weight: 600;
   }
-    padding: 28px 20px;
-    text-align: center;
-    color: #94a3b8;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
+   
   .tt-notification-load-err {
     padding: 16px 18px;
     color: #b91c1c;
     font-size: 0.8125rem;
   }
+
+
+
 </style>
 <script>
   (function () {
@@ -254,7 +270,7 @@
         );
       }).join('');
       if (!rows) {
-        listEl.innerHTML = '<div class="tt-notification-empty">No notifications yet.</div>';
+        listEl.innerHTML = '<div class="tt-notification-empty"><i class="bx bx-bell-off"></i> No notifications yet.</div>';
         return;
       }
       listEl.innerHTML = rows;

@@ -1,16 +1,17 @@
 <!-- Institutes table fragment (injected into #institutes-table-container on the page) -->
 <div id="institutes-table-wrapper">
-<div class="px-2 py-2 mb-0 small border rounded-top bg-light text-secondary d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
+<div id="institutes-table-container" class="ttv2-mktg-institutes-wrap">
+<div class="px-3 py-2 mb-0 small ttv2-mktg-count-bar d-flex flex-wrap align-items-center gap-2" id="institutes-table-count-bar" aria-live="polite">
   {% if institutes_paginations %}
-    <span><strong class="text-dark">{{ institutes_paginations.paginator.count }}</strong> matching</span>
-    <span class="text-muted">·</span>
-    <span>Showing rows <strong class="text-dark">{{ institutes_paginations.start_index() }}–{{ institutes_paginations.end_index() }}</strong> on this page</span>
+    <span><strong>{{ institutes_paginations.paginator.count }}</strong> matching</span>
+    <span class="text-muted opacity-75">·</span>
+    <span>Showing rows <strong>{{ institutes_paginations.start_index() }}–{{ institutes_paginations.end_index() }}</strong> on this page</span>
   {% else %}
-    <span><strong class="text-dark">0</strong> matching</span>
+    <span><strong>0</strong> matching</span>
   {% endif %}
 </div>
 <div class="table-responsive">
-  <table class="table table-hover">
+  <table class="table table-hover align-middle ttv2-mktg-table">
     <thead>
       <tr>
         <th>Sr. No.</th>
@@ -32,62 +33,66 @@
             data-institute-slug="{{ ins.slug }}"
             data-institute-name="{{ ins.name }}"
             data-institute-students="{{ ins.student_count if ins.student_count else 0 }}">
-          <td>{{ (institutes_paginations.number - 1) * institutes_paginations.paginator.per_page + loop.index }}</td>
-          <td>
+          <td><span class="ttv2-ig-row-num">{{ (institutes_paginations.number - 1) * institutes_paginations.paginator.per_page + loop.index }}</span></td>
+          <td class="ttv2-mktg-cell-name">
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
           </td>
-          <td>{{ ins.created_by.email if ins.created_by else '-' }}</td>
-          <td>{{ ins.address if ins.address else '-' }}</td>
+          <td class="ttv2-ig-cell-muted">{{ ins.created_by.email if ins.created_by else '—' }}</td>
+          <td class="ttv2-ig-cell-muted">{{ ins.address if ins.address else '—' }}</td>
           <td data-ttv2-ig-counselors-cell>
             {% if cmap %}
-              {% for c in cmap %}<span class="badge bg-secondary me-1 mb-1" data-counselor-id="{{ c.id }}">{{ c.name }}</span>{% endfor %}
+              {% for c in cmap %}
+                <span class="ttv2-ig-counselor-chip ttv2-ig-counselor-chip--readonly" data-counselor-id="{{ c.id }}">{{ c.name }}</span>
+              {% endfor %}
             {% else %}
-              <span class="text-muted" data-ttv2-ig-empty-placeholder>—</span>
+              <span class="ttv2-ig-cell-empty" data-ttv2-ig-empty-placeholder>—</span>
             {% endif %}
           </td>
-          <td class="align-top" style="min-width:200px;" data-ttv2-ig-actions-cell>
+          <td class="ttv2-ig-actions-col" data-ttv2-ig-actions-cell>
             {% if ig_group_counselors_select is defined and ig_group_counselors_select|length > 0 %}
-            <div class="py-1" data-ttv2-ig-inst-actions data-inst-slug="{{ ins.slug }}">
+            <div class="ttv2-ig-assign-panel" data-ttv2-ig-inst-actions data-inst-slug="{{ ins.slug }}">
               <div class="d-flex flex-wrap gap-1 mb-2" data-ttv2-ig-assigned-chips>
                 {% for c in cmap %}
-                <span class="badge bg-secondary d-inline-flex align-items-center gap-1" data-counselor-id="{{ c.id }}">
+                <span class="ttv2-ig-counselor-chip" data-counselor-id="{{ c.id }}">
                   <span>{{ c.name }}</span>
                   <button type="button"
-                          class="btn btn-sm btn-link p-0 text-dark text-opacity-75 text-decoration-none lh-1 border-0 align-middle"
-                          style="font-size:1.1rem;line-height:1;min-width:1rem;"
+                          class="ttv2-ig-counselor-chip__remove"
                           data-ttv2-ig-unassign-chip
                           title="Remove advisor"
-                          aria-label="Remove advisor {{ c.name }}">×</button>
+                          aria-label="Remove advisor {{ c.name }}">
+                    <i class="bx bx-x"></i>
+                  </button>
                 </span>
                 {% endfor %}
               </div>
-              <div class="d-flex flex-column gap-1{% if cmap %} d-none{% endif %}" data-ttv2-ig-assign-block>
+              <div class="ttv2-ig-assign-row{% if cmap %} d-none{% endif %}" data-ttv2-ig-assign-block>
                 <select class="form-select form-select-sm" data-ttv2-ig-assign-select aria-label="Assign counselor">
                   <option value="">Assign counselor…</option>
                   {% for opt in ig_group_counselors_select %}
                   <option value="{{ opt.id }}">{{ opt.name }}</option>
                   {% endfor %}
                 </select>
-                <button type="button" class="btn btn-sm btn-primary py-0" data-ttv2-ig-assign-btn>Assign</button>
+                <button type="button" class="btn btn-sm ttv2-ig-assign-btn" data-ttv2-ig-assign-btn>Assign</button>
               </div>
             </div>
             {% else %}
-              <span class="text-muted small">No counselors in group</span>
+              <span class="ttv2-ig-cell-empty small">No counselors in group</span>
             {% endif %}
           </td>
           <td>
-            <a href="{{ _ig_stu_href }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ ins.student_count if ins.student_count else 0 }}</a>
+            <a href="{{ _ig_stu_href }}" class="ttv2-ig-student-link" title="Open students for this school">{{ ins.student_count if ins.student_count else 0 }}</a>
           </td>
-          <td>{{ ins.created_at.strftime('%Y-%m-%d') if ins.created_at else '-' }}</td>
+          <td class="ttv2-ig-cell-muted text-nowrap">{{ ins.created_at.strftime('%Y-%m-%d') if ins.created_at else '—' }}</td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="8" class="text-center py-4">
-            <i class='bx bx-building fs-48 text-muted mb-3'></i>
-            <p class="text-muted">No institutes found</p>
+          <td colspan="8" class="ttv2-ig-table-empty">
+            <span class="ttv2-ig-table-empty__icon" aria-hidden="true"><i class="bx bx-building"></i></span>
+            <p class="ttv2-ig-table-empty__title mb-1">No institutes found</p>
+            <p class="ttv2-ig-table-empty__text mb-0">Try adjusting your filters or add a new institute.</p>
           </td>
         </tr>
       {% endif %}
@@ -95,37 +100,45 @@
   </table>
 </div>
 
-<!-- Pagination -->
-{% if institutes_paginations %}
-<div class="small text-secondary mt-2 mb-1 text-center">
-  Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
+{% if institutes_paginations and institutes_paginations.has_other_pages %}
+<div id="institutes-pagination">
+  <div class="ttv2-mktg-pagination-foot">
+    <div class="small text-secondary mb-2 text-center">
+      Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
+    </div>
+    <nav aria-label="Institutes pagination">
+      <ul class="pagination justify-content-center mb-0">
+        {% if institutes_paginations.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ institutes_paginations.previous_page_number }}{% if search_params and search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params and search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params and search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">Previous</a>
+        </li>
+        {% endif %}
+        {% for num in institutes_paginations.paginator.page_range %}
+        {% if institutes_paginations.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > (institutes_paginations.number - 3) and num < (institutes_paginations.number + 3) %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}{% if search_params and search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params and search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params and search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% if institutes_paginations.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ institutes_paginations.next_page_number }}{% if search_params and search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params and search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params and search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">Next</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</div>
+{% elif institutes_paginations %}
+<div class="ttv2-mktg-pagination-foot">
+  <div class="small text-secondary text-center mb-0">
+    Showing {{ institutes_paginations.start_index() }} to {{ institutes_paginations.end_index() }} of {{ institutes_paginations.paginator.count }} entries
+  </div>
 </div>
 {% endif %}
-{% if institutes_paginations and institutes_paginations.has_other_pages %}
-<nav aria-label="Institutes pagination">
-  <ul class="pagination justify-content-center">
-    {% if institutes_paginations.has_previous %}
-    <li class="page-item">
-      <a class="page-link" href="?page={{ institutes_paginations.previous_page_number }}{% if search_params and search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params and search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params and search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">Previous</a>
-    </li>
-    {% endif %}
-    {% for num in institutes_paginations.paginator.page_range %}
-    {% if institutes_paginations.number == num %}
-    <li class="page-item active">
-      <span class="page-link">{{ num }}</span>
-    </li>
-    {% elif num > (institutes_paginations.number - 3) and num < (institutes_paginations.number + 3) %}
-    <li class="page-item">
-      <a class="page-link" href="?page={{ num }}{% if search_params and search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params and search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params and search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">{{ num }}</a>
-    </li>
-    {% endif %}
-    {% endfor %}
-    {% if institutes_paginations.has_next %}
-    <li class="page-item">
-      <a class="page-link" href="?page={{ institutes_paginations.next_page_number }}{% if search_params and search_params.institute %}&institute={{ search_params.institute }}{% endif %}{% if search_params and search_params.location %}&location={{ search_params.location }}{% endif %}{% if search_params and search_params.location_search %}&location_search={{ search_params.location_search }}{% endif %}">Next</a>
-    </li>
-    {% endif %}
-  </ul>
-</nav>
-{% endif %}
+</div>
 </div>
