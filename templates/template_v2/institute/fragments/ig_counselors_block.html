@@ -1,26 +1,179 @@
-        <div class="card mb-3">
-          <div class="card-body">
-            <form method="get" action="{{ ig_counselor_search_action|default(url('institute:institutegroupdashboard')) }}" class="row g-2 align-items-end">
-              <div class="col-md-8">
-                <label class="form-label" for="ig-counselor-q">Search counselors</label>
-                <input type="text" class="form-control" id="ig-counselor-q" name="counselor_q"
-                       value="{{ counselor_q|default('') }}"
-                       placeholder="Name, email, or institute">
+{# Institute-group counselors: modern search + placements + advisor profiles. #}
+{% set _coun_rows = counselor_data_list if counselor_data_list is defined else [] %}
+{% set _coun_q = (counselor_q|default('')) %}
+{% set _pwd_id = 'ttv2IgGroupCounPwdId' %}
+
+<div class="ttv2-mktg-counselors-search-card mb-4">
+  <form method="get"
+        action="{{ ig_counselor_search_action|default(url('institute:institutegroupdashboard')) }}"
+        class="ttv2-mktg-counselors-search-form">
+    <div class="ttv2-mktg-counselors-search-input">
+      <span class="ttv2-mktg-counselors-search-icon" aria-hidden="true">
+        <i class="bx bx-search"></i>
+      </span>
+      <input type="text"
+             id="ig-counselor-q"
+             name="counselor_q"
+             class="form-control"
+             value="{{ _coun_q }}"
+             placeholder="Search by name, email, or institute"
+             autocomplete="off">
+      {% if _coun_q %}
+        <a href="{{ ig_counselor_reset_href|default(url('institute:institutegroupdashboard')) }}"
+           class="ttv2-mktg-counselors-search-clear" title="Clear search" aria-label="Clear search">
+          <i class="bx bx-x"></i>
+        </a>
+      {% endif %}
+    </div>
+    <div class="ttv2-mktg-counselors-search-actions">
+      <button type="submit" class="btn ttv2-mktg-filter-search" title="Search" aria-label="Search counselors">
+        <i class="bx bx-search"></i>
+        <span class="ttv2-mktg-counselors-btn-text">Search</span>
+      </button>
+      <a href="{{ ig_counselor_reset_href|default(url('institute:institutegroupdashboard')) }}"
+         class="btn ttv2-mktg-filter-reset" title="Reset filters" aria-label="Reset filters">
+        <i class="bx bx-refresh"></i>
+        <span class="ttv2-mktg-counselors-btn-text">Reset</span>
+      </a>
+    </div>
+  </form>
+</div>
+
+{% include 'template_v2/institute/fragments/ig_counselor_placements_table.html' %}
+
+<div class="ttv2-mktg-counselors-card mb-4" id="sec-group-counselors">
+  <div class="ttv2-mktg-counselors-head">
+    <div class="ttv2-mktg-counselors-head-titlewrap">
+      <span class="ttv2-mktg-counselors-head-icon"><i class="bx bx-id-card"></i></span>
+      <h2 class="ttv2-mktg-counselors-head-title mb-0">Advisor profiles</h2>
+      <span class="ttv2-mktg-counselors-count">{{ _coun_rows|length }} record{% if _coun_rows|length != 1 %}s{% endif %}</span>
+    </div>
+    {% if _coun_q %}
+      <div class="ttv2-mktg-counselors-search-summary">
+        <i class="bx bx-filter-alt"></i>
+        Showing results for
+        <span class="ttv2-mktg-counselors-search-chip">"{{ _coun_q }}"</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table ttv2-mktg-counselors-table mb-0">
+      <thead>
+        <tr>
+          <th class="ttv2-mktg-counselors-col-num">#</th>
+          <th class="ttv2-mktg-counselors-col-person">Counselor</th>
+          <th class="ttv2-mktg-counselors-col-schools">Schools covered</th>
+          <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">followed up</span></th>
+          <th class="ttv2-mktg-counselors-col-date">Created</th>
+          <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">counselled</span></th>
+          <th class="ttv2-mktg-counselors-col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for coun in _coun_rows %}
+          {% set _name = coun.name|default('') %}
+          {% set _initial = (_name[:1]|upper) if _name else '?' %}
+          <tr>
+            <td class="ttv2-mktg-counselors-col-num">
+              <span class="ttv2-mktg-counselors-rank">{{ loop.index }}</span>
+            </td>
+            <td class="ttv2-mktg-counselors-col-person">
+              <a href="{{ url('counselor:CounselorDashboardView', args=[coun.id]) }}" class="ttv2-mktg-counselors-person">
+                <span class="ttv2-mktg-counselors-avatar">{{ _initial }}</span>
+                <span class="ttv2-mktg-counselors-person-text">
+                  <span class="ttv2-mktg-counselors-name">{{ _name|default('—') }}</span>
+                  <span class="ttv2-mktg-counselors-email">{{ coun.email|default('—') }}</span>
+                </span>
+              </a>
+            </td>
+            <td class="ttv2-mktg-counselors-col-schools">
+              {% set _schools_raw = coun.institutes_label|default('') %}
+              {% if _schools_raw and _schools_raw != '—' %}
+                <div class="ttv2-mktg-counselors-schools" title="{{ _schools_raw }}">
+                  {% for _school in _schools_raw.split(',') %}
+                    {% set _school_trim = _school.strip() %}
+                    {% if _school_trim %}
+                      <span class="ttv2-mktg-counselors-institute-pill is-muted">
+                        <i class="bx bx-buildings"></i>
+                        <span>{{ _school_trim }}</span>
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% else %}
+                <span class="ttv2-mktg-counselors-date is-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="ttv2-mktg-counselors-col-num-stat">
+              <span class="ttv2-mktg-counselors-stat-chip{% if (coun.sessions|default(0))|int > 0 %} is-active{% endif %}">
+                {{ coun.sessions|default(0) }}
+              </span>
+            </td>
+            <td class="ttv2-mktg-counselors-col-date">
+              {% if coun.created %}
+                <span class="ttv2-mktg-counselors-date">{{ coun.created.strftime('%d %b %Y') }}</span>
+              {% else %}
+                <span class="ttv2-mktg-counselors-date is-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="ttv2-mktg-counselors-col-num-stat">
+              <span class="ttv2-mktg-counselors-stat-chip{% if (coun.students_counseled|default(0))|int > 0 %} is-success{% endif %}">
+                {{ coun.students_counseled|default(0) }}
+              </span>
+            </td>
+            <td class="ttv2-mktg-counselors-col-actions">
+              <div class="ttv2-mktg-counselors-row-actions">
+                <button type="button"
+                        class="ttv2-mktg-counselors-action-btn is-edit"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editCounselorModal{{ coun.id }}"
+                        title="Edit profile"
+                        aria-label="Edit profile">
+                  <i class="bx bx-edit-alt"></i>
+                </button>
+                <button type="button"
+                        class="ttv2-mktg-counselors-action-btn is-key"
+                        data-bs-toggle="modal"
+                        data-bs-target="#changeCounselorPasswordModal"
+                        onclick="document.getElementById('{{ _pwd_id }}').value='{{ coun.id }}'"
+                        title="Change password"
+                        aria-label="Change password">
+                  <i class="bx bx-key"></i>
+                </button>
+                <button type="button"
+                        class="ttv2-mktg-counselors-action-btn is-block"
+                        title="Block profile"
+                        aria-label="Block profile">
+                  <i class="bx bx-block"></i>
+                </button>
               </div>
-              <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Search</button>
-                <a href="{{ ig_counselor_reset_href|default(url('institute:institutegroupdashboard')) }}" class="btn btn-secondary">Reset</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="ttv2-mktg-counselors-empty-cell">
+              <div class="ttv2-mktg-counselors-empty">
+                <span class="ttv2-mktg-counselors-empty-icon"><i class="bx bx-user-plus"></i></span>
+                <h4 class="ttv2-mktg-counselors-empty-title">No counselors found</h4>
+                <p class="ttv2-mktg-counselors-empty-text">
+                  {% if _coun_q %}
+                    No matches for <strong>"{{ _coun_q }}"</strong>. Try a different keyword or clear the search.
+                  {% else %}
+                    Counselors will appear here when assigned to institutes in your group.
+                  {% endif %}
+                </p>
+                {% if _coun_q %}
+                  <a href="{{ ig_counselor_reset_href|default(url('institute:institutegroupdashboard')) }}" class="ttv2-mktg-counselors-empty-action">
+                    <i class="bx bx-refresh"></i>
+                    Clear search
+                  </a>
+                {% endif %}
               </div>
-            </form>
-          </div>
-        </div>
-        {% include 'template_v2/institute/fragments/ig_counselor_placements_table.html' %}
-        {% set counselor_component_wrap = 'card' %}
-        {% set counselor_component_allow_add = false %}
-        {% set counselor_component_show_manage_actions = true %}
-        {% set counselor_component_password_hidden_id = 'ttv2IgGroupCounPwdId' %}
-        {% set counselor_component_show_institute_column = false %}
-        {% set counselor_component_show_schools_column = true %}
-        {% set counselor_component_section_id = 'sec-group-counselors' %}
-        {% set counselor_component_title = 'Advisor profiles (unique)' %}
-        {% include 'template20/shared/counselors_details_component.html' %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

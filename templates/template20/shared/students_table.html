@@ -241,45 +241,56 @@
             {% endif %}
             <td>
             {% if _show_adv_assign_ui %}
-                <div class="d-flex flex-column gap-1 ttv2-adv-cell" data-ttv2-adv-cell {% if _has_row_adv %}data-ttv2-adv-assigned="1"{% endif %}>
+                <div class="ttv2-adv-cell" data-ttv2-adv-cell {% if _has_row_adv %}data-ttv2-adv-assigned="1"{% endif %}>
                   {% if _has_row_adv %}
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                      <span class="badge bg-secondary">{{ _adv_name }}</span>
+                    <div class="ttv2-adv-assigned">
+                      <div class="ttv2-adv-assigned-head">
+                        <span class="badge bg-secondary ttv2-adv-name-badge">{{ _adv_name }}</span>
+                        <button type="button"
+                                class="btn btn-link btn-sm p-0 text-muted text-decoration-none ttv2-adv-change-btn"
+                                data-ttv2-adv-toggle-change
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Change advisor"
+                                aria-label="Change advisor"
+                                aria-expanded="false">
+                          <i class="bx bx-transfer-alt" aria-hidden="true"></i>
+                        </button>
+                      </div>
                       <button type="button"
-                              class="btn btn-link btn-sm p-0 text-muted text-decoration-none"
-                              data-ttv2-adv-toggle-change
-                              aria-expanded="false">
-                        Change advisor
+                              class="btn btn-sm btn-outline-danger py-0 ttv2-adv-unassign-btn"
+                              data-ttv2-adv-unassign>
+                        Unassign
                       </button>
+                      <div class="d-none ttv2-adv-change-panel" data-ttv2-adv-change-panel>
+                        <select class="form-select form-select-sm ttv2-adv-change-select" data-ttv2-adv-select-change-save>
+                          <option value="">Unassigned</option>
+                          {% for c in _row_adv_opts %}
+                            <option value="{{ c.id }}" {% if _assigned_coun_id is not none and c.id == _assigned_coun_id %}selected{% endif %} title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+                          {% endfor %}
+                        </select>
+                        <span class="ttv2-adv-change-hint text-muted">Saving applies immediately.</span>
+                      </div>
                     </div>
-                    <div class="d-none flex-column gap-1 ps-0 pt-1 border-start border-2 ms-1 ps-2 ttv2-adv-change-panel" data-ttv2-adv-change-panel>
-                      <select class="form-select form-select-sm" style="max-width:220px" data-ttv2-adv-select-change-save>
-                        <option value="">Unassigned</option>
-                        {% for c in _row_adv_opts %}
-                          <option value="{{ c.id }}" {% if _assigned_coun_id is not none and c.id == _assigned_coun_id %}selected{% endif %} title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
-                        {% endfor %}
-                      </select>
-                      <span class="text-muted" style="font-size:11px;">Saving applies immediately.</span>
-                    </div>
-                    <button type="button"
-                            class="btn btn-sm btn-outline-danger py-0 align-self-start"
-                            data-ttv2-adv-unassign>
-                      Unassign
-                    </button>
                   {% else %}
-                    <div class="d-flex flex-column gap-1 align-items-start">
-                      <select class="form-select form-select-sm" style="max-width:220px" data-ttv2-adv-select-unassigned>
-                        <option value="">Choose advisor…</option>
-                        {% for c in _row_adv_opts %}
-                          <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
-                        {% endfor %}
-                      </select>
-                      <button type="button"
-                              class="btn btn-sm btn-primary py-0"
-                              data-ttv2-adv-assign>
-                        Assign
-                      </button>
-                      <span class="text-muted" style="font-size:11px;">Pick an advisor, then click Assign.</span>
+                    <div class="ttv2-adv-assign-wrap">
+                      <div class="ttv2-adv-assign-row">
+                        <select class="form-select form-select-sm ttv2-adv-assign-select" data-ttv2-adv-select-unassigned aria-label="Choose advisor">
+                          <option value="">Choose advisor…</option>
+                          {% for c in _row_adv_opts %}
+                            <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+                          {% endfor %}
+                        </select>
+                        <button type="button"
+                                class="btn btn-sm btn-primary ttv2-adv-assign-btn"
+                                data-ttv2-adv-assign
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Assign selected advisor">
+                          Assign
+                        </button>
+                      </div>
+                      <span class="ttv2-adv-assign-hint text-muted">Pick an advisor, then click Assign.</span>
                     </div>
                   {% endif %}
                 </div>
@@ -299,17 +310,17 @@
                   {% set _k = _fu.smart_key|default('') %}
                   <div class="ttv2-table-followup-head">
                     {% if _k == 'overdue' or _k == 'due_today' %}
-                      <span class="badge bg-danger">{{ _fu.smart_label|default('Follow-up') }}</span>
+                      <span class="ttv2-fu-status ttv2-fu-status--danger">{{ _fu.smart_label|default('Follow-up') }}</span>
                     {% elif _k == 'upcoming' %}
-                      <span class="badge bg-warning text-dark">{{ _fu.smart_label|default('Upcoming') }}</span>
+                      <span class="ttv2-fu-status ttv2-fu-status--warning">{{ _fu.smart_label|default('Upcoming') }}</span>
                     {% elif _k == 'completed_today' or _k == 'completed' %}
-                      <span class="badge bg-success">Completed</span>
+                      <span class="ttv2-fu-status ttv2-fu-status--success">Completed</span>
                     {% elif _k == 'scheduled_future' %}
-                      <span class="badge bg-secondary">Next</span>
+                      <span class="ttv2-fu-status ttv2-fu-status--info">Next</span>
                     {% elif _k == 'not_scheduled' and _role_inst_mgmt and not _has_row_adv %}
-                      <span class="badge bg-warning text-dark">Assign counselor</span>
+                      <span class="ttv2-fu-status ttv2-fu-status--warning">Assign counselor</span>
                     {% else %}
-                      <span class="badge bg-secondary">{{ _fu.smart_label|default('Not scheduled') }}</span>
+                      <span class="ttv2-fu-status ttv2-fu-status--neutral">{{ _fu.smart_label|default('Not scheduled') }}</span>
                     {% endif %}
                     {% if _fu.when %}
                       <span class="ttv2-table-inline-meta">Last: {{ _fu.when }}</span>
@@ -327,9 +338,9 @@
                   {% endif %}
                 {% else %}
                   {% if _role_inst_mgmt and not _has_row_adv %}
-                    <span class="badge bg-warning text-dark">Assign counselor</span>
+                    <span class="ttv2-fu-status ttv2-fu-status--warning">Assign counselor</span>
                   {% else %}
-                    <span class="badge bg-secondary">Not scheduled</span>
+                    <span class="ttv2-fu-status ttv2-fu-status--neutral">Not scheduled</span>
                   {% endif %}
                 {% endif %}
               </div>

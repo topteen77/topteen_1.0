@@ -1,49 +1,79 @@
 {# Institute-group: one row per advisor placement (school + counselor record). #}
 {% set _prows = ig_counselor_placement_rows if ig_counselor_placement_rows is defined else [] %}
-<div class="card mb-4" id="sec-group-counselor-placements">
-  <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <h2 class="card-title fs-18 mb-0">Advisor placements by institute</h2>
-        <span class="badge bg-secondary rounded-pill">{{ _prows|length }} row{% if _prows|length != 1 %}s{% endif %}</span>
-      </div>
+
+<div class="ttv2-mktg-counselors-card mb-4" id="sec-group-counselor-placements">
+  <div class="ttv2-mktg-counselors-head">
+    <div class="ttv2-mktg-counselors-head-titlewrap">
+      <span class="ttv2-mktg-counselors-head-icon"><i class="bx bx-buildings"></i></span>
+      <h2 class="ttv2-mktg-counselors-head-title mb-0">Placements by institute</h2>
+      <span class="ttv2-mktg-counselors-count">{{ _prows|length }} row{% if _prows|length != 1 %}s{% endif %}</span>
     </div>
-    <p class="text-muted small mb-3 mb-md-2">Same person advising multiple schools appears once per institute.</p>
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
+    <p class="ttv2-mktg-counselors-head-note mb-0">Same advisor at multiple schools appears once per institute.</p>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table ttv2-mktg-counselors-table mb-0">
+      <thead>
+        <tr>
+          <th class="ttv2-mktg-counselors-col-num">#</th>
+          <th class="ttv2-mktg-counselors-col-institute">Institute</th>
+          <th class="ttv2-mktg-counselors-col-person">Advisor</th>
+          <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">followed up</span></th>
+          <th class="ttv2-mktg-counselors-col-num-stat">Students<br><span class="ttv2-mktg-counselors-col-sub">counselled</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in _prows %}
+          {% set _aname = pr.counselor_name|default('') %}
+          {% set _ainit = (_aname[:1]|upper) if _aname else '?' %}
           <tr>
-            <th>Sr.no.</th>
-            <th>Institute</th>
-            <th>Advisor name</th>
-            <th>Email</th>
-            <th>Students Followed up</th>
-            <th>Students Counselled</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for pr in _prows %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <td>
+            <td class="ttv2-mktg-counselors-col-num">
+              <span class="ttv2-mktg-counselors-rank">{{ loop.index }}</span>
+            </td>
+            <td class="ttv2-mktg-counselors-col-institute">
               {% if pr.institute_slug %}
-              <a href="{{ url('institute:institute_masterdashboard', args=[pr.institute_slug]) }}">{{ pr.institute_name }}</a>
+                <a class="ttv2-mktg-counselors-institute-pill" href="{{ url('institute:institute_masterdashboard', args=[pr.institute_slug]) }}">
+                  <i class="bx bx-buildings"></i>
+                  <span>{{ pr.institute_name }}</span>
+                </a>
               {% else %}
-              {{ pr.institute_name }}
+                <span class="ttv2-mktg-counselors-institute-pill is-muted">
+                  <i class="bx bx-buildings"></i>
+                  <span>{{ pr.institute_name|default('—') }}</span>
+                </span>
               {% endif %}
             </td>
-            <td>{{ pr.counselor_name }}</td>
-            <td>{{ pr.email }}</td>
-            <td>{{ pr.sessions }}</td>
-            <td>{{ pr.students_counseled }}</td>
+            <td class="ttv2-mktg-counselors-col-person">
+              <div class="ttv2-mktg-counselors-person is-static">
+                <span class="ttv2-mktg-counselors-avatar">{{ _ainit }}</span>
+                <span class="ttv2-mktg-counselors-person-text">
+                  <span class="ttv2-mktg-counselors-name">{{ _aname|default('—') }}</span>
+                  <span class="ttv2-mktg-counselors-email">{{ pr.email|default('—') }}</span>
+                </span>
+              </div>
+            </td>
+            <td class="ttv2-mktg-counselors-col-num-stat">
+              <span class="ttv2-mktg-counselors-stat-chip{% if (pr.sessions|default(0))|int > 0 %} is-active{% endif %}">
+                {{ pr.sessions|default(0) }}
+              </span>
+            </td>
+            <td class="ttv2-mktg-counselors-col-num-stat">
+              <span class="ttv2-mktg-counselors-stat-chip{% if (pr.students_counseled|default(0))|int > 0 %} is-success{% endif %}">
+                {{ pr.students_counseled|default(0) }}
+              </span>
+            </td>
           </tr>
-          {% else %}
+        {% else %}
           <tr>
-            <td colspan="6" class="text-center py-4 text-muted">No advisor placements in this group.</td>
+            <td colspan="5" class="ttv2-mktg-counselors-empty-cell">
+              <div class="ttv2-mktg-counselors-empty py-4">
+                <span class="ttv2-mktg-counselors-empty-icon" style="width:52px;height:52px;font-size:1.35rem;"><i class="bx bx-buildings"></i></span>
+                <p class="ttv2-mktg-counselors-empty-text mb-0">No advisor placements in this group.</p>
+              </div>
+            </td>
           </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>

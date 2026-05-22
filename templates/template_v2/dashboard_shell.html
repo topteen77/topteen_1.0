@@ -1026,6 +1026,168 @@ body.ttv2-shell .ttv2-topbar-pay-now {
     }, true);
   })();
 </script>
+<script>
+  (function(){
+    var TOAST_MS = 30000;
+    var LEAVE_MS = 360;
+    var GAP_MS = 450;
+    var queue = [];
+    var activeToast = null;
+    var draining = false;
+
+    function stripLabelPrefix(body, label){
+      var text = (body || '').trim();
+      if (!text) return '';
+      var bare = (label || '').replace(/:\s*$/, '').trim();
+      var patterns = [label, bare, bare + ':'];
+      for (var i = 0; i < patterns.length; i++) {
+        var p = (patterns[i] || '').trim();
+        if (!p) continue;
+        var re = new RegExp('^' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:?\\s*', 'i');
+        if (re.test(text)) {
+          text = text.replace(re, '').trim();
+          break;
+        }
+      }
+      return text;
+    }
+
+    function getToastStack(){
+      var stack = document.getElementById('ttv2DashboardToastStack');
+      if (!stack) {
+        stack = document.createElement('div');
+        stack.id = 'ttv2DashboardToastStack';
+        stack.className = 'ttv2-dashboard-toast-stack';
+        stack.setAttribute('aria-live', 'polite');
+        stack.setAttribute('aria-atomic', 'true');
+        document.body.appendChild(stack);
+      }
+      return stack;
+    }
+
+    function clearToastTimer(toast){
+      if (toast && toast.__ttv2HideTimer) {
+        clearTimeout(toast.__ttv2HideTimer);
+        toast.__ttv2HideTimer = null;
+      }
+    }
+
+    function dismissToast(toast, done){
+      if (!toast || toast.__ttv2Dismissing) return;
+      toast.__ttv2Dismissing = true;
+      clearToastTimer(toast);
+
+      toast.classList.remove('is-entering', 'is-visible');
+      toast.classList.add('is-leaving');
+
+      var finished = false;
+      function finish(){
+        if (finished) return;
+        finished = true;
+        try { toast.remove(); } catch (e) {}
+        if (activeToast === toast) activeToast = null;
+        var stack = document.getElementById('ttv2DashboardToastStack');
+        if (stack && !stack.children.length) {
+          try { stack.remove(); } catch (e2) {}
+        }
+        if (typeof done === 'function') done();
+      }
+
+      toast.addEventListener('animationend', function onEnd(ev){
+        if (ev.target !== toast) return;
+        toast.removeEventListener('animationend', onEnd);
+        finish();
+      });
+      setTimeout(finish, LEAVE_MS + 80);
+    }
+
+    function showNextInQueue(){
+      if (draining || !queue.length) {
+        draining = false;
+        return;
+      }
+      draining = true;
+      var item = queue.shift();
+      var msg = stripLabelPrefix(item.body, item.label);
+      if (!msg) {
+        draining = false;
+        showNextInQueue();
+        return;
+      }
+
+      var stack = getToastStack();
+      var toast = document.createElement('div');
+      toast.className = 'ttv2-dashboard-toast ttv2-dashboard-toast--' + item.type + ' is-entering';
+      toast.setAttribute('role', 'alert');
+
+      var bodyEl = document.createElement('div');
+      bodyEl.className = 'ttv2-dashboard-toast__body';
+      var strong = document.createElement('strong');
+      strong.textContent = item.label;
+      bodyEl.appendChild(strong);
+      bodyEl.appendChild(document.createTextNode(' ' + msg));
+
+      var closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'ttv2-dashboard-toast__close';
+      closeBtn.setAttribute('aria-label', 'Close alert');
+      closeBtn.innerHTML = '<i class="bx bx-x" aria-hidden="true"></i>';
+
+      toast.appendChild(bodyEl);
+      toast.appendChild(closeBtn);
+      stack.appendChild(toast);
+      activeToast = toast;
+
+      function afterDismiss(){
+        draining = false;
+        setTimeout(showNextInQueue, GAP_MS);
+      }
+
+      closeBtn.addEventListener('click', function(){
+        dismissToast(toast, afterDismiss);
+      });
+
+      toast.addEventListener('animationend', function onEnter(ev){
+        if (ev.target !== toast || !toast.classList.contains('is-entering')) return;
+        toast.removeEventListener('animationend', onEnter);
+        toast.classList.remove('is-entering');
+        toast.classList.add('is-visible');
+      });
+
+      toast.__ttv2HideTimer = setTimeout(function(){
+        dismissToast(toast, afterDismiss);
+      }, TOAST_MS);
+    }
+
+    function enqueueDashboardToast(type, label, body){
+      var msg = stripLabelPrefix(body, label);
+      if (!msg) return;
+      queue.push({ type: type, label: label, body: body });
+      if (!draining && !activeToast) showNextInQueue();
+    }
+
+    function initTtv2DashboardBannerToasts(){
+      var sources = document.querySelectorAll('[data-ttv2-dashboard-banners]:not([data-ttv2-toasts-shown])');
+      for (var i = 0; i < sources.length; i++) {
+        var src = sources[i];
+        src.setAttribute('data-ttv2-toasts-shown', '1');
+        var credit = (src.getAttribute('data-credit') || '').trim();
+        var kira = (src.getAttribute('data-kira') || '').trim();
+        if (credit) enqueueDashboardToast('credit', 'Credit alert:', credit);
+        if (kira) enqueueDashboardToast('kira', 'KIRA insight:', kira);
+      }
+      if (!draining && !activeToast && queue.length) showNextInQueue();
+    }
+
+    window.ttv2InitDashboardBannerToasts = initTtv2DashboardBannerToasts;
+
+    if (!window.__ttv2DashboardBannerToastsBound) {
+      window.__ttv2DashboardBannerToastsBound = true;
+      document.addEventListener('ttv2:content:loaded', initTtv2DashboardBannerToasts);
+      document.addEventListener('DOMContentLoaded', initTtv2DashboardBannerToasts);
+    }
+  })();
+</script>
 {% endblock %}
 
 {# Disable chatbot for dashboards by default #}

@@ -305,6 +305,8 @@
         barLabel: 'rgba(232, 234, 240, 0.95)',
         tooltipBg: 'rgba(18, 20, 30, 0.96)',
         tooltipBorder: 'rgba(255, 255, 255, 0.14)',
+        tooltipTitle: '#f8fafc',
+        tooltipBody: 'rgba(226, 232, 240, 0.92)',
       };
     }
     return {
@@ -314,6 +316,26 @@
       barLabel: 'rgba(15, 23, 42, 0.78)',
       tooltipBg: 'rgba(15, 23, 42, 0.94)',
       tooltipBorder: 'rgba(15, 23, 42, 0.2)',
+      tooltipTitle: '#f8fafc',
+      tooltipBody: 'rgba(226, 232, 240, 0.92)',
+    };
+  }
+
+  function _ttv2MktgChartTooltipOpts(pal, callbacks) {
+    return {
+      enabled: true,
+      backgroundColor: pal.tooltipBg,
+      borderColor: pal.tooltipBorder,
+      borderWidth: 1,
+      titleColor: pal.tooltipTitle,
+      bodyColor: pal.tooltipBody,
+      footerColor: pal.tooltipBody,
+      padding: 10,
+      cornerRadius: 8,
+      displayColors: false,
+      titleFont: { size: 12, weight: '600' },
+      bodyFont: { size: 12 },
+      callbacks: callbacks || {},
     };
   }
 
@@ -492,28 +514,16 @@
           },
           plugins: {
             legend: { display: false },
-            tooltip: {
-              backgroundColor: pal.tooltipBg,
-              borderColor: pal.tooltipBorder,
-              borderWidth: 1,
-              titleColor: pal.tick,
-              bodyColor: pal.tickMuted,
-              padding: 10,
-              cornerRadius: 8,
-              titleFont: { size: 12, weight: '600' },
-              bodyFont: { size: 12 },
-              displayColors: false,
-              callbacks: {
-                title: function(items) {
-                  if (!items || !items.length) return '';
-                  const idx = items[0].dataIndex;
-                  return ranked[idx] ? ranked[idx].fullLabel : '';
-                },
-                label: function(ctx) {
-                  return 'Students: ' + Number(ctx.raw || 0).toLocaleString();
-                }
+            tooltip: _ttv2MktgChartTooltipOpts(pal, {
+              title: function(items) {
+                if (!items || !items.length) return '';
+                const idx = items[0].dataIndex;
+                return ranked[idx] ? ranked[idx].fullLabel : '';
+              },
+              label: function(ctx) {
+                return 'Students: ' + Number(ctx.raw || 0).toLocaleString();
               }
-            },
+            }),
             ttv2BarLabels: { enabled: true, color: pal.barLabel }
           },
           animation: { duration: 700, easing: 'easeOutQuart' },
@@ -693,28 +703,16 @@
           },
           plugins: {
             legend: { display: false },
-            tooltip: {
-              backgroundColor: pal.tooltipBg,
-              borderColor: pal.tooltipBorder,
-              borderWidth: 1,
-              titleColor: pal.tick,
-              bodyColor: pal.tickMuted,
-              padding: 10,
-              cornerRadius: 8,
-              displayColors: false,
-              titleFont: { size: 12, weight: '600' },
-              bodyFont: { size: 12 },
-              callbacks: {
-                title: function(items) {
-                  if (!items || !items.length) return '';
-                  const idx = items[0].dataIndex;
-                  return labels[idx] || '';
-                },
-                label: function(ctx) {
-                  return 'Students: ' + Number(ctx.raw || 0).toLocaleString();
-                }
+            tooltip: _ttv2MktgChartTooltipOpts(pal, {
+              title: function(items) {
+                if (!items || !items.length) return '';
+                const idx = items[0].dataIndex;
+                return labels[idx] || '';
+              },
+              label: function(ctx) {
+                return 'Students: ' + Number(ctx.raw || 0).toLocaleString();
               }
-            },
+            }),
             ttv2BarLabels: { enabled: true, color: pal.barLabel }
           },
           animation: { duration: 700, easing: 'easeOutQuart' },
@@ -811,28 +809,16 @@
         },
         plugins: {
           legend: { display: false },
-          tooltip: {
-            backgroundColor: pal.tooltipBg,
-            borderColor: pal.tooltipBorder,
-            borderWidth: 1,
-            titleColor: pal.tick,
-            bodyColor: pal.tickMuted,
-            padding: 10,
-            cornerRadius: 8,
-            displayColors: false,
-            titleFont: { size: 12, weight: '600' },
-            bodyFont: { size: 12 },
-            callbacks: {
-              title: function(items) {
-                if (!items || !items.length) return '';
-                const idx = items[0].dataIndex;
-                return fullLabels[idx] || '';
-              },
-              label: function(ctx) {
-                return 'Seats: ' + Number(ctx.raw || 0).toLocaleString();
-              }
+          tooltip: _ttv2MktgChartTooltipOpts(pal, {
+            title: function(items) {
+              if (!items || !items.length) return '';
+              const idx = items[0].dataIndex;
+              return fullLabels[idx] || '';
+            },
+            label: function(ctx) {
+              return 'Seats: ' + Number(ctx.raw || 0).toLocaleString();
             }
-          },
+          }),
           ttv2BarLabels: { enabled: true, color: pal.barLabel }
         },
         animation: { duration: 700, easing: 'easeOutQuart' },
