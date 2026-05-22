@@ -191,64 +191,47 @@ def _followups_all_time(
 
 
 def _psych_and_risk(user_ids: Sequence[int]) -> Tuple[int, int, int, float]:
-    """
-    Returns: completed_count, total_students, risk_on_track, avg_clarity_gap_rounded
-    (clarity = rough % of incomplete psych tests for students who have a TestCompletion row;
-     students with no row count as full gap for averaging).
-    """
+    """completed_count, total_students, on_track, avg_clarity_gap (legacy + post-matric)."""
+    from core.student_psychometric_metrics import psychometric_complete_user_ids
+
     uids = [int(x) for x in user_ids if x]
     total = len(uids)
     if not total:
         return 0, 0, 0, 0.0
 
-    completed = 0
+    complete_ids = psychometric_complete_user_ids(uids)
+    completed = len(complete_ids)
     gap_sum = 0.0
-    tc_by_user = {
-        t.user_id: t
-        for t in TestCompletion.objects.filter(user_id__in=uids)
-    }
     for uid in uids:
-        tc = tc_by_user.get(uid)
-        if not tc:
-            gap_sum += 100.0
+        if uid in complete_ids:
             continue
-        sub = sum(
-            bool(x)
-            for x in (tc.test1_complete, tc.test2_complete, tc.test3_complete)
+        tc = (
+            TestCompletion.objects.filter(user_id=uid)
+            .values("test1_complete", "test2_complete", "test3_complete")
+            .first()
         )
-        if sub >= 3:
-            completed += 1
-            gap_sum += 0.0
+        if tc:
+            sub = sum(bool(tc.get(k)) for k in tc)
+            gap_sum += 100.0 * (1.0 - sub / 3.0) if sub < 3 else 0.0
         else:
-            gap_sum += 100.0 * (1.0 - sub / 3.0)
+            from app_post_matric.models import TestSession
+
+            n = (
+                TestSession.objects.filter(user_id=uid, is_completed=True)
+                .values("test_id")
+                .distinct()
+                .count()
+            )
+            gap_sum += 100.0 * (1.0 - min(n, 4) / 4.0)
 
     avg_clarity = round((gap_sum / total) if total else 0.0, 1)
-    on_track = completed
-    return completed, total, on_track, float(avg_clarity)
+    return completed, total, completed, float(avg_clarity)
 
 
 def _psychometric_success_count_students(user_ids: Sequence[int]) -> int:
-    """
-    Match legacy institute `test_result_count` / `ptr_count1`: students in scope with at
-    least one Results row and TestCompletion 1+2+3 (same as Results.is_test_successful).
-    """
-    uids = {int(x) for x in user_ids if x}
-    if not uids:
-        return 0
-    with_results = set(
-        Results.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct()
-    )
-    if not with_results:
-        return 0
-    complete = set(
-        TestCompletion.objects.filter(
-            user_id__in=with_results,
-            test1_complete=True,
-            test2_complete=True,
-            test3_complete=True,
-        ).values_list("user_id", flat=True)
-    )
-    return len(uids & with_results & complete)
+    from core.student_psychometric_metrics import psychometric_complete_user_ids
+
+    return len(psychometric_complete_user_ids(user_ids))
 
 
 def _clarity_trend_4(avg: float) -> List[float]:
@@ -299,13 +282,32 @@ def _week_activity_counts(
         )
         # Completion in week: user has all 3 test papers AND latest modification falls within the week
         # (uses created/modified timestamps from Results table instead of TestCompletion flags).
-        psych_completed = int(
+        psych_completed_legacy = int(
             Results.objects.filter(user_id__in=uids, test_paper__in=["test1", "test2", "test3"])
             .values("user_id")
             .annotate(n=Count("test_paper", distinct=True), last=Max("modified"))
             .filter(n__gte=3, last__date__gte=week_start, last__date__lte=week_end)
             .count()
         )
+        psych_completed_post = 0
+        try:
+            from app_post_matric.models import TestSession
+
+            psych_completed_post = int(
+                TestSession.objects.filter(
+                    user_id__in=uids,
+                    is_completed=True,
+                    end_time__date__gte=week_start,
+                    end_time__date__lte=week_end,
+                )
+                .values("user_id")
+                .annotate(n=Count("test_id", distinct=True))
+                .filter(n__gte=4)
+                .count()
+            )
+        except Exception:
+            pass
+        psych_completed = psych_completed_legacy + psych_completed_post
 
     cids = [int(x) for x in counselor_ids if x]
     sm_ids = [int(x) for x in (student_management_ids or []) if x]
@@ -564,7 +566,7 @@ def build_ttv2_analytics(
     psychometric_count = _psychometric_success_count_students(user_ids)
     psych_kpi_display = int(psychometric_count)
     if week_activity is not None:
-        psych_kpi_display = int(week_activity.get("psych_attempts") or 0)
+        psych_kpi_display = int(week_activity.get("psych_completed") or 0)
 
     psych_donut_payload: Dict[str, Any] = {
         "completed": psych_done,
@@ -582,6 +584,23 @@ def build_ttv2_analytics(
                 .filter(n__gte=3, last__date__gte=dr_start, last__date__lte=dr_end)
                 .count()
             )
+            try:
+                from app_post_matric.models import TestSession
+
+                completed_w += int(
+                    TestSession.objects.filter(
+                        user_id__in=user_ids,
+                        is_completed=True,
+                        end_time__date__gte=dr_start,
+                        end_time__date__lte=dr_end,
+                    )
+                    .values("user_id")
+                    .annotate(n=Count("test_id", distinct=True))
+                    .filter(n__gte=4)
+                    .count()
+                )
+            except Exception:
+                pass
         psych_donut_payload = {
             "completed": completed_w,
             "total": int(psych_total),

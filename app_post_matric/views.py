@@ -23,6 +23,7 @@ from .serializers import (
     UserResponseSerializer, TestResultSerializer,
     UserSerializer, ResponseDetailSerializer, SectionsSerializer, SectionSessionSerializer
 )
+import logging
 import re
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
@@ -35,6 +36,86 @@ from django.template.loader import get_template
 from django.conf import settings
 from django.utils.text import slugify
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+
+def _staff_report_student_id_from_request(request):
+    """Resolve student user id when staff opens a report in an embed iframe."""
+    raw = (request.GET.get("user_id") or "").strip()
+    ref = (request.META.get("HTTP_REFERER") or "") + " " + (request.path or "")
+    ref_m = re.search(r"combined_report/(\d+)", ref)
+    ref_id = int(ref_m.group(1)) if ref_m else None
+    if raw.isdigit():
+        qid = int(raw)
+        if ref_id and ref_id != qid:
+            return ref_id
+        return qid
+    if (request.GET.get("embed") or "").strip() != "1":
+        return None
+    if ref_id:
+        return ref_id
+    return None
+
+
+def _report_display_fields_for_student(student_user, *, session_end=None):
+    """Header fields for results.html (StudentManagement + UserProfile)."""
+    from institute.models import StudentManagement
+
+    name = (getattr(student_user, "name", None) or "").strip()
+    if not name or name.lower() == "none":
+        name = (getattr(student_user, "first_name", None) or "").strip()
+    email = (getattr(student_user, "email", None) or "").strip()
+    if not name and email:
+        name = email.split("@")[0]
+    schoolname = None
+    grade = None
+    gender_display = None
+    created_date = session_end
+    try:
+        sm = (
+            StudentManagement.objects.filter(student=student_user)
+            .select_related("class_and_section", "institute")
+            .order_by("-modified")
+            .first()
+        )
+        if sm:
+            if getattr(sm.student, "name", None):
+                _sn = (sm.student.name or "").strip()
+                if _sn and _sn.lower() != "none":
+                    name = _sn
+            if sm.class_and_section:
+                grade = getattr(sm.class_and_section, "class_and_section", None) or grade
+                _stream = getattr(sm.class_and_section, "stream", None) or ""
+                if grade and _stream:
+                    grade = f"{grade} - {_stream}"
+            if sm.institute and getattr(sm.institute, "name", None):
+                schoolname = sm.institute.name
+    except Exception:
+        pass
+    try:
+        user_profile = student_user.user_profile
+        gender_value = user_profile.gender
+        if gender_value == 20:
+            gender_display = "Male"
+        elif gender_value == 30:
+            gender_display = "Female"
+        elif gender_value == 10:
+            gender_display = "Unknown"
+        else:
+            gender_display = "Unknown"
+        if not schoolname:
+            schoolname = user_profile.schoolname
+        if not grade:
+            grade = user_profile.grade
+    except Exception:
+        pass
+    return {
+        "student_name": name or email or "Student",
+        "schoolname": schoolname or "-",
+        "grade": grade or "-",
+        "gender": gender_display or "",
+        "created_date": _format_ui_datetime(created_date) if created_date else "",
+    }
 
 
 def _format_ui_datetime(value):
@@ -713,15 +794,15 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
             # Process RIASEC codes
             
             riasec_code_categories = high_categories
-            print(f"\n=== RIASEC DEBUG ===")
-            print(f"high_categories (RIASEC Code): {high_categories}")
+            logger.debug(f"\n=== RIASEC DEBUG ===")
+            logger.debug(f"high_categories (RIASEC Code): {high_categories}")
 
             if high_categories in career_mergerd_path:
                 ris_data = {f"{high_categories}": career_mergerd_path[high_categories]}
                 result['career_code_discription'] = [ris_data]
-                print(f"Description data for {high_categories}: {ris_data}")
+                logger.debug(f"Description data for {high_categories}: {ris_data}")
             else:
-                print(f"Warning: RIASEC code {high_categories} not found in career_mergerd_path.")
+                logger.debug(f"Warning: RIASEC code {high_categories} not found in career_mergerd_path.")
             
             if riasec_code_categories in riasec_data:
                 category_data = riasec_data[riasec_code_categories]
@@ -733,13 +814,13 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                         careers = category_data[riasec_key].split("<br/>")
                         result['riasec_careers_to_opt'][category] = [c.strip() for c in careers if c.strip()]
             else:
-                print(f"Warning: RIASEC code {riasec_code_categories} not found in data.")
+                logger.debug(f"Warning: RIASEC code {riasec_code_categories} not found in data.")
             
             # Load RIASEC key descriptions, drivers, and summaries
             # Extract individual letters from RIASEC code (e.g., "CES" -> ["C", "E", "S"])
             if high_categories and len(high_categories) >= 1:
                 riasec_letters = list(high_categories.upper()[:3])  # Get first 3 letters
-                print(f"Extracted RIASEC letters: {riasec_letters}")
+                logger.debug(f"Extracted RIASEC letters: {riasec_letters}")
                 
                 # Load interest_riasec.json to get the new sections (using the already loaded hexaco_data structure)
                 # We need to load the full JSON to access the new top-level keys
@@ -749,38 +830,38 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                 
                 # Get key descriptions for each letter in the code
                 key_descriptions_list = interest_json_data.get('RIASEC_Key_Descriptions', [])
-                print(f"Found {len(key_descriptions_list)} key descriptions")
+                logger.debug(f"Found {len(key_descriptions_list)} key descriptions")
                 for letter in riasec_letters:
                     desc = next((d for d in key_descriptions_list if d.get('RIASEC_Code') == letter), None)
                     if desc:
-                        print(f"✓ Found key_description for {letter}")
+                        logger.debug(f"✓ Found key_description for {letter}")
                         result['riasec_key_descriptions'].append(desc)
                     else:
-                        print(f"✗ No key_description found for {letter}")
+                        logger.debug(f"✗ No key_description found for {letter}")
                 
                 # Get key drivers for each letter in the code
                 key_drivers_list = interest_json_data.get('RIASEC_Key_Drivers', [])
-                print(f"Found {len(key_drivers_list)} key drivers lists")
+                logger.debug(f"Found {len(key_drivers_list)} key drivers lists")
                 for letter in riasec_letters:
                     drivers = next((d for d in key_drivers_list if d.get('RIASEC_Code') == letter), None)
                     if drivers:
-                        print(f"✓ Found key_drivers for {letter} with {len(drivers.get('Key Drivers', []))} drivers")
+                        logger.debug(f"✓ Found key_drivers for {letter} with {len(drivers.get('Key Drivers', []))} drivers")
                         result['riasec_key_drivers'].append(drivers)
                     else:
-                        print(f"✗ No key_drivers found for {letter}")
+                        logger.debug(f"✗ No key_drivers found for {letter}")
                 
                 # Get summaries for each letter in the code
                 summaries_list = interest_json_data.get('RIASEC_Summaries', [])
-                print(f"Found {len(summaries_list)} summaries")
+                logger.debug(f"Found {len(summaries_list)} summaries")
                 for letter in riasec_letters:
                     summary = next((s for s in summaries_list if s.get('RIASEC_Code') == letter), None)
                     if summary:
-                        print(f"✓ Found summary for {letter}")
+                        logger.debug(f"✓ Found summary for {letter}")
                         result['riasec_summaries'].append(summary)
                     else:
-                        print(f"✗ No summary found for {letter}")
+                        logger.debug(f"✗ No summary found for {letter}")
             
-            print(f"=== END RIASEC DEBUG ===\n")
+            logger.debug("=== END RIASEC DEBUG ===")
 
 
         elif latest_session.test.title == 'Personality Assessment':
@@ -842,15 +923,15 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
 
         elif latest_session.test.title == 'Motivation Assessment':
             domain = map_motivation_domain_to_trait(high_categories)
-            print(f"\n=== MOTIVATION DEBUG ===")
-            print(f"high_categories: {high_categories}")
-            print(f"Mapped domain: {domain}")
+            logger.debug(f"\n=== MOTIVATION DEBUG ===")
+            logger.debug(f"high_categories: {high_categories}")
+            logger.debug(f"Mapped domain: {domain}")
             
             domain_data = next((row for row in motivation_data if row['Domain'] == domain), None)
             if not domain_data:
-                print(f"ERROR: domain_data is None for domain: {domain}")
+                logger.debug(f"ERROR: domain_data is None for domain: {domain}")
             else:
-                print(f"Found domain_data for: {domain}")
+                logger.debug(f"Found domain_data for: {domain}")
 
             # Ensure Motivation Style is a list
             motivation_style = domain_data['Motivation Style']
@@ -873,30 +954,30 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
             
             # Get motivation key description
             key_descriptions = motivation_json_data.get('Motivation_Key_Descriptions', [])
-            print(f"Found {len(key_descriptions)} key descriptions")
+            logger.debug(f"Found {len(key_descriptions)} key descriptions")
             key_description = next((desc for desc in key_descriptions if desc['Domain'] == domain), None)
             if key_description:
-                print(f"✓ Found key_description for domain: {domain}")
+                logger.debug(f"✓ Found key_description for domain: {domain}")
                 result['motivation_key_description'] = key_description
             else:
-                print(f"✗ No key_description found for domain: {domain}")
-                print(f"Available domains in key_descriptions: {[d.get('Domain') for d in key_descriptions]}")
+                logger.debug(f"✗ No key_description found for domain: {domain}")
+                logger.debug(f"Available domains in key_descriptions: {[d.get('Domain') for d in key_descriptions]}")
             
             # Get motivation key drivers
             key_drivers_list = motivation_json_data.get('Motivation_Key_Drivers', [])
-            print(f"Found {len(key_drivers_list)} key drivers lists")
+            logger.debug(f"Found {len(key_drivers_list)} key drivers lists")
             key_drivers = next((drivers for drivers in key_drivers_list if drivers['Domain'] == domain), None)
             if key_drivers:
-                print(f"✓ Found key_drivers for domain: {domain}")
+                logger.debug(f"✓ Found key_drivers for domain: {domain}")
                 # Check if Key Drivers is a list of objects or strings
                 drivers_data = key_drivers.get('Key Drivers', [])
                 if drivers_data and isinstance(drivers_data[0], dict):
                     # New format with Title, Description, Icon
-                    print(f"Using new format with {len(drivers_data)} drivers")
+                    logger.debug(f"Using new format with {len(drivers_data)} drivers")
                     result['motivation_key_drivers'] = drivers_data
                 else:
                     # Old format - convert strings to objects
-                    print(f"Converting old format with {len(drivers_data)} drivers")
+                    logger.debug(f"Converting old format with {len(drivers_data)} drivers")
                     converted_drivers = []
                     for driver_str in drivers_data:
                         if ':' in driver_str:
@@ -914,21 +995,21 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                             })
                     result['motivation_key_drivers'] = converted_drivers
             else:
-                print(f"✗ No key_drivers found for domain: {domain}")
-                print(f"Available domains in key_drivers: {[d.get('Domain') for d in key_drivers_list]}")
+                logger.debug(f"✗ No key_drivers found for domain: {domain}")
+                logger.debug(f"Available domains in key_drivers: {[d.get('Domain') for d in key_drivers_list]}")
             
             # Get motivation summary
             summaries = motivation_json_data.get('Motivation_Summaries', [])
-            print(f"Found {len(summaries)} summaries")
+            logger.debug(f"Found {len(summaries)} summaries")
             summary = next((summ for summ in summaries if summ['Domain'] == domain), None)
             if summary:
-                print(f"✓ Found summary for domain: {domain}")
+                logger.debug(f"✓ Found summary for domain: {domain}")
                 result['motivation_summary'] = summary
             else:
-                print(f"✗ No summary found for domain: {domain}")
-                print(f"Available domains in summaries: {[s.get('Domain') for s in summaries]}")
+                logger.debug(f"✗ No summary found for domain: {domain}")
+                logger.debug(f"Available domains in summaries: {[s.get('Domain') for s in summaries]}")
             
-            print(f"=== END MOTIVATION DEBUG ===\n")
+            logger.debug("=== END MOTIVATION DEBUG ===")
 
         elif latest_session.test.title == 'Aptitude Assessment':
             try:
@@ -1222,21 +1303,6 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
     return result
 
 
-# #region agent log
-def _debug_log(location, message, data, hypothesis_id="H1"):
-    import json as _json
-    import time
-    import os
-    try:
-        log_dir = os.path.join(settings.BASE_DIR, ".cursor")
-        os.makedirs(log_dir, exist_ok=True)
-        log_path = os.path.join(log_dir, "debug.log")
-        with open(log_path, "a") as f:
-            f.write(_json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": hypothesis_id, "location": location, "message": message, "data": data, "timestamp": int(time.time() * 1000)}) + "\n")
-    except Exception:
-        pass
-# #endregion
-
 @login_required
 def Results_list(request):
     """Display list of all test results"""
@@ -1250,45 +1316,51 @@ def Results_list(request):
 @login_required
 def Results(request):
     try:
-        # #region agent log
-        _debug_log("app_post_matric/views.py:Results:entry", "Results view entry", {"test_id_get": request.GET.get("test_id"), "user_id_get": request.GET.get("user_id")}, "H1")
-        # #endregion
         from institute.models import StudentManagement
         from django.shortcuts import get_object_or_404
         
-        # Get user_id from query params (for institute/marketing users viewing student results)
-        user_id = request.GET.get('user_id', None)
-        target_user = request.user  # Default to logged-in user
-        
-        # If user_id is provided, check permissions and get target user
+        embed_mode = (request.GET.get("embed") or "").strip() == "1"
+        user_id = _staff_report_student_id_from_request(request)
+        target_user = request.user
+        viewing_student_report = False
+
         if user_id:
             try:
-                user_id = int(user_id)
-                # Check if logged-in user has permission to view other users' results
-                # Allow if: superuser, institute user, or marketing user
-                is_institute_user = StudentManagement.objects.filter(
-                    student__id=user_id
-                ).filter(
-                    institute__created_by=request.user
-                ).exists() or request.user.is_superuser
-                
-                # Check if user is marketing/institute admin
                 from core import choices
-                is_admin = (
-                    request.user.is_superuser or
-                    request.user.user_type == choices.UserType.INSTITUTE or
-                    request.user.user_type == choices.UserType.MARKETINGGROUPADMIN or
-                    request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+
+                uid = int(user_id)
+                viewing_student_report = uid != int(request.user.id)
+                is_institute_user = (
+                    StudentManagement.objects.filter(student__id=uid)
+                    .filter(institute__created_by=request.user)
+                    .exists()
+                    or request.user.is_superuser
                 )
-                
-                if is_institute_user or is_admin:
-                    target_user = get_object_or_404(User, id=user_id)
-                else:
-                    # No permission, use own user
+                is_marketing_scoped = StudentManagement.objects.filter(
+                    student_id=uid,
+                    institute__marketing_group__marketing_group_admin=request.user,
+                ).exists()
+                is_group_scoped = StudentManagement.objects.filter(
+                    student_id=uid,
+                    institute__institute_group__institute_group_admin=request.user,
+                ).exists()
+                is_admin = (
+                    request.user.is_superuser
+                    or request.user.user_type == choices.UserType.INSTITUTE
+                    or request.user.user_type == choices.UserType.MARKETINGGROUPADMIN
+                    or request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
+                )
+
+                if is_institute_user or is_marketing_scoped or is_group_scoped or is_admin:
+                    target_user = get_object_or_404(User, id=uid)
+                elif not viewing_student_report:
                     target_user = request.user
+                else:
+                    target_user = request.user
+                    viewing_student_report = False
             except (ValueError, TypeError):
-                # Invalid user_id, use logged-in user
                 target_user = request.user
+                viewing_student_report = False
         
         # Get test_id from query params or session
         test_id = request.GET.get('test_id', None)
@@ -1320,12 +1392,20 @@ def Results(request):
             ).order_by('-end_time').first()
         
         if not latest_session:
-            # #region agent log
-            _debug_log("app_post_matric/views.py:Results:no_session", "Early return no_results", {"test_id": test_id}, "H1")
-            # #endregion
+            _no_sess_display = _report_display_fields_for_student(target_user)
             return render(request, "results.html", {
                 'error': 'No completed test found',
-                'no_results': True
+                'no_results': True,
+                'viewing_student_report': viewing_student_report or (
+                    embed_mode and getattr(target_user, "id", None) != getattr(request.user, "id", None)
+                ),
+                'embed_mode': embed_mode,
+                'report_student_id': getattr(target_user, "id", None),
+                'student_name': _no_sess_display["student_name"],
+                'schoolname': _no_sess_display["schoolname"],
+                'grade': _no_sess_display["grade"],
+                'gender': _no_sess_display["gender"],
+                'created_date': _no_sess_display["created_date"],
             })
         
         
@@ -1362,62 +1442,51 @@ def Results(request):
         # Check if all 4 tests are completed
         all_tests_completed = False
         
-        # Check for completed sessions for each test type
+        # Check for completed sessions for each test type (subject user when staff views a student)
+        _session_user = target_user if viewing_student_report else request.user
         test1_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=_session_user,
             test__id=1,
-            is_completed=True
+            is_completed=True,
         ).exists()
-        
+
         test2_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=_session_user,
             test__id=2,
-            is_completed=True
+            is_completed=True,
         ).exists()
-        
+
         test3_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=_session_user,
             test__id=3,
-            is_completed=True
+            is_completed=True,
         ).exists()
-        
+
         test4_completed = TestSession.objects.filter(
-            user=request.user, 
+            user=_session_user,
             test__id=4,
-            is_completed=True
+            is_completed=True,
         ).exists()
         
         if test1_completed and test2_completed and test3_completed and test4_completed:
             all_tests_completed = True
 
-        # Use target_user (report subject) for header data so viewing another user's report shows their details
         report_user = target_user
-        created_date = latest_session.created_at
-        student_name = getattr(report_user, 'name', None) or report_user.email or str(report_user)
-        schoolname = None
-        grade = None
-        gender_display = None
-        try:
-            user_profile = report_user.user_profile
-            gender_value = user_profile.gender
-            if gender_value == 10:  # GenderChoices.UNKNOWN
-                gender_display = "Unknown"
-            elif gender_value == 20:  # GenderChoices.MALE
-                gender_display = "Male"
-            elif gender_value == 30:  # GenderChoices.FEMALE
-                gender_display = "Female"
-            else:
-                gender_display = "Unknown"  # Default fallback
-            schoolname = user_profile.schoolname
-            grade = user_profile.grade
-        except UserProfile.DoesNotExist:
-            pass
+        _display = _report_display_fields_for_student(
+            report_user,
+            session_end=latest_session.end_time or latest_session.created_at,
+        )
+        student_name = _display["student_name"]
+        schoolname = _display["schoolname"]
+        grade = _display["grade"]
+        gender_display = _display["gender"]
+        created_date = _display["created_date"]
 
-    
-        
-        
         context = {
             'user': request.user,
+            'viewing_student_report': viewing_student_report,
+            'embed_mode': embed_mode,
+            'report_student_id': report_user.id,
             'test_id': test_id,
             'all_tests_completed': all_tests_completed,
             'high_categories': high_categories,
@@ -1446,9 +1515,6 @@ def Results(request):
                 context['above_list'] = []
                 context['average_list'] = []
                 context['below_list'] = []
-            # #region agent log
-            _debug_log("app_post_matric/views.py:Results:test4_context", "test_id=4 context set", {"test_id": test_id, "high_categories_type": type(high_categories).__name__, "above_len": len(context.get("above_list", [])), "has_student_name": "student_name" in context and context.get("student_name") is not None}, "H2")
-            # #endregion
         else:
             pass
         
@@ -1648,9 +1714,7 @@ def Results(request):
                                             if qdata.get('correct_answer') == qdata.get('selected_answer'):
                                                 test_data['result_data'][section_name] += 1
         except Exception as e:
-            print(f"Error getting test result data: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("Error getting test result data")
 
         test_results_data.append(test_data)
 
@@ -1658,15 +1722,9 @@ def Results(request):
         import json as _json
         context['test_results_json'] = _json.dumps(test_results_data)
         
-        # #region agent log
-        _debug_log("app_post_matric/views.py:Results:before_render", "Full render path", {"test_id": test_id, "context_keys": list(context.keys())[:25], "no_results": context.get("no_results"), "has_above_list": "above_list" in context}, "H2,H3")
-        # #endregion
         return render(request, "results.html", context)    
         
     except Exception as e:
-        # #region agent log
-        _debug_log("app_post_matric/views.py:Results:exception", "Exception in Results", {"error": str(e)}, "H3")
-        # #endregion
         return render(request, "results.html", {
             'error': f'An error occurred: {str(e)}',
             'no_results': True
@@ -1675,15 +1733,15 @@ def Results(request):
 def CombinedReport(request, user_id=None):
     try:
         embed_mode = (request.GET.get("embed") or "").strip() == "1"
-        print("user_id:", user_id)
+        route_student_id = int(user_id) if user_id else None
         
         # Get the target user (student) whose report we want to view
-        if user_id:
-            target_user = get_object_or_404(User, id=user_id)
-            print(f"Viewing report for student: {target_user}")
+        if route_student_id:
+            target_user = get_object_or_404(User, id=route_student_id)
         else:
             target_user = request.user
-            print(f"Viewing own report as: {target_user}")
+            route_student_id = int(request.user.id)
+        report_student_id = int(target_user.id)
         
         # Get completed test sessions for the TARGET USER (not the logged-in user)
         completed_sessions = TestSession.objects.filter(
@@ -1696,6 +1754,7 @@ def CombinedReport(request, user_id=None):
                 'error': 'No completed test found',
                 'no_results': True,
                 'user': target_user,
+                'report_student_id': report_student_id,
                 'embed_mode': embed_mode,
                 'breadcrumb': get_breadcrumb([
                     {'text': 'Tests', 'url': reverse('post_matric:tests')},
@@ -1761,9 +1820,10 @@ def CombinedReport(request, user_id=None):
         # Initialize context and containers
         context = {
             'user': target_user,  # Use the target user, not request.user
+            'report_student_id': report_student_id,
             'completed_tests': [],
             'no_results': False,
-            'viewing_as_admin': user_id is not None, # Flag to indicate admin view
+            'viewing_as_admin': route_student_id is not None and route_student_id != int(request.user.id),
             'embed_mode': embed_mode,
             # Add user profile information
             'created_date': created_date if 'created_date' in locals() else None,
@@ -1914,9 +1974,7 @@ def CombinedReport(request, user_id=None):
                                                 if qdata.get('correct_answer') == qdata.get('selected_answer'):
                                                     test_data['result_data'][section_name] += 1
             except Exception as e:
-                print(f"Error getting test result data: {e}")
-                import traceback
-                traceback.print_exc()
+                logger.exception("Error getting test result data (combined report)")
 
             test_results_data.append(test_data)
 
@@ -1985,13 +2043,9 @@ def CombinedReport(request, user_id=None):
                             'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None
                         })
                     except (ValueError, SyntaxError) as e:
-                        print(f"Error parsing personality categories: {e}")
-                        import traceback
-                        print(traceback.format_exc())
+                        logger.exception("Error parsing personality categories")
             except Exception as e:
-                print(f"Error processing personality test data: {e}")
-                import traceback
-                print(traceback.format_exc())
+                logger.exception("Error processing personality test data")
 
         # Process career interest data
         if career_session:
@@ -2014,13 +2068,9 @@ def CombinedReport(request, user_id=None):
                             'career_code_discription': hexaco_recommendations['career_code_discription'],
                         })
                     except Exception as e:
-                        print(f"Error processing career interest data: {e}")
-                        import traceback
-                        print(traceback.format_exc())
+                        logger.exception("Error processing career interest data")
             except Exception as e:
-                print(f"Error processing career session data: {e}")
-                import traceback
-                print(traceback.format_exc())
+                logger.exception("Error processing career session data")
             
         # Process motivation data
         if motivation_session:
@@ -2045,13 +2095,9 @@ def CombinedReport(request, user_id=None):
                             'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
                         })
                     except Exception as e:
-                        print(f"Error processing motivation data: {e}")
-                        import traceback
-                        print(traceback.format_exc())
+                        logger.exception("Error processing motivation data")
             except Exception as e:
-                print(f"Error processing motivation session data: {e}")
-                import traceback
-                print(traceback.format_exc())
+                logger.exception("Error processing motivation session data")
             
         # Process aptitude data
         if aptitude_session:
@@ -2108,13 +2154,13 @@ def CombinedReport(request, user_id=None):
                         all_selected_names.extend(average_list)
                         # (We skip below, as we often want only strengths/averages for combination mapping)
                         aptitude_codes = [normalize_code(map_aptitude_name_to_code(name)) for name in all_selected_names if map_aptitude_name_to_code(name) is not None]
-                        print("aptitude_codes: ", aptitude_codes)
+                        logger.debug("aptitude_codes: %s", aptitude_codes)
                         # Only keep unique and non-None
                         aptitude_codes = sorted(list(set(aptitude_codes)))
-                        print("aptitude_codes: ", aptitude_codes)
+                        logger.debug("aptitude_codes (sorted): %s", aptitude_codes)
                         # Generate final two-letter combo code (alpha order), e.g., ["AR", "NR"] => "AR_NR"
                         two_digit_combo_code = "+".join(aptitude_codes)
-                        print("two_digit_combo_code: ", two_digit_combo_code)
+                        logger.debug("two_digit_combo_code: %s", two_digit_combo_code)
 
                         # Add to context: test name and generated combo code
                         context.update({
@@ -2125,7 +2171,7 @@ def CombinedReport(request, user_id=None):
                             'aptitude_combination_code': two_digit_combo_code,
                         })
                         # This combo code (two_digit_combo_code) is to be used for matching in db [AptitudeCombinationMapping]
-                        print("high_categories: ", high_categories)
+                        logger.debug("high_categories: %s", high_categories)
                         hexaco_recommendations = get_hexaco_career_recommendations(high_categories, None, aptitude_session)
                         context.update({
                             'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
@@ -2182,14 +2228,14 @@ def CombinedReport(request, user_id=None):
                                 aptitude_codes.append(code)
                                 
                         
-                        print(f"Aptitude codes extracted: {aptitude_codes} ({len(aptitude_codes)} codes) - ORIGINAL ORDER (not sorted)")
+                        logger.debug(f"Aptitude codes extracted: {aptitude_codes} ({len(aptitude_codes)} codes) - ORIGINAL ORDER (not sorted)")
                         
                         # Generate all possible combinations from user's codes
                         # Check BOTH original order AND sorted order to match database entries
                         codes_to_check = []
                         
                         # First: Generate combinations in ORIGINAL ORDER (as extracted)
-                        print(f"Generating combinations from ORIGINAL order: {aptitude_codes}")
+                        logger.debug(f"Generating combinations from ORIGINAL order: {aptitude_codes}")
                         from itertools import combinations
                         for r in range(len(aptitude_codes), 0, -1):  # Start from longest
                             for combo in combinations(aptitude_codes, r):
@@ -2200,14 +2246,14 @@ def CombinedReport(request, user_id=None):
                         # Second: Also generate combinations in SORTED ORDER (for database matching)
                         sorted_codes = sorted(aptitude_codes)
                         if sorted_codes != aptitude_codes:
-                            print(f"Also generating combinations from SORTED order: {sorted_codes}")
+                            logger.debug(f"Also generating combinations from SORTED order: {sorted_codes}")
                             for r in range(len(sorted_codes), 0, -1):  # Start from longest
                                 for combo in combinations(sorted_codes, r):
                                     combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (sorted order)
                                     if combo_str not in codes_to_check:
                                         codes_to_check.append(combo_str)
                         
-                        print(f"codes_to_check: {codes_to_check} (total: {len(codes_to_check)} combinations to check)")
+                        logger.debug(f"codes_to_check: {codes_to_check} (total: {len(codes_to_check)} combinations to check)")
                         
                         # Compare aptitude_codes with AptitudeCombinationMapping in database
                         # Find the best matching combination (longest/most comprehensive match)
@@ -2235,15 +2281,15 @@ def CombinedReport(request, user_id=None):
                                     if set(db_codes_list) == codes_set:  # Same codes, different order
                                         matching_db_codes.append(db_code)
                             else:
-                                print("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
+                                logger.debug("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
                         except Exception as e:
-                            print(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
+                            logger.debug(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
                             all_db_codes = []
                         
-                        print(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
+                        logger.debug(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
                         if matching_db_codes:
-                            print(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
-                        print(f"   Checking combinations in order (longest to shortest)...")
+                            logger.debug(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
+                        logger.debug(f"   Checking combinations in order (longest to shortest)...")
                         
                         # Check combinations in order (longest first)
                         for code in codes_to_check:
@@ -2265,11 +2311,11 @@ def CombinedReport(request, user_id=None):
                                 # else:
                                 #     print(f"      ✗ Not found: {code}")
                             except Exception as e:
-                                print(f"      ❌ Error checking {code}: {e}")
+                                logger.debug(f"      ❌ Error checking {code}: {e}")
                         
                         # If no exact match found, try matching_db_codes (same codes, different order)
                         if not found_matches and matching_db_codes:
-                            print(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
+                            logger.debug(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
                             for db_code in matching_db_codes:
                                 checked_count += 1
                                 try:
@@ -2290,7 +2336,7 @@ def CombinedReport(request, user_id=None):
                                         if db_code not in codes_to_check:
                                             codes_to_check.append(db_code)
                                 except Exception as e:
-                                    print(f"      ❌ Error checking {db_code}: {e}")
+                                    logger.debug(f"      ❌ Error checking {db_code}: {e}")
                         
                         # Process the best match (prioritize complete matches with all codes)
                         # Check matching_db_codes first if it has entries with all codes
@@ -2304,18 +2350,18 @@ def CombinedReport(request, user_id=None):
                                 db_code_count = len(db_code.split('+'))
                                 if db_code_count == total_codes_count:
                                     match_code_to_use = db_code
-                                    print(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
+                                    logger.debug(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
                                     break
                         
                         # If no complete match in matching_db_codes, use found_matches
                         if not match_code_to_use and found_matches:
                             # Use the longest match from codes_to_check
                             match_code_to_use = found_matches[0]['code']
-                            print(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
+                            logger.debug(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
                         elif not match_code_to_use and matching_db_codes:
                             # Fallback to first matching_db_code
                             match_code_to_use = matching_db_codes[0]
-                            print(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
+                            logger.debug(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
                         
                         # Get clusters, roles, pathways from the matched code
                         if match_code_to_use:
@@ -2333,7 +2379,7 @@ def CombinedReport(request, user_id=None):
                                                 'url': url
                                             })
                                         except Exception as e:
-                                            print(f"Error creating cluster URL for {cluster.name}: {e}")
+                                            logger.debug(f"Error creating cluster URL for {cluster.name}: {e}")
                                             clusters_data.append({
                                                 'name': cluster.name,
                                                 'url': None
@@ -2349,7 +2395,7 @@ def CombinedReport(request, user_id=None):
                                                 'url': url
                                             })
                                         except Exception as e:
-                                            print(f"Error creating role URL for {role.name}: {e}")
+                                            logger.debug(f"Error creating role URL for {role.name}: {e}")
                                             roles_data.append({
                                                 'name': role.name,
                                                 'url': None
@@ -2366,7 +2412,7 @@ def CombinedReport(request, user_id=None):
                                                 'url': url
                                             })
                                         except Exception as e:
-                                            print(f"Error creating pathway URL for {pathway.name}: {e}")
+                                            logger.debug(f"Error creating pathway URL for {pathway.name}: {e}")
                                             pathways_data.append({
                                                 'name': pathway.name,
                                                 'url': None
@@ -2382,11 +2428,11 @@ def CombinedReport(request, user_id=None):
                                             'pathways': pathways_data
                                         }
                                         best_code = match_code_to_use
-                                        print(f"   ✅ SELECTED: {best_code} (matching combination with data)")
+                                        logger.debug(f"   ✅ SELECTED: {best_code} (matching combination with data)")
                                     else:
-                                        print(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
+                                        logger.debug(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
                             except Exception as e:
-                                print(f"   ❌ Error processing {match_code_to_use}: {e}")
+                                logger.debug(f"   ❌ Error processing {match_code_to_use}: {e}")
                                 import traceback
                                 traceback.print_exc()
                         
@@ -2403,38 +2449,36 @@ def CombinedReport(request, user_id=None):
                         # Store the best mapping in context (clusters, roles, pathways from DB)
                         context['aptitude_mapping'] = best_mapping
                         if best_mapping:
-                            print(f"\n✅ FINAL RESULT - Displaying from database:")
-                            print(f"   Aptitude Code: {best_code}")
-                            print(f"   Aptitude Areas: {best_mapping['aptitude_areas']}")
-                            print(f"   Clusters: {len(best_mapping['clusters'])}")
-                            print("   Clusters:")
+                            logger.debug(f"\n✅ FINAL RESULT - Displaying from database:")
+                            logger.debug(f"   Aptitude Code: {best_code}")
+                            logger.debug(f"   Aptitude Areas: {best_mapping['aptitude_areas']}")
+                            logger.debug(f"   Clusters: {len(best_mapping['clusters'])}")
+                            logger.debug("   Clusters:")
                             for cluster in best_mapping['clusters']:
-                                print(f"      - {cluster['name']}")
-                            print(f"   Roles: {len(best_mapping['roles'])}")
-                            print("   Roles:")
+                                logger.debug(f"      - {cluster['name']}")
+                            logger.debug(f"   Roles: {len(best_mapping['roles'])}")
+                            logger.debug("   Roles:")
                             for role in best_mapping['roles']:
-                                print(f"      - {role['name']}")
-                            print(f"   Pathways: {len(best_mapping['pathways'])}")
-                            print("   Pathways:")
+                                logger.debug(f"      - {role['name']}")
+                            logger.debug(f"   Pathways: {len(best_mapping['pathways'])}")
+                            logger.debug("   Pathways:")
                             for pathway in best_mapping['pathways']:
-                                print(f"      - {pathway['name']}")
+                                logger.debug(f"      - {pathway['name']}")
                         else:
-                            print(f"\n⚠️  NO MATCH FOUND!")
-                            print(f"   Extracted codes: {aptitude_codes}")
-                            print(f"   Checked {len(codes_to_check)} combinations but none matched in AptitudeCombinationMapping")
-                            print(f"   Make sure the combination exists in the database")
+                            logger.debug(f"\n⚠️  NO MATCH FOUND!")
+                            logger.debug(f"   Extracted codes: {aptitude_codes}")
+                            logger.debug(f"   Checked {len(codes_to_check)} combinations but none matched in AptitudeCombinationMapping")
+                            logger.debug(f"   Make sure the combination exists in the database")
                     except json.JSONDecodeError as e:
-                        print(f"Error decoding aptitude categories JSON: {e}")
+                        logger.debug(f"Error decoding aptitude categories JSON: {e}")
                         import traceback
-                        print(traceback.format_exc())
+                        logger.debug(traceback.format_exc())
                     except Exception as e:
-                        print(f"Error processing aptitude data: {e}")
+                        logger.debug(f"Error processing aptitude data: {e}")
                         import traceback
-                        print(traceback.format_exc())
+                        logger.debug(traceback.format_exc())
             except Exception as e:
-                print(f"Error processing aptitude session data: {e}")
-                import traceback
-                print(traceback.format_exc())
+                logger.exception("Error processing aptitude session data")
 
         # Build psychometric career clusters fallback (used when aptitude clusters are missing)
         try:
@@ -2493,7 +2537,10 @@ def CombinedReport(request, user_id=None):
                 normalized_targets = set(_normalize_name(name) for name in cleaned_career_names if name)
 
                 # First pass: published careers
-                career_qs = Career.objects.filter(is_published=True).prefetch_related('career_cluster')
+                from core import choices
+                career_qs = Career.objects.filter(
+                    publish_status=choices.PublishStatus.PUBLISHED
+                ).prefetch_related('career_cluster')
                 if not career_qs.exists():
                     # Fallback if publish flag is not maintained in this environment
                     career_qs = Career.objects.all().prefetch_related('career_cluster')
@@ -2562,7 +2609,7 @@ def CombinedReport(request, user_id=None):
                 key=lambda item: str(item.get('name', '')).lower()
             )
         except Exception as e:
-            print(f"Error building psychometric_career_clusters: {e}")
+            logger.warning(f"Error building psychometric_career_clusters: {e}")
             context['psychometric_career_clusters'] = []
 
         # Build cluster name -> URL map for template linking of text-only cluster sources
@@ -2633,7 +2680,7 @@ def CombinedReport(request, user_id=None):
                         cluster = CareerCluster.objects.filter(pk=cid).first()
                         _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False)
                 except Exception as ex:
-                    print(f"Error loading excel_to_db_mapping cluster_mappings: {ex}")
+                    logger.warning("Error loading excel_to_db_mapping cluster_mappings: %s", ex)
 
             label_ids_path = os.path.join(
                 settings.BASE_DIR, 'static', 'data', 'report_cluster_label_ids.json',
@@ -2646,7 +2693,7 @@ def CombinedReport(request, user_id=None):
                         cluster = CareerCluster.objects.filter(pk=cid).first()
                         _merge_cluster_resolve_keys(str(raw_label), cluster, overwrite=False)
                 except Exception as ex:
-                    print(f"Error loading report_cluster_label_ids.json: {ex}")
+                    logger.warning("Error loading report_cluster_label_ids.json: %s", ex)
 
             try:
                 for cm in ClusterMapping.objects.select_related('db_cluster').filter(
@@ -2654,14 +2701,14 @@ def CombinedReport(request, user_id=None):
                 ):
                     _merge_cluster_resolve_keys(cm.excel_name, cm.db_cluster, overwrite=True)
             except Exception as ex:
-                print(f"Error merging ClusterMapping into cluster_resolve_map: {ex}")
+                logger.warning("Error merging ClusterMapping into cluster_resolve_map: %s", ex)
 
             enrich_combined_report_cluster_links(context, cluster_resolve_map, cluster_url_map)
 
             context['cluster_resolve_map'] = cluster_resolve_map
             context['cluster_url_map'] = cluster_url_map
         except Exception as e:
-            print(f"Error building cluster_url_map: {e}")
+            logger.warning("Error building cluster_url_map: %s", e)
             context['cluster_url_map'] = {}
             context['cluster_resolve_map'] = {}
         
@@ -2683,8 +2730,7 @@ def CombinedReport(request, user_id=None):
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        print(f"Error in CombinedReport: {str(e)}")
-        print(trace)
+        logger.exception("Error in CombinedReport")
         return render(request, "template20/app_post_matric/combined_report.html", {
             'error': f'An error occurred: {str(e)}',
             'traceback': trace,

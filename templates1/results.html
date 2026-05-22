@@ -1521,7 +1521,7 @@
         }
         .output p {
             font-size: 14px;
-            color: var(--text-color);
+            color: #1a1a2e;
             font-weight: 500;
             display: flex;
             justify-content: center;
@@ -1826,7 +1826,28 @@
     </style>
 </head>
 
-<body>
+<body{% if viewing_student_report or embed_mode %} class="ttv2-staff-report-embed"{% endif %}>
+{% if viewing_student_report or embed_mode %}
+<style>
+  body.ttv2-staff-report-embed {
+    margin: 0;
+    padding: 12px 16px 32px;
+    background: #fff;
+    overflow-y: auto;
+  }
+  body.ttv2-staff-report-embed .coverPage {
+    min-height: auto;
+    padding-bottom: 16px;
+  }
+  body.ttv2-staff-report-embed #downloadPDF {
+    display: none !important;
+  }
+  body.ttv2-staff-report-embed.ttv2-report-ready .chapterPage {
+    display: block !important;
+    page-break-before: auto;
+  }
+</style>
+{% endif %}
 
 
 
@@ -1854,7 +1875,7 @@
                     <div class="info-box">
                         <div class="dt-i-info" style="color:#fff;">Name</div>
                         <div class="output">
-                            <p>{{ student_name|default:request.user|default:"-" }}</p>
+                            <p>{% if viewing_student_report or report_student_id %}{{ student_name|default:"-" }}{% else %}{{ student_name|default:request.user|default:"-" }}{% endif %}</p>
                         </div>
                     </div>
                     <div class="info-box">
@@ -4221,14 +4242,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
-            // #region agent log
-            try {
-                var cover = document.querySelector('.coverPage');
-                var disclaimer = document.querySelector('.disclaimer-heading');
-                var disclaimerText = disclaimer ? disclaimer.textContent : '';
-                fetch('http://127.0.0.1:7245/ingest/dd5a1f04-06a7-4278-943f-3859643e337c', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'results.html:DOMContentLoaded', message: 'Report DOM check', data: { coverPresent: !!cover, disclaimerPresent: !!disclaimer, coverDisplay: cover ? window.getComputedStyle(cover).display : '', disclaimerDisplay: disclaimer ? window.getComputedStyle(disclaimer).display : '' }, timestamp: Date.now(), sessionId: 'debug-session', hypothesisId: 'H4,H5' }) }).catch(function() {});
-            } catch (e) {}
-            // #endregion
             // Load results when page loads
             await loadTestResults(); // Ensure this function is async or returns a Promise
             document.getElementById('downloadPDF').disabled = false; // Enable button after loading
@@ -4244,6 +4257,19 @@
             }
         });
     </script>
+    {% if viewing_student_report or embed_mode %}
+    <script type="application/json" id="test-results-data-json">{{ test_results_json|default:"[]"|safe }}</script>
+    <script>
+        (function () {
+            var el = document.getElementById('test-results-data-json');
+            try {
+                window.testResults = el ? JSON.parse(el.textContent || '[]') : [];
+            } catch (e) {
+                window.testResults = [];
+            }
+        })();
+    </script>
+    {% else %}
     <div id="test-results-data"
         data-results-json='{{ test_results_json|default:"[]"|escapejs }}'
         style="display:none;"></div>
@@ -4259,6 +4285,21 @@
         }
         window.testResults = _parsedResults;
     </script>
+    {% endif %}
+    {% if viewing_student_report or embed_mode %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var done = function () {
+                try { document.body.classList.add('ttv2-report-ready'); } catch (e) {}
+            };
+            if (typeof loadTestResults === 'function') {
+                Promise.resolve(loadTestResults()).then(done).catch(done);
+            } else {
+                done();
+            }
+        });
+    </script>
+    {% endif %}
 </body>
 
 <style>

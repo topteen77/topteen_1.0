@@ -362,30 +362,30 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 <script>
   // Shared: open student report popup
   (function(){
-    function getEmbeddedReportUrl(url){
+    function getEmbeddedReportUrl(url, studentId){
       try {
         var u = new URL(url, window.location.origin);
         u.searchParams.set('embed', '1');
+        var pathMatch = String(url || '').match(/combined_report\/(\d+)/);
+        var pathId = pathMatch ? pathMatch[1] : null;
+        var sid = (studentId && String(studentId)) || pathId;
+        if (sid) {
+          u.searchParams.set('user_id', String(sid));
+          if (u.pathname.indexOf('combined_report') !== -1) {
+            u.pathname = u.pathname.replace(/combined_report\/\d+/, 'combined_report/' + String(sid));
+          }
+        }
         return u.toString();
       } catch (e) {
         return url;
       }
     }
-    window.ttv2OpenStudentReportModal = function(url, title){
+    window.ttv2OpenStudentReportModal = function(url, title, studentId){
       try {
-        var embedUrl = getEmbeddedReportUrl(url || '');
-        if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
-          window.open(embedUrl, '_blank', 'noopener');
-          return;
-        }
-        var m = document.getElementById('ttv2StudentReportModal');
-        var f = document.getElementById('ttv2StudentReportModalFrame');
-        var t = document.getElementById('ttv2StudentReportModalTitle');
-        if (t) t.textContent = title || 'Student report';
-        if (f) f.src = embedUrl || 'about:blank';
-        bootstrap.Modal.getOrCreateInstance(m).show();
+        var embedUrl = getEmbeddedReportUrl(url || '', studentId);
+        window.open(embedUrl, '_blank', 'noopener');
       } catch (e) {
-        window.open(getEmbeddedReportUrl(url || ''), '_blank', 'noopener');
+        window.open(getEmbeddedReportUrl(url || '', studentId), '_blank', 'noopener');
       }
     };
 

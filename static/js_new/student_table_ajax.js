@@ -1654,9 +1654,18 @@ function ttv2InitStudentTableAfterBodyInject() {
       const url = (reportBtn.getAttribute('data-ttv2-report-url') || '').trim();
       if (!url) return;
       e.preventDefault();
+      const reportCard = reportBtn.closest ? reportBtn.closest('.ttv2-student-card') : null;
+      const reportStudentId = (
+        (reportBtn.getAttribute('data-ttv2-student-id') || '').trim()
+        || (reportCard ? (reportCard.getAttribute('data-ttv2-student-id') || '').trim() : '')
+      );
       try {
         if (typeof window.ttv2OpenStudentReportModal === 'function') {
-          window.ttv2OpenStudentReportModal(url, reportBtn.getAttribute('data-ttv2-report-title') || 'Student report');
+          window.ttv2OpenStudentReportModal(
+            url,
+            reportBtn.getAttribute('data-ttv2-report-title') || 'Student report',
+            reportStudentId || undefined
+          );
         } else {
           window.open(url, '_blank', 'noopener');
         }
@@ -1674,9 +1683,14 @@ function ttv2InitStudentTableAfterBodyInject() {
       const url = (card.getAttribute('data-ttv2-report-url') || '').trim();
       if (!url) return;
       e.preventDefault();
+      const cardStudentId = (card.getAttribute('data-ttv2-student-id') || '').trim();
       try {
         if (typeof window.ttv2OpenStudentReportModal === 'function') {
-          window.ttv2OpenStudentReportModal(url, card.getAttribute('data-ttv2-student-name') || 'Student report');
+          window.ttv2OpenStudentReportModal(
+            url,
+            card.getAttribute('data-ttv2-student-name') || 'Student report',
+            cardStudentId || undefined
+          );
         } else {
           window.open(url, '_blank', 'noopener');
         }
@@ -1691,9 +1705,14 @@ function ttv2InitStudentTableAfterBodyInject() {
       const url = (card.getAttribute('data-ttv2-report-url') || '').trim();
       if (!url) return;
       e.preventDefault();
+      const cardStudentId = (card.getAttribute('data-ttv2-student-id') || '').trim();
       try {
         if (typeof window.ttv2OpenStudentReportModal === 'function') {
-          window.ttv2OpenStudentReportModal(url, card.getAttribute('data-ttv2-student-name') || 'Student report');
+          window.ttv2OpenStudentReportModal(
+            url,
+            card.getAttribute('data-ttv2-student-name') || 'Student report',
+            cardStudentId || undefined
+          );
         } else {
           window.open(url, '_blank', 'noopener');
         }

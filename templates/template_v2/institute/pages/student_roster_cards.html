@@ -229,6 +229,7 @@
                       class="btn btn-sm btn-outline-primary {% if not report_url %}disabled{% endif %}"
                       {% if report_url %}
                         data-ttv2-open-report
+                        data-ttv2-student-id="{{ u.id if u else '' }}"
                         data-ttv2-report-url="{{ report_url }}"
                         data-ttv2-report-title="{{ u.name if (u and u.name) else 'Student report' }}"
                       {% else %}

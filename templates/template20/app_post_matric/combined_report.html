@@ -1280,7 +1280,8 @@
   </div>
   {% endif %}
 
-  <main class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 py-4 report-shell">
+  <script>window.TTV2_COMBINED_REPORT_USER_ID = "{{ report_student_id }}";</script>
+  <main class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 py-4 report-shell" data-report-student-id="{{ report_student_id }}">
     <div class="row justify-content-center {% if embed_mode %}mt-0{% else %}mt-5{% endif %}">
       <div class="col-12">
         <div class="report-hero text-center text-white">
@@ -1401,7 +1402,10 @@
     
             <!-- <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div> -->
             <div class="timeline-card-actions">
-              <a href="/api/web/results/?test_id={{ test.test_id }}{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}" class="mini-btn report-btn">
+              <a href="{{ url('post_matric:results') }}?test_id={{ test.test_id }}&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}"
+                 class="mini-btn report-btn ttv2-report-open"
+                 data-report-title="{{ test.title }}"
+                 data-student-id="{{ report_student_id }}">
                 <i class="fas fa-file-alt"></i>
                 View Report
               </a>
@@ -1455,7 +1459,7 @@
           </div>
         </div>
         <div class="deep-dive-grid">
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=4{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=4&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
             <div class="chart-title">Aptitude Section Scores</div>
             <div class="chart-wrap aptitude-chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
             <div class="aptitude-band-legend">
@@ -1466,12 +1470,12 @@
             <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
           </div>
        
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=3{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=3&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
             <div class="chart-title">Career Interest Dimensions</div>
             <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
             <div class="data-note" id="careerDeepNote">Loading assessment details...</div>
           </div>
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=2{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=2&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
             <div class="chart-title">Motivation Driver Mix</div>
             <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
             <div class="motivation-primary-block" id="motivationPrimaryBlock">Your Primary Motivation: --</div>
@@ -1480,7 +1484,7 @@
 
 
              
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="/api/web/results/?test_id=1{% if viewing_as_admin %}&user_id={{ user.id }}{% endif %}">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=1&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
             <div class="chart-title">Personality Traits Profile</div>
             <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
             <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
@@ -2490,18 +2494,81 @@
     const chartCountEl = document.getElementById('jsonChartsCount');
     if (chartCountEl) chartCountEl.textContent = String(chartInstances.length);
 
+    function resolveReportStudentId(el) {
+      try {
+        var pathMatch = window.location.pathname.match(/combined_report\/(\d+)/);
+        if (pathMatch) return pathMatch[1];
+      } catch (e) {}
+      if (el && el.getAttribute('data-student-id')) {
+        return el.getAttribute('data-student-id');
+      }
+      var shell = document.querySelector('[data-report-student-id]');
+      if (shell && shell.getAttribute('data-report-student-id')) {
+        return shell.getAttribute('data-report-student-id');
+      }
+      if (window.TTV2_COMBINED_REPORT_USER_ID) {
+        return String(window.TTV2_COMBINED_REPORT_USER_ID);
+      }
+      return null;
+    }
+
+    function buildIndividualReportUrl(baseUrl, studentId, useEmbed) {
+      var href = baseUrl || '';
+      if (!href) return '';
+      try {
+        var u = new URL(href, window.location.origin);
+        var pathId = (window.location.pathname.match(/combined_report\/(\d+)/) || [])[1];
+        var shell = document.querySelector('[data-report-student-id]');
+        var shellId = shell ? shell.getAttribute('data-report-student-id') : null;
+        var effectiveId = pathId || shellId || studentId;
+        if (effectiveId) {
+          u.searchParams.set('user_id', String(effectiveId));
+        }
+        if (useEmbed) {
+          u.searchParams.set('embed', '1');
+        }
+        return u.toString();
+      } catch (e) {
+        return href;
+      }
+    }
+
+    function openStaffReport(url, title, studentId, useEmbed) {
+      var sid = studentId || resolveReportStudentId(null);
+      var href = buildIndividualReportUrl(url, sid, useEmbed !== false);
+      if (!href) return;
+      window.open(href, '_blank', 'noopener');
+    }
+
+    var useEmbedReports = {{ 'true' if embed_mode else 'false' }};
+
+    document.querySelectorAll('a.ttv2-report-open').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        openStaffReport(
+          link.getAttribute('href'),
+          link.getAttribute('data-report-title'),
+          resolveReportStudentId(link),
+          useEmbedReports
+        );
+      });
+    });
+
     const reportLinkCards = document.querySelectorAll('.report-link-card[data-report-url]');
     reportLinkCards.forEach((card) => {
       const url = card.getAttribute('data-report-url');
       if (!url) return;
+      const title = (card.querySelector('.chart-title') || {}).textContent || 'Assessment report';
+      const sid = resolveReportStudentId(card);
       card.addEventListener('click', (event) => {
         if (event.target && event.target.closest('a, button')) return;
-        window.open(url, '_blank', 'noopener');
+        event.preventDefault();
+        openStaffReport(url, title, sid, useEmbedReports);
       });
       card.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          window.open(url, '_blank', 'noopener');
+          openStaffReport(url, title, sid, useEmbedReports);
         }
       });
     });

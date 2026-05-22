@@ -43,7 +43,19 @@ async function loadTestResults() {
 
     // If not, try the API (this is the fallback method)
     console.log('No results in Django context, trying API...');
-    const response = await fetch('/api/results/');
+    var apiUrl = '/api/results/';
+    try {
+      var pageParams = new URLSearchParams(window.location.search || '');
+      var uid = pageParams.get('user_id');
+      var tid = pageParams.get('test_id');
+      if (uid || tid) {
+        var apiParams = new URLSearchParams();
+        if (uid) apiParams.set('user_id', uid);
+        if (tid) apiParams.set('test_id', tid);
+        apiUrl = '/api/results/?' + apiParams.toString();
+      }
+    } catch (e) {}
+    const response = await fetch(apiUrl);
     const data = await response.json();
 
     if (!data.results || data.results.length === 0) {

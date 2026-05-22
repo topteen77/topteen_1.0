@@ -693,16 +693,12 @@ def apply_student_filters(students_data, request, results_data=None):
 
         _psych_complete = (request.GET.get("psychometric_complete") or "").strip().lower()
         if _psych_complete in ("1", "true", "yes", "completed"):
+            from core.student_psychometric_metrics import (
+                student_management_psychometric_complete_exists,
+            )
+
             queryset = queryset.filter(student_id__isnull=False).filter(
-                Exists(Results.objects.filter(user_id=OuterRef("student_id"))),
-                Exists(
-                    TestCompletion.objects.filter(
-                        user_id=OuterRef("student_id"),
-                        test1_complete=True,
-                        test2_complete=True,
-                        test3_complete=True,
-                    )
-                ),
+                student_management_psychometric_complete_exists()
             )
 
         # Roster drill-down: students with follow-up activity for a specific counselor
