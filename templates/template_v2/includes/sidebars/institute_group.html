@@ -7,8 +7,10 @@
            data-ttv2-logo-dark="{{ static('images_new/logos/footer-logo.svg') }}"
            alt="TopTeen" />
     </div>
-    <div class="tagline">Institute Group Dashboard v2.0</div>
+    <div class="tagline">{{ ttv2_role_ctx.tagline|default('Institute Group Dashboard v2.0') }}</div>
   </div>
+
+  {% include "template_v2/includes/sidebar_profile_from_ctx.html" %}
 
   <div class="ttv2-counselor-nav">
     <div class="ttv2-counselor-nav-title">Reports</div>

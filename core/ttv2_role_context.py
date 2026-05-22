@@ -8,7 +8,7 @@ from django.urls import NoReverseMatch, reverse
 
 from core import choices
 from counselor.models import Counselor
-from institute.models import Institute
+from institute.models import Institute, InstituteGroup, InstituteMarketingGroup
 
 TTV2_PAGE_LOADER_CONFIG_KEY = "TTV2_PAGE_LOADER_ENABLED"
 
@@ -86,6 +86,30 @@ def _resolve_counselor_for_user(user) -> Optional[Counselor]:
         )
     except Exception:
         return None
+
+
+def _resolve_marketing_group_for_user(user) -> Optional[InstituteMarketingGroup]:
+    try:
+        return InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
+    except Exception:
+        return None
+
+
+def _resolve_institute_group_for_user(user) -> Optional[InstituteGroup]:
+    try:
+        return InstituteGroup.objects.filter(institute_group_admin=user).first()
+    except Exception:
+        return None
+
+
+def _format_joined_month_year(obj) -> str:
+    try:
+        created = getattr(obj, "created", None)
+        if created:
+            return created.strftime("%b %Y")
+    except Exception:
+        pass
+    return ""
 
 
 def _nav_href_path(href: str) -> str:
@@ -550,6 +574,12 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
         role = "institute"
 
     counselor = _resolve_counselor_for_user(user) if role == "counselor" else None
+    marketing_group = (
+        _resolve_marketing_group_for_user(user) if role == "marketing_group" else None
+    )
+    institute_group = (
+        _resolve_institute_group_for_user(user) if role == "institute_group" else None
+    )
     institute = None
     if role == "counselor":
         institute = getattr(counselor, "counselor_admin", None) if counselor else None
@@ -597,12 +627,29 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             profile = {"name": _cname, "joined": _jn, "badge": _badge}
         elif role == "institute" and institute:
             tagline = "Institute Dashboard v2.0"
-            _jn = institute.created.strftime("%b %Y") if getattr(institute, "created", None) else ""
-            profile = {"name": getattr(institute, "name", "") or "Institute", "joined": _jn, "badge": "Active member"}
+            profile = {
+                "name": getattr(institute, "name", "") or "Institute",
+                "joined": _format_joined_month_year(institute),
+                "badge": "Active member",
+            }
         elif role == "institute_group":
             tagline = "Institute Group Dashboard v2.0"
+            _gname = ""
+            if institute_group:
+                _gname = str(getattr(institute_group, "group_name", "") or "").strip()
+            if not _gname:
+                _gname = display_name
+            _jn = _format_joined_month_year(institute_group) if institute_group else _format_joined_month_year(user)
+            profile = {"name": _gname, "joined": _jn, "badge": "Active member"}
         elif role == "marketing_group":
             tagline = "Marketing Dashboard v2.0"
+            _gname = ""
+            if marketing_group:
+                _gname = str(getattr(marketing_group, "m_group_name", "") or "").strip()
+            if not _gname:
+                _gname = display_name
+            _jn = _format_joined_month_year(marketing_group) if marketing_group else _format_joined_month_year(user)
+            profile = {"name": _gname, "joined": _jn, "badge": "Active member"}
     except Exception:
         profile = None
 
@@ -631,6 +678,8 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             "display_name": display_name,
             "institute": institute,
             "counselor": counselor,
+            "marketing_group": marketing_group,
+            "institute_group": institute_group,
             "tagline": tagline,
             "profile": profile,
             "nav": {"sections": sections},

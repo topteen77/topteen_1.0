@@ -14,12 +14,7 @@
     <div class="tagline">{{ ttv2_role_ctx.tagline|default('Dashboard v2.0') }}</div>
   </div>
 
-  {% if ttv2_role_ctx.profile is defined and ttv2_role_ctx.profile %}
-    {% set profile_name = ttv2_role_ctx.profile.name|default('') %}
-    {% set profile_joined = ttv2_role_ctx.profile.joined|default('') %}
-    {% set profile_badge = ttv2_role_ctx.profile.badge|default('') %}
-    {% include "template_v2/includes/sidebar_profile_card.html" %}
-  {% endif %}
+  {% include "template_v2/includes/sidebar_profile_from_ctx.html" %}
 
   <div class="ttv2-counselor-nav">
     {% for sec in (ttv2_role_ctx.nav.sections if (ttv2_role_ctx is defined and ttv2_role_ctx.nav is defined and ttv2_role_ctx.nav.sections is defined) else []) %}

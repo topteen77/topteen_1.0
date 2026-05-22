@@ -383,7 +383,16 @@ body.ttv2-shell .ttv2-topbar-pay-now {
     window.ttv2OpenStudentReportModal = function(url, title, studentId){
       try {
         var embedUrl = getEmbeddedReportUrl(url || '', studentId);
-        window.open(embedUrl, '_blank', 'noopener');
+        if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+          window.open(embedUrl, '_blank', 'noopener');
+          return;
+        }
+        var m = document.getElementById('ttv2StudentReportModal');
+        var f = document.getElementById('ttv2StudentReportModalFrame');
+        var t = document.getElementById('ttv2StudentReportModalTitle');
+        if (t) t.textContent = title || 'Student report';
+        if (f) f.src = embedUrl || 'about:blank';
+        bootstrap.Modal.getOrCreateInstance(m).show();
       } catch (e) {
         window.open(getEmbeddedReportUrl(url || '', studentId), '_blank', 'noopener');
       }

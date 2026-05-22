@@ -1,0 +1,8 @@
+{# Sidebar avatar card from `ttv2_role_ctx.profile` (counselor / institute / group / marketing). #}
+{% if ttv2_role_ctx is defined and ttv2_role_ctx.profile %}
+  {% set profile_name = ttv2_role_ctx.profile.name|default('') %}
+  {% set profile_joined = ttv2_role_ctx.profile.joined|default('') %}
+  {% set profile_badge = ttv2_role_ctx.profile.badge|default('Active member') %}
+  {% set profile_initials = ttv2_role_ctx.profile.initials|default('') %}
+  {% include "template_v2/includes/sidebar_profile_card.html" %}
+{% endif %}

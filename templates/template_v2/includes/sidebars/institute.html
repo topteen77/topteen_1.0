@@ -13,18 +13,20 @@
            data-ttv2-logo-dark="{{ static('images_new/logos/footer-logo.svg') }}"
            alt="TopTeen" />
     </div>
-    <div class="tagline">Institute Dashboard v2.1</div>
+    <div class="tagline">{{ ttv2_role_ctx.tagline|default('Institute Dashboard v2.0') }}</div>
   </div>
 
-  <div class="ttv2-counselor-nav">
-    {% if institute is defined and institute %}
-      {% set _jn = institute.created.strftime("%b %Y") if institute.created else '' %}
-      {% set profile_name = institute.name|default('Institute') %}
-      {% set profile_joined = _jn %}
-      {% set profile_badge = 'Active member' %}
-      {% include "template_v2/includes/sidebar_profile_card.html" %}
-    {% endif %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.profile %}
+    {% include "template_v2/includes/sidebar_profile_from_ctx.html" %}
+  {% elif institute is defined and institute %}
+    {% set _jn = institute.created.strftime("%b %Y") if institute.created else '' %}
+    {% set profile_name = institute.name|default('Institute') %}
+    {% set profile_joined = _jn %}
+    {% set profile_badge = 'Active member' %}
+    {% include "template_v2/includes/sidebar_profile_card.html" %}
+  {% endif %}
 
+  <div class="ttv2-counselor-nav">
     <div class="ttv2-counselor-nav-title">Reports</div>
     {% set _page = (ttv2_page|default('dashboard')) %}
     <a href="{{ url('institute:institute_masterdashboard', args=[_inst_slug]) }}"
