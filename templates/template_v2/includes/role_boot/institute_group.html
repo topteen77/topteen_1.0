@@ -46,6 +46,66 @@
       } catch (err) { /* no-op */ }
     };
 
+    window.ttv2InitMktgRowCsvUploadModals = window.ttv2InitMktgRowCsvUploadModals || function(){
+      if (!document.getElementById('ttv2MktgRowMatricCsvUploadModal')
+          && !document.getElementById('ttv2MktgRowPostMatricCsvUploadModal')) {
+        return;
+      }
+      function resetDropzone(form){
+        if (!form) return;
+        try {
+          var input = form.querySelector('.ttv2-csv-dropzone-input');
+          if (input) {
+            input.value = '';
+            var fn = form.querySelector('[data-ttv2-csv-filename]');
+            if (fn) {
+              var empty = fn.getAttribute('data-empty-label') || 'No file selected';
+              fn.textContent = empty;
+            }
+          }
+        } catch (e) {}
+      }
+      function bindRowModal(modalId, hiddenId, labelId, formId){
+        var modalEl = document.getElementById(modalId);
+        if (!modalEl || modalEl.getAttribute('data-ttv2-mktg-row-csv-bound') === '1') return;
+        modalEl.setAttribute('data-ttv2-mktg-row-csv-bound', '1');
+        modalEl.addEventListener('show.bs.modal', function(ev){
+          var btn = ev.relatedTarget;
+          if (!btn) return;
+          var hiddenEl = document.getElementById(hiddenId);
+          var labelEl = document.getElementById(labelId);
+          var formEl = document.getElementById(formId);
+          if (hiddenEl) hiddenEl.value = (btn.getAttribute('data-institute-id') || '').trim();
+          if (labelEl) {
+            var name = (btn.getAttribute('data-institute-name') || '').trim();
+            var rem = (btn.getAttribute('data-credits-remaining') || '').trim();
+            var line = name ? ('Institute: ' + name) : '—';
+            if (rem) line += ' — ' + rem + ' credits left';
+            labelEl.textContent = line;
+          }
+          resetDropzone(formEl);
+          try {
+            var subId = formId === 'ttv2MktgRowMatricCsvUploadForm'
+              ? 'ttv2MktgRowMatricCsvUploadSubmit'
+              : 'ttv2MktgRowPostMatricCsvUploadSubmit';
+            if (typeof window.ttv2RefreshRowCsvModal === 'function') {
+              window.ttv2RefreshRowCsvModal(
+                modalId,
+                subId,
+                (btn.getAttribute('data-institute-id') || ''),
+                (btn.getAttribute('data-credits-remaining') || '0')
+              );
+            }
+          } catch (eR) {}
+        });
+        modalEl.addEventListener('hidden.bs.modal', function(){
+          resetDropzone(document.getElementById(formId));
+        });
+      }
+      bindRowModal('ttv2MktgRowMatricCsvUploadModal', 'ttv2MktgRowMatricInstituteId', 'ttv2MktgRowMatricInstituteLabel', 'ttv2MktgRowMatricCsvUploadForm');
+      bindRowModal('ttv2MktgRowPostMatricCsvUploadModal', 'ttv2MktgRowPostMatricInstituteId', 'ttv2MktgRowPostMatricInstituteLabel', 'ttv2MktgRowPostMatricCsvUploadForm');
+    };
+
     window.ttv2AfterAjaxContentLoad = function(){
       try {
         window._ttv2InstituteGroupDashboardBooted = false;
@@ -53,6 +113,7 @@
           window.ttv2BootInstituteGroupDashboard();
         }
       } catch (e) {}
+      try { window.ttv2InitMktgRowCsvUploadModals(); } catch (e5) {}
       try { window.ttv2InitMktgFilterDrawer(); } catch (e4) {}
       try {
         var host = document.getElementById('ttv2AjaxContent');
@@ -73,11 +134,18 @@
     };
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function(){ try { window.ttv2InitMktgFilterDrawer(); } catch(e){} });
+      document.addEventListener('DOMContentLoaded', function(){
+        try { window.ttv2InitMktgFilterDrawer(); } catch(e){}
+        try { window.ttv2InitMktgRowCsvUploadModals(); } catch(e){}
+      });
     } else {
       try { window.ttv2InitMktgFilterDrawer(); } catch(e){}
+      try { window.ttv2InitMktgRowCsvUploadModals(); } catch(e){}
     }
-    document.addEventListener('ttv2:content:loaded', function(){ try { window.ttv2InitMktgFilterDrawer(); } catch(e){} });
+    document.addEventListener('ttv2:content:loaded', function(){
+      try { window.ttv2InitMktgFilterDrawer(); } catch(e){}
+      try { window.ttv2InitMktgRowCsvUploadModals(); } catch(e){}
+    });
   })();
 </script>
 

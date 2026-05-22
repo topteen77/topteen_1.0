@@ -872,6 +872,82 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       if (s && h) h.value = (s.value || '').trim();
     }
 
+    function preselectGroupCsvInstituteFromFilter(selectId, hiddenSyncFn){
+      try {
+        var slug = (new URLSearchParams(window.location.search || '')).get('institute_slug');
+        if (!slug) return;
+        var sel = document.getElementById(selectId);
+        if (!sel) return;
+        slug = String(slug).trim();
+        for (var i = 0; i < sel.options.length; i++) {
+          var opt = sel.options[i];
+          var os = (opt.getAttribute('data-slug') || '').trim();
+          if (os && os === slug) {
+            sel.selectedIndex = i;
+            break;
+          }
+        }
+        if (typeof hiddenSyncFn === 'function') hiddenSyncFn();
+      } catch (e) {}
+    }
+
+    function ttv2GroupCsvCanUploadOption(opt){
+      if (!opt || !opt.value) return false;
+      return opt.getAttribute('data-can-upload') === '1';
+    }
+
+    function ttv2RefreshGroupCsvUploadUi(selectId, hintId, submitId, hiddenSyncFn){
+      try {
+        var sel = document.getElementById(selectId);
+        var hint = hintId ? document.getElementById(hintId) : null;
+        var submit = submitId ? document.getElementById(submitId) : null;
+        if (!sel) return;
+        var opt = sel.options[sel.selectedIndex];
+        var can = ttv2GroupCsvCanUploadOption(opt);
+        if (typeof hiddenSyncFn === 'function') hiddenSyncFn();
+        if (submit) submit.disabled = !can;
+        if (hint) {
+          if (!opt || !opt.value) {
+            hint.textContent = 'Select an institute with available credits.';
+          } else if (!can) {
+            var rem = (opt.getAttribute('data-credits-remaining') || '0').trim();
+            hint.textContent = rem === '0'
+              ? 'This institute has no credits left — upload is disabled.'
+              : 'Demo institutes cannot accept bulk uploads. Pick another school.';
+          } else {
+            var remOk = (opt.getAttribute('data-credits-remaining') || '').trim();
+            hint.textContent = remOk
+              ? (remOk + ' credits available for new students.')
+              : 'Credits available for upload.';
+          }
+        }
+      } catch (e) {}
+    }
+
+    function ttv2BindGroupCsvUploadForm(cfg){
+      if (!cfg || !cfg.selectId) return;
+      var sel = document.getElementById(cfg.selectId);
+      if (!sel || sel.getAttribute('data-ttv2-csv-upload-bound') === '1') return;
+      sel.setAttribute('data-ttv2-csv-upload-bound', '1');
+      var refresh = function(){
+        ttv2RefreshGroupCsvUploadUi(cfg.selectId, cfg.hintId, cfg.submitId, cfg.syncHidden);
+      };
+      sel.addEventListener('change', refresh);
+      if (cfg.modalId) {
+        var modal = document.getElementById(cfg.modalId);
+        if (modal) modal.addEventListener('show.bs.modal', refresh);
+      }
+      refresh();
+    }
+
+    function ttv2RefreshRowCsvModal(modalId, submitId, instituteId, creditsRemaining){
+      var submit = submitId ? document.getElementById(submitId) : null;
+      var can = instituteId && parseInt(creditsRemaining, 10) > 0;
+      if (submit) submit.disabled = !can;
+    }
+    window.ttv2RefreshRowCsvModal = ttv2RefreshRowCsvModal;
+    window.ttv2BindGroupCsvUploadForm = ttv2BindGroupCsvUploadForm;
+
     function syncCounselorAction(){
       try{
         var t = document.getElementById('ttv2CounselorInstituteSelect');
@@ -901,8 +977,21 @@ body.ttv2-shell .ttv2-topbar-pay-now {
     document.addEventListener('show.bs.modal', function(ev){
       try{
         var id = ev.target && ev.target.id;
-        if (id === 'ttv2MatricCsvUploadModal') syncMatricHidden();
-        if (id === 'ttv2PostMatricCsvUploadModal') syncPostMatricHidden();
+        if (id === 'ttv2MatricCsvUploadModal') {
+          preselectGroupCsvInstituteFromFilter('ttv2MatricInstituteSelect', syncMatricHidden);
+          ttv2RefreshGroupCsvUploadUi('ttv2MatricInstituteSelect', 'ttv2MatricCsvUploadHint', 'ttv2MatricCsvUploadSubmit', syncMatricHidden);
+        }
+        if (id === 'ttv2PostMatricCsvUploadModal') {
+          preselectGroupCsvInstituteFromFilter('ttv2PostMatricInstituteSelect', syncPostMatricHidden);
+          ttv2RefreshGroupCsvUploadUi('ttv2PostMatricInstituteSelect', 'ttv2PostMatricCsvUploadHint', 'ttv2PostMatricCsvUploadSubmit', syncPostMatricHidden);
+        }
+        if (id === 'ttv2MktgRowMatricCsvUploadModal' || id === 'ttv2MktgRowPostMatricCsvUploadModal') {
+          var btn = ev.relatedTarget;
+          var iid = btn ? (btn.getAttribute('data-institute-id') || '') : '';
+          var rem = btn ? (btn.getAttribute('data-credits-remaining') || '0') : '0';
+          var subId = id === 'ttv2MktgRowMatricCsvUploadModal' ? 'ttv2MktgRowMatricCsvUploadSubmit' : 'ttv2MktgRowPostMatricCsvUploadSubmit';
+          ttv2RefreshRowCsvModal(id, subId, iid, rem);
+        }
       } catch(e) {}
     });
 
@@ -910,8 +999,32 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       var form = e.target;
       if (!form || form.tagName !== 'FORM' || !form.getAttribute) return;
       try{
-        if (form.id === 'ttv2MatricCsvUploadForm') syncMatricHidden();
-        if (form.id === 'ttv2PostMatricCsvUploadForm') syncPostMatricHidden();
+        if (form.id === 'ttv2MatricCsvUploadForm') {
+          syncMatricHidden();
+          var hidM = document.getElementById('ttv2MatricInstituteId');
+          if (!hidM || !hidM.value) {
+            e.preventDefault();
+            alert('Please select an institute with available credits.');
+            return;
+          }
+        }
+        if (form.id === 'ttv2PostMatricCsvUploadForm') {
+          syncPostMatricHidden();
+          var hidP = document.getElementById('ttv2PostMatricInstituteId');
+          if (!hidP || !hidP.value) {
+            e.preventDefault();
+            alert('Please select an institute with available credits.');
+            return;
+          }
+        }
+        if (form.id === 'ttv2MktgRowMatricCsvUploadForm' || form.id === 'ttv2MktgRowPostMatricCsvUploadForm') {
+          var hidR = form.querySelector('input[name="institute"]');
+          if (!hidR || !hidR.value) {
+            e.preventDefault();
+            alert('Institute not set for upload. Close the dialog and try again.');
+            return;
+          }
+        }
         if (form.getAttribute('data-ttv2-counselor-form') === '1') {
           syncCounselorAction();
           var act = (form.getAttribute('action') || '').trim();
@@ -926,6 +1039,20 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       openFromHash();
       syncMatricHidden();
       syncPostMatricHidden();
+      ttv2BindGroupCsvUploadForm({
+        modalId: 'ttv2MatricCsvUploadModal',
+        selectId: 'ttv2MatricInstituteSelect',
+        hintId: 'ttv2MatricCsvUploadHint',
+        submitId: 'ttv2MatricCsvUploadSubmit',
+        syncHidden: syncMatricHidden
+      });
+      ttv2BindGroupCsvUploadForm({
+        modalId: 'ttv2PostMatricCsvUploadModal',
+        selectId: 'ttv2PostMatricInstituteSelect',
+        hintId: 'ttv2PostMatricCsvUploadHint',
+        submitId: 'ttv2PostMatricCsvUploadSubmit',
+        syncHidden: syncPostMatricHidden
+      });
     });
     window.addEventListener('hashchange', openFromHash);
   })();

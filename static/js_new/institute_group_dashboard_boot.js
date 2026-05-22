@@ -645,6 +645,11 @@
         if (loader) loader.style.display = "none";
         container.style.display = "block";
         container.innerHTML = html;
+        try {
+          if (typeof window.ttv2InitMktgRowCsvUploadModals === "function") {
+            window.ttv2InitMktgRowCsvUploadModals();
+          }
+        } catch (eCsv) {}
       })
       .catch(function (error) {
         console.error("Error loading institutes table:", error);

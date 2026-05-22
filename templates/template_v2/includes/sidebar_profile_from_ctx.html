@@ -4,5 +4,6 @@
   {% set profile_joined = ttv2_role_ctx.profile.joined|default('') %}
   {% set profile_badge = ttv2_role_ctx.profile.badge|default('Active member') %}
   {% set profile_initials = ttv2_role_ctx.profile.initials|default('') %}
+  {% set profile_role = ttv2_role_ctx.profile.role_label|default('') %}
   {% include "template_v2/includes/sidebar_profile_card.html" %}
 {% endif %}

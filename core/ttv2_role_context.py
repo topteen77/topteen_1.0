@@ -102,6 +102,16 @@ def _resolve_institute_group_for_user(user) -> Optional[InstituteGroup]:
         return None
 
 
+def _profile_role_label(role: str) -> str:
+    """Human-readable role for v2 sidebar profile card."""
+    return {
+        "counselor": "Counselor",
+        "institute": "Institute admin",
+        "institute_group": "Institute group admin",
+        "marketing_group": "Marketing admin",
+    }.get(role or "", "")
+
+
 def _format_joined_month_year(obj) -> str:
     try:
         created = getattr(obj, "created", None)
@@ -624,13 +634,19 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
                     _badge = str(institute.name or "").strip() or _badge
             except Exception:
                 pass
-            profile = {"name": _cname, "joined": _jn, "badge": _badge}
+            profile = {
+                "name": _cname,
+                "joined": _jn,
+                "badge": _badge,
+                "role_label": _profile_role_label(role),
+            }
         elif role == "institute" and institute:
             tagline = "Institute Dashboard v2.0"
             profile = {
                 "name": getattr(institute, "name", "") or "Institute",
                 "joined": _format_joined_month_year(institute),
                 "badge": "Active member",
+                "role_label": _profile_role_label(role),
             }
         elif role == "institute_group":
             tagline = "Institute Group Dashboard v2.0"
@@ -640,7 +656,12 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             if not _gname:
                 _gname = display_name
             _jn = _format_joined_month_year(institute_group) if institute_group else _format_joined_month_year(user)
-            profile = {"name": _gname, "joined": _jn, "badge": "Active member"}
+            profile = {
+                "name": _gname,
+                "joined": _jn,
+                "badge": "Active member",
+                "role_label": _profile_role_label(role),
+            }
         elif role == "marketing_group":
             tagline = "Marketing Dashboard v2.0"
             _gname = ""
@@ -649,7 +670,12 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             if not _gname:
                 _gname = display_name
             _jn = _format_joined_month_year(marketing_group) if marketing_group else _format_joined_month_year(user)
-            profile = {"name": _gname, "joined": _jn, "badge": "Active member"}
+            profile = {
+                "name": _gname,
+                "joined": _jn,
+                "badge": "Active member",
+                "role_label": _profile_role_label(role),
+            }
     except Exception:
         profile = None
 

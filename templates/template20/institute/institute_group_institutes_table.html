@@ -21,6 +21,8 @@
         <th>Counselors</th>
         <th>Advisor actions</th>
         <th>Students</th>
+        <th>Credits</th>
+        <th>Bulk upload</th>
         <th>Created</th>
       </tr>
     </thead>
@@ -30,6 +32,7 @@
         {% set _ig_stu_href = url('institute:institutegroupdashboard_page', args=['students']) ~ '?institute_slug=' ~ (ins.slug|urlencode) %}
         {% set cmap = (ig_institute_counselors_map.get(ins.id) if ig_institute_counselors_map is defined else []) or [] %}
         <tr class="institute-row"
+            data-institute-id="{{ ins.id }}"
             data-institute-slug="{{ ins.slug }}"
             data-institute-name="{{ ins.name }}"
             data-institute-students="{{ ins.student_count if ins.student_count else 0 }}">
@@ -84,12 +87,23 @@
           <td>
             <a href="{{ _ig_stu_href }}" class="ttv2-ig-student-link" title="Open students for this school">{{ ins.student_count if ins.student_count else 0 }}</a>
           </td>
+          <td class="text-nowrap">
+            {% set _ig_alloc = ins.credit_counts|default(0) %}
+            {% set _ig_used = ins.student_count|default(0) %}
+            {% set _ig_rem = _ig_alloc - _ig_used %}
+            {% if _ig_rem < 0 %}{% set _ig_rem = 0 %}{% endif %}
+            <span class="ttv2-ig-credits-balance fw-semibold text-success" title="Allocated {{ _ig_alloc }}, used {{ _ig_used }}">{{ _ig_rem }} left</span>
+            <span class="d-block small text-muted">{{ _ig_alloc }} allocated</span>
+          </td>
+          <td class="ttv2-mktg-cell-upload">
+            {% include "template_v2/institute/includes/mktg_institute_row_upload_buttons.html" %}
+          </td>
           <td class="ttv2-ig-cell-muted text-nowrap">{{ ins.created_at.strftime('%Y-%m-%d') if ins.created_at else '—' }}</td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="8" class="ttv2-ig-table-empty">
+          <td colspan="10" class="ttv2-ig-table-empty">
             <span class="ttv2-ig-table-empty__icon" aria-hidden="true"><i class="bx bx-building"></i></span>
             <p class="ttv2-ig-table-empty__title mb-1">No institutes found</p>
             <p class="ttv2-ig-table-empty__text mb-0">Try adjusting your filters or add a new institute.</p>

@@ -2,6 +2,7 @@
 {% set _name = (profile_name|default('') or '').strip() %}
 {% set _joined = (profile_joined|default('') or '').strip() %}
 {% set _badge = (profile_badge|default('Active member') or '').strip() %}
+{% set _role = (profile_role|default('') or '').strip() %}
 {% set _initials = (profile_initials|default('') or '').strip() %}
 {% if not _initials and _name %}
   {% set _parts = _name.split() %}
@@ -17,6 +18,9 @@
     <div class="ttv2-sidebar-profile-avatar">{{ _initials|default('U') }}</div>
     <div class="min-w-0">
       <div class="ttv2-sidebar-profile-name text-truncate">{{ _name|default('User') }}</div>
+      {% if _role %}
+        <div class="ttv2-sidebar-profile-role text-truncate">{{ _role }}</div>
+      {% endif %}
       {% if _joined %}
         <div class="ttv2-sidebar-profile-sub text-truncate">Joined {{ _joined }}</div>
       {% endif %}

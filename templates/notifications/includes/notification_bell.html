@@ -1,9 +1,9 @@
 {% if request and request.user and request.user.is_authenticated %}
-<div class="tt-notification-bell-wrap dropdown">
+<div class="tt-notification-bell-wrap tt-notification-bell-wrap--empty dropdown">
   <button class="btn btn-sm btn-light tt-notification-bell" id="ttNotificationBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
     {# Inline SVG: template20 base loads Boxicons only, not Font Awesome #}
     <svg class="tt-notification-bell-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-    <span class="badge bg-danger tt-notification-badge" id="ttNotificationBadge" style="display:none;">0</span>
+    <span class="badge bg-danger tt-notification-badge" id="ttNotificationBadge" aria-hidden="true"></span>
   </button>
   <div class="dropdown-menu dropdown-menu-end tt-notification-dropdown p-0 border-0" aria-labelledby="ttNotificationBellBtn">
     <div class="tt-notification-header">Notifications</div>
@@ -32,6 +32,10 @@
     background: #f8fafc;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   }
+  .tt-notification-bell-wrap--empty .tt-notification-bell:hover {
+    background: #fff;
+    box-shadow: none;
+  }
   .tt-notification-bell-icon { display: block; flex-shrink: 0; color: #475569; }
   .tt-notification-badge {
     position: absolute !important;
@@ -43,9 +47,12 @@
     border-radius: 999px;
     font-weight: 600;
     height: 1rem;
-    display: flex !important;
+    display: none;
     align-items: center;
     justify-content: center;
+  }
+  .tt-notification-badge.tt-notification-badge--visible {
+    display: flex !important;
   }
   .tt-notification-dropdown {
     min-width: min(380px, calc(100vw - 24px));
@@ -246,13 +253,20 @@
     }
 
     function setBadgeCount(c) {
+      var n = parseInt(c, 10) || 0;
+      var wrap = badgeEl && badgeEl.closest('.tt-notification-bell-wrap');
       if (!badgeEl) return;
-      if (c > 0) {
-        badgeEl.style.display = 'inline-block';
-        badgeEl.textContent = c > 99 ? '99+' : String(c);
+      if (n > 0) {
+        badgeEl.classList.add('tt-notification-badge--visible');
+        badgeEl.setAttribute('aria-hidden', 'false');
+        badgeEl.textContent = n > 99 ? '99+' : String(n);
       } else {
-        badgeEl.style.display = 'none';
-        badgeEl.textContent = '0';
+        badgeEl.classList.remove('tt-notification-badge--visible');
+        badgeEl.setAttribute('aria-hidden', 'true');
+        badgeEl.textContent = '';
+      }
+      if (wrap) {
+        wrap.classList.toggle('tt-notification-bell-wrap--empty', n <= 0);
       }
     }
 

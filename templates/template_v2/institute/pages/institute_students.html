@@ -165,7 +165,11 @@
             <select name="institute_slug" id="institute_slug_filter" class="form-control custom-input" aria-label="Institute">
               <option value="">All institutes</option>
               {% for ii in ttv2_quicklink_institutes %}
-                <option value="{{ ii.slug }}" {% if request.GET.get('institute_slug') == ii.slug %}selected{% endif %}>{{ ii.name }}</option>
+                <option value="{{ ii.slug }}"
+                        {% if request.GET.get('institute_slug') == ii.slug %}selected{% endif %}
+                        data-credits-remaining="{{ ii.credits_remaining|default(0) }}">
+                  {{ ii.name }}{% if ii.credits_remaining is defined %} — {{ ii.credits_remaining }} credits left{% endif %}
+                </option>
               {% endfor %}
             </select>
             {% endif %}

@@ -1,13 +1,19 @@
-{# Bulk CSV upload triggers for one institute row (marketing institutes list). #}
-{% if ins.institute_status != 3 and ins.institute_status != 2 and not ins.is_system_demo %}
+{# Bulk CSV upload triggers for one institute row (marketing / institute-group lists). #}
+{% set _row_alloc = ins.credit_counts|default(0) %}
+{% set _row_used = ins.student_count|default(0) %}
+{% set _row_rem = _row_alloc - _row_used %}
+{% if _row_rem < 0 %}{% set _row_rem = 0 %}{% endif %}
+{% set _can_upload = (_row_rem > 0) and not (ins.is_system_demo|default(false)) and (ins.institute_status is not defined or (ins.institute_status != 3 and ins.institute_status != 2)) %}
 <div class="ttv2-mktg-row-upload-actions">
+  {% if _can_upload %}
   <button type="button"
           class="btn btn-sm ttv2-mktg-row-csv-btn ttv2-mktg-row-csv-btn--matric"
           data-bs-toggle="modal"
           data-bs-target="#ttv2MktgRowMatricCsvUploadModal"
           data-institute-id="{{ ins.id }}"
           data-institute-name="{{ ins.name }}"
-          title="Bulk upload students — Class 10">
+          data-credits-remaining="{{ _row_rem }}"
+          title="Bulk upload students — Class 9–10 ({{ _row_rem }} credits left)">
     <i class="bx bx-cloud-upload" aria-hidden="true"></i>
     <span>Class 10</span>
   </button>
@@ -17,9 +23,15 @@
           data-bs-target="#ttv2MktgRowPostMatricCsvUploadModal"
           data-institute-id="{{ ins.id }}"
           data-institute-name="{{ ins.name }}"
-          title="Bulk upload students — Class 12">
+          data-credits-remaining="{{ _row_rem }}"
+          title="Bulk upload students — Class 11–12 ({{ _row_rem }} credits left)">
     <i class="bx bx-cloud-upload" aria-hidden="true"></i>
     <span>Class 12</span>
   </button>
+  {% else %}
+  <span class="ttv2-mktg-row-upload-disabled small text-muted"
+        title="{% if ins.is_system_demo|default(false) %}Demo institute — uploads disabled{% elif _row_rem <= 0 %}No credits left{% else %}Upload unavailable{% endif %}">
+    {% if ins.is_system_demo|default(false) %}Demo{% elif _row_rem <= 0 %}0 credits{% else %}—{% endif %}
+  </span>
+  {% endif %}
 </div>
-{% endif %}

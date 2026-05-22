@@ -190,9 +190,25 @@
           }
           if (labelEl) {
             var name = (btn.getAttribute('data-institute-name') || '').trim();
-            labelEl.textContent = name ? ('Institute: ' + name) : '—';
+            var rem = (btn.getAttribute('data-credits-remaining') || '').trim();
+            var line = name ? ('Institute: ' + name) : '—';
+            if (rem) line += ' — ' + rem + ' credits left';
+            labelEl.textContent = line;
           }
           resetDropzone(formEl);
+          try {
+            var subId = formId === 'ttv2MktgRowMatricCsvUploadForm'
+              ? 'ttv2MktgRowMatricCsvUploadSubmit'
+              : 'ttv2MktgRowPostMatricCsvUploadSubmit';
+            if (typeof window.ttv2RefreshRowCsvModal === 'function') {
+              window.ttv2RefreshRowCsvModal(
+                modalId,
+                subId,
+                (btn.getAttribute('data-institute-id') || ''),
+                (btn.getAttribute('data-credits-remaining') || '0')
+              );
+            }
+          } catch (eR) {}
         });
         modalEl.addEventListener('hidden.bs.modal', function(){
           resetDropzone(document.getElementById(formId));

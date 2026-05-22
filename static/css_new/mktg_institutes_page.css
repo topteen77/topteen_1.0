@@ -1076,6 +1076,20 @@ a.ttv2-mktg-login-email:hover{
   background: rgba(139, 92, 246, 0.18);
   color: #5b21b6;
 }
+.ttv2-mktg-row-upload-disabled{
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.12);
+  font-weight: 600;
+}
+#ttv2MatricCsvUploadSubmit:disabled,
+#ttv2PostMatricCsvUploadSubmit:disabled,
+#ttv2MktgRowMatricCsvUploadSubmit:disabled,
+#ttv2MktgRowPostMatricCsvUploadSubmit:disabled{
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .ttv2-mktg-status-pill{
   display: inline-flex;
   align-items: center;

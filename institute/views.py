@@ -522,6 +522,13 @@ def institute_student_name_suggest(request, slug):
     return JsonResponse({"suggestions": suggestions})
 
 
+def build_ttv2_quicklink_institutes(user):
+    """Institutes in admin scope with allocated / used / remaining credits."""
+    from core.ttv2_institute_credits import build_ttv2_quicklink_institutes as _build
+
+    return _build(user)
+
+
 def user_manages_institute_for_api(user, institute):
     """
     True if the user may read institute/student API payloads for this institute.
@@ -2366,9 +2373,7 @@ class MarketingGroupDashboardView(TemplateView):
             )
             # v2 quick-links: used by modal dropdowns (add counselor / bulk upload)
             try:
-                ctx["ttv2_quicklink_institutes"] = list(
-                    _scoped.values("id", "name", "slug").order_by(Lower("name"))[:500]
-                )
+                ctx["ttv2_quicklink_institutes"] = build_ttv2_quicklink_institutes(group_admin)
             except Exception:
                 ctx["ttv2_quicklink_institutes"] = []
             _dr_start, _dr_end = _ttv2_date_range_from_request(request)
@@ -3348,13 +3353,7 @@ class InstituteGroupDashboardView(TemplateView):
             _sm_ig = student_management_for_institute_group_admin(group_admin)
             # v2 quick-links: used by modal dropdowns (add counselor / bulk upload)
             try:
-                ctx["ttv2_quicklink_institutes"] = list(
-                    Institute.objects.filter(
-                        institute_group__institute_group_admin=group_admin
-                    )
-                    .values("id", "name", "slug")
-                    .order_by(Lower("name"))[:500]
-                )
+                ctx["ttv2_quicklink_institutes"] = build_ttv2_quicklink_institutes(group_admin)
             except Exception:
                 ctx["ttv2_quicklink_institutes"] = []
             _dr_start, _dr_end = _ttv2_date_range_from_request(request)
@@ -7311,8 +7310,11 @@ class InstituteCsvStudentCreateView(TemplateView):
             )
             return HttpResponseRedirect(referer)
 
-        if getattr(institute, "is_system_demo", False):
-            messages.error(request, "Demo institute: cannot add new students.")
+        from core.ttv2_institute_credits import institute_bulk_upload_block_reason
+
+        _block = institute_bulk_upload_block_reason(institute)
+        if _block:
+            messages.error(request, _block)
             return HttpResponseRedirect(referer)
 
         csv_file = request.FILES.get("stu_file")
@@ -7505,8 +7507,11 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
             )
             return HttpResponseRedirect(referer)
 
-        if getattr(institute, "is_system_demo", False):
-            messages.error(request, "Demo institute: cannot add new students.")
+        from core.ttv2_institute_credits import institute_bulk_upload_block_reason
+
+        _block = institute_bulk_upload_block_reason(institute)
+        if _block:
+            messages.error(request, _block)
             return HttpResponseRedirect(referer)
 
         csv_file = request.FILES.get("stu_file")
