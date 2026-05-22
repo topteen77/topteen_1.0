@@ -57,6 +57,45 @@ def _staff_report_student_id_from_request(request):
     return None
 
 
+def _staff_can_view_student_report(request, student_uid) -> bool:
+    """
+    Institute, marketing-group, and institute-group admins may view a student's
+    post-matric reports only when that student belongs to an institute they manage.
+    """
+    from core import choices
+    from institute.models import StudentManagement
+
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    try:
+        sid = int(student_uid)
+    except (TypeError, ValueError):
+        return False
+    if sid == int(user.id):
+        return True
+    if user.is_superuser:
+        return True
+
+    try:
+        ut = int(getattr(user, "user_type", 0) or 0)
+    except Exception:
+        ut = 0
+
+    base = StudentManagement.objects.filter(student_id=sid)
+    if ut == choices.UserType.INSTITUTE:
+        return base.filter(institute__created_by=user).exists()
+    if ut == choices.UserType.MARKETINGGROUPADMIN:
+        return base.filter(
+            institute__marketing_group__marketing_group_admin=user
+        ).exists()
+    if ut == choices.UserType.INSTITUTEGROUPADMIN:
+        return base.filter(
+            institute__institute_group__institute_group_admin=user
+        ).exists()
+    return False
+
+
 def _report_display_fields_for_student(student_user, *, session_end=None):
     """Header fields for results.html (StudentManagement + UserProfile)."""
     from institute.models import StudentManagement
@@ -1326,32 +1365,9 @@ def Results(request):
 
         if user_id:
             try:
-                from core import choices
-
                 uid = int(user_id)
                 viewing_student_report = uid != int(request.user.id)
-                is_institute_user = (
-                    StudentManagement.objects.filter(student__id=uid)
-                    .filter(institute__created_by=request.user)
-                    .exists()
-                    or request.user.is_superuser
-                )
-                is_marketing_scoped = StudentManagement.objects.filter(
-                    student_id=uid,
-                    institute__marketing_group__marketing_group_admin=request.user,
-                ).exists()
-                is_group_scoped = StudentManagement.objects.filter(
-                    student_id=uid,
-                    institute__institute_group__institute_group_admin=request.user,
-                ).exists()
-                is_admin = (
-                    request.user.is_superuser
-                    or request.user.user_type == choices.UserType.INSTITUTE
-                    or request.user.user_type == choices.UserType.MARKETINGGROUPADMIN
-                    or request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN
-                )
-
-                if is_institute_user or is_marketing_scoped or is_group_scoped or is_admin:
+                if _staff_can_view_student_report(request, uid):
                     target_user = get_object_or_404(User, id=uid)
                 elif not viewing_student_report:
                     target_user = request.user
@@ -1729,12 +1745,19 @@ def Results(request):
             'error': f'An error occurred: {str(e)}',
             'no_results': True
         })
-    
+
+
+@login_required
 def CombinedReport(request, user_id=None):
     try:
         embed_mode = (request.GET.get("embed") or "").strip() == "1"
         route_student_id = int(user_id) if user_id else None
-        
+
+        if route_student_id and not _staff_can_view_student_report(request, route_student_id):
+            from django.http import HttpResponseForbidden
+
+            return HttpResponseForbidden("You do not have permission to view this report.")
+
         # Get the target user (student) whose report we want to view
         if route_student_id:
             target_user = get_object_or_404(User, id=route_student_id)
@@ -3149,6 +3172,8 @@ def Test_results(request, id):
     user_id = request.GET.get("user_id")
     if user_id:
         params["user_id"] = user_id
+    if (request.GET.get("embed") or "").strip() == "1":
+        params["embed"] = "1"
     return redirect(f"{reverse('post_matric:results')}?{urlencode(params)}")
 
     try:

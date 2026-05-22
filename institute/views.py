@@ -3708,15 +3708,16 @@ class InstituteDashboardView(TemplateView):
                 except (ValueError, IndexError):
                     pass
                 
-                # Determine system based on class (and demo: demo Class 12 uses psychometric data)
+                # Determine system based on class
                 if class_number and class_number >= 11:
-                    # Class 11-12: use psychometric for demo institute (demo data has no post-matric)
                     institute = getattr(student_management, "institute", None)
-                    if institute and getattr(institute, "is_system_demo", False):
-                        return self._get_psychometric_test_result(user)
-                    # Class 11-12: Use post-matric system for non-demo
                     from app_post_matric.models import TestSession, TestResult
                     post_matric_sessions = TestSession.objects.filter(user=user)
+                    # Demo Class 11–12: post-matric when seeded; else legacy psychometric
+                    if institute and getattr(institute, "is_system_demo", False):
+                        if post_matric_sessions.filter(is_completed=True).exists():
+                            return self._get_post_matric_test_result(user, post_matric_sessions)
+                        return self._get_psychometric_test_result(user)
                     return self._get_post_matric_test_result(user, post_matric_sessions)
                 else:
                     # Class 10 and below: Use psychometric system
@@ -4099,12 +4100,13 @@ class InstituteDashboardView(TemplateView):
                 except (ValueError, IndexError):
                     pass
                 
-                # Determine system based on class (demo Class 12 uses psychometric data)
+                # Class 11–12: post-matric (demo institutes use it when sessions are seeded)
                 if class_number and class_number >= 11:
                     institute = getattr(student_management, "institute", None)
                     if institute and getattr(institute, "is_system_demo", False):
+                        if any(getattr(s, "is_completed", False) for s in (post_matric_sessions or [])):
+                            return self._get_post_matric_test_result_optimized(user, post_matric_sessions)
                         return self._get_psychometric_test_result_optimized(user, test_completion, results_list)
-                    # Class 11-12: Use post-matric system
                     return self._get_post_matric_test_result_optimized(user, post_matric_sessions)
                 else:
                     # Class 10 and below: Use psychometric system
