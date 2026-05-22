@@ -1,15 +1,9 @@
-{# Credit + KIRA insights — placed at bottom of v2 dashboard pages. Expects ttv2_analytics. #}
+{# Credit + KIRA insights — bottom-right toasts (30s auto-close). Expects ttv2_analytics. #}
 {% if ttv2_analytics is defined and ttv2_analytics %}
-<div class="ttv2-dashboard-banners" data-ttv2-dashboard-banners>
-  <div class="ttv2-card mt-3" style="padding:10px 12px;background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.24);">
-    <div style="font-size:11px;color:var(--c-text2);line-height:1.5;">
-      <strong style="color:var(--c-text)">Credit alert:</strong> {{ ttv2_analytics.banners.credit|default('') }}
-    </div>
-  </div>
-  <div class="ttv2-card mt-2" style="padding:10px 12px;background:rgba(99,102,241,.10);border-color:rgba(99,102,241,.24);">
-    <div style="font-size:11px;color:var(--c-text2);line-height:1.5;">
-      <strong style="color:var(--c-text)">KIRA insight:</strong> {{ ttv2_analytics.banners.kira|default('') }}
-    </div>
-  </div>
-</div>
+<div class="ttv2-dashboard-banners-source"
+     data-ttv2-dashboard-banners
+     hidden
+     aria-hidden="true"
+     data-credit="{{ ttv2_analytics.banners.credit|default('') }}"
+     data-kira="{{ ttv2_analytics.banners.kira|default('') }}"></div>
 {% endif %}

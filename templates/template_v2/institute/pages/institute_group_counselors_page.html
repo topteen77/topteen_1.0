@@ -1,14 +1,20 @@
-<div class="ttv2-ig-subpage">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h2 class="fs-20 mb-0">Counselors</h2>
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ttv2AddCounselorModal">
-        <i class="bx bx-user-voice"></i> Add counselor
+<div class="ttv2-mktg-subpage ttv2-mktg-counselors-page ttv2-ig-counselors-page">
+  <div class="ttv2-mktg-page-hero d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <h2 class="ttv2-mktg-page-title mb-1 fs-22 fw-750">Counselors</h2>
+      <p class="ttv2-mktg-page-lead mb-0 fs-14 text-muted">Search by counselor name, email, or institute across your group.</p>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 ttv2-mktg-hero-actions">
+      <button type="button" class="btn ttv2-mktg-btn ttv2-mktg-btn--primary" data-bs-toggle="modal" data-bs-target="#ttv2AddCounselorModal">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-user-voice"></i></span>
+        <span class="ttv2-mktg-btn-label">Add counselor</span>
       </button>
-      <a href="{{ url('institute:institutegroupdashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to dashboard</a>
+      <a href="{{ url('institute:institutegroupdashboard') }}" class="btn ttv2-mktg-btn ttv2-mktg-btn--ghost d-none">
+        <span class="ttv2-mktg-btn-icon"><i class="bx bx-arrow-back"></i></span>
+        <span class="ttv2-mktg-btn-label">Back to dashboard</span>
+      </a>
     </div>
   </div>
-  <p class="text-muted small mb-3">Search by counselor name, email, or institute.</p>
   {% set ig_counselor_search_action = url('institute:institutegroupdashboard_page', args=['counselors']) %}
   {% set ig_counselor_reset_href = url('institute:institutegroupdashboard_page', args=['counselors']) %}
   {% include "template_v2/institute/fragments/ig_counselors_block.html" %}
