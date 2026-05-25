@@ -5,6 +5,54 @@
 <div id="ttv2TieupPaymentsRoot">
 {% set _coupon_institutes = tieup_coupon_institutes if tieup_coupon_institutes is defined else (mktg_coupon_institutes if mktg_coupon_institutes is defined else []) %}
 {% if (show_tieup_coupon_create|default(false) or is_marketing_view|default(false)) and coupon_create_url is defined and _coupon_institutes|length > 0 %}
+{% if is_group_view|default(false) %}
+<section class="ttv2-gpay-section">
+  <h2 class="ttv2-gpay-section-title mb-3"><i class="bx bx-plus-circle"></i> Create institute coupon</h2>
+  <form method="post" action="{{ coupon_create_url }}" class="ttv2-gpay-coupon-form">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <div class="ttv2-gpay-field--wide">
+      <label class="form-label">Institute</label>
+      <select name="institute_id" class="form-select" required>
+        <option value="">Select institute…</option>
+        {% for ins in _coupon_institutes %}
+        <option value="{{ ins.id }}">{{ ins.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="form-label">Code</label>
+      <input type="text" name="coupon_code" class="form-control" style="text-transform:uppercase;" required maxlength="64" placeholder="SAVE10">
+    </div>
+    <div>
+      <label class="form-label">Type</label>
+      <select name="discount_type" class="form-select">
+        <option value="percent">Percentage</option>
+        <option value="fixed">Fixed (₹)</option>
+      </select>
+    </div>
+    <div>
+      <label class="form-label">Value</label>
+      <input type="number" name="coupon_value" class="form-control" step="0.01" min="0" required placeholder="10">
+    </div>
+    <div>
+      <label class="form-label">Applies to</label>
+      <select name="applies_to" class="form-select">
+        <option value="all">All products</option>
+        <option value="student_test_credits">Exam credits</option>
+        <option value="counselor_course_seats">Counsellor Course</option>
+        <option value="career_readiness_skilllab">College &amp; Career Readiness</option>
+      </select>
+    </div>
+    <div>
+      <label class="form-label">Max uses</label>
+      <input type="number" name="max_uses" class="form-control" min="1" placeholder="∞">
+    </div>
+    <div>
+      <button type="submit" class="btn btn-primary w-100 ttv2-gpay-submit">Create coupon</button>
+    </div>
+  </form>
+</section>
+{% else %}
 <div class="ttv2-card mb-3">
   <h6 class="card-title mb-2">Create institute coupon</h6>
   <form method="post" action="{{ coupon_create_url }}" class="row g-2 align-items-end">
@@ -52,10 +100,51 @@
   </form>
 </div>
 {% endif %}
+{% endif %}
 
 
 {% set _all_coupons = coupons_available if coupons_available is defined else [] %}
 {% if _all_coupons|length > 0 %}
+{% if is_group_view|default(false) %}
+<section class="ttv2-gpay-section">
+  <div class="ttv2-gpay-section-head mb-2">
+    <div>
+      <h2 class="ttv2-gpay-section-title"><i class="bx bx-purchase-tag"></i> Institute coupons</h2>
+      <p class="ttv2-gpay-section-desc">Active codes across your institutes — apply when paying a pending order.</p>
+    </div>
+  </div>
+  <div class="ttv2-gpay-table-wrap">
+    <table class="table mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>Institute</th>
+          <th>Code</th>
+          <th>Offer</th>
+          <th class="text-center">Used</th>
+          <th class="text-center">Max</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in _all_coupons %}
+        <tr>
+          <td class="small">{% if c.institute_slug is defined %}<a href="{{ url('institute:institute_masterdashboard', args=[c.institute_slug]) }}">{{ c.institute_name|default(c.institute_slug) }}</a>{% else %}—{% endif %}</td>
+          <td class="fw-semibold">{{ c.code }}</td>
+          <td class="small">{{ c.label }}</td>
+          <td class="text-center">{{ c.times_used|default(0) }}</td>
+          <td class="text-center">{% if c.max_uses is defined and c.max_uses is not none %}{{ c.max_uses }}{% else %}∞{% endif %}</td>
+          <td>
+            {% if c.applicable_now|default(false) %}<span class="ttv2-gpay-badge ttv2-gpay-badge--success"><i class="bx bx-check"></i> Applicable now</span>
+            {% elif c.is_active|default(true) %}<span class="ttv2-gpay-badge ttv2-gpay-badge--muted">Active</span>
+            {% else %}<span class="ttv2-gpay-badge ttv2-gpay-badge--muted">Inactive</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
 <div class="ttv2-card mb-3">
   <h6 class="card-title mb-2">Institute coupons</h6>
   <p class="small text-muted mb-2">Active codes{% if is_marketing_view|default(false) or is_group_view|default(false) %} across your institutes{% endif %} — apply on Payments when paying a pending order.</p>
@@ -93,34 +182,49 @@
   </div>
 </div>
 {% endif %}
-<div class="ttv2-card">
+{% endif %}
+<div class="ttv2-card{% if is_group_view|default(false) %} ttv2-gpay-section{% endif %}">
+  {% if is_group_view|default(false) %}
+  <div class="ttv2-gpay-section-head">
+    <div>
+      <h2 class="ttv2-gpay-section-title"><i class="bx bx-history"></i> Payment history</h2>
+      <p class="ttv2-gpay-section-desc">Invoices and gateway transactions for your group institutes.</p>
+    </div>
+    <p class="ttv2-gpay-section-meta mb-0">View or download GST invoice for successful payments.</p>
+  </div>
+  {% else %}
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div class="card-title mb-0">{% if is_marketing_view|default(false) %}Tie-up payments{% else %}Payment history{% endif %}</div>
     <div class="small text-muted">Invoices and gateway transactions — view or download GST invoice for successful payments.</div>
   </div>
+  {% endif %}
   {% set _st = (ttv2_payments_status_filter|default(''))|lower %}
   {% set _inst_f = ttv2_payments_institute_filter|default('') %}
   {% set _institutes = tieup_payment_institutes if tieup_payment_institutes is defined else _coupon_institutes %}
-  <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
+  <div class="{% if is_group_view|default(false) %}ttv2-gpay-toolbar{% else %}d-flex flex-wrap gap-2 align-items-center mt-3{% endif %}">
     {% if _institutes|length > 0 and (is_marketing_view|default(false) or is_group_view|default(false)) %}
-    <label class="small text-muted mb-0 me-1">Institute</label>
-    <select class="form-select form-select-sm" style="max-width:220px;" data-ttv2-tieup-pay-institute aria-label="Filter by institute">
+    <div class="{% if is_group_view|default(false) %}ttv2-gpay-toolbar-inst{% endif %}">
+      <label class="{% if not is_group_view|default(false) %}small text-muted mb-0 me-1{% endif %}">Institute</label>
+      <select class="form-select form-select-sm" {% if not is_group_view|default(false) %}style="max-width:220px;"{% endif %} data-ttv2-tieup-pay-institute aria-label="Filter by institute">
       <option value="" {% if not _inst_f %}selected{% endif %}>All institutes</option>
       {% for ins in _institutes %}
       <option value="{{ ins.slug }}" {% if _inst_f == ins.slug %}selected{% endif %}>{{ ins.name }}</option>
       {% endfor %}
-    </select>
+      </select>
+    </div>
     {% endif %}
+    <div class="{% if is_group_view|default(false) %}ttv2-gpay-filters{% endif %}">
     <button type="button" class="btn btn-sm {% if not _st %}btn-primary{% else %}btn-outline-primary{% endif %}" data-ttv2-tieup-pay-status="">All</button>
     <button type="button" class="btn btn-sm {% if _st == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}" data-ttv2-tieup-pay-status="pending">Pending</button>
     <button type="button" class="btn btn-sm {% if _st == 'received' %}btn-success{% else %}btn-outline-success{% endif %}" data-ttv2-tieup-pay-status="received">Received</button>
     <button type="button" class="btn btn-sm {% if _st == 'failed' %}btn-danger{% else %}btn-outline-danger{% endif %}" data-ttv2-tieup-pay-status="failed">Failed</button>
+    </div>
   </div>
 </div>
 
-<div class="ttv2-card p-0 mt-3">
-  <div class="table-responsive">
-    <table class="table table-hover mb-0 align-middle">
+<div class="{% if is_group_view|default(false) %}ttv2-gpay-table-wrap{% else %}ttv2-card p-0 mt-3{% endif %}">
+  <div class="{% if not is_group_view|default(false) %}table-responsive{% endif %}">
+    <table class="table {% if is_group_view|default(false) %}mb-0{% else %}table-hover mb-0{% endif %} align-middle">
       <thead>
         <tr>
           {% if show_inst_col %}<th>Institute</th>{% endif %}
@@ -132,8 +236,8 @@
           <th class="text-end">Discount</th>
           <th class="text-end">Total</th>
           <th>Status</th>
-          <th>Gateway</th>
-          <th>Transaction</th>
+          <th class="ttv2-gpay-col-gateway">Gateway</th>
+          <th class="ttv2-gpay-col-txn">Transaction</th>
           <th>Invoice</th>
           {% if show_actions_col %}<th>Actions</th>{% endif %}
         </tr>
@@ -157,15 +261,21 @@
               <td class="text-end">₹{{ r.discount }}</td>
               <td class="text-end fw-semibold">₹{{ r.total }}</td>
               <td>
-                {% if r.status_key == 20 %}<span class="badge bg-success">{{ r.status }}</span>
-                {% elif r.status_key == 30 %}<span class="badge bg-danger">{{ r.status }}</span>
-                {% else %}<span class="badge bg-warning text-dark">{{ r.status }}</span>{% endif %}
+                {% if is_group_view|default(false) %}
+                  {% if r.status_key == 20 %}<span class="ttv2-gpay-badge ttv2-gpay-badge--success"><i class="bx bx-check"></i> {{ r.status }}</span>
+                  {% elif r.status_key == 30 %}<span class="ttv2-gpay-badge ttv2-gpay-badge--danger">{{ r.status }}</span>
+                  {% else %}<span class="ttv2-gpay-badge ttv2-gpay-badge--pending"><i class="bx bx-time-five"></i> {{ r.status }}</span>{% endif %}
+                {% else %}
+                  {% if r.status_key == 20 %}<span class="badge bg-success">{{ r.status }}</span>
+                  {% elif r.status_key == 30 %}<span class="badge bg-danger">{{ r.status }}</span>
+                  {% else %}<span class="badge bg-warning text-dark">{{ r.status }}</span>{% endif %}
+                {% endif %}
                 {% if r.paid_at and r.paid_at != '—' and r.status_key == 20 %}
                 <div class="small text-muted mt-1">Paid {{ r.paid_at }}</div>
                 {% endif %}
               </td>
-              <td class="small">{{ r.gateway|default('—') }}</td>
-              <td class="small text-truncate" style="max-width:140px" title="{{ r.transaction|default('') }}">
+              <td class="small ttv2-gpay-col-gateway">{{ r.gateway|default('—') }}</td>
+              <td class="small text-truncate ttv2-gpay-col-txn" style="max-width:140px" title="{{ r.transaction|default('') }}">
                 {% if r.transaction_url is defined and r.transaction_url %}
                   <a href="{{ r.transaction_url }}">{{ r.transaction|default('Receipt') }}</a>
                 {% else %}
