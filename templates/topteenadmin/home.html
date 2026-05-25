@@ -2,26 +2,120 @@
 {% block main %}
 <div class="post d-flex flex-column-fluid" id="kt_post">
 	<div id="kt_content_container" class="container-xxl">
-		<div class="card mb-5">
-			<div class="card-body py-8">
-				<h4 class="mb-4">Quick links</h4>
-				<div class="d-flex flex-wrap gap-3">
-					<a href="{{ url('core:home') }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-						Website
-					</a>
-					<a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-light-primary">
-						Dashboard
-					</a>
-					<a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-light">
-						TopTeen Admin
-					</a>
-					<a href="{{ url('topteenadminmanaged:bloglist') }}" class="btn btn-light">
-						Blog
-					</a>
+		<div class="mb-8">
+			<h2 class="fw-bold text-gray-800 mb-2">Content management</h2>
+			<p class="text-muted mb-0">Quick access to lists and create forms.</p>
+		</div>
+		<div class="row g-5 g-xl-8">
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Careers</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:careerlist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:careercreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Blogs</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:bloglist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:blogcreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Colleges</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:collegelist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:collegecreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Courses</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:courselist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:coursecreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Entrance exams</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:entranceexamlist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:entranceexamcreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">SkillLab courses</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:skilllabcourselist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:skilllabcoursecreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Blog categories</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:blogcategorylist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:blogcategorycreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">CRM leads</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:leadlist') }}" class="btn btn-sm btn-light-primary">List</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Students</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:studentlist') }}" class="btn btn-sm btn-light-primary">List</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6 col-xl-4">
+				<div class="card card-flush h-100">
+					<div class="card-header pt-5">
+						<h3 class="card-title fw-bold text-gray-800">Reviews</h3>
+					</div>
+					<div class="card-body pt-2 d-flex flex-wrap gap-2">
+						<a href="{{ url('topteenadminmanaged:reviewlist') }}" class="btn btn-sm btn-light-primary">List</a>
+						<a href="{{ url('topteenadminmanaged:reviewcreate') }}" class="btn btn-sm btn-primary">Add</a>
+					</div>
 				</div>
 			</div>
 		</div>
-		<h6 class="text-muted">Select an option from the left menu to start</h6>
 	</div>
 </div>
 {% endblock %}

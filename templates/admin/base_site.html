@@ -1,12 +1,49 @@
 {% extends "admin/base.html" %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  #user-tools .admin-quick-link {
+    font-weight: 600;
+  }
+  #quick-nav-module ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  #quick-nav-module li {
+    border-bottom: 1px solid var(--hairline-color, #e8e8e8);
+  }
+  #quick-nav-module li:last-child {
+    border-bottom: 0;
+  }
+  #quick-nav-module a {
+    display: block;
+    padding: 10px 16px;
+    text-decoration: none;
+  }
+  #quick-nav-module a:hover {
+    background: var(--selected-row, #ffc);
+  }
+  #nav-sidebar .admin-quick-nav {
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--hairline-color, #e8e8e8);
+  }
+  #nav-sidebar .admin-quick-nav a {
+    display: block;
+    padding: 6px 0;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
 {% block userlinks %}
+  <a href="{% url 'core:home' %}" target="_blank" rel="noopener noreferrer" class="admin-quick-link">Website</a> /
+  <a href="{% url 'topteenadmin:topteendashboard' %}" class="admin-quick-link">Dashboard</a> /
   {% if user.is_superuser %}
-    <a href="{% url 'user_analytics:admin_dashboard' %}">Dashboard</a> /
+    <a href="{% url 'user_analytics:admin_dashboard' %}" class="admin-quick-link">Analytics</a> /
   {% elif user.is_staff %}
-    <a href="{% url 'user_analytics:business_dashboard' %}">Dashboard</a> /
+    <a href="{% url 'user_analytics:business_dashboard' %}" class="admin-quick-link">Analytics</a> /
   {% endif %}
   {{ block.super }}
 {% endblock %}
-
-

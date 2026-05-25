@@ -6,6 +6,11 @@ from django.db.models import Q
 from careers.document_filters import CareerDocumentFilter
 from .models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTags, Profession,CareerCluster,Videos,VideoCategory,CareerShortlist,CareerRating
 from .utils import extract_intro_html_from_description
+from core.accordion_utils import (
+    build_description_accordion_sections,
+    split_trailing_untitled_section_for_frontend,
+    toc_from_sections,
+)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from colleges.models import College
 from core.models import Country
@@ -481,6 +486,24 @@ class CareerDetail(TemplateView):
         
         # Generate career aspect mindmap data (like HIPPOLOGY example)
         ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
+
+        json_sections = None
+        section_order = None
+        desc_json = getattr(career, 'description_json', None)
+        if isinstance(desc_json, dict):
+            json_sections = desc_json.get('sections')
+            section_order = desc_json.get('section_order')
+        accordion_sections = build_description_accordion_sections(
+            career.description or '',
+            json_sections=json_sections,
+            section_order=section_order,
+        )
+        accordion_sections, footer_html = split_trailing_untitled_section_for_frontend(
+            accordion_sections
+        )
+        ctx['accordion_sections'] = accordion_sections
+        ctx['career_footer_paragraph_html'] = footer_html
+        ctx['accordion_toc'] = toc_from_sections(accordion_sections)
 
         # Mindmap: API-backed radial/classic vs static SVG accordion navigator
         try:

@@ -21,99 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 def extract_accordion_sections(career):
-    """Extract H4 headings from career description to determine available accordion sections"""
-    from bs4 import BeautifulSoup
-    
-    sections = []
-    if not career.description:
-        return sections
-    
+    """Accordion section metadata from centralized H2 parser (core.accordion_utils)."""
+    from core.accordion_utils import accordion_sections_for_api
+
     try:
-        soup = BeautifulSoup(career.description, 'html.parser')
-        h4_headings = soup.find_all('h4')
-        
-        # Icon mapping matching the detail page
-        icon_map = {
-            'overview': 'bx-id-card',
-            'roles and responsibilities': 'bx-task',
-            'study route': 'bx-book-reader',
-            'eligibility': 'bx-book-reader',
-            'significant observations': 'bx-bulb',
-            'internships': 'bx-briefcase-alt-2',
-            'practical exposure': 'bx-briefcase-alt-2',
-            'courses': 'bx-book-content',
-            'specializations': 'bx-book-content',
-            'institutes': 'bx-building-house',
-            'international': 'bx-globe',
-            'entrance tests': 'bx-edit-alt',
-            'career path': 'bx-trending-up',
-            'employment': 'bx-map-alt',
-            'employers': 'bx-building',
-            'pros and cons': 'bx-traffic-cone',
-            'industry trends': 'bx-line-chart',
-            'future outlook': 'bx-line-chart',
-            'notable': 'bx-user-voice',
-            'software tools': 'bx-chip',
-            'organizations': 'bx-network-chart',
-            'advice': 'bx-message-dots',
-            'conclusion': 'bx-check-shield',
-            'related courses': 'bx-book-open',
-            'resources': 'bx-folder-open',
-            'faq': 'bx-help-circle',
-            'frequently asked': 'bx-help-circle'
-        }
-        
-        # Color mapping
-        color_map = {
-            'overview': '#007bff',
-            'roles': '#28a745',
-            'study route': '#ffc107',
-            'eligibility': '#ffc107',
-            'observations': '#17a2b8',
-            'internships': '#20c997',
-            'courses': '#6f42c1',
-            'institutes': '#fd7e14',
-            'entrance': '#e83e8c',
-            'career path': '#dc3545',
-            'employment': '#fd7e14',
-            'employers': '#6c757d',
-            'pros and cons': '#dc3545',
-            'trends': '#6610f2',
-            'advice': '#fd7e14',
-            'conclusion': '#28a745',
-            'related courses': '#6f42c1',
-            'resources': '#17a2b8',
-            'faq': '#ffc107'
-        }
-        
-        for h4 in h4_headings:
-            heading_text = h4.get_text(strip=True)
-            if heading_text:
-                heading_lower = heading_text.lower()
-                # Find matching icon
-                icon = 'bx-layer'  # default
-                color = '#6c757d'  # default
-                
-                for key, icon_class in icon_map.items():
-                    if key in heading_lower:
-                        icon = icon_class
-                        break
-                
-                for key, icon_color in color_map.items():
-                    if key in heading_lower:
-                        color = icon_color
-                        break
-                
-                sections.append({
-                    'title': heading_text,
-                    'id': heading_text.lower().replace(' ', '-').replace('&', 'and').replace('/', '-'),
-                    'icon': icon,
-                    'color': color
-                })
+        return accordion_sections_for_api(career)
     except Exception as e:
-        logger.error(f'Error extracting accordion sections: {str(e)}')
-    
-    return sections
+        logger.error('Error extracting accordion sections: %s', e)
+        return []
 
 
 def detect_section_query(query):

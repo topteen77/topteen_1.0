@@ -1,0 +1,22 @@
+{# Django admin static preview: pass description HTML from context #}
+<div class="accordion-preview-wrapper" id="{{ accordion_id|default('adminAccordionPreview') }}-wrapper"></div>
+{% include 'includes/accordion/scripts.html' %}
+<script>
+(function() {
+  var html = {{ description|default('')|tojson|safe }};
+  var container = document.getElementById('{{ accordion_id|default("adminAccordionPreview") }}-wrapper');
+  if (!container || typeof TopTeenAccordion === 'undefined') return;
+  if (!html || !String(html).trim()) {
+    container.innerHTML = '<p style="color:#666;padding:20px;">No description content available.</p>';
+    return;
+  }
+  var items = TopTeenAccordion.parseDescriptionToAccordion(html);
+  TopTeenAccordion.renderAccordion(container, items, {
+    mode: 'preview',
+    accordionId: '{{ accordion_id|default("adminAccordionPreview") }}',
+    expandAll: false,
+    showCount: true,
+    sourceHtml: html
+  });
+})();
+</script>

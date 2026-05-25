@@ -334,6 +334,20 @@
             width: 20px;
             margin-right: 10px;
         }
+
+        .admin-quick-nav-panel {
+            padding: 12px 20px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .admin-quick-nav-panel .btn {
+            width: 100%;
+            text-align: left;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+        .admin-quick-nav-panel .btn:last-child {
+            margin-bottom: 0;
+        }
     </style>
     
     {% block additional_head %}
@@ -350,6 +364,12 @@
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
+        </div>
+        <div class="admin-quick-nav-panel">
+            <a href="{{ url('core:home') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Website</a>
+            <a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-sm btn-outline-light">Dashboard</a>
+            <a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-sm btn-outline-light">TopTeen Admin</a>
+            <a href="{{ url('topteenadminmanaged:bloglist') }}" class="btn btn-sm btn-outline-light">Blog</a>
         </div>
         <nav class="sidebar-menu">
             <div class="menu-item">
@@ -463,6 +483,7 @@
                 <a href="{{ url('core:home') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">Website</a>
                 <a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
                 <a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-sm btn-outline-secondary">TopTeen Admin</a>
+                <a href="{{ url('topteenadminmanaged:bloglist') }}" class="btn btn-sm btn-outline-secondary">Blog</a>
                 {% include "notifications/includes/notification_bell.html" %}
                 <div class="dropdown">
                     <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">

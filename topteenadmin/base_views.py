@@ -114,9 +114,11 @@ class BaseListView(ListView):
         return self._get_filters(qs).qs
 
     def _breadcrumb(self):
-        class_name=self.model.__name__.lower()
-        app_name=self.model._meta.app_label
-        return build_admin_breadcrumb([{'title':self.title,'text':self.title,'url':reverse_lazy('topteenadminmanaged:{}list'.format(class_name))}])
+        class_name = self.model.__name__.lower()
+        list_url = reverse_lazy('topteenadminmanaged:{}list'.format(class_name))
+        return build_admin_breadcrumb([
+            {'title': self.title, 'text': self.title, 'url': list_url},
+        ])
 
 @method_decorator(login_required,name='dispatch')    
 class BaseCreateView(SuccessMessageMixin,CreateView):
@@ -131,11 +133,12 @@ class BaseCreateView(SuccessMessageMixin,CreateView):
         return ctx
 
     def _breadcrumb(self):
-        class_name=self.model()._get_class_name()
-        url=reverse_lazy('topteenadminmanaged:{}list'.format(class_name.lower()))
-        lst=[{'title':'{}s'.format(class_name),'text':'{}s'.format(class_name),'url':url}]
-        lst.append({'title':'AddCareer','text':'AddCareer','url':'#'})
-        return build_admin_breadcrumb(lst)
+        class_name = self.model()._get_class_name().lower()
+        list_url = reverse_lazy('topteenadminmanaged:{}list'.format(class_name))
+        return build_admin_breadcrumb([
+            {'title': self.title, 'text': self.title, 'url': list_url},
+            {'title': 'Add', 'text': 'Add new', 'url': '#'},
+        ])
 
     def get_success_url(self, *args, **kwargs):
         url = super().get_success_url( *args, **kwargs)
@@ -155,11 +158,12 @@ class BaseUpdateView(SuccessMessageMixin,UpdateView):
         return ctx
 
     def _breadcrumb(self):
-        class_name=self.model()._get_class_name()
-        url=reverse_lazy('topteenadminmanaged:{}list'.format(class_name.lower()))
-        lst=[{'title':'{}s'.format(class_name),'text':'{}s'.format(class_name),'url':url}]
-        lst.append({'title':'UpdateCareer','text':'UpdateCareer','url':'#'})
-        return build_admin_breadcrumb(lst)
+        class_name = self.model()._get_class_name().lower()
+        list_url = reverse_lazy('topteenadminmanaged:{}list'.format(class_name))
+        return build_admin_breadcrumb([
+            {'title': self.title, 'text': self.title, 'url': list_url},
+            {'title': 'Edit', 'text': 'Edit', 'url': '#'},
+        ])
  
 @method_decorator(login_required,name='dispatch')  
 class BaseDetailView(UpdateView):
@@ -173,11 +177,12 @@ class BaseDetailView(UpdateView):
         return ctx
 
     def _breadcrumb(self):
-        class_name=self.model()._get_class_name()
-        url=reverse_lazy('topteenadminmanaged:{}list'.format(class_name.lower()))
-        lst=[{'title':'{}s'.format(class_name),'text':'{}s'.format(class_name),'url':url}]
-        lst.append({'title':'Detail','text':'Detail','url':'#'})
-        return build_admin_breadcrumb(lst)    
+        class_name = self.model()._get_class_name().lower()
+        list_url = reverse_lazy('topteenadminmanaged:{}list'.format(class_name))
+        return build_admin_breadcrumb([
+            {'title': self.title, 'text': self.title, 'url': list_url},
+            {'title': 'View', 'text': 'View', 'url': '#'},
+        ])    
 
 @method_decorator(login_required,name='dispatch')   
 class BaseDeleteView(DeleteView):

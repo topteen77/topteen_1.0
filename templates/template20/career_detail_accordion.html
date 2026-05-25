@@ -1113,8 +1113,20 @@
           {% endif %}
           {% endif %}
 
-          <!-- Accordion Content Container -->
-          <div class="cat-main-content" id="careerAccordionContainer">
+          <!-- Accordion Content Container (server-rendered when accordion_sections available) -->
+          <div class="cat-main-content" id="careerAccordionContainer"{% if accordion_sections or career_footer_paragraph_html %} data-ssr-rendered="true"{% endif %}>
+            {% if accordion_sections or career_footer_paragraph_html %}
+            {% if accordion_sections %}
+            {% with accordion_id='careerAccordion', wrapper_class='accordion cat-accordion custom-faq', sections=accordion_sections %}
+            {% include 'includes/accordion/sections_accordion.html' %}
+            {% endwith %}
+            {% endif %}
+            {% if career_footer_paragraph_html %}
+            <div class="career-detail-closing-paragraph blogDetail careerDetail">
+              {{ career_footer_paragraph_html|safe }}
+            </div>
+            {% endif %}
+            {% else %}
             {% if overview_html %}
             <h4>Overview</h4>
             <div class="blogDetail careerDetail">{{ overview_html|safe }}</div>
@@ -1553,6 +1565,7 @@
               {% endfor %}
             </div>
             {% endif %}
+            {% endif %}{# end legacy fallback when no accordion_sections #}
           </div>
         </div>
       </div>
@@ -1764,6 +1777,7 @@
 
 {% block additionaljs %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="{{ static('js/accordion-content.js') }}"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script>
@@ -1904,7 +1918,40 @@
 
     // Build accordion from description_json, then fallback to description headings.
     const container = document.getElementById('careerAccordionContainer');
-    if (container && container.dataset.accordionReady !== 'true') {
+    {% if career.description %}
+    const careerDescriptionHtml = {{ career.description|tojson|safe }};
+    {% else %}
+    const careerDescriptionHtml = '';
+    {% endif %}
+
+    function rebuildAccordionFromDescriptionHtml(targetContainer) {
+      if (!targetContainer || !careerDescriptionHtml || typeof TopTeenAccordion === 'undefined') return false;
+      const items = TopTeenAccordion.parseDescriptionToAccordion(careerDescriptionHtml);
+      const split = TopTeenAccordion.splitTrailingUntitledForFrontend(items);
+      if (!split.accordionItems.length && !split.footerHtml) return false;
+      const existingFooter = targetContainer.querySelector('.career-detail-closing-paragraph');
+      if (split.accordionItems.length) {
+        TopTeenAccordion.renderAccordion(targetContainer, split.accordionItems, {
+          mode: 'bootstrap',
+          accordionId: 'careerAccordion',
+          emptyMessage: 'No sections found. Add H2 headings in the career description.'
+        });
+        if (existingFooter) existingFooter.remove();
+        TopTeenAccordion.appendCareerFooterParagraph(targetContainer, split.footerHtml);
+      } else {
+        targetContainer.innerHTML = '';
+        TopTeenAccordion.appendCareerFooterParagraph(targetContainer, split.footerHtml);
+      }
+      return true;
+    }
+
+    if (container && container.dataset.ssrRendered === 'true') {
+      if (!container.querySelector('.accordion-item')) {
+        console.warn('Career accordion SSR produced no panels; rebuilding from description HTML.');
+        rebuildAccordionFromDescriptionHtml(container);
+      }
+      container.dataset.accordionReady = 'true';
+    } else if (container && container.dataset.accordionReady !== 'true') {
       // Step 1: Read JSON first and generate accordions
       let careerJsonSections = null;
       
@@ -1940,18 +1987,21 @@
       const careerName = 'Career';
       {% endif %}
       
-      // Get original description HTML for extracting additional sections
-      {% if career.description %}
-      const originalDescriptionHTML = {{ career.description|tojson|safe }};
-      {% else %}
-      const originalDescriptionHTML = '';
-      {% endif %}
+      const originalDescriptionHTML = careerDescriptionHtml;
       
-      if (careerJsonSections && Object.keys(careerJsonSections).length > 0) {
-        // Generate accordions from JSON and create infographics from JSON data
+      const jsonSectionCount = careerJsonSections ? Object.keys(careerJsonSections).length : 0;
+      const h2InDescription = (typeof TopTeenAccordion !== 'undefined' && originalDescriptionHTML)
+        ? TopTeenAccordion.countH2InHtml(originalDescriptionHTML)
+        : 0;
+      const jsonLooksIncomplete = h2InDescription > 0 && jsonSectionCount > 0 && jsonSectionCount < h2InDescription;
+
+      if (jsonLooksIncomplete && rebuildAccordionFromDescriptionHtml(container)) {
+        console.info('Using full description HTML (' + h2InDescription + ' H2) instead of incomplete JSON (' + jsonSectionCount + ' sections).');
+      } else if (careerJsonSections && jsonSectionCount > 0) {
         generateAccordionFromJSON(careerJsonSections, container, careerName, originalDescriptionHTML);
+      } else if (rebuildAccordionFromDescriptionHtml(container)) {
+        /* built from H2 */
       } else {
-        // Error case fallback: build from description headings when JSON is blank
         generateAccordionFromHTMLHeadings(container, originalDescriptionHTML);
       }
     }
