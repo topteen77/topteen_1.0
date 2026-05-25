@@ -1,0 +1,60 @@
+<!-- Full description popup for psychometric landing pages -->
+<div class="modal fade psychometric-description-modal" id="psychometricDescriptionModal" tabindex="-1" aria-labelledby="psychometricDescriptionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-700 text-purple" id="psychometricDescriptionModalLabel">Full Description</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="psychometricDescriptionModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function initPsychometricDescriptionModal() {
+    var modalEl = document.getElementById('psychometricDescriptionModal');
+    if (!modalEl) return;
+
+    var titleEl = document.getElementById('psychometricDescriptionModalLabel');
+    var bodyEl = document.getElementById('psychometricDescriptionModalBody');
+    var modalInstance = null;
+
+    function getModalInstance() {
+      if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return null;
+      return modalInstance || bootstrap.Modal.getOrCreateInstance(modalEl);
+    }
+
+    document.querySelectorAll('.read-more-btn').forEach(function (button) {
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
+        var boxContent = this.closest('.box-content');
+        if (!boxContent) return;
+
+        var title = boxContent.querySelector('h4');
+        var fullText = boxContent.querySelector('.description-full-text');
+
+        if (titleEl) {
+          titleEl.textContent = title ? title.textContent.trim() : 'Full Description';
+        }
+        if (bodyEl) {
+          bodyEl.innerHTML = fullText ? fullText.innerHTML : '';
+        }
+
+        var instance = getModalInstance();
+        if (instance) {
+          modalInstance = instance;
+          instance.show();
+        }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPsychometricDescriptionModal);
+  } else {
+    initPsychometricDescriptionModal();
+  }
+})();
+</script>

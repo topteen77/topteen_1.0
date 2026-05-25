@@ -3179,6 +3179,10 @@ class UserDashboard(TemplateView):
             ctx['current_level'] = stats['current_level']
             ctx['next_level_min_points'] = stats.get('next_level_min_points')
             ctx['level_progress_percent'] = stats.get('level_progress_percent', 0)
+            ctx['trophy_details'] = stats.get('trophy_details', [])
+            ctx['points_details'] = stats.get('points_details', [])
+            ctx['streak_details'] = stats.get('streak_details', {})
+            ctx['level_details'] = stats.get('level_details', {})
         except Exception:
             ctx['trophies_unlocked'] = 0
             ctx['total_points'] = 0
@@ -3186,6 +3190,10 @@ class UserDashboard(TemplateView):
             ctx['current_level'] = 'Rookie'
             ctx['next_level_min_points'] = None
             ctx['level_progress_percent'] = 0
+            ctx['trophy_details'] = []
+            ctx['points_details'] = []
+            ctx['streak_details'] = {}
+            ctx['level_details'] = {}
 
         # Parent suggestions (show parent bookmarks/shortlists as suggestions to STUDENTS)
         ctx["show_parent_suggestions"] = False

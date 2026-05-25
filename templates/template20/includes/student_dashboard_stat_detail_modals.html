@@ -1,0 +1,240 @@
+{# Gamified detail popups — click stat counts on student dashboard #}
+{% set gamify_icons = {
+  'profile_complete': 'bx-user-check',
+  'test1_complete': 'bx-brain',
+  'test2_complete': 'bx-target-lock',
+  'test3_complete': 'bx-chip',
+  'numerical_complete': 'bx-calculator',
+  'verbal_complete': 'bx-book-open',
+  'logical_complete': 'bx-grid-alt',
+  'emotional_complete': 'bx-happy-heart-eyes',
+  'machanical_complete': 'bx-cog',
+  'language_complete': 'bx-font',
+  'spatial_complete': 'bx-cube',
+  'career_direction_complete': 'bx-compass',
+  'payment_success': 'bx-credit-card',
+  'psychometric_test_completed': 'bx-clipboard',
+  'registration': 'bx-user-plus'
+} %}
+{% set trophy_total = trophy_details|length if trophy_details else 0 %}
+{% set trophy_unlocked_count = trophies_unlocked|default(0) %}
+{% set points_earned_count = points_details|selectattr('earned')|list|length if points_details else 0 %}
+
+<div class="modal fade gamify-stat-modal" id="dashboardStatTrophiesModal" tabindex="-1"
+  aria-labelledby="dashboardStatTrophiesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="gamify-modal-hero gamify-modal-hero--trophies">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="gamify-modal-hero-icon"><i class='bx bx-trophy' aria-hidden="true"></i></div>
+        <h5 class="gamify-modal-hero-title" id="dashboardStatTrophiesModalLabel">Trophy Collection</h5>
+        <p class="gamify-modal-hero-sub">Earn trophies by completing milestones on your journey</p>
+        <div class="gamify-modal-hero-stat">{{ trophy_unlocked_count }} <small>/ {{ trophy_total }} unlocked</small></div>
+      </div>
+      <div class="modal-body">
+        {% if trophy_details %}
+        <div class="gamify-modal-summary">
+          <div class="gamify-summary-pill gamify-summary-pill--success">
+            <strong>{{ trophy_unlocked_count }}</strong>Unlocked
+          </div>
+          <div class="gamify-summary-pill gamify-summary-pill--muted">
+            <strong>{{ trophy_total - trophy_unlocked_count }}</strong>Still locked
+          </div>
+        </div>
+        <div class="gamify-achievement-list">
+          {% for item in trophy_details %}
+          {% set icon_class = gamify_icons.get(item.rule_key, 'bx-medal') %}
+          <div class="gamify-achievement-card {% if item.unlocked %}is-unlocked{% else %}is-locked{% endif %}">
+            <div class="gamify-achievement-icon">
+              <i class='bx {{ icon_class }}' aria-hidden="true"></i>
+              {% if not item.unlocked %}
+              <span class="gamify-achievement-lock" aria-hidden="true"><i class='bx bx-lock-alt'></i></span>
+              {% endif %}
+            </div>
+            <div class="gamify-achievement-body">
+              <p class="gamify-achievement-label">{{ item.label }}</p>
+              {% if item.unlocked %}
+              <p class="gamify-achievement-meta">Achievement earned</p>
+              {% else %}
+              <p class="gamify-achievement-meta">Complete this to unlock</p>
+              {% endif %}
+            </div>
+            {% if item.unlocked %}
+            <span class="gamify-status-badge gamify-status-badge--unlocked"><i class='bx bx-check'></i> Done</span>
+            {% else %}
+            <span class="gamify-status-badge gamify-status-badge--locked">Locked</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="gamify-empty-state">No trophy milestones configured yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade gamify-stat-modal" id="dashboardStatPointsModal" tabindex="-1"
+  aria-labelledby="dashboardStatPointsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="gamify-modal-hero gamify-modal-hero--points">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="gamify-modal-hero-icon"><i class='bx bx-star' aria-hidden="true"></i></div>
+        <h5 class="gamify-modal-hero-title" id="dashboardStatPointsModalLabel">Points Breakdown</h5>
+        <p class="gamify-modal-hero-sub">Every activity adds XP toward your next level</p>
+        <div class="gamify-modal-hero-stat">{{ total_points|default(0) }} <small>total XP</small></div>
+      </div>
+      <div class="modal-body">
+        {% if points_details %}
+        <div class="gamify-modal-summary">
+          <div class="gamify-summary-pill gamify-summary-pill--success">
+            <strong>{{ points_earned_count }}</strong>Activities done
+          </div>
+          <div class="gamify-summary-pill gamify-summary-pill--muted">
+            <strong>{{ points_details|length - points_earned_count }}</strong>Available
+          </div>
+        </div>
+        <div class="gamify-achievement-list">
+          {% for item in points_details %}
+          {% set icon_class = gamify_icons.get(item.rule_key, 'bx-plus-circle') %}
+          {% set pct = 100 if item.earned_points else 0 %}
+          <div class="gamify-points-card {% if item.earned_points %}is-earned{% endif %}">
+            <div class="gamify-points-icon"><i class='bx {{ icon_class }}' aria-hidden="true"></i></div>
+            <div class="gamify-points-body">
+              <p class="gamify-points-label">{{ item.label }}</p>
+              <div class="gamify-points-bar-wrap" aria-hidden="true">
+                <div class="gamify-points-bar" style="width: {{ pct }}%;"></div>
+              </div>
+              {% if item.count and item.count > 1 %}
+              <p class="gamify-achievement-meta mb-0 mt-1">{{ item.count }}× {{ item.points }} pts each</p>
+              {% elif not item.earned %}
+              <p class="gamify-achievement-meta mb-0 mt-1">Earn up to {{ item.points }} pts</p>
+              {% endif %}
+            </div>
+            <span class="gamify-points-value {% if item.earned_points %}is-earned{% else %}is-pending{% endif %}">
+              {% if item.earned_points %}+{{ item.earned_points }}{% else %}—{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="gamify-empty-state">No point rules configured yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade gamify-stat-modal" id="dashboardStatStreakModal" tabindex="-1"
+  aria-labelledby="dashboardStatStreakModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="gamify-modal-hero gamify-modal-hero--streak">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="gamify-modal-hero-icon"><i class='bx bxs-hot' aria-hidden="true"></i></div>
+        <h5 class="gamify-modal-hero-title" id="dashboardStatStreakModalLabel">Activity Streak</h5>
+        <p class="gamify-modal-hero-sub">Stay active every day to keep your flame burning</p>
+        <div class="gamify-modal-hero-stat">{{ streak_days|default(0) }} <small>day{% if (streak_days|default(0)) != 1 %}s{% endif %} streak</small></div>
+      </div>
+      <div class="modal-body">
+        {% if streak_details and streak_details.active_dates %}
+        <div class="gamify-streak-flame-row">
+          {% for day_label in streak_details.active_dates %}
+          <div class="gamify-streak-day-pill">
+            <i class='bx bxs-hot' aria-hidden="true"></i>
+            <span>{{ day_label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="text-center fs-12 text-muted mb-0">
+          <i class='bx bx-info-circle me-1'></i>Log in daily to grow your streak. Missing a day resets it.
+        </p>
+        {% elif streak_days|default(0) > 0 %}
+        <div class="gamify-streak-empty">
+          <i class='bx bxs-hot' aria-hidden="true"></i>
+          <p class="mb-0 fw-semibold">{{ streak_days }} day streak — keep it going!</p>
+        </div>
+        {% else %}
+        <div class="gamify-streak-empty mt-4">
+          <i class='bx bx-sun' aria-hidden="true"></i>
+          <p class="mb-0 fw-semibold">Start your streak today</p>
+          <p class="mb-0 fs-12 text-muted mt-1">Log in or complete an activity to begin.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade gamify-stat-modal" id="dashboardStatLevelModal" tabindex="-1"
+  aria-labelledby="dashboardStatLevelModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="gamify-modal-hero gamify-modal-hero--level">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="gamify-modal-hero-icon"><i class='bx bx-shield-quarter' aria-hidden="true"></i></div>
+        <h5 class="gamify-modal-hero-title" id="dashboardStatLevelModalLabel">{{ current_level|default('Rookie') }} Level</h5>
+        <p class="gamify-modal-hero-sub">Level up by earning more XP from activities</p>
+        <div class="gamify-modal-hero-stat">{{ level_details.total_points|default(total_points|default(0)) }} <small>XP</small></div>
+      </div>
+      <div class="modal-body">
+        {% if level_details and level_details.bands %}
+        <div class="gamify-level-ladder">
+          {% for band in level_details.bands %}
+          {% set band_lower = band.name|lower %}
+          {% if band_lower == 'rookie' %}
+            {% set band_img = 'images_new/badges/rookie.png' %}
+          {% elif band_lower == 'explorer' %}
+            {% set band_img = 'images_new/badges/explorer.png' %}
+          {% elif band_lower == 'champion' %}
+            {% set band_img = 'images_new/badges/champion.png' %}
+          {% elif band_lower == 'legend' %}
+            {% set band_img = 'images_new/badges/Legend.png' %}
+          {% else %}
+            {% set band_img = none %}
+          {% endif %}
+          <div class="gamify-level-step {% if band.is_current %}is-current{% endif %} {% if band.reached %}is-reached{% endif %}">
+            {% if band_img and band.reached %}
+            <img src="{{ static(band_img) }}" alt="" class="gamify-level-badge-img" width="40" height="40" />
+            {% else %}
+            <div class="gamify-level-step-icon"><i class='bx bx-shield' aria-hidden="true"></i></div>
+            {% endif %}
+            <div class="gamify-level-step-body">
+              <p class="gamify-level-step-name">{{ band.name }}</p>
+              <p class="gamify-level-step-pts">{{ band.min_points }}+ XP required</p>
+            </div>
+            {% if band.is_current %}
+            <span class="gamify-level-you-badge">Current</span>
+            {% elif band.reached %}
+            <i class='bx bx-check-circle text-success fs-20' aria-label="Reached"></i>
+            {% else %}
+            <i class='bx bx-lock-alt text-muted fs-18' aria-label="Locked"></i>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% if next_level_min_points is not none and level_progress_percent is not none %}
+        <div class="gamify-xp-progress">
+          <div class="gamify-xp-progress-head">
+            <span>Next level</span>
+            <span>{{ level_progress_percent }}%</span>
+          </div>
+          <div class="level-progress-wrap">
+            <div class="level-progress-bar" style="width: {{ level_progress_percent }}%;"></div>
+          </div>
+          {% if level_details.points_to_next %}
+          <p class="gamify-achievement-meta mb-0 mt-2 text-center">
+            <i class='bx bx-trending-up me-1'></i>{{ level_details.points_to_next }} XP to level up
+          </p>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="gamify-empty-state">Level bands are not configured yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

@@ -12767,7 +12767,9 @@ a:hover {
   margin: 0 15px;
 }
 
-.aptitude-carousel-item:hover {
+.aptitude-section .aptitude-carousel-item:hover {
+  background: linear-gradient(135deg, #e8f4fc 0%, #d4ebf7 50%, #c5e3f5 100%);
+  border-color: #b8daf0;
   transform: translateY(-5px);
 }
 

@@ -51,6 +51,30 @@ DEFAULT_TROPHY_KEYS = [
     'career_direction_complete', 'payment_success',
 ]
 
+RULE_LABELS = {
+    'profile_complete': 'Complete your profile',
+    'test1_complete': 'Personality test (Part 1)',
+    'test2_complete': 'Interest test (Part 2)',
+    'test3_complete': 'Aptitude test (Part 3)',
+    'numerical_complete': 'Numerical reasoning',
+    'verbal_complete': 'Verbal reasoning',
+    'logical_complete': 'Logical reasoning',
+    'emotional_complete': 'Emotional intelligence',
+    'machanical_complete': 'Mechanical reasoning',  # rule_key spelling kept for DB compatibility
+    'language_complete': 'Language & spelling',
+    'spatial_complete': 'Spatial reasoning',
+    'career_direction_complete': 'Career direction test',
+    'payment_success': 'Psychometric test payment',
+    'psychometric_test_completed': 'Psychometric test completed',
+    'registration': 'Account registration',
+}
+
+
+def _rule_label(rule_key, admin_label=None):
+    if admin_label:
+        return admin_label
+    return RULE_LABELS.get(rule_key, rule_key.replace('_', ' ').title())
+
 
 def _rule_condition_met(user, rule_key):
     """Return True if the one-off rule_key condition is met for user."""
@@ -122,8 +146,11 @@ def _get_total_points(user):
     return total
 
 
-def _get_streak_days(user):
-    """Consecutive calendar days with activity. Streak valid if latest activity is today or yesterday."""
+def _compute_streak(user):
+    """
+    Return (streak_days, streak_dates) where streak_dates are consecutive active days
+    ending today or yesterday.
+    """
     from core.models import DashboardStreakConfig
     from user_analytics.models import UserActivity, UserEvent
     from datetime import timedelta
@@ -148,28 +175,143 @@ def _get_streak_days(user):
             return list(qs.dates('created', 'day', order='DESC')[:500])
         return list(UserActivity.objects.filter(user=user).dates('created', 'day', order='DESC')[:500])
 
-    # Primary configured source
     dates = _fetch_dates_from_source(use_events)
-
-    # Fallback: if configured source has no rows, try the other one (helps demos where only one table is populated)
     if not dates:
         dates = _fetch_dates_from_source(not use_events)
 
     if not dates:
-        return 0
-    # First date must be today or yesterday for streak to count
+        return 0, []
     first_date = dates[0]
     if first_date != today and first_date != today - timedelta(days=1):
-        return 0
-    streak = 0
-    # If latest activity is yesterday, streak should start at yesterday (not today).
+        return 0, []
+
+    streak_dates = []
     expect = first_date
     for d in dates:
         if d != expect:
             break
-        streak += 1
+        streak_dates.append(d)
         expect = expect - timedelta(days=1)
-    return streak
+    return len(streak_dates), streak_dates
+
+
+def _get_streak_days(user):
+    days, _ = _compute_streak(user)
+    return days
+
+
+def _get_trophy_details(user):
+    from core.models import DashboardTrophyDefinition
+    rows = list(
+        DashboardTrophyDefinition.objects.filter(active=True).values('rule_key', 'label')
+    )
+    if not rows:
+        items = [{'rule_key': k, 'label': ''} for k in DEFAULT_TROPHY_KEYS]
+    else:
+        items = rows
+    details = []
+    for row in items:
+        rule_key = row['rule_key']
+        unlocked = _rule_condition_met(user, rule_key)
+        admin_label = (row.get('label') or '').strip()
+        # Prefer friendly labels for known rule keys (avoids typos like "Machanical")
+        label = RULE_LABELS.get(rule_key) or _rule_label(rule_key, admin_label or None)
+        details.append({
+            'rule_key': rule_key,
+            'label': label,
+            'unlocked': unlocked,
+        })
+    details.sort(key=lambda x: (not x['unlocked'], x['label']))
+    return details
+
+
+def _get_points_details(user):
+    from core.models import DashboardPointRule
+    from user_analytics.models import UserEvent
+    rules = list(DashboardPointRule.objects.filter(active=True).values_list('rule_key', 'points'))
+    if not rules:
+        point_map = DEFAULT_POINT_RULES.copy()
+    else:
+        point_map = {k: p for k, p in rules}
+
+    details = []
+    earned_total = 0
+    for rule_key in ONE_OFF_RULE_KEYS:
+        if rule_key not in point_map:
+            continue
+        pts = point_map[rule_key]
+        earned = _rule_condition_met(user, rule_key)
+        row_pts = pts if earned else 0
+        earned_total += row_pts
+        details.append({
+            'rule_key': rule_key,
+            'label': _rule_label(rule_key),
+            'points': pts,
+            'earned_points': row_pts,
+            'earned': earned,
+            'count': 1 if earned else 0,
+        })
+
+    event_points_keys = [k for k in point_map if k not in ONE_OFF_RULE_KEYS]
+    if event_points_keys:
+        counts = UserEvent.objects.filter(user=user).values('event_type').annotate(c=Count('id'))
+        count_map = {row['event_type']: row['c'] for row in counts}
+        for rule_key in sorted(event_points_keys):
+            pts = point_map[rule_key]
+            count = count_map.get(rule_key, 0)
+            row_pts = pts * count
+            earned_total += row_pts
+            details.append({
+                'rule_key': rule_key,
+                'label': _rule_label(rule_key),
+                'points': pts,
+                'earned_points': row_pts,
+                'earned': count > 0,
+                'count': count,
+            })
+
+    details.sort(key=lambda x: (-x['earned_points'], x['label']))
+    return details, earned_total
+
+
+def _get_level_details(total_points):
+    from core.models import DashboardLevelBand
+    bands = list(DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order'))
+    if not bands:
+        bands = DEFAULT_LEVEL_BANDS
+
+    level_name, next_min, progress = _get_level_band(total_points)
+    band_rows = []
+    for b in bands:
+        band_rows.append({
+            'name': b['name'],
+            'min_points': b['min_points'],
+            'is_current': b['name'] == level_name,
+            'reached': total_points >= b['min_points'],
+        })
+
+    points_to_next = 0
+    if next_min is not None:
+        points_to_next = max(0, next_min - total_points)
+
+    return {
+        'bands': band_rows,
+        'current_level': level_name,
+        'next_level_min_points': next_min,
+        'level_progress_percent': progress,
+        'total_points': total_points,
+        'points_to_next': points_to_next,
+    }
+
+
+def _get_streak_details(user):
+    days, streak_dates = _compute_streak(user)
+    formatted = [d.strftime('%d %b %Y') for d in streak_dates]
+    return {
+        'streak_days': days,
+        'active_dates': formatted,
+        'latest_activity': formatted[0] if formatted else None,
+    }
 
 
 def _get_level_band(total_points):
@@ -205,12 +347,13 @@ def _get_level_band(total_points):
 def get_student_dashboard_stats(profile_user):
     """
     Return dict: trophies_unlocked, total_points, streak_days, current_level,
-    next_level_min_points, level_progress_percent.
+    next_level_min_points, level_progress_percent, and detail breakdowns for popups.
     """
     trophies = _get_trophy_count(profile_user)
     points = _get_total_points(profile_user)
     streak = _get_streak_days(profile_user)
     level_name, next_min, progress = _get_level_band(points)
+    points_details, _ = _get_points_details(profile_user)
     return {
         'trophies_unlocked': trophies,
         'total_points': points,
@@ -218,4 +361,8 @@ def get_student_dashboard_stats(profile_user):
         'current_level': level_name,
         'next_level_min_points': next_min,
         'level_progress_percent': progress,
+        'trophy_details': _get_trophy_details(profile_user),
+        'points_details': points_details,
+        'streak_details': _get_streak_details(profile_user),
+        'level_details': _get_level_details(points),
     }

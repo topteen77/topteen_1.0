@@ -282,24 +282,20 @@ def dashboard(request, student_id=None):
 
         interest_breakdown = []
         try:
+            interest_scale_max = 36.0
             sorted_interest_items = sorted((sorted_test2_result or {}).items(), key=lambda item: item[1], reverse=True)
-            max_interest_score = 0.0
-            if sorted_interest_items:
-                try:
-                    max_interest_score = float(sorted_interest_items[0][1])
-                except (TypeError, ValueError):
-                    max_interest_score = 0.0
             for label, raw_score in sorted_interest_items:
                 try:
                     numeric_score = float(raw_score)
                 except (TypeError, ValueError):
                     numeric_score = 0.0
-                # Interest bars should be relative to the top interest score to match report behavior.
-                pct = int(round((numeric_score / max_interest_score) * 100.0)) if max_interest_score else 0
+                # Bar width = score out of 36 (matches "27/36" label on dashboard)
+                pct = int(round((numeric_score / interest_scale_max) * 100.0)) if interest_scale_max else 0
                 interest_breakdown.append({
                     'label': str(label).strip().title(),
-                    'score_pct': max(0, min(100, pct)),   # width
-                    'score_value': int(round(numeric_score)),  # shown number (raw report score)
+                    'score_pct': max(0, min(100, pct)),
+                    'score_value': int(round(numeric_score)),
+                    'score_max': int(interest_scale_max),
                 })
         except Exception:
             interest_breakdown = []
@@ -585,6 +581,10 @@ def dashboard(request, student_id=None):
             suitable_subject_combinations = []
 
         # Statistics for template20 dashboard (trophies, points, streak, level)
+        trophy_details = []
+        points_details = []
+        streak_details = {}
+        level_details = {}
         try:
             from core.dashboard_stats import get_student_dashboard_stats
             stats = get_student_dashboard_stats(request.user)
@@ -594,6 +594,10 @@ def dashboard(request, student_id=None):
             current_level = stats['current_level']
             next_level_min_points = stats.get('next_level_min_points')
             level_progress_percent = stats.get('level_progress_percent', 0)
+            trophy_details = stats.get('trophy_details', [])
+            points_details = stats.get('points_details', [])
+            streak_details = stats.get('streak_details', {})
+            level_details = stats.get('level_details', {})
         except Exception:
             trophies_unlocked = 0
             total_points = 0
@@ -633,6 +637,10 @@ def dashboard(request, student_id=None):
             'current_level': current_level,
             'next_level_min_points': next_level_min_points,
             'level_progress_percent': level_progress_percent,
+            'trophy_details': trophy_details,
+            'points_details': points_details,
+            'streak_details': streak_details,
+            'level_details': level_details,
             'vocational_course_cards': vocational_course_cards,
             'interest_suggested_careers': interest_suggested_careers,
             'aptitude_suggested_careers': aptitude_suggested_careers,

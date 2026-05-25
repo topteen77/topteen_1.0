@@ -27,57 +27,9 @@ Test. Make informed decisions and choose the right career path.
   .career-feature-icon.icon-orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
   .c-i-img img { max-width: 100%; height: auto; }
 
-  /* Expanded description: same div, header bar + scrollable body */
-  .box-description .description-expanded-header {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 0 10px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #e5e7eb;
-    flex-shrink: 0;
-  }
-  .box-description.expanded .description-expanded-header {
-    display: flex;
-    padding: 5px 9px;
-  }
-  .box-description.expanded .description-expanded-header span {
-    font-size: 16px;
-    font-weight: 700;
-    color: #4f46e5;
-    display: inline-block;
-  }
-  .box-description .description-expanded-body {
-    display: block;
-  }
-  .box-description.expanded .description-expanded-body {
-    max-height: 140px;
+  .psychometric-description-modal .modal-body {
+    max-height: 60vh;
     overflow-y: auto;
-    padding: 10px;
-  }
-  .box-description.expanded .description-expanded-body::-webkit-scrollbar {
-    width: 6px;
-  }
-  .box-description.expanded .description-expanded-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  .box-description.expanded .description-expanded-body::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-  }
-  .box-description.expanded .description-expanded-body::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-  .box-description.expanded {
-    display: flex;
-  flex-direction: column;
-  max-height: 183px;
-  background: #f6f6f6;
-  border-radius: 10px;
-  }
-  .description-close-btn {
-    flex-shrink: 0;
   }
 
   .career-direction-test-carousel .aptitude-carousel-item {
@@ -89,6 +41,7 @@ Test. Make informed decisions and choose the right career path.
 @media (max-width: 768px) {
     .hero-section-inner {
   overflow: hidden;
+}
 }
 
 </style>
@@ -117,8 +70,8 @@ Test. Make informed decisions and choose the right career path.
           <p class="text-gray fs-25 fs-sm-18 fw-700">Discover Your True Potential and Career Direction</p>
           <p class="text-gray fs-16">Our comprehensive psychometric assessment helps you identify your strengths,
             interests, and abilities to find the career that's right for you. </p>
-          <div class="hero-button d-none flex-row mt-md-6 mt-5">
-            <button onclick="scrollToPayment()" type="button" class="btn custom-button purple-button me-3">Start Your Assessment</button>
+          <div class="hero-button d-flex flex-row mt-2">
+            <button type="button" class="btn custom-button purple-button me-3 js-psychometric-pay-btn" data-label="Start Here">Start Here</button>
           </div>
         </div>
         <div class="col-lg-6 col-md-12 order-md-2 order-1">
@@ -151,15 +104,12 @@ Test. Make informed decisions and choose the right career path.
             <div class="box-content">
               <h4 class="title-two fs-20 fw-700">Career Assessment</h4>
               <div class="box-description">
-                <div class="description-expanded-header">
-                  <span>Full Description</span>
-                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
-                </div>
-                <div class="description-expanded-body">
-                  <p class="text-gray fs-16">Personality assessment is the systematic evaluation of individual differences in characteristic patterns of thinking, feeling, and behaving. The HEXACO model is a comprehensive personality assessment framework that identifies six major dimensions: Honesty-Humility (H), Emotionality (E), Extraversion (X), Agreeableness (A), Conscientiousness (C), and Openness to Experience (O). </p>
-                </div>
+                <p class="text-gray fs-16">Personality assessment is the systematic evaluation of individual differences in characteristic patterns of thinking, feeling, and behaving. The HEXACO model is a comprehensive personality assessment framework that identifies six major dimensions...</p>
               </div>
-              <button class="read-more-btn">Read more</button>
+              <div class="description-full-text d-none">
+                <p class="text-gray fs-16">Personality assessment is the systematic evaluation of individual differences in characteristic patterns of thinking, feeling, and behaving. The HEXACO model is a comprehensive personality assessment framework that identifies six major dimensions: Honesty-Humility (H), Emotionality (E), Extraversion (X), Agreeableness (A), Conscientiousness (C), and Openness to Experience (O).</p>
+              </div>
+              <button type="button" class="read-more-btn">Read more</button>
             </div>
           </div>
         </div>
@@ -171,15 +121,12 @@ Test. Make informed decisions and choose the right career path.
             <div class="box-content">
               <h4 class="title-two fs-20 fw-700">Motivation Assessment</h4>
               <div class="box-description">
-                <div class="description-expanded-header">
-                  <span>Full Description</span>
-                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
-                </div>
-                <div class="description-expanded-body">
-                  <p class="text-gray fs-16">Motivation assessment evaluates the underlying drives that energize and direct human behaviour toward goals. It primarily distinguishes between intrinsic motivation—engaging in activities for inherent satisfaction, curiosity, and personal fulfilment—and extrinsic motivation—performing behaviours to obtain external rewards like money, grades, or recognition, or to avoid punishments. </p>
-                </div>
+                <p class="text-gray fs-16">Motivation assessment evaluates the underlying drives that energize and direct human behaviour toward goals. It primarily distinguishes between intrinsic motivation and extrinsic motivation...</p>
               </div>
-              <button class="read-more-btn">Read more</button>
+              <div class="description-full-text d-none">
+                <p class="text-gray fs-16">Motivation assessment evaluates the underlying drives that energize and direct human behaviour toward goals. It primarily distinguishes between intrinsic motivation—engaging in activities for inherent satisfaction, curiosity, and personal fulfilment—and extrinsic motivation—performing behaviours to obtain external rewards like money, grades, or recognition, or to avoid punishments.</p>
+              </div>
+              <button type="button" class="read-more-btn">Read more</button>
             </div>
           </div>
         </div>
@@ -191,15 +138,12 @@ Test. Make informed decisions and choose the right career path.
             <div class="box-content">
               <h4 class="title-two fs-20 fw-700">Career Interest Inventory</h4>
               <div class="box-description">
-                <div class="description-expanded-header">
-                  <span>Full Description</span>
-                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
-                </div>
-                <div class="description-expanded-body">
-                  <p class="text-gray fs-16">Career Interest Inventory is an assessment tool that evaluates an individual's preferences, attractions, and inclinations toward various occupational activities, work environments, and career fields. These inventories, such as Holland's RIASEC model (Realistic, Investigative, Artistic, Social, Enterprising, Conventional), help identify patterns of interest that align with specific career paths and work settings. </p>
-                </div>
+                <p class="text-gray fs-16">Career Interest Inventory is an assessment tool that evaluates an individual's preferences, attractions, and inclinations toward various occupational activities, work environments, and career fields...</p>
               </div>
-              <button class="read-more-btn">Read more</button>
+              <div class="description-full-text d-none">
+                <p class="text-gray fs-16">Career Interest Inventory is an assessment tool that evaluates an individual's preferences, attractions, and inclinations toward various occupational activities, work environments, and career fields. These inventories, such as Holland's RIASEC model (Realistic, Investigative, Artistic, Social, Enterprising, Conventional), help identify patterns of interest that align with specific career paths and work settings.</p>
+              </div>
+              <button type="button" class="read-more-btn">Read more</button>
             </div>
           </div>
         </div>
@@ -213,15 +157,12 @@ Test. Make informed decisions and choose the right career path.
             <div class="box-content">
               <h4 class="title-two fs-20 fw-700">Aptitude Assessment</h4>
               <div class="box-description">
-                <div class="description-expanded-header">
-                  <span>Full Description</span>
-                  <button class="description-close-btn" aria-label="Close"><i class='bx bx-x'></i></button>
-                </div>
-                <div class="description-expanded-body">
-                  <p class="text-gray fs-16">Aptitude Assessment for Class 12 is a comprehensive evaluation that measures students' inherent abilities across seven key cognitive domains: Logical Reasoning (problem-solving skills), Numerical Reasoning (mathematical abilities), Mechanical Reasoning (understanding of physical principles), Spatial Reasoning (visualizing objects in space), Abstract Reasoning (pattern recognition), Clerical Reasoning (attention to detail), and Language/Verbal Reasoning (communication skills). This multifaceted test helps Class 12 students identify their cognitive strengths and make informed decisions about higher education streams and career paths that align with their natural aptitudes and abilities. </p>
-                </div>
+                <p class="text-gray fs-16">Aptitude Assessment for Class 12 is a comprehensive evaluation that measures students' inherent abilities across seven key cognitive domains: Logical Reasoning, Numerical Reasoning, Mechanical Reasoning...</p>
               </div>
-              <button class="read-more-btn">Read more</button>
+              <div class="description-full-text d-none">
+                <p class="text-gray fs-16">Aptitude Assessment for Class 12 is a comprehensive evaluation that measures students' inherent abilities across seven key cognitive domains: Logical Reasoning (problem-solving skills), Numerical Reasoning (mathematical abilities), Mechanical Reasoning (understanding of physical principles), Spatial Reasoning (visualizing objects in space), Abstract Reasoning (pattern recognition), Clerical Reasoning (attention to detail), and Language/Verbal Reasoning (communication skills). This multifaceted test helps Class 12 students identify their cognitive strengths and make informed decisions about higher education streams and career paths that align with their natural aptitudes and abilities.</p>
+              </div>
+              <button type="button" class="read-more-btn">Read more</button>
             </div>
           </div>
         </div>
@@ -412,7 +353,7 @@ Test. Make informed decisions and choose the right career path.
           <span class="highlighter text-gray fw-400">
             <img class="position-relative top--10" src="{{ static('images_new/icons/activity-icon.svg') }}" alt="icon"> Career Interest Analysis
           </span>
-          <h3 class="title-two mt-3 fs-38 fw-700 my-4 fs-sm-28">Career Interest Inventory - RIASEC Model</h3>
+          <h3 class="title-two mt-3 fs-38 fw-700 m fs-sm-28">Career Interest Inventory - RIASEC Model</h3>
           <p class="text-gray fs-16">Our assessment is based on John Holland's renowned RIASEC model, which categorizes personalities into six distinct types:</p>
         </div>
       </div>
@@ -787,11 +728,7 @@ Test. Make informed decisions and choose the right career path.
               <li class="cta-feature-item"><i class='bx bx-check-circle cta-feature-icon'></i><span>Option to book a counseling session</span></li>
             </ul>
           </div>
-          <form id="paymentForm" onsubmit="handlePaymentSubmit(event); return false;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-            <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" class="cta-button">Book Now</button>
-          </form>
+          <button type="button" class="cta-button js-psychometric-pay-btn" data-label="Book Now">Book Now</button>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
           {% endif %}
@@ -801,8 +738,10 @@ Test. Make informed decisions and choose the right career path.
   </section>
   <!-- CTA / Payment Section -->
 
-
-
+  <form id="paymentForm" class="d-none" aria-hidden="true">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="test_type" value="{{ test_type_id }}">
+  </form>
 
 <!-- Pricing Section -->
 <section id="pricing-section" class="py-10 d-none">
@@ -854,12 +793,7 @@ Test. Make informed decisions and choose the right career path.
               <p class="fs-14 text-secondary mb-0">Personalised Career Counselling Session</p>
             </div>
           </div>
-          <form id="paymentFormPricing" onsubmit="handlePaymentSubmit(event); return false;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-            <input type="hidden" name="test_type" value="{{ test_type_id }}">
-            <button type="submit" class="btn btn-primary w-100 mt-3">Proceed{% if not is_student %}
-              to Buy{% endif %}</button>
-          </form>
+          <button type="button" class="btn btn-primary w-100 mt-3 js-psychometric-pay-btn" data-label="Proceed{% if not is_student %} to Buy{% endif %}">Proceed{% if not is_student %} to Buy{% endif %}</button>
           {% if delete_demo_payment_url %}
           <button onclick="delete_demo_payment()" class="btn btn-secondary w-100 mt-2">Clear Demo Test</button>
           {% endif %}
@@ -970,32 +904,15 @@ Test. Make informed decisions and choose the right career path.
 
 {% endblock %}
 
+{% block modals %}
+{{ super() }}
+{% include 'template20/includes/psychometric_description_modal.html' %}
+{% endblock %}
+
 {% block additionaljs %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     sessionStorage.setItem('signup_class', '10');
-  
-    document.querySelectorAll('.read-more-btn').forEach(function (button) {
-      button.addEventListener('click', function () {
-        var boxDescription = this.previousElementSibling;
-        if (boxDescription && boxDescription.classList.contains('box-description')) {
-          boxDescription.classList.add('expanded');
-          this.classList.add('hidden');
-        }
-      });
-    });
-    document.querySelectorAll('.description-close-btn').forEach(function (button) {
-      button.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var boxDescription = this.closest('.box-description');
-        if (boxDescription) {
-          boxDescription.classList.remove('expanded');
-          var boxContent = boxDescription.parentElement;
-          var readMoreBtn = boxContent ? boxContent.querySelector('.read-more-btn') : null;
-          if (readMoreBtn) readMoreBtn.classList.remove('hidden');
-        }
-      });
-    });
   
     if (typeof jQuery !== 'undefined' && jQuery('.aptitude-carousel').length) {
       var $carousel = jQuery('.aptitude-carousel');
@@ -1038,8 +955,21 @@ Test. Make informed decisions and choose the right career path.
     return cookieValue;
   }
   
-  window.handlePaymentSubmit = function(event) {
-    event.preventDefault();
+  function resetPsychometricPayButtons() {
+    document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
+      btn.disabled = false;
+      btn.textContent = btn.getAttribute('data-label') || btn.textContent;
+    });
+  }
+
+  function setPsychometricPayButtonsBusy(activeBtn) {
+    document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
+      btn.disabled = true;
+      if (activeBtn && btn === activeBtn) btn.textContent = 'Processing...';
+    });
+  }
+
+  function submitPsychometricPayment(triggerBtn) {
     {% if is_student %}
     window.location.href = "{{ url('app:test_buttons') }}";
     return;
@@ -1048,9 +978,8 @@ Test. Make informed decisions and choose the right career path.
     window.location.href = "{{ login_url }}?next=" + encodeURIComponent(window.location.pathname + window.location.search);
     return;
     {% endif %}
-    var form = event.target && event.target.form ? event.target.form : document.getElementById('paymentForm');
-    var button = event.target && event.target.tagName === 'BUTTON' ? event.target : (form ? form.querySelector('button[type="submit"]') : document.getElementById('proceedToBuyBtn'));
-    if (!form || !button) {
+    var form = document.getElementById('paymentForm');
+    if (!form) {
       alert('Error: Could not find payment form. Please refresh the page and try again.');
       return;
     }
@@ -1059,9 +988,10 @@ Test. Make informed decisions and choose the right career path.
       alert('Error: Invalid form. Please refresh the page and try again.');
       return;
     }
-    var originalText = button.textContent;
-    button.disabled = true;
-    button.textContent = 'Processing...';
+    var button = triggerBtn && triggerBtn.classList && triggerBtn.classList.contains('js-psychometric-pay-btn')
+      ? triggerBtn
+      : document.querySelector('.js-psychometric-pay-btn');
+    setPsychometricPayButtonsBusy(button);
     var data = { test_type: testTypeInput.value };
     fetch('{{ psychometric_test_payment_url }}', {
       method: 'POST',
@@ -1087,52 +1017,26 @@ Test. Make informed decisions and choose the right career path.
       } else { throw new Error('Unable to process payment.'); }
     })
     .catch(function(err) {
-      button.disabled = false;
-      button.textContent = originalText;
-      alert('Error: ' + (err.message || 'Unable to process payment. Please try again.'));
-    });
-  };
-
-  function runPaymentFlowAutomatic() {
-    var form = document.getElementById('paymentForm') || document.getElementById('paymentFormPricing');
-    if (!form) return;
-    var testTypeInput = form.querySelector('input[name="test_type"]');
-    if (!testTypeInput || !testTypeInput.value) return;
-    var button = form.querySelector('button[type="submit"]');
-    var originalText = button ? button.textContent : '';
-    if (button) { button.disabled = true; button.textContent = 'Processing...'; }
-    var payload = { test_type: testTypeInput.value };
-    fetch('{{ psychometric_test_payment_url }}', {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      credentials: 'same-origin'
-    })
-    .then(function(response) {
-      if (!response.ok) return response.json().then(function(d) { throw new Error(d.error || 'Payment request failed'); });
-      return response.json();
-    })
-    .then(function(data) {
-      if (data && data.free_access && data.redirect_url) { window.location.href = data.redirect_url; return; }
-      if (data && data.already_paid && data.redirect_url) { window.location.href = data.redirect_url; return; }
-      if (data.error) throw new Error(data.error);
-      if (data.gateway === 1 || data.payment_info) {
-        if (typeof Razorpay === 'undefined') {
-          var s = document.createElement('script'); s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-          s.onload = function() { openRazorpay(data); }; document.head.appendChild(s);
-        } else { openRazorpay(data); }
-      } else if (data.gateway === 2 || data.payment_url) {
-        window.location.href = data.payment_url;
-      } else { throw new Error('Unable to process payment.'); }
-    })
-    .catch(function(err) {
-      if (button) { button.disabled = false; button.textContent = originalText; }
+      resetPsychometricPayButtons();
       alert('Error: ' + (err.message || 'Unable to process payment. Please try again.'));
     });
   }
 
-  {% if is_authenticated and not is_student %}
-  document.addEventListener('DOMContentLoaded', function() {
+  window.handlePaymentSubmit = function(event) {
+    if (event) event.preventDefault();
+    var btn = event && (event.submitter || (event.target && event.target.closest && event.target.closest('.js-psychometric-pay-btn')));
+    submitPsychometricPayment(btn);
+  };
+
+  function runPaymentFlowAutomatic(triggerBtn) {
+    submitPsychometricPayment(triggerBtn);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { submitPsychometricPayment(btn); });
+    });
+    {% if is_authenticated and not is_student %}
     var params = new URLSearchParams(window.location.search);
     if (params.get('auto_buy') === '1') {
       if (window.history && window.history.replaceState) {
@@ -1141,10 +1045,10 @@ Test. Make informed decisions and choose the right career path.
         var newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
         window.history.replaceState({}, '', newUrl);
       }
-      runPaymentFlowAutomatic();
+      runPaymentFlowAutomatic(document.querySelector('.js-psychometric-pay-btn'));
     }
+    {% endif %}
   });
-  {% endif %}
   
   function openRazorpay(data) {
     if (typeof Razorpay === 'undefined') { alert('Razorpay is loading. Please try again.'); return; }

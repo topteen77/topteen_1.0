@@ -6,6 +6,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% include 'template20/includes/student_dashboard_stat_detail_styles.html' %}
 {% if is_parent_view %}
 <link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
 {% endif %}
@@ -17,6 +18,7 @@
   }
 
   .stat-card {
+    position: relative;
     background: var(--dash-surface);
     border: 1px solid var(--dash-border-soft);
     border-radius: 12px;
@@ -33,7 +35,7 @@
     color: var(--dash-heading);
   }
 
-  .stat-card>div:first-child {
+  .stat-card .stat-card-icon {
     width: 42px;
     height: 42px;
     border-radius: 10px;
@@ -49,20 +51,16 @@
     line-height: 1.2;
   }
 
-  .stat-card-trophies>div:first-child {
+  .stat-card-trophies .stat-card-icon {
     background: #e79624;
   }
 
-  .stat-card-points>div:first-child {
+  .stat-card-points .stat-card-icon {
     background: #3623e0;
   }
 
-  .stat-card-streak>div:first-child {
+  .stat-card-streak .stat-card-icon {
     background: #ee2a99;
-  }
-
-  .stat-card-level>div:first-child {
-    background: #22e674;
   }
 
   .stat-card-level .level-badge-icon {
@@ -207,7 +205,7 @@
       min-height: 78px;
     }
 
-    .stat-card > div:first-child {
+    .stat-card .stat-card-icon {
       width: 36px;
       height: 36px;
     }
@@ -947,25 +945,35 @@
           <div class="row g-3 dashboard-stat-cards">
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">
               <div class="stat-card stat-card-trophies">
-                <div>
+                {% with tooltip_text='Trophies you unlock by completing milestones such as your profile, psychometric tests, aptitude sections, career direction, and payment.' %}
+                {% include 'template20/includes/stat_card_info_btn.html' %}
+                {% endwith %}
+                <div class="stat-card-icon">
                   <img src="{{ static('images_new/icons/champion-winner-icon.svg') }}" style="max-width:35px;"
                     alt="Trophies" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-trophies"
-                    data-value="{{ trophies_unlocked|default(0) }}">0</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-trophies"
+                    data-value="{{ trophies_unlocked|default(0) }}"
+                    data-bs-toggle="modal" data-bs-target="#dashboardStatTrophiesModal"
+                    role="button" tabindex="0" title="View trophy details">0</p>
                   <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.2s;">
               <div class="stat-card stat-card-points">
-                <div>
+                {% with tooltip_text='Total points earned from activities like registration, profile completion, finishing tests, and other achievements on TopTeen.' %}
+                {% include 'template20/includes/stat_card_info_btn.html' %}
+                {% endwith %}
+                <div class="stat-card-icon">
                   <img src="{{ static('images_new/icons/rewards.svg') }}" style="max-width:35px;" alt="Total Points" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-points"
-                    data-value="{{ total_points|default(0) }}">0</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-points"
+                    data-value="{{ total_points|default(0) }}"
+                    data-bs-toggle="modal" data-bs-target="#dashboardStatPointsModal"
+                    role="button" tabindex="0" title="View points breakdown">0</p>
                   <p class="text-gray fs-10 mb-0">Total Points</p>
                 </div>
               </div>
@@ -973,13 +981,18 @@
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.3s;">
               <div
                 class="stat-card stat-card-streak {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}">
-                <div class="streak-icon-wrap">
+                {% with tooltip_text='Consecutive days you have been active on TopTeen. Log in or complete an activity each day to keep your streak going.' %}
+                {% include 'template20/includes/stat_card_info_btn.html' %}
+                {% endwith %}
+                <div class="stat-card-icon streak-icon-wrap">
                   <img src="{{ static('images_new/icons/streak-icom.svg') }}" style="max-width:35px;"
-                    alt="Total Points" />
+                    alt="Streak" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-streak"
-                    data-value="{{ streak_days|default(0) }}">0</p>
+                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-streak"
+                    data-value="{{ streak_days|default(0) }}"
+                    data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
+                    role="button" tabindex="0" title="View streak details">0</p>
                   <p class="text-gray fs-10 mb-0" id="stat-streak-label">{% if (streak_days|default(0)) == 1 %}1 day{%
                     else %}{{ streak_days|default(0) }} days{% endif %}</p>
                 </div>
@@ -987,6 +1000,9 @@
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.4s;">
               <div class="stat-card stat-card-level">
+                {% with tooltip_text='Your rank based on total points: Rookie (0+), Explorer (500+), Champion (1,000+), Legend (2,000+). The bar shows progress to the next level.' %}
+                {% include 'template20/includes/stat_card_info_btn.html' %}
+                {% endwith %}
                 <div class="level-badge-icon">
                   {% set level_name = current_level|default('Rookie') %}
                   {% if level_name|lower == 'rookie' %}
@@ -1003,7 +1019,9 @@
                   <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
                 </div>
                 <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{
+                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label stat-value-trigger" id="stat-level"
+                    data-bs-toggle="modal" data-bs-target="#dashboardStatLevelModal"
+                    role="button" tabindex="0" title="View level details">{{
                     current_level|default('Rookie') }}</p>
                   <p class="text-gray fs-10 mb-0">Current Level</p>
                   {% if next_level_min_points is not none and level_progress_percent is not none %}
@@ -1015,6 +1033,7 @@
               </div>
             </div>
           </div>
+          {% include 'template20/includes/student_dashboard_stat_detail_modals.html' %}
         </div>
         <!-- End of Statistics -->
 
@@ -1361,53 +1380,7 @@
 {% block additionaljs %}
 {{ super() }}
 <script src="{{ static('js/student-shell.js') }}?v=1"></script>
-<script src="{{ static('js/student-shell.js') }}?v=1"></script>
-<script>
-  (function () {
-    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function countUp(el, end, duration) {
-      if (!el || reduceMotion) { if (el) el.textContent = end; return; }
-      var start = 0;
-      var startTime = null;
-      function step(timestamp) {
-        if (!startTime) startTime = timestamp;
-        var progress = Math.min((timestamp - startTime) / duration, 1);
-        var easeOut = 1 - Math.pow(1 - progress, 2);
-        var current = Math.round(start + (end - start) * easeOut);
-        el.textContent = current;
-        if (progress < 1) requestAnimationFrame(step);
-        else el.textContent = end;
-      }
-      requestAnimationFrame(step);
-    }
-    function initDashboardStats() {
-      var trophiesEl = document.getElementById('stat-trophies');
-      var pointsEl = document.getElementById('stat-points');
-      var streakEl = document.getElementById('stat-streak');
-      var streakLabel = document.getElementById('stat-streak-label');
-      var duration = 800;
-      if (trophiesEl) {
-        var v = parseInt(trophiesEl.getAttribute('data-value'), 10) || 0;
-        countUp(trophiesEl, v, duration);
-      }
-      if (pointsEl) {
-        var v = parseInt(pointsEl.getAttribute('data-value'), 10) || 0;
-        countUp(pointsEl, v, duration);
-      }
-      if (streakEl) {
-        var v = parseInt(streakEl.getAttribute('data-value'), 10) || 0;
-        countUp(streakEl, v, duration);
-        if (streakLabel && v === 1) streakLabel.textContent = '1 day';
-        else if (streakLabel) streakLabel.textContent = v + ' days';
-      }
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initDashboardStats);
-    } else {
-      initDashboardStats();
-    }
-  })();
-</script>
+{% include 'template20/includes/student_dashboard_stat_info_init.html' %}
 <!-- SweetAlert2 - Load after jQuery -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

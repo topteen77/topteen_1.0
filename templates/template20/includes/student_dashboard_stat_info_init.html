@@ -1,0 +1,70 @@
+<script>
+  (function () {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function countUp(el, end, duration) {
+      if (!el || reduceMotion) { if (el) el.textContent = end; return; }
+      var start = 0;
+      var startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var easeOut = 1 - Math.pow(1 - progress, 2);
+        var current = Math.round(start + (end - start) * easeOut);
+        el.textContent = current;
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = end;
+      }
+      requestAnimationFrame(step);
+    }
+    function initDashboardStatTooltips() {
+      if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
+      var triggers = document.querySelectorAll('#dashboard-stats-section [data-bs-toggle="tooltip"]');
+      triggers.forEach(function (el) {
+        var existing = bootstrap.Tooltip.getInstance(el);
+        if (existing) existing.dispose();
+        new bootstrap.Tooltip(el, { container: 'body' });
+      });
+    }
+    function initDashboardStatDetailTriggers() {
+      document.querySelectorAll('#dashboard-stats-section .stat-value-trigger').forEach(function (el) {
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
+          }
+        });
+      });
+    }
+    function initDashboardStats() {
+      initDashboardStatTooltips();
+      initDashboardStatDetailTriggers();
+      var trophiesEl = document.getElementById('stat-trophies');
+      var pointsEl = document.getElementById('stat-points');
+      var streakEl = document.getElementById('stat-streak');
+      var streakLabel = document.getElementById('stat-streak-label');
+      var duration = 800;
+      if (trophiesEl && trophiesEl.hasAttribute('data-value')) {
+        var tv = parseInt(trophiesEl.getAttribute('data-value'), 10) || 0;
+        countUp(trophiesEl, tv, duration);
+      }
+      if (pointsEl && pointsEl.hasAttribute('data-value')) {
+        var pv = parseInt(pointsEl.getAttribute('data-value'), 10) || 0;
+        countUp(pointsEl, pv, duration);
+      }
+      if (streakEl && streakEl.hasAttribute('data-value')) {
+        var sv = parseInt(streakEl.getAttribute('data-value'), 10) || 0;
+        countUp(streakEl, sv, duration);
+        if (streakLabel) {
+          var psychStreak = /streak/i.test(streakLabel.textContent);
+          if (sv === 1) streakLabel.textContent = psychStreak ? '1 day streak' : '1 day';
+          else streakLabel.textContent = psychStreak ? (sv + ' day streak') : (sv + ' days');
+        }
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDashboardStats);
+    } else {
+      initDashboardStats();
+    }
+  })();
+</script>

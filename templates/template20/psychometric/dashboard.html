@@ -22,6 +22,7 @@
 {% block additionalhead %}
 {{ super() }}
 {% include 'template20/user/includes/profile_sidebar_styles.html' %}
+{% include 'template20/includes/student_dashboard_stat_detail_styles.html' %}
 <style>
   .psychometric-dashboard-page {
     padding-top: 0px;
@@ -1048,72 +1049,12 @@
         <p>Track your progress, review your test reports, and explore stream suggestions tailored to your profile.</p>
       </div>
 
-      <!-- Statistics (home layout) -->
-      <div class="mb-4 pb-1">
-        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Statistics</h2>
-        <div class="row g-3">
-          <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="stat-card-icon-wrap trophy"><i class='bx bx-trophy fs-24 text-warning'></i></div>
-              <div class="min-w-0">
-                <p class="stat-value mb-0">{{ trophies_unlocked|default(0) }}</p>
-                <p class="stat-label mb-0 lh-sm">Trophies unlocked</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="stat-card-icon-wrap points"><i class='bx bx-star fs-24 text-primary'></i></div>
-              <div class="min-w-0">
-                <p class="stat-value mb-0">{{ total_points|default(0) }}</p>
-                <p class="stat-label mb-0 lh-sm">Total points</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="stat-card-icon-wrap streak"><i class='bx bxs-hot fs-24 ' style="color: #FF4500;"></i></div>
-              <div class="min-w-0">
-                <p class="stat-value mb-0">{{ streak_days|default(0) }}</p>
-                <p class="stat-label mb-0 lh-sm">{% if (streak_days|default(0)) == 1 %}1 day streak{% else %}{{ streak_days|default(0) }} day streak{% endif %}</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="stat-card stat-card-level">
-              <div class="level-badge-icon">
-                {% set level_name = current_level|default('Rookie') %}
-                {% if level_name|lower == 'rookie' %}
-                  {% set level_badge_path = 'images_new/badges/rookie.png' %}
-                {% elif level_name|lower == 'explorer' %}
-                  {% set level_badge_path = 'images_new/badges/explorer.png' %}
-                {% elif level_name|lower == 'champion' %}
-                  {% set level_badge_path = 'images_new/badges/champion.png' %}
-                {% elif level_name|lower == 'legend' %}
-                  {% set level_badge_path = 'images_new/badges/Legend.png' %}
-                {% else %}
-                  {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
-                {% endif %}
-                <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
-              </div>
-              <div class="min-w-0">
-                <p class="stat-value mb-0 text-truncate" title="{{ current_level|default('Rookie') }}">{{ current_level|default('Rookie') }}</p>
-                <p class="stat-label mb-0 lh-sm">Current level</p>
-                {% if next_level_min_points is not none and level_progress_percent is not none %}
-                <div class="level-progress-wrap mt-1" style="max-width: 100%;">
-                  <div class="level-progress-bar psych-dynamic-width" data-score="{{ level_progress_percent }}"></div>
-                </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {% include 'template20/includes/psychometric_dashboard_statistics_section.html' %}
 
             <!-- Suggested Streams based on Personality (light blue cards with icon) -->
             {% if streamsubject %}
             <div class="my-md-6 my-4">
-              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Personality</h3>
+              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
               <div class="row g-3">
                 {% for stream, subject in streamsubject %}
                 <div class="col-6 col-md-4">
@@ -1144,7 +1085,7 @@
                   <p class="report-card-title">Personality</p>
                   <p class="report-card-sub">RIASEC model - Part 1</p>
                 </div>
-                <div class="report-card-score personality">{{ personality_pct|default(0) }}%</div>
+                <div class="report-card-score personality d-none">{{ personality_pct|default(0) }}%</div>
               </div>
               <div class="modern-pill-row">
                 <span class="modern-pill personality">{% if top_category %}{{ top_category.fullname|default(top_category.category)|default('Profile trend') }}{% else %}Profile trend{% endif %}</span>
@@ -1174,7 +1115,7 @@
                     <div class="modern-bar-row">
                       <span>{{ item.label }}</span>
                       <div class="modern-bar-track"><div class="modern-bar-fill personality psych-dynamic-width {{ riasec_bar }}" data-score="{{ item.score_pct }}"></div></div>
-                      <strong class="modern-bar-mark">{{ item.score_pct }}%</strong>
+                      <strong class="modern-bar-mark">{{ item.score_pct }}/100</strong>
                     </div>
                     {% endif %}
                   {% endfor %}
@@ -1195,7 +1136,7 @@
                   <p class="report-card-title">Interest</p>
                   <p class="report-card-sub">Career interest inventory - Part 2</p>
                 </div>
-                <div class="report-card-score interest">{{ interest_highest_value|default(interest_pct|default(0))|int }} pts</div>
+                <div class="report-card-score interest d-none">{{ interest_highest_value|default(interest_pct|default(0))|int }} pts</div>
               </div>
               <div class="modern-pill-row d-none">
                 <span class="modern-pill interest">Top: {{ dominant_interest_name|default(max_length|default('Dominant area')) }}</span>
@@ -1227,8 +1168,8 @@
                     {% endif %}
                     <div class="modern-bar-row">
                       <span>{{ item.label }}</span>
-                      <div class="modern-bar-track"><div class="modern-bar-fill interest psych-dynamic-width {{ interest_riasec }}" data-score="{{ item.score_pct }}"></div></div>
-                      <strong class="modern-bar-mark">{{ item.score_value|default(item.score_pct) }} pts</strong>
+                      <div class="modern-bar-track"><div class="modern-bar-fill interest psych-dynamic-width {{ interest_riasec }}" data-score="{{ item.score_pct }}" data-scale-max="{{ item.score_max|default(36) }}" title="{{ item.score_value|default(0) }}/{{ item.score_max|default(36) }}"></div></div>
+                      <strong class="modern-bar-mark">{{ item.score_value|default(item.score_pct) }}/{{ item.score_max|default(36) }}</strong>
                     </div>
                     {% endif %}
                   {% endfor %}
@@ -1569,6 +1510,7 @@
         </div>
       </div>
       </div>
+      {% include 'template20/includes/student_dashboard_stat_info_init.html' %}
       <script>
         (function () {
           function clampScore(raw) {
@@ -1580,7 +1522,13 @@
             node.style.height = clampScore(node.dataset.score) + '%';
           });
           document.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
-            node.style.width = clampScore(node.dataset.score) + '%';
+            var raw = Number(node.dataset.score);
+            var scaleMax = Number(node.dataset.scaleMax);
+            var pct = raw;
+            if (Number.isFinite(scaleMax) && scaleMax > 0 && raw <= scaleMax) {
+              pct = (raw / scaleMax) * 100;
+            }
+            node.style.width = clampScore(pct) + '%';
           });
           document.querySelectorAll('.radar-wrap').forEach(function (wrap) {
             var values = (wrap.dataset.radarValues || '').split(',').map(function (item) {

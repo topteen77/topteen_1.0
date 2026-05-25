@@ -1,0 +1,566 @@
+<style>
+  .gamify-stat-modal .modal-dialog {
+    max-width: 440px;
+  }
+
+  .gamify-stat-modal .modal-content {
+    border: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(36, 46, 96, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  }
+
+  .gamify-stat-modal .modal-body {
+    padding: 0 1.15rem 1.15rem;
+    max-height: min(62vh, 480px);
+    overflow-y: auto;
+  }
+
+  .gamify-modal-hero {
+    position: relative;
+    padding: 1.35rem 1.15rem 1.1rem;
+    color: #fff;
+    text-align: center;
+  }
+
+  .gamify-modal-hero .btn-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    filter: brightness(0) invert(1);
+    opacity: 0.85;
+    z-index: 2;
+  }
+
+  .gamify-modal-hero-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 0.65rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+  }
+
+  .gamify-modal-hero-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .gamify-modal-hero-sub {
+    font-size: 0.8rem;
+    opacity: 0.92;
+    margin: 0 0 0.75rem;
+    line-height: 1.35;
+    color:#fff;
+  }
+
+  .gamify-modal-hero-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    line-height: 1;
+  }
+
+  .gamify-modal-hero-stat small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+
+  .gamify-modal-hero--trophies {
+    background: linear-gradient(145deg, #f59e0b 0%, #ea580c 55%, #c2410c 100%);
+  }
+
+  .gamify-modal-hero--points {
+    background: linear-gradient(145deg, #6366f1 0%, #4f46e5 55%, #3730a3 100%);
+  }
+
+  .gamify-modal-hero--streak {
+    background: linear-gradient(145deg, #ec4899 0%, #db2777 55%, #be185d 100%);
+  }
+
+  .gamify-modal-hero--level {
+    background: linear-gradient(145deg, #22c55e 0%, #16a34a 55%, #15803d 100%);
+  }
+
+  .gamify-modal-summary {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.85rem 0 0.65rem;
+    flex-wrap: wrap;
+  }
+
+  .gamify-summary-pill {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+    padding: 0.5rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .gamify-summary-pill strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 0.1rem;
+  }
+
+  .gamify-summary-pill--success {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .gamify-summary-pill--muted {
+    background: #f4f6fb;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+  }
+
+  .gamify-achievement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .gamify-achievement-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 14px;
+    border: 1px solid #e8ecf4;
+    background: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .gamify-achievement-card.is-unlocked {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: linear-gradient(135deg, #fff 0%, #f0fdf8 100%);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.1);
+  }
+
+  .gamify-achievement-card.is-unlocked:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.15);
+  }
+
+  .gamify-achievement-card.is-locked {
+    opacity: 0.78;
+    background: #f8fafc;
+    border-style: dashed;
+    border-color: #cbd5e1;
+  }
+
+  .gamify-achievement-icon {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .gamify-achievement-card.is-unlocked .gamify-achievement-icon {
+    background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+    color: #b45309;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  }
+
+  .gamify-achievement-card.is-locked .gamify-achievement-icon {
+    background: #e2e8f0;
+    color: #94a3b8;
+  }
+
+  .gamify-achievement-card.is-locked .gamify-achievement-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(248, 250, 252, 0.55);
+  }
+
+  .gamify-achievement-lock {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #64748b;
+    color: #fff;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    z-index: 1;
+  }
+
+  .gamify-achievement-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gamify-achievement-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .gamify-achievement-card.is-locked .gamify-achievement-label {
+    color: #64748b;
+  }
+
+  .gamify-achievement-meta {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin: 0.15rem 0 0;
+  }
+
+  .gamify-status-badge {
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.28rem 0.5rem;
+    border-radius: 999px;
+  }
+
+  .gamify-status-badge--unlocked {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+  }
+
+  .gamify-status-badge--locked {
+    background: #e2e8f0;
+    color: #64748b;
+  }
+
+  /* Points rows */
+  .gamify-points-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 14px;
+    border: 1px solid #e8ecf4;
+    background: #fff;
+  }
+
+  .gamify-points-card.is-earned {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, #fff 0%, #eef2ff 100%);
+  }
+
+  .gamify-points-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: #f1f5f9;
+    color: #94a3b8;
+  }
+
+  .gamify-points-card.is-earned .gamify-points-icon {
+    background: linear-gradient(145deg, #c7d2fe 0%, #a5b4fc 100%);
+    color: #4338ca;
+  }
+
+  .gamify-points-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gamify-points-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .gamify-points-bar-wrap {
+    height: 5px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    margin-top: 0.35rem;
+    overflow: hidden;
+  }
+
+  .gamify-points-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #818cf8 0%, #6366f1 100%);
+    transition: width 0.4s ease;
+  }
+
+  .gamify-points-value {
+    font-size: 1rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    min-width: 2.5rem;
+    text-align: right;
+  }
+
+  .gamify-points-value.is-earned {
+    color: #4f46e5;
+  }
+
+  .gamify-points-value.is-pending {
+    color: #cbd5e1;
+  }
+
+  /* Streak timeline */
+  .gamify-streak-flame-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    margin: 0.5rem 0 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .gamify-streak-day-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.5rem 0.55rem;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid rgba(251, 146, 60, 0.35);
+    min-width: 72px;
+  }
+
+  .gamify-streak-day-pill i {
+    font-size: 1.25rem;
+    color: #ea580c;
+  }
+
+  .gamify-streak-day-pill span {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #9a3412;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .gamify-streak-empty {
+    text-align: center;
+    padding: 1.25rem 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fdf4ff 0%, #fce7f3 100%);
+    border: 1px dashed rgba(236, 72, 153, 0.35);
+  }
+
+  .gamify-streak-empty i {
+    font-size: 2.5rem;
+    color: #ec4899;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* Level ladder */
+  .gamify-level-ladder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .gamify-level-step {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 14px;
+    border: 1px solid #e8ecf4;
+    background: #fff;
+    position: relative;
+  }
+
+  .gamify-level-step.is-current {
+    border-color: rgba(34, 197, 94, 0.45);
+    background: linear-gradient(135deg, #fff 0%, #ecfdf5 100%);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.15);
+  }
+
+  .gamify-level-step.is-reached:not(.is-current) {
+    opacity: 0.85;
+  }
+
+  .gamify-level-step:not(.is-reached) {
+    opacity: 0.55;
+    border-style: dashed;
+  }
+
+  .gamify-level-badge-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .gamify-level-step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+
+  .gamify-level-step.is-current .gamify-level-step-icon {
+    background: linear-gradient(145deg, #bbf7d0 0%, #86efac 100%);
+    color: #15803d;
+  }
+
+  .gamify-level-step-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gamify-level-step-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .gamify-level-step-pts {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin: 0.1rem 0 0;
+  }
+
+  .gamify-level-you-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+  }
+
+  .gamify-xp-progress {
+    margin-top: 0.85rem;
+    padding: 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  .gamify-xp-progress-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #166534;
+    margin-bottom: 0.4rem;
+  }
+
+  .gamify-xp-progress .level-progress-wrap {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.2);
+  }
+
+  .gamify-xp-progress .level-progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.45);
+  }
+
+  .gamify-empty-state {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gamify-achievement-card.is-unlocked:hover {
+      transform: none;
+    }
+  }
+
+  /* Stat cards: info icon + clickable count (user + psychometric dashboards) */
+  #dashboard-stats-section .stat-card {
+    position: relative;
+  }
+
+  #dashboard-stats-section .stat-card-info-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 16px;
+    line-height: 1;
+    cursor: help;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  #dashboard-stats-section .stat-card-info-btn:hover,
+  #dashboard-stats-section .stat-card-info-btn:focus-visible {
+    color: #5c54d4;
+    background: rgba(92, 84, 212, 0.1);
+    outline: none;
+  }
+
+  #dashboard-stats-section .stat-value-trigger {
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+    width: fit-content;
+  }
+
+  #dashboard-stats-section .stat-value-trigger:hover,
+  #dashboard-stats-section .stat-value-trigger:focus-visible {
+    color: #5c54d4 !important;
+    outline: 2px solid rgba(92, 84, 212, 0.35);
+    outline-offset: 2px;
+  }
+</style>
