@@ -1,0 +1,124 @@
+/* 404 / error page — template20 */
+body.error-page {
+  background: linear-gradient(180deg, #f8f7ff 0%, #ffffff 42%, #ffffff 100%);
+}
+
+body.error-page .tt-error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 180px);
+  padding: 3rem 1.25rem 4rem;
+}
+
+body.error-page .tt-error-page__inner {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+body.error-page .tt-error-page__visual {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+body.error-page .tt-error-page__visual svg {
+  width: min(220px, 55vw);
+  height: auto;
+}
+
+body.error-page .tt-error-page__code {
+  margin: 0 0 0.75rem;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: clamp(4.5rem, 14vw, 6.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #3f37c9 0%, #6c63ff 55%, #5249df 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.error-page .tt-error-page__title {
+  margin: 0 0 1.25rem;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
+  line-height: 1.25;
+  color: #1a1a1a;
+}
+
+body.error-page .tt-error-page__desc {
+  margin: 0 0 0.5rem;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: rgba(71, 71, 71, 0.88);
+}
+
+body.error-page .tt-error-page__hint {
+  margin: 0 0 2rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: rgba(71, 71, 71, 0.65);
+}
+
+body.error-page .tt-error-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem 1rem;
+}
+
+body.error-page .tt-error-page__actions .btn {
+  min-width: 9.5rem;
+  padding: 0.8125rem 1.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+body.error-page .tt-error-page__actions .btn.purple-button:hover {
+  transform: translateY(-1px);
+}
+
+body.error-page .tt-error-page__actions .btn-outline {
+  background: transparent;
+  color: #3f37c9 !important;
+  border: 2px solid #3f37c9;
+  box-shadow: none;
+}
+
+body.error-page .tt-error-page__actions .btn-outline:hover {
+  background: #efecff;
+  color: #3f37c9 !important;
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 575.98px) {
+  body.error-page .tt-error-page {
+    min-height: calc(100vh - 160px);
+    padding: 2rem 1rem 3rem;
+  }
+
+  body.error-page .tt-error-page__visual {
+    margin-bottom: 1.5rem;
+  }
+
+  body.error-page .tt-error-page__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  body.error-page .tt-error-page__actions .btn {
+    width: 100%;
+    max-width: 280px;
+  }
+}

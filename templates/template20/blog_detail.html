@@ -32,6 +32,74 @@
 .blog-search-input-wrap .blog-search-suggestions-empty {
   padding: 1rem 1.25rem; font-size: 0.9rem; color: #888; text-align: center;
 }
+
+.blog-content  ul {font-size: 16px; line-height: 24px; font-weight: 400; padding-left: 14px;}
+.blog-content  ol {font-size: 16px; line-height: 24px; font-weight: 400;}
+.blog-content  p {font-size: 16px; line-height: 24px;  font-weight: 400;}
+.blog-content  h2 {font-size: 24px; line-height: 32px;  font-weight: 600;}
+.blog-content  h3 {font-size: 20px; line-height: 28px;  font-weight: 600;}
+.blog-content  h4 {font-size: 18px; line-height: 26px; font-weight: 600;}
+.blog-content  h5 {font-size: 16px; line-height: 24px;  font-weight: 600;}
+.blog-content  h6 {font-size: 14px; line-height: 22px;  font-weight: 600;}
+
+.blog-content table {width: 100%; border-collapse: collapse; border: 1px solid #e0e0e0;}
+.blog-content table th {
+  background-color: #3f37c9;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  padding: 12px 10px;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid #5249df;
+}
+.blog-content table td {font-size: 16px; line-height: 24px; font-weight: 400; padding: 10px; border: 1px solid #e0e0e0; text-align: left; vertical-align: top; color: #1a1a1a;}
+.blog-content table tbody tr:nth-child(even) {background-color: #f8f7ff;}
+.blog-content table tbody tr:hover {background-color: #efecff;}
+.blog-content table > tr:has(td):nth-child(even) {background-color: #f8f7ff;}
+.blog-content table > tr:has(td):hover {background-color: #efecff;}
+.blog-content table th:first-child, .blog-content table td:first-child {border-left: none;}
+.blog-content table th:last-child, .blog-content table td:last-child {border-right: none;}
+.blog-content table tr:last-child {border-bottom: none;}
+
+/* Responsive scroll wrapper for wide CMS tables */
+.blog-table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.5rem 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c4c4c4 transparent;
+}
+.blog-table-responsive table {
+  margin: 0;
+  min-width: 560px;
+}
+@media (max-width: 767.98px) {
+  .blog-table-responsive {
+    margin: 1rem 0;
+    border-radius: 6px;
+  }
+  .blog-content table th,
+  .blog-content table td {
+    padding: 8px 10px;
+    font-size: 14px;
+    line-height: 1.45;
+    word-break: break-word;
+    hyphens: auto;
+  }
+}
+.blog-content figure {margin: 0;}
+.blog-content figure img {margin: 0;}
+.blog-content figure figcaption {margin: 0;}
+.blog-content figure figcaption p {margin: 0;}
+.blog-content figure figcaption p:last-child {margin: 0;}
+.blog-content figure figcaption p:first-child {margin: 0;}
+.blog-content figure figcaption p:last-child {margin: 0;}
 </style>
 
 <!-- Blog Content Section -->
@@ -117,7 +185,7 @@
         </div>
         {% endif %}
         
-        <div class="blog-content">
+        <div class="blog-content blog-article-content p-0">
           {{ blog.content|safe }}
         </div>
 
@@ -250,7 +318,7 @@
               <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}">{{ related_blog.title }}</a>
             </h3>
             {% if related_blog.summary %}
-            <p class="blog-excerpt lh-sm">{{ related_blog.summary|truncate(120) }}</p>
+            <p class="blog-excerpt lh-sm fs-14">{{ related_blog.summary|truncate(120) }}</p>
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}" class="read-more">Read More <i class="bx bx-right-arrow-alt"></i></a>
           </div>
@@ -307,6 +375,20 @@
 {{ super() }}
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function () {
+  document.querySelectorAll('.blog-article-content table').forEach(function (table) {
+    if (table.closest('.blog-table-responsive')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'blog-table-responsive';
+    wrap.setAttribute('role', 'region');
+    wrap.setAttribute('tabindex', '0');
+    wrap.setAttribute('aria-label', 'Table — scroll horizontally on small screens');
+    table.parentNode.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  });
+})();
+</script>
 <script>
 (function() {
   var DEBOUNCE_MS = 280;
