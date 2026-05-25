@@ -1,0 +1,18 @@
+{% load i18n %}
+<button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}"></button>
+<nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
+  <div class="admin-quick-nav">
+    <a href="{% url 'core:home' %}" target="_blank" rel="noopener noreferrer">Website</a>
+    {% if user.is_superuser %}
+      <a href="{% url 'user_analytics:admin_dashboard' %}">Dashboard</a>
+    {% elif user.is_staff %}
+      <a href="{% url 'user_analytics:business_dashboard' %}">Dashboard</a>
+    {% endif %}
+    <a href="{% url 'topteenadmin:topteendashboard' %}">TopTeen Admin</a>
+    <a href="{% url 'topteenadminmanaged:bloglist' %}">Blog (CMS)</a>
+  </div>
+  <input type="search" id="nav-filter"
+         placeholder="{% translate 'Start typing to filter…' %}"
+         aria-label="{% translate 'Filter navigation items' %}">
+  {% include 'admin/app_list.html' with app_list=available_apps show_changelinks=False %}
+</nav>

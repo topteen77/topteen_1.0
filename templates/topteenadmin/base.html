@@ -96,7 +96,7 @@
 																</a>
 															</div>
 															<div class="menu-item">
-																<a class="menu-link{% if request and request.path.startswith('/user-analytics') %} active{% endif %}" href="{{ url('user_analytics:business_dashboard') }}" title="Business &amp; analytics dashboard">
+																<a class="menu-link{% if request and request.path.startswith('/topteenadmin') %} active{% endif %}" href="{{ url('topteenadmin:topteendashboard') }}" title="CMS dashboard">
 																	<span class="menu-icon">
 																		<span class="svg-icon svg-icon-2">
 																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -111,7 +111,7 @@
 																</a>
 															</div>
 															<div class="menu-item">
-																<a class="menu-link{% if request and request.path.startswith('/topteenadmin') %} active{% endif %}" href="{{ url('topteenadmin:topteendashboard') }}" title="Content management (TopTeen Admin)">
+																<a class="menu-link{% if request and request.path.startswith('/user-analytics') %} active{% endif %}" href="{{ url('user_analytics:business_dashboard') }}" title="Business &amp; analytics">
 																	<span class="menu-icon">
 																		<span class="svg-icon svg-icon-2">
 																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -120,7 +120,7 @@
 																			</svg>
 																		</span>
 																	</span>
-																	<span class="menu-title">TopTeen Admin</span>
+																	<span class="menu-title">Analytics</span>
 																</a>
 															</div>
 															<div class="separator my-2"></div>
@@ -784,11 +784,11 @@
 							<!--begin::Wrapper-->
 							<div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
 								<!--begin::Navbar-->
-								<div class="d-flex align-items-stretch gap-2 gap-lg-4 ms-lg-5" id="kt_header_nav">
+								<!-- <div class="d-flex align-items-stretch gap-2 gap-lg-4 ms-lg-5" id="kt_header_nav">
 									<a href="{{ url('core:home') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-light-primary fw-semibold">Website</a>
-									<a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-sm btn-light fw-semibold">Dashboard</a>
-									<a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-sm btn-light fw-semibold">TopTeen Admin</a>
-								</div>
+									<a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-sm btn-light fw-semibold">Dashboard</a>
+									<a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-sm btn-light fw-semibold">Analytics</a>
+								</div> -->
 								<!--end::Navbar-->
 								<!--begin::Toolbar wrapper-->
 								<div class="d-flex align-items-stretch flex-shrink-0">
@@ -955,25 +955,21 @@
 		
 		<script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+		<style>
+			.ck.ck-editor { max-width: 100%; }
+			.ck.ck-editor__editable { min-height: 280px; }
+			.ck.ck-editor__editable_inline { min-height: 280px; }
+			#career-description-field-container .ck-editor__editable { min-height: 360px; }
+		</style>
 		<!--end::Page Custom Javascript-->
 		<!--end::Javascript-->
 		{% include 'topteenadmin/includes/ckeditor-file-upload.html' %}
 		<script>
-			
-			function classieditor(id){
-				var tag = document.getElementById(id);
-				ClassicEditor
-				.create(tag, {extraPlugins: [SimpleUploadAdapterPlugin],})
-				.catch( error => {
-					console.error( error );
-				} );
-			};
-
-			$(".ckeditor").each(function(index,val){
-				var a=val.id
-				console.log(a);
-				classieditor(a);
-			} );
+			document.addEventListener('DOMContentLoaded', function () {
+				if (typeof initAllTopteenAdminEditors === 'function') {
+					initAllTopteenAdminEditors();
+				}
+			});
 		</script>
 		<script type="text/javascript">
 			$(document).on('click','.deleteclick',function(el){

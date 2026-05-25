@@ -70,6 +70,16 @@ from django.core.paginator import Paginator
 @method_decorator(login_required,name='dispatch')
 class TopteensDashboard(TemplateView):
     template_name = "topteenadmin/home.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['meta_title'] = 'Dashboard'
+        ctx['active_tab'] = 'dashboard'
+        ctx['html_head'] = {'title': 'Dashboard', 'description': ''}
+        ctx['breadcrumb'] = build_admin_breadcrumb([
+            {'title': 'Dashboard', 'text': 'Dashboard', 'url': '#'},
+        ])
+        return ctx
     
 class CareerListView(BaseListView):
     template_name = "topteenadmin/career_list.html"
@@ -82,6 +92,19 @@ class CareerListView(BaseListView):
     def get_queryset(self):
         return super().get_queryset().prefetch_related('career_cluster')
     
+def _career_form_extra_context(career):
+    """Frontend preview URL and career reference for description/accordion templates."""
+    if not career or not getattr(career, 'pk', None):
+        return {'career': career, 'career_frontend_preview_url': None}
+    ctx = {'career': career, 'career_frontend_preview_url': None}
+    slug = getattr(career, 'slug', None)
+    if slug:
+        ctx['career_frontend_preview_url'] = reverse(
+            'careers:careerdetail', args=[slug, career.pk]
+        )
+    return ctx
+
+
 class CreateCareer(BaseCreateView):
     template_name = "topteenadmin/career_form.html"
     model=Career
@@ -90,6 +113,11 @@ class CreateCareer(BaseCreateView):
     title="Career"
     active_tab="career"
     success_message="Cereer created successfully."
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_career_form_extra_context(self.object))
+        return ctx
     
 class CareerUpdateView(BaseUpdateView):
     template_name = "topteenadmin/career_form.html"
@@ -99,6 +127,11 @@ class CareerUpdateView(BaseUpdateView):
     success_url=reverse_lazy('topteenadminmanaged:careerlist')
     active_tab="career"
     success_message="Cereer updated successfully."
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_career_form_extra_context(self.object))
+        return ctx
 
 class CareerDeleteView(BaseDeleteView):
     model = Career
@@ -113,6 +146,11 @@ class CareerDetailView(BaseDetailView):
     form_class=CareerModelForm
     success_url=reverse_lazy('topteenadminmanaged:careerlist')
     active_tab="career"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_career_form_extra_context(self.object))
+        return ctx
 
 class SkillListView(BaseListView):
     template_name = "topteenadmin/skill_list.html"

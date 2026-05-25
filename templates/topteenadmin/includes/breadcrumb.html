@@ -5,45 +5,44 @@
         <!--begin::Page title-->
         <div data-kt-swapper="true" data-kt-swapper-mode="prepend" data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}" class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
             <!--begin::Title-->
-            <h1 class="d-flex text-dark fw-bolder fs-3 align-items-center my-1">{% if meta_title %} {{meta_title}} {%else%} TOP TEEN ADMIN{% endif %}</h1>
+            <h1 class="d-flex text-dark fw-bolder fs-3 align-items-center my-1">
+                {% if meta_title %}{{ meta_title }}{% elif breadcrumb %}{{ breadcrumb[-1].text }}{% else %}Top Teen Admin{% endif %}
+            </h1>
             <!--end::Title-->
+            {% if breadcrumb and breadcrumb|length > 1 %}
             <!--begin::Separator-->
             <span class="h-20px border-gray-300 border-start mx-4"></span>
             <!--end::Separator-->
             <!--begin::Breadcrumb-->
-            <ul class="breadcrumb breadcrumb-separatorless fw-bold fs-7 my-1">
-                {% if breadcrumb %}
+            <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
                 {% for item in breadcrumb %}
-                <!--begin::Item-->
-                <li class="breadcrumb-item text-muted ">
-                    <a href="{{item.url}}" class="text-muted text-hover-primary">{{item.text}}</a>
-                    <!--begin::Item-->
-                    {% if loop.last %}
-                    <span class="h-20px border-gray-300 border-start mx-4"></span>
-                    <li class="breadcrumb-item text-dark">{{item.text}}</li>
-                    {% endif %}
-                    <!--end::Item-->
-                </li>
-                <!--end::Item-->
                 {% if not loop.last %}
-                <!--begin::Item-->
-                <li class="breadcrumb-item">
-                    <span class="bullet bg-gray-300 w-5px h-2px"></span>
+                <li class="breadcrumb-item text-muted">
+                    {% if item.url and item.url != '#' %}
+                    <a href="{{ item.url }}" class="text-muted text-hover-primary">{{ item.text }}</a>
+                    {% else %}
+                    <span>{{ item.text }}</span>
+                    {% endif %}
                 </li>
-                <!--end::Item-->
+                <li class="breadcrumb-item">
+                    <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                </li>
+                {% else %}
+                <li class="breadcrumb-item text-gray-600">{{ item.text }}</li>
                 {% endif %}
                 {% endfor %}
-                {% endif %}
-                <!--begin::Item-->
             </ul>
             <!--end::Breadcrumb-->
+            {% elif breadcrumb and breadcrumb|length == 1 %}
+            <!--begin::Separator-->
+            <span class="h-20px border-gray-300 border-start mx-4"></span>
+            <!--end::Separator-->
+            <span class="text-muted fw-semibold fs-7 my-1">{{ breadcrumb[0].text }}</span>
+            {% endif %}
         </div>
         <!--end::Page title-->
         <!--begin::Actions-->
         <div class="d-flex align-items-center gap-2 gap-lg-3">
-            
-            <!--begin::Secondary button-->
-            <!--end::Secondary button-->
         </div>
         <!--end::Actions-->
     </div>

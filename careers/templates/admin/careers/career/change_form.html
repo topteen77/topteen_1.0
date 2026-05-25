@@ -131,6 +131,7 @@
 #accordion-preview-container .accordion-body li { color: #000 !important; }
 </style>
 
+<script src="/static/js/accordion-content.js"></script>
 <script>
 (function() {
     var descriptionTextarea = null;
@@ -372,73 +373,11 @@
     }
     
     function parseDescriptionToAccordion(html) {
+        if (window.TopTeenAccordion && TopTeenAccordion.parseDescriptionToAccordion) {
+            return TopTeenAccordion.parseDescriptionToAccordion(html);
+        }
         if (!html) return [];
-        
-        var accordionItems = [];
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Find all H2 headings
-        var h2Elements = tempDiv.querySelectorAll('h2');
-        
-        if (h2Elements.length === 0) {
-            // If no H2, try to find other heading tags
-            h2Elements = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
-        }
-        
-        if (h2Elements.length === 0) {
-            // If still no headings, treat entire content as one item
-            var text = tempDiv.textContent.trim();
-            if (text) {
-                accordionItems.push({
-                    title: 'Description',
-                    content: html
-                });
-            }
-            return accordionItems;
-        }
-        
-        // Process each heading
-        for (var i = 0; i < h2Elements.length; i++) {
-            var heading = h2Elements[i];
-            var title = heading.textContent.trim();
-            
-            // Get content after this heading until next heading
-            var content = '';
-            var nextElement = heading.nextElementSibling;
-            
-            while (nextElement) {
-                // Stop if we hit another heading
-                if (nextElement.tagName && nextElement.tagName.match(/^H[1-6]$/)) {
-                    break;
-                }
-                content += nextElement.outerHTML || nextElement.textContent;
-                nextElement = nextElement.nextElementSibling;
-            }
-            
-            // If no content found, try getting text until next heading
-            if (!content.trim()) {
-                var current = heading.nextSibling;
-                while (current) {
-                    if (current.nodeType === 1 && current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                        break;
-                    }
-                    if (current.nodeType === 1) {
-                        content += current.outerHTML;
-                    } else if (current.nodeType === 3) {
-                        content += current.textContent;
-                    }
-                    current = current.nextSibling;
-                }
-            }
-            
-            accordionItems.push({
-                title: title || 'Untitled Section',
-                content: content.trim() || '<p>No content</p>'
-            });
-        }
-        
-        return accordionItems;
+        return [{ title: 'Description', content: html }];
     }
     
     function generateJSON(accordionItems) {

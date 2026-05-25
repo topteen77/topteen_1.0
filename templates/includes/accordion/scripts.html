@@ -1,0 +1,6 @@
+{# Shared accordion JS — include once per page (admin preview and/or client fallback). #}
+{# Set include_admin_preview=true in a {% with %} block before including this file. #}
+<script src="{{ static('js/accordion-content.js') }}"></script>
+{% if include_admin_preview|default(false) %}
+<script src="{{ static('js/accordion-admin-preview.js') }}"></script>
+{% endif %}

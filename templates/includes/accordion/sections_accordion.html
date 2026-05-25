@@ -1,0 +1,35 @@
+{# Reusable Bootstrap accordion from server-built sections (core.accordion_utils). #}
+{# Expects: sections (or accordion_sections), accordion_id, wrapper_class, body_wrapper_class #}
+{% set sections = sections|default(accordion_sections) %}
+{% set _acc_id = accordion_id|default('contentAccordion') %}
+{% set _wrap = wrapper_class|default('accordion cat-accordion custom-faq') %}
+{% set _body_wrap = body_wrapper_class|default('blogDetail careerDetail') %}
+{% if sections %}
+<div class="{{ _wrap }}" id="{{ _acc_id }}">
+  {% for section in sections %}
+  <div class="accordion-item" id="{{ section.section_id }}">
+    <h2 class="accordion-header" id="heading-{{ section.section_id }}">
+      <button class="accordion-button {{ 'collapsed' if not loop.first else '' }}" type="button"
+        data-bs-toggle="collapse" data-bs-target="#collapse-{{ section.section_id }}"
+        aria-expanded="{{ 'true' if loop.first else 'false' }}"
+        aria-controls="collapse-{{ section.section_id }}">
+        <span class="section-icon"><i class="bx {{ section.icon|default('bx-layer') }} me-2 fs-18"></i></span>
+        <span class="accordion-title-text">{{ section.display_title|default(section.title) }}</span>
+      </button>
+    </h2>
+    <div id="collapse-{{ section.section_id }}"
+      class="accordion-collapse collapse {{ 'show' if loop.first else '' }}"
+      aria-labelledby="heading-{{ section.section_id }}"
+      data-bs-parent="#{{ _acc_id }}">
+      <div class="accordion-body">
+        {% if _body_wrap %}
+        <div class="{{ _body_wrap }}">{{ section.content_html|safe }}</div>
+        {% else %}
+        {{ section.content_html|safe }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
