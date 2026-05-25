@@ -1,13 +1,6 @@
 /* Heatmap Dashboard Styles */
 
-.heatmap-dashboard-container {
-    background:
-        radial-gradient(1200px 420px at 10% -15%, rgba(59, 130, 246, 0.12), transparent 60%),
-        radial-gradient(900px 360px at 100% -8%, rgba(16, 185, 129, 0.10), transparent 62%),
-        linear-gradient(180deg, #f8fbff 0%, #f2f6fb 100%);
-    padding: 1.5rem;
-    min-height: 100vh;
-}
+
 
 .heatmap-header-card {
     position: relative;
@@ -357,12 +350,13 @@
 }
 
 .heatmap-tooltip {
-    position: absolute;
+    position: fixed;
     background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
     border-radius: 0.75rem;
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
     padding: 0.9rem;
-    width: 330px;
+    width: min(330px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
     border: 1px solid #dbe7f5;
     z-index: 1100;
     pointer-events: none;
@@ -376,11 +370,17 @@
     margin-bottom: 0.5rem;
 }
 
+.heatmap-tooltip-head-text {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
 .heatmap-tooltip-title {
     font-size: 0.96rem;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.25;
+    word-break: break-word;
 }
 
 .heatmap-tooltip-subtitle {
@@ -400,6 +400,7 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .heatmap-tooltip-chip.is-risk {
@@ -488,6 +489,7 @@
     font-size: 0.72rem;
     line-height: 1.4;
     color: #475569;
+    word-break: break-word;
 }
 
 .heatmap-footer {

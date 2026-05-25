@@ -6,6 +6,7 @@ from institute.models import Institute, StudentManagement, InstituteGroup
 from app.models import Results, TestCompletion
 from users.models import User
 import json
+import re
 
 
 def get_career_clusters():
@@ -46,6 +47,45 @@ def _normalize_stream(stream: str):
         "-": None,
     }
     return aliases.get(s_up, s_up)
+
+def _extract_section_demographic(class_section_text):
+    """
+    Build a stable section label from ClassAndSection.class_and_section.
+    Handles formats like "Class 10 A", "10 A", "10-A", and "Grade 10 Section B".
+    """
+    if not class_section_text:
+        return 'Section Unknown'
+
+    text = str(class_section_text).strip()
+    if not text:
+        return 'Section Unknown'
+
+    section_match = re.search(r'\bsection\s+([A-Za-z0-9]+)\b', text, re.IGNORECASE)
+    if section_match:
+        return f'Section {section_match.group(1)}'
+
+    if '-' in text:
+        segments = [segment.strip() for segment in text.split('-') if segment.strip()]
+        if len(segments) >= 2:
+            tail = segments[-1]
+            if tail and not tail.isdigit():
+                return f'Section {tail}'
+            if len(segments) >= 3:
+                return f'Section {segments[-1]}'
+
+    parts = text.split()
+    if len(parts) >= 3:
+        return f'Section {parts[-1]}'
+
+    if len(parts) == 2:
+        first, second = parts[0].lower(), parts[1]
+        if first in ('class', 'grade', 'std', 'standard') and second.isdigit():
+            return 'Section Unknown'
+        if not second.isdigit():
+            return f'Section {second}'
+
+    return 'Section Unknown'
+
 
 def _infer_stream_from_institute(student_mgmt):
     """
@@ -184,11 +224,8 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
             demographic_key = grade
         elif demographic_type == 'section':
             class_section = student_mgmt.class_and_section
-            if class_section and class_section.class_and_section:
-                section = class_section.class_and_section.split()[-1] if len(class_section.class_and_section.split()) > 2 else 'Unknown'
-            else:
-                section = 'Unknown'
-            demographic_key = f'Section {section}'
+            label = class_section.class_and_section if class_section and class_section.class_and_section else None
+            demographic_key = _extract_section_demographic(label)
         else:  # stream
             class_section = student_mgmt.class_and_section
             demo_raw = class_section.stream if class_section and class_section.stream else None
@@ -318,11 +355,9 @@ def get_heatmap_data_for_group(group_admin, group_type='institute', demographic_
                         demographics['grade'].append(grade)
         elif demographic_type == 'section':
             if class_section and class_section.class_and_section:
-                parts = class_section.class_and_section.split()
-                if len(parts) > 2:
-                    section = f"Section {parts[-1]}"
-                    if section not in demographics['section']:
-                        demographics['section'].append(section)
+                section = _extract_section_demographic(class_section.class_and_section)
+                if section not in demographics['section']:
+                    demographics['section'].append(section)
         elif demographic_type == 'stream':
             raw = class_section.stream if class_section and class_section.stream else None
             norm = _normalize_stream(raw)
@@ -335,7 +370,10 @@ def get_heatmap_data_for_group(group_admin, group_type='institute', demographic_
     demographics['grade'] = sorted(demographics['grade'], key=lambda x: (
         int(x.split()[-1]) if x.split()[-1].isdigit() and x != 'Unknown' else 999
     ))
-    demographics['section'] = sorted(demographics['section'])
+    demographics['section'] = sorted(
+        demographics['section'],
+        key=lambda x: (x == 'Section Unknown', x),
+    )
     demographics['stream'] = sorted(demographics['stream'])
     
     # Calculate stats
@@ -405,11 +443,9 @@ def get_heatmap_data_for_institute(institute, demographic_type='grade'):
                         demographics['grade'].append(grade)
         elif demographic_type == 'section':
             if class_section and class_section.class_and_section:
-                parts = class_section.class_and_section.split()
-                if len(parts) > 2:
-                    section = f"Section {parts[-1]}"
-                    if section not in demographics['section']:
-                        demographics['section'].append(section)
+                section = _extract_section_demographic(class_section.class_and_section)
+                if section not in demographics['section']:
+                    demographics['section'].append(section)
         elif demographic_type == 'stream':
             raw = class_section.stream if class_section and class_section.stream else None
             norm = _normalize_stream(raw)
@@ -422,7 +458,10 @@ def get_heatmap_data_for_institute(institute, demographic_type='grade'):
     demographics['grade'] = sorted(demographics['grade'], key=lambda x: (
         int(x.split()[-1]) if x.split()[-1].isdigit() and x != 'Unknown' else 999
     ))
-    demographics['section'] = sorted(demographics['section'])
+    demographics['section'] = sorted(
+        demographics['section'],
+        key=lambda x: (x == 'Section Unknown', x),
+    )
     demographics['stream'] = sorted(demographics['stream'])
     
     # Calculate stats

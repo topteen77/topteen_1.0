@@ -275,22 +275,22 @@
                   {% else %}
                     <div class="ttv2-adv-assign-wrap">
                       <div class="ttv2-adv-assign-row">
-                        <select class="form-select form-select-sm ttv2-adv-assign-select" data-ttv2-adv-select-unassigned aria-label="Choose advisor">
+                        <select class="form-select ttv2-adv-assign-select" data-ttv2-adv-select-unassigned aria-label="Choose advisor">
                           <option value="">Choose advisor…</option>
                           {% for c in _row_adv_opts %}
                             <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
                           {% endfor %}
                         </select>
                         <button type="button"
-                                class="btn btn-sm btn-primary ttv2-adv-assign-btn"
+                                class="btn ttv2-adv-assign-btn"
                                 data-ttv2-adv-assign
                                 data-bs-toggle="tooltip"
                                 data-bs-placement="top"
                                 title="Assign selected advisor">
-                          Assign
+                          <i class="bx bx-check" aria-hidden="true"></i>
+                          <span>Assign</span>
                         </button>
                       </div>
-                      <span class="ttv2-adv-assign-hint text-muted">Pick an advisor, then click Assign.</span>
                     </div>
                   {% endif %}
                 </div>

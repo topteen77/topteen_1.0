@@ -139,7 +139,7 @@
                   {% elif _k == 'scheduled_future' %}
                     <span class="badge bg-secondary">Next</span>
                   {% elif _k == 'not_scheduled' and _role_inst_mgmt and not _has_adv %}
-                    <span class="badge bg-warning text-dark">Assign counselor</span>
+                    <span class="ttv2-fu-status ttv2-fu-status--warning">Needs advisor</span>
                   {% else %}
                     <span class="badge bg-secondary">{{ _fu.smart_label|default('Not scheduled') }}</span>
                   {% endif %}
@@ -153,28 +153,39 @@
               {% else %}
                 <div style="margin-top:6px;">
                   {% if _role_inst_mgmt and not _has_adv %}
-                    <span class="badge bg-warning text-dark">Assign counselor</span>
+                    <span class="ttv2-fu-status ttv2-fu-status--warning">Needs advisor</span>
                   {% else %}
                     <span class="badge bg-secondary">Not scheduled</span>
                   {% endif %}
                 </div>
               {% endif %}
               {% if _role_inst_mgmt and not _has_adv and _assign_slug and _co_opts_card %}
-                <div class="ttv2-adv-card-assign-wrap mt-2" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
-                  <label class="visually-hidden" for="ttv2-adv-card-sel-{{ sm.id }}">Assign advisor</label>
-                  <select id="ttv2-adv-card-sel-{{ sm.id }}" class="form-select form-select-sm" data-ttv2-adv-card-select style="max-width:100%;font-size:11px;">
-                    <option value="">Choose advisor…</option>
-                    {% for c in _co_opts_card %}
-                      <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
-                    {% endfor %}
-                  </select>
-                  <button type="button"
-                          class="btn btn-sm btn-primary mt-1 w-100"
-                          data-ttv2-adv-card-assign
-                          data-set-url="{{ _set_counselor_url }}"
-                          data-sm-id="{{ sm.id }}">
-                    Assign
-                  </button>
+                <div class="ttv2-adv-card-assign-wrap" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">
+                  <div class="ttv2-adv-card-assign-label">
+                    <i class="bx bx-user-plus" aria-hidden="true"></i>
+                    <span>Assign advisor</span>
+                  </div>
+                  <div class="ttv2-adv-card-assign-row">
+                    <label class="visually-hidden" for="ttv2-adv-card-sel-{{ sm.id }}">Choose advisor</label>
+                    <select id="ttv2-adv-card-sel-{{ sm.id }}"
+                            class="form-select ttv2-adv-card-assign-select"
+                            data-ttv2-adv-card-select
+                            aria-label="Choose advisor">
+                      <option value="">Choose advisor…</option>
+                      {% for c in _co_opts_card %}
+                        <option value="{{ c.id }}" title="{{ c.counselor_label }}">{{ c.counselor_label }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="button"
+                            class="btn ttv2-adv-card-assign-btn"
+                            data-ttv2-adv-card-assign
+                            data-set-url="{{ _set_counselor_url }}"
+                            data-sm-id="{{ sm.id }}"
+                            title="Assign selected advisor">
+                      <i class="bx bx-check" aria-hidden="true"></i>
+                      <span>Assign</span>
+                    </button>
+                  </div>
                 </div>
               {% endif %}
             </div>

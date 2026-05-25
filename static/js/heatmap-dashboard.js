@@ -340,7 +340,7 @@
                     // Add hover events
                     const self = this;
                     cellDiv.addEventListener('mouseenter', function(e) {
-                        self.showTooltip(cellData, e);
+                        self.showTooltip(cellData, e.currentTarget || cellDiv);
                     });
                     cellDiv.addEventListener('mouseleave', function() {
                         self.hideTooltip();
@@ -376,6 +376,7 @@
             if (category === 'High Risk') return 'is-risk';
             if (category === 'Maintenance') return 'is-maintenance';
             if (category === 'High Alignment') return 'is-alignment';
+            if (category === 'Monitor') return 'is-neutral';
             return 'is-neutral';
         },
 
@@ -389,11 +390,44 @@
             if (category === 'High Alignment') {
                 return 'Strong interest and knowledge match. Recommend advanced pathways and challenge projects.';
             }
-            return 'Not enough student responses yet. Encourage participation to improve confidence.';
+            if (category === 'Monitor') {
+                return 'Interest and knowledge are still developing. Track progress and plan targeted exposure sessions.';
+            }
+            if (category === 'No Data') {
+                return 'Not enough student responses yet. Encourage participation to improve confidence.';
+            }
+            return 'Review this segment and plan the next counseling touchpoint.';
+        },
+
+        // Position tooltip within the viewport (fixed coords; avoids left-edge clipping)
+        positionTooltip: function(tooltip, anchorEl) {
+            const pad = 12;
+            const rect = anchorEl.getBoundingClientRect();
+            const tw = tooltip.offsetWidth;
+            const th = tooltip.offsetHeight;
+
+            let left = rect.right + pad;
+            let top = rect.top + (rect.height / 2) - (th / 2);
+
+            if (left + tw > window.innerWidth - pad) {
+                left = rect.left - tw - pad;
+            }
+            if (left < pad) {
+                left = Math.max(pad, rect.left + (rect.width / 2) - (tw / 2));
+            }
+            if (top + th > window.innerHeight - pad) {
+                top = window.innerHeight - th - pad;
+            }
+            if (top < pad) {
+                top = pad;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
         },
 
         // Show tooltip
-        showTooltip: function(cellData, event) {
+        showTooltip: function(cellData, anchorEl) {
             this.hideTooltip(); // Remove existing tooltip
 
             const tooltip = document.createElement('div');
@@ -413,7 +447,7 @@
 
             tooltip.innerHTML = `
                 <div class="heatmap-tooltip-head">
-                    <div>
+                    <div class="heatmap-tooltip-head-text">
                         <div class="heatmap-tooltip-title">${safeCluster}</div>
                         <div class="heatmap-tooltip-subtitle">${safeDemographic}</div>
                     </div>
@@ -442,22 +476,7 @@
             `;
 
             document.body.appendChild(tooltip);
-
-            // Position tooltip
-            const rect = event.target.getBoundingClientRect();
-            tooltip.style.top = (rect.top + window.scrollY - 10) + 'px';
-            tooltip.style.left = (rect.right + window.scrollX + 10) + 'px';
-
-            // Adjust if tooltip goes off screen
-            setTimeout(() => {
-                const tooltipRect = tooltip.getBoundingClientRect();
-                if (tooltipRect.right > window.innerWidth) {
-                    tooltip.style.left = (rect.left + window.scrollX - tooltipRect.width - 10) + 'px';
-                }
-                if (tooltipRect.bottom > window.innerHeight) {
-                    tooltip.style.top = (window.innerHeight - tooltipRect.height - 20) + 'px';
-                }
-            }, 0);
+            this.positionTooltip(tooltip, anchorEl);
         },
 
         // Hide tooltip

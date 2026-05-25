@@ -1,0 +1,61 @@
+{# Institute group — payments & tie-up billing (modern UI) #}
+<link rel="stylesheet" href="{{ static('css_new/ttv2_group_payments_page.css') }}">
+
+{% set payment_rows = ttv2_tieup_payments if ttv2_tieup_payments is defined else (tieup_payment_rows if tieup_payment_rows is defined else []) %}
+{% set _pending_lines = pending_order_lines if pending_order_lines is defined else [] %}
+{% set _coupons = coupons_available if coupons_available is defined else [] %}
+{% set ns = namespace(pending=0, received=0, failed=0) %}
+{% for r in payment_rows %}
+  {% if r.status_key == 20 %}{% set ns.received = ns.received + 1 %}
+  {% elif r.status_key == 30 %}{% set ns.failed = ns.failed + 1 %}
+  {% else %}{% set ns.pending = ns.pending + 1 %}{% endif %}
+{% endfor %}
+
+<div class="ttv2-group-payments-page">
+  <header class="ttv2-gpay-hero">
+    <div class="ttv2-gpay-hero-copy">
+      <h1>Payments &amp; billing</h1>
+      <p>Manage tie-up packages, institute coupons, and payment history across your group.</p>
+    </div>
+    {% if institute_group is defined and institute_group %}
+    <span class="ttv2-gpay-hero-badge"><i class="bx bx-buildings"></i> {{ institute_group.group_name }}</span>
+    {% endif %}
+  </header>
+
+  <div class="ttv2-gpay-kpis">
+    <div class="ttv2-gpay-kpi ttv2-gpay-kpi--amber">
+      <div class="ttv2-gpay-kpi-icon"><i class="bx bx-time-five"></i></div>
+      <div class="ttv2-gpay-kpi-body">
+        <div class="ttv2-gpay-kpi-label">Pending due</div>
+        <div class="ttv2-gpay-kpi-value">₹{{ pending_total|default(0) }}</div>
+        <div class="ttv2-gpay-kpi-sub">{{ _pending_lines|length }} package line{{ 's' if _pending_lines|length != 1 else '' }}</div>
+      </div>
+    </div>
+    <div class="ttv2-gpay-kpi ttv2-gpay-kpi--green">
+      <div class="ttv2-gpay-kpi-icon"><i class="bx bx-check-circle"></i></div>
+      <div class="ttv2-gpay-kpi-body">
+        <div class="ttv2-gpay-kpi-label">Received</div>
+        <div class="ttv2-gpay-kpi-value">{{ ns.received }}</div>
+        <div class="ttv2-gpay-kpi-sub">Successful payments</div>
+      </div>
+    </div>
+    <div class="ttv2-gpay-kpi ttv2-gpay-kpi--violet">
+      <div class="ttv2-gpay-kpi-icon"><i class="bx bx-purchase-tag"></i></div>
+      <div class="ttv2-gpay-kpi-body">
+        <div class="ttv2-gpay-kpi-label">Active coupons</div>
+        <div class="ttv2-gpay-kpi-value">{{ _coupons|length }}</div>
+        <div class="ttv2-gpay-kpi-sub">Available for checkout</div>
+      </div>
+    </div>
+    <div class="ttv2-gpay-kpi ttv2-gpay-kpi--blue">
+      <div class="ttv2-gpay-kpi-icon"><i class="bx bx-receipt"></i></div>
+      <div class="ttv2-gpay-kpi-body">
+        <div class="ttv2-gpay-kpi-label">All records</div>
+        <div class="ttv2-gpay-kpi-value">{{ payment_rows|length }}</div>
+        <div class="ttv2-gpay-kpi-sub">{{ ns.pending }} pending · {{ ns.failed }} failed</div>
+      </div>
+    </div>
+  </div>
+
+  {% include "template_v2/institute/pages/institute_tieup_billing.html" %}
+</div>
