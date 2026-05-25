@@ -1,4 +1,27 @@
 {% extends 'topteenadmin/base.html' %}
 {% block main %}
-						<h6 class="p-5 m-5">Select an option from left menu to start</h6>
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<div id="kt_content_container" class="container-xxl">
+		<div class="card mb-5">
+			<div class="card-body py-8">
+				<h4 class="mb-4">Quick links</h4>
+				<div class="d-flex flex-wrap gap-3">
+					<a href="{{ url('core:home') }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+						Website
+					</a>
+					<a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-light-primary">
+						Dashboard
+					</a>
+					<a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-light">
+						TopTeen Admin
+					</a>
+					<a href="{{ url('topteenadminmanaged:bloglist') }}" class="btn btn-light">
+						Blog
+					</a>
+				</div>
+			</div>
+		</div>
+		<h6 class="text-muted">Select an option from the left menu to start</h6>
+	</div>
+</div>
 {% endblock %}
