@@ -353,11 +353,24 @@
         </div>
         <nav class="sidebar-menu">
             <div class="menu-item">
-                <a href="{{ url('user_analytics:business_dashboard') }}" class="menu-link {% if request and (request.path == '/user-analytics/business/' or request.path == '/user-analytics/') %}active{% endif %}">
-                    <i class="fas fa-briefcase"></i>
-                    <span class="menu-title">Business Dashboard</span>
+                <a href="{{ url('core:home') }}" class="menu-link" target="_blank" rel="noopener noreferrer" title="Open public website">
+                    <i class="fas fa-globe"></i>
+                    <span class="menu-title">Website</span>
                 </a>
             </div>
+            <div class="menu-item">
+                <a href="{{ url('user_analytics:business_dashboard') }}" class="menu-link {% if request and (request.path == '/user-analytics/business/' or request.path == '/user-analytics/') %}active{% endif %}" title="Business &amp; analytics dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="menu-title">Dashboard</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ url('topteenadmin:topteendashboard') }}" class="menu-link {% if request and request.path.startswith('/topteenadmin') %}active{% endif %}" title="Content management (TopTeen Admin)">
+                    <i class="fas fa-database"></i>
+                    <span class="menu-title">TopTeen Admin</span>
+                </a>
+            </div>
+            <div class="menu-item" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);"></div>
             <div class="menu-item">
                 <a href="{{ url('user_analytics:accounts_dashboard') }}" class="menu-link {% if request and request.path == '/user-analytics/accounts/' %}active{% endif %}">
                     <i class="fas fa-chart-pie"></i>
@@ -447,6 +460,9 @@
                 {% block page_title %}Analytics Dashboard{% endblock %}
             </div>
             <div class="topbar-actions">
+                <a href="{{ url('core:home') }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">Website</a>
+                <a href="{{ url('user_analytics:business_dashboard') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
+                <a href="{{ url('topteenadmin:topteendashboard') }}" class="btn btn-sm btn-outline-secondary">TopTeen Admin</a>
                 {% include "notifications/includes/notification_bell.html" %}
                 <div class="dropdown">
                     <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
