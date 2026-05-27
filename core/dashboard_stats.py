@@ -274,13 +274,73 @@ def _get_points_details(user):
     return details, earned_total
 
 
+def _resolve_level_progress(total_points):
+    """
+    Level progress within the current band (not total XP vs next threshold).
+    Example: 25 XP, Rookie→Explorer (0–500 band) = 5% and 475 XP to Explorer.
+    """
+    from core.models import DashboardLevelBand
+    bands = list(DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order'))
+    if not bands:
+        bands = DEFAULT_LEVEL_BANDS
+    if not bands:
+        return {
+            'current_level': 'Rookie',
+            'next_level_min_points': None,
+            'next_level_name': None,
+            'current_level_min_points': 0,
+            'level_progress_percent': 0,
+            'points_in_band': 0,
+            'band_span_points': 0,
+            'points_to_next': 0,
+            'is_max_level': True,
+        }
+
+    current = None
+    next_band = None
+    for b in bands:
+        if total_points >= b['min_points']:
+            current = b
+    for b in bands:
+        if b['min_points'] > total_points:
+            next_band = b
+            break
+
+    level_name = current['name'] if current else bands[0]['name']
+    current_min = current['min_points'] if current else bands[0]['min_points']
+    next_min = next_band['min_points'] if next_band else None
+    next_level_name = next_band['name'] if next_band else None
+
+    band_span = (next_min - current_min) if next_min is not None else 0
+    points_in_band = max(0, int(total_points) - int(current_min))
+    points_to_next = max(0, int(next_min) - int(total_points)) if next_min is not None else 0
+
+    progress = 0
+    if band_span > 0:
+        progress = int(round(100 * points_in_band / band_span))
+        progress = min(100, max(0, progress))
+
+    return {
+        'current_level': level_name,
+        'next_level_min_points': next_min,
+        'next_level_name': next_level_name,
+        'current_level_min_points': current_min,
+        'level_progress_percent': progress,
+        'points_in_band': points_in_band,
+        'band_span_points': band_span,
+        'points_to_next': points_to_next,
+        'is_max_level': next_min is None,
+    }
+
+
 def _get_level_details(total_points):
     from core.models import DashboardLevelBand
     bands = list(DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order'))
     if not bands:
         bands = DEFAULT_LEVEL_BANDS
 
-    level_name, next_min, progress = _get_level_band(total_points)
+    progress_data = _resolve_level_progress(total_points)
+    level_name = progress_data['current_level']
     band_rows = []
     for b in bands:
         band_rows.append({
@@ -290,17 +350,10 @@ def _get_level_details(total_points):
             'reached': total_points >= b['min_points'],
         })
 
-    points_to_next = 0
-    if next_min is not None:
-        points_to_next = max(0, next_min - total_points)
-
     return {
         'bands': band_rows,
-        'current_level': level_name,
-        'next_level_min_points': next_min,
-        'level_progress_percent': progress,
         'total_points': total_points,
-        'points_to_next': points_to_next,
+        **progress_data,
     }
 
 
@@ -316,32 +369,8 @@ def _get_streak_details(user):
 
 def _get_level_band(total_points):
     """Return (level_name, next_min_points, progress_percent) from DashboardLevelBand or defaults."""
-    from core.models import DashboardLevelBand
-    bands = list(DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order'))
-    if not bands:
-        bands = DEFAULT_LEVEL_BANDS
-    if not bands:
-        return 'Rookie', None, 0
-
-    current = None
-    next_band = None
-    for b in bands:
-        if total_points >= b['min_points']:
-            current = b
-    for b in bands:
-        if b['min_points'] > total_points:
-            next_band = b
-            break
-
-    level_name = current['name'] if current else bands[0]['name']
-    next_min = next_band['min_points'] if next_band else None
-    progress = 0
-    if next_min is not None and current is not None:
-        span = next_min - current['min_points']
-        if span > 0:
-            progress = int(100 * (total_points - current['min_points']) / span)
-            progress = min(100, max(0, progress))
-    return level_name, next_min, progress
+    data = _resolve_level_progress(total_points)
+    return data['current_level'], data['next_level_min_points'], data['level_progress_percent']
 
 
 def get_student_dashboard_stats(profile_user):

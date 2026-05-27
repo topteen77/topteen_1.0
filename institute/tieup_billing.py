@@ -1081,6 +1081,7 @@ def attach_institute_tieup_payment_ctx(ctx, institute, user, status_filter=None)
     ctx["ttv2_tieup_payments"] = ctx["tieup_payment_rows"]
     ctx["pending_order_lines"] = billing.get("pending_order_lines") or []
     ctx["tieup_hide_coupon_ui"] = False
+    ctx["is_modern_payments"] = True
     cta = tieup_pay_cta_for_institute(institute, user)
     if cta:
         ctx["ttv2_tieup_pay_cta"] = cta

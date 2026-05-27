@@ -497,11 +497,28 @@
     background: rgba(34, 197, 94, 0.2);
   }
 
-  .gamify-xp-progress .level-progress-bar {
+  .gamify-xp-progress .level-progress-bar,
+  .gamify-level-progress-fill {
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
     box-shadow: 0 0 12px rgba(34, 197, 94, 0.45);
+    min-width: 0;
+    transition: width 0.45s ease;
+  }
+
+  .gamify-level-progress-fill[style*="width:"]:not([style*="width: 0"]) {
+    min-width: 6px;
+  }
+
+  .gamify-xp-progress-fraction {
+    font-size: 0.8rem;
+    color: #166534;
+  }
+
+  .gamify-xp-progress--max {
+    background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+    border-color: rgba(234, 179, 8, 0.35);
   }
 
   .gamify-empty-state {

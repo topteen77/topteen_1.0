@@ -97,7 +97,7 @@
       </div>
 
       <!-- Left Sidebar (Desktop) -->
-      <div class="col-lg-4 d-none d-lg-block">
+      <div class="col-lg-4 d-none">
         <div class="user-profile-card mb-4 sticky-top" style="top: 40px;">
           <div class="profile-header text-center">
             {% if request.user.image %}
@@ -123,7 +123,7 @@
               {% endif %}
             </div>
           </div>
-          <div class="profile-progress mt-4">
+          <div class="profile-progress mt-4 d-none">
             <h6 class="fs-14 fw-semibold">Complete your profile</h6>
             <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
             <div class="progress mt-2">
@@ -132,18 +132,17 @@
             </div>
             <a href="{{ url('users:profiledetails') }}" class="btn custom-button purple-button w-100 mt-3">Settings</a>
           </div>
-          {% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{%
-          endwith %}
+         
         </div>
       </div>
 
       <!-- Main Content Area -->
-      <div class="col-lg-8">
+      <div class="col-lg-9 mx-auto">
 
 
 
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border py-3 rounded-2">
+        <div class="d-none d-flex justify-content-between align-items-center mb-4 bg-light border py-3 rounded-2">
           <div class="d-flex align-items-center">
             {% if request.user.image %}
             <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2"
@@ -161,10 +160,17 @@
           </div>
 
         </div>
-        {% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{%
-        endwith %}
+
+
 
         <h2 class="fs-24 fw-semibold mb-4">Psychometric Test</h2>
+
+        {% with mode='desktop', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{%
+          endwith %}
+
+          
+        {% with mode='mobile', page_type='instruction' %}{% include 'template20/includes/test_features.html' %}{%
+        endwith %}
 
         <!-- Instructions Box -->
         <div class="instruction-box">

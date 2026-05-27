@@ -140,7 +140,7 @@
 
 
       <!-- Left Sidebar (Desktop) -->
-      <div class="col-lg-4 d-none d-lg-block">
+      <div class="col-lg-4 d-none ">
         <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
           <div class="profile-header text-center">
             {% if request.user.image %}
@@ -164,7 +164,7 @@
               {% endif %}
             </div>
           </div>
-          <div class="profile-progress mt-4">
+          <div class="profile-progress mt-4 d-none">
             <h6 class="fs-14 fw-semibold">Complete your profile</h6>
             <p class="text-gray fs-12">A complete profile helps us cater the best content to you</p>
             <div class="progress mt-2">
@@ -176,9 +176,9 @@
       </div>
 
       <!-- Main Content Area -->
-      <div class="col-lg-8">
+      <div class="col-lg-9 mx-auto">
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3">
+        <div class="d-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3">
           <div class="d-flex align-items-center">
             {% if request.user.image %}
             <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">

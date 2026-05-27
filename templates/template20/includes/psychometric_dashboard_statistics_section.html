@@ -73,9 +73,14 @@
             data-bs-toggle="modal" data-bs-target="#dashboardStatLevelModal"
             role="button" tabindex="0">{{ current_level|default('Rookie') }}</p>
           <p class="stat-label mb-0 lh-sm">Current level</p>
-          {% if next_level_min_points is not none and level_progress_percent is not none %}
+          {% if level_details and not level_details.is_max_level and next_level_min_points is not none %}
+          <div class="level-progress-wrap mt-1" style="max-width: 100%;"
+            title="{{ level_details.points_in_band|default(0) }}/{{ level_details.band_span_points|default(0) }} XP to {{ level_details.next_level_name|default('next level') }}">
+            <div class="level-progress-bar" style="width: {{ level_details.level_progress_percent|default(level_progress_percent|default(0)) }}%; min-width: {% if (level_details.level_progress_percent|default(0)) > 0 %}6px{% else %}0{% endif %};"></div>
+          </div>
+          {% elif next_level_min_points is not none and level_progress_percent is not none %}
           <div class="level-progress-wrap mt-1" style="max-width: 100%;">
-            <div class="level-progress-bar psych-dynamic-width" data-score="{{ level_progress_percent }}"></div>
+            <div class="level-progress-bar" style="width: {{ level_progress_percent }}%; min-width: {% if level_progress_percent > 0 %}6px{% else %}0{% endif %};"></div>
           </div>
           {% endif %}
         </div>

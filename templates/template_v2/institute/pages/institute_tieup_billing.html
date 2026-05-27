@@ -1,5 +1,6 @@
 {# Institute tie-up billing — B2B packages + Pay Now (institute & group share coupon UI) #}
-<div id="ttv2TieupBillingRoot" class="ttv2-tieup-billing{% if is_group_view|default(false) %} ttv2-tieup-billing--group{% endif %}"
+{% set _gpay_ui = is_group_view|default(false) or is_modern_payments|default(false) %}
+<div id="ttv2TieupBillingRoot" class="ttv2-tieup-billing{% if _gpay_ui %} ttv2-tieup-billing--group{% endif %}"
      data-order-id="{{ pay_order_id|default('') }}"
      data-create-order-url="{{ create_order_url|default('') }}"
      data-verify-url="{{ verify_url|default('') }}"
@@ -20,6 +21,14 @@
     <div>
       <h2 class="ttv2-gpay-section-title"><i class="bx bx-wallet"></i> Group tie-up billing</h2>
       <p class="ttv2-gpay-section-desc">Review pending packages and pay for institutes in your group.</p>
+    </div>
+  </div>
+{% elif _gpay_ui %}
+<section class="ttv2-gpay-section">
+  <div class="ttv2-gpay-section-head">
+    <div>
+      <h2 class="ttv2-gpay-section-title"><i class="bx bx-wallet"></i> Tie-up billing</h2>
+      <p class="ttv2-gpay-section-desc">Pending packages on your institute account — pay when ready.</p>
     </div>
   </div>
 {% else %}
@@ -47,11 +56,11 @@
   {% endif %}
   {% set _pending_lines = pending_order_lines if pending_order_lines is defined else [] %}
   {% if _pending_lines|length > 0 %}
-  <div class="{% if is_group_view|default(false) %}mt-1{% else %}mt-3{% endif %}">
-    <div class="{% if is_group_view|default(false) %}ttv2-gpay-subhead{% else %}small fw-semibold text-muted mb-2{% endif %}">Pending tie-up packages</div>
-    <div class="{% if is_group_view|default(false) %}ttv2-gpay-table-wrap{% else %}table-responsive border rounded-3{% endif %}">
-      <table class="table {% if is_group_view|default(false) %}mb-0{% else %}table-sm mb-0{% endif %} align-middle">
-        <thead {% if not is_group_view|default(false) %}class="table-light"{% endif %}>
+  <div class="{% if _gpay_ui %}mt-1{% else %}mt-3{% endif %}">
+    <div class="{% if _gpay_ui %}ttv2-gpay-subhead{% else %}small fw-semibold text-muted mb-2{% endif %}">Pending tie-up packages</div>
+    <div class="{% if _gpay_ui %}ttv2-gpay-table-wrap{% else %}table-responsive border rounded-3{% endif %}">
+      <table class="table {% if _gpay_ui %}mb-0{% else %}table-sm mb-0{% endif %} align-middle">
+        <thead {% if not _gpay_ui %}class="table-light"{% endif %}>
           <tr>
             <th>Product</th>
             <th class="text-end">Qty</th>
@@ -68,7 +77,7 @@
             <td class="text-end">₹{{ ln.unit_price }}</td>
             <td class="text-end fw-semibold">₹{{ ln.total }}</td>
             <td>
-              {% if is_group_view|default(false) %}
+              {% if _gpay_ui %}
               <span class="ttv2-gpay-badge ttv2-gpay-badge--pending"><i class="bx bx-time-five"></i> {{ ln.status|default('Pending') }}</span>
               {% else %}
               <span class="badge bg-warning text-dark">{{ ln.status|default('Pending') }}</span>
@@ -82,7 +91,7 @@
   </div>
   {% endif %}
   {% if pay_order_id and tieup_amount_payable|default(false) %}
-  <div class="{% if is_group_view|default(false) %}ttv2-gpay-pay-panel{% else %}mt-3 p-3 border rounded-3{% endif %}" {% if not is_group_view|default(false) %}style="background:rgba(99,102,241,.06);"{% endif %}>
+  <div class="{% if _gpay_ui %}ttv2-gpay-pay-panel{% else %}mt-3 p-3 border rounded-3{% endif %}" {% if not _gpay_ui %}style="background:rgba(99,102,241,.06);"{% endif %}>
     <div class="row g-3 align-items-end">
       {% if not tieup_hide_coupon_ui|default(false) %}
       {% include "template_v2/institute/includes/tieup_coupon_pay_block.html" %}
@@ -99,7 +108,7 @@
     </div>
   </div>
   {% elif has_pending|default(false) and not pay_order_id %}
-    {% if is_group_view|default(false) %}
+    {% if _gpay_ui %}
     <div class="ttv2-gpay-alert mb-0">
       <i class="bx bx-error-circle"></i>
       <span>Pending tie-up billing exists but no payable order was found. Refresh the page or contact support.</span>
@@ -108,7 +117,7 @@
     <div class="mt-3 alert alert-warning mb-0 small">Pending tie-up billing exists but no payable order was found. Refresh the page or contact support.</div>
     {% endif %}
   {% endif %}
-{% if is_group_view|default(false) %}
+{% if is_group_view|default(false) or _gpay_ui %}
 </section>
 {% else %}
 </div>
