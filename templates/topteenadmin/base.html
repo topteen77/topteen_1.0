@@ -362,6 +362,14 @@
 											</a>
 										</div>
 										<div class="menu-item">
+											<a class="menu-link {% if active_tab =="career_related" %} active {% endif %}" href="{{url("topteenadminmanaged:relatedcareerlist")}}">
+												<span class="menu-bullet">
+													<span class="bullet bullet-dot"></span>
+												</span>
+												<span class="menu-title">Related Careers</span>
+											</a>
+										</div>
+										<div class="menu-item">
 											<a class="menu-link {% if active_tab =="careercluster" %} active {% endif %}" href="{{url("topteenadminmanaged:careerclusterlist")}}">
 												<span class="menu-bullet">
 													<span class="bullet bullet-dot"></span>

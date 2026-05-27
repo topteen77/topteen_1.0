@@ -6,6 +6,7 @@ import threading
 import time
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
@@ -171,24 +172,18 @@ def format_career_for_response(career, include_sections=False):
                     video_data['video_url'] = video.upload_video.url
                 videos_list.append(video_data)
     
-    # Get related careers (from same cluster or related courses)
     related_careers_list = []
     try:
-        # Get careers from same cluster
-        if hasattr(career, 'career_cluster') and career.career_cluster.exists():
-            cluster_careers = Career.objects.filter(
-                career_cluster__in=career.career_cluster.all(),
-                publish_status=1
-            ).exclude(id=career.id).distinct()[:6]
-            for rel_career in cluster_careers:
-                related_careers_list.append({
-                    'id': rel_career.id,
-                    'name': rel_career.name,
-                    'slug': rel_career.slug,
-                    'url': reverse('careers:careerdetail', args=[rel_career.slug, rel_career.id]),
-                    'summary': (rel_career.get_display_summary() or '')[:100]
-                })
-    except:
+        from careers.related_careers import get_related_careers
+        for rel_career in get_related_careers(career, limit=6, published_only=True):
+            related_careers_list.append({
+                'id': rel_career.id,
+                'name': rel_career.name,
+                'slug': rel_career.slug,
+                'url': reverse('careers:careerdetail', args=[rel_career.slug, rel_career.id]),
+                'summary': (rel_career.get_display_summary() or '')[:100],
+            })
+    except Exception:
         pass
     
     # Get eligibility from description_json if available
@@ -622,6 +617,39 @@ def autocomplete_careers(request):
             'value': nm,
         })
 
+    return JsonResponse({'results': results})
+
+
+@login_required
+@require_http_methods(["GET"])
+def admin_autocomplete_careers(request):
+    """
+    Staff autocomplete for related-careers admin (all active careers, any publish status).
+    Select2 format: { results: [ { id, text } ] }.
+    """
+    if not request.user.is_staff:
+        return JsonResponse({'results': []}, status=403)
+
+    query = request.GET.get('q', '').strip()
+    limit = min(int(request.GET.get('limit', 30)), 50)
+    exclude_id = request.GET.get('exclude_id', '').strip()
+
+    careers = Career.objects.all().order_by('name')
+    if exclude_id:
+        try:
+            careers = careers.exclude(id=int(exclude_id))
+        except (TypeError, ValueError):
+            pass
+    if query:
+        careers = careers.filter(name__icontains=query)
+
+    careers = careers.exclude(name__isnull=True).exclude(name='')[:limit]
+
+    results = [
+        {'id': c.id, 'text': (c.name or '').strip()}
+        for c in careers
+        if (c.name or '').strip()
+    ]
     return JsonResponse({'results': results})
 
 

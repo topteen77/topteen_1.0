@@ -24,7 +24,7 @@ from users.models import User
 from skilllab.models import SkillLabCourse,SkillLabCourseActivity,SkillLabCourseChapter
 
 from blog.models import Blog,BlogCategory,BlogTag
-from topteenadmin.filters import (CareerFAQFilter, CareerFilter, CareerMediaFilter,
+from topteenadmin.filters import (CareerFAQFilter, CareerFilter, CareerMediaFilter, CareerRelatedCareersFilter,
                                   CareerPathFilter, CareerPathStepFilter, CommonFAQFilter, ProfessionFilter,
                                   ProspectiveEmploymentAreaFilter,
                                   ProspectiveRecruiterFilter, ReviewFilter, SkillFilter,CollegeFilter,CollegeImagesFilter,CollegeFlatTextFilter,CollegeTextFilter,CollegeFactsFilter,
@@ -38,7 +38,7 @@ from .base_views import (BaseCreateView, BaseDeleteView, BaseDetailView,
                          BaseListView, BaseUpdateView)
 from .utils import build_admin_breadcrumb
 from .forms import ( CareerFAQModelForm, CareerMediaModelForm,
-                    CareerModelForm, CareerPathModelForm,CareerPathStepModelForm, CommonFAQModelForm,
+                    CareerModelForm, CareerRelatedCareersForm, CareerPathModelForm,CareerPathStepModelForm, CommonFAQModelForm,
                     ProspectiveEmploymentAreaModelForm,
                     ProspectiveRecruiterModelForm, SkillModelForm,CollegeModelForm,CollegeImagesModelForm,
                     CollegeFlatTextModelForm,CollegeTextModelForm,CollegeFactsModelForm,
@@ -90,8 +90,9 @@ class CareerListView(BaseListView):
     context_object_name = "career_list"
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related('career_cluster')
-    
+        return super().get_queryset().prefetch_related('career_cluster', 'related_careers')
+
+
 def _career_form_extra_context(career):
     """Frontend preview URL and career reference for description/accordion templates."""
     if not career or not getattr(career, 'pk', None):
@@ -147,10 +148,65 @@ class CareerDetailView(BaseDetailView):
     success_url=reverse_lazy('topteenadminmanaged:careerlist')
     active_tab="career"
 
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related('related_careers', 'career_cluster')
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(_career_form_extra_context(self.object))
         return ctx
+
+
+class CareerRelatedCareersListView(BaseListView):
+    template_name = 'topteenadmin/related_career_list.html'
+    title = 'Related Careers'
+    active_tab = 'career_related'
+    model = Career
+    filterset_class = CareerRelatedCareersFilter
+    context_object_name = 'career_list'
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related(
+            'career_cluster',
+            'related_careers',
+        ).order_by('name', 'id')
+
+    def _breadcrumb(self):
+        return build_admin_breadcrumb([
+            {'title': self.title, 'text': self.title,
+             'url': reverse('topteenadminmanaged:relatedcareerlist')},
+        ])
+
+
+class CareerRelatedCareersEditView(BaseUpdateView):
+    template_name = 'topteenadmin/related_career_edit.html'
+    model = Career
+    form_class = CareerRelatedCareersForm
+    title = 'Edit Related Careers'
+    active_tab = 'career_related'
+    success_message = 'Related careers updated successfully.'
+
+    def get_success_url(self):
+        return reverse_lazy('topteenadminmanaged:relatedcareerlist')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_career_form_extra_context(self.object))
+        ctx['career'] = self.object
+        ctx['autocomplete_url'] = reverse('careers:admin_autocomplete_careers')
+        ctx['related_careers_initial'] = [
+            {'id': c.id, 'text': c.name}
+            for c in self.object.related_careers.all().order_by('name')
+        ]
+        clusters = self.object.career_cluster.all()
+        ctx['cluster_names'] = ', '.join(c.name for c in clusters if c.name) or '—'
+        ctx['breadcrumb'] = build_admin_breadcrumb([
+            {'title': 'Related Careers', 'text': 'Related Careers',
+             'url': reverse('topteenadminmanaged:relatedcareerlist')},
+            {'title': self.object.name or 'Edit', 'text': self.object.name or 'Edit', 'url': '#'},
+        ])
+        return ctx
+
 
 class SkillListView(BaseListView):
     template_name = "topteenadmin/skill_list.html"

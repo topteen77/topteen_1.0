@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import related careers" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Import related careers from CSV" %}</h1>
+
+<div class="module" style="max-width: 720px; margin-bottom: 1.5em;">
+  <h2 style="margin-top: 0;">CSV format</h2>
+  <p>Required columns:</p>
+  <ul>
+    <li><code>id</code> — career id (source career)</li>
+    <li><code>related_career_ids</code> — up to <strong>3</strong> comma-separated related career ids, e.g. <code>1354,1336,1876</code></li>
+  </ul>
+  <p style="color: #555; font-size: 13px;">
+  Export base list: <code>python manage.py export_all_careers_csv</code>.
+  Add a <code>related_career_ids</code> column in Excel/Sheets after LLM review, then upload here.
+  </p>
+  <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px;">id,career,related_career_ids
+1315,Acupuncturist,"1354,1336,1876"
+1319,Advance-Care Paramedic,"1327,1347"</pre>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <div class="form-row">
+      <label for="csv_file">CSV file</label>
+      <input type="file" name="csv_file" id="csv_file" accept=".csv,text/csv" required>
+    </div>
+    <div class="form-row">
+      <label for="dry_run">
+        <input type="checkbox" name="dry_run" id="dry_run">
+        Dry run (validate only, do not save)
+      </label>
+    </div>
+    <div class="form-row">
+      <label for="clear_empty">
+        <input type="checkbox" name="clear_empty" id="clear_empty">
+        Clear related careers when <code>related_career_ids</code> is empty for a row
+      </label>
+    </div>
+  </fieldset>
+  <div class="submit-row">
+    <input type="submit" value="{% trans 'Import' %}" class="default">
+    <a href="{% url 'admin:careers_careerrelatedcareers_changelist' %}" class="button cancel-link">{% trans "Cancel" %}</a>
+  </div>
+</form>
+{% endblock %}

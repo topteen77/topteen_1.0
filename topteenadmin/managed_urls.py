@@ -34,6 +34,9 @@ urlpatterns = [
     path('careers/career/add',views.CreateCareer.as_view(),name="careercreate"),
     path('careers/career/change/<pk>',views.CareerUpdateView.as_view(),name="careeredit"),
     path('careers/career/delete/<pk>',views.CareerDeleteView.as_view(),name='careerdelete'),
+
+    path('careers/related-careers/list', views.CareerRelatedCareersListView.as_view(), name='relatedcareerlist'),
+    path('careers/related-careers/edit/<pk>', views.CareerRelatedCareersEditView.as_view(), name='relatedcareeredit'),
     
     #skill CRUD
     path('careers/skill/list',views.SkillListView.as_view(),name="skilllist"),

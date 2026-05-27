@@ -12,7 +12,12 @@ from django.urls import path, reverse
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count, Q
 from core import choices
-from .models import Career, CareerFAQ,CareerPath,CareerMedia, Skill,ProspectiveEmploymentArea,ProspectiveRecruiter,Profession,CareerPathStep,CareerCluster,RIASECCareer,CareerRating
+from .models import (
+    Career, CareerFAQ, CareerPath, CareerMedia, Skill, ProspectiveEmploymentArea,
+    ProspectiveRecruiter, Profession, CareerPathStep, CareerCluster, RIASECCareer,
+    CareerRating, CareerRelatedCareers,
+)
+from .related_careers_import import import_related_careers_from_csv
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 from modeltranslation.admin import TranslationAdmin,TranslationStackedInline
 from .docx_utils import convert_docx_to_html, extract_career_data_from_html
@@ -246,7 +251,11 @@ class CareerAdminForm(forms.ModelForm):
 
 class CareerAdmin(admin.ModelAdmin):
     form = CareerAdminForm
-    list_display = ['id', 'name', 'career_clusters_display', 'publish_status_display', 'image_url_display', 'preview_link', 'mindmap_validation', 'skills_count', 'created_date', 'modified_date']
+    list_display = [
+        'id', 'name', 'career_clusters_display', 'related_careers_summary',
+        'publish_status_display', 'image_url_display', 'preview_link',
+        'mindmap_validation', 'skills_count', 'created_date', 'modified_date',
+    ]
     list_filter = ['publish_status', 'created', 'modified', 'career_cluster', CareerClusterEmptyFilter, ImageEmptyFilter, ImageDuplicateFilter, MindmapValidationFilter]
     search_fields = ['name', 'summary', 'description']
     list_per_page = 25
@@ -280,6 +289,10 @@ class CareerAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
             'description': 'Optional details have been removed. All content should be in the description field.',
         }),
+        ('Related Careers', {
+            'fields': ('related_careers',),
+            'description': 'Manually curated careers for the public Related Careers section. When set, overrides automatic cluster/course matching.',
+        }),
         ('Other Relationships', {
             'fields': ('skills', 'prospective_employment_areas', 'prospective_recruiters', 
                       'career_tags', 'courses', 'career_paths'),
@@ -296,7 +309,8 @@ class CareerAdmin(admin.ModelAdmin):
     )
     
     filter_horizontal = ('skills', 'prospective_employment_areas', 'prospective_recruiters', 
-                        'career_tags', 'courses', 'career_cluster', 'career_paths', 'videos')
+                        'career_tags', 'courses', 'career_cluster', 'related_careers',
+                        'career_paths', 'videos')
     
     def career_clusters_display(self, obj):
         """Display career clusters with editable dropdown"""
@@ -394,6 +408,18 @@ class CareerAdmin(admin.ModelAdmin):
     def skills_count(self, obj):
         return obj.skills.count()
     skills_count.short_description = 'Skills'
+
+    def related_careers_summary(self, obj):
+        related = list(obj.related_careers.all()[:8])
+        if not related:
+            return format_html('<span style="color:#888;">Automatic</span>')
+        names = '; '.join(c.name for c in related if c.name)
+        extra = obj.related_careers.count() - len(related)
+        if extra > 0:
+            names += f' (+{extra} more)'
+        edit_url = reverse('admin:careers_careerrelatedcareers_change', args=[obj.pk])
+        return format_html('{}<br><a href="{}">Edit related</a>', names, edit_url)
+    related_careers_summary.short_description = 'Related careers'
     
     def created_date(self, obj):
         return obj.created.strftime('%Y-%m-%d %H:%M') if obj.created else '-'
@@ -723,7 +749,93 @@ class CareerClusterAdmin(admin.ModelAdmin):
     careers_count.admin_order_field = 'career_clusters__count'
 
 
-admin.site.register(Career,CareerAdmin)
+class CareerRelatedCareersAdmin(admin.ModelAdmin):
+    """Dedicated admin list for managing Career.related_careers + CSV import."""
+
+    change_list_template = 'admin/careers/careerrelatedcareers/change_list.html'
+    list_display = ['id', 'name', 'career_clusters_short', 'related_careers_summary', 'related_count']
+    list_filter = ['publish_status', 'career_cluster']
+    search_fields = ['name', 'id']
+    filter_horizontal = ['related_careers']
+    ordering = ['name', 'id']
+    list_per_page = 50
+    fields = ['name', 'related_careers']
+    readonly_fields = ['name']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related(
+            'career_cluster', 'related_careers',
+        )
+
+    def career_clusters_short(self, obj):
+        names = [c.name for c in obj.career_cluster.all() if c.name]
+        return ', '.join(names) if names else '—'
+    career_clusters_short.short_description = 'Cluster'
+
+    def related_careers_summary(self, obj):
+        related = list(obj.related_careers.all())
+        if not related:
+            return format_html('<span style="color:#888;">— none (automatic on site) —</span>')
+        return '; '.join(c.name for c in related if c.name)
+    related_careers_summary.short_description = 'Related careers'
+
+    def related_count(self, obj):
+        return obj.related_careers.count()
+    related_count.short_description = 'Count'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                'import-csv/',
+                self.admin_site.admin_view(self.import_csv_view),
+                name='careers_careerrelatedcareers_import_csv',
+            ),
+        ]
+        return custom + urls
+
+    def import_csv_view(self, request):
+        from django.contrib import messages
+        from django.shortcuts import redirect
+
+        if request.method == 'POST':
+            upload = request.FILES.get('csv_file')
+            dry_run = request.POST.get('dry_run') == 'on'
+            clear_empty = request.POST.get('clear_empty') == 'on'
+            if not upload:
+                messages.error(request, 'Please choose a CSV file.')
+            else:
+                result = import_related_careers_from_csv(
+                    upload,
+                    dry_run=dry_run,
+                    clear_existing=clear_empty,
+                )
+                level = messages.SUCCESS if not result.errors else messages.WARNING
+                messages.add_message(
+                    request,
+                    level,
+                    result.summary(),
+                )
+                for err in result.errors[:20]:
+                    messages.warning(request, err)
+                if not dry_run:
+                    return redirect('admin:careers_careerrelatedcareers_changelist')
+
+        return render(request, 'admin/careers/careerrelatedcareers/import_csv.html', {
+            **self.admin_site.each_context(request),
+            'title': 'Import related careers from CSV',
+            'opts': self.model._meta,
+        })
+
+
+admin.site.register(Career, CareerAdmin)
+admin.site.register(CareerRelatedCareers, CareerRelatedCareersAdmin)
 admin.site.register(Skill,SkillAdmin)
 admin.site.register(ProspectiveEmploymentArea,ProspectiveEmploymentAreaAdmin)
 admin.site.register(ProspectiveRecruiter,ProspectiveRecruiterAdmin)
