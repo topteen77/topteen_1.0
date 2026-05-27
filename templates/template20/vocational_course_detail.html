@@ -745,68 +745,82 @@
         return numbers[index] || 'One';
     }
     
+    function normalizeProsConsLabel(text) {
+        return (text || '').trim().toLowerCase().replace(/[.:]+$/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function isProsLabel(text) {
+        const label = normalizeProsConsLabel(text);
+        return label === 'pros' || label === 'advantages' || label === 'benefits';
+    }
+
+    function isConsLabel(text) {
+        const label = normalizeProsConsLabel(text);
+        return label === 'cons' || label === 'disadvantages' || label === 'drawbacks';
+    }
+
+    function headingLabelFromElement(el) {
+        if (!el) return '';
+        const tag = (el.tagName || '').toUpperCase();
+        if (tag === 'P' || tag === 'H2' || tag === 'H3' || tag === 'H4') {
+            const strong = el.querySelector('strong');
+            if (strong) return strong.textContent;
+            return el.textContent;
+        }
+        if (tag === 'STRONG') return el.textContent;
+        return '';
+    }
+
     function parseProsCons(html) {
-        // Parse Pros & Cons content and format it in the special grid layout
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
-        
-        let prosContent = [];
-        let consContent = [];
+
+        let prosUlHtml = '';
+        let consUlHtml = '';
         let currentSection = null;
-        
-        // Find Pros and Cons sections
-        const allElements = tempDiv.querySelectorAll('h3, h4, p, ul, li, strong');
-        
-        allElements.forEach(el => {
-            const text = el.textContent.trim().toLowerCase();
-            if (text.includes('pros') && !text.includes('cons')) {
-                currentSection = 'pros';
-            } else if (text.includes('cons')) {
-                currentSection = 'cons';
-            } else if (currentSection === 'pros' && el.tagName !== 'H3' && el.tagName !== 'H4') {
-                if (el.tagName === 'UL' || el.tagName === 'LI') {
-                    prosContent.push(el.outerHTML);
-                } else if (el.textContent.trim()) {
-                    prosContent.push('<li>' + el.textContent.trim() + '</li>');
+
+        // Walk top-level blocks only; match exact "Pros"/"Cons" headings (not "construction", etc.)
+        Array.from(tempDiv.children).forEach(function(child) {
+            const tag = (child.tagName || '').toUpperCase();
+            if (tag === 'P' || tag === 'H2' || tag === 'H3' || tag === 'H4') {
+                const label = headingLabelFromElement(child);
+                if (isProsLabel(label)) {
+                    currentSection = 'pros';
+                    return;
                 }
-            } else if (currentSection === 'cons' && el.tagName !== 'H3' && el.tagName !== 'H4') {
-                if (el.tagName === 'UL' || el.tagName === 'LI') {
-                    consContent.push(el.outerHTML);
-                } else if (el.textContent.trim()) {
-                    consContent.push('<li>' + el.textContent.trim() + '</li>');
+                if (isConsLabel(label)) {
+                    currentSection = 'cons';
+                    return;
                 }
+                currentSection = null;
+                return;
+            }
+            if (tag === 'UL' && currentSection === 'pros' && !prosUlHtml) {
+                prosUlHtml = child.innerHTML;
+                currentSection = null;
+            } else if (tag === 'UL' && currentSection === 'cons' && !consUlHtml) {
+                consUlHtml = child.innerHTML;
+                currentSection = null;
             }
         });
-        
-        // If no structured pros/cons found, try to extract from lists
-        if (prosContent.length === 0 && consContent.length === 0) {
-            const lists = tempDiv.querySelectorAll('ul');
-            if (lists.length >= 2) {
-                prosContent.push(lists[0].outerHTML);
-                consContent.push(lists[1].outerHTML);
-            } else if (lists.length === 1) {
-                // Single list - try to split or put all in pros
-                prosContent.push(lists[0].outerHTML);
-            }
+
+        // Fallback: first two top-level lists
+        if (!prosUlHtml || !consUlHtml) {
+            const topLists = Array.from(tempDiv.children).filter(function(el) {
+                return (el.tagName || '').toUpperCase() === 'UL';
+            });
+            if (!prosUlHtml && topLists[0]) prosUlHtml = topLists[0].innerHTML;
+            if (!consUlHtml && topLists[1]) consUlHtml = topLists[1].innerHTML;
         }
-        
-        // Build the pros-cons grid HTML
+
         let prosHTML = '<div class="pros-section"><h4>Pros</h4><ul>';
-        if (prosContent.length > 0) {
-            prosHTML += prosContent.join('');
-        } else {
-            prosHTML += '<li>No pros listed.</li>';
-        }
+        prosHTML += prosUlHtml || '<li>No pros listed.</li>';
         prosHTML += '</ul></div>';
-        
+
         let consHTML = '<div class="cons-section"><h4>Cons</h4><ul>';
-        if (consContent.length > 0) {
-            consHTML += consContent.join('');
-        } else {
-            consHTML += '<li>No cons listed.</li>';
-        }
+        consHTML += consUlHtml || '<li>No cons listed.</li>';
         consHTML += '</ul></div>';
-        
+
         return '<div class="pros-cons-content">' + prosHTML + consHTML + '</div>';
     }
 })();
