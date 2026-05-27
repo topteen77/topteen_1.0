@@ -37,7 +37,7 @@
         <div class="mb-10 fv-row description-tools-wrapper">
             <div class="career-editor-accordion-grid">
                 <div class="career-editor-col">
-                    <div class="career-description-header">
+                    <div class="career-col-header career-description-header">
                         <label class="form-label career-description-label required mb-0" for="editordescription">Description</label>
                         {% if career_frontend_preview_url %}
                         <a href="{{ career_frontend_preview_url }}" class="btn btn-sm btn-primary career-preview-page-btn" target="_blank" rel="noopener noreferrer">
@@ -50,31 +50,37 @@
                         {% endif %}
                     </div>
 
-                    {% for field in form %}
-                    {% if field.name == 'description' %}
-                    {% if field.errors %}
-                    <div class="fv-plugins-message-container invalid-feedback mb-2"><div data-field="description">{{ field.errors|striptags }}</div></div>
-                    {% endif %}
-                    <div id="career-description-field-container" class="career-description-editor-box" data-field="description">
-                        {{ field }}
+                    <div class="career-editor-col-scroll">
+                        {% for field in form %}
+                        {% if field.name == 'description' %}
+                        {% if field.errors %}
+                        <div class="fv-plugins-message-container invalid-feedback mb-2"><div data-field="description">{{ field.errors|striptags }}</div></div>
+                        {% endif %}
+                        <div id="career-description-field-container" class="career-description-editor-box" data-field="description">
+                            {{ field }}
+                        </div>
+                        {% if field.help_text %}
+                        <div class="text-muted fs-7 mt-2">{{ field.help_text }}</div>
+                        {% endif %}
+                        <p class="text-muted fs-8 mt-2 mb-0">Use <strong>Heading 2</strong> for each accordion section on the website. Edit here; the preview on the right updates automatically.</p>
+                        {% endif %}
+                        {% endfor %}
                     </div>
-                    {% if field.help_text %}
-                    <div class="text-muted fs-7 mt-2">{{ field.help_text }}</div>
-                    {% endif %}
-                    <p class="text-muted fs-8 mt-2 mb-0">Use <strong>Heading 2</strong> for each accordion section on the website. Edit here; the preview on the right updates automatically.</p>
-                    {% endif %}
-                    {% endfor %}
                 </div>
 
                 <div class="career-accordion-col">
-                    <h3 class="career-panel-title">Accordion preview</h3>
-                    <p class="text-muted fs-8 accordion-preview-legend mb-2">
-                        <span class="accordion-preview-legend__swatch"></span>
+                    <div class="career-col-header career-accordion-col-header">
+                        <h3 class="career-panel-title">Accordion preview</h3>
+                        <p class="text-muted fs-8 accordion-preview-legend mb-0">
+                            <span class="accordion-preview-legend__swatch"></span>
                         <strong>In view</strong> badge = H2 at your scroll position. Click a panel to expand it.
+                        The last paragraph appears as <strong>Conclusion</strong> below the accordion (same as the public page).
                     </p>
+                    </div>
                     <div id="career-accordion-preview-container" class="career-accordion-preview-scroll">
                         <p class="accordion-preview-placeholder">Loading preview…</p>
                     </div>
+                    <div id="career-accordion-conclusion-preview" class="career-accordion-conclusion-preview" hidden aria-live="polite"></div>
                 </div>
             </div>
         </div>
@@ -106,6 +112,26 @@
     min-height: 480px;
     max-height: 75vh;
     overflow: hidden;
+}
+.career-col-header {
+    flex-shrink: 0;
+}
+.career-editor-col-scroll,
+.career-accordion-preview-scroll,
+#career-accordion-preview-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+.career-accordion-col-header {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #5046e5;
+}
+.career-accordion-col-header .career-panel-title {
+    margin-bottom: 6px;
 }
 .career-description-header {
     display: flex;
@@ -164,18 +190,6 @@
 }
 .career-description-editor-box .ck.ck-editor {
     width: 100%;
-}
-.career-accordion-preview-scroll,
-#career-accordion-preview-container {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-}
-.career-editor-col {
-    overflow-y: auto;
 }
 .accordion-preview-summary {
     margin-bottom: 14px;
@@ -286,4 +300,36 @@
     min-height: 320px !important;
 }
 .accordion-preview-placeholder { color: #888; font-style: italic; }
+.career-accordion-conclusion-preview {
+    flex-shrink: 0;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid #c5cae9;
+}
+.career-accordion-conclusion-preview[hidden] {
+    display: none !important;
+}
+.career-conclusion-preview-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #5c6bc0;
+}
+.career-conclusion-preview-body {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f4f3ff 0%, #eef1ff 100%);
+    border: 1px solid #d8d6f8;
+    color: #000 !important;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.5;
+}
+.career-conclusion-preview-body p,
+.career-conclusion-preview-body div,
+.career-conclusion-preview-body span,
+.career-conclusion-preview-body li {
+    color: #000 !important;
+}
 </style>

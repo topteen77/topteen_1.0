@@ -45,6 +45,29 @@
   .career-intro-content .career-intro-paras p:last-child { margin-bottom: 0; }
   .career-intro-content .career-intro-paras h2 { display: none; }
 
+  /* Conclusion: last paragraph — light gradient box (screen 3) */
+  .career-detail-closing-paragraph {
+    margin-top: 1.75rem;
+    padding: 1.35rem 1.5rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #eef1ff 0%, #f5f6ff 45%, #ffffff 100%);
+    border: 1px solid #e3e3ff;
+    box-shadow: 0 4px 18px rgba(63, 55, 201, 0.08);
+  }
+  .career-detail-closing-paragraph p {
+    margin-bottom: 0;
+    color: #2d2a4a;
+    line-height: 1.75;
+  }
+  .career-description-conclusion {
+    margin-top: 1.75rem;
+    padding: 1.35rem 1.5rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #eef1ff 0%, #f5f6ff 45%, #ffffff 100%);
+    border: 1px solid #e3e3ff;
+    box-shadow: 0 4px 18px rgba(63, 55, 201, 0.08);
+  }
+
   .cat-main-content ol {
     padding-left: 20px;
   }
@@ -1928,6 +1951,17 @@
       if (!targetContainer || !careerDescriptionHtml || typeof TopTeenAccordion === 'undefined') return false;
       const items = TopTeenAccordion.parseDescriptionToAccordion(careerDescriptionHtml);
       const split = TopTeenAccordion.splitTrailingUntitledForFrontend(items);
+      // Career pages already show intro/summary at the top; avoid duplicating it as an "Overview" accordion panel.
+      const normalizeTitle = (t) => String(t || '').replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+      const isIntroTitle = (t) => {
+        const n = normalizeTitle(t);
+        return n === 'overview' || n === 'about' || n === 'introduction' || n === 'intro';
+      };
+      split.accordionItems = (split.accordionItems || []).filter((it) => {
+        const sid = String(it.section_id || '').trim().toLowerCase();
+        if (sid === 'overview') return false;
+        return !isIntroTitle(it.title);
+      });
       if (!split.accordionItems.length && !split.footerHtml) return false;
       const existingFooter = targetContainer.querySelector('.career-detail-closing-paragraph');
       if (split.accordionItems.length) {

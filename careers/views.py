@@ -6,10 +6,19 @@ from django.db.models import Q
 from careers.document_filters import CareerDocumentFilter
 from .models import Career, CareerFAQ, CareerMedia, CareerPath, CareerTags, Profession,CareerCluster,Videos,VideoCategory,CareerShortlist,CareerRating
 from .utils import extract_intro_html_from_description
+from .career_description_html import (
+    convert_bold_candidates_to_h2,
+    conclusion_text_normalized,
+    split_trailing_conclusion_from_description,
+    strip_conclusion_from_accordion_sections,
+)
 from core.accordion_utils import (
     build_description_accordion_sections,
+    count_h2_in_html,
+    filter_blank_sections,
     split_trailing_untitled_section_for_frontend,
     toc_from_sections,
+    is_intro_heading,
 )
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from colleges.models import College
@@ -441,7 +450,17 @@ class CareerDetail(TemplateView):
         ctx={}
         career=get_object_or_404(Career,id=career_id,slug=slug)
         ctx['career']=career
-        ctx['description_intro_html'] = extract_intro_html_from_description(career.description or '')
+        description_body, conclusion_paragraph_html = split_trailing_conclusion_from_description(
+            career.description or ''
+        )
+        intro_html = extract_intro_html_from_description(description_body)
+        # Do not show intro box when it is the same paragraph as the conclusion footer.
+        if intro_html and conclusion_paragraph_html:
+            intro_norm = conclusion_text_normalized(intro_html)
+            concl_norm = conclusion_text_normalized(conclusion_paragraph_html)
+            if intro_norm and intro_norm == concl_norm:
+                intro_html = ""
+        ctx['description_intro_html'] = intro_html
         ctx['breadcrumb'] = self._breadcrumb(career)
         country=Country.objects.all()
         ctx['colleges'] = College.get_all_colleges()
@@ -487,22 +506,36 @@ class CareerDetail(TemplateView):
         # Generate career aspect mindmap data (like HIPPOLOGY example)
         ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
 
-        json_sections = None
-        section_order = None
-        desc_json = getattr(career, 'description_json', None)
-        if isinstance(desc_json, dict):
-            json_sections = desc_json.get('sections')
-            section_order = desc_json.get('section_order')
+        # Build accordion from live description HTML only (not description_json).
+        # Stale JSON often embeds the full document in multiple sections and duplicates the conclusion.
+        accordion_source_html = description_body
+        if count_h2_in_html(description_body) == 0:
+            accordion_source_html, _ = convert_bold_candidates_to_h2(description_body)
+
         accordion_sections = build_description_accordion_sections(
-            career.description or '',
-            json_sections=json_sections,
-            section_order=section_order,
+            accordion_source_html,
+            json_sections=None,
         )
+        if conclusion_paragraph_html:
+            accordion_sections = strip_conclusion_from_accordion_sections(
+                accordion_sections,
+                conclusion_paragraph_html,
+            )
+            accordion_sections = filter_blank_sections(accordion_sections)
+
         accordion_sections, footer_html = split_trailing_untitled_section_for_frontend(
             accordion_sections
         )
+        # Career detail page already shows an intro/summary at the top (description_intro_html).
+        # Hide redundant intro-like sections (Overview/About/Intro) inside the accordion for careers only.
+        accordion_sections = [
+            s for s in accordion_sections
+            if (s.get("section_id") or "").strip().lower() != "overview"
+            and not is_intro_heading(s.get("title"))
+        ]
+
         ctx['accordion_sections'] = accordion_sections
-        ctx['career_footer_paragraph_html'] = footer_html
+        ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or footer_html
         ctx['accordion_toc'] = toc_from_sections(accordion_sections)
 
         # Mindmap: API-backed radial/classic vs static SVG accordion navigator

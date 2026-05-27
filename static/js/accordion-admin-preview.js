@@ -161,8 +161,8 @@
         var onScroll = debouncedHighlight;
         editor.scrollRoot.addEventListener('scroll', onScroll, { passive: true });
         editor.editable.addEventListener('scroll', onScroll, { passive: true });
-        var editorCol = document.querySelector('.career-editor-col');
-        if (editorCol) editorCol.addEventListener('scroll', onScroll, { passive: true });
+        var editorScrollEl = document.querySelector('.career-editor-col-scroll');
+        if (editorScrollEl) editorScrollEl.addEventListener('scroll', onScroll, { passive: true });
 
         var ta = getDescriptionTextarea(config);
         if (ta && ta._ckeditorInstance && ta._ckeditorInstance.editing) {
@@ -175,7 +175,7 @@
         previewContainer._previewHighlightCleanup = function () {
             editor.scrollRoot.removeEventListener('scroll', onScroll);
             editor.editable.removeEventListener('scroll', onScroll);
-            if (editorCol) editorCol.removeEventListener('scroll', onScroll);
+            if (editorScrollEl) editorScrollEl.removeEventListener('scroll', onScroll);
         };
         previewContainer._previewHighlightUpdate = updateHighlight;
     }
@@ -184,15 +184,34 @@
         config = config || {};
         var container = document.getElementById(config.previewContainerId || 'career-accordion-preview-container');
         if (!container || typeof TopTeenAccordion === 'undefined') return;
-        var items = TopTeenAccordion.parseDescriptionToAccordion(html);
-        TopTeenAccordion.renderAccordion(container, items, {
+
+        var conclusionContainer = document.getElementById(
+            config.conclusionContainerId || 'career-accordion-conclusion-preview'
+        );
+        var parseFn = TopTeenAccordion.parseDescriptionForAdminPreview || function (h) {
+            return {
+                bodyHtml: h,
+                conclusionHtml: '',
+                items: TopTeenAccordion.parseDescriptionToAccordion(h)
+            };
+        };
+        var parsed = parseFn(html);
+        var hasConclusion = !!(parsed.conclusionHtml && !TopTeenAccordion.sectionHtmlIsBlank(parsed.conclusionHtml));
+
+        TopTeenAccordion.renderAccordion(container, parsed.items, {
             mode: 'preview',
             accordionId: config.accordionId || 'admin-preview',
             expandAll: config.expandAll === true,
             showCount: true,
-            sourceHtml: html,
+            sourceHtml: parsed.bodyHtml || html,
+            hasSeparateConclusion: hasConclusion,
             emptyMessage: config.emptyMessage
         });
+
+        if (TopTeenAccordion.renderAdminConclusionPreview && conclusionContainer) {
+            TopTeenAccordion.renderAdminConclusionPreview(conclusionContainer, parsed.conclusionHtml);
+        }
+
         bindPreviewHighlightOnly(config);
     }
 

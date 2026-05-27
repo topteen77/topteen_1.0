@@ -5,6 +5,8 @@ Handles conversion of <p><strong> to H2 tags and parsing sections
 from bs4 import BeautifulSoup
 import logging
 
+from careers.career_description_html import convert_bold_candidates_to_h2
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,53 +25,10 @@ def convert_p_strong_to_h2(html_content):
     """
     if not html_content:
         return html_content
-    
+
     try:
-        soup = BeautifulSoup(html_content, 'html.parser')
-        
-        # Find all <p> tags
-        paragraphs = soup.find_all('p')
-        
-        for p in paragraphs:
-            # Check if paragraph contains a <strong> tag
-            strong_tag = p.find('strong')
-            if strong_tag:
-                # Get all text content of the paragraph (stripped)
-                p_text = p.get_text(strip=True)
-                # Get text content of the strong tag (stripped)
-                strong_text = strong_tag.get_text(strip=True)
-                
-                # If paragraph text equals strong text (meaning it's just the strong tag, possibly with whitespace)
-                # This indicates it's a heading, not regular text with emphasis
-                if p_text == strong_text and strong_text:
-                    # Additional check: skip if it's too short (likely not a heading) or too long (likely content)
-                    # Headings are typically between 3 and 200 characters
-                    if len(strong_text) < 3 or len(strong_text) > 200:
-                        continue
-                    
-                    # Skip if it looks like a list item or bullet point
-                    if strong_text.strip().startswith(('a)', 'b)', 'c)', 'i)', 'ii)', '1.', '2.', '3.', '-', '•', '*')):
-                        continue
-                    
-                        # Create new h2 tag
-                        h2_tag = soup.new_tag('h2')
-                        
-                        # Copy all contents from strong tag to h2 (preserves any nested HTML)
-                        for child in strong_tag.children:
-                            if hasattr(child, 'extract'):
-                                h2_tag.append(child.extract())
-                            else:
-                                h2_tag.append(str(child))
-                        
-                        # If no children were copied, use the text content
-                        if not h2_tag.contents:
-                            h2_tag.string = strong_text
-                        
-                        # Direct conversion: replace <p><strong> with <h2>
-                        p.replace_with(h2_tag)
-                                                                                            
-        return str(soup)
-    
+        new_html, _changes = convert_bold_candidates_to_h2(html_content)
+        return new_html
     except Exception as e:
         logger.error(f'Error converting p-strong to H2: {str(e)}', exc_info=True)
         return html_content

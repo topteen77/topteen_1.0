@@ -147,6 +147,105 @@
         return items;
     }
 
+    var CONCLUSION_WRAPPER_CLASS = 'career-description-conclusion';
+    var MIN_CONCLUSION_PARAGRAPH_CHARS = 40;
+
+    /**
+     * Split trailing conclusion (matches careers.career_description_html.split_trailing_conclusion_from_description).
+     * @returns {{ bodyHtml: string, conclusionHtml: string }}
+     */
+    function splitTrailingConclusionFromHtml(html) {
+        if (!html || !String(html).trim()) {
+            return { bodyHtml: '', conclusionHtml: '' };
+        }
+        var root = document.createElement('div');
+        root.innerHTML = html;
+
+        var wrapper = root.querySelector('div.' + CONCLUSION_WRAPPER_CLASS);
+        if (wrapper) {
+            var wrapped = wrapper.innerHTML.trim();
+            wrapper.remove();
+            return { bodyHtml: root.innerHTML.trim(), conclusionHtml: wrapped };
+        }
+
+        var paragraphs = [];
+        root.querySelectorAll('p').forEach(function (p) {
+            if (p.closest('div.' + CONCLUSION_WRAPPER_CLASS)) return;
+            var text = normalizeHeadingText(p.textContent);
+            if (text.length >= MIN_CONCLUSION_PARAGRAPH_CHARS) paragraphs.push(p);
+        });
+
+        if (paragraphs.length < 2) {
+            return { bodyHtml: html, conclusionHtml: '' };
+        }
+
+        var lastP = paragraphs[paragraphs.length - 1];
+        var firstP = paragraphs[0];
+        if (lastP === firstP) {
+            return { bodyHtml: html, conclusionHtml: '' };
+        }
+
+        var conclusionHtml = lastP.outerHTML;
+        lastP.remove();
+        return { bodyHtml: root.innerHTML.trim(), conclusionHtml: conclusionHtml };
+    }
+
+    function stripConclusionTextFromHtml(html, conclusionHtml) {
+        if (!html || !conclusionHtml) return html;
+        var temp = document.createElement('div');
+        temp.innerHTML = conclusionHtml;
+        var conclNorm = normalizeHeadingText(temp.textContent);
+        if (!conclNorm) return html;
+
+        var body = document.createElement('div');
+        body.innerHTML = html;
+        body.querySelectorAll('p').forEach(function (p) {
+            if (normalizeHeadingText(p.textContent) === conclNorm) {
+                p.remove();
+            }
+        });
+        return body.innerHTML.trim();
+    }
+
+    /**
+     * Admin preview: accordion panels from body without conclusion; conclusion rendered separately.
+     */
+    function parseDescriptionForAdminPreview(html) {
+        var split = splitTrailingConclusionFromHtml(html);
+        var items = parseDescriptionToAccordion(split.bodyHtml);
+
+        if (split.conclusionHtml && !sectionHtmlIsBlank(split.conclusionHtml)) {
+            items = items.map(function (item) {
+                var content = stripConclusionTextFromHtml(
+                    item.content || item.content_html || '',
+                    split.conclusionHtml
+                );
+                return Object.assign({}, item, { content: content });
+            });
+        }
+
+        return {
+            bodyHtml: split.bodyHtml,
+            conclusionHtml: split.conclusionHtml,
+            items: items
+        };
+    }
+
+    function renderAdminConclusionPreview(container, conclusionHtml) {
+        if (!container) return;
+        if (!conclusionHtml || sectionHtmlIsBlank(conclusionHtml)) {
+            container.hidden = true;
+            container.innerHTML = '';
+            return;
+        }
+        container.hidden = false;
+        container.innerHTML =
+            '<h4 class="career-conclusion-preview-title">Conclusion</h4>' +
+            '<div class="career-conclusion-preview-body blogDetail careerDetail">' +
+            conclusionHtml +
+            '</div>';
+    }
+
     /** Count &lt;h2&gt; tags in raw HTML (same notion as the editor toolbar). */
     function countH2InHtml(html) {
         if (!html || !String(html).trim()) return 0;
@@ -156,7 +255,8 @@
     /**
      * Summary line for admin preview: H2 count vs accordion panel count.
      */
-    function buildPreviewCountSummary(html, items) {
+    function buildPreviewCountSummary(html, items, options) {
+        options = options || {};
         var h2Count = countH2InHtml(html);
         var panelCount = items ? items.length : 0;
         var h2Panels = 0;
@@ -175,9 +275,13 @@
             ? 'Counts match — each H2 maps to a preview section.'
             : 'Counts differ — check empty H2 headings or text before the first H2.';
 
-        var detail = hasIntro
-            ? ' (' + h2Count + ' H2 sections + 1 intro block before first H2)'
-            : '';
+        var detailParts = [];
+        if (h2Count) detailParts.push(h2Count + ' H2 section' + (h2Count === 1 ? '' : 's'));
+        if (hasIntro) detailParts.push('1 intro block before first H2');
+        if (options && options.hasSeparateConclusion) {
+            detailParts.push('conclusion shown below accordion');
+        }
+        var detail = detailParts.length ? ' (' + detailParts.join(' + ') + ')' : '';
 
         return {
             h2Count: h2Count,
@@ -284,7 +388,7 @@
 
         if (mode === 'preview') {
             var sourceHtml = options.sourceHtml || '';
-            var summary = buildPreviewCountSummary(sourceHtml, items);
+            var summary = buildPreviewCountSummary(sourceHtml, items, options);
             var out = '<div class="accordion-preview-inner">';
             if (options.showCount !== false) {
                 out += summary.html;
@@ -406,6 +510,10 @@
 
     global.TopTeenAccordion = {
         parseDescriptionToAccordion: parseDescriptionToAccordion,
+        parseDescriptionForAdminPreview: parseDescriptionForAdminPreview,
+        splitTrailingConclusionFromHtml: splitTrailingConclusionFromHtml,
+        stripConclusionTextFromHtml: stripConclusionTextFromHtml,
+        renderAdminConclusionPreview: renderAdminConclusionPreview,
         countH2InHtml: countH2InHtml,
         buildPreviewCountSummary: buildPreviewCountSummary,
         sectionHtmlIsBlank: sectionHtmlIsBlank,
