@@ -1,9 +1,10 @@
 /**
  * Institute group — Payments page
- * Scoped to .ttv2-group-payments-page (does not affect single-institute payments).
+ * Scoped to .ttv2-group-payments-page and .ttv2-institute-payments-page.
  */
 
-.ttv2-group-payments-page{
+.ttv2-group-payments-page,
+.ttv2-institute-payments-page{
   --gpay-violet-1: #5249df;
   --gpay-violet-2: #7c4dff;
   --gpay-green-1: #16a34a;
@@ -18,7 +19,8 @@
 }
 
 /* --- Hero --- */
-.ttv2-group-payments-page .ttv2-gpay-hero{
+.ttv2-group-payments-page .ttv2-gpay-hero,
+.ttv2-institute-payments-page .ttv2-gpay-hero{
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -26,7 +28,8 @@
   gap: 1rem;
   margin-bottom: 1.15rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-hero-copy h1{
+.ttv2-group-payments-page .ttv2-gpay-hero-copy h1,
+.ttv2-institute-payments-page .ttv2-gpay-hero-copy h1{
   font-size: clamp(1.25rem, 2.4vw, 1.55rem);
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -34,14 +37,16 @@
   margin: 0 0 0.35rem;
   line-height: 1.2;
 }
-.ttv2-group-payments-page .ttv2-gpay-hero-copy p{
+.ttv2-group-payments-page .ttv2-gpay-hero-copy p,
+.ttv2-institute-payments-page .ttv2-gpay-hero-copy p{
   font-size: 0.875rem;
   color: var(--c-text3, #64748b);
   margin: 0;
   max-width: 42rem;
   line-height: 1.5;
 }
-.ttv2-group-payments-page .ttv2-gpay-hero-badge{
+.ttv2-group-payments-page .ttv2-gpay-hero-badge,
+.ttv2-institute-payments-page .ttv2-gpay-hero-badge{
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -54,22 +59,27 @@
   border: 1px solid rgba(82, 73, 223, 0.18);
   white-space: nowrap;
 }
-.ttv2-group-payments-page .ttv2-gpay-hero-badge i{ font-size: 1rem; }
+.ttv2-group-payments-page .ttv2-gpay-hero-badge i,
+.ttv2-institute-payments-page .ttv2-gpay-hero-badge i{ font-size: 1rem; }
 
 /* --- KPI row --- */
-.ttv2-group-payments-page .ttv2-gpay-kpis{
+.ttv2-group-payments-page .ttv2-gpay-kpis,
+.ttv2-institute-payments-page .ttv2-gpay-kpis{
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.85rem;
   margin-bottom: 1.25rem;
 }
 @media (max-width: 1199.98px){
-  .ttv2-group-payments-page .ttv2-gpay-kpis{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ttv2-group-payments-page .ttv2-gpay-kpis,
+  .ttv2-institute-payments-page .ttv2-gpay-kpis{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 575.98px){
-  .ttv2-group-payments-page .ttv2-gpay-kpis{ grid-template-columns: 1fr; }
+  .ttv2-group-payments-page .ttv2-gpay-kpis,
+  .ttv2-institute-payments-page .ttv2-gpay-kpis{ grid-template-columns: 1fr; }
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi{
+.ttv2-group-payments-page .ttv2-gpay-kpi,
+.ttv2-institute-payments-page .ttv2-gpay-kpi{
   display: flex;
   align-items: flex-start;
   gap: 0.85rem;
@@ -80,11 +90,13 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px rgba(15, 23, 42, 0.05);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi:hover{
+.ttv2-group-payments-page .ttv2-gpay-kpi:hover,
+.ttv2-institute-payments-page .ttv2-gpay-kpi:hover{
   transform: translateY(-2px);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 32px rgba(15, 23, 42, 0.08);
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi-icon{
+.ttv2-group-payments-page .ttv2-gpay-kpi-icon,
+.ttv2-institute-payments-page .ttv2-gpay-kpi-icon{
   width: 42px;
   height: 42px;
   border-radius: 12px;
@@ -97,27 +109,32 @@
   background: linear-gradient(135deg, var(--gpay-kpi-a, #5249df), var(--gpay-kpi-b, #7c4dff));
   box-shadow: 0 6px 14px var(--gpay-kpi-glow, rgba(82, 73, 223, 0.28));
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi--amber{
+.ttv2-group-payments-page .ttv2-gpay-kpi--amber,
+.ttv2-institute-payments-page .ttv2-gpay-kpi--amber{
   --gpay-kpi-a: var(--gpay-amber-1);
   --gpay-kpi-b: var(--gpay-amber-2);
   --gpay-kpi-glow: rgba(245, 158, 11, 0.28);
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi--green{
+.ttv2-group-payments-page .ttv2-gpay-kpi--green,
+.ttv2-institute-payments-page .ttv2-gpay-kpi--green{
   --gpay-kpi-a: var(--gpay-green-1);
   --gpay-kpi-b: var(--gpay-green-2);
   --gpay-kpi-glow: rgba(22, 163, 74, 0.28);
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi--violet{
+.ttv2-group-payments-page .ttv2-gpay-kpi--violet,
+.ttv2-institute-payments-page .ttv2-gpay-kpi--violet{
   --gpay-kpi-a: var(--gpay-violet-1);
   --gpay-kpi-b: var(--gpay-violet-2);
   --gpay-kpi-glow: rgba(82, 73, 223, 0.28);
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi--blue{
+.ttv2-group-payments-page .ttv2-gpay-kpi--blue,
+.ttv2-institute-payments-page .ttv2-gpay-kpi--blue{
   --gpay-kpi-a: var(--gpay-blue-1);
   --gpay-kpi-b: var(--gpay-blue-2);
   --gpay-kpi-glow: rgba(59, 130, 246, 0.28);
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi-label{
+.ttv2-group-payments-page .ttv2-gpay-kpi-label,
+.ttv2-institute-payments-page .ttv2-gpay-kpi-label{
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -125,21 +142,24 @@
   color: var(--c-text3, #64748b);
   margin-bottom: 0.1rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi-value{
+.ttv2-group-payments-page .ttv2-gpay-kpi-value,
+.ttv2-institute-payments-page .ttv2-gpay-kpi-value{
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--c-text, #0f172a);
   line-height: 1.15;
 }
-.ttv2-group-payments-page .ttv2-gpay-kpi-sub{
+.ttv2-group-payments-page .ttv2-gpay-kpi-sub,
+.ttv2-institute-payments-page .ttv2-gpay-kpi-sub{
   font-size: 0.72rem;
   color: var(--c-text3, #94a3b8);
   margin-top: 0.25rem;
 }
 
 /* --- Section cards (override default ttv2-card inside this page) --- */
-.ttv2-group-payments-page .ttv2-gpay-section{
+.ttv2-group-payments-page .ttv2-gpay-section,
+.ttv2-institute-payments-page .ttv2-gpay-section{
   background: var(--c-bg2, #fff);
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
@@ -147,7 +167,8 @@
   margin-bottom: 1rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
 }
-.ttv2-group-payments-page .ttv2-gpay-section-head{
+.ttv2-group-payments-page .ttv2-gpay-section-head,
+.ttv2-institute-payments-page .ttv2-gpay-section-head{
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -155,7 +176,8 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-section-title{
+.ttv2-group-payments-page .ttv2-gpay-section-title,
+.ttv2-institute-payments-page .ttv2-gpay-section-title{
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -165,7 +187,8 @@
   letter-spacing: -0.015em;
   color: var(--c-text, #0f172a);
 }
-.ttv2-group-payments-page .ttv2-gpay-section-title i{
+.ttv2-group-payments-page .ttv2-gpay-section-title i,
+.ttv2-institute-payments-page .ttv2-gpay-section-title i{
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -177,13 +200,15 @@
   background: rgba(82, 73, 223, 0.1);
   flex-shrink: 0;
 }
-.ttv2-group-payments-page .ttv2-gpay-section-desc{
+.ttv2-group-payments-page .ttv2-gpay-section-desc,
+.ttv2-institute-payments-page .ttv2-gpay-section-desc{
   font-size: 0.8rem;
   color: var(--c-text3, #64748b);
   margin: 0.2rem 0 0;
   line-height: 1.45;
 }
-.ttv2-group-payments-page .ttv2-gpay-section-meta{
+.ttv2-group-payments-page .ttv2-gpay-section-meta,
+.ttv2-institute-payments-page .ttv2-gpay-section-meta{
   font-size: 0.78rem;
   color: var(--c-text3, #94a3b8);
   max-width: 280px;
@@ -191,7 +216,8 @@
   line-height: 1.4;
 }
 
-body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section{
+body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section,
+body.ttv2-shell .ttv2-institute-payments-page .ttv2-card.ttv2-gpay-section{
   background: var(--c-bg2, #fff);
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
@@ -199,23 +225,28 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section{
   margin-bottom: 1rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
 }
-body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-title{
+body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-title,
+body.ttv2-shell .ttv2-institute-payments-page .ttv2-card.ttv2-gpay-section .card-title{
   display: block;
 }
 
 /* Hide legacy card chrome when modern sections are used */
 .ttv2-group-payments-page .ttv2-tieup-billing > .ttv2-card:not(.ttv2-gpay-legacy-card),
-.ttv2-group-payments-page #ttv2TieupPaymentsRoot > .ttv2-card:not(.ttv2-gpay-legacy-card){
+.ttv2-group-payments-page #ttv2TieupPaymentsRoot > .ttv2-card:not(.ttv2-gpay-legacy-card),
+.ttv2-institute-payments-page .ttv2-tieup-billing > .ttv2-card:not(.ttv2-gpay-legacy-card),
+.ttv2-institute-payments-page #ttv2TieupPaymentsRoot > .ttv2-card:not(.ttv2-gpay-legacy-card){
   background: transparent;
   border: none;
   box-shadow: none;
   padding: 0;
   margin-bottom: 0;
 }
-.ttv2-group-payments-page .ttv2-card .card-title{ display: none; }
+.ttv2-group-payments-page .ttv2-card .card-title,
+.ttv2-institute-payments-page .ttv2-card .card-title{ display: none; }
 
 /* --- Alerts --- */
-.ttv2-group-payments-page .ttv2-gpay-alert{
+.ttv2-group-payments-page .ttv2-gpay-alert,
+.ttv2-institute-payments-page .ttv2-gpay-alert{
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -227,7 +258,8 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
   color: #92400e;
   margin-top: 0.75rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-alert i{
+.ttv2-group-payments-page .ttv2-gpay-alert i,
+.ttv2-institute-payments-page .ttv2-gpay-alert i{
   font-size: 1.25rem;
   flex-shrink: 0;
   margin-top: 0.05rem;
@@ -235,7 +267,8 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
 }
 
 /* --- Pay panel --- */
-.ttv2-group-payments-page .ttv2-gpay-pay-panel{
+.ttv2-group-payments-page .ttv2-gpay-pay-panel,
+.ttv2-institute-payments-page .ttv2-gpay-pay-panel{
   margin-top: 1rem;
   padding: 1rem 1.1rem;
   border-radius: 14px;
@@ -244,13 +277,15 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
     radial-gradient(120% 80% at 0% 0%, rgba(82, 73, 223, 0.08), transparent 55%),
     rgba(82, 73, 223, 0.04);
 }
-.ttv2-group-payments-page .ttv2-gpay-pay-panel #tieupPayNow{
+.ttv2-group-payments-page .ttv2-gpay-pay-panel #tieupPayNow,
+.ttv2-institute-payments-page .ttv2-gpay-pay-panel #tieupPayNow{
   border-radius: 10px;
   font-weight: 650;
   padding: 0.55rem 1rem;
   box-shadow: 0 4px 14px rgba(82, 73, 223, 0.35);
 }
-.ttv2-group-payments-page #tieupFinalAmount{
+.ttv2-group-payments-page #tieupFinalAmount,
+.ttv2-institute-payments-page #tieupFinalAmount{
   font-size: 1.75rem !important;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -258,17 +293,20 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
 }
 
 /* --- Tables --- */
-.ttv2-group-payments-page .ttv2-gpay-table-wrap{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap{
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
   overflow: hidden;
   background: var(--c-bg2, #fff);
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap .table{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap .table,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap .table{
   margin-bottom: 0;
   font-size: 0.8125rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap thead th{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap thead th,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap thead th{
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -279,28 +317,34 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
   padding: 0.65rem 0.85rem;
   white-space: nowrap;
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap tbody td{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap tbody td,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap tbody td{
   padding: 0.7rem 0.85rem;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   vertical-align: middle;
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap tbody tr:last-child td{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap tbody tr:last-child td,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap tbody tr:last-child td{
   border-bottom: none;
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap tbody tr:hover td{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap tbody tr:hover td,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap tbody tr:hover td{
   background: rgba(82, 73, 223, 0.04);
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap a{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap a,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap a{
   color: var(--gpay-violet-1);
   font-weight: 600;
   text-decoration: none;
 }
-.ttv2-group-payments-page .ttv2-gpay-table-wrap a:hover{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap a:hover,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap a:hover{
   text-decoration: underline;
 }
 
 /* Status badges */
-.ttv2-group-payments-page .ttv2-gpay-badge{
+.ttv2-group-payments-page .ttv2-gpay-badge,
+.ttv2-institute-payments-page .ttv2-gpay-badge{
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -311,29 +355,34 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
-.ttv2-group-payments-page .ttv2-gpay-badge--pending{
+.ttv2-group-payments-page .ttv2-gpay-badge--pending,
+.ttv2-institute-payments-page .ttv2-gpay-badge--pending{
   color: #92400e;
   background: rgba(245, 158, 11, 0.18);
   border: 1px solid rgba(245, 158, 11, 0.35);
 }
-.ttv2-group-payments-page .ttv2-gpay-badge--success{
+.ttv2-group-payments-page .ttv2-gpay-badge--success,
+.ttv2-institute-payments-page .ttv2-gpay-badge--success{
   color: var(--gpay-green-2);
   background: rgba(34, 197, 94, 0.14);
   border: 1px solid rgba(34, 197, 94, 0.3);
 }
-.ttv2-group-payments-page .ttv2-gpay-badge--danger{
+.ttv2-group-payments-page .ttv2-gpay-badge--danger,
+.ttv2-institute-payments-page .ttv2-gpay-badge--danger{
   color: var(--gpay-red-2);
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.28);
 }
-.ttv2-group-payments-page .ttv2-gpay-badge--muted{
+.ttv2-group-payments-page .ttv2-gpay-badge--muted,
+.ttv2-institute-payments-page .ttv2-gpay-badge--muted{
   color: var(--c-text3, #64748b);
   background: rgba(15, 23, 42, 0.06);
   border: 1px solid rgba(15, 23, 42, 0.1);
 }
 
 /* --- Coupon create form --- */
-.ttv2-group-payments-page .ttv2-gpay-coupon-form{
+.ttv2-group-payments-page .ttv2-gpay-coupon-form,
+.ttv2-institute-payments-page .ttv2-gpay-coupon-form{
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.75rem 0.85rem;
@@ -354,14 +403,16 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
     grid-template-columns: 1fr;
   }
 }
-.ttv2-group-payments-page .ttv2-gpay-coupon-form .form-label{
+.ttv2-group-payments-page .ttv2-gpay-coupon-form .form-label,
+.ttv2-institute-payments-page .ttv2-gpay-coupon-form .form-label{
   font-size: 0.72rem;
   font-weight: 650;
   color: var(--c-text3, #64748b);
   margin-bottom: 0.3rem;
 }
 .ttv2-group-payments-page .ttv2-gpay-coupon-form .form-control,
-.ttv2-group-payments-page .ttv2-gpay-coupon-form .form-select{
+.ttv2-group-payments-page .ttv2-gpay-coupon-form .form-select,
+.ttv2-institute-payments-page .ttv2-gpay-coupon-form .form-select{
   border-radius: 10px;
   border-color: rgba(15, 23, 42, 0.12);
   font-size: 0.8125rem;
@@ -369,17 +420,20 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
   min-height: 36px;
 }
 .ttv2-group-payments-page .ttv2-gpay-coupon-form .form-control:focus,
-.ttv2-group-payments-page .ttv2-gpay-coupon-form .form-select:focus{
+.ttv2-group-payments-page .ttv2-gpay-coupon-form .form-select:focus,
+.ttv2-institute-payments-page .ttv2-gpay-coupon-form .form-select:focus{
   border-color: var(--gpay-violet-1);
   box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.15);
 }
-.ttv2-group-payments-page .ttv2-gpay-coupon-form .ttv2-gpay-submit{
+.ttv2-group-payments-page .ttv2-gpay-coupon-form .ttv2-gpay-submit,
+.ttv2-institute-payments-page .ttv2-gpay-coupon-form .ttv2-gpay-submit{
   border-radius: 10px;
   font-weight: 650;
   min-height: 36px;
   box-shadow: 0 4px 12px rgba(82, 73, 223, 0.3);
 }
-.ttv2-group-payments-page .ttv2-gpay-coupon-form .ttv2-gpay-field--wide{
+.ttv2-group-payments-page .ttv2-gpay-coupon-form .ttv2-gpay-field--wide,
+.ttv2-institute-payments-page .ttv2-gpay-coupon-form .ttv2-gpay-field--wide{
   grid-column: span 2;
 }
 @media (max-width: 767.98px){
@@ -394,32 +448,37 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
 }
 
 /* --- Filter toolbar --- */
-.ttv2-group-payments-page .ttv2-gpay-toolbar{
+.ttv2-group-payments-page .ttv2-gpay-toolbar,
+.ttv2-institute-payments-page .ttv2-gpay-toolbar{
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1rem;
   margin-top: 0.25rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-toolbar-inst{
+.ttv2-group-payments-page .ttv2-gpay-toolbar-inst,
+.ttv2-institute-payments-page .ttv2-gpay-toolbar-inst{
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-.ttv2-group-payments-page .ttv2-gpay-toolbar-inst label{
+.ttv2-group-payments-page .ttv2-gpay-toolbar-inst label,
+.ttv2-institute-payments-page .ttv2-gpay-toolbar-inst label{
   font-size: 0.72rem;
   font-weight: 650;
   color: var(--c-text3, #64748b);
   margin: 0;
   white-space: nowrap;
 }
-.ttv2-group-payments-page .ttv2-gpay-toolbar-inst select{
+.ttv2-group-payments-page .ttv2-gpay-toolbar-inst select,
+.ttv2-institute-payments-page .ttv2-gpay-toolbar-inst select{
   min-width: 200px;
   border-radius: 10px;
   font-size: 0.8125rem;
   border-color: rgba(15, 23, 42, 0.12);
 }
-.ttv2-group-payments-page .ttv2-gpay-filters{
+.ttv2-group-payments-page .ttv2-gpay-filters,
+.ttv2-institute-payments-page .ttv2-gpay-filters{
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.35rem;
@@ -428,7 +487,8 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.06);
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn{
   border-radius: 9px !important;
   font-size: 0.78rem;
   font-weight: 650;
@@ -436,68 +496,83 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
   border: 1px solid transparent;
   box-shadow: none;
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-primary{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-primary,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-primary{
   background: var(--gpay-violet-1);
   border-color: var(--gpay-violet-1);
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-outline-warning{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-outline-warning,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-outline-warning{
   color: var(--gpay-amber-2);
   border-color: rgba(245, 158, 11, 0.4);
   background: transparent;
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-warning{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-warning,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-warning{
   background: var(--gpay-amber-1);
   border-color: var(--gpay-amber-1);
   color: #fff;
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-outline-success{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-outline-success,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-outline-success{
   color: var(--gpay-green-2);
   border-color: rgba(34, 197, 94, 0.4);
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-success{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-success,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-success{
   background: var(--gpay-green-1);
   border-color: var(--gpay-green-1);
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-outline-danger{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-outline-danger,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-outline-danger{
   color: var(--gpay-red-2);
   border-color: rgba(239, 68, 68, 0.35);
 }
-.ttv2-group-payments-page .ttv2-gpay-filters .btn-danger{
+.ttv2-group-payments-page .ttv2-gpay-filters .btn-danger,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn-danger{
   background: var(--gpay-red-1);
   border-color: var(--gpay-red-1);
 }
 
 /* Payment history — hide low-value columns on medium screens */
 .ttv2-group-payments-page .ttv2-gpay-col-gateway,
-.ttv2-group-payments-page .ttv2-gpay-col-txn{
+.ttv2-group-payments-page .ttv2-gpay-col-txn,
+.ttv2-institute-payments-page .ttv2-gpay-col-gateway,
+.ttv2-institute-payments-page .ttv2-gpay-col-txn{
   display: table-cell;
 }
 @media (max-width: 991.98px){
   .ttv2-group-payments-page .ttv2-gpay-col-gateway,
-  .ttv2-group-payments-page .ttv2-gpay-col-txn{
+  .ttv2-group-payments-page .ttv2-gpay-col-txn,
+  .ttv2-institute-payments-page .ttv2-gpay-col-gateway,
+  .ttv2-institute-payments-page .ttv2-gpay-col-txn{
     display: none;
   }
 }
 .ttv2-group-payments-page .ttv2-gpay-table-wrap .btn-outline-success,
-.ttv2-group-payments-page .ttv2-gpay-table-wrap .btn-outline-primary{
+.ttv2-group-payments-page .ttv2-gpay-table-wrap .btn-outline-primary,
+.ttv2-institute-payments-page .ttv2-gpay-table-wrap .btn-outline-primary{
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 650;
 }
 
 /* Institute select in billing */
-.ttv2-group-payments-page .ttv2-gpay-inst-select label{
+.ttv2-group-payments-page .ttv2-gpay-inst-select label,
+.ttv2-institute-payments-page .ttv2-gpay-inst-select label{
   font-size: 0.72rem;
   font-weight: 650;
   color: var(--c-text3, #64748b);
 }
-.ttv2-group-payments-page .ttv2-gpay-inst-select select{
+.ttv2-group-payments-page .ttv2-gpay-inst-select select,
+.ttv2-institute-payments-page .ttv2-gpay-inst-select select{
   border-radius: 10px;
   max-width: 100%;
 }
 
 /* Subsection label */
-.ttv2-group-payments-page .ttv2-gpay-subhead{
+.ttv2-group-payments-page .ttv2-gpay-subhead,
+.ttv2-institute-payments-page .ttv2-gpay-subhead{
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -508,20 +583,28 @@ body.ttv2-shell .ttv2-group-payments-page .ttv2-card.ttv2-gpay-section .card-tit
 
 /* Dark theme */
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-kpi,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-kpi,
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-section,
-html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-table-wrap{
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-section,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-table-wrap,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-table-wrap{
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(240, 242, 255, 0.1);
 }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-hero-copy h1,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-hero-copy h1,
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-kpi-value,
-html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-section-title{
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-kpi-value,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-section-title,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-section-title{
   color: rgba(240, 242, 255, 0.95);
 }
-html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-table-wrap thead th{
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-table-wrap thead th,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-table-wrap thead th{
   background: rgba(255, 255, 255, 0.04);
 }
-html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-alert{
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-group-payments-page .ttv2-gpay-alert,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-institute-payments-page .ttv2-gpay-alert{
   color: #fcd34d;
   background: rgba(245, 158, 11, 0.12);
 }
