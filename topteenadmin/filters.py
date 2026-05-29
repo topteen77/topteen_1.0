@@ -72,7 +72,34 @@ class CareerFilter(NamedBaseFilter):
         elif value == 'unique':
             return queryset.exclude(Q(image='') | Q(image__isnull=True)).exclude(image__in=dupes)
         return queryset
-        
+
+
+class CareerRelatedCareersFilter(NamedBaseFilter):
+    career_cluster = django_filters.ModelChoiceFilter(
+        queryset=CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name'),
+        label='Career Cluster',
+        empty_label='-- Any --',
+    )
+    has_related = django_filters.ChoiceFilter(
+        choices=[('yes', 'Has related careers'), ('no', 'No related careers')],
+        label='Related Careers',
+        method='filter_has_related',
+        empty_label='-- Any --',
+    )
+
+    class Meta:
+        model = Career
+        fields = ['name', 'publish_status']
+
+    def filter_has_related(self, queryset, name, value):
+        qs = queryset.annotate(_related_count=Count('related_careers', distinct=True))
+        if value == 'yes':
+            return qs.filter(_related_count__gt=0)
+        if value == 'no':
+            return qs.filter(_related_count=0)
+        return queryset
+
+
 class CareerTagsFilter(NamedBaseFilter):
     class Meta:
         model = CareerTags

@@ -14,16 +14,21 @@ def build_admin_breadcrumb(list_of_dict):
     lst.extend(list_of_dict)
     return lst
 
-def check_permissions(user,path):
+def check_permissions(user, path):
     '''
-    #0 is app, 1 is model, 2 is action, 3 is id 
+    #0 is app, 1 is model, 2 is action, 3 is id
     #eg users/user/edit/4 or users/user/add
     '''
-    paths = path.split('/')
-    obj=None
-    if len(paths)==4 and paths[2] != 'list' and paths[2] != 'add' :
-        class_name=apps.get_model(paths[0], paths[1])
-        obj=class_name.objects.get(pk=paths[3])
-    perm='{0}.{2}_{1}'.format(*paths)
-    obj=None
-    return user.has_perm(perm,obj)
+    paths = [p for p in path.split('/') if p]
+    # Related careers admin lives under careers/related-careers/… but uses Career permissions
+    if len(paths) >= 2 and paths[0] == 'careers' and paths[1] == 'related-careers':
+        paths = ['careers', 'career'] + paths[2:]
+        if len(paths) >= 3 and paths[2] == 'edit':
+            paths[2] = 'change'
+
+    obj = None
+    if len(paths) == 4 and paths[2] not in ('list', 'add'):
+        class_name = apps.get_model(paths[0], paths[1])
+        obj = class_name.objects.get(pk=paths[3])
+    perm = '{0}.{2}_{1}'.format(*paths[:3])
+    return user.has_perm(perm, obj)

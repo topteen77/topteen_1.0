@@ -83,6 +83,7 @@
 							<th class="min-w-125px">S.No</th>
 							<th class="min-w-125px">Name</th>
 							<th class="min-w-150px">Career Cluster</th>
+							<th class="min-w-200px">Related Careers</th>
 							<th class="min-w-125px">Publish</th>
 							<th class="min-w-80px">Preview</th>
 							<th class="min-w-100px">Created</th>
@@ -118,6 +119,16 @@
 									{% for c in clusters %}{{ c.name }}{% if not loop.last %}, {% endif %}{% endfor %}
 								{% else %}
 									-
+								{% endif %}
+							</td>
+							<td class="fs-7">
+								{% set related = career.related_careers.all() %}
+								{% if related %}
+									{% for r in related %}{{ r.name }}{% if not loop.last %}; {% endif %}{% endfor %}
+									<a href="{{ url('topteenadminmanaged:relatedcareeredit', args=[career.pk]) }}" class="d-block mt-1 fs-8">Edit related</a>
+								{% else %}
+									<span class="text-muted">Automatic</span>
+									<a href="{{ url('topteenadminmanaged:relatedcareeredit', args=[career.pk]) }}" class="d-block mt-1 fs-8">Set related</a>
 								{% endif %}
 							</td>
 							<td>
@@ -172,6 +183,9 @@
 										<a href="{{career.edit_url}}" class="menu-link px-3">Edit</a>
 									</div>
 									<!--end::Menu item-->
+									<div class="menu-item px-3">
+										<a href="{{ url('topteenadminmanaged:relatedcareeredit', args=[career.pk]) }}" class="menu-link px-3">Related careers</a>
+									</div>
 									<!--begin::Menu item-->
 									<div class="menu-item px-3">
 										<a href="#" data-kt-subscriptions-table-filter="delete_row"

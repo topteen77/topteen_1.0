@@ -473,32 +473,10 @@ class CareerDetail(TemplateView):
         except:
              ctx['shortlisted_career'] = None
         
-        # Get related careers via courses and clusters
-        related_careers = Career.objects.none()
-        if career.courses.exists():
-            # Get careers that share the same courses
-            related_careers = Career.objects.filter(
-                courses__in=career.courses.all(),
-                publish_status=choices.PublishStatus.PUBLISHED
-            ).exclude(id=career.id).distinct()
-        
-        if career.career_cluster.exists():
-            # Get careers from the same clusters
-            cluster_careers = Career.objects.filter(
-                career_cluster__in=career.career_cluster.all(),
-                publish_status=choices.PublishStatus.PUBLISHED
-            ).exclude(id=career.id).distinct()
-            # Combine and get unique careers, then slice
-            if related_careers.exists():
-                related_careers = (related_careers | cluster_careers).distinct()[:6]
-            else:
-                related_careers = cluster_careers[:6]
-        else:
-            # Slice if we only have course-based related careers
-            if related_careers.exists():
-                related_careers = related_careers[:6]
-        
-        ctx['related_careers'] = related_careers
+        from careers.related_careers import get_related_careers
+        ctx['related_careers'] = get_related_careers(career, limit=6, published_only=True).prefetch_related(
+            'career_cluster', 'profession'
+        )
 
         # Generate mindmap data (career clusters)
         ctx['mindmap_data'] = self._get_mindmap_data(career)

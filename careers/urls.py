@@ -34,6 +34,7 @@ urlpatterns = [
     path("api/autocomplete/clusters/", api_views.autocomplete_clusters, name="autocomplete_clusters"),
     path("api/cluster-cards-search/", api_views.cluster_cards_search_api, name="cluster_cards_search"),
     path("api/autocomplete/careers/", api_views.autocomplete_careers, name="autocomplete_careers"),
+    path("api/admin/autocomplete/careers/", api_views.admin_autocomplete_careers, name="admin_autocomplete_careers"),
     path("api/autocomplete/careers-from-clusters/", api_views.autocomplete_careers_from_clusters, name="autocomplete_careers_from_clusters"),
     path("api/autocomplete/videos/", api_views.autocomplete_videos, name="autocomplete_videos"),
     path("api/ai-query/", api_views.ai_query_api, name="ai_query_api"),

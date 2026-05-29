@@ -23,6 +23,27 @@
                         <div class="d-flex flex-column gap-7 gap-lg-10">
                             <!--begin::General options-->
                             {% include 'topteenadmin/includes/career_form_fields.html' %}
+                            <div class="card card-flush py-4">
+                                <div class="card-header">
+                                    <h3 class="card-title">Related careers (public page)</h3>
+                                    <div class="card-toolbar">
+                                        <a href="{{ url('topteenadminmanaged:relatedcareeredit', args=[object.pk]) }}" class="btn btn-sm btn-light-primary">Edit related careers</a>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0">
+                                    {% set related = object.related_careers.all() %}
+                                    {% if related %}
+                                    <ul class="mb-0 ps-4">
+                                        {% for r in related %}
+                                        <li>{{ r.name }} <span class="text-muted">(id {{ r.id }})</span></li>
+                                        {% endfor %}
+                                    </ul>
+                                    <p class="text-muted fs-8 mt-3 mb-0">Shown on the site instead of automatic cluster/course matching.</p>
+                                    {% else %}
+                                    <p class="text-muted mb-0">None set — the site uses automatic matching by shared courses or career cluster.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!--end::Tab pane-->

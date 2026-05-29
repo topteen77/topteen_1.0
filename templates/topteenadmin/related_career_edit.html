@@ -1,0 +1,78 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<div class="post d-flex flex-column-fluid" id="kt_post">
+	<div id="kt_content_container" class="container-xxl">
+		{% include 'topteenadmin/includes/messages.html' %}
+		<div class="card mb-5">
+			<div class="card-header">
+				<h3 class="card-title">Edit related careers — {{ career.name }}</h3>
+			</div>
+			<div class="card-body">
+				<p class="text-muted fs-7 mb-4">
+					<strong>Cluster:</strong> {{ cluster_names }} &nbsp;|&nbsp;
+					<strong>ID:</strong> {{ career.id }}
+					{% if career_frontend_preview_url %}
+					&nbsp;|&nbsp; <a href="{{ career_frontend_preview_url }}" target="_blank" rel="noopener noreferrer">View on site ↗</a>
+					{% endif %}
+				</p>
+				<p class="text-muted fs-8 mb-6">
+					When you save at least one related career, the public page uses only your selection (up to 6 shown).
+					Leave empty to fall back to automatic matching by shared courses or cluster.
+				</p>
+				<form method="post" id="related-careers-form">
+					<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+					<div class="mb-10">
+						<label class="form-label fw-bolder" for="id_related_careers">Related careers</label>
+						<select name="related_careers" id="id_related_careers" class="form-select" multiple="multiple" data-placeholder="Search careers to add…">
+							{% for item in related_careers_initial %}
+							<option value="{{ item.id }}" selected>{{ item.text }}</option>
+							{% endfor %}
+						</select>
+						{% if form.related_careers.errors %}
+						<div class="text-danger fs-7 mt-2">{{ form.related_careers.errors|striptags }}</div>
+						{% endif %}
+						<div class="text-muted fs-7 mt-2">{{ form.related_careers.help_text }}</div>
+					</div>
+					<div class="d-flex gap-3">
+						<button type="submit" class="btn btn-primary">Save</button>
+						<a href="{{ url('topteenadminmanaged:relatedcareerlist') }}" class="btn btn-light">Back to list</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block endscript %}
+<script>
+$(function () {
+	var $el = $('#id_related_careers');
+	if (!$el.length || typeof $.fn.select2 !== 'function') return;
+
+	$el.select2({
+		width: '100%',
+		placeholder: $el.data('placeholder') || 'Search careers to add…',
+		allowClear: true,
+		closeOnSelect: false,
+		ajax: {
+			url: {{ autocomplete_url|tojson }},
+			dataType: 'json',
+			delay: 250,
+			data: function (params) {
+				return {
+					q: params.term || '',
+					exclude_id: {{ career.pk|tojson }},
+					limit: 30
+				};
+			},
+			processResults: function (data) {
+				return data;
+			},
+			cache: true
+		},
+		minimumInputLength: 1
+	});
+});
+</script>
+{% endblock %}

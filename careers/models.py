@@ -249,6 +249,13 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     career_tags = models.ManyToManyField(CareerTags, blank=True)
     courses = models.ManyToManyField(Course,blank=True)
     career_cluster=models.ManyToManyField(CareerCluster,related_name="career_clusters", blank=True)
+    related_careers = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='related_from_careers',
+        blank=True,
+        help_text='Manually curated careers shown in the Related Careers section (admin-managed).',
+    )
     career_paths = models.ManyToManyField(CareerPath, blank=True)
     video_url=models.URLField(max_length=250,blank=True)
     videos = models.ManyToManyField("Videos", blank=True)
@@ -676,7 +683,17 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             return "warning"
         else:
             return "error"
-    
+
+
+class CareerRelatedCareers(Career):
+    """Proxy for Django admin: manage related_careers without opening full Career form."""
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Related career link'
+        verbose_name_plural = 'Related careers'
+
+
 class CareerRating(BaseModel):
     user = models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True)
     career = models.ForeignKey(Career,on_delete=models.CASCADE,related_name='career_rating')

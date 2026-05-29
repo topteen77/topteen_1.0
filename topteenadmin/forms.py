@@ -284,8 +284,32 @@ class CareerModelForm(TranslationModelForm):
         model = Career
         # Show all model fields to mirror Django Admin create/edit
         fields = '__all__'
-        exclude = ['description_json', 'summary']
-        
+        exclude = ['description_json', 'summary', 'related_careers']
+
+
+class CareerRelatedCareersForm(forms.ModelForm):
+    """Edit manually curated related careers for one career."""
+
+    class Meta:
+        model = Career
+        fields = ['related_careers']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        qs = Career.objects.all().order_by('name')
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        self.fields['related_careers'].queryset = qs
+        self.fields['related_careers'].required = False
+        self.fields['related_careers'].widget = forms.SelectMultiple(
+            attrs={'class': 'form-select', 'id': 'id_related_careers', 'data-control': 'select2'}
+        )
+        self.fields['related_careers'].label = 'Related careers'
+        self.fields['related_careers'].help_text = (
+            'Search and add careers shown in the public Related Careers section. '
+            'When any are set, automatic cluster matching is not used.'
+        )
+
 
 class CareerClusterModelForm(TranslationModelForm):
     class Meta:
