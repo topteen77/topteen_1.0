@@ -10,6 +10,10 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
+{% block additionalcss %}
+<link rel="stylesheet" href="{{ static('css_new/career-battle-popup.css') }}">
+{% endblock %}
+
 {% block content %}
 
   <!-- Hero Section -->
@@ -1193,6 +1197,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     </div>
   </section>
   <!-- FAQ Section -->
+  {% include 'template20/includes/career_battle_popup.html' %}
 
 {% endblock %}
 
@@ -1317,4 +1322,5 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     }
   });
 </script>
+<script src="{{ static('js_new/careerBattlePopup.js') }}"></script>
 {% endblock %}

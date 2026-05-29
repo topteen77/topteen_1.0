@@ -1,0 +1,47 @@
+<div id="careerBattleExitPopup" class="career-battle-popup-overlay d-none" aria-hidden="true">
+  <div class="career-battle-popup-card" role="dialog" aria-modal="true" aria-labelledby="careerBattlePopupTitle">
+    <button type="button" class="career-battle-popup-close" id="careerBattlePopupClose" aria-label="Close popup">
+      &times;
+    </button>
+    <div class="career-battle-popup-layout">
+      <div class="career-battle-visual-col d-md-block d-none">
+        <img
+          src="{{ static('images_new/general/whitebackground-careeerbattle.svg') }}"
+          alt="TopTeen Career Battle Student"
+          class="career-battle-student-image"
+        />
+      </div>
+      <div class="career-battle-content-col">
+        <div class="career-battle-badge">TopTeen Career Battle</div>
+        <h3 id="careerBattlePopupTitle" class="career-battle-popup-title">
+          Compare Streams, <span>Choose Your Career</span>
+        </h3>
+        <p class="career-battle-popup-text">
+          Explore career options, compare courses and colleges, and make smarter next-step decisions with TopTeen.
+        </p>
+        <div class="career-battle-feature-grid">
+          <div class="career-battle-feature-item">
+            <div class="career-battle-feature-icon">🧭</div>
+            <p>Career Direction</p>
+          </div>
+          <div class="career-battle-feature-item">
+            <div class="career-battle-feature-icon">📚</div>
+            <p>Stream Match</p>
+          </div>
+          <div class="career-battle-feature-item">
+            <div class="career-battle-feature-icon">🎓</div>
+            <p>College Clarity</p>
+          </div>
+        </div>
+        <div class="career-battle-popup-actions">
+          <a href="{{ url('core:language_game') }}" class="career-battle-popup-cta">Start Career Battle</a>
+          <button type="button" class="career-battle-popup-secondary" id="careerBattlePopupLater">Continue Browsing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+

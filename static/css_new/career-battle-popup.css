@@ -1,0 +1,260 @@
+.career-battle-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 13000;
+  background: rgba(12, 21, 48, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.career-battle-popup-card {
+  position: relative;
+  width: min(100%, 980px);
+  max-height: calc(100vh - 40px);
+  border-radius: 24px;
+  padding: 28px 28px 24px;
+  background: #ffffff;
+  color: #1a2340;
+  box-shadow: 0 20px 70px rgba(23, 42, 88, 0.22);
+  border: 1px solid #e7ecfb;
+  animation: popupSlideFromTop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: visible;
+}
+
+.career-battle-popup-layout {
+  display: grid;
+  grid-template-columns: 42% 58%;
+  gap: 18px;
+  align-items: center;
+}
+
+.career-battle-visual-col {
+  position: relative;
+  min-height: 344px;
+}
+
+.career-battle-student-image {
+  position: absolute;
+  left: -25px;
+  bottom: -33px;
+  width: clamp(320px, 32vw, 450px);
+  max-width: 115%;
+  height: auto;
+}
+
+.career-battle-content-col {
+  padding-right: 12px;
+  padding-left: 44px;
+}
+
+.career-battle-popup-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: 1px solid #d9e1f8;
+  background: #f4f7ff;
+  color: #3f4f80;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 88;
+}
+
+.career-battle-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3f37c9;
+  background: #eef1ff;
+  border: 1px solid #d8defa;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+
+.career-battle-popup-title {
+  font-size: 35px;
+  line-height: 1.15;
+  font-weight: 800;
+  margin: 0 0 12px;
+  color: #16213f;
+  letter-spacing: -0.03em;
+}
+
+.career-battle-popup-title span {
+  display: block;
+  background: linear-gradient(90deg, #8e73ff 0%, #42b7ff 60%, #38d2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.career-battle-popup-text {
+  font-size: 14px;
+  line-height: 1.2;
+  color: #4f5f87;
+  margin-bottom: 22px;
+}
+
+.career-battle-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.career-battle-feature-item {
+  border: 1px solid #e0e8fb;
+  background: #f8faff;
+  border-radius: 16px;
+  padding: 16px 10px 14px;
+  text-align: center;
+}
+
+.career-battle-feature-icon {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.career-battle-feature-item p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #253763;
+}
+
+.career-battle-popup-actions {
+  display: flex;
+  gap: 14px;
+}
+
+.career-battle-popup-cta:hover {
+	color: #fff;
+}
+
+.career-battle-popup-cta,
+.career-battle-popup-secondary {
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  text-align: center;
+  flex: 1;
+}
+
+.career-battle-popup-cta {
+  border: 1px solid #5c74ff;
+  background: #5249DF;
+  /* background: linear-gradient(90deg, #6f38ff 0%, #376cff 100%); */
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(70, 99, 255, 0.28);
+}
+
+.career-battle-popup-secondary {
+  border: 1px solid #d4defb;
+  color: #2b3c69;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.career-battle-popup-cta:hover,
+.career-battle-popup-secondary:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+@keyframes popupSlideFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-90px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .career-battle-popup-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .career-battle-popup-card {
+    border-radius: 18px;
+    padding: 16px 14px 14px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .career-battle-popup-layout {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .career-battle-visual-col {
+    min-height: 235px;
+  }
+
+  .career-battle-student-image {
+    position: relative;
+    left: 50%;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: min(100%, 340px);
+    max-width: 100%;
+    height: auto;
+  }
+
+  .career-battle-content-col {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .career-battle-popup-title {
+    font-size: 32px;
+  }
+
+  .career-battle-popup-text {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 14px;
+  }
+
+  .career-battle-feature-item p {
+    font-size: 13px;
+  }
+
+  .career-battle-popup-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .career-battle-popup-cta,
+  .career-battle-popup-secondary {
+    font-size: 16px;
+    padding: 14px 16px;
+  }
+
+  .career-battle-feature-item {
+    border-radius: 14px;
+    padding: 12px 8px 10px;
+  }
+
+  .career-battle-feature-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+}

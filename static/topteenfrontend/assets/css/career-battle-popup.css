@@ -1,0 +1,109 @@
+.career-battle-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(10, 14, 26, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.career-battle-popup-overlay.hidden {
+  display: none;
+}
+
+.career-battle-popup-card {
+  position: relative;
+  width: min(100%, 460px);
+  border-radius: 20px;
+  padding: 28px 24px;
+  background: linear-gradient(145deg, #1c1459 0%, #2d1f95 55%, #4231c6 100%);
+  color: #fff;
+  box-shadow: 0 16px 60px rgba(15, 22, 56, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.career-battle-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.career-battle-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.career-battle-popup-title {
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.career-battle-popup-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 20px;
+}
+
+.career-battle-popup-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.career-battle-popup-cta,
+.career-battle-popup-secondary {
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 12px 16px;
+  text-decoration: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.career-battle-popup-cta {
+  background: #f9b233;
+  color: #18174f;
+}
+
+.career-battle-popup-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.career-battle-popup-cta:hover,
+.career-battle-popup-secondary:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+@media (max-width: 640px) {
+  .career-battle-popup-card {
+    border-radius: 16px;
+    padding: 22px 18px;
+  }
+
+  .career-battle-popup-title {
+    font-size: 22px;
+  }
+}
