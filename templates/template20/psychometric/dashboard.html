@@ -1051,20 +1051,23 @@
 
       {% include 'template20/includes/psychometric_dashboard_statistics_section.html' %}
 
-            <!-- Suggested Streams based on Personality (light blue cards with icon) -->
-            {% if streamsubject %}
+            <!-- Suggested Streams based on Aptitude (strongest intelligence area) -->
+            {% if suitable_subject_combinations %}
             <div class="my-md-6 my-4">
               <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
+              {% if top_intelligence_label %}
+              <p class="fs-13 text-gray mb-3">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold">{{ top_intelligence_label|lower }}</span></p>
+              {% endif %}
               <div class="row g-3">
-                {% for stream, subject in streamsubject %}
+                {% for combo in suitable_subject_combinations %}
                 <div class="col-6 col-md-4">
                   <div class="stream-card">
                     <div class="stream-card-icon">
                       <i class='bx bx-search-alt fs-28 text-primary'></i>
                     </div>
                     <div>
-                      <p class="fw-bold mb-0 fs-16">{{ stream }}</p>
-                      <p class="fs-13 text-gray mb-0 lh-sm">{{ subject }}</p>
+                      <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
+                      <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
                     </div>
                   </div>
                 </div>

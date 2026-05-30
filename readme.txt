@@ -169,6 +169,130 @@ python scripts/verify_class12_st
 ** testing script end ***
 
 
+===================================================
+--- Class 10 RIASEC Data Update ---
+# Class 10 Personality Assessment (Test 1) reports use RIASEC three-letter codes
+# (e.g. RIA, CES) from app.models Category / Course / Stream — NOT RIASEC.json at runtime.
+# After editing RIASEC.json you MUST run sync_riasec to update the database.
+# Run all commands from project root (where manage.py is).
+
+---------- OVERVIEW ----------
+# Test affected:  Test 1 (Personality / RIASEC) — Class 9–10 Stream Sorter
+# Report URL:     /psychometric/web/test1_report/<user_id>/
+# Data file:      RIASEC.json (project root)
+# Backup:         RIASEC-backup.json (keep a copy before replacing)
+# DB models:      app.Category, app.Course, app.Stream
+# Sync command:   app/management/commands/sync_riasec.py
+# Migration:      app/migrations/0004_alter_stream_stream_name.py
+#                 (Stream.stream_name max_length increased to 50 for keys like
+#                  "Fine Arts / Design", "Humanities / Commerce", "HUM (Set 2)")
+
+---------- SOURCE DOCX FILES (for content authoring) ----------
+# Original RIASEC content is maintained in six .docx files (one per leading letter):
+#   /home/itpc6/Public/django/git-repo/7nov/git/new_template-demo-topteens/RIASEC/
+#     Realistic.docx, Investigative.docx, Enterprising.docx,
+#     Conventional.docx, Artistic.docx, social.docx
+# Each file contains a table with columns:
+#   Code | Stream 1 | Stream 2 | Code Breakdown & Alignment Explanation | Career Options
+# Total valid codes: 120 (all permutations of R, I, A, S, E, C taken 3 at a time).
+# Optional extracted output (if regenerated): RIASEC/output/riasec-new.json
+
+---------- RIASEC.json STRUCTURE (one object per three-letter code) ----------
+# [
+#   {
+#     "category": "CES",
+#     "fullname": "CES (Conventional, Enterprising, Social)",
+#     "summary": "Conventional + Enterprising + Social: ...",
+#     "fields": "Training Operations Director, HR Compliance Lead, ...",
+#     "courses": ["Training Operations Director", "HR Compliance Lead", ...],
+#     "best_colleges": "",
+#     "streams": {
+#       "CWM": ["Commerce With Mathematics"],
+#       "PCM": ["Physics Chemistry Mathematics"]
+#     },
+#     "stream_careers": {
+#       "CWM": ["Training Operations Director", "HR Compliance Lead", ...],
+#       "PCM": ["Engineering Program Manager", "Technical Facility Lead", ...]
+#     }
+#   },
+#   ...
+# ]
+# JSON field mapping:
+#   category        -> Category.category
+#   fullname        -> Category.fullname
+#   summary         -> Category.summary (shown on report)
+#   fields          -> Category.fields (comma-joined all stream careers)
+#   best_colleges   -> Category.best_colleges (preserved from RIASEC-backup.json on generate)
+#   courses[]       -> Course.course_name rows (report "Suggested Careers" list)
+#   streams{}       -> Stream rows (legacy format: stream_name = key, subjects = label list[0])
+#   stream_careers{}-> Per-stream job titles; synced into Course rows (Suggested Careers)
+#
+# Backward compatibility:
+#   streams keeps the OLD list format so existing readers/tools are not broken.
+#   stream_careers is the NEW key for docx career options per stream.
+#   sync_riasec also accepts legacy dict streams {label, careers} if present.
+
+---------- REGENERATE FROM DOCX ----------
+python manage.py generate_riasec_json
+python manage.py generate_riasec_json --source /path/to/RIASEC --backup RIASEC-backup.json
+# Preserves best_colleges from backup for codes that had values (RIA, RIS, RIE, RIC).
+
+---------- COMPLETE COMMANDS STEP BY STEP ----------
+
+Step 1. Back up the current file before replacing:
+   cp RIASEC.json RIASEC-backup.json
+
+Step 2. Place the updated JSON at project root:
+   RIASEC.json
+   # Must contain exactly 120 unique three-letter codes.
+
+Step 3. Apply migration (first time only, or after pulling 0004):
+   python manage.py migrate app
+
+Step 4. Validate JSON without writing to DB:
+   python manage.py sync_riasec --dry-run
+
+Step 5. Sync JSON into database (required for reports to show new content):
+   python manage.py sync_riasec
+   # Optional custom path:
+   python manage.py sync_riasec --file /path/to/RIASEC.json
+
+Step 6. Verify a Class 10 report (replace 2959 with a user who completed Test 1):
+   # Open in browser (must be logged in):
+   http://localhost:8002/psychometric/web/test1_report/2959/
+   # Or verify in shell — summary should match new JSON, not backup:
+   python manage.py shell -c "
+   import json
+   from app.models import Category
+   with open('RIASEC.json') as f:
+       data = {e['category']: e for e in json.load(f)}
+   match = sum(1 for c in Category.objects.all()
+               if c.summary.strip() == data[c.category]['summary'].strip())
+   print(f'DB summaries matching RIASEC.json: {match}/120')
+   "
+
+Step 7. (Production) Restart app if needed, then spot-check one report per environment.
+
+---------- SYNC COMMAND REFERENCE ----------
+python manage.py sync_riasec                         # sync project root RIASEC.json
+python manage.py sync_riasec --dry-run               # validate only, no DB writes
+python manage.py sync_riasec --file /path/to/file.json
+
+# Expected output after successful sync:
+#   Sync complete: 120 categories (0 created, 120 updated), 1440 courses, 240 streams
+
+---------- IMPORTANT NOTES ----------
+# 1. Replacing RIASEC.json alone does NOT update live reports — always run sync_riasec.
+# 2. sync_riasec replaces all Course and Stream rows per category (delete + recreate).
+# 3. Category rows are update_or_create by three-letter code (existing IDs preserved).
+# 4. Test 2 (Interest) and Test 3 (Aptitude) use different data sources; this section
+#    applies only to Class 10 Test 1 Personality / RIASEC report.
+# 5. Compare codes against backup:
+#    python -c \"import json; a={e['category'] for e in json.load(open('RIASEC.json'))}; b={e['category'] for e in json.load(open('RIASEC-backup.json'))}; print(len(a), len(b), len(a&b), len(a-b), len(b-a))\"
+
+---------- END CLASS 10 RIASEC DATA UPDATE ----------
+
+
 === Career Battle (React game) ===
 # Career Battle is integrated with the main site: same header/footer and same login session.
 # - /career-battle/  -> Django page with site header and footer; game loads in iframe from /career-battle/app/

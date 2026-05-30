@@ -399,6 +399,105 @@ def toc_from_sections(sections):
     ]
 
 
+def content_json_from_html(html_content, program_title=None):
+    """
+    Build VocationalCourse.content_json from H2-split HTML (same panels as public page).
+    """
+    sections_list = filter_blank_sections(sections_from_html(html_content or ""))
+    overview_html = ""
+    sections_dict = {}
+    section_order = []
+
+    for section in sections_list:
+        title = section.get("title") or ""
+        body = section.get("content_html") or ""
+        sid = (section.get("section_id") or "").strip().lower()
+        key = re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_") or sid.replace("-", "_") or "section"
+
+        if is_intro_heading(title) or sid == "overview":
+            if not overview_html:
+                overview_html = body
+            sections_dict.setdefault(
+                "overview",
+                {"title": "Overview", "html": body},
+            )
+            if "overview" not in section_order:
+                section_order.append("overview")
+            continue
+
+        if key in sections_dict:
+            base, c = key, 1
+            while f"{base}_{c}" in sections_dict:
+                c += 1
+            key = f"{base}_{c}"
+
+        sections_dict[key] = {
+            "title": strip_heading_numbers(title) or title,
+            "html": body,
+        }
+        section_order.append(key)
+
+    return {
+        "programtitle": (program_title or "").strip(),
+        "overview": overview_html,
+        "sections": sections_dict,
+        "section_order": section_order,
+    }
+
+
+def build_vocational_accordion_sections(html_content, json_sections=None, section_order=None):
+    """
+    Vocational course detail: prefer live HTML (one accordion panel per H2), same as careers.
+    Overview is shown in the hero, not duplicated in the accordion.
+    """
+    sections = build_description_accordion_sections(
+        html_content or "",
+        json_sections=json_sections,
+        section_order=section_order,
+        prefer_html=True,
+    )
+    sections = [
+        s
+        for s in sections
+        if (s.get("section_id") or "").strip().lower() != "overview"
+        and not is_intro_heading(s.get("title"))
+    ]
+    return sections
+
+
+def vocational_accordion_blank_section_names(html_content, content_json=None):
+    """Section titles that are blank on the public page (for admin validation)."""
+    errors = []
+    data = content_json if isinstance(content_json, dict) else {}
+    overview = data.get("overview")
+    if overview is None or section_html_is_blank(str(overview or "")):
+        if not html_content or section_html_is_blank(
+            _extract_preamble_overview(html_content)
+        ):
+            errors.append("Overview: blank")
+
+    for section in build_vocational_accordion_sections(
+        html_content or "",
+        json_sections=(data.get("sections") if data else None),
+        section_order=data.get("section_order") if data else None,
+    ):
+        title = section.get("display_title") or section.get("title") or "Section"
+        if section_html_is_blank(section.get("content_html")):
+            errors.append(f"{title}: blank")
+    return errors
+
+
+def _extract_preamble_overview(html_content):
+    """Content before the first H2 when the first H2 is not an intro heading."""
+    if not html_content or not str(html_content).strip():
+        return ""
+    sections = sections_from_html(html_content)
+    for section in sections:
+        if (section.get("section_id") or "").lower() == "overview":
+            return section.get("content_html") or ""
+    return ""
+
+
 def accordion_sections_for_api(career_or_html):
     """
     API-friendly section metadata (title, id, icon) from HTML h2 headings.

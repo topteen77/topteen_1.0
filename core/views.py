@@ -540,6 +540,12 @@ class VocationalCourseDetailView(FreetrailContentMixin, TemplateView):
         from core.models import VocationalCourse
         from blog.models import Blog
 
+        from core.accordion_utils import (
+            build_vocational_accordion_sections,
+            content_json_from_html,
+            toc_from_sections,
+        )
+
         course = get_object_or_404(VocationalCourse, pk=kwargs.get("pk"))
         # determine top-level (After 10 / After 12) for back link/breadcrumb
         level = None
@@ -554,6 +560,19 @@ class VocationalCourseDetailView(FreetrailContentMixin, TemplateView):
         ctx["course"] = course
         ctx["level"] = level
         ctx["html_head"] = build_html_head(title=course.name, description=course.name)
+
+        content_json = course.content_json if isinstance(course.content_json, dict) else {}
+        if not content_json.get("overview") and course.content_html:
+            content_json = content_json_from_html(course.content_html, program_title=course.name)
+
+        accordion_sections = build_vocational_accordion_sections(
+            course.content_html or "",
+            json_sections=content_json.get("sections"),
+            section_order=content_json.get("section_order"),
+        )
+        ctx["course_content_json"] = content_json
+        ctx["accordion_sections"] = accordion_sections
+        ctx["accordion_toc"] = toc_from_sections(accordion_sections)
         
         # Add latest blogs for the blog section
         try:

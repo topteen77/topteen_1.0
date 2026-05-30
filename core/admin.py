@@ -1527,28 +1527,13 @@ class AccordionErrorsFilter(admin.SimpleListFilter):
 
 
 def _vocational_accordion_blank_sections(course):
-    """Return list of section names that are blank (same logic as frontend accordion). Includes Overview from content_json."""
-    import re
-    errors = []
-    data = getattr(course, 'content_json', None) or {}
-    # Check overview (hero section) for blank content
-    overview = data.get('overview')
-    if overview is None or _html_is_effectively_blank(str(overview).strip()):
-        errors.append('Overview: blank')
-    sections = data.get('sections') or {}
-    for heading in VOCATIONAL_ACCORDION_HEADINGS:
-        key = re.sub(r'[^a-z0-9]+', '_', heading.lower()).strip('_')
-        section = sections.get(key) if isinstance(sections, dict) else None
-        if section is None:
-            errors.append(f'{heading}: blank')
-            continue
-        if isinstance(section, str):
-            html = section
-        else:
-            html = (section.get('html') or section.get('content') or section.get('body') or '')
-        if _html_is_effectively_blank(html or ''):
-            errors.append(f'{heading}: blank')
-    return errors
+    """Return list of section names that are blank (same logic as frontend accordion)."""
+    from core.accordion_utils import vocational_accordion_blank_section_names
+
+    return vocational_accordion_blank_section_names(
+        getattr(course, "content_html", None) or "",
+        getattr(course, "content_json", None),
+    )
 
 
 @admin.register(VocationalCourse)
@@ -1563,7 +1548,7 @@ class VocationalCourseAdmin(admin.ModelAdmin):
         }),
         ('Content', {
             'fields': ('content_html', 'content_json'),
-            'description': 'Edit content_html to generate accordion structure. The content_json field is auto-generated and saved on form submit.'
+            'description': 'Edit content_html with H2 headings (one section per H2). Accordion preview uses the same parser as the public page. content_json is auto-generated on save.'
         }),
         (
             "Accordion validation (cached)",
@@ -1596,6 +1581,18 @@ class VocationalCourseAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/hide_content_json.css',)
         }
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        preview_url = None
+        if obj and getattr(obj, 'pk', None):
+            try:
+                preview_url = reverse('core:vocational_course_detail', kwargs={'pk': obj.pk})
+            except Exception:
+                preview_url = None
+        context['vocational_course_frontend_preview_url'] = preview_url
+        return super().render_change_form(
+            request, context, add=add, change=change, form_url=form_url, obj=obj
+        )
     
     def save_model(self, request, obj, form, change):
         """Override save_model to handle content_json from POST data"""
@@ -1603,29 +1600,31 @@ class VocationalCourseAdmin(admin.ModelAdmin):
         import logging
         
         logger = logging.getLogger(__name__)
-        
-        # Get content_json from POST data
-        # Since we removed it from readonly_fields, it should be in POST
-        content_json_str = request.POST.get('content_json', '')
-        
-        # Debug logging
-        if not content_json_str:
-            logger.warning(f'No content_json in POST for VocationalCourse {obj.id or "new"}. POST keys: {list(request.POST.keys())[:30]}')
+
+        from core.accordion_utils import content_json_from_html
+
+        # Prefer live content_html (same source of truth as career descriptions)
+        if obj.content_html and str(obj.content_html).strip():
+            obj.content_json = content_json_from_html(obj.content_html, program_title=obj.name)
+            logger.info(
+                'Regenerated content_json from content_html for VocationalCourse %s. Sections: %s',
+                obj.id or 'new',
+                len((obj.content_json or {}).get('sections', {})),
+            )
         else:
-            logger.info(f'Found content_json in POST. Length: {len(content_json_str)}')
-        
-        if content_json_str:
-            try:
-                # Parse and validate JSON
-                content_json_data = json.loads(content_json_str)
-                obj.content_json = content_json_data
-                logger.info(f'Successfully saved content_json for VocationalCourse {obj.id or "new"}. Sections: {len(content_json_data.get("sections", {}))}')
-            except (json.JSONDecodeError, ValueError) as e:
-                # If JSON is invalid, log error but don't fail the save
-                logger.warning(f'Invalid JSON in content_json field: {e}. Content: {content_json_str[:200]}')
-                # Keep existing value if updating, otherwise set to None
-                if not change:
-                    obj.content_json = None
+            content_json_str = request.POST.get('content_json', '')
+            if not content_json_str:
+                logger.warning(
+                    'No content_html or content_json for VocationalCourse %s',
+                    obj.id or 'new',
+                )
+            elif content_json_str:
+                try:
+                    obj.content_json = json.loads(content_json_str)
+                except (json.JSONDecodeError, ValueError) as e:
+                    logger.warning('Invalid JSON in content_json field: %s', e)
+                    if not change:
+                        obj.content_json = None
         
         invalidate = (
             change

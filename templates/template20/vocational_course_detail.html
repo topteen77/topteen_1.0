@@ -29,19 +29,22 @@
         <div class="vocational-card d-flex flex-wrap align-items-center">
           <div class="voc-left col-lg-6 col-md-12">
             <h1 class="heading-title mt-md-0 mb-md-3 mt-2 mb-2">
-              {% if course.content_json and course.content_json.programtitle %}
+              {% if course_content_json and course_content_json.programtitle %}
+                {{ course_content_json.programtitle }}
+              {% elif course.content_json and course.content_json.programtitle %}
                 {{ course.content_json.programtitle }}
               {% else %}
                 {{ course.name }}
               {% endif %}
             </h1>
-            {% if course.content_json and course.content_json.overview %}
+            {% set overview_html = (course_content_json.overview if course_content_json else none) or (course.content_json.overview if course.content_json else none) %}
+            {% if overview_html %}
               <div class="overview-container" id="overview">
                 <div class="overview-full text-gray fs-16 mb-2" id="overview-full" style="display: none;">
-                  {{ course.content_json.overview|safe }}
+                  {{ overview_html|safe }}
                 </div>
                 <div class="overview-preview text-gray fs-16 mb-2" id="overview-preview">
-                  {{ course.content_json.overview|safe|truncate(300) }}
+                  {{ overview_html|safe|truncate(300) }}
                 </div>
                 <button type="button" class="btn-view-more text-purple text-decoration-underline fs-16 mt-2" id="view-more-btn" style="display: none; background: none; border: none; cursor: pointer; padding: 0;">
                   View More
@@ -70,7 +73,8 @@
   </section>
   <!-- Hero Section -->
 
-  <!-- Accordion Section (hidden if no accordion items; JS may hide wrapper if all sections blank) -->
+  <!-- Accordion Section (server-rendered via core.accordion_utils, same as careers) -->
+  {% if accordion_sections %}
   <section class="vocational-cr-accordion py-md-8 py-7 bg-light" id="vocational-accordion-section">
     <div class="container">
       <div class="row">
@@ -78,7 +82,20 @@
           <div class="sticky-sidebar p-3 quick-links-sidebar">
             <h6 class="fs-20 fw-700 mb-3">Quick links</h6>
             <ul class="quick-links list-unstyled mb-0" id="vocational-quick-links">
-              {# Populated by JS from accordion content #}
+              {% if overview_html %}
+              <li>
+                <a class="quick-link{% if not accordion_sections %} active{% endif %}" href="#overview" data-section-id="overview">
+                  <i class="bx bx-info-circle me-1"></i>Overview
+                </a>
+              </li>
+              {% endif %}
+              {% for item in accordion_toc %}
+              <li>
+                <a class="quick-link{% if loop.first and not overview_html %} active{% endif %}" href="#collapse-{{ item.id }}" data-section-id="collapse-{{ item.id }}">
+                  <i class="bx {{ item.icon|default('bx-layer') }} me-1"></i>{{ item.text }}
+                </a>
+              </li>
+              {% endfor %}
             </ul>
           </div>
         </aside>
@@ -88,7 +105,12 @@
             <div class="select-wrap w-100">
               <select id="vocational-quick-jump" class="form-select form-select-sm">
                 <option value="">Jump to section...</option>
-                {# Options populated by JS #}
+                {% if overview_html %}
+                <option value="overview">Overview</option>
+                {% endif %}
+                {% for item in accordion_toc %}
+                <option value="collapse-{{ item.id }}">{{ item.text }}</option>
+                {% endfor %}
               </select>
               <i class="bx bx-chevron-down select-caret"></i>
             </div>
@@ -99,21 +121,24 @@
         </div>
 
         <div class="col-lg-9 custom-faq">
-          <div class="accordion custom-accordion" id="vocAccordion">
-            {% if course.content_json %}
-              {# Content will be rendered via JavaScript accordion; blank sections are not shown #}
-              <div id="vocational-course-accordion-container"></div>
-            {% else %}
-              {# Fallback to regular HTML content #}
-              <div class="bg-white p-4 p-md-5 rounded-3 border">
-                {{ course.content_html|safe }}
-              </div>
-            {% endif %}
-          </div>
+          {% with accordion_id='vocAccordion', wrapper_class='accordion custom-accordion cat-accordion', sections=accordion_sections, body_wrapper_class='blogDetail careerDetail' %}
+          {% include 'includes/accordion/sections_accordion.html' %}
+          {% endwith %}
         </div>
       </div>
     </div>
   </section>
+  {% elif course.content_html %}
+  <section class="vocational-cr-accordion py-md-8 py-7 bg-light">
+    <div class="container">
+      <div class="col-lg-9 mx-auto">
+        <div class="bg-white p-4 p-md-5 rounded-3 border blogDetail careerDetail">
+          {{ course.content_html|safe }}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
 
 </main>
@@ -263,566 +288,115 @@
 {% block additionaljs %}
 <script>
 (function() {
-    // Handle Overview "View More" / "View Less" functionality
+    function setActiveQuickLink(sectionId) {
+        var quickLinksUl = document.getElementById('vocational-quick-links');
+        if (!quickLinksUl) return;
+        quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
+            a.classList.toggle('active', a.getAttribute('data-section-id') === sectionId);
+        });
+    }
+
+    function scrollOrExpand(targetId) {
+        var el = document.getElementById(targetId);
+        if (!el) return;
+        if (targetId === 'overview') {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActiveQuickLink(targetId);
+            return;
+        }
+        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+            var collapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, { toggle: false });
+            var scrollAfterExpand = function() {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                el.removeEventListener('shown.bs.collapse', scrollAfterExpand);
+            };
+            el.addEventListener('shown.bs.collapse', scrollAfterExpand);
+            collapse.show();
+            setActiveQuickLink(targetId);
+        } else {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setActiveQuickLink(targetId);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         var overviewFull = document.getElementById('overview-full');
         var overviewPreview = document.getElementById('overview-preview');
         var viewMoreBtn = document.getElementById('view-more-btn');
         var viewLessBtn = document.getElementById('view-less-btn');
-        
+
         if (overviewFull && overviewPreview && viewMoreBtn && viewLessBtn) {
-            // Get the full overview content (stored in hidden div)
             var fullContent = overviewFull.innerHTML.trim();
-            var previewContent = overviewPreview.innerHTML.trim();
-            
-            // Skip if content is empty
-            if (!fullContent || fullContent.length === 0) {
+            if (!fullContent) {
                 overviewFull.style.display = 'none';
                 overviewPreview.style.display = 'none';
                 viewMoreBtn.style.display = 'none';
                 viewLessBtn.style.display = 'none';
-                return;
-            }
-            
-            // Get text content length (without HTML tags) for comparison
-            var tempFull = document.createElement('div');
-            tempFull.innerHTML = fullContent;
-            var fullText = (tempFull.textContent || tempFull.innerText || '').trim();
-            var fullTextLength = fullText.length;
-            
-            var tempPreview = document.createElement('div');
-            tempPreview.innerHTML = previewContent;
-            var previewText = (tempPreview.textContent || tempPreview.innerText || '').trim();
-            var previewTextLength = previewText.length;
-            
-            // Check if content was truncated by Django's truncate filter
-            // Multiple checks:
-            // 1. Preview ends with "..." or "…" (Django truncate adds this)
-            // 2. Preview text is significantly shorter than full text (more than 30 chars difference)
-            // 3. Full text is longer than 300 characters (truncate threshold)
-            var hasEllipsis = previewContent.endsWith('...') || 
-                             previewContent.endsWith('…') ||
-                             previewText.endsWith('...') ||
-                             previewText.endsWith('…');
-            
-            // Check if there's a significant difference in length
-            // Django truncate(300) will truncate at word boundaries, so preview might be slightly over 300
-            var lengthDifference = fullTextLength - previewTextLength;
-            var significantDifference = lengthDifference > 30; // More than 30 chars difference
-            
-            // If full text is > 300 and preview is <= 320 (allowing for word boundary truncation)
-            // and there's a significant difference, it's truncated
-            // Also check: if full text is clearly much longer (e.g., > 350), it's definitely truncated
-            var isTruncated = hasEllipsis || 
-                             (fullTextLength > 300 && previewTextLength <= 320 && significantDifference) ||
-                             (fullTextLength > 350 && previewTextLength < fullTextLength);
-            
-            if (isTruncated) {
-                // Show preview, hide full, show View More button
-                overviewFull.style.display = 'none';
-                overviewPreview.style.display = 'block';
-                viewMoreBtn.style.display = 'inline-block';
-                viewLessBtn.style.display = 'none';
-                
-                // View More button click
-                viewMoreBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    overviewPreview.style.display = 'none';
-                    overviewFull.style.display = 'block';
-                    viewMoreBtn.style.display = 'none';
-                    viewLessBtn.style.display = 'inline-block';
-                });
-                
-                // View Less button click
-                viewLessBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
+            } else {
+                var tempFull = document.createElement('div');
+                tempFull.innerHTML = fullContent;
+                var fullTextLength = (tempFull.textContent || '').trim().length;
+                var tempPreview = document.createElement('div');
+                tempPreview.innerHTML = overviewPreview.innerHTML.trim();
+                var previewTextLength = (tempPreview.textContent || '').trim().length;
+                var previewContent = overviewPreview.innerHTML.trim();
+                var hasEllipsis = previewContent.endsWith('...') || previewContent.endsWith('…');
+                var isTruncated = hasEllipsis ||
+                    (fullTextLength > 300 && previewTextLength <= 320 && (fullTextLength - previewTextLength) > 30) ||
+                    (fullTextLength > 350 && previewTextLength < fullTextLength);
+
+                if (isTruncated) {
                     overviewFull.style.display = 'none';
                     overviewPreview.style.display = 'block';
-                    viewLessBtn.style.display = 'none';
                     viewMoreBtn.style.display = 'inline-block';
-                });
-            } else {
-                // Content is not truncated, show full and hide preview/buttons
-                overviewFull.style.display = 'block';
-                overviewPreview.style.display = 'none';
-                viewMoreBtn.style.display = 'none';
-                viewLessBtn.style.display = 'none';
-            }
-        }
-    });
-    
-    // Fixed accordion headings
-    const FIXED_HEADINGS = [
-        'Eligibility & Admission',
-        'Duration & Structure',
-        'Curriculum Highlights',
-        'Skills Required',
-        'Pros & Cons',
-        'Internship & Industry Collaborations',
-        'Certification & Accreditation',
-        'Learning Outcomes',
-        'Career Growth & Prospects',
-        'Employment Sectors & Employers',
-        'Conclusion'
-    ];
-    
-    // Icon mapping matching reference HTML
-    const iconMap = {
-        'Eligibility & Admission': 'bx bx-user-check',
-        'Duration & Structure': 'bx bx-time',
-        'Curriculum Highlights': 'bx bx-book-open',
-        'Skills Required': 'bx bx-atom',
-        'Pros & Cons': 'bx bx-detail',
-        'Internship & Industry Collaborations': 'bx bx-briefcase',
-        'Certification & Accreditation': 'bx bx-award',
-        'Learning Outcomes': 'bx bx-target-lock',
-        'Career Growth & Prospects': 'bx bx-trending-up',
-        'Employment Sectors & Employers': 'bx bx-building',
-        'Conclusion': 'bx bx-rocket'
-    };
-    
-    const container = document.getElementById('vocational-course-accordion-container');
-    if (!container) return;
-    
-    {% if course.content_json %}
-    // Generate accordion from JSON
-    try {
-        const contentJson = {{ course.content_json|tojson|safe }};
-        if (contentJson && contentJson.sections) {
-            generateAccordionFromJSON(contentJson.sections, container);
-        } else {
-            // Fallback to HTML content
-            {% if course.content_html %}
-            container.innerHTML = {{ course.content_html|tojson|safe }};
-            {% else %}
-            container.innerHTML = '<p class="text-muted">No content available.</p>';
-            {% endif %}
-        }
-        buildQuickLinksFromAccordion();
-    } catch(e) {
-        console.warn('Error parsing content_json:', e);
-        // Fallback to HTML content
-        {% if course.content_html %}
-        container.innerHTML = {{ course.content_html|tojson|safe }};
-        {% else %}
-        container.innerHTML = '<p class="text-muted">No content available.</p>';
-        {% endif %}
-        buildQuickLinksFromAccordion();
-    }
-    {% else %}
-    // No JSON, use HTML content directly
-    {% if course.content_html %}
-    container.innerHTML = {{ course.content_html|tojson|safe }};
-    {% else %}
-    container.innerHTML = '<p class="text-muted">No content available.</p>';
-    {% endif %}
-    buildQuickLinksFromAccordion();
-    {% endif %}
-    
-    function generateAccordionFromJSON(sections, container) {
-        // Clear container first
-        container.innerHTML = '';
-        
-        // Find the parent accordion element (it should already exist in the template)
-        const accordion = container.closest('.accordion') || container.parentElement;
-        
-        // Generate accordion items in fixed order
-        // Track actual accordion index (only for sections with content)
-        let accordionIndex = 0;
-        
-        FIXED_HEADINGS.forEach((heading, index) => {
-            const key = heading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            
-            // Get section data from sections object
-            const sectionData = sections && sections[key] ? sections[key] : null;
-            
-            // Extract HTML content and title from section data
-            let sectionHtml = '';
-            let sectionTitle = heading;
-            
-            if (sectionData) {
-                if (typeof sectionData === 'string') {
-                    // If sectionData is a string, use it as HTML
-                    sectionHtml = sectionData;
-                } else if (typeof sectionData === 'object' && sectionData !== null) {
-                    // Get html and title from section data object
-                    sectionHtml = sectionData.html || sectionData.content || sectionData.body || '';
-                    sectionTitle = sectionData.title || heading;
+                    viewLessBtn.style.display = 'none';
+                    viewMoreBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        overviewPreview.style.display = 'none';
+                        overviewFull.style.display = 'block';
+                        viewMoreBtn.style.display = 'none';
+                        viewLessBtn.style.display = 'inline-block';
+                    });
+                    viewLessBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        overviewFull.style.display = 'none';
+                        overviewPreview.style.display = 'block';
+                        viewLessBtn.style.display = 'none';
+                        viewMoreBtn.style.display = 'inline-block';
+                    });
+                } else {
+                    overviewFull.style.display = 'block';
+                    overviewPreview.style.display = 'none';
+                    viewMoreBtn.style.display = 'none';
+                    viewLessBtn.style.display = 'none';
                 }
             }
-            
-            // Ensure sectionHtml is a string and trim it
-            sectionHtml = String(sectionHtml || '').trim();
-            
-            // Check if there's real content: strip HTML and require non-whitespace text
-            let textContent = '';
-            if (sectionHtml) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = sectionHtml;
-                textContent = (tmp.textContent || tmp.innerText || '').trim();
-            }
-            const hasContent = textContent.length > 0 && sectionHtml.length > 10;
-            
-            // Skip sections without content - don't show empty/blank accordions
-            if (!hasContent) {
-                return; // Skip this iteration
-            }
-            
-            // Use accordionIndex for numbering (only increments for sections with content)
-            const sectionId = `collapse${getSectionNumber(accordionIndex)}`;
-            const headingId = `heading${getSectionNumber(accordionIndex)}`;
-            const iconClass = iconMap[heading] || 'bx bx-layer';
-            const isFirst = accordionIndex === 0; // First visible section
-            
-            // Increment accordion index for next section with content
-            accordionIndex++;
-            
-            // Check if this is Pros & Cons section for special styling
-            const isProsCons = heading === 'Pros & Cons';
-            
-            // Create accordion item
-            const accordionItem = document.createElement('div');
-            accordionItem.className = 'accordion-item' + (isProsCons ? ' pros-cons-item' : '');
-            
-            // Create header
-            const header = document.createElement('h2');
-            header.className = 'accordion-header';
-            header.id = headingId;
-            
-            // Create button
-            const button = document.createElement('button');
-            button.type = 'button';
-            const isExpanded = isFirst && hasContent;
-            button.className = 'accordion-button' + (isExpanded ? ' active' : ' collapsed');
-            button.setAttribute('data-bs-toggle', 'collapse');
-            button.setAttribute('data-bs-target', '#' + sectionId);
-            button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-            button.setAttribute('aria-controls', sectionId);
-            
-            // Add icon, text, and chevron with proper structure
-            const chevronClass = isExpanded ? 'chev rotate' : 'chev';
-            const chevronIcon = isExpanded ? 'bx-chevron-up' : 'bx-chevron-down';
-            button.innerHTML = '<span class="icon"><i class="' + iconClass + '"></i></span><span class="accordion-title">' + sectionTitle + '</span><span class="' + chevronClass + '"><i class="bx ' + chevronIcon + '"></i></span>';
-            
-            header.appendChild(button);
-            
-            // Create collapse div
-            const collapse = document.createElement('div');
-            collapse.id = sectionId;
-            collapse.className = 'accordion-collapse collapse' + (isFirst && hasContent ? ' show' : '');
-            collapse.setAttribute('aria-labelledby', headingId);
-            collapse.setAttribute('data-bs-parent', '#vocAccordion');
-            
-            // Create body
-            const body = document.createElement('div');
-            body.className = 'accordion-body';
-            
-            // Special handling for Pros & Cons section
-            if (isProsCons) {
-                const prosConsHTML = parseProsCons(sectionHtml);
-                body.innerHTML = prosConsHTML;
-            } else {
-                // Remove redundant headings
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = sectionHtml;
-                const h2Elements = tempDiv.querySelectorAll('h2, h3');
-                h2Elements.forEach(h2 => {
-                    const h2Text = h2.textContent.trim().toLowerCase();
-                    if (FIXED_HEADINGS.some(fh => h2Text.includes(fh.toLowerCase()))) {
-                        h2.remove();
-                    }
-                });
-                
-                body.innerHTML = tempDiv.innerHTML;
-            }
-            
-            collapse.appendChild(body);
-            accordionItem.appendChild(header);
-            accordionItem.appendChild(collapse);
-            container.appendChild(accordionItem);
+        }
+
+        document.querySelectorAll('#vocational-quick-links a.quick-link').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                scrollOrExpand(a.getAttribute('data-section-id'));
+            });
         });
-        
-        // Hide entire accordion section if no items were added (all sections were blank)
-        const sectionWrapper = document.getElementById('vocational-accordion-section');
-        if (sectionWrapper && container.children.length === 0) {
-            sectionWrapper.style.display = 'none';
-        }
 
-        // Initialize Bootstrap collapse functionality
-        const parentAccordion = container.closest('#vocAccordion') || container.parentElement;
-        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-            const collapseElements = parentAccordion.querySelectorAll('.collapse');
-            collapseElements.forEach(function(collapseEl) {
-                new bootstrap.Collapse(collapseEl, {
-                    toggle: false
-                });
-            });
-            parentAccordion.querySelectorAll('.accordion-collapse').forEach(function(col) {
-                col.addEventListener('show.bs.collapse', function(e) {
-                    const btn = parentAccordion.querySelector('[data-bs-target="#' + e.target.id + '"]');
-                    if (btn) {
-                        btn.classList.add('active');
-                        btn.classList.remove('collapsed');
-                        const chev = btn.querySelector('.chev');
-                        if (chev) {
-                            chev.classList.add('rotate');
-                            const icon = chev.querySelector('i');
-                            if (icon) {
-                                icon.classList.remove('bx-chevron-down');
-                                icon.classList.add('bx-chevron-up');
-                            }
-                        }
-                    }
-                });
-                col.addEventListener('hide.bs.collapse', function(e) {
-                    const btn = parentAccordion.querySelector('[data-bs-target="#' + e.target.id + '"]');
-                    if (btn) {
-                        btn.classList.remove('active');
-                        btn.classList.add('collapsed');
-                        const chev = btn.querySelector('.chev');
-                        if (chev) {
-                            chev.classList.remove('rotate');
-                            const icon = chev.querySelector('i');
-                            if (icon) {
-                                icon.classList.remove('bx-chevron-up');
-                                icon.classList.add('bx-chevron-down');
-                            }
-                        }
-                    }
-                });
-            });
-        } else if (typeof $ !== 'undefined' && $.fn.collapse) {
-            $(parentAccordion).find('.collapse').collapse();
-        }
-    }
-
-    function setActiveQuickLink(sectionId) {
-        const quickLinksUl = document.getElementById('vocational-quick-links');
-        if (!quickLinksUl) return;
-        quickLinksUl.querySelectorAll('a.quick-link').forEach(function(a) {
-            if (a.getAttribute('data-section-id') === sectionId) {
-                a.classList.add('active');
-            } else {
-                a.classList.remove('active');
-            }
-        });
-    }
-
-    function buildQuickLinksFromAccordion() {
-        const quickLinksUl = document.getElementById('vocational-quick-links');
-        const quickJumpSelect = document.getElementById('vocational-quick-jump');
-        const jumpGoBtn = document.getElementById('vocational-jump-go');
-        if (!quickLinksUl) return;
-
-        quickLinksUl.innerHTML = '';
-        if (quickJumpSelect) {
-            quickJumpSelect.innerHTML = '<option value="">Jump to section...</option>';
-        }
-
-        var hasOverview = document.getElementById('overview');
-        if (hasOverview) {
-            quickLinksUl.appendChild(createQuickLinkItem('overview', 'Overview', 'bx-info-circle'));
-            if (quickJumpSelect) {
-                var opt = document.createElement('option');
-                opt.value = 'overview';
-                opt.textContent = 'Overview';
-                quickJumpSelect.appendChild(opt);
-            }
-        }
-
-        var accordionContainer = document.getElementById('vocational-course-accordion-container');
-        if (accordionContainer) {
-            accordionContainer.querySelectorAll('.accordion-item').forEach(function(item) {
-                var collapse = item.querySelector('.accordion-collapse');
-                var btn = item.querySelector('.accordion-button');
-                if (!collapse || !collapse.id || !btn) return;
-                var titleEl = btn.querySelector('.accordion-title');
-                var title = titleEl ? titleEl.textContent.trim() : collapse.id;
-                var iconEl = btn.querySelector('.icon i');
-                var iconClass = iconEl ? (iconEl.className.baseVal || iconEl.className).replace(/\s*chevron.*/i, '').trim() : 'bx bx-layer';
-                if (iconClass.indexOf('bx ') !== 0) iconClass = 'bx ' + iconClass;
-                quickLinksUl.appendChild(createQuickLinkItem(collapse.id, title, iconClass));
-                if (quickJumpSelect) {
-                    var opt = document.createElement('option');
-                    opt.value = collapse.id;
-                    opt.textContent = title;
-                    quickJumpSelect.appendChild(opt);
-                }
+        var jumpGoBtn = document.getElementById('vocational-jump-go');
+        var quickJumpSelect = document.getElementById('vocational-quick-jump');
+        if (jumpGoBtn && quickJumpSelect) {
+            jumpGoBtn.addEventListener('click', function() {
+                if (quickJumpSelect.value) scrollOrExpand(quickJumpSelect.value);
             });
         }
 
-        var initialActive = null;
-        if (accordionContainer) {
-            var expanded = accordionContainer.querySelector('.accordion-collapse.show');
-            if (expanded && expanded.id) initialActive = expanded.id;
-        }
-        if (!initialActive && hasOverview) initialActive = 'overview';
-        if (initialActive) setActiveQuickLink(initialActive);
-
-        if (accordionContainer) {
-            accordionContainer.querySelectorAll('.accordion-collapse').forEach(function(col) {
+        var accordion = document.getElementById('vocAccordion');
+        if (accordion) {
+            accordion.querySelectorAll('.accordion-collapse').forEach(function(col) {
                 col.addEventListener('show.bs.collapse', function(e) {
                     setActiveQuickLink(e.target.id);
                 });
             });
         }
-
-        if (jumpGoBtn && quickJumpSelect) {
-            jumpGoBtn.onclick = function() {
-                var value = quickJumpSelect.value;
-                if (!value) return;
-                var el = document.getElementById(value);
-                if (!el) return;
-                if (value === 'overview') {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    setActiveQuickLink(value);
-                    return;
-                }
-                if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-                    var collapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, { toggle: false });
-                    var scrollAfterExpand = function() {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        el.removeEventListener('shown.bs.collapse', scrollAfterExpand);
-                    };
-                    el.addEventListener('shown.bs.collapse', scrollAfterExpand);
-                    collapse.show();
-                    setActiveQuickLink(value);
-                } else {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    setActiveQuickLink(value);
-                }
-            };
-        }
-
-        var sidebarWrap = quickLinksUl.closest('.quick-links-sidebar');
-        if (sidebarWrap && quickLinksUl.children.length === 0) {
-            sidebarWrap.closest('aside').style.display = 'none';
-        }
-        var mobileJump = document.querySelector('.mobile-quick-jump');
-        if (mobileJump && quickJumpSelect && quickJumpSelect.options.length <= 1) {
-            mobileJump.style.display = 'none';
-        }
-    }
-
-    function createQuickLinkItem(targetId, label, iconClass) {
-        var li = document.createElement('li');
-        var a = document.createElement('a');
-        a.className = 'quick-link';
-        a.href = '#' + targetId;
-        a.setAttribute('data-section-id', targetId);
-        var ic = (iconClass || 'bx-layer').trim();
-        if (ic.indexOf('bx') !== 0) ic = 'bx ' + ic;
-        a.innerHTML = '<i class="' + ic + ' me-1"></i>' + (label || targetId);
-        a.addEventListener('click', function(e) {
-            e.preventDefault();
-            var el = document.getElementById(targetId);
-            if (!el) return;
-            if (targetId === 'overview') {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                setActiveQuickLink(targetId);
-                return;
-            }
-            if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-                var collapse = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, { toggle: false });
-                var scrollAfterExpand = function() {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    el.removeEventListener('shown.bs.collapse', scrollAfterExpand);
-                };
-                el.addEventListener('shown.bs.collapse', scrollAfterExpand);
-                collapse.show();
-                setActiveQuickLink(targetId);
-            } else {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                setActiveQuickLink(targetId);
-            }
-        });
-        li.appendChild(a);
-        return li;
-    }
-    
-    function getSectionNumber(index) {
-        const numbers = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven'];
-        return numbers[index] || 'One';
-    }
-    
-    function normalizeProsConsLabel(text) {
-        return (text || '').trim().toLowerCase().replace(/[.:]+$/g, '').replace(/\s+/g, ' ').trim();
-    }
-
-    function isProsLabel(text) {
-        const label = normalizeProsConsLabel(text);
-        return label === 'pros' || label === 'advantages' || label === 'benefits';
-    }
-
-    function isConsLabel(text) {
-        const label = normalizeProsConsLabel(text);
-        return label === 'cons' || label === 'disadvantages' || label === 'drawbacks';
-    }
-
-    function headingLabelFromElement(el) {
-        if (!el) return '';
-        const tag = (el.tagName || '').toUpperCase();
-        if (tag === 'P' || tag === 'H2' || tag === 'H3' || tag === 'H4') {
-            const strong = el.querySelector('strong');
-            if (strong) return strong.textContent;
-            return el.textContent;
-        }
-        if (tag === 'STRONG') return el.textContent;
-        return '';
-    }
-
-    function parseProsCons(html) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-
-        let prosUlHtml = '';
-        let consUlHtml = '';
-        let currentSection = null;
-
-        // Walk top-level blocks only; match exact "Pros"/"Cons" headings (not "construction", etc.)
-        Array.from(tempDiv.children).forEach(function(child) {
-            const tag = (child.tagName || '').toUpperCase();
-            if (tag === 'P' || tag === 'H2' || tag === 'H3' || tag === 'H4') {
-                const label = headingLabelFromElement(child);
-                if (isProsLabel(label)) {
-                    currentSection = 'pros';
-                    return;
-                }
-                if (isConsLabel(label)) {
-                    currentSection = 'cons';
-                    return;
-                }
-                currentSection = null;
-                return;
-            }
-            if (tag === 'UL' && currentSection === 'pros' && !prosUlHtml) {
-                prosUlHtml = child.innerHTML;
-                currentSection = null;
-            } else if (tag === 'UL' && currentSection === 'cons' && !consUlHtml) {
-                consUlHtml = child.innerHTML;
-                currentSection = null;
-            }
-        });
-
-        // Fallback: first two top-level lists
-        if (!prosUlHtml || !consUlHtml) {
-            const topLists = Array.from(tempDiv.children).filter(function(el) {
-                return (el.tagName || '').toUpperCase() === 'UL';
-            });
-            if (!prosUlHtml && topLists[0]) prosUlHtml = topLists[0].innerHTML;
-            if (!consUlHtml && topLists[1]) consUlHtml = topLists[1].innerHTML;
-        }
-
-        let prosHTML = '<div class="pros-section"><h4>Pros</h4><ul>';
-        prosHTML += prosUlHtml || '<li>No pros listed.</li>';
-        prosHTML += '</ul></div>';
-
-        let consHTML = '<div class="cons-section"><h4>Cons</h4><ul>';
-        consHTML += consUlHtml || '<li>No cons listed.</li>';
-        consHTML += '</ul></div>';
-
-        return '<div class="pros-cons-content">' + prosHTML + consHTML + '</div>';
-    }
+    });
 })();
 </script>
 {% endblock %}

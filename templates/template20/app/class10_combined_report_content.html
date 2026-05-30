@@ -314,7 +314,22 @@
         {% endif %}
       </div>
 
-      {% if courseName %}
+      {% if stream_career_sections %}
+        {% for section in stream_career_sections %}
+        <div class="cat-box cat-one-box" style="margin-top: 12px;">
+          <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
+            <h4 style="font-size: 16px; width:600px; margin: 0px;text-align: center;">Suggested Careers — {{ section.code }}</h4>
+          </div>
+          <div class="cat-list" style="padding:6px; margin-top:0px;">
+            <ul style="column-count:3; list-style:disc;">
+              {% for value in section.careers %}
+              <li>{{ value }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endfor %}
+      {% elif courseName %}
       <div class="cat-box cat-one-box">
         <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
           <h4 style="font-size: 16px; width:600px; margin: 0px;text-align: center;">Suggested Careers</h4>
@@ -831,34 +846,33 @@
       </div>
       <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
         {% if intelligence_data.above_avg and intelligence_data.above_avg|length > 0 %}
-        <div class="box-i onebox" style="background: #E7E5FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px;height: 180px; min-height: 180px;">
-          <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px; margin-top:0px; text-align: center;">Above Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; width:180px; text-align: center;">
+        <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
+          <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
+          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
             {% for above in intelligence_data.above_avg %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 22px; margin-bottom: 3px; width: 100%;">{{ above }}</li>
+            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ above }}</li>
             {% endfor %}
           </ul>
         </div>
         {% endif %}
 
         {% if intelligence_data.average and intelligence_data.average|length > 0 %}
-        <div class="box-i onebox" style="background: #E5F9FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2E8AA6; border-bottom: 4px solid #2E8AA6; width:190px;height: 180px; min-height: 180px;">
-          <p style="color: #2E8AA6; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px; margin-top:0px; text-align: center;">Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; width:180px; text-align: center;">
+        <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
+          <p class="aptitude-summary-label" style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
+          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
             {% for average in intelligence_data.average %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 22px; margin-bottom: 3px; width: 100%;">{{ average }}</li>
-            
+            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ average }}</li>
             {% endfor %}
           </ul>
         </div>
         {% endif %}
 
         {% if intelligence_data.below_avg %}
-        <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-          <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px; margin-top:0px; text-align: center;">Below Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; width:180px; text-align: center;">
+        <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
+          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Below Average</p>
+          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
             {% for belowavg in intelligence_data.below_avg %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 22px; margin-bottom: 3px; width: 100%;">{{ belowavg }}</li>
+            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>
             {% endfor %}
           </ul>
         </div>
@@ -928,7 +942,7 @@
 
 
       <div class="db-header" style="margin-top: 10px;">
-        <h1 style="color: RED; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
+        <h1 style="color: #A22717; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
           <span>NOTE-</span> If your score is below average, you are suggested to take vocational training and guidance to improve your other reasoning areas.
         </h1>
       </div>

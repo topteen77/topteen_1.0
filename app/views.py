@@ -555,14 +555,14 @@ def dashboard(request, student_id=None):
                 'CRITICAL': ['PCM', 'HUM'],
             }
             stream_subject_map = {
-                'PCM': {'label': 'PCM (Physics, Chemistry, Mathematics)', 'color_class': 'stream-chip-pcm'},
-                'PCB': {'label': 'PCB (Physics, Chemistry, Biology)', 'color_class': 'stream-chip-pcb'},
-                'HUM': {'label': 'HUM (Humanities)', 'color_class': 'stream-chip-hum'},
-                'HWL': {'label': 'HWL (Humanities with Languages)', 'color_class': 'stream-chip-hwl'},
-                'CWM': {'label': 'CWM (Commerce with Mathematics)', 'color_class': 'stream-chip-cwm'},
-                'CWOM': {'label': 'CWOM (Commerce without Mathematics)', 'color_class': 'stream-chip-cwom'},
-                'CS': {'label': 'CS (Computer Science)', 'color_class': 'stream-chip-cs'},
-                'FINE ARTS': {'label': 'Fine Arts', 'color_class': 'stream-chip-finearts'},
+                'PCM': {'label': 'PCM (Physics, Chemistry, Mathematics)', 'stream': 'PCM', 'subjects': 'Physics, Chemistry, Mathematics', 'color_class': 'stream-chip-pcm'},
+                'PCB': {'label': 'PCB (Physics, Chemistry, Biology)', 'stream': 'PCB', 'subjects': 'Physics, Chemistry, Biology', 'color_class': 'stream-chip-pcb'},
+                'HUM': {'label': 'HUM (Humanities)', 'stream': 'HUM', 'subjects': 'Humanities', 'color_class': 'stream-chip-hum'},
+                'HWL': {'label': 'HWL (Humanities with Languages)', 'stream': 'HWL', 'subjects': 'Humanities with Languages', 'color_class': 'stream-chip-hwl'},
+                'CWM': {'label': 'CWM (Commerce with Mathematics)', 'stream': 'CWM', 'subjects': 'Commerce with Mathematics', 'color_class': 'stream-chip-cwm'},
+                'CWOM': {'label': 'CWOM (Commerce without Mathematics)', 'stream': 'CWOM', 'subjects': 'Commerce without Mathematics', 'color_class': 'stream-chip-cwom'},
+                'CS': {'label': 'CS (Computer Science)', 'stream': 'CS', 'subjects': 'Computer Science', 'color_class': 'stream-chip-cs'},
+                'FINE ARTS': {'label': 'Fine Arts', 'stream': 'Fine Arts', 'subjects': 'Fine Arts', 'color_class': 'stream-chip-finearts'},
             }
             # Keep aligned with report: prioritize strongest aptitude area only
             primary_aptitude = str(above_avg_score or '').upper().strip()
@@ -686,6 +686,25 @@ def final_assessment_pdf(request):
         'top_categories':top_categories,
     }
     return render(request, 'Asessment_report.html',context)
+
+
+def get_stream_career_sections(top_category):
+    """Return per-stream suggested career blocks for personality reports."""
+    if not top_category:
+        return []
+    sections = []
+    for stream in Stream.objects.filter(category=top_category).order_by("id"):
+        careers = stream.career_options if isinstance(stream.career_options, list) else []
+        if not careers:
+            continue
+        sections.append(
+            {
+                "code": stream.stream_name,
+                "label": stream.subjects,
+                "careers": careers,
+            }
+        )
+    return sections
 
 
 def db_results_inst_user(user):
@@ -1072,6 +1091,7 @@ def class10_combined_report(request, user_id=None):
             'top_category': top_category,
             'streamsubject': streamsubject,
             'courseName': courseName,
+            'stream_career_sections': get_stream_career_sections(top_category),
             'top_categories': top_categories,
             
             # Additional data
@@ -1235,6 +1255,7 @@ def class10_report_download_pdf(request, user_id=None):
             'top_category': top_category,
             'streamsubject': streamsubject,
             'courseName': courseName,
+            'stream_career_sections': get_stream_career_sections(top_category),
             'top_categories': top_categories,
             'max_length': max_length,
             'min_length': min_length,
@@ -2754,6 +2775,7 @@ def test1_report_html(request, user_id=None):
             'top_category': top_category,
             'streamsubject': streamsubject,
             'courseName': courseName,
+            'stream_career_sections': get_stream_career_sections(top_category),
             'top_categories': top_categories,
             'user_name': target_user.name if target_user.name else target_user.email,
             'user_ID': target_user.id,
@@ -3113,6 +3135,7 @@ def test1_report_pdf(request, user_id=None):
             'top_category': top_category,
             'streamsubject': streamsubject,
             'courseName': courseName,
+            'stream_career_sections': get_stream_career_sections(top_category),
             'top_categories': top_categories,
             'user_name': target_user.name if target_user.name else target_user.email,
             'user_ID': target_user.id,

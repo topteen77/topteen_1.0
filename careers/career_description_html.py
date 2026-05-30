@@ -144,6 +144,9 @@ def should_skip_bold_heading(text: str) -> Tuple[bool, str]:
         return True, "india/international sub-label"
     if _LIST_LIKE_PREFIX_RE.match(t):
         return True, "list-like prefix"
+    # Subsection labels under an H2 panel (e.g. Core Subjects:, Technical Skills:, Pros:)
+    if t.endswith(":"):
+        return True, "subsection label (ends with colon)"
     return False, ""
 
 

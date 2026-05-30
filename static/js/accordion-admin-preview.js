@@ -55,7 +55,46 @@
         return el;
     }
 
+    function getCKEditor4Elements(config) {
+        config = config || {};
+        var container = document.getElementById(config.editorContainerId || 'content-field-container');
+        if (!container || typeof CKEDITOR === 'undefined') return null;
+
+        var instanceId = config.ckeditorInstanceId || 'id_content_html';
+        var editor = CKEDITOR.instances[instanceId] || CKEDITOR.instances.content_html;
+        if (!editor) return null;
+
+        var body = null;
+        try {
+            body = editor.document && editor.document.getBody && editor.document.getBody().$;
+        } catch (e) { /* cross-origin or not ready */ }
+        if (!body) return null;
+
+        var scrollRoot = container.querySelector('.cke_contents');
+        if (!scrollRoot || scrollRoot.scrollHeight <= scrollRoot.clientHeight + 2) {
+            var editorScrollEl = document.getElementById(config.editorScrollId || 'content-editor-scroll');
+            scrollRoot = editorScrollEl || scrollRoot || body;
+        }
+
+        return {
+            container: container,
+            editable: body,
+            scrollRoot: scrollRoot,
+            editor: editor,
+            isCk4: true
+        };
+    }
+
     function getEditorElements(config) {
+        config = config || {};
+        if (config.editorType === 'ckeditor4') {
+            return getCKEditor4Elements(config);
+        }
+        if (typeof CKEDITOR !== 'undefined') {
+            var ck4 = getCKEditor4Elements(config);
+            if (ck4) return ck4;
+        }
+
         var container = document.getElementById(config.editorContainerId || 'career-description-field-container');
         if (!container) return null;
         var editable = container.querySelector('.ck-editor__editable[contenteditable="true"]');
@@ -160,8 +199,11 @@
 
         var onScroll = debouncedHighlight;
         editor.scrollRoot.addEventListener('scroll', onScroll, { passive: true });
-        editor.editable.addEventListener('scroll', onScroll, { passive: true });
-        var editorScrollEl = document.querySelector('.career-editor-col-scroll');
+        if (editor.editable && editor.editable !== editor.scrollRoot) {
+            editor.editable.addEventListener('scroll', onScroll, { passive: true });
+        }
+        var editorScrollEl = document.getElementById(config.editorScrollId || 'content-editor-scroll') ||
+            document.querySelector('.career-editor-col-scroll');
         if (editorScrollEl) editorScrollEl.addEventListener('scroll', onScroll, { passive: true });
 
         var ta = getDescriptionTextarea(config);
@@ -170,12 +212,39 @@
             if (viewDoc) viewDoc.on('scroll', onScroll, { passive: true });
         }
 
+        if (editor.isCk4 && editor.editor) {
+            var ck4 = editor.editor;
+            var onSelectionChange = debouncedHighlight;
+            ck4.on('selectionChange', onSelectionChange);
+            try {
+                if (ck4.document) ck4.document.on('scroll', onScroll);
+            } catch (e) { /* ignore */ }
+            var win = ck4.window;
+            if (win && win.$) {
+                win.$.addEventListener('scroll', onScroll, { passive: true });
+            }
+            editor._onSelectionChange = onSelectionChange;
+        }
+
         updateHighlight();
 
         previewContainer._previewHighlightCleanup = function () {
             editor.scrollRoot.removeEventListener('scroll', onScroll);
-            editor.editable.removeEventListener('scroll', onScroll);
+            if (editor.editable && editor.editable !== editor.scrollRoot) {
+                editor.editable.removeEventListener('scroll', onScroll);
+            }
             if (editorScrollEl) editorScrollEl.removeEventListener('scroll', onScroll);
+            if (editor.isCk4 && editor.editor) {
+                var ck4Editor = editor.editor;
+                if (editor._onSelectionChange) {
+                    ck4Editor.removeListener('selectionChange', editor._onSelectionChange);
+                }
+                try {
+                    if (ck4Editor.document) ck4Editor.document.removeListener('scroll', onScroll);
+                } catch (e) { /* ignore */ }
+                var winEl = ck4Editor.window && ck4Editor.window.$;
+                if (winEl) winEl.removeEventListener('scroll', onScroll);
+            }
         };
         previewContainer._previewHighlightUpdate = updateHighlight;
     }
@@ -333,6 +402,7 @@
 
     window.ensureDescriptionFieldInContainer = ensureDescriptionFieldInContainer;
     window.initAccordionAdminPreview = initAccordionAdminPreview;
+    window.bindAccordionPreviewHighlight = bindPreviewHighlightOnly;
     window.initCareerDescriptionEditor = function () {
         initDescriptionEditor({});
     };

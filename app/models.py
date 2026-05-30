@@ -116,8 +116,9 @@ class Course(models.Model):
 
 class Stream(models.Model):
     category = models.ForeignKey(Category, related_name='streams', on_delete=models.CASCADE)
-    stream_name = models.CharField(max_length=10)  # e.g., 'PCM'
+    stream_name = models.CharField(max_length=50)  # e.g., 'PCM', 'Fine Arts / Design'
     subjects = models.TextField()  # e.g., 'Physics Chemistry Mathematics'
+    career_options = models.JSONField(default=list, blank=True)  # e.g., ['Mechanical Engineer', ...]
 
     def __str__(self):
         return f"{self.stream_name}: {self.subjects}"

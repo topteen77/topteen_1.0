@@ -1,1331 +1,708 @@
 {% extends "admin/change_form.html" %}
+{% load static %}
 
 {% block after_field_sets %}
 {{ block.super }}
 
-<!-- Content Tools - Add after the form fields -->
 <div class="content-tools-wrapper" style="margin: 20px 0; clear: both; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
-    <div class="content-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button type="button" id="generate-accordion-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-            Generate Accordion from Content
-        </button>
+    <div class="content-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+        {% if vocational_course_frontend_preview_url %}
+        <a href="{{ vocational_course_frontend_preview_url }}" class="button voc-frontend-preview-btn" target="_blank" rel="noopener noreferrer">
+            Open frontend preview page ↗
+        </a>
+        {% elif original %}
+        <span class="voc-frontend-preview-hint">Save the course to get a frontend preview link.</span>
+        {% endif %}
         <button type="button" id="json-preview-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
             JSON Preview
         </button>
-        <button type="button" id="save-json-btn" class="button" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-            Save JSON to Model (Auto-saves on Submit)
-        </button>
-        <button type="button" id="debug-btn" class="button" style="background: #ffc107; color: black; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
-            Debug Info
-        </button>
     </div>
-    
-    <!-- Editor and Preview - Side by Side -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-        <!-- Left: Content Editor -->
-        <div style="border: 1px solid #ddd; border-radius: 5px; background: #fff; padding: 20px;">
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: #417690;">Content Editor</h3>
-            <div id="content-field-container">
-                <!-- Content field will be moved here by JavaScript -->
-                <p style="color: #666; margin-bottom: 10px;">Loading content field...</p>
+
+    <div class="voc-editor-accordion-grid">
+        <div class="voc-editor-col">
+            <div class="voc-col-header">
+                <h3 class="voc-panel-title">Content Editor</h3>
+                <p class="voc-col-hint">Use <strong>H2</strong> for each accordion section (same as careers). Preview updates as you type.</p>
+            </div>
+            <div id="content-editor-scroll" class="voc-col-scroll">
+                <div id="content-field-container" class="voc-content-editor-box">
+                    <p style="color: #666;">Loading content field…</p>
+                </div>
             </div>
         </div>
-        
-        <!-- Right: Accordion Preview -->
-        <div style="border: 1px solid #ddd; border-radius: 5px; background: #fff; padding: 20px;">
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: #417690;">Accordion Preview</h3>
-            <div id="accordion-preview-container" style="min-height: 400px; max-height: 600px; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-                <p style="color: #666; font-style: italic;">Click "Generate Accordion from Content" to see preview here...</p>
+
+        <div class="voc-accordion-col">
+            <div class="voc-col-header voc-accordion-col-header">
+                <div class="voc-accordion-header-row">
+                    <h3 class="voc-panel-title">Frontend preview</h3>
+                    {% if vocational_course_frontend_preview_url %}
+                    <a href="{{ vocational_course_frontend_preview_url }}" class="voc-frontend-preview-link" target="_blank" rel="noopener noreferrer">Live page ↗</a>
+                    {% endif %}
+                </div>
+                <p class="voc-col-hint">Hero + accordion below mirror the public course page layout. <strong>In view</strong> badge = H2 at your scroll position in the editor.</p>
+            </div>
+            <div id="accordion-preview-container" class="voc-col-scroll">
+                <p style="color: #666; font-style: italic;">Start editing content to see frontend preview here…</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- JSON Preview Modal -->
 <div id="json-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000;">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 5px; max-width: 800px; max-height: 80vh; overflow: auto;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 5px; max-width: 800px; max-height: 80vh; overflow: auto; width: 90%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 style="margin: 0;">JSON Preview</h2>
             <button type="button" id="close-json-modal" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Close</button>
         </div>
-        <pre id="json-preview-content" style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow: auto; max-height: 60vh;"></pre>
+        <pre id="json-preview-content" style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow: auto; max-height: 60vh; font-size: 12px;"></pre>
     </div>
 </div>
 
 <style>
-/* Hide original content field - it will be shown in custom editor */
-.field-content_html.moved {
-    display: none !important;
+.field-content_html.moved,
+.form-row.field-content_html.moved { display: none !important; }
+/* Hide duplicate content_html row left in Content fieldset after move */
+#vocationalcourse_form > div > .form-row.field-content_html.moved,
+form .form-row.field-content_html.moved { display: none !important; }
+.field-content_json,
+.form-row.field-content_json,
+#id_content_json { display: none !important; }
+
+.content-toolbar button:hover { opacity: 0.9; }
+
+.voc-frontend-preview-btn {
+    background: #5046e5 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+.voc-frontend-preview-btn:hover { opacity: 0.92; color: #fff !important; }
+.voc-frontend-preview-hint { color: #666; font-size: 13px; font-style: italic; }
+.voc-accordion-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.voc-frontend-preview-link {
+    color: #5046e5;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.voc-frontend-preview-link:hover { text-decoration: underline; }
+.voc-frontend-hero-preview {
+    background: linear-gradient(90deg, rgba(255, 244, 233, 0.79) 0%, rgba(250, 230, 205, 1) 50%);
+    padding: 18px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(250, 230, 205, 0.9);
+}
+.voc-frontend-hero-preview h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #222;
+    margin: 0 0 10px;
+}
+.voc-frontend-hero-preview .voc-hero-overview {
+    color: #666;
+    font-size: 15px;
+    line-height: 1.6;
+}
+.voc-frontend-hero-preview .voc-hero-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5046e5;
+    margin-bottom: 8px;
 }
 
-.form-row.field-content_html.moved {
-    display: none !important;
+.voc-editor-accordion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+    align-items: stretch;
 }
-
-/* Hide content_json field - it's populated by JavaScript */
-.field-content_json {
-    display: none !important;
+.voc-editor-col,
+.voc-accordion-col {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    padding: 16px;
+    min-height: 480px;
+    max-height: 75vh;
+    overflow: hidden;
 }
-
-.form-row.field-content_json {
-    display: none !important;
+.voc-col-header {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #5046e5;
 }
-
-#id_content_json {
-    display: none !important;
+.voc-accordion-col-header { margin-bottom: 8px; }
+.voc-panel-title {
+    margin: 0 0 6px;
+    color: #417690;
+    font-size: 1.15rem;
+    font-weight: 600;
 }
-
-.content-toolbar button:hover {
-    opacity: 0.9;
+.voc-col-hint {
+    color: #666;
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.4;
+}
+.voc-col-scroll,
+#content-editor-scroll,
+#accordion-preview-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 6px;
+}
+.voc-content-editor-box {
+    min-height: 320px;
+}
+#content-field-container .form-row,
+#content-field-container .field-content_html {
+    margin: 0;
+    padding: 0;
+}
+#content-field-container textarea[name="content_html"] {
+    width: 100%;
+    min-height: 300px;
+    box-sizing: border-box;
+}
+#content-field-container .cke_chrome {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+#content-field-container .cke_contents {
+    min-height: 280px !important;
+    max-height: calc(75vh - 220px) !important;
+    height: auto !important;
+    overflow-y: auto !important;
+}
+#content-field-container .cke_wysiwyg_frame,
+#content-field-container .cke_wysiwyg_div {
+    min-height: 280px !important;
 }
 
 #accordion-preview-container {
-    min-height: 400px;
-    max-height: 600px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 10px;
+    min-height: 200px;
 }
+#accordion-preview-container::-webkit-scrollbar { width: 8px; }
+#accordion-preview-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+#accordion-preview-container::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+#accordion-preview-container::-webkit-scrollbar-thumb:hover { background: #555; }
 
-/* Custom scrollbar for preview */
-#accordion-preview-container::-webkit-scrollbar {
-    width: 8px;
+.accordion-preview-summary {
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.45;
 }
-
-#accordion-preview-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+.accordion-preview-summary--ok {
+    background: #eef9f0;
+    border: 1px solid #b8dfc0;
+    color: #1e4620;
 }
-
-#accordion-preview-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+.accordion-preview-summary--warn {
+    background: #fff8e6;
+    border: 1px solid #f0d080;
+    color: #5c4a00;
 }
-
-#accordion-preview-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-#content-field-container {
-    min-height: 300px;
-}
-
-/* Accordion styles from frontend */
-.cat-accordion {
-    margin-top: 32px;
-}
-
-.cat-accordion .accordion-item {
-    border: 1px solid #e4e7fb;
-    border-radius: 16px;
-    margin-bottom: 18px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(12, 15, 37, 0.06);
-}
-
-.cat-accordion .accordion-button {
+.accordion-preview-summary__counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
     font-weight: 600;
-    font-size: 18px;
-    padding: 18px 24px;
-    gap: 12px;
+    margin-bottom: 4px;
+}
+.accordion-preview-summary__sep { color: #666; font-weight: 400; }
+.accordion-preview-summary__hint { font-weight: 400; font-size: 12px; }
+
+.accordion-preview-inner { padding-bottom: 8px; }
+.accordion-preview-item {
+    border: 1px solid #e4e7fb;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(12, 15, 37, 0.05);
+}
+.accordion-preview-item-active .accordion-preview-btn { background: #f4f3ff !important; }
+.accordion-preview-item--current {
+    border: 3px solid #5046e5 !important;
+    box-shadow: 0 0 0 4px rgba(80, 70, 229, 0.28);
+    position: relative;
+}
+.accordion-preview-item--current::before {
+    content: 'In view';
+    position: absolute;
+    top: 8px;
+    right: 48px;
+    z-index: 2;
+    background: #5046e5;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+}
+.accordion-preview-item--current .accordion-preview-btn {
+    background: #ddd9ff !important;
+}
+.accordion-preview-item--current .accordion-preview-badge {
+    background: #5046e5;
+}
+.accordion-preview-btn {
     width: 100%;
     text-align: left;
-    background: #fff;
+    padding: 14px 16px;
     border: none;
+    background: #fff;
     cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
-
-.cat-accordion .accordion-button i {
-    font-size: 22px;
-    color: #5046e5;
-    margin-right: 10px;
-}
-
-.cat-accordion .accordion-button:not(.collapsed) {
-    color: #090b24;
-    background: #f4f3ff;
-    box-shadow: none;
-}
-
-.cat-accordion .accordion-body {
-    padding: 20px 28px 28px;
-    background: #fff;
-}
-
-/* Admin preview: collapsed panels hidden (Bootstrap collapse CSS often not loaded in admin) */
-#accordion-preview-container .accordion-collapse.collapse:not(.show) {
-    display: none !important;
-}
-#accordion-preview-container .accordion-collapse.collapse.show {
-    display: block;
-}
-#accordion-preview-container .admin-acc-toggle-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    margin-right: 4px;
-    border: 2px solid #5046e5;
-    border-radius: 6px;
-    font-size: 18px;
+.accordion-preview-badge {
+    display: inline-block;
+    background: #417690;
+    color: #fff;
+    font-size: 11px;
     font-weight: 700;
-    line-height: 1;
-    color: #5046e5;
-    background: #f4f3ff;
-    user-select: none;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-right: 8px;
+    vertical-align: middle;
 }
-#accordion-preview-container .accordion-item.accordion-preview-error {
-    border-left: 4px solid #ba2121;
-    background: #fff8f8;
+.accordion-preview-body {
+    padding: 16px 18px;
+    border-top: 1px solid #e4e7fb;
+    background: #fff;
+    color: #000 !important;
 }
+.accordion-preview-body p,
+.accordion-preview-body li,
+.accordion-preview-body div { color: #000 !important; }
+.accordion-preview-empty { color: #888; font-style: italic; margin: 0; }
 </style>
 
+<script src="{% static 'js/accordion-content.js' %}"></script>
+<script src="{% static 'js/accordion-admin-preview.js' %}"></script>
 <script>
 (function() {
     var contentTextarea = null;
-    var accordionData = {};
     var jsonData = {};
+    var fieldMoved = false;
+    var updatePreviewDebounced = debounce(updatePreview, 120);
 
-    function sectionHtmlIsEffectivelyBlank(html) {
-        if (!html || !String(html).trim()) return true;
-        var d = document.createElement('div');
-        try {
-            d.innerHTML = html;
-        } catch (e) {
-            return true;
-        }
-        var t = (d.textContent || d.innerText || '')
-            .replace(/\u00a0/g, ' ')
-            .replace(/[\u200b-\u200d\ufeff]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        return !t;
-    }
-    
-    // Fixed accordion headings as per requirements
-    var FIXED_HEADINGS = [
-        'Overview',
-        'Eligibility & Admission',
-        'Duration & Structure',
-        'Curriculum Highlights',
-        'Skills Required',
-        'Pros & Cons',
-        'Internship & Industry Collaborations',
-        'Certification & Accreditation',
-        'Learning Outcomes',
-        'Career Growth & Prospects',
-        'Employment Sectors & Employers',
-        'Conclusion'
-    ];
-    
-    // Icon mapping for each section
-    var iconMap = {
-        'Overview': 'bx bx-info-circle',
-        'Eligibility & Admission': 'bx bx-user-check',
-        'Duration & Structure': 'bx bx-time',
-        'Curriculum Highlights': 'bx bx-book-open',
-        'Skills Required': 'bx bx-grid-alt',
-        'Pros & Cons': 'bx bx-list-ul',
-        'Internship & Industry Collaborations': 'bx bx-briefcase-alt-2',
-        'Certification & Accreditation': 'bx bx-award',
-        'Learning Outcomes': 'bx bx-target-lock',
-        'Career Growth & Prospects': 'bx bx-trending-up',
-        'Employment Sectors & Employers': 'bx bx-building',
-        'Conclusion': 'bx bx-rocket'
-    };
-    
-    // Wait for DOM to be ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize);
     } else {
         initialize();
     }
-    
+
+    function isContentHtmlEditor(editor) {
+        if (!editor || !editor.element) return false;
+        var elId = editor.element.getId ? editor.element.getId() : '';
+        return elId === 'id_content_html' || editor.name === 'content_html' || editor.name === 'id_content_html';
+    }
+
+    function onContentEditorReady(editor) {
+        if (!isContentHtmlEditor(editor)) return;
+        setTimeout(function() {
+            setupContentField();
+            if (bindEditorEvents(editor)) {
+                updatePreview();
+            }
+        }, 50);
+    }
+
+    function attachExistingCKEditors() {
+        if (typeof CKEDITOR === 'undefined') return;
+        for (var name in CKEDITOR.instances) {
+            if (CKEDITOR.instances.hasOwnProperty(name)) {
+                onContentEditorReady(CKEDITOR.instances[name]);
+            }
+        }
+    }
+
     function initialize() {
-        // Wait for Django admin and CKEditor to fully render
-        var checkCKEditor = function() {
-            if (typeof CKEDITOR !== 'undefined') {
-                setTimeout(function() {
-                    // Ensure content_json field exists first
-                    ensureContentJsonField();
-                    setupContentField();
-                    setupEventListeners();
-                    setupButtons();
-                    loadExistingJSON();
-                }, 300);
-            } else {
-                setTimeout(checkCKEditor, 200);
-            }
-        };
-        
-        setTimeout(checkCKEditor, 300);
-    }
-    
-    function setupContentField() {
-        // Find the content_html textarea
-        contentTextarea = document.querySelector('#id_content_html');
-        
-        if (!contentTextarea) {
-            contentTextarea = document.querySelector('textarea[name="content_html"]');
-        }
-        
-        if (contentTextarea) {
-            var container = document.getElementById('content-field-container');
-            if (container) {
-                var fieldContainer = contentTextarea.closest('.form-row') || 
-                                    contentTextarea.closest('div');
-                
-                if (fieldContainer) {
-                    var isCKEditor = false;
-                    var editor = null;
-                    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
-                        isCKEditor = true;
-                        editor = CKEDITOR.instances.id_content_html;
-                    }
-                    
-                    try {
-                        container.innerHTML = '';
-                        container.appendChild(fieldContainer);
-                        
-                        fieldContainer.style.display = 'block';
-                        fieldContainer.style.visibility = 'visible';
-                        
-                        // Hide original location
-                        var originalFieldContainer = contentTextarea.closest('.form-row');
-                        if (originalFieldContainer && originalFieldContainer !== fieldContainer) {
-                            originalFieldContainer.style.display = 'none';
-                            originalFieldContainer.classList.add('moved');
-                        }
-                        
-                        // Set up event listeners
-                        if (isCKEditor && editor) {
-                            setTimeout(function() {
-                                editor.on('change', function() {
-                                    var content = editor.getData();
-                                    contentTextarea.value = content;
-                                    clearTimeout(window.contentInputTimeout);
-                                    window.contentInputTimeout = setTimeout(function() {
-                                        generateAccordionFromContent();
-                                    }, 500);
-                                });
-                                
-                                editor.on('blur', function() {
-                                    generateAccordionFromContent();
-                                });
-                            }, 100);
-                        } else {
-                            contentTextarea.addEventListener('input', function() {
-                                // Auto-generate on input (debounced)
-                                clearTimeout(window.contentInputTimeout);
-                                window.contentInputTimeout = setTimeout(function() {
-                                    generateAccordionFromContent();
-                                }, 1000);
-                            });
-                            
-                            contentTextarea.addEventListener('blur', function() {
-                                generateAccordionFromContent();
-                            });
-                        }
-                    } catch (e) {
-                        console.error('Error setting up content field:', e);
-                        container.innerHTML = '<p style="color: #dc3545;">Error: ' + e.message + '</p>';
-                    }
-                }
-            }
-        } else {
-            var container = document.getElementById('content-field-container');
-            if (container) {
-                container.innerHTML = '<p style="color: #dc3545;">Content field not found.</p>';
-            }
-        }
-    }
-    
-    function setupEventListeners() {
-        // Ensure content_json field exists first
-        ensureContentJsonField();
-        
-        // Auto-save JSON on form submit
-        var form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                // Generate and save JSON before form submission
-                generateAccordionFromContent();
-                
-                // Find or create the content_json field
-                var jsonField = ensureContentJsonField();
-                if (jsonField) {
-                    var jsonString = JSON.stringify(jsonData);
-                    jsonField.value = jsonString;
-                    console.log('JSON auto-saved on form submit. Length:', jsonString.length);
-                    console.log('JSON preview:', jsonString.substring(0, 200) + '...');
-                    console.log('Field name:', jsonField.name, 'Field id:', jsonField.id);
-                    console.log('Field in form:', form.contains(jsonField));
-                } else {
-                    console.error('Could not create content_json field');
-                }
-                
-                // Allow form to submit normally
-                return true;
+        setupButtons();
+
+        if (typeof CKEDITOR !== 'undefined') {
+            CKEDITOR.on('instanceReady', function(ev) {
+                onContentEditorReady(ev.editor);
             });
+            attachExistingCKEditors();
         }
-        
-        // Hook into Django admin's submit buttons - use mousedown to catch before form validation
-        var submitButtons = document.querySelectorAll('input[type="submit"], button[name="_save"], button[name="_continue"], button[name="_addanother"], button[type="submit"]');
-        submitButtons.forEach(function(button) {
-            // Use mousedown to ensure we run before form validation
-            button.addEventListener('mousedown', function(e) {
-                // Generate and save JSON before submit
-                try {
-                    generateAccordionFromContent();
-                    
-                    var jsonField = ensureContentJsonField();
-                    if (jsonField) {
-                        jsonField.value = JSON.stringify(jsonData);
-                        console.log('JSON auto-saved before form submission');
-                    } else {
-                        console.error('Could not create content_json field');
-                    }
-                } catch (err) {
-                    console.error('Error auto-saving JSON:', err);
-                }
-            });
+
+        var pollCount = 0;
+        var previewInitialSync = false;
+        var pollInterval = setInterval(function() {
+            setupContentField();
+            if (!previewInitialSync && bindEditorEvents()) {
+                updatePreview();
+                previewInitialSync = true;
+            }
+            if (++pollCount >= 80) {
+                clearInterval(pollInterval);
+            }
+        }, 250);
+    }
+
+    function getEditorInstance() {
+        if (typeof CKEDITOR === 'undefined') return null;
+        return CKEDITOR.instances.id_content_html ||
+            CKEDITOR.instances.content_html ||
+            null;
+    }
+
+    function bindEditorEvents(editorInstance) {
+        var editor = editorInstance || getEditorInstance();
+        if (!editor) return false;
+        if (editor._vocPreviewLiveBound) return true;
+
+        editor._vocPreviewLiveBound = true;
+        configureEditorForScroll(editor);
+
+        function syncFromEditor() {
+            if (contentTextarea) {
+                contentTextarea.value = editor.getData();
+            }
+            updatePreviewDebounced();
+        }
+
+        editor.on('change', syncFromEditor);
+        editor.on('key', syncFromEditor);
+        editor.on('afterPaste', syncFromEditor);
+        editor.on('afterCommandExec', syncFromEditor);
+        editor.on('mode', syncFromEditor);
+        editor.on('blur', function() {
+            syncFromEditor();
+            syncJsonField();
         });
-        
-        // Also listen for form submit event as backup
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                // Generate and save JSON before form submission
-                try {
-                    generateAccordionFromContent();
-                    
-                    var jsonField = ensureContentJsonField();
-                    if (jsonField) {
-                        jsonField.value = JSON.stringify(jsonData);
-                        console.log('JSON auto-saved on form submit (backup)');
-                    } else {
-                        console.error('Could not create content_json field');
-                    }
-                } catch (err) {
-                    console.error('Error auto-saving JSON on submit:', err);
-                }
-            }, true); // Use capture phase to run early
-        }
-        
-        // Also watch for any programmatic form submissions
-        var originalSubmit = HTMLFormElement.prototype.submit;
-        HTMLFormElement.prototype.submit = function() {
-            // Generate and save JSON before submit
+        editor.on('selectionChange', debounceHighlightCurrentSection);
+
+        editor.on('contentDom', function() {
             try {
-                generateAccordionFromContent();
-                var jsonField = ensureContentJsonField();
-                if (jsonField) {
-                    jsonField.value = JSON.stringify(jsonData);
-                    console.log('JSON set in programmatic submit. Value length:', jsonField.value.length);
+                var doc = editor.document;
+                if (doc && !doc._vocPreviewKeyBound) {
+                    doc._vocPreviewKeyBound = true;
+                    doc.on('keyup', syncFromEditor);
                 }
-            } catch (err) {
-                console.error('Error auto-saving JSON:', err);
-            }
-            return originalSubmit.apply(this, arguments);
-        };
-        
-        // Final safety check: Before any form submission, ensure JSON is set
-        var form = document.querySelector('form');
-        if (form) {
-            // Use a MutationObserver to watch for form submission
-            var observer = new MutationObserver(function(mutations) {
-                // This is a backup - ensure JSON is always set
-                var jsonField = ensureContentJsonField();
-                if (jsonField && (!jsonField.value || jsonField.value === '')) {
-                    generateAccordionFromContent();
-                    jsonField.value = JSON.stringify(jsonData);
-                    console.log('JSON set via MutationObserver backup');
+            } catch (e) { /* ignore */ }
+        });
+
+        if (editor.status === 'ready') {
+            try {
+                var doc = editor.document;
+                if (doc && !doc._vocPreviewKeyBound) {
+                    doc._vocPreviewKeyBound = true;
+                    doc.on('keyup', syncFromEditor);
                 }
-            });
-            
-            // Also add a final check on form submit using a very early event
-            var formSubmitHandler = function(e) {
-                generateAccordionFromContent();
-                var jsonField = ensureContentJsonField();
-                if (jsonField) {
-                    jsonField.value = JSON.stringify(jsonData);
-                    console.log('FINAL CHECK: JSON set. Length:', jsonField.value.length);
-                    console.log('Field exists in DOM:', document.body.contains(jsonField));
-                }
-            };
-            
-            // Use capture phase to run very early
-            form.addEventListener('submit', formSubmitHandler, true);
+            } catch (e) { /* ignore */ }
         }
+
+        return true;
     }
-    
+
+    var debounceHighlightCurrentSection = debounce(function() {
+        var previewContainer = document.getElementById('accordion-preview-container');
+        if (previewContainer && typeof previewContainer._previewHighlightUpdate === 'function') {
+            previewContainer._previewHighlightUpdate();
+        }
+    }, 80);
+
+    function setupContentField() {
+        var container = document.getElementById('content-field-container');
+        if (!container) return false;
+
+        contentTextarea = document.querySelector('#id_content_html') ||
+            document.querySelector('textarea[name="content_html"]');
+        if (!contentTextarea) return false;
+
+        var fieldContainer = contentTextarea.closest('.form-row.field-content_html') ||
+            contentTextarea.closest('.field-content_html') ||
+            contentTextarea.closest('.form-row');
+        if (!fieldContainer) return false;
+
+        if (!container.contains(fieldContainer)) {
+            container.innerHTML = '';
+            container.appendChild(fieldContainer);
+            fieldContainer.style.display = 'block';
+            fieldContainer.style.visibility = 'visible';
+            fieldMoved = true;
+        }
+
+        document.querySelectorAll('.form-row.field-content_html').forEach(function(row) {
+            if (!container.contains(row)) {
+                row.classList.add('moved');
+                row.style.display = 'none';
+            }
+        });
+
+        var contentFieldset = fieldContainer.closest('fieldset.module');
+        if (contentFieldset && container.contains(fieldContainer)) {
+            var visibleRows = contentFieldset.querySelectorAll('.form-row:not(.moved)');
+            if (!visibleRows.length) {
+                contentFieldset.style.display = 'none';
+            }
+        }
+
+        ensureContentJsonField();
+
+        if (!contentTextarea._vocPreviewBound) {
+            contentTextarea.addEventListener('input', updatePreviewDebounced);
+            contentTextarea.addEventListener('blur', syncJsonField);
+            contentTextarea._vocPreviewBound = true;
+        }
+
+        return true;
+    }
+
     function setupButtons() {
-        var generateBtn = document.getElementById('generate-accordion-btn');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', generateAccordionFromContent);
-        }
-        
         var jsonBtn = document.getElementById('json-preview-btn');
-        if (jsonBtn) {
-            jsonBtn.addEventListener('click', showJSONModal);
-        }
-        
-        var saveBtn = document.getElementById('save-json-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', saveJSONToModel);
-        }
-        
-        var debugBtn = document.getElementById('debug-btn');
-        if (debugBtn) {
-            debugBtn.addEventListener('click', showDebugInfo);
-        }
-        
+        if (jsonBtn) jsonBtn.addEventListener('click', showJSONModal);
         var closeBtn = document.getElementById('close-json-modal');
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
                 document.getElementById('json-preview-modal').style.display = 'none';
             });
         }
-    }
-    
-    function ensureContentJsonField() {
-        // Ensure content_json field exists, create if it doesn't
-        var jsonField = document.querySelector('#id_content_json');
-        
-        if (!jsonField) {
-            // Try alternative selectors
-            jsonField = document.querySelector('input[name="content_json"]');
-            jsonField = jsonField || document.querySelector('textarea[name="content_json"]');
-        }
-        
-        if (!jsonField) {
-            // Create hidden input field for content_json
-            var form = document.querySelector('form');
-            if (form) {
-                jsonField = document.createElement('input');
-                jsonField.type = 'hidden';
-                jsonField.id = 'id_content_json';
-                jsonField.name = 'content_json';
-                jsonField.value = '';
-                // Make sure it's added to the form in a way Django will accept
-                var fieldset = form.querySelector('fieldset') || form;
-                fieldset.appendChild(jsonField);
-                console.log('Created hidden content_json field and appended to form');
-            } else {
-                console.error('Form not found when trying to create content_json field');
-            }
-        } else {
-            console.log('Found existing content_json field:', jsonField.id, jsonField.name);
-        }
-        
-        return jsonField;
-    }
-    
-    function loadExistingJSON() {
-        // Load existing content_json if available
-        var jsonField = ensureContentJsonField();
-        if (jsonField && jsonField.value) {
-            try {
-                var existingData = JSON.parse(jsonField.value);
-                
-                // Load full JSON structure including programtitle and overview
-                if (existingData) {
-                    // Set accordionData from sections
-                    if (existingData.sections) {
-                        accordionData = existingData.sections;
-                    }
-                    
-                    // Set jsonData with full structure
-                    jsonData = {
-                        programtitle: existingData.programtitle || '',
-                        overview: existingData.overview || '',
-                        sections: existingData.sections || accordionData
-                    };
-                    
-                    // If programtitle is missing, get it from name field
-                    if (!jsonData.programtitle) {
-                        var nameField = document.querySelector('#id_name');
-                        if (nameField) {
-                            jsonData.programtitle = nameField.value || '';
-                        }
-                    }
-                    
-                    // If overview is missing, try to extract from Overview section
-                    if (!jsonData.overview) {
-                        var overviewKey = 'overview';
-                        if (jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
-                            jsonData.overview = jsonData.sections[overviewKey].html.trim();
-                        }
-                    }
-                    
-                    updateAccordionPreview();
-                }
-            } catch (e) {
-                console.warn('Error parsing existing JSON:', e);
-            }
+        var form = document.querySelector('#vocationalcourse_form, form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                syncJsonField();
+            });
         }
     }
-    
-    // Keyword mapping for better matching
-    var KEYWORD_MAP = {
-        'eligibility_admission': ['eligibility', 'admission', 'admit', 'entry', 'requirement', 'qualification', 'criteria'],
-        'duration_structure': ['duration', 'structure', 'length', 'period', 'time', 'year', 'semester', 'term'],
-        'curriculum_highlights': ['curriculum', 'syllabus', 'course', 'subject', 'module', 'highlight', 'content', 'study'],
-        'skills_required': ['skill', 'ability', 'competence', 'proficiency', 'capability', 'talent'],
-        'pros_cons': ['pros', 'cons', 'advantage', 'disadvantage', 'benefit', 'drawback', 'merit', 'demerit', 'strength', 'weakness'],
-        'internship_industry_collaborations': ['internship', 'industry', 'collaboration', 'training', 'practical', 'exposure', 'attachment', 'placement'],
-        'certification_accreditation': ['certification', 'accreditation', 'certificate', 'accredit', 'license', 'credential', 'diploma'],
-        'learning_outcomes': ['learning', 'outcome', 'result', 'achievement', 'objective', 'goal', 'target'],
-        'career_growth_prospects': ['career', 'growth', 'prospect', 'opportunity', 'advancement', 'progress', 'future', 'scope'],
-        'employment_sectors_employers': ['employment', 'sector', 'employer', 'recruiter', 'company', 'organization', 'job', 'work'],
-        'overview': ['overview', 'introduction', 'intro', 'about', 'summary', 'description', 'general', 'brief'],
-    'conclusion': ['conclusion', 'summary', 'final', 'overall', 'wrap', 'end']
-    };
-    
-    function normalizeText(text) {
-        return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+
+    function getContentHtml() {
+        var editor = getEditorInstance();
+        if (editor) {
+            var data = editor.getData() || '';
+            if (contentTextarea) contentTextarea.value = data;
+            return data;
+        }
+        if (contentTextarea) return contentTextarea.value || '';
+        return '';
     }
-    
-    function matchHeadingToSection(headingText) {
-        var normalizedHeading = normalizeText(headingText);
-        var bestMatch = null;
-        var bestScore = 0;
-        
-        // First try exact or partial match with fixed headings
-        FIXED_HEADINGS.forEach(function(fixedHeading) {
-            var normalizedFixed = normalizeText(fixedHeading);
-            var key = fixedHeading.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-            
-            // Exact match
-            if (normalizedHeading === normalizedFixed) {
-                bestMatch = key;
-                bestScore = 100;
+
+    function buildJsonFromItems(items) {
+        var sections = {};
+        var sectionOrder = [];
+        var overview = '';
+        (items || []).forEach(function(item) {
+            var title = item.title || 'Section';
+            var body = item.content || item.content_html || '';
+            var key = (item.section_id || title).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') ||
+                ('section_' + sectionOrder.length);
+            if (item.section_type === 'preamble' || String(title).toLowerCase() === 'overview') {
+                overview = body;
+                sections.overview = { title: 'Overview', html: body };
+                if (sectionOrder.indexOf('overview') === -1) sectionOrder.push('overview');
                 return;
             }
-            
-            // Partial match (one contains the other)
-            if (normalizedHeading.includes(normalizedFixed) || normalizedFixed.includes(normalizedHeading)) {
-                var score = Math.min(normalizedHeading.length, normalizedFixed.length) / Math.max(normalizedHeading.length, normalizedFixed.length) * 80;
-                if (score > bestScore) {
-                    bestMatch = key;
-                    bestScore = score;
-                }
+            if (sections[key]) {
+                var c = 2;
+                while (sections[key + '_' + c]) c++;
+                key = key + '_' + c;
             }
+            sections[key] = { title: title, html: body };
+            sectionOrder.push(key);
         });
-        
-        // If no good match found, try keyword matching
-        if (bestScore < 50) {
-            Object.keys(KEYWORD_MAP).forEach(function(key) {
-                var keywords = KEYWORD_MAP[key];
-                var matchCount = 0;
-                keywords.forEach(function(keyword) {
-                    if (normalizedHeading.includes(keyword)) {
-                        matchCount++;
-                    }
-                });
-                
-                if (matchCount > 0) {
-                    var score = (matchCount / keywords.length) * 60;
-                    if (score > bestScore) {
-                        bestMatch = key;
-                        bestScore = score;
-                    }
-                }
-            });
-        }
-        
-        return bestMatch;
-    }
-
-    function headingKeyFromText(text) {
-        var key = (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-        return key || 'section_' + Math.random().toString(36).slice(2, 8);
-    }
-    
-    // Helper function to check if a heading text is an exact match to a fixed heading
-    function isExactFixedHeading(text) {
-        var normalized = normalizeText(text);
-        return FIXED_HEADINGS.some(function(fh) {
-            return normalizeText(fh) === normalized;
-        });
-    }
-    
-    function extractContentUntilNextHeading(element) {
-        var content = '';
-        var current = element;
-        
-        // Move to next sibling after the heading element
-        current = current.nextSibling;
-        
-        while (current) {
-            // Stop at any next heading (h1-h6): each heading should become its own accordion
-            if (current.nodeType === 1 && current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                break;
-            }
-            
-            // Handle element nodes
-            if (current.nodeType === 1) {
-                // Check if this element contains a top-level heading (h1-h6) that is an exact fixed heading
-                var headings = current.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                var foundExactSectionHeading = false;
-                
-                for (var i = 0; i < headings.length; i++) {
-                    var h = headings[i];
-                    // Check if this heading is a direct child (not nested deep)
-                    var depth = 0;
-                    var parent = h.parentElement;
-                    while (parent && parent !== current) {
-                        depth++;
-                        parent = parent.parentElement;
-                    }
-                    
-                    // Only consider headings that are direct or near-direct children
-                    if (depth <= 2) {
-                        var hText = h.textContent.trim();
-                        // Only stop if it's an exact match to a fixed heading
-                        if (isExactFixedHeading(hText)) {
-                            // Found a section heading, stop before this element
-                            foundExactSectionHeading = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (foundExactSectionHeading) {
-                    break;
-                }
-                
-                // Check for paragraphs with strong tags - only stop if it's an exact fixed heading match
-                if (current.tagName === 'P') {
-                    var strong = current.querySelector('strong:first-child');
-                    if (strong && strong.parentElement === current) {
-                        var strongText = strong.textContent.trim();
-                        // Only stop if this is an exact match to a fixed heading
-                        if (isExactFixedHeading(strongText)) {
-                            // Check if this paragraph is very short (likely a heading, not content)
-                            var paraText = current.textContent.trim();
-                            var isLikelyHeading = paraText.length < 100 && 
-                                                  (paraText.split(' ').length <= 10) &&
-                                                  // Make sure it's not just a label followed by content
-                                                  (current.children.length === 1 || current.textContent === strong.textContent);
-                            
-                            if (isLikelyHeading) {
-                                // This is likely a new section heading, stop before it
-                                break;
-                            }
-                        }
-                        // Otherwise, it's probably a sub-heading or label within the content, include it
-                    }
-                }
-                
-                // Include this element's HTML (including lists, divs, etc.)
-                content += current.outerHTML || '';
-            } else if (current.nodeType === 3) {
-                // Text node - only include if it has meaningful content
-                var text = current.textContent.trim();
-                if (text && text.length > 0) {
-                    // Wrap in paragraph if it's substantial
-                    if (text.length > 10) {
-                        content += '<p>' + text + '</p>';
-                    } else {
-                        content += text;
-                    }
-                }
-            }
-            
-            current = current.nextSibling;
-        }
-        
-        return content.trim();
-    }
-    
-    function generateAccordionFromContent() {
-        if (!contentTextarea) return;
-        
-        // Get content from CKEditor if available, otherwise from textarea
-        var html = '';
-        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.id_content_html) {
-            var editor = CKEDITOR.instances.id_content_html;
-            html = editor.getData() || contentTextarea.value || '';
-            contentTextarea.value = html;
-        } else {
-            html = contentTextarea.value || '';
-        }
-        
-        if (!html.trim()) {
-            var container = document.getElementById('accordion-preview-container');
-            if (container) {
-                container.innerHTML = '<p style="color: #666; font-style: italic;">No content found. Add content to generate accordion.</p>';
-            }
-            return;
-        }
-        
-        // Parse HTML to extract sections based on headings
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        
-        // Initialize accordion data with all fixed headings
-        accordionData = {};
-        FIXED_HEADINGS.forEach(function(heading) {
-            accordionData[heading.toLowerCase().replace(/[^a-z0-9]+/g, '_')] = {
-                title: heading,
-                html: ''
-            };
-        });
-        
-        // Find all headings in content - prioritize H2 headings
-        var headings = [];
-        
-        // First, find all H2 headings (primary method)
-        tempDiv.querySelectorAll('h2').forEach(function(h) {
-            headings.push({ element: h, type: 'h2', priority: 1 });
-        });
-        
-        // Then find other headings (h1, h3-h6) if no H2 found
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('h1, h3, h4, h5, h6').forEach(function(h) {
-                headings.push({ element: h, type: 'heading', priority: 2 });
-            });
-        }
-        
-        // Also check for strong tags that might be headings (if no proper headings found)
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('p strong, div strong').forEach(function(strong) {
-                var text = normalizeText(strong.textContent);
-                // If it's short and looks like a heading
-                if (text.length < 100 && text.split(' ').length <= 8) {
-                    var matched = matchHeadingToSection(text);
-                    if (matched) {
-                        headings.push({ element: strong.closest('p') || strong.closest('div'), type: 'strong', priority: 3 });
-                    }
-                }
-            });
-        }
-        
-        // Also check for paragraphs with bold text at the start (common pattern)
-        if (headings.length === 0) {
-            tempDiv.querySelectorAll('p').forEach(function(p) {
-                var firstChild = p.firstElementChild;
-                if (firstChild && (firstChild.tagName === 'STRONG' || firstChild.tagName === 'B')) {
-                    var text = normalizeText(firstChild.textContent);
-                    if (text.length < 100 && text.split(' ').length <= 8) {
-                        var matched = matchHeadingToSection(text);
-                        if (matched) {
-                            headings.push({ element: p, type: 'p-strong', priority: 4 });
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Sort headings by their position in DOM
-        headings.sort(function(a, b) {
-            var pos = a.element.compareDocumentPosition(b.element);
-            return pos & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-        });
-        
-        // Process each heading
-        var debugLog = [];
-        headings.forEach(function(headingObj, index) {
-            var heading = headingObj.element;
-            var headingText = heading.textContent.trim();
-            
-            // Match heading to section
-            var matchedKey = matchHeadingToSection(headingText);
-            if (!matchedKey) {
-                matchedKey = headingKeyFromText(headingText);
-            }
-            if (!accordionData[matchedKey]) {
-                accordionData[matchedKey] = { title: headingText, html: '' };
-            }
-            
-            debugLog.push({
-                index: index,
-                headingText: headingText,
-                matchedKey: matchedKey,
-                tagName: heading.tagName
-            });
-            
-            // Extract content after this heading until next heading
-            var content = extractContentUntilNextHeading(heading);
-            if (content.trim()) {
-                if (accordionData[matchedKey].html) {
-                    accordionData[matchedKey].html += '<hr style="margin: 20px 0;">' + content;
-                } else {
-                    accordionData[matchedKey].html = content;
-                }
-                debugLog[debugLog.length - 1].contentLength = content.length;
-            } else {
-                debugLog[debugLog.length - 1].contentLength = 0;
-                debugLog[debugLog.length - 1].warning = 'No content extracted';
-            }
-        });
-        
-        // Store debug log for debugging
-        window.lastDebugLog = debugLog;
-        console.log('Heading matches:', debugLog);
-        
-        // Handle content before first heading (could be Overview or general content)
-        var firstHeading = headings.length > 0 ? headings[0].element : null;
-        if (firstHeading) {
-            var contentBefore = '';
-            var current = tempDiv.firstChild;
-            while (current && current !== firstHeading) {
-                if (current.nodeType === 1) {
-                    if (current.tagName && current.tagName.match(/^H[1-6]$/)) {
-                        break;
-                    }
-                    contentBefore += current.outerHTML || '';
-                } else if (current.nodeType === 3 && current.textContent.trim()) {
-                    contentBefore += '<p>' + current.textContent.trim() + '</p>';
-                }
-                current = current.nextSibling;
-            }
-            
-            if (contentBefore.trim()) {
-                // Add content before first heading to Overview section
-                var overviewKey = 'overview';
-                if (accordionData[overviewKey]) {
-                    accordionData[overviewKey].html = contentBefore.trim();
-                }
-            }
-        } else {
-            // No headings found - put all content in Overview section
-            var allContent = tempDiv.innerHTML;
-            if (allContent.trim()) {
-                var overviewKey = 'overview';
-                if (accordionData[overviewKey]) {
-                    accordionData[overviewKey].html = allContent.trim();
-                }
-            }
-        }
-        
-        // Extract overview content from Overview section if it exists
-        var overviewContent = '';
-        var overviewKey = 'overview';
-        if (accordionData[overviewKey] && accordionData[overviewKey].html) {
-            overviewContent = accordionData[overviewKey].html.trim();
-        }
-        
-        // Get program title from name field
-        var programTitle = '';
         var nameField = document.querySelector('#id_name');
-        if (nameField) {
-            programTitle = nameField.value || '';
-        }
-        
-        // Generate JSON structure with programtitle and overview
-        jsonData = {
-            programtitle: programTitle,
-            overview: overviewContent,
-            sections: accordionData
+        return {
+            programtitle: nameField ? (nameField.value || '') : '',
+            overview: overview,
+            sections: sections,
+            section_order: sectionOrder
         };
-        
-        updateAccordionPreview();
     }
 
-    function setAdminAccordionToggleIcon(btn, open) {
-        var ic = btn.querySelector('.admin-acc-toggle-icon');
-        if (ic) ic.textContent = open ? '\u2212' : '+';
-    }
-
-    function bindAdminAccordionPreviewToggles(accordion) {
-        function closeOthers(openTarget) {
-            accordion.querySelectorAll('.accordion-collapse').forEach(function(c) {
-                if (c === openTarget) return;
-                c.classList.remove('show');
-                var ob = accordion.querySelector('[data-acc-preview-target="#' + c.id + '"]');
-                if (ob) {
-                    ob.classList.add('collapsed');
-                    ob.setAttribute('aria-expanded', 'false');
-                    setAdminAccordionToggleIcon(ob, false);
-                }
-            });
-        }
-        accordion.querySelectorAll('.accordion-button').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                var sel = btn.getAttribute('data-acc-preview-target');
-                if (!sel) return;
-                var target = document.querySelector(sel);
-                if (!target) return;
-                var isOpen = target.classList.contains('show');
-                closeOthers(target);
-                if (isOpen) {
-                    target.classList.remove('show');
-                    btn.classList.add('collapsed');
-                    btn.setAttribute('aria-expanded', 'false');
-                    setAdminAccordionToggleIcon(btn, false);
-                } else {
-                    target.classList.add('show');
-                    btn.classList.remove('collapsed');
-                    btn.setAttribute('aria-expanded', 'true');
-                    setAdminAccordionToggleIcon(btn, true);
-                }
-            });
-        });
-    }
-    
-    function updateAccordionPreview() {
-        var container = document.getElementById('accordion-preview-container');
-        if (!container) return;
-        
-        // Use sections from jsonData if available, otherwise use accordionData
-        var sectionsToUse = (jsonData && jsonData.sections) ? jsonData.sections : accordionData;
-        
-        if (!sectionsToUse || Object.keys(sectionsToUse).length === 0) {
-            container.innerHTML = '<p style="color: #666; font-style: italic;">No accordion data. Click "Generate Accordion from Content" to create.</p>';
-            return;
-        }
-        
-        // Create preview wrapper
-        var previewWrapper = document.createElement('div');
-        
-        // Add title and overview section above accordion
-        // Get programtitle and overview from jsonData or extract from sections or JSON field
-        var programTitle = '';
-        var overviewContent = '';
-        
-        // First try to get from jsonData
-        if (jsonData) {
-            programTitle = jsonData.programtitle || '';
-            overviewContent = jsonData.overview || '';
-        }
-        
-        // If overview is still missing, try to get from JSON field directly
-        if (!overviewContent) {
-            var jsonField = ensureContentJsonField();
-            if (jsonField && jsonField.value) {
-                try {
-                    var existingData = JSON.parse(jsonField.value);
-                    if (existingData && existingData.overview) {
-                        overviewContent = existingData.overview;
-                    }
-                    if (existingData && existingData.programtitle && !programTitle) {
-                        programTitle = existingData.programtitle;
-                    }
-                } catch (e) {
-                    console.warn('Error parsing JSON field:', e);
-                }
-            }
-        }
-        
-        // If overview is still missing, try to extract from Overview section
-        if (!overviewContent) {
-            var overviewKey = 'overview';
-            if (jsonData && jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
-                overviewContent = jsonData.sections[overviewKey].html.trim();
-            } else if (sectionsToUse && sectionsToUse[overviewKey] && sectionsToUse[overviewKey].html) {
-                overviewContent = sectionsToUse[overviewKey].html.trim();
-            }
-        }
-        
-        // If programtitle is still missing, get it from name field
+    function buildHeroPreview(data) {
+        var programTitle = (data && data.programtitle) || '';
+        var overviewContent = (data && data.overview) || '';
         if (!programTitle) {
             var nameField = document.querySelector('#id_name');
-            if (nameField) {
-                programTitle = nameField.value || '';
-            }
+            if (nameField) programTitle = nameField.value || '';
         }
-        
-        // Always show hero section if we have title or overview
-        if (programTitle || overviewContent) {
-            var heroSection = document.createElement('div');
-            heroSection.style.cssText = 'background: #FFF4E9C9; background: linear-gradient(90deg, rgba(255, 244, 233, 0.79) 0%, rgba(250, 230, 205, 1) 50%); padding: 20px; border-radius: 12px; margin-bottom: 20px;';
-            
-            if (programTitle) {
-                var titleEl = document.createElement('h2');
-                titleEl.style.cssText = 'font-size: 24px; font-weight: 700; color: #222; margin-bottom: 12px;';
-                titleEl.textContent = programTitle;
-                heroSection.appendChild(titleEl);
-            }
-            
-            if (overviewContent && overviewContent.trim()) {
-                var overviewEl = document.createElement('div');
-                overviewEl.style.cssText = 'color: #666; font-size: 16px; line-height: 1.6;';
-                
-                // Extract first paragraph only from overview HTML
-                var tempDiv = document.createElement('div');
-                tempDiv.innerHTML = overviewContent;
-                
-                // Try to find first <p> tag (skip empty paragraphs)
-                var paragraphs = tempDiv.querySelectorAll('p');
-                var firstParagraph = null;
-                for (var i = 0; i < paragraphs.length; i++) {
-                    var paraText = (paragraphs[i].textContent || paragraphs[i].innerText || '').trim();
-                    if (paraText.length > 0) {
-                        firstParagraph = paragraphs[i];
-                        break;
-                    }
-                }
-                
-                if (firstParagraph) {
-                    // Show only first paragraph (keep HTML formatting but limit text)
-                    var paraText = firstParagraph.textContent || firstParagraph.innerText || '';
-                    if (paraText.length > 300) {
-                        // If paragraph is too long, truncate it
-                        overviewEl.innerHTML = '<p>' + paraText.substring(0, 300) + '...</p>';
-                    } else {
-                        // Show full first paragraph
-                        overviewEl.innerHTML = firstParagraph.outerHTML;
-                    }
-                } else {
-                    // If no <p> tag, get text content and show first 300 characters
-                    var textContent = tempDiv.textContent || tempDiv.innerText || overviewContent;
-                    var cleanText = textContent.replace(/\s+/g, ' ').trim();
-                    if (cleanText.length > 0) {
-                        if (cleanText.length > 300) {
-                            overviewEl.textContent = cleanText.substring(0, 300) + '...';
-                        } else {
-                            overviewEl.textContent = cleanText;
-                        }
-                    } else {
-                        // Fallback: show overview content directly (limited)
-                        var limitedContent = overviewContent.length > 300 ? overviewContent.substring(0, 300) + '...' : overviewContent;
-                        overviewEl.innerHTML = limitedContent;
-                    }
-                }
-                
-                heroSection.appendChild(overviewEl);
-            } else {
-                // Debug: log if overview is missing
-                console.log('Overview content is empty or missing. jsonData:', jsonData);
-            }
-            
-            previewWrapper.appendChild(heroSection);
+        if (!overviewContent && data && data.sections && data.sections.overview) {
+            overviewContent = data.sections.overview.html || '';
         }
-        
-        // Create accordion element
-        var accordion = document.createElement('div');
-        accordion.className = 'accordion cat-accordion';
-        accordion.id = 'vocationalAccordionPreview';
-        
-        // Display fixed headings first, then any additional dynamic H2 headings.
-        var orderedKeys = [];
-        FIXED_HEADINGS.forEach(function(heading) {
-            if (heading === 'Overview') return;
-            orderedKeys.push(heading.toLowerCase().replace(/[^a-z0-9]+/g, '_'));
-        });
-        Object.keys(sectionsToUse || {}).forEach(function(key) {
-            if (key === 'overview') return;
-            if (orderedKeys.indexOf(key) === -1) orderedKeys.push(key);
-        });
+        if (!programTitle && !overviewContent) return null;
 
-        var accordionIndex = 0;
-        orderedKeys.forEach(function(key) {
-            var sectionData = sectionsToUse[key] || { title: key.replace(/_/g, ' '), html: '' };
-            var heading = sectionData.title || key.replace(/_/g, ' ');
-            var sectionId = 'preview-accordion-' + accordionIndex;
-            var iconClass = iconMap[heading] || 'bx bx-layer';
-            var hasContent = !sectionHtmlIsEffectivelyBlank(sectionData.html);
-            
-            // Create accordion item
-            var accordionItem = document.createElement('div');
-            accordionItem.className = 'accordion-item' + (hasContent ? '' : ' accordion-preview-error');
-            
-            // Create header
-            var header = document.createElement('h2');
-            header.className = 'accordion-header';
-            header.id = sectionId + 'Heading';
-            
-            // Create button (all start collapsed; open via +/− click)
-            var button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'accordion-button collapsed';
-            button.setAttribute('data-acc-preview-target', '#' + sectionId);
-            button.setAttribute('aria-expanded', 'false');
-            button.setAttribute('aria-controls', sectionId);
-
-            var toggleIcon = document.createElement('span');
-            toggleIcon.className = 'admin-acc-toggle-icon';
-            toggleIcon.setAttribute('aria-hidden', 'true');
-            toggleIcon.textContent = '+';
-            
-            // Add icon and text
-            var buttonContent = document.createElement('span');
-            buttonContent.style.display = 'flex';
-            buttonContent.style.alignItems = 'center';
-            buttonContent.style.flex = '1';
-            buttonContent.style.gap = '10px';
-            buttonContent.innerHTML = '<i class="' + iconClass + '"></i><span>' + sectionData.title + '</span>';
-            if (!hasContent) {
-                buttonContent.innerHTML += '<span style="margin-left: auto; color: #ba2121; font-size: 12px; font-weight: 600;" title="No visible body text — this panel is hidden on the public site until you add content.">&#9888; Empty</span>';
+        var hero = document.createElement('div');
+        hero.className = 'voc-frontend-hero-preview';
+        var label = document.createElement('div');
+        label.className = 'voc-hero-label';
+        label.textContent = 'Hero (public page)';
+        hero.appendChild(label);
+        if (programTitle) {
+            var titleEl = document.createElement('h2');
+            titleEl.textContent = programTitle;
+            hero.appendChild(titleEl);
+        }
+        if (overviewContent && String(overviewContent).trim()) {
+            var overviewEl = document.createElement('div');
+            overviewEl.className = 'voc-hero-overview';
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = overviewContent;
+            var paragraphs = tempDiv.querySelectorAll('p');
+            var firstParagraph = null;
+            for (var i = 0; i < paragraphs.length; i++) {
+                var paraText = (paragraphs[i].textContent || '').trim();
+                if (paraText.length > 0) {
+                    firstParagraph = paragraphs[i];
+                    break;
+                }
             }
-            button.appendChild(toggleIcon);
-            button.appendChild(buttonContent);
-            
-            header.appendChild(button);
-            
-            // Create collapse div
-            var collapse = document.createElement('div');
-            collapse.id = sectionId;
-            collapse.className = 'accordion-collapse collapse';
-            collapse.setAttribute('aria-labelledby', header.id);
-            collapse.setAttribute('data-bs-parent', '#vocationalAccordionPreview');
-            
-            // Create body
-            var body = document.createElement('div');
-            body.className = 'accordion-body';
-            if (hasContent) {
-                body.innerHTML = sectionData.html;
+            if (firstParagraph) {
+                var text = firstParagraph.textContent || '';
+                overviewEl.innerHTML = text.length > 300
+                    ? '<p>' + text.substring(0, 300) + '…</p>'
+                    : firstParagraph.outerHTML;
             } else {
-                body.innerHTML = '<p style="color: #ba2121; font-weight: 600; margin: 0;">&#9888; No body content — not shown on the public site until you add text here.</p>';
+                var cleanText = (tempDiv.textContent || '').replace(/\s+/g, ' ').trim();
+                overviewEl.textContent = cleanText.length > 300
+                    ? cleanText.substring(0, 300) + '…'
+                    : cleanText;
             }
-            
-            collapse.appendChild(body);
-            accordionItem.appendChild(header);
-            accordionItem.appendChild(collapse);
-            accordion.appendChild(accordionItem);
-            
-            // Increment accordion index for next iteration
-            accordionIndex++;
-        });
-        
-        // Append accordion to wrapper
-        previewWrapper.appendChild(accordion);
-        
-        // Clear and append wrapper
-        container.innerHTML = '';
-        container.appendChild(previewWrapper);
-
-        bindAdminAccordionPreviewToggles(accordion);
+            hero.appendChild(overviewEl);
+        }
+        return hero;
     }
-    
+
+    function updatePreview() {
+        var container = document.getElementById('accordion-preview-container');
+        if (!container || typeof TopTeenAccordion === 'undefined') return;
+
+        var html = getContentHtml();
+        if (!html.trim()) {
+            container.innerHTML = '<p style="color:#666;font-style:italic;">No content yet. Add H2 headings to create accordion sections.</p>';
+            jsonData = { programtitle: '', overview: '', sections: {}, section_order: [] };
+            syncJsonField();
+            return;
+        }
+
+        var items = TopTeenAccordion.parseDescriptionToAccordion(html);
+        jsonData = buildJsonFromItems(items);
+
+        container.innerHTML = '';
+        var wrapper = document.createElement('div');
+        wrapper.className = 'voc-frontend-preview-wrap';
+
+        var hero = buildHeroPreview(jsonData);
+        if (hero) wrapper.appendChild(hero);
+
+        var accordionHost = document.createElement('div');
+        accordionHost.id = 'vocationalAccordionPreviewHost';
+        wrapper.appendChild(accordionHost);
+        container.appendChild(wrapper);
+
+        TopTeenAccordion.renderAccordion(accordionHost, items, {
+            mode: 'preview',
+            accordionId: 'vocationalAccordionPreview',
+            sourceHtml: html,
+            expandAll: false,
+            showCount: true,
+            emptyMessage: 'No accordion structure found. Add H2 headings to create sections.'
+        });
+        bindPreviewHighlight();
+        syncJsonField();
+    }
+
+    function bindPreviewHighlight() {
+        if (typeof window.bindAccordionPreviewHighlight !== 'function') return;
+        window.bindAccordionPreviewHighlight({
+            previewContainerId: 'accordion-preview-container',
+            editorContainerId: 'content-field-container',
+            editorScrollId: 'content-editor-scroll',
+            ckeditorInstanceId: 'id_content_html',
+            editorType: 'ckeditor4'
+        });
+        var previewContainer = document.getElementById('accordion-preview-container');
+        if (previewContainer && typeof previewContainer._previewHighlightUpdate === 'function') {
+            previewContainer._previewHighlightUpdate();
+        }
+    }
+
+    function syncJsonField() {
+        var jsonField = ensureContentJsonField();
+        if (jsonField && jsonData && Object.keys(jsonData).length) {
+            jsonField.value = JSON.stringify(jsonData);
+        }
+    }
+
+    function ensureContentJsonField() {
+        var jsonField = document.querySelector('#id_content_json, textarea[name="content_json"], input[name="content_json"]');
+        if (jsonField) return jsonField;
+        var form = document.querySelector('form');
+        if (!form) return null;
+        jsonField = document.createElement('textarea');
+        jsonField.id = 'id_content_json';
+        jsonField.name = 'content_json';
+        jsonField.style.display = 'none';
+        form.appendChild(jsonField);
+        return jsonField;
+    }
+
     function showJSONModal() {
-        generateAccordionFromContent();
-        
-        // Ensure programtitle and overview are included before displaying
-        if (!jsonData.programtitle) {
-            var nameField = document.querySelector('#id_name');
-            if (nameField) {
-                jsonData.programtitle = nameField.value || '';
-            }
-        }
-        
-        // Ensure overview is included (extract from Overview section if not set)
-        if (!jsonData.overview) {
-            var overviewKey = 'overview';
-            if (jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
-                jsonData.overview = jsonData.sections[overviewKey].html.trim();
-            }
-        }
-        
+        syncJsonField();
         var modal = document.getElementById('json-preview-modal');
         var content = document.getElementById('json-preview-content');
-        
         if (modal && content) {
             content.textContent = JSON.stringify(jsonData, null, 2);
             modal.style.display = 'block';
         }
     }
-    
-    function saveJSONToModel() {
-        generateAccordionFromContent();
-        
-        // Ensure programtitle and overview are included
-        if (!jsonData.programtitle) {
-            var nameField = document.querySelector('#id_name');
-            if (nameField) {
-                jsonData.programtitle = nameField.value || '';
-            }
-        }
-        
-        // Ensure overview is included (extract from Overview section if not set)
-        if (!jsonData.overview) {
-            var overviewKey = 'overview';
-            if (jsonData.sections && jsonData.sections[overviewKey] && jsonData.sections[overviewKey].html) {
-                jsonData.overview = jsonData.sections[overviewKey].html.trim();
-            }
-        }
-        
-        // Find or create the content_json field
-        var jsonField = ensureContentJsonField();
-        if (jsonField) {
-            jsonField.value = JSON.stringify(jsonData, null, 2);
-            
-            // Show success message
-            var saveBtn = document.getElementById('save-json-btn');
-            if (saveBtn) {
-                var originalText = saveBtn.textContent;
-                saveBtn.textContent = 'Saved!';
-                saveBtn.style.background = '#28a745';
-                setTimeout(function() {
-                    saveBtn.textContent = originalText;
-                    saveBtn.style.background = '#28a745';
-                }, 2000);
-            }
-            
-            // Show notification instead of alert
-            showNotification('JSON data has been saved to the content_json field. Click "Save" on the form to persist changes.', 'success');
-        } else {
-            alert('Could not create content_json field. Please check the form and try again.');
+
+    function configureEditorForScroll(editor) {
+        if (!editor) return;
+        try {
+            editor.resize('100%', 360, true);
+        } catch (e) { /* ignore */ }
+        var scrollEl = document.getElementById('content-editor-scroll');
+        var contents = editor.container && editor.container.querySelector('.cke_contents');
+        if (scrollEl && contents) {
+            var maxH = Math.max(280, scrollEl.clientHeight - 20);
+            contents.style.maxHeight = maxH + 'px';
+            contents.style.overflowY = 'auto';
         }
     }
-    
-    function showNotification(message, type) {
-        // Remove existing notification if any
-        var existing = document.getElementById('json-notification');
-        if (existing) {
-            existing.remove();
-        }
-        
-        // Create notification
-        var notification = document.createElement('div');
-        notification.id = 'json-notification';
-        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 20px; background: ' + 
-            (type === 'success' ? '#28a745' : '#dc3545') + '; color: white; border-radius: 5px; z-index: 10001; ' +
-            'box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px;';
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // Auto-remove after 3 seconds
-        setTimeout(function() {
-            if (notification.parentNode) {
-                notification.style.opacity = '0';
-                notification.style.transition = 'opacity 0.3s';
-                setTimeout(function() {
-                    notification.remove();
-                }, 300);
-            }
-        }, 3000);
+
+    function debounce(fn, wait) {
+        var timeout = null;
+        return function() {
+            var args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() { fn.apply(null, args); }, wait || 250);
+        };
     }
-    
-    function showDebugInfo() {
-        generateAccordionFromContent();
-        
-        var debugInfo = '=== DEBUG INFO ===\n\n';
-        debugInfo += 'Total Sections Found: ' + Object.keys(accordionData).length + '\n\n';
-        
-        debugInfo += 'Section Content Status:\n';
-        Object.keys(accordionData).forEach(function(key) {
-            var section = accordionData[key];
-            var hasContent = section.html && section.html.trim().length > 0;
-            var contentLength = section.html ? section.html.length : 0;
-            debugInfo += '- ' + section.title + ': ' + (hasContent ? 'YES (' + contentLength + ' chars)' : 'NO') + '\n';
-        });
-        
-        debugInfo += '\n=== JSON Structure ===\n';
-        debugInfo += JSON.stringify(jsonData, null, 2);
-        
-        // Show in modal
-        var modal = document.getElementById('json-preview-modal');
-        var content = document.getElementById('json-preview-content');
-        
-        if (modal && content) {
-            content.textContent = debugInfo;
-            modal.style.display = 'block';
-        } else {
-            console.log(debugInfo);
-            alert('Debug info logged to console. Check browser console (F12).');
-        }
-    }
-    
-    // Make functions available globally if needed
-    window.generateAccordionFromContent = generateAccordionFromContent;
+
+    window.generateAccordionFromContent = updatePreview;
 })();
 </script>
 {% endblock %}
