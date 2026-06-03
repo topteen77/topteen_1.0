@@ -1,0 +1,194 @@
+{% if show_stream_questionnaire %}
+<div
+  id="streamDecisionPopup"
+  class="stream-decision-popup-overlay d-none"
+  aria-hidden="true"
+  data-submit-url="{{ url('app:stream_decision_questionnaire_submit') }}"
+  data-user-id="{{ request.user.id }}"
+>
+  <div class="stream-decision-popup-card" role="dialog" aria-modal="true" aria-labelledby="streamDecisionPopupTitle">
+    <div class="stream-decision-popup-header">
+      <div>
+        <span class="stream-decision-badge">Stream decision</span>
+        <h3 id="streamDecisionPopupTitle" class="stream-decision-popup-title">
+          Suggested Streams from Intelligence
+        </h3>
+        <p class="stream-decision-popup-subtitle">
+          {% if top_intelligence_label %}
+          Based on your strongest aptitude area:
+          <strong class="text-capitalize">{{ top_intelligence_label|lower }}</strong>.
+          {% endif %}
+          Each option shows your intelligence match score. Choose the stream that fits you best.
+        </p>
+      </div>
+      <button type="button" class="stream-decision-popup-minimize" id="streamDecisionPopupMinimize" aria-label="Minimize questionnaire">
+        <i class='bx bx-minus'></i>
+      </button>
+    </div>
+
+    <div class="stream-decision-suggested-streams">
+      <p class="stream-decision-suggested-label">Top suggested streams</p>
+      <div class="stream-decision-stream-chips">
+        {% for combo in stream_questionnaire_suggested|default(suitable_subject_combinations) %}
+        <span class="stream-decision-chip">
+          {{ combo.stream|default(combo.label) }}
+          <strong>{{ combo.match_score|default('—') }}%</strong>
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <form id="streamDecisionQuestionnaireForm" class="stream-decision-form" novalidate>
+      <div class="stream-decision-popup-body">
+      <div class="stream-decision-question" data-question="preferred_stream">
+        <p class="stream-decision-question-text">1. Which suggested stream interests you the most?</p>
+        <div class="stream-decision-options" id="streamDecisionSuggestedOptions">
+          {% for combo in stream_questionnaire_suggested|default(suitable_subject_combinations) %}
+          <label class="stream-decision-option">
+            <input
+              type="radio"
+              name="preferred_stream_choice"
+              value="suggested:{{ combo.stream|default(combo.label) }}"
+              data-stream="{{ combo.stream|default(combo.label) }}"
+              data-match-score="{{ combo.match_score|default(0) }}"
+              required
+            >
+            <span class="stream-decision-option-content">
+              <span class="stream-decision-option-label">
+                {{ combo.stream|default(combo.label) }} — {{ combo.subjects|default('') }}
+              </span>
+              {% if combo.aptitude_areas %}
+              <span class="stream-decision-option-meta">Score based on: {{ combo.aptitude_areas_display|default(combo.aptitude_areas|join(', ')) }}</span>
+              {% endif %}
+            </span>
+            <span class="stream-decision-score-badge">{{ combo.match_score|default(0) }}% match</span>
+          </label>
+          {% endfor %}
+
+          {% if stream_questionnaire_other %}
+          <label class="stream-decision-option stream-decision-option-other">
+            <input
+              type="radio"
+              name="preferred_stream_choice"
+              value="__OTHER__"
+              id="preferredStreamOtherTrigger"
+              data-match-score="0"
+            >
+            <span class="stream-decision-option-content">
+              <span class="stream-decision-option-label">Other — choose from other combinations</span>
+              <span class="stream-decision-option-meta">See alternate streams ranked by your intelligence scores</span>
+            </span>
+          </label>
+          {% endif %}
+
+          <label class="stream-decision-option">
+            <input
+              type="radio"
+              name="preferred_stream_choice"
+              value="not_sure"
+              data-stream="Not sure yet"
+              data-match-score="0"
+            >
+            <span class="stream-decision-option-content">
+              <span class="stream-decision-option-label">Not sure yet — I need more time to decide</span>
+            </span>
+          </label>
+        </div>
+
+        {% if stream_questionnaire_other %}
+        <div id="streamDecisionOtherPanel" class="stream-decision-other-panel d-none" aria-hidden="true">
+          <p class="stream-decision-other-title">Other combinations based on your scores</p>
+          <div class="stream-decision-options stream-decision-other-options">
+            {% for combo in stream_questionnaire_other %}
+            <label class="stream-decision-option stream-decision-option-alt">
+              <input
+                type="radio"
+                name="preferred_stream_other"
+                value="{{ combo.stream|default(combo.label) }}"
+                data-match-score="{{ combo.match_score|default(0) }}"
+              >
+              <span class="stream-decision-option-content">
+                <span class="stream-decision-option-label">
+                  {{ combo.stream|default(combo.label) }} — {{ combo.subjects|default('') }}
+                </span>
+                {% if combo.aptitude_areas %}
+                <span class="stream-decision-option-meta">Score based on: {{ combo.aptitude_areas_display|default(combo.aptitude_areas|join(', ')) }}</span>
+                {% endif %}
+              </span>
+              <span class="stream-decision-score-badge stream-decision-score-badge-alt">{{ combo.match_score|default(0) }}% match</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="stream-decision-question" data-question="confidence_level">
+        <p class="stream-decision-question-text">2. How confident are you that these intelligence-based suggestions fit your career goals?</p>
+        <div class="stream-decision-options">
+          <label class="stream-decision-option"><input type="radio" name="confidence_level" value="Very confident" required><span>Very confident</span></label>
+          <label class="stream-decision-option"><input type="radio" name="confidence_level" value="Somewhat confident" required><span>Somewhat confident</span></label>
+          <label class="stream-decision-option"><input type="radio" name="confidence_level" value="Not very confident" required><span>Not very confident</span></label>
+          <label class="stream-decision-option"><input type="radio" name="confidence_level" value="Not at all confident" required><span>Not at all confident</span></label>
+        </div>
+      </div>
+
+      <div class="stream-decision-question" data-question="biggest_concern">
+        <p class="stream-decision-question-text">3. What is your biggest concern when choosing a stream?</p>
+        <div class="stream-decision-options">
+          <label class="stream-decision-option"><input type="radio" name="biggest_concern" value="Matching my interests" required><span>Matching my interests</span></label>
+          <label class="stream-decision-option"><input type="radio" name="biggest_concern" value="Future job opportunities" required><span>Future job opportunities</span></label>
+          <label class="stream-decision-option"><input type="radio" name="biggest_concern" value="Parent or teacher expectations" required><span>Parent or teacher expectations</span></label>
+          <label class="stream-decision-option"><input type="radio" name="biggest_concern" value="Difficulty of subjects" required><span>Difficulty of subjects</span></label>
+          <label class="stream-decision-option"><input type="radio" name="biggest_concern" value="No major concern" required><span>No major concern</span></label>
+        </div>
+      </div>
+
+      <div class="stream-decision-question" data-question="discussed_with_adult">
+        <p class="stream-decision-question-text">4. Have you discussed these suggested streams with a parent, teacher, or counselor?</p>
+        <div class="stream-decision-options">
+          <label class="stream-decision-option"><input type="radio" name="discussed_with_adult" value="Yes, already discussed" required><span>Yes, already discussed</span></label>
+          <label class="stream-decision-option"><input type="radio" name="discussed_with_adult" value="Not yet, but planning to" required><span>Not yet, but planning to</span></label>
+          <label class="stream-decision-option"><input type="radio" name="discussed_with_adult" value="No, not yet" required><span>No, not yet</span></label>
+        </div>
+      </div>
+
+      <div class="stream-decision-question" data-question="decision_readiness">
+        <p class="stream-decision-question-text">5. Are you ready to finalize your stream decision based on your test results?</p>
+        <div class="stream-decision-options">
+          <label class="stream-decision-option"><input type="radio" name="decision_readiness" value="Yes, I am ready" required><span>Yes, I am ready</span></label>
+          <label class="stream-decision-option"><input type="radio" name="decision_readiness" value="I need more time" required><span>I need more time</span></label>
+          <label class="stream-decision-option"><input type="radio" name="decision_readiness" value="I want expert guidance" required><span>I want expert guidance</span></label>
+        </div>
+      </div>
+
+      <p id="streamDecisionFormError" class="stream-decision-form-error d-none" role="alert"></p>
+      </div>
+
+      <div class="stream-decision-popup-footer">
+      <div class="stream-decision-popup-actions">
+        <button type="button" class="stream-decision-btn-secondary" id="streamDecisionPopupLater">Minimize for now</button>
+        <button type="submit" class="stream-decision-btn-primary" id="streamDecisionSubmitBtn">
+          Submit responses
+        </button>
+      </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  id="streamDecisionPendingWrap"
+  class="stream-decision-pending-wrap d-none"
+>
+  <button
+    type="button"
+    id="streamDecisionPendingBtn"
+    class="stream-decision-pending-btn"
+    aria-label="Open stream decision questionnaire"
+  >
+    <i class='bx bx-edit-alt'></i>
+    <span>Decision pending</span>
+  </button>
+</div>
+{% endif %}

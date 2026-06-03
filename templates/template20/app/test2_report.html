@@ -26,6 +26,7 @@
     background: white;
     padding: 20px;
     padding-bottom: 80px;
+    margin-bottom: 80px;
   }
   
   .report-header {
@@ -230,7 +231,7 @@
       <p>This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
     </div>
 
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
+    <div class="test-title" style="width:100%;text-align: center; color:#000; font-size:16px; font-weight: 600; margin-top: 5px;">
       Your Dominant Interest area is:
     </div>
 
@@ -393,7 +394,7 @@
   <!-- Display Lowest Interest -->
   {% if min_length %}
   <div class="chapterPage">
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 0px; margin-bottom: 10px;">
+    <div class="test-title" style="width:100%; text-align: center; color:#000; font-size:16px; font-weight: 600; margin-top: 0px; margin-bottom: 10px;">
       Your Lowest Interest Area:
     </div>
     {% if 'R' in min_length %}

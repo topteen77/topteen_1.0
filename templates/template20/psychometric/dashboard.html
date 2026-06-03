@@ -1032,6 +1032,7 @@
 
   .student-dash-main-col {padding:0px;}
 </style>
+<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=11">
 {% endblock %}
 
 {% block student_main %}
@@ -1564,4 +1565,16 @@
           });
         })();
       </script>
+
+{% endblock %}
+
+{% block modals %}
+{{ super() }}
+{% include 'template20/includes/stream_decision_questionnaire_popup.html' %}
+{% endblock %}
+
+{% block student_additionaljs %}
+{% if show_stream_questionnaire %}
+<script src="{{ static('js_new/streamDecisionQuestionnaire.js') }}?v=5" defer></script>
+{% endif %}
 {% endblock %}

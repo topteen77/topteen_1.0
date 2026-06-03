@@ -166,30 +166,42 @@ def calculate_alignment(student, test1_result, test2_result, test3_result):
     return min(100, alignment)
 
 
+# Single source of truth for the heatmap cell colors returned by the API.
+# Used by the frontend to render the correct category tones.
+HEATMAP_CATEGORY_COLORS = {
+    'High Risk': '#EF4444',
+    'Maintenance': '#F59E0B',
+    'High Alignment': '#10B981',
+    'Monitor': '#6B7280',
+    # Used when the frontend renders "missing" cluster-demographic combinations.
+    'No Data': '#E5E7EB',
+}
+
+
 def categorize_career_segment(interest, knowledge, alignment):
     """Categorize career segment based on metrics"""
     if interest > 70 and knowledge < 40:
         return {
             'category': 'High Risk',
-            'color': '#EF4444',
+            'color': HEATMAP_CATEGORY_COLORS['High Risk'],
             'priority': 1
         }
     elif interest > 50 and knowledge > 60:
         return {
             'category': 'Maintenance',
-            'color': '#F59E0B',
+            'color': HEATMAP_CATEGORY_COLORS['Maintenance'],
             'priority': 2
         }
     elif alignment > 70:
         return {
             'category': 'High Alignment',
-            'color': '#10B981',
+            'color': HEATMAP_CATEGORY_COLORS['High Alignment'],
             'priority': 3
         }
     else:
         return {
             'category': 'Monitor',
-            'color': '#6B7280',
+            'color': HEATMAP_CATEGORY_COLORS['Monitor'],
             'priority': 4
         }
 
@@ -386,7 +398,8 @@ def get_heatmap_data_for_group(group_admin, group_type='institute', demographic_
     return {
         'heatmapData': heatmap_data,
         'stats': stats,
-        'demographics': demographics
+        'demographics': demographics,
+        'colorPalette': HEATMAP_CATEGORY_COLORS,
     }
 
 
@@ -474,7 +487,8 @@ def get_heatmap_data_for_institute(institute, demographic_type='grade'):
     return {
         'heatmapData': heatmap_data,
         'stats': stats,
-        'demographics': demographics
+        'demographics': demographics,
+        'colorPalette': HEATMAP_CATEGORY_COLORS,
     }
 
 
@@ -491,6 +505,7 @@ def get_empty_heatmap_data():
             'grade': [],
             'section': [],
             'stream': []
-        }
+        },
+        'colorPalette': HEATMAP_CATEGORY_COLORS,
     }
 

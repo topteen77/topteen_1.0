@@ -319,7 +319,7 @@ background: #25A4F2;
   }
 
   .stream-card {
-    min-height: 160px;
+    min-height: 107px;
   }
 
   .stream-card:hover:not(.stream-card-disabled):not(.stream-card-selected) {

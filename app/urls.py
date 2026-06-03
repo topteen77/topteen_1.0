@@ -38,6 +38,11 @@ urlpatterns = [
     
     path('submit/', views.app_submit, name='app_submit'),
     path('submit_clicks/', views.submit_clicks, name='submit_clicks'),
+    path(
+        'stream-decision-questionnaire/submit/',
+        views.stream_decision_questionnaire_submit,
+        name='stream_decision_questionnaire_submit',
+    ),
     path('download_pdf/<str:test_paper>/', views.download_pdf, name='download-pdf'),
 
     # new addition

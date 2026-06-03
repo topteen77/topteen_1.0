@@ -264,6 +264,12 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+.heatmap-legend-color.is-risk { background: #EF4444; }
+.heatmap-legend-color.is-maintenance { background: #F59E0B; }
+.heatmap-legend-color.is-alignment { background: #10B981; }
+.heatmap-legend-color.is-monitor { background: #6B7280; }
+.heatmap-legend-color.is-no-data { background: #E5E7EB; }
+
 .heatmap-legend-text {
     font-size: 0.875rem;
     color: #475569;
