@@ -616,6 +616,30 @@ Explore vocational courses and career tracks across technology, healthcare, busi
     max-height:50vh;
     overflow:auto;
   }
+  .reasoning-filter-banner {
+    background: linear-gradient(180deg, #fff8f8 0%, #f5f4ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .reasoning-filter-banner strong {
+    color: #3f37c9;
+  }
+  .reasoning-filter-banner .clear-filter {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5046e5;
+    text-decoration: none;
+  }
+  .reasoning-filter-banner .clear-filter:hover {
+    text-decoration: underline;
+  }
 }
 </style>
 
@@ -658,6 +682,23 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 <section class="pb-10">
   <div class="container">
 
+    {% if reasoning_filter_active %}
+    <div class="reasoning-filter-banner" role="status">
+      <div>
+        Showing <strong>{{ reasoning_filter_count }}</strong> vocational course(s) for
+        <strong>{{ reasoning_filter_label }}</strong> reasoning
+        ({% if default_tab == 'after-12' %}After 12<sup>th</sup>{% else %}After 10<sup>th</sup>{% endif %}).
+      </div>
+      <a class="clear-filter" href="{{ url('core:vocational_courses') }}?tab={{ default_tab }}">View all courses</a>
+    </div>
+    {% if reasoning_filter_count == 0 %}
+    <div class="alert alert-warning">
+      No vocational courses are mapped to <strong>{{ reasoning_filter_label }}</strong> for this level yet.
+      <a href="{{ url('core:vocational_courses') }}?tab={{ default_tab }}">Browse all courses</a>.
+    </div>
+    {% endif %}
+    {% endif %}
+
     <div class="filter-section">
       <div class="row">
         <div class="col-12 col-md-6 col-sm-12 mb-3 mb-md-0">
@@ -686,14 +727,22 @@ Explore vocational courses and career tracks across technology, healthcare, busi
               <!-- Tabs Navigation -->
     <ul class="nav nav-tabs " id="vocationalTabs" role="tablist">
       <li class="nav-item" role="presentation">
+        {% if reasoning_filter_active and reasoning_filter_area %}
+        <a class="nav-link {% if default_tab == 'after-10' %}active{% endif %}" id="after-10-tab" href="{{ url('core:vocational_courses') }}?tab=after-10&amp;reasoning_area={{ reasoning_filter_area }}" role="tab">After 10<sup>th</sup></a>
+        {% else %}
         <button class="nav-link {% if default_tab == 'after-10' %}active{% endif %}" id="after-10-tab" data-bs-toggle="tab" data-bs-target="#after-10" type="button" role="tab" aria-controls="after-10" aria-selected="{% if default_tab == 'after-10' %}true{% else %}false{% endif %}">
           After 10<sup>th</sup>
         </button>
+        {% endif %}
       </li>
       <li class="nav-item" role="presentation">
+        {% if reasoning_filter_active and reasoning_filter_area %}
+        <a class="nav-link {% if default_tab == 'after-12' %}active{% endif %}" id="after-12-tab" href="{{ url('core:vocational_courses') }}?tab=after-12&amp;reasoning_area={{ reasoning_filter_area }}" role="tab">After 12<sup>th</sup></a>
+        {% else %}
         <button class="nav-link {% if default_tab == 'after-12' %}active{% endif %}" id="after-12-tab" data-bs-toggle="tab" data-bs-target="#after-12" type="button" role="tab" aria-controls="after-12" aria-selected="{% if default_tab == 'after-12' %}true{% else %}false{% endif %}">
           After 12<sup>th</sup>
         </button>
+        {% endif %}
       </li>
     </ul>
         </div>
@@ -714,6 +763,37 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           <div class="category-section course-category">
             <h2 class="category-header d-md-block d-none">{{ level.name|title }}<sup>th</sup></h2>
 
+            {% if reasoning_filter_active %}
+            {% set tab_filter_ids = reasoning_filter_ids_by_tab.get('after-10', []) %}
+            <div class="row reasoning-filter-flat-grid">
+              {% for item in subcategories_display.get('after-10', []) %}
+              {% for course in item.sub.courses.all() %}
+              {% if course.id in tab_filter_ids %}
+              <div class="col-md-4 mb-4 course-item" data-tab="after-10" data-course-id="{{ course.id }}">
+                <div class="blog-card h-100">
+                  <div class="blog-image">
+                    <div class="cat-header">
+                      <span class="blog-category category-parent text-capitalize">{{ item.display_name }}</span>
+                    </div>
+                    {% if course.image %}
+                      <img src="{{ course.image.url }}" alt="{{ course.name }}">
+                    {% else %}
+                      <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="Course">
+                    {% endif %}
+                  </div>
+                  <div class="blog-content">
+                    <h3 class="blog-title mt-0 text-capitalize">{{ course.name }}</h3>
+                    <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
+                      View Details <i class="bx bx-right-arrow-alt"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              {% endfor %}
+              {% endfor %}
+            </div>
+            {% else %}
             <!-- Dynamic Sub-tabs Container for After 10 -->
             <div class="sub-tabs-container" id="after-10-sub-tabs-container"></div>
 
@@ -722,7 +802,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
             <div class="mb-4 tab-data-show-after-10" data-subcategory-id="after-10-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
-                <div class="col-md-4 mb-4 course-item" data-tab="after-10" data-subcategory="{{ sub.id }}">
+                <div class="col-md-4 mb-4 course-item" data-tab="after-10" data-subcategory="{{ sub.id }}" data-course-id="{{ course.id }}">
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
@@ -752,6 +832,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
               {% endif %}
             </div>
             {% endfor %}
+            {% endif %}
             {% if not subcategories_display.get('after-10', []) %}
             <div class="no-results" style="display: block;">
               <p class="text-gray mb-0">No courses available for this level.</p>
@@ -773,6 +854,37 @@ Explore vocational courses and career tracks across technology, healthcare, busi
           <div class="category-section course-category">
             <h2 class="category-header d-md-block d-none">{{ level.name|title }}<sup>th</sup></h2>
 
+            {% if reasoning_filter_active %}
+            {% set tab_filter_ids = reasoning_filter_ids_by_tab.get('after-12', []) %}
+            <div class="row reasoning-filter-flat-grid">
+              {% for item in subcategories_display.get('after-12', []) %}
+              {% for course in item.sub.courses.all() %}
+              {% if course.id in tab_filter_ids %}
+              <div class="col-md-4 mb-4 course-item" data-tab="after-12" data-course-id="{{ course.id }}">
+                <div class="blog-card h-100">
+                  <div class="blog-image">
+                    <div class="cat-header">
+                      <span class="blog-category category-parent text-capitalize">{{ item.display_name }}</span>
+                    </div>
+                    {% if course.image %}
+                      <img src="{{ course.image.url }}" alt="{{ course.name }}">
+                    {% else %}
+                      <img src="{{ static('images_new/general/vocational-course.svg') }}" alt="Course">
+                    {% endif %}
+                  </div>
+                  <div class="blog-content">
+                    <h3 class="blog-title mt-0 text-capitalize">{{ course.name }}</h3>
+                    <a href="/vocational-courses/course/{{ course.id }}/" class="read-more">
+                      View Details <i class="bx bx-right-arrow-alt"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              {% endfor %}
+              {% endfor %}
+            </div>
+            {% else %}
             <!-- Dynamic Sub-tabs Container for After 12 -->
             <div class="sub-tabs-container" id="after-12-sub-tabs-container"></div>
 
@@ -781,7 +893,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
             <div class="mb-4 tab-data-show-after-12" data-subcategory-id="after-12-sub-{{ sub.id }}" style="display: none;">
               <div class="row">
                 {% for course in sub.courses.all() %}
-                <div class="col-md-4 mb-4 course-item" data-tab="after-12" data-subcategory="{{ sub.id }}">
+                <div class="col-md-4 mb-4 course-item" data-tab="after-12" data-subcategory="{{ sub.id }}" data-course-id="{{ course.id }}">
                   <div class="blog-card h-100">
                     <div class="blog-image">
                       <div class="cat-header">
@@ -811,6 +923,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
               {% endif %}
             </div>
             {% endfor %}
+            {% endif %}
             {% if not subcategories_display.get('after-12', []) %}
             <div class="no-results" style="display: block;">
               <p class="text-gray mb-0">No courses available for this level.</p>
@@ -960,6 +1073,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
   // Dynamic Tabs Creation and Management
   document.addEventListener('DOMContentLoaded', function() {
+    const reasoningFilterActive = {{ 'true' if reasoning_filter_active else 'false' }};
     // Ensure at least one main tab pane is visible (fixes tab content not showing)
     const tabContent = document.getElementById('vocationalTabsContent');
     const activePane = tabContent && tabContent.querySelector('.tab-pane.active');
@@ -1135,6 +1249,9 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
     // Initialize tabs when main tab is shown
     function initializeTabsForActiveMainTab() {
+      if (reasoningFilterActive) {
+        return;
+      }
       // First hide all sections
       hideAllTabSections();
       
@@ -1223,7 +1340,7 @@ Explore vocational courses and career tracks across technology, healthcare, busi
 
     // Re-initialize when main tab changes
     const mainTabButtons = document.querySelectorAll('#vocationalTabs button[data-bs-toggle="tab"]');
-    mainTabButtons.forEach(button => {
+    if (!reasoningFilterActive) mainTabButtons.forEach(button => {
       button.addEventListener('show.bs.tab', function(e) {
         // Before showing the new tab, hide all sections from both tabs
         hideAllTabSections();

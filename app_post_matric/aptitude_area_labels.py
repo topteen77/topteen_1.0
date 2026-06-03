@@ -1,0 +1,95 @@
+"""Canonical aptitude area names; resolves legacy DB/JSON spellings for lookups."""
+
+import re
+
+LANGUAGE_VERBAL_REASONING = "Language and Verbal Reasoning"
+
+_LANGUAGE_VERBAL_ALIASES = frozenset({
+    "language & verbal reasoning",
+    "verbal & language reasoning",
+    "language and verbal reasoning",
+})
+
+CLERICAL_SPEED_ACCURACY = "Clerical speed & Accuracy"
+
+_CLERICAL_ALIASES = frozenset({
+    "clerical speed & accuracy",
+    "clerical speed and accuracy",
+})
+
+
+def resolve_aptitude_json_area(area):
+    """
+    Map any stored or legacy label to the key used in static JSON (Area / Areas).
+    """
+    if not area or not isinstance(area, str):
+        return area
+    cleaned = re.sub(r"\s+", " ", area.strip())
+    if cleaned.lower() in _LANGUAGE_VERBAL_ALIASES:
+        return LANGUAGE_VERBAL_REASONING
+    if cleaned.upper() == "VERBAL & LANGUAGE REASONING":
+        return LANGUAGE_VERBAL_REASONING
+    if cleaned.lower() in _CLERICAL_ALIASES:
+        return CLERICAL_SPEED_ACCURACY
+    return cleaned
+
+
+def normalize_aptitude_categories(categories):
+    """Normalize tier lists from TestTopCategories for templates and JSON lookups."""
+    if not isinstance(categories, dict):
+        return categories
+    return {
+        tier: [resolve_aptitude_json_area(a) for a in (areas or [])]
+        for tier, areas in categories.items()
+    }
+
+
+# changes required by management (01-Jun-2025): Below Average → Development Areas (display label only; backend/DB key stays "Below Average")
+APTITUDE_TIER_BELOW = "Below Average"
+
+APTITUDE_TIER_DISPLAY_LABELS = {
+    "Above Average": "Above Average",
+    "Average": "Average",
+    APTITUDE_TIER_BELOW: "Development Areas",
+}
+
+
+def aptitude_tier_label(tier_key):
+    """Return display label for an aptitude tier key (e.g. Below Average → Development Areas)."""
+    if tier_key is None:
+        return tier_key
+    key = str(tier_key).strip()
+    return APTITUDE_TIER_DISPLAY_LABELS.get(key, tier_key)
+
+
+# changes required by management (01-Jun-2025): Below Average → professional copy (display only)
+APTITUDE_DEVELOPMENT_ALERT_TITLE = "Focus areas for skill strengthening"
+
+APTITUDE_DEVELOPMENT_ALERT_BODY_TEMPLATE = (
+    "{count} reasoning area(s) have been identified as focus areas for skill strengthening. "
+    "Targeted practice and the recommended vocational guidance below can help you build "
+    "confidence in these areas before final stream selection."
+)
+
+APTITUDE_VOCATIONAL_SECTION_TITLE = "Vocational guidance for skill development"
+
+APTITUDE_NO_DEVELOPMENT_AREAS = "No development areas identified."
+
+APTITUDE_EMPTY_STATE_SKILL_AREAS = (
+    "Please complete your aptitude assessments to unlock personalized insights for "
+    "above average, average, and development areas."
+)
+
+APTITUDE_IMPROVEMENT_NOTE = (
+    "If you have focus areas for skill strengthening in your profile, vocational training "
+    "and guidance can help you develop your other reasoning areas."
+)
+
+
+def aptitude_development_alert_body(count):
+    """Format dashboard alert body for the number of development/focus areas."""
+    try:
+        n = int(count)
+    except (TypeError, ValueError):
+        n = 0
+    return APTITUDE_DEVELOPMENT_ALERT_BODY_TEMPLATE.format(count=n)

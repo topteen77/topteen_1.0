@@ -569,28 +569,56 @@
     font-size: 0.875rem;
     font-weight: 600;
     margin: 0;
-    padding: 1rem 1rem 1.125rem;
+    padding: 0.75rem 1rem 1.125rem;
     color: #0f172a;
     border-top: 1px solid #f1f5f9;
     background: #fafafa;
   }
+  .vocational-reasoning-badge {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.75rem 1rem 0;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #A22717;
+    background: #FFE5E5;
+    border: 1px solid #A22717;
+    line-height: 1.3;
+  }
+  a.vocational-reasoning-badge,
+  a.improvement-chip {
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+  a.vocational-reasoning-badge:hover,
+  a.improvement-chip:hover {
+    background: #A22717;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(162, 39, 23, 0.25);
+  }
+  .vocational-card {
+    position: relative;
+  }
   .improvement-alert {
-    border: 1px solid #f3d4b5;
-    background: linear-gradient(180deg, #fffaf4 0%, #fff4e8 100%);
+    border: 1px solid #A22717;
+    background: linear-gradient(180deg, #fff8f8 0%, #FFE5E5 100%);
     border-radius: 14px;
     padding: 14px;
-    box-shadow: 0 2px 10px rgba(217, 119, 6, 0.08);
+    box-shadow: 0 2px 10px rgba(162, 39, 23, 0.08);
   }
   .improvement-alert h4 {
     margin: 0 0 6px;
     font-size: 0.95rem;
     font-weight: 700;
-    color: #9a3412;
+    color: #A22717;
   }
   .improvement-alert p {
     margin: 0;
     font-size: 0.82rem;
-    color: #7c2d12;
+    color: #7a1f12;
     line-height: 1.55;
   }
   .improvement-chip-row {
@@ -606,9 +634,9 @@
     border-radius: 999px;
     font-size: 0.7rem;
     font-weight: 700;
-    color: #b45309;
-    background: #ffedd5;
-    border: 1px solid #fdba74;
+    color: #A22717;
+    background: #FFE5E5;
+    border: 1px solid #A22717;
   }
   .suggested-careers-grid {
     display: grid;
@@ -669,6 +697,89 @@
   .career-chip.subject-chip {
     font-weight: 700;
     border-width: 1px;
+  }
+  .career-groups-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .career-area-group {
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .career-area-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .career-area-group:first-child {
+    padding-top: 4px;
+  }
+  .career-area-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.3;
+  }
+  .career-area-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #3f37c9;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+  }
+  .career-area-heading--aptitude .career-area-code {
+    color: #9d174d;
+    background: #fce7f3;
+    border-color: #f9a8d4;
+  }
+  .career-group-chips.is-collapsed .career-chip:nth-child(n+3) {
+    display: none;
+  }
+  a.career-chip {
+    text-decoration: none;
+    color: #1e293b;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  a.career-chip:hover {
+    border-color: #5046e5;
+    color: #5046e5;
+    background: #f5f3ff;
+  }
+  .career-view-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #5046e5;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .career-view-more-btn:hover {
+    color: #3f37c9;
+  }
+  .career-groups-stack.is-card-collapsed .career-area-group:nth-child(n+3) {
+    display: none;
+  }
+  .career-card-view-more {
+    margin-top: 8px;
   }
   .stream-chip-pcm { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
   .stream-chip-pcb { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
@@ -1142,7 +1253,7 @@
                 <div class="report-card-score interest d-none">{{ interest_highest_value|default(interest_pct|default(0))|int }} pts</div>
               </div>
               <div class="modern-pill-row d-none">
-                <span class="modern-pill interest">Top: {{ dominant_interest_name|default(max_length|default('Dominant area')) }}</span>
+                <span class="modern-pill interest">Top: {{ dominant_interest_display|default(dominant_interest_name|default(max_length|default('Dominant area'))) }}</span>
                 {% if lowest_interest_name %}
                 <span class="modern-pill warn">Lowest: {{ lowest_interest_name }}</span>
                 {% endif %}
@@ -1260,40 +1371,88 @@
         </div>
       </div>
 
-      {% if interest_suggested_careers or aptitude_suggested_careers %}
+      {% set career_preview = career_suggestions_preview_count|default(2) %}
+      {% if interest_suggested_career_groups or aptitude_suggested_career_groups %}
       <div class="mb-4">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Careers</h2>
         <div class="suggested-careers-grid">
           <div class="suggested-career-card">
-            <h4>From Interest Area:     {% if dominant_interest_name %}
-              <span class="career-type-pill"> {{ dominant_interest_name }}</span>
+            <h4>From Interest Area (RIASEC){% if dominant_interest_display %}
+              <span class="career-type-pill">{{ dominant_interest_display }}</span>
+              {% elif dominant_interest_name %}
+              <span class="career-type-pill">{{ dominant_interest_name }}</span>
               {% endif %}</h4>
-            <p>Based on your dominant interest area from report.</p>
-        
-            <div class="career-chip-grid">
-              {% if interest_suggested_careers %}
-                {% for career in interest_suggested_careers %}
-                <span class="career-chip">{{ career }}</span>
-                {% endfor %}
-              {% else %}
-                <span class="career-chip">No interest-based career suggestions found.</span>
-              {% endif %}
+            <p class="mb-2">Career paths aligned with each dominant Holland interest type from your Career Interest Inventory.</p>
+
+            {% if interest_suggested_career_groups %}
+            <div class="career-groups-stack {% if interest_suggested_career_groups|length > 2 %}is-card-collapsed{% endif %}" data-career-groups-card>
+              {% for group in interest_suggested_career_groups %}
+              <div class="career-area-group">
+                <h5 class="career-area-heading">
+                  {% if group.code %}<span class="career-area-code">{{ group.code }}</span>{% endif %}
+                  <span>{{ group.name }}</span>
+                </h5>
+                <div class="career-chip-grid career-group-chips {% if group.careers|length > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for item in group.career_items|default([]) %}
+                  <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                  {% else %}
+                  {% for career in group.careers %}
+                  <span class="career-chip">{{ career }}</span>
+                  {% endfor %}
+                  {% endfor %}
+                </div>
+                {% if group.careers|length > career_preview %}
+                <button type="button" class="career-view-more-btn" data-career-view-more aria-expanded="false">
+                  View more ({{ group.careers|length - career_preview }} more)
+                </button>
+                {% endif %}
+              </div>
+              {% endfor %}
             </div>
+            {% if interest_suggested_career_groups|length > 2 %}
+            <button type="button" class="career-view-more-btn career-card-view-more" data-career-card-view-more aria-expanded="false">
+              View all interest areas ({{ interest_suggested_career_groups|length - 2 }} more)
+            </button>
+            {% endif %}
+            {% else %}
+            <p class="text-muted small mb-0">No interest-based career suggestions found.</p>
+            {% endif %}
           </div>
           <div class="suggested-career-card">
-            <h4>From Aptitude <span class="aptitude-area-highlight text-capitalize">{{ top_intelligence_label|default('reasoning')|lower }}</span></h4>
-            <p>Best-fit careers for your strongest intelligence areas.</p>
-            <div class="career-chip-grid pb-2">
-              {% if aptitude_suggested_careers %}
-                {% for career in aptitude_suggested_careers %}
-                <span class="career-chip">{{ career }}</span>
-                {% endfor %}
-              {% else %}
-                <span class="career-chip">No aptitude career suggestions found.</span>
-              {% endif %}
+            <h4>From Aptitude</h4>
+            <p class="mb-2">Roles matched to your strongest reasoning area on the intelligence assessment.</p>
+
+            {% if aptitude_suggested_career_groups %}
+            <div class="career-groups-stack">
+              {% for group in aptitude_suggested_career_groups %}
+              <div class="career-area-group">
+                <h5 class="career-area-heading career-area-heading--aptitude">
+                  {% if group.code %}<span class="career-area-code">{{ group.code|replace('_', ' ')|title }}</span>{% endif %}
+                  <span>{{ group.name }}</span>
+                </h5>
+                <div class="career-chip-grid career-group-chips {% if group.careers|length > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for item in group.career_items|default([]) %}
+                  <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                  {% else %}
+                  {% for career in group.careers %}
+                  <span class="career-chip">{{ career }}</span>
+                  {% endfor %}
+                  {% endfor %}
+                </div>
+                {% if group.careers|length > career_preview %}
+                <button type="button" class="career-view-more-btn" data-career-view-more aria-expanded="false">
+                  View more ({{ group.careers|length - career_preview }} more)
+                </button>
+                {% endif %}
+              </div>
+              {% endfor %}
             </div>
+            {% else %}
+            <p class="text-muted small mb-0">No aptitude career suggestions found.</p>
+            {% endif %}
+
             {% if suitable_subject_combinations %}
-            <p class="career-subtitle">Suitable subject combinations</p>
+            <p class="career-subtitle mt-3 mb-2">Suitable subject combinations</p>
             <div class="career-chip-grid">
               {% for combo in suitable_subject_combinations %}
               <span class="career-chip subject-chip {{ combo.color_class|default('') }}">{{ combo.label|default(combo) }}</span>
@@ -1311,11 +1470,17 @@
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Improvement recommendations</h2>
         {% if below|default([]) %}
         <div class="improvement-alert mb-3">
-          <h4>Below-average aptitude scores detected</h4>
-          <p>{{ below|length }} reasoning area(s) are currently below average. Follow targeted practice and recommended vocational guidance before final stream selection.</p>
+          {# changes required by management (01-Jun-2025): Below Average → Focus areas for skill strengthening #}
+          <h4>{{ aptitude_development_alert_title }}</h4>
+          <p>{{ below|length|aptitude_development_alert_body }}</p>
           <div class="improvement-chip-row">
             {% for area in below %}
+            {% set area_key = area|string|upper %}
+            {% if below_area_vocational_urls.get(area) or below_area_vocational_urls.get(area_key) %}
+            <a class="improvement-chip" href="{{ below_area_vocational_urls.get(area) or below_area_vocational_urls.get(area_key) }}" title="View all {{ area|title }} vocational courses">{{ area|title }}</a>
+            {% else %}
             <span class="improvement-chip">{{ area|title }}</span>
+            {% endif %}
             {% endfor %}
           </div>
         </div>
@@ -1323,13 +1488,14 @@
         {% if vocational_course_cards|default([]) %}
         <h3 class="psych-section-title psych-section-link mb-3">
           <span class="psych-section-dot" aria-hidden="true"></span>
-          <a href="{{ url('core:vocational_courses') }}">Vocational courses for below-average students</a>
+          {# changes required by management (01-Jun-2025): Below Average → Vocational guidance for skill development #}
+          <a href="{{ url('core:vocational_courses') }}">{{ aptitude_vocational_section_title }}</a>
         </h3>
         <div class="row g-3">
           {% for card in vocational_course_cards %}
           <div class="col-md-3">
             <div class="vocational-card p-0">
-              <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none">
+              <a href="{{ url('core:vocational_course_detail', args=[card.course.pk]) }}" class="text-dark text-decoration-none d-block">
                 <div class="vocational-img-wrap">
                   {% if card.course.image %}
                   <img src="{{ card.course.image.url }}" alt="{{ card.label }}">
@@ -1339,6 +1505,11 @@
                 </div>
                 <p class="vocational-label lh-sm">{{ card.label }}</p>
               </a>
+              {% if card.reasoning_area_label and card.reasoning_area_courses_url %}
+              <a href="{{ card.reasoning_area_courses_url }}" class="vocational-reasoning-badge" title="View all {{ card.reasoning_area_label }} courses ({{ card.reasoning_area_course_count|default(1) }})">{{ card.reasoning_area_label }}{% if card.reasoning_area_course_count and card.reasoning_area_course_count > 1 %} · {{ card.reasoning_area_course_count }} courses{% endif %}</a>
+              {% elif card.reasoning_area_label %}
+              <span class="vocational-reasoning-badge">{{ card.reasoning_area_label }}</span>
+              {% endif %}
             </div>
           </div>
           {% endfor %}
@@ -1561,6 +1732,44 @@
                 return '<circle class="radar-node" cx="' + p.x.toFixed(2) + '" cy="' + p.y.toFixed(2) + '" r="4"></circle>';
               }).join('');
             }
+          });
+        })();
+
+        (function initCareerViewMore() {
+          var previewCount = {{ career_suggestions_preview_count|default(2) }};
+          document.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
+            var grid = btn.previousElementSibling;
+            if (!grid || !grid.matches('[data-career-group-chips]')) return;
+            var total = grid.querySelectorAll('.career-chip').length;
+            btn.addEventListener('click', function () {
+              if (grid.classList.contains('is-collapsed')) {
+                grid.classList.remove('is-collapsed');
+                btn.textContent = 'View less';
+                btn.setAttribute('aria-expanded', 'true');
+              } else {
+                grid.classList.add('is-collapsed');
+                btn.textContent = 'View more (' + Math.max(0, total - previewCount) + ' more)';
+                btn.setAttribute('aria-expanded', 'false');
+              }
+            });
+          });
+          document.querySelectorAll('[data-career-card-view-more]').forEach(function (btn) {
+            if (!btn.getAttribute('data-collapsed-label')) {
+              btn.setAttribute('data-collapsed-label', btn.textContent.trim());
+            }
+            btn.addEventListener('click', function () {
+              var stack = document.querySelector('[data-career-groups-card]');
+              if (!stack) return;
+              if (stack.classList.contains('is-card-collapsed')) {
+                stack.classList.remove('is-card-collapsed');
+                btn.textContent = 'Show fewer interest areas';
+                btn.setAttribute('aria-expanded', 'true');
+              } else {
+                stack.classList.add('is-card-collapsed');
+                btn.textContent = btn.getAttribute('data-collapsed-label');
+                btn.setAttribute('aria-expanded', 'false');
+              }
+            });
           });
         })();
       </script>

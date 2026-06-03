@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo;
+  {% if redirect_to == 'admin:core_vocationalcourse_changelist' %}
+  <a href="{% url 'admin:core_vocationalcourse_changelist' %}">Vocational courses</a>
+  {% else %}
+  <a href="{% url 'admin:core_vocationalcoursereasoningmapping_changelist' %}">Vocational course reasoning mappings</a>
+  {% endif %}
+  &rsaquo; Import
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    {% for field in form %}
+    <div class="form-row">
+      {{ field.errors }}
+      <div>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <div class="submit-row">
+    <input type="submit" value="Import" class="default">
+    <a href="{% url redirect_to %}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+<p class="help">
+  Upload <code>vocational_reasoning_mappings.csv</code> from the CSV zip export, or the full JSON export.
+  Use <strong>Dry run</strong> first to validate without saving.
+</p>
+{% endblock %}

@@ -515,7 +515,8 @@ table {
 
       {% if intelligence_data.below_avg %}
       <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-        <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Below Average</p>
+        {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+        <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">{{ "Below Average"|aptitude_tier_label }}</p>
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for belowavg in intelligence_data.below_avg %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>
@@ -578,13 +579,14 @@ table {
   {% include 'template20/app/partials/aptitude_avg.html' %}
   {% endif %}
 
-  <!-- Below Average Note -->
+  <!-- changes required by management (01-Jun-2025): Below Average → Development Areas (note section) -->
   {% if intelligence_data.below_avg %}
   <div class="chapterPage">
     <hr />
     <div class="db-header" style="margin-top: 10px;">
       <h1 style="color: #A22717; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
-        <span>NOTE-</span> If your score is below average, you are suggested to take vocational training and guidance to improve your other reasoning areas.
+        {# changes required by management (01-Jun-2025): Below Average → focus areas for skill strengthening #}
+        <span>NOTE-</span> {{ aptitude_improvement_note }}
       </h1>
     </div>
   </div>

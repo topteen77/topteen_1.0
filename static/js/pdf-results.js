@@ -154,7 +154,7 @@ function handlePersonalityResults(result, index) {
   const timeDurationElement = document.createElement('div');
   timeDurationElement.className = 'time-duration-display';
   timeDurationElement.innerHTML = `
-    <h3 style="color: #3F37C9; text-align: center; margin: 20px 0;">Total Time Duration : <strong>${result.duration_minutes} minutes </strong></h3>
+    <h3 style="color: #3F37C9; text-align: center; margin: 20px 0;">Test Time Duration : <strong>${result.duration_minutes} minutes </strong></h3>
   `;
 
   dimensionsContainer.appendChild(timeDurationElement);
@@ -230,7 +230,7 @@ function handleMotivationResults(result, index) {
   timeDurationElement.className = 'time-duration-display';
   timeDurationElement.innerHTML = `
     <h3 style="color: #3F37C9; text-align: center; margin: 20px 0;">
-      Total Time Duration: <strong>${result.duration_minutes} minutes</strong>
+      Test Time Duration: <strong>${result.duration_minutes} minutes</strong>
     </h3>
   `;
   categoriesContainer.appendChild(timeDurationElement);
@@ -397,7 +397,7 @@ function handleCareerResults(result, index) {
   const timeDurationElement = document.createElement('div');
   timeDurationElement.className = 'time-duration-display';
   timeDurationElement.innerHTML = `
-    <h3 style="color: #3F37C9; text-align: center; margin: 20px 0;">Total Time Duration : <strong>${result.duration_minutes} minutes </strong></h3>
+    <h3 style="color: #3F37C9; text-align: center; margin: 20px 0;">Test Time Duration : <strong>${result.duration_minutes} minutes </strong></h3>
   `;
 
   dimensionsContainer.appendChild(timeDurationElement);
@@ -466,7 +466,7 @@ function handleAptitudeResults(result, index) {
 
   const testTimer = `
     <p>
-      <span style="font-weight: bold;">Total Test Time :</span>
+      <span style="font-weight: bold;">Test Time Duration :</span>
       <span> ${result.duration_minutes} minutes</span>
     </p>`;
 
@@ -681,10 +681,10 @@ function populateAverageCards(sectionsData) {
     averageCardsContainer.appendChild(averageBox);
   }
 
-  // Create Below Average box
+  // changes required by management (01-Jun-2025): Below Average → Development Areas (display label only; tier key stays 'Below Average')
   if (performanceLevels['Below Average'].length > 0) {
     const belowAverageBox = createCustomPerformanceBox(
-      'Below Average',
+      'Development Areas',
       performanceLevels['Below Average'],
       {
         background: '#FFE5E5',

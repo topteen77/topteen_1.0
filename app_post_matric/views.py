@@ -9,6 +9,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import UserProfile
 from django.utils.dateparse import parse_datetime
 # from .models import User
+from .aptitude_area_labels import (
+    normalize_aptitude_categories,
+    resolve_aptitude_json_area,
+)
 from .models import (
     TestCategory, Test, Question, Answer,
     TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
@@ -1072,9 +1076,17 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                     area = area.replace('&', 'and').replace('Clerical speed & Accuracy', 'Clerical speed and Accuracy')
                     return re.sub(r'\s+', ' ', area.strip().lower())
 
-                # ---------- Build fast lookup maps ----------
-                weak_map = {row.get('Areas'): row for row in (aptitude_weak_areas_data or []) if row.get('Areas')}
-                strength_map = {row.get('Areas'): row for row in (aptitude_strength_narrative_data or []) if row.get('Areas')}
+                # ---------- Build fast lookup maps (canonical keys for legacy spellings) ----------
+                weak_map = {}
+                for row in (aptitude_weak_areas_data or []):
+                    key = row.get('Areas')
+                    if key:
+                        weak_map[resolve_aptitude_json_area(key)] = row
+                strength_map = {}
+                for row in (aptitude_strength_narrative_data or []):
+                    key = row.get('Areas')
+                    if key:
+                        strength_map[resolve_aptitude_json_area(key)] = row
                 rec_map = {normalize_area(row.get('Areas')): row for row in (aptitude_recommendations_data or []) if row.get('Areas')}
                 roles_map = {}
                 for row in (Aptitude_report_main_data or []):
@@ -1084,7 +1096,7 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
 
                 # ---------- Below Average: Improvement Plan ----------
                 for area in below_categories:
-                    data = weak_map.get(area)
+                    data = weak_map.get(resolve_aptitude_json_area(area))
                     if data:
                         remarks  = [(r or '').rstrip('.') for r in data.get('Remarks', [])]
                         duration = data.get('Duration', 'No details available')
@@ -1098,8 +1110,9 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                 # ---------- Helper: Strength + Recommendations + Roles ----------
                 def process_strength_recs_roles(areas):
                     for area in areas:
+                        area_key = resolve_aptitude_json_area(area)
                         # Strength narrative
-                        srow = strength_map.get(area)
+                        srow = strength_map.get(area_key)
                         if srow:
                             major_points = [(r or '').rstrip('.') for r in srow.get('Major points', [])]
                             result['aptitude_strength_narrative'].append({
@@ -1107,7 +1120,7 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                                 'Major_points': major_points
                             })
                         # Recommendations
-                        rrow = rec_map.get(normalize_area(area))
+                        rrow = rec_map.get(normalize_area(area_key))
                         if rrow:
                             recommended_college = list(rrow.get('Recommended College Courses', []))
                             rec_entry = {
@@ -1122,7 +1135,7 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                                     rec_entry[hint_key] = hint_value
                             result['aptitude_Recommended_College_Courses'].append(rec_entry)
                         # Roles guidance
-                        matches = roles_map.get(normalize_area(area), [])
+                        matches = roles_map.get(normalize_area(area_key), [])
                         if matches:
                             first = matches[0]
                             area_group = {
@@ -1221,21 +1234,10 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                     career_guidance_selected = []
                     result['career_guidance_selected'].extend(career_guidance_selected)
                 else:
-                    # Create a mapping from your area names to JSON area names
-                    area_mapping = {
-                        'Spatial Reasoning': 'Spatial Reasoning',
-                        'Clerical speed & Accuracy': 'Clerical speed & Accuracy',  # Keep original JSON name
-                        'Language & Verbal Reasoning': 'Language & Verbal Reasoning',  # Keep original JSON name
-                        'Numerical Reasoning': 'Numerical Reasoning',
-                        'Abstract Reasoning': 'Abstract Reasoning',
-                        'Logical Reasoning': 'Logical Reasoning',
-                        'Mechanical Reasoning': 'Mechanical Reasoning'
-                    }
-
                     # Normalize selected areas to match JSON format
                     normalized_selected = set()
                     for area in selected_areas:
-                        mapped_area = area_mapping.get(area, area)  # Use mapping or original if not found
+                        mapped_area = resolve_aptitude_json_area(area)
                         # Normalize the mapped area to lowercase for comparison
                         normalized_selected.add(normalize_area(mapped_area))
 
@@ -1445,6 +1447,8 @@ def Results(request):
                     high_categories = json.loads(raw) if raw else {}
                     if not isinstance(high_categories, dict):
                         high_categories = {}
+                    else:
+                        high_categories = normalize_aptitude_categories(high_categories)
                 except (TypeError, ValueError):
                     high_categories = {}
             else:
@@ -1586,20 +1590,8 @@ def Results(request):
                 average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
                 all_areas = above_areas + average_areas
                 
-                area_mapping = {
-                    'Verbal & Language Reasoning': 'Verbal & Language Reasoning',
-                    'Language & Verbal Reasoning': 'Verbal & Language Reasoning',
-                    'Mechanical Reasoning': 'Mechanical Reasoning',
-                    'Spatial Reasoning': 'Spatial Reasoning',
-                    'Abstract Reasoning': 'Abstract Reasoning',
-                    'Logical Reasoning': 'Logical Reasoning',
-                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',
-                    'Clerical Speed & Accuracy': 'Clerical speed & Accuracy',
-                    'Numerical Reasoning': 'Numerical Reasoning'
-                }
-                
                 for area in all_areas:
-                    mapped_area = area_mapping.get(area, area)
+                    mapped_area = resolve_aptitude_json_area(area)
                     for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
                         if interpretation['Area'] == mapped_area:
                             aptitude_interpretations.append(interpretation)
@@ -2135,6 +2127,8 @@ def CombinedReport(request, user_id=None):
                     try:
                         import json
                         high_categories = json.loads(categories_record.high_category)
+                        if isinstance(high_categories, dict):
+                            high_categories = normalize_aptitude_categories(high_categories)
                         
                         # Prepare aptitude lists and 2-digit codes
                         above_list = high_categories.get("Above Average", [])
@@ -3269,6 +3263,8 @@ def Test_results(request, id):
                         high_categories = json.loads(high_categories)
                     else:
                         high_categories = {}
+                    if isinstance(high_categories, dict):
+                        high_categories = normalize_aptitude_categories(high_categories)
                 except (json.JSONDecodeError, TypeError) as e:
                     print(f"Error parsing high_categories JSON: {e}")
                     high_categories = {}
@@ -3431,20 +3427,8 @@ def Test_results(request, id):
                 average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
                 all_areas = above_areas + average_areas
                 
-                area_mapping = {
-                    'Verbal & Language Reasoning': 'Verbal & Language Reasoning',
-                    'Language & Verbal Reasoning': 'Verbal & Language Reasoning',
-                    'Mechanical Reasoning': 'Mechanical Reasoning',
-                    'Spatial Reasoning': 'Spatial Reasoning',
-                    'Abstract Reasoning': 'Abstract Reasoning',
-                    'Logical Reasoning': 'Logical Reasoning',
-                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',
-                    'Clerical Speed & Accuracy': 'Clerical speed & Accuracy',
-                    'Numerical Reasoning': 'Numerical Reasoning'
-                }
-                
                 for area in all_areas:
-                    mapped_area = area_mapping.get(area, area)
+                    mapped_area = resolve_aptitude_json_area(area)
                     for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
                         if interpretation['Area'] == mapped_area:
                             aptitude_interpretations.append(interpretation)
@@ -3689,6 +3673,8 @@ def download_test_results_pdf(request, id):
                         high_categories = json.loads(high_categories)
                     else:
                         high_categories = {}
+                    if isinstance(high_categories, dict):
+                        high_categories = normalize_aptitude_categories(high_categories)
                 except (json.JSONDecodeError, TypeError) as e:
                     print(f"Error parsing high_categories JSON: {e}")
                     high_categories = {}
@@ -3742,20 +3728,8 @@ def download_test_results_pdf(request, id):
                 average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
                 all_areas = above_areas + average_areas
                 
-                area_mapping = {
-                    'Verbal & Language Reasoning': 'Verbal & Language Reasoning',
-                    'Language & Verbal Reasoning': 'Verbal & Language Reasoning',
-                    'Mechanical Reasoning': 'Mechanical Reasoning',
-                    'Spatial Reasoning': 'Spatial Reasoning',
-                    'Abstract Reasoning': 'Abstract Reasoning',
-                    'Logical Reasoning': 'Logical Reasoning',
-                    'Clerical speed & Accuracy': 'Clerical speed & Accuracy',
-                    'Clerical Speed & Accuracy': 'Clerical speed & Accuracy',
-                    'Numerical Reasoning': 'Numerical Reasoning'
-                }
-                
                 for area in all_areas:
-                    mapped_area = area_mapping.get(area, area)
+                    mapped_area = resolve_aptitude_json_area(area)
                     for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
                         if interpretation['Area'] == mapped_area:
                             aptitude_interpretations.append(interpretation)
@@ -4533,7 +4507,7 @@ class TestSessionViewSet(viewsets.ModelViewSet):
         all_responses = UserResponse.objects.filter(session=session)
 
         for section_session in section_sessions:
-            section_name = section_session.section.title
+            section_name = resolve_aptitude_json_area(section_session.section.title)
             section_score = 0
             accuracy = 0  # to track score percent
             total_questions = 0

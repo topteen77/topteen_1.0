@@ -375,7 +375,8 @@
 
       {% if below %}
       <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Below Average</p>
+        {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">{{ "Below Average"|aptitude_tier_label }}</p>
         {% for belowavg in below %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ belowavg }}</p>
         {% endfor %}
@@ -669,7 +670,8 @@
 
   {% if below %}
       <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Below Average</p>
+        {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">{{ "Below Average"|aptitude_tier_label }}</p>
         {% for belowavg in below %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ belowavg }}</p>
         {% endfor %}
@@ -1212,7 +1214,8 @@
   <div class="chapterPage">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
       <h1 style="color: RED; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
-        <span>NOTE-</span> If your score is below average, you are suggested to take vocational training and guidance to improve your other reasoning areas.
+        {# changes required by management (01-Jun-2025): Below Average → focus areas for skill strengthening #}
+        <span>NOTE-</span> {{ aptitude_improvement_note }}
       </h1>
     </div>
   </div>

@@ -506,3 +506,34 @@ COURSE_MINDMAP_CONFIG_CHOICES = (
     ('8', 'Classic mindmap — horizontal (pill nodes in course widget)'),
     ('9', 'Classic mindmap — vertical (pill nodes in course widget)'),
 )
+
+
+class ReasoningArea:
+    """Aptitude / intelligence reasoning areas (test3 score keys)."""
+    NUMERICAL = 'NUMERICAL'
+    VERBAL = 'VERBAL'
+    LOGICAL = 'LOGICAL'
+    MECHANICAL = 'MECHANICAL'
+    SPATIAL = 'SPATIAL'
+    LANGUAGE = 'LANGUAGE'
+    CRITICAL = 'CRITICAL'
+
+    CHOICES = (
+        (NUMERICAL, 'Numerical'),
+        (VERBAL, 'Verbal'),
+        (LOGICAL, 'Logical'),
+        (MECHANICAL, 'Mechanical'),
+        (SPATIAL, 'Spatial'),
+        (LANGUAGE, 'Language'),
+        (CRITICAL, 'Critical'),
+    )
+
+    ALL = [code for code, _ in CHOICES]
+
+    @classmethod
+    def label(cls, code):
+        return dict(cls.CHOICES).get(code, str(code).replace('_', ' ').title())
+
+    @classmethod
+    def is_valid(cls, code):
+        return code in cls.ALL

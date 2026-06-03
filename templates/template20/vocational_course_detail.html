@@ -15,6 +15,21 @@
 <div id="freetrail-content-wrap">
 {% endif %}
 
+<style>
+  .vocational-reasoning-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #A22717;
+    background: #FFE5E5;
+    border: 1px solid #A22717;
+    line-height: 1.3;
+  }
+</style>
+
 <!-- Hero Section -->
 <main class="py-test-page extracurricular-activities-inner">
   <section class="hero-section-inner pt-md-18 pt-14 pb-5">
@@ -37,6 +52,16 @@
                 {{ course.name }}
               {% endif %}
             </h1>
+            {% if reasoning_area_labels %}
+            <div class="mb-3">
+              <span class="text-gray fs-14 d-block mb-2">Helps improve reasoning areas:</span>
+              <div class="d-flex flex-wrap gap-2">
+                {% for label in reasoning_area_labels %}
+                <span class="vocational-reasoning-badge">{{ label }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
             {% set overview_html = (course_content_json.overview if course_content_json else none) or (course.content_json.overview if course.content_json else none) %}
             {% if overview_html %}
               <div class="overview-container" id="overview">

@@ -379,6 +379,18 @@ def environment(**options):
     from core.templatetags.activity_tags import inject_activity_ids, get_all_sections
     env.filters['inject_activity_ids'] = inject_activity_ids
     env.filters['get_all_sections'] = get_all_sections
+    # changes required by management (01-Jun-2025): Below Average → Development Areas (aptitude_tier_label filter)
+    from app_post_matric.aptitude_area_labels import (
+        aptitude_tier_label,
+        aptitude_development_alert_body,
+        APTITUDE_DEVELOPMENT_ALERT_TITLE,
+        APTITUDE_VOCATIONAL_SECTION_TITLE,
+        APTITUDE_NO_DEVELOPMENT_AREAS,
+        APTITUDE_EMPTY_STATE_SKILL_AREAS,
+        APTITUDE_IMPROVEMENT_NOTE,
+    )
+    env.filters['aptitude_tier_label'] = aptitude_tier_label
+    env.filters['aptitude_development_alert_body'] = aptitude_development_alert_body
     # expose master_classes() helper (returns list of {'value','label'}) to Jinja templates
     try:
         from core.context_processors import master_classes as _master_classes_fn
@@ -414,5 +426,11 @@ def environment(**options):
         'get_breadcrumb_schema': get_breadcrumb_schema,
         'get_webpage_schema': get_webpage_schema,
         'get_faq_schema': get_faq_schema,
+        # changes required by management (01-Jun-2025): Below Average → professional aptitude copy
+        'aptitude_development_alert_title': APTITUDE_DEVELOPMENT_ALERT_TITLE,
+        'aptitude_vocational_section_title': APTITUDE_VOCATIONAL_SECTION_TITLE,
+        'aptitude_no_development_areas': APTITUDE_NO_DEVELOPMENT_AREAS,
+        'aptitude_empty_state_skill_areas': APTITUDE_EMPTY_STATE_SKILL_AREAS,
+        'aptitude_improvement_note': APTITUDE_IMPROVEMENT_NOTE,
     })
     return env

@@ -124,10 +124,10 @@ def db_results(request):
 
     # Get the data from the database for the Career interest test
     try:
+        from app.interest_report_utils import resolve_interest_extrema
         test2_result = Results.objects.get(user=request.user, test_paper='test2')
         lengths = test2_result.scores
-        max_length = max(lengths, key=lengths.get)
-        min_length = min(lengths, key=lengths.get)
+        max_length, min_length, _, _ = resolve_interest_extrema(lengths)
     except Results.DoesNotExist:
         max_length = ''
         min_length = ''
@@ -360,19 +360,41 @@ def dashboard(request, student_id=None):
                 'Compliance and Regulatory Roles',
             ],
         }
-        dominant_interest_name = ''
+        from app.interest_report_utils import (
+            codes_from_code_string,
+            career_suggestion_groups,
+            interest_report_context_fields,
+            riasec_code_display_label,
+            RIASEC_CODE_TO_NAME,
+        )
+        interest_ctx = interest_report_context_fields(
+            scores=sorted_test2_result,
+            max_length=max_length,
+            min_length=min_length,
+        )
+        dominant_interest_name = interest_ctx.get('dominant_interest_labels') or ''
+        dominant_interest_display = interest_ctx.get('dominant_interest_display') or ''
+        dominant_interest_codes = interest_ctx.get('dominant_interest_codes') or []
         lowest_interest_name = ''
         interest_avoid_careers = []
         try:
-            dominant_key = str(max_length or '').strip().upper()
             lowest_key = str(min_length or '').strip().upper()
-            dominant_interest_name = interest_label_map.get(dominant_key, str(max_length or '').strip().title())
-            lowest_interest_name = interest_label_map.get(lowest_key, str(min_length or '').strip().title())
-            interest_avoid_careers = interest_avoid_map.get(lowest_key, [])
+            lowest_codes = codes_from_code_string(min_length)
+            if lowest_codes:
+                lowest_interest_name = ', '.join(RIASEC_CODE_TO_NAME[c] for c in lowest_codes)
+            else:
+                lowest_interest_name = interest_label_map.get(
+                    lowest_key, str(min_length or '').strip().title()
+                )
+            for code in lowest_codes or [lowest_key[:1] if lowest_key else '']:
+                if code in interest_avoid_map:
+                    interest_avoid_careers = interest_avoid_map[code]
+                    break
             if not interest_avoid_careers and lowest_interest_name:
                 interest_avoid_careers = interest_avoid_map.get(lowest_interest_name.upper(), [])
         except Exception:
-            dominant_interest_name = str(max_length or '').strip()
+            dominant_interest_name = interest_ctx.get('dominant_interest_labels') or str(max_length or '').strip()
+            dominant_interest_display = riasec_code_display_label(max_length)
             lowest_interest_name = str(min_length or '').strip()
             interest_avoid_careers = []
 
@@ -446,50 +468,23 @@ def dashboard(request, student_id=None):
         except Exception:
             skill_readiness_index = []
 
-        # Vocational courses for "Below Average" section: only when student has below-average areas;
-        # cards are dynamic from result; each card links to its actual detail page only.
+        # Vocational courses for below-average reasoning areas (DB-backed mappings).
         vocational_course_cards = []
+        below_area_vocational_urls_map = {}
         try:
-            from core.models import VocationalCourse
-            from core import choices
-            # Map intelligence areas (below average) to recommended vocational course names
-            BELOW_AREA_TO_VOCATIONAL_NAMES = {
-                'NUMERICAL': ['Actuarial Science', 'Data Analytics', 'Accounting'],
-                'VERBAL': ['Journalism', 'Content Writing', 'Communication'],
-                'LOGICAL': ['Computer Applications', 'IT', 'Software Development'],
-                'MECHANICAL': ['Aerospace Engineering', 'Automobile Engineering', 'Mechanical Engineering'],
-                'SPATIAL': ['Accessory Designing', 'Fashion Designing', 'Interior Design'],
-                'LANGUAGE': ['Foreign Languages', 'Translation', 'Content Writing'],
-                'CRITICAL': ['Law', 'Research Methodology', 'Critical Thinking'],
-            }
-            recommended_names = []
+            from app.vocational_recommendations import vocational_cards_for_below_areas, below_area_vocational_urls
             if isinstance(below, list) and below:
-                seen = set()
-                for area in below:
-                    for name in BELOW_AREA_TO_VOCATIONAL_NAMES.get(area, []):
-                        if name not in seen:
-                            seen.add(name)
-                            recommended_names.append(name)
-            # Resolve names to VocationalCourse; only include cards with an actual course (detail link)
-            for name in recommended_names[:6]:
-                course = (
-                    VocationalCourse.objects.filter(
-                        name__iexact=name,
-                        object_status=choices.ObjectStatus.ACTIVE,
-                    ).first()
-                    or VocationalCourse.objects.filter(
-                        name__icontains=name,
-                        object_status=choices.ObjectStatus.ACTIVE,
-                    ).first()
-                )
-                if course:
-                    vocational_course_cards.append({"label": course.name, "course": course})
+                vocational_course_cards = vocational_cards_for_below_areas(below, user=request.user)
+                below_area_vocational_urls_map = below_area_vocational_urls(below, user=request.user)
         except Exception:
             vocational_course_cards = []
+            below_area_vocational_urls_map = {}
 
-        # Suggested careers block (same intent as combined report)
+        # Suggested careers block (grouped by RIASEC / aptitude heading for dashboard)
         interest_suggested_careers = []
+        interest_suggested_career_groups = []
         aptitude_suggested_careers = []
+        aptitude_suggested_career_groups = []
         suitable_subject_combinations = []
         try:
             interest_career_map = {
@@ -526,14 +521,19 @@ def dashboard(request, student_id=None):
                     'Investment Analysis',
                 ],
             }
-            dominant_key = str(max_length or '').strip().upper()[:1]
-            interest_suggested_careers = interest_career_map.get(dominant_key, [])
-            if not interest_suggested_careers and courseName:
-                # Fallback to existing dynamic category careers if interest mapping unavailable.
-                interest_suggested_careers = sorted(list(courseName))
-            interest_suggested_careers = interest_suggested_careers[:12]
+            dominant_codes = codes_from_code_string(max_length) or [str(max_length or '').strip().upper()[:1]]
+            interest_suggested_career_groups = career_suggestion_groups(
+                dominant_codes,
+                interest_career_map,
+                fallback_careers=sorted(courseName) if courseName else None,
+                fallback_title='From your interest profile',
+            )
+            interest_suggested_careers = [
+                c for g in interest_suggested_career_groups for c in g['careers']
+            ]
         except Exception:
             interest_suggested_careers = []
+            interest_suggested_career_groups = []
         try:
             aptitude_career_map = {
                 'NUMERICAL': ['Finance & Accounting', 'Data Science & Analytics', 'Statistics', 'Actuarial Science'],
@@ -568,8 +568,24 @@ def dashboard(request, student_id=None):
             primary_aptitude = str(above_avg_score or '').upper().strip()
             if primary_aptitude not in aptitude_career_map and top_intelligence_label:
                 primary_aptitude = str(top_intelligence_label).upper().strip()
+            aptitude_label_map = {
+                'NUMERICAL': 'Numerical reasoning',
+                'VERBAL': 'Verbal reasoning',
+                'LOGICAL': 'Logical reasoning',
+                'MECHANICAL': 'Mechanical reasoning',
+                'SPATIAL': 'Spatial reasoning',
+                'LANGUAGE': 'Language reasoning',
+                'CRITICAL': 'Critical reasoning',
+            }
             if primary_aptitude in aptitude_career_map:
-                aptitude_suggested_careers = aptitude_career_map.get(primary_aptitude, [])[:8]
+                aptitude_suggested_careers = list(aptitude_career_map.get(primary_aptitude, []))
+                aptitude_suggested_career_groups = [{
+                    'code': primary_aptitude,
+                    'name': aptitude_label_map.get(
+                        primary_aptitude, str(top_intelligence_label or primary_aptitude).title()
+                    ),
+                    'careers': aptitude_suggested_careers,
+                }]
                 stream_codes = aptitude_stream_map.get(primary_aptitude, [])
                 for code in stream_codes:
                     key = str(code).upper().strip()
@@ -578,7 +594,25 @@ def dashboard(request, student_id=None):
                         suitable_subject_combinations.append(entry)
         except Exception:
             aptitude_suggested_careers = []
+            aptitude_suggested_career_groups = []
             suitable_subject_combinations = []
+
+        try:
+            from app.dashboard_area_links import enrich_career_groups_chip_urls
+            interest_suggested_career_groups = enrich_career_groups_chip_urls(
+                interest_suggested_career_groups
+            )
+            aptitude_suggested_career_groups = enrich_career_groups_chip_urls(
+                aptitude_suggested_career_groups
+            )
+            interest_suggested_careers = [
+                c for g in interest_suggested_career_groups for c in g.get('careers', [])
+            ]
+            aptitude_suggested_careers = [
+                c for g in aptitude_suggested_career_groups for c in g.get('careers', [])
+            ]
+        except Exception:
+            pass
 
         # Statistics for template20 dashboard (trophies, points, streak, level)
         trophy_details = []
@@ -626,6 +660,8 @@ def dashboard(request, student_id=None):
             'personality_breakdown': personality_breakdown[:6],
             'interest_breakdown': interest_breakdown[:6],
             'dominant_interest_name': dominant_interest_name,
+            'dominant_interest_display': dominant_interest_display,
+            'dominant_interest_codes': dominant_interest_codes,
             'lowest_interest_name': lowest_interest_name,
             'interest_avoid_careers': interest_avoid_careers,
             'intelligence_breakdown': intelligence_breakdown[:6],
@@ -642,8 +678,12 @@ def dashboard(request, student_id=None):
             'streak_details': streak_details,
             'level_details': level_details,
             'vocational_course_cards': vocational_course_cards,
+            'below_area_vocational_urls': below_area_vocational_urls_map,
             'interest_suggested_careers': interest_suggested_careers,
+            'interest_suggested_career_groups': interest_suggested_career_groups,
             'aptitude_suggested_careers': aptitude_suggested_careers,
+            'aptitude_suggested_career_groups': aptitude_suggested_career_groups,
+            'career_suggestions_preview_count': 2,
             'suitable_subject_combinations': suitable_subject_combinations,
             'skill_readiness_index': skill_readiness_index,
             'report_user_id': request.user.id,
@@ -745,10 +785,10 @@ def db_results_inst_user(user):
 
     # Get the data from the database for the Career interest test
     try:
+        from app.interest_report_utils import resolve_interest_extrema
         test2_result = Results.objects.get(user=user, test_paper='test2')
         lengths = test2_result.scores
-        min_length = min(lengths, key=lengths.get)
-        max_length = max(lengths, key=lengths.get)
+        max_length, min_length, _, _ = resolve_interest_extrema(lengths)
     except Results.DoesNotExist:
         max_length = ''
         min_length = ''
@@ -1100,12 +1140,19 @@ def class10_combined_report(request, user_id=None):
             'below': below,
             'avg': avg,
             'above_avg': above_avg,
-            
             'no_results': False,
             'viewing_as_admin': user_id is not None and user_id != request.user.id,
             'user_id': user_id if user_id else target_user.id,
             'embed_mode': embed_mode,
         }
+        from app.interest_report_utils import interest_report_context_fields
+        context.update(
+            interest_report_context_fields(
+                scores=test2_result.scores if test2_result and test2_result.scores else None,
+                max_length=max_length,
+                min_length=min_length,
+            )
+        )
         
         resp = render(request, 'template20/app/class10_combined_report_new.html', context)
         return _add_no_cache_headers(resp)
@@ -2436,7 +2483,9 @@ def gernate_graph(request):
             ax.set_yticks(range(0, 19, 5))  # Tick marks at 0, 5, 10, 15
 
             # Add labels for score ranges outside the graph on the left side
-            ax.text(-0.8, 2.5, 'Below Average\n(0-5)', fontsize=25, color='black', ha='right', va='center')
+            # changes required by management (01-Jun-2025): Below Average → Development Areas (graph label only)
+            from app_post_matric.aptitude_area_labels import aptitude_tier_label
+            ax.text(-0.8, 2.5, f'{aptitude_tier_label("Below Average")}\n(0-5)', fontsize=25, color='black', ha='right', va='center')
             ax.text(-0.8, 8, 'Average\n(6-10)', fontsize=25, color='black', ha='right', va='center')
             ax.text(-0.8, 13, 'Above Average\n(11-15)', fontsize=25, color='black', ha='right', va='center')
 
@@ -2871,6 +2920,7 @@ def test2_report_html(request, user_id=None):
                 print(f"Error generating graph: {e}")
                 pass
         
+        from app.interest_report_utils import interest_report_context_fields
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -2880,7 +2930,12 @@ def test2_report_html(request, user_id=None):
             'user_name': target_user.name if target_user.name else target_user.email,
             'user_ID': target_user.id,
             'no_results': False,
-            'viewing_as_admin': user_id is not None and user_id != request.user.id
+            'viewing_as_admin': user_id is not None and user_id != request.user.id,
+            **interest_report_context_fields(
+                scores=test2_result.scores if test2_result else None,
+                max_length=max_length,
+                min_length=min_length,
+            ),
         }
         
         resp = render(request, 'template20/app/test2_report.html', context)
@@ -3266,6 +3321,7 @@ def test2_report_pdf(request, user_id=None):
         created_date = test2_result.created if hasattr(test2_result, 'created') else target_user.created
         student_name = target_user.name if target_user.name else target_user.email
         
+        from app.interest_report_utils import interest_report_context_fields
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3277,6 +3333,11 @@ def test2_report_pdf(request, user_id=None):
             'student_name': student_name,
             'created_date': created_date,
             'now': datetime.now(),
+            **interest_report_context_fields(
+                scores=test2_result.scores if test2_result else None,
+                max_length=max_length,
+                min_length=min_length,
+            ),
         }
         
         # Render HTML template

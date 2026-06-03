@@ -520,6 +520,43 @@ class VocationalCourse(BaseModel, SlugModel):
         verbose_name_plural = "Vocational Courses"
 
 
+class VocationalCourseReasoningMapping(BaseModel):
+    """Maps a vocational course to an aptitude reasoning area for below-average recommendations."""
+    vocational_course = models.ForeignKey(
+        VocationalCourse,
+        on_delete=models.CASCADE,
+        related_name="reasoning_mappings",
+    )
+    reasoning_area = models.CharField(
+        max_length=20,
+        choices=choices.ReasoningArea.CHOICES,
+        db_index=True,
+    )
+    priority = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Lower value = preferred when multiple courses map to the same reasoning area.",
+    )
+
+    class Meta(BaseModel.Meta):
+        ordering = ("reasoning_area", "priority", "vocational_course__name")
+        verbose_name = "Vocational Course Reasoning Mapping"
+        verbose_name_plural = "Vocational Course Reasoning Mappings"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["vocational_course", "reasoning_area"],
+                name="unique_vocational_course_reasoning_area",
+            ),
+        ]
+
+    def __str__(self):
+        # ASCII " -> " only: admin log object_repr column may be latin1 (cannot store U+2192).
+        area = choices.ReasoningArea.label(self.reasoning_area)
+        course_name = ""
+        if self.vocational_course_id:
+            course_name = self.vocational_course.name or ""
+        return f"{area} -> {course_name}"
+
+
 class EntranceTestPrepCategory(BaseModel, SlugModel):
     """
     Level (After 10 / After 12 / After Graduation) or category under a level.

@@ -309,6 +309,49 @@
     position: relative;
   }
 
+  .completion-chart-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .completion-chart-center {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+    z-index: 2;
+    padding: 12px;
+  }
+
+  .completion-chart-center.is-visible {
+    display: flex;
+  }
+
+  .completion-chart-badge {
+    font-size: 12px;
+    padding: 4px 12px;
+    margin-bottom: 8px;
+  }
+
+  .completion-chart-fraction {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #21243d;
+    line-height: 1.1;
+  }
+
+  .completion-chart-sub {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+
   .aptitude-chart-wrap {
     height: 280px;
   }
@@ -1421,7 +1464,16 @@
       <div class="chart-grid mt-4">
         <div class="chart-card">
           <div class="chart-title">Assessment Completion Overview</div>
-          <div class="chart-wrap"><canvas id="completionChart"></canvas></div>
+          <div class="chart-wrap completion-chart-wrap" id="completionChartWrap">
+            <canvas id="completionChart" aria-label="Assessment completion chart"></canvas>
+            <div class="completion-chart-center{% if completed_tests|default([], true)|length >= 4 %} is-visible{% endif %}"
+                 id="completionChartCenter"
+                 aria-hidden="{% if completed_tests|default([], true)|length >= 4 %}false{% else %}true{% endif %}">
+              <span class="status-pill completion-chart-badge">Completed</span>
+              <div class="completion-chart-fraction" id="completionChartFraction">{{ completed_tests|default([], true)|length }}/4</div>
+              <div class="completion-chart-sub">All assessments complete</div>
+            </div>
+          </div>
         </div>
         <div class="chart-card">
           <div class="chart-title">Aptitude Performance Distribution</div>
@@ -1465,7 +1517,8 @@
             <div class="aptitude-band-legend">
               <span class="aptitude-band-chip"><span class="aptitude-band-dot above"></span>Above Average</span>
               <span class="aptitude-band-chip"><span class="aptitude-band-dot average"></span>Average</span>
-              <span class="aptitude-band-chip"><span class="aptitude-band-dot below"></span>Below Average</span>
+              {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot below"></span>{{ "Below Average"|aptitude_tier_label }}</span>
             </div>
             <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
           </div>
@@ -1672,7 +1725,8 @@
             {% endif %}
           </div>
           <div class="mapping-card">
-            <h4>Below Average</h4>
+            {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+            <h4>{{ "Below Average"|aptitude_tier_label }}</h4>
             {% if below_list %}
             <div class="list-grid">
               {% set below_ns = namespace(items=[]) %}
@@ -1686,7 +1740,8 @@
             {% else %}
             <div class="card-empty-state"> 
               <span class="icon"><i class='bx bx-sitemap' ></i></span>
-              <p class="label">No below-average areas identified.</p></div>
+              {# changes required by management (01-Jun-2025): Below Average → development areas #}
+              <p class="label">{{ aptitude_no_development_areas }}</p></div>
  
             {% endif %}
           </div>
@@ -1695,7 +1750,8 @@
         <div class="empty-state-card">
           <span class="empty-icon"><i class="fas fa-chart-line"></i></span>
           <div class="empty-title">Aptitude analysis is not available yet</div>
-          <p class="empty-subtitle">Please complete your aptitude assessments to unlock personalized insights for above average, average, and below average skill areas.</p>
+          {# changes required by management (01-Jun-2025): Below Average → development areas #}
+          <p class="empty-subtitle">{{ aptitude_empty_state_skill_areas }}</p>
         </div>
         {% endif %}
       </div>
@@ -1960,18 +2016,67 @@
     };
 
     const completionCtx = document.getElementById('completionChart');
+    const completionCenter = document.getElementById('completionChartCenter');
+    const completionFraction = document.getElementById('completionChartFraction');
+    const allAssessmentsComplete = totalTests > 0 && completedTests >= totalTests;
+
+    if (completionFraction) {
+      completionFraction.textContent = completedTests + '/' + totalTests;
+    }
+    if (completionCenter) {
+      if (allAssessmentsComplete) {
+        completionCenter.classList.add('is-visible');
+        completionCenter.setAttribute('aria-hidden', 'false');
+      } else {
+        completionCenter.classList.remove('is-visible');
+        completionCenter.setAttribute('aria-hidden', 'true');
+      }
+    }
+
     if (completionCtx) {
+      const completionLabels = allAssessmentsComplete
+        ? ['Completed']
+        : ['Completed', 'Pending'];
+      const completionData = allAssessmentsComplete
+        ? [totalTests]
+        : [completedTests, pendingTests];
+      const completionColors = allAssessmentsComplete
+        ? ['#16a34a']
+        : ['#3f37c9', '#d1d5db'];
+
       chartInstances.push(new Chart(completionCtx, {
         type: 'doughnut',
         data: {
-          labels: ['Completed', 'Pending'],
+          labels: completionLabels,
           datasets: [{
-            data: [completedTests, pendingTests],
-            backgroundColor: ['#3f37c9', '#d1d5db'],
+            data: completionData,
+            backgroundColor: completionColors,
             borderWidth: 0
           }]
         },
-        options: { ...commonOptions, cutout: '68%' }
+        options: {
+          ...commonOptions,
+          cutout: '68%',
+          plugins: {
+            ...commonOptions.plugins,
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, usePointStyle: true }
+            },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  const label = ctx.label || '';
+                  const value = ctx.parsed || 0;
+                  if (allAssessmentsComplete) {
+                    return label + ': ' + totalTests + ' of ' + totalTests;
+                  }
+                  return label + ': ' + value;
+                }
+              }
+            }
+          }
+        }
       }));
     }
 
@@ -1980,7 +2085,8 @@
       chartInstances.push(new Chart(aptitudeCtx, {
         type: 'bar',
         data: {
-          labels: ['Above Average', 'Average', 'Below Average'],
+          {# changes required by management (01-Jun-2025): Below Average → Development Areas (chart display labels only) #}
+          labels: ['Above Average', 'Average', 'Development Areas'],
           datasets: [{
             label: 'Areas',
             data: [above, average, below],
@@ -2317,6 +2423,7 @@
     const averageSet = new Set((aptitudeBands.average || []).map(normalizeAptitudeName));
     const belowSet = new Set((aptitudeBands.below || []).map(normalizeAptitudeName));
 
+    // changes required by management (01-Jun-2025): Below Average → Development Areas in UI only; band id 'Below Average' kept for logic/colors
     function getAptitudeBandByName(name) {
       const n = normalizeAptitudeName(name);
       if (aboveSet.has(n)) return 'Above Average';

@@ -2437,7 +2437,6 @@
 
 
                     <div class="chart-container">
-                        <h4>Personality Dimensions Chart</h4>
                         <canvas id="personality-chart"></canvas>
                     </div>
                 </div>
@@ -2518,67 +2517,6 @@
 
 
             </div>
-
-
-
-            <div class="chapterPage">
-
-                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
-                        src="{% static 'images/logo.png'%} " alt="logo" />
-                </div>
-                <hr />
-
-
-                <div class="">
-
-                    <div class="card-body">
-
-
-                        {% if careers_to_avoid %}
-                        <div style="margin-top:15px;">
-
-                            <div class="header-h"
-                                style="font-size: 22px; display: flex; align-items:center; font-weight: 600; margin-bottom:10px;">
-                                <span
-                                    style="
-            background: linear-gradient(135deg, #b91b10 0%, #960f05 100%);	width: 20px;	height: 20px;	float: left;	border-radius: 20px;	margin-right: 8px;"></span>
-                                Careers to Avoid
-                            </div>
-
-
-                            <p class="text-muted">Based on your low {{ low_trait }} score, these careers might be
-                                challenging:</p>
-
-                            <div class="low-trait-card">
-                                <div class="low-trait-box">
-                                    <p class="card-text small">
-                                        {% for trait, description in low_trait_descriptions.items %}
-                                        <strong style="color:#c94837ff; font-size:21px;">{{ trait }}:
-                                            <p>
-                                        </strong> {{ description }}<br>
-                                    </p>
-
-                                    {% endfor %}
-                                    </p>
-
-                                    <ul>
-                                        {% for career in careers_to_avoid %}
-                                        <li>
-                                            <i class="fas fa-ban me-2" style="color:#c94837ff;"></i>{{ career }}
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-
-            </div>
-            
 
         </div>
         <!-- Page 9 -->
@@ -2789,7 +2727,6 @@
 
 
                 <div class="chart-container">
-                    <h4>Motivation Categories Distribution</h4>
                     <canvas id="motivation-chart"></canvas>
                 </div>
 
@@ -3128,7 +3065,6 @@
                 <hr />
                 <div class="dynamic-results">
                     <div class="chart-container">
-                        <h4>RIASEC Career Dimensions</h4>
                         <canvas id="career-chart"></canvas>
                     </div>
 
@@ -3347,145 +3283,7 @@
                 </div>
             </div>
 
-            <!-- page 15 end -->
-
-            <div class="chapterPage">
-                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
-                        src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <div class="text-info-paragraph">
-                    <p class="section-title"
-                        style="background: #E8FBFF;  width: 250px;  margin: 0px auto;  padding: 9px 7px;  border-radius: 7px;  color: #063D48;">
-                        Aptitude Area and Description</p>
-    
-                </div>
-                <table style="margin-bottom: 30px; margin-top:25px; ">
-                    <thead style="border:1px solid #9490DD;">
-                        <tr>
-                            <th
-                                style="background:
-                                #E7E5FF;  color:#3F37C9;  color:#2720A7; padding: 21px 0 21px 14px; border-right:1px solid #9490DD;">
-                                Aptitude Type
-                            </th>
-                            <th style="background:
-                                #E7E5FF;  color:#3F37C9; color:#2720A7; padding: 21px 3px; ">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style="border:1px solid #9490DD;">
-                            <td
-                                style=" width: 200px; padding:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9; text-align: center;">
-    
-                                <img src="{% static 'images/Aptitude-abstract.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-                                Abstract Reasoning
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to identify patterns, relationships, and trends in unfamiliar information.
-                                Involves conceptual thinking and visual problem-solving without language or numbers.
-                            </td>
-                        </tr>
-                        <tr style="border:1px solid #9490DD; width: 200px; ">
-                            <td
-                                style="text-align: center; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
-    
-                                <img src="{% static 'images/Aptitudenumerical.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-    
-    
-                                Numerical Reasoning
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to understand, interpret, and work with numerical data. Includes arithmetic,
-                                ratios, percentages, and data interpretation through graphs and tables.
-                            </td>
-                        </tr>
-                        <tr style="border:1px solid #9490DD;">
-                            <td
-                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD;color: #3F37C9;">
-    
-                                <img src="{% static 'images/Aptitudelogical.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-    
-    
-                                Logical Reasoning
-    
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to evaluate arguments, detect inconsistencies, and draw conclusions based on
-                                structured thinking. Involves recognizing logical connections and deductive reasoning.
-                            </td>
-                        </tr>
-                        <tr style="border:1px solid #9490DD;">
-                            <td
-                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-    
-                                <img src="{% static 'images/Aptitudelanguage.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-    
-                                Language and Verbal Reasoning
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to comprehend, interpret, and analyse written or spoken language. Involves
-                                understanding vocabulary, grammar, sentence structure, and verbal conclusions.</td>
-                        </tr>
-                        <tr style="border:1px solid #9490DD;">
-                            <td
-                                style="text-align: center; width: 200px; padding:14px; color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-    
-                                <img src="{% static 'images/Aptitude-clerical.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-    
-    
-                                Clerical Speed and Accuracy
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to quickly and accurately process detailed information. Includes comparing data,
-                                identifying errors, and working with symbols or text with precision and speed.</td>
-                        </tr>
-                        <tr style="border:1px solid #9490DD;">
-                            <td
-                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-    
-                                <img src="{% static 'images/Aptitudemechanical.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-                                Mechanical Reasoning
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to understand mechanical concepts and physical principles. Involves analysing
-                                machines, tools, and systems based on cause-and-effect reasoning.</td>
-                        </tr>
-                        <tr style="border:1px solid #9490DD;">
-                            <td
-                                style="text-align: center; width: 200px; padding:14px;  color: #000; font-weight: 700; font-size: 14px; border-right:1px solid #9490DD; color: #3F37C9;">
-    
-                                <img src="{% static 'images/Aptitudespatial.png'%}" alt="img"
-                                    style="width:50px; vertical-align: middle; margin-right: 6px; text-align: center;">
-                                <br> <br>
-    
-                                Spatial Reasoning
-                            </td>
-                            <td
-                                style=" padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 14px;">
-                                Ability to mentally visualize, manipulate, and rotate objects in space. Involves
-                                understanding spatial relationships, shapes, and patterns for technical tasks.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <!-- page 15 end — Aptitude Area and Description table omitted for test 4 -->
 
             <div class="chapterPage" >
                 <div class="fixex-top-logo" style="width: 100%;">
@@ -3630,7 +3428,6 @@
                     
 
                     <div class="chart-container" style="width:100%; clear: both;">
-                        <h4>Aptitude Sections Performance</h4>
                         <canvas id="aptitude-chart"></canvas>
                     </div>
 

@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.html import conditional_escape, format_html, strip_tags
 from django.urls import path, reverse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from .models import (
     Configuration,
@@ -28,6 +28,7 @@ from .models import (
     ExtracurricularActivitySection,
     VocationalCourseCategory,
     VocationalCourse,
+    VocationalCourseReasoningMapping,
     EntranceTestPrepCategory,
     EntranceTestPrepExam,
     EntranceTestPrepExamSection,
@@ -1536,9 +1537,15 @@ def _vocational_accordion_blank_sections(course):
     )
 
 
+class VocationalCourseReasoningMappingInline(admin.TabularInline):
+    model = VocationalCourseReasoningMapping
+    extra = 1
+    fields = ("reasoning_area", "priority", "object_status")
+
+
 @admin.register(VocationalCourse)
 class VocationalCourseAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "accordion_validation", "category_name_safe", "priority", "object_status", "preview_link", "image_safe")
+    list_display = ("id", "name", "reasoning_areas_display", "accordion_validation", "category_name_safe", "priority", "object_status", "preview_link", "image_safe")
     list_filter = (AccordionErrorsFilter, "object_status", "category")
     search_fields = ("name", "category__name")
     ordering = ("category__name", "priority", "name")
@@ -1576,6 +1583,7 @@ class VocationalCourseAdmin(admin.ModelAdmin):
     )
     change_form_template = "admin/core/vocationalcourse/change_form.html"
     change_list_template = "admin/core/vocationalcourse/change_list.html"
+    inlines = (VocationalCourseReasoningMappingInline,)
 
     class Media:
         css = {
@@ -1648,6 +1656,21 @@ class VocationalCourseAdmin(admin.ModelAdmin):
     category_name_safe.short_description = 'Category'
     category_name_safe.admin_order_field = 'category__name'
 
+    def reasoning_areas_display(self, obj):
+        from core import choices
+        from core.choices import ReasoningArea
+        if not obj or not getattr(obj, 'pk', None):
+            return '-'
+        areas = (
+            obj.reasoning_mappings.filter(object_status=choices.ObjectStatus.ACTIVE)
+            .order_by('reasoning_area')
+            .values_list('reasoning_area', flat=True)
+        )
+        if not areas:
+            return '-'
+        return ', '.join(ReasoningArea.label(area) for area in areas)
+    reasoning_areas_display.short_description = 'Reasoning areas'
+
     def image_safe(self, obj):
         """Display image indicator without raising."""
         try:
@@ -1713,6 +1736,21 @@ class VocationalCourseAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.validate_accordion_view),
                 name='core_vocationalcourse_validate_accordion',
             ),
+            path(
+                'export-reasoning-json/',
+                self.admin_site.admin_view(vocational_reasoning_export_json_view),
+                name='core_vocationalcourse_export_reasoning_json',
+            ),
+            path(
+                'export-reasoning-csv/',
+                self.admin_site.admin_view(vocational_reasoning_export_csv_view),
+                name='core_vocationalcourse_export_reasoning_csv',
+            ),
+            path(
+                'import-reasoning/',
+                self.admin_site.admin_view(vocational_reasoning_import_view),
+                name='core_vocationalcourse_import_reasoning',
+            ),
         ]
         return custom + urls
 
@@ -1730,6 +1768,125 @@ class VocationalCourseAdmin(admin.ModelAdmin):
                 accordion_validation_checked_at=now,
             )
         return JsonResponse({"results": results, "saved_count": len(results)})
+
+
+class VocationalCourseReasoningMappingImportForm(forms.Form):
+    file = forms.FileField(label="JSON or CSV mappings file")
+    dry_run = forms.BooleanField(required=False, initial=False, label="Dry run (validate only)")
+    replace_all = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Replace all (soft-delete mappings not in file)",
+    )
+
+
+def vocational_reasoning_export_json_view(request):
+    from core.vocational_reasoning_io import export_json_bytes
+    response = HttpResponse(export_json_bytes(), content_type="application/json")
+    response["Content-Disposition"] = 'attachment; filename="vocational_reasoning_mappings.json"'
+    return response
+
+
+def vocational_reasoning_export_csv_view(request):
+    from core.vocational_reasoning_io import export_csv_zip_bytes
+    response = HttpResponse(export_csv_zip_bytes(), content_type="application/zip")
+    response["Content-Disposition"] = 'attachment; filename="vocational_reasoning_export.zip"'
+    return response
+
+
+def vocational_reasoning_import_view(request, redirect_to="admin:core_vocationalcourse_changelist"):
+    from core.vocational_reasoning_io import import_mappings
+    from core.models import VocationalCourseReasoningMapping
+
+    if request.method == "POST":
+        form = VocationalCourseReasoningMappingImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            upload = form.cleaned_data["file"]
+            result = import_mappings(
+                upload.read(),
+                filename=upload.name,
+                dry_run=form.cleaned_data["dry_run"],
+                replace_all=form.cleaned_data["replace_all"],
+            )
+            if result.errors:
+                for err in result.errors:
+                    messages.error(request, err)
+            elif form.cleaned_data["dry_run"]:
+                messages.success(
+                    request,
+                    f"Dry run OK: {result.created} would be created, "
+                    f"{result.updated} updated, {result.deleted} deleted.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Import complete: {result.created} created, "
+                    f"{result.updated} updated, {result.deleted} deleted.",
+                )
+                return redirect(redirect_to)
+    else:
+        form = VocationalCourseReasoningMappingImportForm()
+
+    context = {
+        **admin.site.each_context(request),
+        "form": form,
+        "title": "Import vocational reasoning mappings",
+        "opts": VocationalCourseReasoningMapping._meta,
+        "redirect_to": redirect_to,
+    }
+    return render(request, "admin/core/vocationalcoursereasoningmapping/import_form.html", context)
+
+
+def _vocational_reasoning_import_view_for_mapping_admin(request):
+    return vocational_reasoning_import_view(
+        request,
+        redirect_to="admin:core_vocationalcoursereasoningmapping_changelist",
+    )
+
+
+@admin.register(VocationalCourseReasoningMapping)
+class VocationalCourseReasoningMappingAdmin(admin.ModelAdmin):
+    list_display = (
+        "reasoning_area",
+        "vocational_course",
+        "course_category",
+        "priority",
+        "object_status",
+        "modified",
+    )
+    list_filter = ("reasoning_area", "object_status", "vocational_course__category")
+    search_fields = ("vocational_course__name", "vocational_course__id")
+    ordering = ("reasoning_area", "priority", "vocational_course__name")
+    autocomplete_fields = ("vocational_course",)
+    change_list_template = "admin/core/vocationalcoursereasoningmapping/change_list.html"
+
+    def course_category(self, obj):
+        if obj.vocational_course_id and getattr(obj.vocational_course, "category", None):
+            return obj.vocational_course.category.name
+        return "-"
+    course_category.short_description = "Category"
+    course_category.admin_order_field = "vocational_course__category__name"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "export-json/",
+                self.admin_site.admin_view(vocational_reasoning_export_json_view),
+                name="core_vocationalcoursereasoningmapping_export_json",
+            ),
+            path(
+                "export-csv/",
+                self.admin_site.admin_view(vocational_reasoning_export_csv_view),
+                name="core_vocationalcoursereasoningmapping_export_csv",
+            ),
+            path(
+                "import/",
+                self.admin_site.admin_view(_vocational_reasoning_import_view_for_mapping_admin),
+                name="core_vocationalcoursereasoningmapping_import",
+            ),
+        ]
+        return custom + urls
 
 
 class EbookAdminForm(forms.ModelForm):

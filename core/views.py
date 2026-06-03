@@ -442,10 +442,32 @@ class VocationalCoursesView(TemplateView):
         from core import choices
         from core.models import VocationalCourseCategory, VocationalCourse
 
-        # Get default tab from URL parameter or default to after-10
-        default_tab = request.GET.get('tab', 'after-10')
-        if default_tab not in ['after-10', 'after-12']:
-            default_tab = 'after-10'
+        from core.choices import ReasoningArea
+        from app.vocational_recommendations import (
+            course_ids_for_reasoning_area,
+            normalize_reasoning_area_code,
+            vocational_level_tab_for_user,
+        )
+
+        reasoning_area_code = normalize_reasoning_area_code(request.GET.get('reasoning_area'))
+        reasoning_filter_active = False
+        reasoning_filter_label = ''
+        reasoning_filter_ids_by_tab = {}
+        if reasoning_area_code:
+            reasoning_filter_active = True
+            reasoning_filter_label = ReasoningArea.label(reasoning_area_code)
+            for level_slug in ('after-10', 'after-12'):
+                reasoning_filter_ids_by_tab[level_slug] = course_ids_for_reasoning_area(
+                    reasoning_area_code, level_slug
+                )
+
+        default_tab = request.GET.get('tab')
+        if default_tab not in ('after-10', 'after-12'):
+            default_tab = (
+                vocational_level_tab_for_user(request.user)
+                if request.user.is_authenticated
+                else 'after-10'
+            )
 
         # Subcategory display names and order (tab order: Integrated, B.Voc, Diploma, Certificate)
         VOC_SUBCAT_DISPLAY = {
@@ -514,6 +536,16 @@ class VocationalCoursesView(TemplateView):
         ctx["subcategories_display"] = subcategories_display
         ctx["default_tab"] = default_tab
         ctx["active_level"] = levels_data.get(default_tab)
+        reasoning_filter_course_ids = []
+        if reasoning_filter_active:
+            reasoning_filter_course_ids = reasoning_filter_ids_by_tab.get(default_tab, [])
+
+        ctx["reasoning_filter_active"] = reasoning_filter_active
+        ctx["reasoning_filter_course_ids"] = reasoning_filter_course_ids
+        ctx["reasoning_filter_ids_by_tab"] = reasoning_filter_ids_by_tab
+        ctx["reasoning_filter_label"] = reasoning_filter_label
+        ctx["reasoning_filter_area"] = reasoning_area_code or ''
+        ctx["reasoning_filter_count"] = len(reasoning_filter_course_ids)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -560,6 +592,15 @@ class VocationalCourseDetailView(FreetrailContentMixin, TemplateView):
         ctx["course"] = course
         ctx["level"] = level
         ctx["html_head"] = build_html_head(title=course.name, description=course.name)
+
+        from core import choices as core_choices
+        from core.choices import ReasoningArea
+        ctx["reasoning_area_labels"] = [
+            ReasoningArea.label(area)
+            for area in course.reasoning_mappings.filter(
+                object_status=core_choices.ObjectStatus.ACTIVE,
+            ).order_by("reasoning_area").values_list("reasoning_area", flat=True)
+        ]
 
         content_json = course.content_json if isinstance(course.content_json, dict) else {}
         if not content_json.get("overview") and course.content_html:

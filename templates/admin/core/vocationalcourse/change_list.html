@@ -3,6 +3,18 @@
 
 {% block object-tools-items %}
 <li>
+  <a href="{% url 'admin:core_vocationalcourse_export_reasoning_json' %}" class="addlink">Export reasoning JSON</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_vocationalcourse_export_reasoning_csv' %}" class="addlink">Export reasoning CSV</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_vocationalcourse_import_reasoning' %}" class="addlink">Import reasoning mappings</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_vocationalcoursereasoningmapping_changelist' %}">Manage reasoning mappings</a>
+</li>
+<li>
   <a href="#" id="validate-accordion-btn" class="addlink" title="Check all courses for blank accordion sections (e.g. empty or only &amp;nbsp; between headings)">Validate accordion</a>
 </li>
 {{ block.super }}
@@ -11,7 +23,13 @@
 {% block content %}
 <div class="module" style="margin-bottom: 10px;">
   <p class="help" style="margin: 0 0 8px 0;">
-    <strong>How to validate:</strong> Click <strong>Validate accordion</strong> above to check each course for blank sections (e.g. no content between headings, or only empty/&amp;nbsp; paragraphs). Results are <strong>saved in the database</strong> and shown in the <strong>Accordion</strong> column (hover the warning icon for details). Use the sidebar <strong>Accordion</strong> filter (errors / OK / not yet run). Open the list with <code>?accordion=1</code> only after running validate once (or icons stay — until then).
+    <strong>Reasoning areas</strong> column shows aptitude tags (Verbal, Logical, etc.) from
+    <a href="{% url 'admin:core_vocationalcoursereasoningmapping_changelist' %}">reasoning mappings</a>.
+    Use <strong>Export reasoning JSON/CSV</strong> above to download all courses + mappings for AI editing, then
+    <strong>Import reasoning mappings</strong> to upload the fixed file.
+  </p>
+  <p class="help" style="margin: 0;">
+    <strong>Accordion:</strong> Click <strong>Validate accordion</strong> to check blank sections. Results appear in the Accordion column.
   </p>
 </div>
 {{ block.super }}

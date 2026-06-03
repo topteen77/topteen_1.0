@@ -1,0 +1,27 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:core_vocationalcoursereasoningmapping_export_json' %}" class="addlink">Export JSON</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_vocationalcoursereasoningmapping_export_csv' %}" class="addlink">Export CSV (zip)</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_vocationalcoursereasoningmapping_import' %}" class="addlink">Import mappings</a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 10px;">
+  <p class="help" style="margin: 0;">
+    Map vocational courses to aptitude reasoning areas (Numerical, Verbal, Logical, etc.).
+    Used on the psychometric dashboard for students with focus areas for skill strengthening.
+    <strong>Export</strong> the catalog + mappings, edit with AI, then <strong>Import</strong>.
+    Reasoning areas on the vocational course list stay blank until mappings exist here or on each course edit page.
+  </p>
+</div>
+{{ block.super }}
+{% endblock %}

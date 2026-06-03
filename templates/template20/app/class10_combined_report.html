@@ -392,14 +392,9 @@
       <div class="test-summary-section">
         <h3 class="section-title">Interest Assessment Results</h3>
         <div class="test-card">
-          {% if interest_data.max_category %}
+          {% if dominant_interest_labels or interest_data.max_category %}
           <div class="mb-3">
-            <strong>Highest Interest:</strong> <span class="text-success">{{ interest_data.max_category }}</span>
-          </div>
-          {% endif %}
-          {% if interest_data.min_category %}
-          <div class="mb-3">
-            <strong>Lowest Interest:</strong> <span class="text-muted">{{ interest_data.min_category }}</span>
+            <strong>Highest Interest:</strong> <span class="text-success">{{ dominant_interest_labels or interest_data.max_category }}</span>
           </div>
           {% endif %}
           
@@ -440,7 +435,8 @@
           {% endif %}
           {% if intelligence_data.below_avg %}
           <div class="mb-3">
-            <strong>Below Average:</strong> 
+            {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+            <strong>{{ "Below Average"|aptitude_tier_label }}:</strong> 
             {% for item in intelligence_data.below_avg %}
             <span class="badge bg-danger me-2">{{ item }}</span>
             {% endfor %}

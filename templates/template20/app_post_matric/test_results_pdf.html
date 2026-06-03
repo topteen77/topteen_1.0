@@ -424,7 +424,8 @@
             {% endif %}
             {% if below_list %}
             <div class="category-card low" style="margin-bottom: 15px;">
-                <div class="category-name">Below Average</div>
+                {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+                <div class="category-name">{{ "Below Average"|aptitude_tier_label }}</div>
                 <div class="career-list" style="margin-top: 10px;">
                     {% for item in below_list %}
                     <div class="career-item avoid">{{ item }}</div>
