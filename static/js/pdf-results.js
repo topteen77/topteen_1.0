@@ -681,10 +681,10 @@ function populateAverageCards(sectionsData) {
     averageCardsContainer.appendChild(averageBox);
   }
 
-  // changes required by management (01-Jun-2025): Below Average → Development Areas (display label only; tier key stays 'Below Average')
+  // Below Average tier key unchanged; UI label is Growth Area
   if (performanceLevels['Below Average'].length > 0) {
     const belowAverageBox = createCustomPerformanceBox(
-      'Development Areas',
+      'Growth Area',
       performanceLevels['Below Average'],
       {
         background: '#FFE5E5',
