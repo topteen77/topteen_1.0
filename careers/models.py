@@ -1,6 +1,7 @@
 from os import link
 from pyexpat import model
 from unicodedata import name
+from django.core.exceptions import ValidationError
 from django.db import models
 from core.models import BaseModel,SlugModel,SeoModel,PublishableModel
 from ckeditor.fields import RichTextField
@@ -683,6 +684,89 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             return "warning"
         else:
             return "error"
+
+
+class VocationalCareerReasoningMapping(BaseModel):
+    """Maps a vocational-cluster career to an aptitude reasoning area for skill-development guidance."""
+    career = models.ForeignKey(
+        Career,
+        on_delete=models.CASCADE,
+        related_name="vocational_reasoning_mappings",
+    )
+    reasoning_area = models.CharField(
+        max_length=20,
+        choices=choices.ReasoningArea.CHOICES,
+        db_index=True,
+    )
+    priority = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Lower value = preferred when multiple careers map to the same reasoning area.",
+    )
+
+    class Meta(BaseModel.Meta):
+        ordering = ("reasoning_area", "priority", "career__name")
+        verbose_name = "Vocational Career Reasoning Mapping"
+        verbose_name_plural = "Vocational Career Reasoning Mappings"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["career", "reasoning_area"],
+                name="unique_vocational_career_reasoning_area",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if not self.career_id or not self.reasoning_area:
+            return
+        qs = VocationalCareerReasoningMapping.objects.complete().filter(
+            career_id=self.career_id,
+            reasoning_area=self.reasoning_area,
+        )
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+        existing = qs.first()
+        if existing and existing.object_status == choices.ObjectStatus.ACTIVE:
+            raise ValidationError({
+                'reasoning_area': (
+                    'This career already has an active mapping for this reasoning area.'
+                ),
+            })
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.career_id and self.reasoning_area:
+            existing = VocationalCareerReasoningMapping.objects.complete().filter(
+                career_id=self.career_id,
+                reasoning_area=self.reasoning_area,
+            ).first()
+            if existing:
+                if existing.object_status == choices.ObjectStatus.ACTIVE:
+                    raise ValidationError({
+                        'reasoning_area': (
+                            'This career already has an active mapping for this reasoning area.'
+                        ),
+                    })
+                existing.priority = self.priority
+                existing.object_status = choices.ObjectStatus.ACTIVE
+                existing.save(update_fields=['priority', 'object_status', 'modified'])
+                self.pk = existing.pk
+                return
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        area = choices.ReasoningArea.label(self.reasoning_area)
+        career_name = ""
+        if self.career_id:
+            career_name = self.career.name or ""
+        return f"{area} -> {career_name}"
+
+
+class VocationalClusterCareer(Career):
+    """Proxy: published careers in the vocational cluster (frontend /careers/cluster/vocational-27/)."""
+
+    class Meta:
+        proxy = True
+        verbose_name = "Vocational cluster career"
+        verbose_name_plural = "Vocational careers (cluster catalog)"
 
 
 class CareerRelatedCareers(Career):

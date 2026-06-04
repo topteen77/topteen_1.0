@@ -175,6 +175,10 @@ class Careers(TemplateView):
 
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
+        reasoning_filter_active = False
+        reasoning_filter_area = None
+        reasoning_filter_label = None
+        mapped_filter_active = False
         # SEO-friendly URL can pass single cluster via url_cluster_id
         selected_clusters = request_data.getlist("cluster") or ([str(url_cluster_id)] if url_cluster_id is not None else [])
         # Cluster page: prefer session-stored params (clean URL); fall back to GET
@@ -235,6 +239,33 @@ class Careers(TemplateView):
                 Q(summary__icontains=search_query) |
                 Q(description__icontains=search_query)
             )
+
+        mapped_param = request_data.get('mapped', '').strip().lower()
+        if mapped_param in ('1', 'true', 'yes') and url_cluster_id is not None:
+            from careers.vocational_cluster import vocational_career_cluster_id
+
+            if int(url_cluster_id) == vocational_career_cluster_id():
+                mapped_filter_active = True
+                careers = careers.filter(
+                    vocational_reasoning_mappings__object_status=choices.ObjectStatus.ACTIVE,
+                ).distinct()
+
+        reasoning_area_param = request_data.get('reasoning_area', '').strip()
+        if reasoning_area_param and url_cluster_id is not None:
+            from app.vocational_recommendations import normalize_reasoning_area_code
+            from careers.vocational_cluster import vocational_career_cluster_id
+            from core.choices import ReasoningArea
+
+            if int(url_cluster_id) == vocational_career_cluster_id():
+                area_code = normalize_reasoning_area_code(reasoning_area_param)
+                if area_code:
+                    reasoning_filter_active = True
+                    reasoning_filter_area = area_code
+                    reasoning_filter_label = ReasoningArea.label(area_code)
+                    careers = careers.filter(
+                        vocational_reasoning_mappings__reasoning_area=area_code,
+                        vocational_reasoning_mappings__object_status=choices.ObjectStatus.ACTIVE,
+                    ).distinct()
 
         # Ensure deterministic ordering before pagination (distinct() may clear order_by)
         careers = careers.order_by('name', 'id')
@@ -409,6 +440,12 @@ class Careers(TemplateView):
             'selected_careers_display': selected_careers_display,
             'cluster_careers_options': cluster_careers_options,
             'shortlisted_career_ids': shortlisted_career_ids,
+            'reasoning_filter_active': reasoning_filter_active,
+            'reasoning_filter_area': reasoning_filter_area,
+            'reasoning_filter_label': reasoning_filter_label,
+            'reasoning_filter_count': paginator.count if reasoning_filter_active else 0,
+            'mapped_filter_active': mapped_filter_active,
+            'mapped_filter_count': paginator.count if mapped_filter_active and not reasoning_filter_active else 0,
         }
 
         # Parent -> Student context override for shortlist state

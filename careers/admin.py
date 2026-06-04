@@ -3,8 +3,8 @@ from django.utils.html import format_html
 from django.contrib import messages
 from django import forms
 from django.db import models
-from django.shortcuts import render
-from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
@@ -15,8 +15,10 @@ from core import choices
 from .models import (
     Career, CareerFAQ, CareerPath, CareerMedia, Skill, ProspectiveEmploymentArea,
     ProspectiveRecruiter, Profession, CareerPathStep, CareerCluster, RIASECCareer,
-    CareerRating, CareerRelatedCareers,
+    CareerRating, CareerRelatedCareers, VocationalCareerReasoningMapping,
+    VocationalClusterCareer,
 )
+from .vocational_cluster import get_vocational_career_cluster, vocational_career_cluster_id
 from .related_careers_import import import_related_careers_from_csv
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 from modeltranslation.admin import TranslationAdmin,TranslationStackedInline
@@ -249,10 +251,18 @@ class CareerAdminForm(forms.ModelForm):
         return docx_file
 
 
+class VocationalCareerReasoningMappingInline(admin.TabularInline):
+    model = VocationalCareerReasoningMapping
+    extra = 1
+    fields = ('reasoning_area', 'priority', 'object_status')
+    verbose_name = 'Vocational reasoning mapping'
+    verbose_name_plural = 'Vocational reasoning mappings'
+
+
 class CareerAdmin(admin.ModelAdmin):
     form = CareerAdminForm
     list_display = [
-        'id', 'name', 'career_clusters_display', 'related_careers_summary',
+        'id', 'name', 'reasoning_areas_display', 'career_clusters_display', 'related_careers_summary',
         'publish_status_display', 'image_url_display', 'preview_link',
         'mindmap_validation', 'skills_count', 'created_date', 'modified_date',
     ]
@@ -264,7 +274,7 @@ class CareerAdmin(admin.ModelAdmin):
     # list_editable = ['publish_status']
     actions = ['make_published', 'make_draft', 'assign_to_cluster']
     
-    inlines = [CareerMediaInline]
+    inlines = [VocationalCareerReasoningMappingInline, CareerMediaInline]
     readonly_fields = ['created', 'modified', 'preview_url', 'validation_errors']
     
     fieldsets = (
@@ -312,6 +322,23 @@ class CareerAdmin(admin.ModelAdmin):
                         'career_tags', 'courses', 'career_cluster', 'related_careers',
                         'career_paths', 'videos')
     
+    def reasoning_areas_display(self, obj):
+        return _career_reasoning_areas_display(obj)
+    reasoning_areas_display.short_description = 'Reasoning areas'
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
+        if (
+            request.GET.get('app_label') == 'careers'
+            and request.GET.get('model_name') == 'vocationalcareerreasoningmapping'
+            and request.GET.get('field_name') == 'career'
+        ):
+            queryset = queryset.filter(
+                career_cluster__id=vocational_career_cluster_id(),
+                publish_status=choices.PublishStatus.PUBLISHED,
+            ).distinct()
+        return queryset, may_have_duplicates
+
     def career_clusters_display(self, obj):
         """Display career clusters with editable dropdown"""
         clusters = obj.career_cluster.all()
@@ -832,6 +859,361 @@ class CareerRelatedCareersAdmin(admin.ModelAdmin):
             'title': 'Import related careers from CSV',
             'opts': self.model._meta,
         })
+
+
+def _career_reasoning_areas_display(obj):
+    from core.choices import ReasoningArea
+    if not obj or not getattr(obj, 'pk', None):
+        return '-'
+    areas = (
+        obj.vocational_reasoning_mappings.filter(object_status=choices.ObjectStatus.ACTIVE)
+        .order_by('reasoning_area')
+        .values_list('reasoning_area', flat=True)
+    )
+    if not areas:
+        return '-'
+    return ', '.join(ReasoningArea.label(area) for area in areas)
+
+
+class VocationalCareerMappingFilter(SimpleListFilter):
+    title = 'Reasoning mapping'
+    parameter_name = 'reasoning_mapped'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Has mapping'),
+            ('no', 'Unmapped'),
+        )
+
+    def queryset(self, request, queryset):
+        from careers.models import VocationalCareerReasoningMapping
+        mapped_ids = VocationalCareerReasoningMapping.objects.filter(
+            object_status=choices.ObjectStatus.ACTIVE,
+        ).values_list('career_id', flat=True)
+        if self.value() == 'yes':
+            return queryset.filter(pk__in=mapped_ids)
+        if self.value() == 'no':
+            return queryset.exclude(pk__in=mapped_ids)
+        return queryset
+
+
+@admin.register(VocationalClusterCareer)
+class VocationalClusterCareerAdmin(admin.ModelAdmin):
+    """All published careers in the vocational cluster — same set as the public cluster page."""
+
+    list_display = (
+        'id',
+        'name',
+        'reasoning_areas_display',
+        'mapping_count_display',
+        'add_mapping_link',
+        'publish_status',
+        'preview_link',
+        'frontend_cluster_link',
+    )
+    list_filter = (VocationalCareerMappingFilter, 'publish_status')
+    search_fields = ('name', 'id')
+    ordering = ('name',)
+    list_per_page = 50
+    change_list_template = 'admin/careers/vocationalclustercareer/change_list.html'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.filter(
+            career_cluster__id=vocational_career_cluster_id(),
+            publish_status=choices.PublishStatus.PUBLISHED,
+            object_status=choices.ObjectStatus.ACTIVE,
+        ).distinct()
+
+    def reasoning_areas_display(self, obj):
+        return _career_reasoning_areas_display(obj)
+    reasoning_areas_display.short_description = 'Reasoning areas'
+
+    def mapping_count_display(self, obj):
+        if not obj or not getattr(obj, 'pk', None):
+            return '0'
+        count = obj.vocational_reasoning_mappings.filter(
+            object_status=choices.ObjectStatus.ACTIVE,
+        ).count()
+        if not count:
+            return format_html('<span style="color:#ba2121;">0</span>')
+        return str(count)
+    mapping_count_display.short_description = 'Mappings'
+
+    def add_mapping_link(self, obj):
+        if not obj or not getattr(obj, 'pk', None):
+            return '-'
+        if obj.vocational_reasoning_mappings.filter(object_status=choices.ObjectStatus.ACTIVE).exists():
+            return format_html(
+                '<a href="{}?career__id__exact={}">Edit mappings</a>',
+                reverse('admin:careers_vocationalcareerreasoningmapping_changelist'),
+                obj.pk,
+            )
+        return format_html(
+            '<a href="{}?career={}" style="font-weight:600;color:#417690;">+ Add mapping</a>',
+            reverse('admin:careers_vocationalcareerreasoningmapping_add'),
+            obj.pk,
+        )
+    add_mapping_link.short_description = 'Mapping'
+
+    def preview_link(self, obj):
+        if not obj or not getattr(obj, 'pk', None):
+            return '-'
+        try:
+            url = obj.url()
+            return format_html(
+                '<a href="{}" target="_blank" style="font-weight:600;">View</a>',
+                url,
+            )
+        except Exception:
+            return '-'
+    preview_link.short_description = 'Preview'
+
+    def frontend_cluster_link(self, obj):
+        cluster = get_vocational_career_cluster()
+        if not cluster:
+            return '-'
+        url = reverse('careers:career_cluster', args=[cluster.slug, cluster.id])
+        return format_html('<a href="{}" target="_blank">Cluster page</a>', url)
+    frontend_cluster_link.short_description = 'Frontend'
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        qs = self.get_queryset(request)
+        total = qs.count()
+        from careers.models import VocationalCareerReasoningMapping
+        mapped = (
+            VocationalCareerReasoningMapping.objects.filter(
+                object_status=choices.ObjectStatus.ACTIVE,
+                career_id__in=qs.values_list('pk', flat=True),
+            )
+            .values('career_id')
+            .distinct()
+            .count()
+        )
+        extra_context['vocational_catalog_total'] = total
+        extra_context['vocational_catalog_mapped'] = mapped
+        extra_context['vocational_catalog_unmapped'] = max(0, total - mapped)
+        cluster = get_vocational_career_cluster()
+        if cluster:
+            extra_context['vocational_cluster_frontend_url'] = reverse(
+                'careers:career_cluster', args=[cluster.slug, cluster.id]
+            )
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                'export-reasoning-json/',
+                self.admin_site.admin_view(vocational_career_reasoning_export_json_view),
+                name='careers_vocationalclustercareer_export_reasoning_json',
+            ),
+            path(
+                'export-reasoning-csv/',
+                self.admin_site.admin_view(vocational_career_reasoning_export_csv_view),
+                name='careers_vocationalclustercareer_export_reasoning_csv',
+            ),
+            path(
+                'import-reasoning/',
+                self.admin_site.admin_view(vocational_career_reasoning_import_view),
+                name='careers_vocationalclustercareer_import_reasoning',
+            ),
+        ]
+        return custom + urls
+
+
+class VocationalCareerReasoningMappingImportForm(forms.Form):
+    file = forms.FileField(label='JSON or CSV mappings file')
+    dry_run = forms.BooleanField(required=False, initial=False, label='Dry run (validate only)')
+    replace_all = forms.BooleanField(
+        required=False,
+        initial=False,
+        label='Replace all (soft-delete mappings not in file)',
+        help_text=(
+            'Recommended when re-importing a CSV: removes auto-seeded or outdated mappings '
+            'so only careers in the file (exact name match) appear on the student dashboard.'
+        ),
+    )
+
+
+def vocational_career_reasoning_export_json_view(request):
+    from careers.vocational_career_reasoning_io import export_json_bytes
+    response = HttpResponse(export_json_bytes(), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="vocational_career_reasoning_mappings.json"'
+    return response
+
+
+def vocational_career_reasoning_export_csv_view(request):
+    from careers.vocational_career_reasoning_io import export_csv_zip_bytes
+    response = HttpResponse(export_csv_zip_bytes(), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename="vocational_career_reasoning_export.zip"'
+    return response
+
+
+def vocational_career_reasoning_import_view(request):
+    from careers.vocational_career_reasoning_io import import_mappings
+
+    redirect_to = 'admin:careers_vocationalcareerreasoningmapping_changelist'
+    changelist_url = reverse(redirect_to)
+
+    if request.method == 'POST':
+        form = VocationalCareerReasoningMappingImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            upload = form.cleaned_data['file']
+            try:
+                result = import_mappings(
+                    upload.read(),
+                    filename=upload.name,
+                    dry_run=form.cleaned_data['dry_run'],
+                    replace_all=form.cleaned_data['replace_all'],
+                )
+            except Exception as exc:
+                messages.error(request, f'Import failed: {exc}')
+                result = None
+            if result is not None:
+                if result.created or result.updated or result.deleted:
+                    prefix = 'Dry run OK' if form.cleaned_data['dry_run'] else 'Import complete'
+                    messages.success(
+                        request,
+                        f'{prefix}: {result.created} created, '
+                        f'{result.updated} updated, {result.deleted} deleted.',
+                    )
+                if result.errors:
+                    for err in result.errors[:50]:
+                        messages.error(request, err)
+                    if len(result.errors) > 50:
+                        messages.error(request, f'... and {len(result.errors) - 50} more errors.')
+                elif form.cleaned_data['dry_run']:
+                    messages.info(request, 'Dry run finished with no errors.')
+                if (
+                    not form.cleaned_data['dry_run']
+                    and (result.created or result.updated or result.deleted)
+                ):
+                    return redirect(redirect_to)
+        else:
+            messages.error(request, 'Please choose a valid file to upload.')
+    else:
+        form = VocationalCareerReasoningMappingImportForm()
+
+    context = {
+        **admin.site.each_context(request),
+        'form': form,
+        'title': 'Import vocational career reasoning mappings',
+        'opts': VocationalCareerReasoningMapping._meta,
+        'redirect_to': redirect_to,
+        'changelist_url': changelist_url,
+        'vocational_cluster_id': vocational_career_cluster_id(),
+    }
+    return render(request, 'admin/careers/vocationalcareerreasoningmapping/import_form.html', context)
+
+
+@admin.register(VocationalCareerReasoningMapping)
+class VocationalCareerReasoningMappingAdmin(admin.ModelAdmin):
+    list_display = (
+        'reasoning_area',
+        'career',
+        'career_cluster_names',
+        'priority',
+        'object_status',
+        'modified',
+    )
+    list_filter = ('reasoning_area', 'object_status', 'career__career_cluster')
+    search_fields = ('career__name', 'career__id')
+    ordering = ('reasoning_area', 'priority', 'career__name')
+    autocomplete_fields = ('career',)
+    change_list_template = 'admin/careers/vocationalcareerreasoningmapping/change_list.html'
+
+    def career_cluster_names(self, obj):
+        if not obj.career_id:
+            return '-'
+        return ', '.join(obj.career.career_cluster.values_list('name', flat=True)[:3]) or '-'
+    career_cluster_names.short_description = 'Clusters'
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        career_id = request.GET.get('career')
+        if career_id:
+            try:
+                initial['career'] = int(career_id)
+            except (TypeError, ValueError):
+                pass
+        return initial
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        from careers.vocational_career_reasoning_io import _published_vocational_careers_qs
+        from careers.models import VocationalCareerReasoningMapping
+
+        career_ids = list(_published_vocational_careers_qs().values_list('pk', flat=True))
+        total = len(career_ids)
+        mapped_ids = set(
+            VocationalCareerReasoningMapping.objects.filter(
+                object_status=choices.ObjectStatus.ACTIVE,
+                career_id__in=career_ids,
+            ).values_list('career_id', flat=True)
+        )
+        mapped = len(mapped_ids)
+        extra_context['vocational_catalog_total'] = total
+        extra_context['vocational_catalog_mapped'] = mapped
+        extra_context['vocational_catalog_unmapped'] = max(0, total - mapped)
+        extra_context['vocational_catalog_admin_url'] = reverse(
+            'admin:careers_vocationalclustercareer_changelist'
+        )
+        cluster = get_vocational_career_cluster()
+        if cluster:
+            extra_context['vocational_cluster_frontend_url'] = reverse(
+                'careers:career_cluster', args=[cluster.slug, cluster.id]
+            )
+
+        search_query = (request.GET.get('q') or '').strip()
+        extra_context['search_query'] = search_query
+        if search_query:
+            catalog_qs = _published_vocational_careers_qs().filter(name__icontains=search_query)
+            extra_context['search_catalog_careers'] = list(catalog_qs[:15])
+            extra_context['search_unmapped_careers'] = [
+                c for c in extra_context['search_catalog_careers'] if c.pk not in mapped_ids
+            ]
+            extra_context['search_catalog_url'] = (
+                f"{reverse('admin:careers_vocationalclustercareer_changelist')}?q={search_query}"
+            )
+
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                'export-json/',
+                self.admin_site.admin_view(vocational_career_reasoning_export_json_view),
+                name='careers_vocationalcareerreasoningmapping_export_json',
+            ),
+            path(
+                'export-csv/',
+                self.admin_site.admin_view(vocational_career_reasoning_export_csv_view),
+                name='careers_vocationalcareerreasoningmapping_export_csv',
+            ),
+            path(
+                'import/',
+                self.admin_site.admin_view(vocational_career_reasoning_import_view),
+                name='careers_vocationalcareerreasoningmapping_import',
+            ),
+        ]
+        return custom + urls
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'career':
+            kwargs['queryset'] = Career.objects.filter(
+                career_cluster__id=vocational_career_cluster_id(),
+                publish_status=choices.PublishStatus.PUBLISHED,
+            ).distinct().order_by('name')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 admin.site.register(Career, CareerAdmin)

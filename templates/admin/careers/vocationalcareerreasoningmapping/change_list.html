@@ -1,0 +1,76 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:careers_vocationalclustercareer_changelist' %}" class="viewsitelink">View all vocational careers ({{ vocational_catalog_total|default:"?" }})</a>
+</li>
+<li>
+  <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_export_json' %}" class="addlink">Export JSON</a>
+</li>
+<li>
+  <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_export_csv' %}" class="addlink">Export CSV (zip)</a>
+</li>
+<li>
+  <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_import' %}" class="addlink">Import mappings</a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 10px;">
+  <p class="help" style="margin: 0 0 8px 0;">
+    This list shows <strong>reasoning mappings only</strong> ({{ cl.result_count }} row{{ cl.result_count|pluralize }}), not every career.
+    The vocational cluster has <strong>{{ vocational_catalog_total|default:"—" }}</strong> published careers —
+    <strong>{{ vocational_catalog_mapped|default:0 }}</strong> mapped,
+    <strong>{{ vocational_catalog_unmapped|default:0 }}</strong> unmapped.
+    <a href="{% url 'admin:careers_vocationalclustercareer_changelist' %}"><strong>Open vocational careers catalog</strong></a>
+    to see all careers (3D Printing Technician, Advertising &amp; Marketing Specialist, etc.).
+  </p>
+  <p class="help" style="margin: 0 0 8px 0;">
+    Map careers to aptitude reasoning areas for the psychometric dashboard
+    (<strong>Vocational guidance for skill development</strong>).
+    <strong>Export</strong> includes the full career catalog + mappings; edit with AI, then <strong>Import</strong>.
+    {% if vocational_cluster_frontend_url %}
+    Public page: <a href="{{ vocational_cluster_frontend_url }}" target="_blank">{{ vocational_cluster_frontend_url }}</a>.
+    {% endif %}
+  </p>
+  <p class="help" style="margin: 0;">
+    <strong>Search tip:</strong> This search only finds careers that <em>already have</em> a mapping row.
+    To find any vocational career by name (including unmapped), use
+    <a href="{% url 'admin:careers_vocationalclustercareer_changelist' %}">Vocational careers (cluster catalog)</a>.
+  </p>
+</div>
+{% if search_query and search_unmapped_careers %}
+<div class="module" style="margin-bottom: 12px; padding: 12px 14px; background: #fff3cd; border: 1px solid #ffc107;">
+  <p style="margin: 0 0 8px 0;">
+    <strong>No mapping rows</strong> match &ldquo;{{ search_query }}&rdquo;, but
+    {{ search_unmapped_careers|length }} vocational career(s) exist without a mapping yet:
+  </p>
+  <ul style="margin: 0; padding-left: 1.25rem;">
+    {% for career in search_unmapped_careers %}
+    <li style="margin-bottom: 4px;">
+      <strong>{{ career.name }}</strong> (id {{ career.id }})
+      &mdash;
+      <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_add' %}?career={{ career.id }}">Add reasoning mapping</a>
+      &middot;
+      <a href="{% url 'admin:careers_career_change' career.id %}">Edit career</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if search_catalog_url %}
+  <p class="help" style="margin: 8px 0 0 0;">
+    <a href="{{ search_catalog_url }}">View all catalog matches for &ldquo;{{ search_query }}&rdquo;</a>
+  </p>
+  {% endif %}
+</div>
+{% elif search_query and search_catalog_careers and not cl.result_count %}
+<div class="module" style="margin-bottom: 12px; padding: 12px 14px; background: #f8d7da; border: 1px solid #f5c2c7;">
+  <p style="margin: 0;">
+    No vocational career and no mapping found for &ldquo;{{ search_query }}&rdquo;.
+    <a href="{{ search_catalog_url }}">Search the full catalog</a>.
+  </p>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

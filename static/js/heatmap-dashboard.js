@@ -17,6 +17,7 @@
         state: {
             view: 'grade', // 'grade', 'section', or 'stream'
             heatmapData: [],
+            colorPalette: null,
             demographics: {
                 grade: [],
                 section: [],
@@ -50,6 +51,17 @@
             'Legal & Governance',
             'Media & Communications'
         ],
+
+        getDefaultColorPalette: function() {
+            // Keep in sync with institute/utils.py::HEATMAP_CATEGORY_COLORS
+            return {
+                'High Risk': '#EF4444',
+                'Maintenance': '#F59E0B',
+                'High Alignment': '#10B981',
+                'Monitor': '#6B7280',
+                'No Data': '#E5E7EB',
+            };
+        },
 
         // Initialize the dashboard
         init: function() {
@@ -168,6 +180,7 @@
                     throw new Error(typeof data.error === 'string' ? data.error : 'Heatmap data unavailable');
                 }
                 self.state.heatmapData = data.heatmapData || [];
+                self.state.colorPalette = data.colorPalette || self.getDefaultColorPalette();
                 // Ensure demographics object has all keys
                 self.state.demographics = {
                     grade: (data.demographics && data.demographics.grade) || [],
@@ -248,6 +261,10 @@
             // Clear existing content
             container.innerHTML = '';
 
+            const noDataColor = (this.state.colorPalette && this.state.colorPalette['No Data'])
+                ? this.state.colorPalette['No Data']
+                : '#E5E7EB';
+
             const demoCats = this.state.demographics[this.state.view] || [];
             const heatmapData = this.state.heatmapData;
 
@@ -321,7 +338,7 @@
                         alignment: 0,
                         clarityGap: 0,
                         category: 'No Data',
-                        color: '#E5E7EB',
+                        color: noDataColor,
                         priority: 5,
                         studentCount: 0
                     };

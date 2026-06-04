@@ -179,6 +179,92 @@ def db_results(request):
 def has_attempted_test(user):
     return TestCompletion.objects.filter(user=user).exists()
 
+
+APTITUDE_STREAM_MAP = {
+    'NUMERICAL': ['PCM', 'CWM'],
+    'VERBAL': ['HUM', 'CWM'],
+    'LOGICAL': ['PCM', 'PCB'],
+    'MECHANICAL': ['PCM', 'CS'],
+    'SPATIAL': ['PCM', 'Fine Arts'],
+    'LANGUAGE': ['HUM', 'HWL'],
+    'CRITICAL': ['PCM', 'HUM'],
+}
+
+STREAM_SUBJECT_MAP = {
+    'PCM': {'label': 'PCM (Physics, Chemistry, Mathematics)', 'stream': 'PCM', 'subjects': 'Physics, Chemistry, Mathematics', 'color_class': 'stream-chip-pcm'},
+    'PCB': {'label': 'PCB (Physics, Chemistry, Biology)', 'stream': 'PCB', 'subjects': 'Physics, Chemistry, Biology', 'color_class': 'stream-chip-pcb'},
+    'HUM': {'label': 'HUM (Humanities)', 'stream': 'HUM', 'subjects': 'Humanities', 'color_class': 'stream-chip-hum'},
+    'HWL': {'label': 'HWL (Humanities with Languages)', 'stream': 'HWL', 'subjects': 'Humanities with Languages', 'color_class': 'stream-chip-hwl'},
+    'CWM': {'label': 'CWM (Commerce with Mathematics)', 'stream': 'CWM', 'subjects': 'Commerce with Mathematics', 'color_class': 'stream-chip-cwm'},
+    'CWOM': {'label': 'CWOM (Commerce without Mathematics)', 'stream': 'CWOM', 'subjects': 'Commerce without Mathematics', 'color_class': 'stream-chip-cwom'},
+    'CS': {'label': 'CS (Computer Science)', 'stream': 'CS', 'subjects': 'Computer Science', 'color_class': 'stream-chip-cs'},
+    'FINE ARTS': {'label': 'Fine Arts', 'stream': 'Fine Arts', 'subjects': 'Fine Arts', 'color_class': 'stream-chip-finearts'},
+}
+
+
+def _normalize_stream_code(stream_code):
+    return str(stream_code or '').upper().strip()
+
+
+def _build_stream_questionnaire_options(intelligence_scores_by_code, primary_aptitude, suitable_combinations):
+    """Attach intelligence match scores to suggested and alternate stream options."""
+    stream_to_aptitudes = {}
+    for aptitude, streams in APTITUDE_STREAM_MAP.items():
+        for stream in streams:
+            key = _normalize_stream_code(stream)
+            stream_to_aptitudes.setdefault(key, [])
+            if aptitude not in stream_to_aptitudes[key]:
+                stream_to_aptitudes[key].append(aptitude)
+
+    primary_aptitude = _normalize_stream_code(primary_aptitude)
+    primary_streams = {_normalize_stream_code(s) for s in APTITUDE_STREAM_MAP.get(primary_aptitude, [])}
+
+    def compute_score(stream_code):
+        code = _normalize_stream_code(stream_code)
+        aptitudes = stream_to_aptitudes.get(code, [])
+        if not aptitudes and primary_aptitude:
+            aptitudes = [primary_aptitude]
+        if not aptitudes:
+            if intelligence_scores_by_code:
+                fallback_score = int(round(
+                    sum(intelligence_scores_by_code.values()) / len(intelligence_scores_by_code)
+                ))
+                return max(0, min(100, fallback_score)), ['Overall aptitude']
+            return 0, []
+        score_values = [int(intelligence_scores_by_code.get(area, 0)) for area in aptitudes]
+        base_score = int(round(sum(score_values) / len(score_values)))
+        if code in primary_streams:
+            base_score = min(100, base_score + 8)
+        return max(0, min(100, base_score)), aptitudes
+
+    suggested_codes = {_normalize_stream_code(item.get('stream')) for item in suitable_combinations}
+
+    scored_suggested = []
+    for combo in suitable_combinations:
+        entry = dict(combo)
+        code = _normalize_stream_code(entry.get('stream'))
+        match_score, aptitude_areas = compute_score(code)
+        entry['match_score'] = match_score
+        entry['aptitude_areas'] = aptitude_areas
+        entry['aptitude_areas_display'] = ', '.join(str(area).title() for area in aptitude_areas)
+        scored_suggested.append(entry)
+
+    scored_other = []
+    for key, meta in STREAM_SUBJECT_MAP.items():
+        entry = dict(meta)
+        code = _normalize_stream_code(entry.get('stream', key))
+        if code in suggested_codes:
+            continue
+        match_score, aptitude_areas = compute_score(code)
+        entry['match_score'] = match_score
+        entry['aptitude_areas'] = aptitude_areas
+        entry['aptitude_areas_display'] = ', '.join(str(area).title() for area in aptitude_areas)
+        scored_other.append(entry)
+
+    scored_other.sort(key=lambda item: item.get('match_score', 0), reverse=True)
+    return scored_suggested, scored_other
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 
 @login_required(login_url=reverse_lazy('users:login'))
@@ -468,17 +554,26 @@ def dashboard(request, student_id=None):
         except Exception:
             skill_readiness_index = []
 
-        # Vocational courses for below-average reasoning areas (DB-backed mappings).
-        vocational_course_cards = []
+        # Vocational careers for below-average reasoning areas (DB-backed mappings).
+        vocational_guidance_groups = []
         below_area_vocational_urls_map = {}
+        vocational_guidance_section_url = None
         try:
-            from app.vocational_recommendations import vocational_cards_for_below_areas, below_area_vocational_urls
+            from app.vocational_recommendations import (
+                below_area_vocational_urls,
+                vocational_guidance_grouped_for_below_areas,
+            )
+            from careers.vocational_cluster import build_vocational_cluster_mapped_url
+            vocational_guidance_section_url = build_vocational_cluster_mapped_url()
             if isinstance(below, list) and below:
-                vocational_course_cards = vocational_cards_for_below_areas(below, user=request.user)
+                vocational_guidance_groups = vocational_guidance_grouped_for_below_areas(
+                    below, user=request.user
+                )
                 below_area_vocational_urls_map = below_area_vocational_urls(below, user=request.user)
         except Exception:
-            vocational_course_cards = []
+            vocational_guidance_groups = []
             below_area_vocational_urls_map = {}
+            vocational_guidance_section_url = None
 
         # Suggested careers block (grouped by RIASEC / aptitude heading for dashboard)
         interest_suggested_careers = []
@@ -545,25 +640,8 @@ def dashboard(request, student_id=None):
                 'CRITICAL': ['Policy Analysis', 'Law', 'Research', 'Strategic Analysis'],
             }
             # Same stream mapping used in report logic (single strongest aptitude)
-            aptitude_stream_map = {
-                'NUMERICAL': ['PCM', 'CWM'],
-                'VERBAL': ['HUM', 'CWM'],
-                'LOGICAL': ['PCM', 'PCB'],
-                'MECHANICAL': ['PCM', 'CS'],
-                'SPATIAL': ['PCM', 'Fine Arts'],
-                'LANGUAGE': ['HUM', 'HWL'],
-                'CRITICAL': ['PCM', 'HUM'],
-            }
-            stream_subject_map = {
-                'PCM': {'label': 'PCM (Physics, Chemistry, Mathematics)', 'stream': 'PCM', 'subjects': 'Physics, Chemistry, Mathematics', 'color_class': 'stream-chip-pcm'},
-                'PCB': {'label': 'PCB (Physics, Chemistry, Biology)', 'stream': 'PCB', 'subjects': 'Physics, Chemistry, Biology', 'color_class': 'stream-chip-pcb'},
-                'HUM': {'label': 'HUM (Humanities)', 'stream': 'HUM', 'subjects': 'Humanities', 'color_class': 'stream-chip-hum'},
-                'HWL': {'label': 'HWL (Humanities with Languages)', 'stream': 'HWL', 'subjects': 'Humanities with Languages', 'color_class': 'stream-chip-hwl'},
-                'CWM': {'label': 'CWM (Commerce with Mathematics)', 'stream': 'CWM', 'subjects': 'Commerce with Mathematics', 'color_class': 'stream-chip-cwm'},
-                'CWOM': {'label': 'CWOM (Commerce without Mathematics)', 'stream': 'CWOM', 'subjects': 'Commerce without Mathematics', 'color_class': 'stream-chip-cwom'},
-                'CS': {'label': 'CS (Computer Science)', 'stream': 'CS', 'subjects': 'Computer Science', 'color_class': 'stream-chip-cs'},
-                'FINE ARTS': {'label': 'Fine Arts', 'stream': 'Fine Arts', 'subjects': 'Fine Arts', 'color_class': 'stream-chip-finearts'},
-            }
+            aptitude_stream_map = APTITUDE_STREAM_MAP
+            stream_subject_map = STREAM_SUBJECT_MAP
             # Keep aligned with report: prioritize strongest aptitude area only
             primary_aptitude = str(above_avg_score or '').upper().strip()
             if primary_aptitude not in aptitude_career_map and top_intelligence_label:
@@ -640,6 +718,59 @@ def dashboard(request, student_id=None):
             next_level_min_points = None
             level_progress_percent = 0
 
+        all_tests_complete = False
+        stream_questionnaire_completed = False
+        stream_questionnaire_answers = {}
+        stream_questionnaire_completed_at = ''
+        try:
+            test_completion = TestCompletion.objects.get(user=request.user)
+            all_subtests_complete = (
+                test_completion.numerical_complete and
+                test_completion.verbal_complete and
+                test_completion.logical_complete and
+                test_completion.emotional_complete and
+                test_completion.machanical_complete and
+                test_completion.language_complete and
+                test_completion.spatial_complete
+            )
+            all_tests_complete = (
+                test_completion.test1_complete and
+                test_completion.test2_complete and
+                test_completion.test3_complete and
+                all_subtests_complete
+            )
+        except Exception:
+            pass
+
+        try:
+            from app.stream_decision import get_questionnaire_data
+            questionnaire_data = get_questionnaire_data(test3_result.results)
+            stream_questionnaire_completed = bool(questionnaire_data.get('completed'))
+            stream_questionnaire_answers = questionnaire_data.get('answers') or {}
+            stream_questionnaire_completed_at = questionnaire_data.get('completed_at') or ''
+        except Exception:
+            pass
+
+        show_stream_questionnaire = (
+            all_tests_complete and
+            bool(suitable_subject_combinations) and
+            not stream_questionnaire_completed
+        )
+
+        intelligence_scores_by_code = {
+            str(item.get('code', '')).upper(): int(item.get('score_pct', 0))
+            for item in (skill_readiness_index or [])
+        }
+        stream_questionnaire_suggested = []
+        stream_questionnaire_other = []
+        if show_stream_questionnaire:
+            primary_aptitude_code = str(above_avg_score or top_intelligence_label or '').upper().strip()
+            stream_questionnaire_suggested, stream_questionnaire_other = _build_stream_questionnaire_options(
+                intelligence_scores_by_code,
+                primary_aptitude_code,
+                suitable_subject_combinations,
+            )
+
         context = {
             'user_profile': user_profile,
             'top_category': top_category,
@@ -677,7 +808,8 @@ def dashboard(request, student_id=None):
             'points_details': points_details,
             'streak_details': streak_details,
             'level_details': level_details,
-            'vocational_course_cards': vocational_course_cards,
+            'vocational_guidance_groups': vocational_guidance_groups,
+            'vocational_guidance_section_url': vocational_guidance_section_url,
             'below_area_vocational_urls': below_area_vocational_urls_map,
             'interest_suggested_careers': interest_suggested_careers,
             'interest_suggested_career_groups': interest_suggested_career_groups,
@@ -687,6 +819,13 @@ def dashboard(request, student_id=None):
             'suitable_subject_combinations': suitable_subject_combinations,
             'skill_readiness_index': skill_readiness_index,
             'report_user_id': request.user.id,
+            'all_tests_complete': all_tests_complete,
+            'show_stream_questionnaire': show_stream_questionnaire,
+            'stream_questionnaire_completed': stream_questionnaire_completed,
+            'stream_questionnaire_answers': stream_questionnaire_answers,
+            'stream_questionnaire_completed_at': stream_questionnaire_completed_at,
+            'stream_questionnaire_suggested': stream_questionnaire_suggested,
+            'stream_questionnaire_other': stream_questionnaire_other,
         }
 
         return render(request, 'template20/psychometric/dashboard.html', context)
@@ -2159,6 +2298,58 @@ def read_json_file(file_path):
         messages.error(f"Error: Invalid JSON format in {file_path}.")
     except Exception as e:
         messages.error(f"Error: {e}")
+
+@login_required(login_url=reverse_lazy('users:login'))
+def stream_decision_questionnaire_submit(request):
+    from app.stream_decision import is_questionnaire_completed, save_questionnaire, validate_answers
+
+    if request.method != 'POST':
+        return JsonResponse({'message': 'Invalid request'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({'message': 'Invalid JSON data'}, status=400)
+
+    answers = data.get('answers') or {}
+    validation_error = validate_answers(answers)
+    if validation_error:
+        return JsonResponse({'message': validation_error}, status=400)
+
+    try:
+        test_completion = TestCompletion.objects.get(user=request.user)
+    except TestCompletion.DoesNotExist:
+        return JsonResponse({'message': 'Test completion record not found.'}, status=400)
+
+    all_subtests_complete = (
+        test_completion.numerical_complete and
+        test_completion.verbal_complete and
+        test_completion.logical_complete and
+        test_completion.emotional_complete and
+        test_completion.machanical_complete and
+        test_completion.language_complete and
+        test_completion.spatial_complete
+    )
+    if not (
+        test_completion.test1_complete and
+        test_completion.test2_complete and
+        test_completion.test3_complete and
+        all_subtests_complete
+    ):
+        return JsonResponse({'message': 'Complete all mandatory tests first.'}, status=400)
+
+    try:
+        test3_result = Results.objects.get(user=request.user, test_paper='test3')
+        if is_questionnaire_completed(test3_result.results):
+            return JsonResponse({'message': 'You have already submitted your stream decision.'}, status=400)
+        save_questionnaire(test3_result, answers)
+        return JsonResponse({'message': 'Success', 'completed': True}, status=200)
+    except Results.DoesNotExist:
+        return JsonResponse({'message': 'Intelligence test results not found.'}, status=400)
+    except Exception as exc:
+        logger.error('stream_decision_questionnaire_submit failed for user %s: %s', request.user.id, exc)
+        return JsonResponse({'message': 'Unable to save your responses.'}, status=500)
+
 
 @csrf_exempt
 @login_required(login_url=reverse_lazy('users:login'))

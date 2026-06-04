@@ -12,7 +12,7 @@
 
 .career-battle-popup-card {
   position: relative;
-  width: min(100%, 980px);
+  /* width: min(100%, 980px); */
   max-height: calc(100vh - 40px);
   border-radius: 24px;
   padding: 28px 28px 24px;
@@ -38,16 +38,17 @@
 
 .career-battle-student-image {
   position: absolute;
-  left: -25px;
+  left: -81px;
   bottom: -33px;
   width: clamp(320px, 32vw, 450px);
-  max-width: 115%;
+  /* max-width: 115%; */
   height: auto;
+  transform: scale(-1,1);
 }
 
 .career-battle-content-col {
   padding-right: 12px;
-  padding-left: 44px;
+  padding-left: 20px;
 }
 
 .career-battle-popup-close {
@@ -80,8 +81,8 @@
 
 
 .career-battle-popup-title {
-  font-size: 35px;
-  line-height: 1.15;
+  font-size: 50px;
+  line-height: 1;
   font-weight: 800;
   margin: 0 0 12px;
   color: #16213f;
@@ -111,10 +112,10 @@
 }
 
 .career-battle-feature-item {
-  border: 1px solid #e0e8fb;
-  background: #f8faff;
+  /* border: 1px solid #e0e8fb;
+  background: #f8faff; */
   border-radius: 16px;
-  padding: 16px 10px 14px;
+  padding: 8px 7px 8px;
   text-align: center;
 }
 
@@ -138,6 +139,7 @@
 
 .career-battle-popup-cta:hover {
 	color: #fff;
+  box-shadow: 0 10px 20px rgba(70, 99, 255, 0.28);
 }
 
 .career-battle-popup-cta,
@@ -158,7 +160,7 @@
   background: #5249DF;
   /* background: linear-gradient(90deg, #6f38ff 0%, #376cff 100%); */
   color: #fff;
-  box-shadow: 0 10px 20px rgba(70, 99, 255, 0.28);
+
 }
 
 .career-battle-popup-secondary {
@@ -209,13 +211,12 @@
   }
 
   .career-battle-student-image {
-    position: relative;
-    left: 50%;
-    bottom: auto;
-    transform: translateX(-50%);
-    width: min(100%, 340px);
-    max-width: 100%;
-    height: auto;
+    position: absolute;
+    left: -90px;
+    bottom: -33px;
+    width: clamp(320px, 32vw, 450px);
+     height: auto;
+    transform: scale(-1,1);
   }
 
   .career-battle-content-col {

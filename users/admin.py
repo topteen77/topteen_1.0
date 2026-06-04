@@ -72,6 +72,7 @@ def _get_user_test_count(user):
 def _get_tests_for_users(user_ids):
     """Return list of tests that the given users have. Each item: { id, name, type }."""
     from app.models import Results
+    from app.stream_decision import is_questionnaire_completed
     from app_post_matric.models import TestSession, Test
     if not user_ids:
         return []
@@ -85,6 +86,20 @@ def _get_tests_for_users(user_ids):
         if key not in test_ids_seen:
             test_ids_seen.add(key)
             out.append({'id': key, 'name': 'Psychometric: ' + paper, 'type': 'psychometric'})
+    for user in users:
+        try:
+            test3_result = Results.objects.get(user=user, test_paper='test3')
+        except Results.DoesNotExist:
+            continue
+        if is_questionnaire_completed(test3_result.results):
+            if 'stream_decision_questionnaire' not in test_ids_seen:
+                test_ids_seen.add('stream_decision_questionnaire')
+                out.append({
+                    'id': 'stream_decision_questionnaire',
+                    'name': 'Stream Decision Questionnaire',
+                    'type': 'questionnaire',
+                })
+            break
     # Post-matric: distinct Test from TestSession
     sessions = TestSession.objects.filter(user_id__in=user_ids).select_related('test')
     for s in sessions:
@@ -92,6 +107,12 @@ def _get_tests_for_users(user_ids):
             test_ids_seen.add('post_matric_' + str(s.test_id))
             out.append({'id': 'post_matric_' + str(s.test_id), 'name': 'Post-matric: ' + (s.test.title if s.test else str(s.test_id)), 'type': 'post_matric'})
     return out
+
+
+def _reset_stream_decision_questionnaire(user):
+    from app.stream_decision import clear_questionnaire
+
+    return clear_questionnaire(user)
 
 
 def _reset_student_tests(user, test_ids=None):
@@ -118,7 +139,9 @@ def _reset_student_tests(user, test_ids=None):
     if tc_update:
         TestCompletion.objects.filter(user=user).update(**tc_update)
     for tid in test_ids:
-        if tid.startswith('psychometric_'):
+        if tid == 'stream_decision_questionnaire':
+            _reset_stream_decision_questionnaire(user)
+        elif tid.startswith('psychometric_'):
             paper = tid.replace('psychometric_', '')
             Results.objects.filter(user=user, test_paper=paper).delete()
         elif tid.startswith('post_matric_'):

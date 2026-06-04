@@ -1010,6 +1010,26 @@ Explore our comprehensive collection of career paths organized by industry and i
         
         <!-- Career list for selected cluster(s) -->
         <div class="mt-4">
+            {% if reasoning_filter_active|default(false) %}
+            <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <span>
+                Showing <strong>{{ reasoning_filter_count|default(0) }}</strong> mapped vocational career(s) for
+                <strong>{{ reasoning_filter_label }}</strong> reasoning.
+              </span>
+              {% if cluster_page_url %}
+              <a href="{{ cluster_page_url }}" class="text-decoration-underline">View all careers in this cluster</a>
+              {% endif %}
+            </div>
+            {% elif mapped_filter_active|default(false) %}
+            <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+              <span>
+                Showing <strong>{{ mapped_filter_count|default(0) }}</strong> vocational career(s) with reasoning guidance mappings.
+              </span>
+              {% if cluster_page_url %}
+              <a href="{{ cluster_page_url }}" class="text-decoration-underline">View all careers in this cluster</a>
+              {% endif %}
+            </div>
+            {% endif %}
             {% if careers %}
             {% set career_count = total_careers if total_careers is defined and total_careers is not none else (careers.paginator.count if careers.paginator is defined else careers|length) %}
             <div class="row mb-3">

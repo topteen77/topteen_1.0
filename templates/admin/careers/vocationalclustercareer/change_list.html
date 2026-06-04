@@ -1,0 +1,42 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:careers_vocationalclustercareer_export_reasoning_json' %}" class="addlink">Export reasoning JSON</a>
+</li>
+<li>
+  <a href="{% url 'admin:careers_vocationalclustercareer_export_reasoning_csv' %}" class="addlink">Export reasoning CSV</a>
+</li>
+<li>
+  <a href="{% url 'admin:careers_vocationalclustercareer_import_reasoning' %}" class="addlink">Import reasoning mappings</a>
+</li>
+<li>
+  <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_changelist' %}">Manage reasoning mappings</a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 10px;">
+  <p class="help" style="margin: 0 0 8px 0;">
+    <strong>{{ vocational_catalog_total|default:"—" }}</strong> published careers in the
+    <strong>Vocational</strong> cluster (same list as
+    {% if vocational_cluster_frontend_url %}
+    <a href="{{ vocational_cluster_frontend_url }}" target="_blank">/careers/cluster/vocational-27/</a>
+    {% else %}
+    the public vocational cluster page
+    {% endif %}).
+    <strong>{{ vocational_catalog_mapped|default:0 }}</strong> have reasoning mappings;
+    <strong>{{ vocational_catalog_unmapped|default:0 }}</strong> are unmapped.
+  </p>
+  <p class="help" style="margin: 0;">
+    <strong>Search here</strong> to find any vocational career by name (e.g. 3D Printing Technician).
+    Use the <strong>Reasoning areas</strong> column to see aptitude tags (&mdash; means not mapped yet).
+    Click a career name to add mappings on the edit page, or use
+    <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_changelist' %}">Vocational career reasoning mappings</a>
+    / <strong>Export reasoning JSON/CSV</strong> then <strong>Import</strong>.
+  </p>
+</div>
+{{ block.super }}
+{% endblock %}

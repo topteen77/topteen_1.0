@@ -1,5 +1,5 @@
 (function () {
-  const AUTO_SHOW_DELAY_MS = 3000;
+  const AUTO_SHOW_DELAY_MS = 20000;
 
   const popup = document.getElementById("careerBattleExitPopup");
   if (!popup) {

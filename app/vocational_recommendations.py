@@ -117,57 +117,124 @@ def course_ids_for_reasoning_area(reasoning_area, level_tab=None):
     )
 
 
+def _vocational_career_ids_for_reasoning_area(reasoning_area):
+    from careers.models import VocationalCareerReasoningMapping
+    from careers.vocational_cluster import vocational_career_cluster_id
+
+    code = normalize_reasoning_area_code(reasoning_area)
+    if not code:
+        return []
+    cluster_id = vocational_career_cluster_id()
+    return list(
+        VocationalCareerReasoningMapping.objects.filter(
+            reasoning_area=code,
+            object_status=choices.ObjectStatus.ACTIVE,
+            career__publish_status=choices.PublishStatus.PUBLISHED,
+            career__object_status=choices.ObjectStatus.ACTIVE,
+            career__career_cluster__id=cluster_id,
+        )
+        .order_by('priority', 'career__name')
+        .values_list('career_id', flat=True)
+    )
+
+
 def below_area_vocational_urls(below_areas, user=None):
-    """Map each below-area key to a filtered vocational courses listing URL."""
+    """Map each below-area key to the vocational careers cluster filtered by reasoning area."""
     if not below_areas or not isinstance(below_areas, list):
         return {}
+    from careers.vocational_cluster import build_vocational_cluster_reasoning_url
+
     urls = {}
     for area in below_areas:
         code = normalize_reasoning_area_code(area)
         if not code:
             continue
         key = str(area).strip().upper()
-        urls[key] = build_vocational_courses_filter_url(code, user=user)
+        urls[key] = build_vocational_cluster_reasoning_url(code)
         urls[area] = urls[key]
     return urls
 
 
-def vocational_cards_for_below_areas(below_areas, user=None):
+def vocational_guidance_cards_for_below_areas(below_areas, user=None):
     """
-    Return one vocational course card per below-average reasoning area (in test order).
-    Each card includes reasoning_area metadata and a link to all courses for that area.
+    Return all mapped vocational careers for the student's focus (below-average) reasoning areas.
+    Careers are ordered by focus-area priority, then mapping priority, then name.
     """
     if not below_areas or not isinstance(below_areas, list):
         return []
 
-    cards = []
+    from careers.models import VocationalCareerReasoningMapping
+    from careers.vocational_cluster import (
+        build_vocational_cluster_reasoning_url,
+        vocational_career_cluster_id,
+    )
+
+    cluster_id = vocational_career_cluster_id()
+    area_codes = []
+    seen_codes = set()
     for area in below_areas:
         code = normalize_reasoning_area_code(area)
-        if not code:
-            continue
-        mapping = (
-            VocationalCourseReasoningMapping.objects.filter(
-                reasoning_area=code,
-                object_status=choices.ObjectStatus.ACTIVE,
-                vocational_course__object_status=choices.ObjectStatus.ACTIVE,
-            )
-            .select_related('vocational_course', 'vocational_course__category')
-            .order_by('priority', 'vocational_course__name')
-            .first()
+        if code and code not in seen_codes:
+            seen_codes.add(code)
+            area_codes.append(code)
+
+    if not area_codes:
+        return []
+
+    mappings = list(
+        VocationalCareerReasoningMapping.objects.filter(
+            reasoning_area__in=area_codes,
+            object_status=choices.ObjectStatus.ACTIVE,
+            career__publish_status=choices.PublishStatus.PUBLISHED,
+            career__object_status=choices.ObjectStatus.ACTIVE,
+            career__career_cluster__id=cluster_id,
         )
-        if not mapping:
-            continue
-        course = mapping.vocational_course
+        .select_related('career')
+    )
+    area_order = {code: index for index, code in enumerate(area_codes)}
+    mappings.sort(
+        key=lambda mapping: (
+            area_order.get(mapping.reasoning_area, len(area_codes)),
+            mapping.priority,
+            (mapping.career.name or '').lower(),
+        )
+    )
+
+    cards = []
+    for mapping in mappings:
+        career = mapping.career
+        code = mapping.reasoning_area
         cards.append({
-            'label': course.name,
-            'course': course,
+            'label': career.name,
+            'career': career,
             'reasoning_area': code,
             'reasoning_area_label': ReasoningArea.label(code),
-            'reasoning_area_courses_url': build_vocational_courses_filter_url(code, user=user),
-            'reasoning_area_course_count': len(
-                course_ids_for_reasoning_area(
-                    code, vocational_level_tab_for_user(user) if user else 'after-10'
-                )
-            ),
+            'reasoning_area_careers_url': build_vocational_cluster_reasoning_url(code),
         })
     return cards
+
+
+def vocational_guidance_grouped_for_below_areas(below_areas, user=None):
+    """Group mapped careers by reasoning area for simple dashboard listing."""
+    cards = vocational_guidance_cards_for_below_areas(below_areas, user=user)
+    groups = []
+    current = None
+    for card in cards:
+        if not current or current['reasoning_area'] != card['reasoning_area']:
+            current = {
+                'reasoning_area': card['reasoning_area'],
+                'reasoning_area_label': card['reasoning_area_label'],
+                'reasoning_area_careers_url': card['reasoning_area_careers_url'],
+                'careers': [],
+            }
+            groups.append(current)
+        current['careers'].append({
+            'name': card['label'],
+            'url': card['career'].url(),
+        })
+    return groups
+
+
+def vocational_cards_for_below_areas(below_areas, user=None):
+    """Backward-compatible alias: full listing for focus areas."""
+    return vocational_guidance_cards_for_below_areas(below_areas, user=user)

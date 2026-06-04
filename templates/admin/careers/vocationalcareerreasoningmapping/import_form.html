@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo;
+  <a href="{% url 'admin:careers_vocationalcareerreasoningmapping_changelist' %}">Vocational career reasoning mappings</a>
+  &rsaquo; Import
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    {% for field in form %}
+    <div class="form-row">
+      {{ field.errors }}
+      <div>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <div class="submit-row">
+    <input type="submit" value="Import" class="default">
+    <a href="{{ changelist_url }}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+<div class="module" style="margin-top: 12px;">
+  <p class="help" style="margin: 0 0 8px 0;">
+    <strong>Accepted files:</strong>
+  </p>
+  <ul class="help" style="margin: 0 0 8px 0; padding-left: 1.25rem;">
+    <li><code>vocational_career_reasoning_mappings.json</code> (from <strong>Export JSON</strong> on this page)</li>
+    <li><code>vocational_career_reasoning_mappings.csv</code> inside the <strong>Export CSV (zip)</strong> — you may upload the whole <code>.zip</code> file</li>
+    <li><code>Career</code> + <code>Dominant Reasoning Area</code> spreadsheet — career names must match the catalog <strong>exactly</strong> (case and punctuation-insensitive only)</li>
+  </ul>
+  <p class="help" style="margin: 0 0 8px 0; color: #ba2121;">
+    <strong>Do not</strong> upload vocational <em>course</em> export files (<code>course_id</code> / <code>vocational_reasoning_mappings.csv</code> from Core → Vocational courses).
+    Use <strong>career_id</strong> from the career export on this page.
+  </p>
+  <p class="help" style="margin: 0;">
+    Each row must use a published <code>career_id</code> from vocational cluster ID <strong>{{ vocational_cluster_id }}</strong>.
+    Run <strong>Dry run</strong> first to validate without saving.
+    <a href="{% url 'admin:careers_vocationalclustercareer_changelist' %}">Browse vocational careers catalog</a>
+  </p>
+</div>
+{% endblock %}
