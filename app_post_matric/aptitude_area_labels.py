@@ -44,18 +44,21 @@ def normalize_aptitude_categories(categories):
     }
 
 
-# changes required by management (01-Jun-2025): Below Average → Development Areas (display label only; backend/DB key stays "Below Average")
+# Display labels only; backend/DB keys stay "Below Average" / "Below"
 APTITUDE_TIER_BELOW = "Below Average"
+APTITUDE_TIER_GROWTH_AREA_LABEL = "Growth Area"
 
 APTITUDE_TIER_DISPLAY_LABELS = {
     "Above Average": "Above Average",
     "Average": "Average",
-    APTITUDE_TIER_BELOW: "Development Areas",
+    APTITUDE_TIER_BELOW: APTITUDE_TIER_GROWTH_AREA_LABEL,
+    "Below": APTITUDE_TIER_GROWTH_AREA_LABEL,
+    "Below Avg": APTITUDE_TIER_GROWTH_AREA_LABEL,
 }
 
 
 def aptitude_tier_label(tier_key):
-    """Return display label for an aptitude tier key (e.g. Below Average → Development Areas)."""
+    """Return display label for an aptitude tier key (e.g. Below Average → Growth Area)."""
     if tier_key is None:
         return tier_key
     key = str(tier_key).strip()
