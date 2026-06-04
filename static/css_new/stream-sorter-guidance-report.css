@@ -7,11 +7,13 @@
   --pathways-border: #e2e8f0;
   --pathways-link: #1e40af;
   max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stream-pathways-hero {
-  margin-bottom: 1.25rem;
-  padding: 1.125rem 1.25rem;
+  margin-bottom: 0.625rem;
+  padding: 1rem 1.125rem;
   border-radius: 14px;
   background: linear-gradient(135deg, #f8faff 0%, #eef2ff 55%, #faf5ff 100%);
   border: 1px solid #c7d2fe;
@@ -40,11 +42,11 @@
 }
 
 .stream-pathways-block {
-  margin-bottom: 1.5rem;
+  margin: 0 0 1rem;
 }
 
 .stream-pathways-block-title {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.625rem;
   padding-bottom: 0.5rem;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -54,12 +56,13 @@
 
 /* Recommended vs other stream zones */
 .stream-pathways-zone {
-  margin-bottom: 1rem;
-  padding: 1rem 1rem 0.875rem;
+  margin-bottom: 0.75rem;
+  padding: 0.875rem 1rem;
   border-radius: 14px;
 }
 
 .stream-pathways-zone--recommended {
+  margin-bottom: 0.625rem;
   background: linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 55%, #fff 100%);
   border: 1px solid #6ee7b7;
   box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
@@ -129,7 +132,7 @@
 }
 
 .stream-pathways-toggle-wrap {
-  margin-top: 0.75rem;
+  margin: 0.5rem 0 0.75rem;
   text-align: center;
 }
 

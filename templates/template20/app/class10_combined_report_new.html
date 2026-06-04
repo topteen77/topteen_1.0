@@ -82,6 +82,39 @@
     box-sizing: border-box;
   }
 
+  /* On-screen report: avoid full-page gaps from print page-break rules */
+  @media screen {
+    .combined-report-page .report-container .chapterPage {
+      page-break-after: auto;
+      min-height: 0;
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+
+    .combined-report-page .report-container .report-subsection {
+      page-break-after: auto;
+      min-height: 0;
+      padding: 12px 20px 16px;
+      margin: 0 auto 8px;
+      clear: both;
+    }
+
+    .combined-report-page .report-container .report-subsection .page-header {
+      display: none;
+    }
+  }
+
+  @media print {
+    .combined-report-page .report-container .report-subsection {
+      page-break-before: always;
+      padding: 20px;
+    }
+
+    .combined-report-page .report-container .report-subsection .page-header {
+      display: block;
+    }
+  }
+
   .interest-areas-stack {
     width: 100%;
     clear: both;
