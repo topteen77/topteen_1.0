@@ -819,26 +819,12 @@
     {% include 'template20/app/partials/aptitude_avg.html' %}
     {% endif %}
 
-    <!-- changes required by management (01-Jun-2025): Below Average → Development Areas (note section) -->
-    {% if intelligence_data.below_avg %}
-    <div class="chapterPage">
-      <div class="page-header" style="width:650px ;">
-        <div class="page-header-content">
-          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
-        </div>
-              <hr class="page-header-line" style="width: 100%;" />
-      </div>
-
-
-      <div class="db-header" style="margin-top: 10px;">
-        <h1 style="color: #A22717; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
-          {# changes required by management (01-Jun-2025): Below Average → focus areas for skill strengthening #}
-          <span>NOTE-</span> {{ aptitude_improvement_note }}
-        </h1>
-      </div>
-    </div>
-    
     {% endif %}
+
+    {% if student_below_average|default(false) %}
+    {% include 'template20/app/partials/below_average_guidance_report.html' %}
+    {% elif stream_sorter_guidance %}
+    {% include 'template20/app/partials/stream_sorter_guidance_section.html' %}
     {% endif %}
 
   </div>

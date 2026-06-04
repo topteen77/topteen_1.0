@@ -599,6 +599,19 @@
     color: #fff;
     box-shadow: 0 2px 8px rgba(162, 39, 23, 0.25);
   }
+  .vocational-guidance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .vocational-guidance-grid .vocational-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .vocational-guidance-grid .vocational-reasoning-badge {
+    margin-top: auto;
+  }
   .vocational-guidance-list {
     border: 1px solid var(--psych-border);
     border-radius: 14px;
@@ -1449,7 +1462,7 @@
       </div>
 
       {% set career_preview = career_suggestions_preview_count|default(2) %}
-      {% if interest_suggested_career_groups or aptitude_suggested_career_groups %}
+      {% if not student_below_average|default(false) and (interest_suggested_career_groups or aptitude_suggested_career_groups) %}
       <div class="mb-4">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Careers</h2>
         <div class="suggested-careers-grid">
@@ -1562,27 +1575,32 @@
           </div>
         </div>
         {% endif %}
-        {% if vocational_guidance_groups|default([]) %}
+        {% if vocational_guidance_cards|default([]) %}
         <h3 class="psych-section-title psych-section-link mb-3">
           <span class="psych-section-dot" aria-hidden="true"></span>
           {# changes required by management (01-Jun-2025): Below Average → Vocational guidance for skill development #}
           <a href="{{ vocational_guidance_section_url|default(url('careers:career')) }}">{{ aptitude_vocational_section_title }}</a>
         </h3>
-        <div class="vocational-guidance-list">
-          {% for group in vocational_guidance_groups %}
-          <div class="vocational-guidance-group">
-            <p class="vocational-guidance-type">
-              {% if group.reasoning_area_careers_url %}
-              <a href="{{ group.reasoning_area_careers_url }}">{{ group.reasoning_area_label }}</a>
-              {% else %}
-              {{ group.reasoning_area_label }}
-              {% endif %}
-            </p>
-            <ul class="vocational-guidance-careers">
-              {% for career in group.careers %}
-              <li><a href="{{ career.url }}">{{ career.name }}</a></li>
-              {% endfor %}
-            </ul>
+        <div class="vocational-guidance-grid">
+          {% for card in vocational_guidance_cards %}
+          <div class="vocational-card">
+            <a href="{{ card.career.url() }}" title="Explore {{ card.label }}">
+              <div class="vocational-img-wrap">
+                {% if card.career.image and card.career.image.name %}
+                <img src="{{ card.career.get_image_url() }}" alt="{{ card.label }}" loading="lazy" />
+                {% else %}
+                <img src="{{ static('images/career-icon.png') }}" alt="" loading="lazy" />
+                {% endif %}
+              </div>
+              <p class="vocational-label">{{ card.label }}</p>
+            </a>
+            {% if card.reasoning_area_careers_url %}
+            <a class="vocational-reasoning-badge" href="{{ card.reasoning_area_careers_url }}">
+              {{ card.reasoning_area_label }}{% if card.reasoning_area_career_count > 1 %} &bull; {{ card.reasoning_area_career_count }} careers{% endif %}
+            </a>
+            {% else %}
+            <span class="vocational-reasoning-badge">{{ card.reasoning_area_label }}</span>
+            {% endif %}
           </div>
           {% endfor %}
         </div>

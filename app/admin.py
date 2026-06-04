@@ -66,3 +66,6 @@ class TestCompletionAdmin(admin.ModelAdmin):
     search_fields = ['user__email']  # Assuming your TestCompletion model has a ForeignKey to the User model
 
 admin.site.register(TestCompletion, TestCompletionAdmin)
+
+# Class 10 combined report career guidance (admin-only; not on dashboard)
+from app import class10_report_guidance_admin  # noqa: F401

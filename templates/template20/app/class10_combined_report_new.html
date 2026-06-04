@@ -16,6 +16,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+<link rel="stylesheet" href="{{ static('css_new/stream-sorter-guidance-report.css') }}" />
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -419,5 +420,39 @@
 
 {% block additionaljs %}
 {{ super() }}
+<script>
+(function () {
+  function initStreamPathwaysToggle() {
+    document.querySelectorAll('[data-stream-pathways-toggle]').forEach(function (btn) {
+      if (btn.dataset.pathwaysToggleBound) return;
+      btn.dataset.pathwaysToggleBound = '1';
+      var panel = document.getElementById(btn.getAttribute('aria-controls') || '');
+      if (!panel) return;
+      if (!btn.getAttribute('data-collapsed-label')) {
+        btn.setAttribute('data-collapsed-label', btn.textContent.trim());
+      }
+      btn.addEventListener('click', function () {
+        var expanded = btn.getAttribute('aria-expanded') === 'true';
+        if (expanded) {
+          panel.classList.add('is-collapsed');
+          panel.setAttribute('hidden', '');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.textContent = btn.getAttribute('data-collapsed-label');
+        } else {
+          panel.classList.remove('is-collapsed');
+          panel.removeAttribute('hidden');
+          btn.setAttribute('aria-expanded', 'true');
+          btn.textContent = 'View less';
+        }
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStreamPathwaysToggle);
+  } else {
+    initStreamPathwaysToggle();
+  }
+})();
+</script>
 {% endblock %}
 

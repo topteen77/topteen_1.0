@@ -200,6 +200,10 @@ def vocational_guidance_cards_for_below_areas(below_areas, user=None):
         )
     )
 
+    area_counts = {}
+    for mapping in mappings:
+        area_counts[mapping.reasoning_area] = area_counts.get(mapping.reasoning_area, 0) + 1
+
     cards = []
     for mapping in mappings:
         career = mapping.career
@@ -210,8 +214,30 @@ def vocational_guidance_cards_for_below_areas(below_areas, user=None):
             'reasoning_area': code,
             'reasoning_area_label': ReasoningArea.label(code),
             'reasoning_area_careers_url': build_vocational_cluster_reasoning_url(code),
+            'reasoning_area_career_count': area_counts.get(code, 0),
         })
     return cards
+
+
+def vocational_guidance_context_for_below_areas(below_areas, user=None) -> dict:
+    """Shared context for dashboard and combined report below-average sections."""
+    from careers.vocational_cluster import build_vocational_cluster_mapped_url
+
+    groups = []
+    cards = []
+    below_area_urls = {}
+    section_url = None
+    if isinstance(below_areas, list) and below_areas:
+        cards = vocational_guidance_cards_for_below_areas(below_areas, user=user)
+        groups = vocational_guidance_grouped_for_below_areas(below_areas, user=user)
+        below_area_urls = below_area_vocational_urls(below_areas, user=user)
+        section_url = build_vocational_cluster_mapped_url()
+    return {
+        'vocational_guidance_cards': cards,
+        'vocational_guidance_groups': groups,
+        'below_area_vocational_urls': below_area_urls,
+        'vocational_guidance_section_url': section_url,
+    }
 
 
 def vocational_guidance_grouped_for_below_areas(below_areas, user=None):

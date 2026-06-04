@@ -555,25 +555,15 @@ def dashboard(request, student_id=None):
             skill_readiness_index = []
 
         # Vocational careers for below-average reasoning areas (DB-backed mappings).
-        vocational_guidance_groups = []
-        below_area_vocational_urls_map = {}
-        vocational_guidance_section_url = None
-        try:
-            from app.vocational_recommendations import (
-                below_area_vocational_urls,
-                vocational_guidance_grouped_for_below_areas,
-            )
-            from careers.vocational_cluster import build_vocational_cluster_mapped_url
-            vocational_guidance_section_url = build_vocational_cluster_mapped_url()
-            if isinstance(below, list) and below:
-                vocational_guidance_groups = vocational_guidance_grouped_for_below_areas(
-                    below, user=request.user
-                )
-                below_area_vocational_urls_map = below_area_vocational_urls(below, user=request.user)
-        except Exception:
-            vocational_guidance_groups = []
-            below_area_vocational_urls_map = {}
-            vocational_guidance_section_url = None
+        from app.report_visibility import student_has_below_average_areas
+        from app.vocational_recommendations import vocational_guidance_context_for_below_areas
+
+        student_below_average = student_has_below_average_areas(below)
+        vocational_ctx = vocational_guidance_context_for_below_areas(below, user=request.user)
+        vocational_guidance_cards = vocational_ctx['vocational_guidance_cards']
+        vocational_guidance_groups = vocational_ctx['vocational_guidance_groups']
+        below_area_vocational_urls_map = vocational_ctx['below_area_vocational_urls']
+        vocational_guidance_section_url = vocational_ctx['vocational_guidance_section_url']
 
         # Suggested careers block (grouped by RIASEC / aptitude heading for dashboard)
         interest_suggested_careers = []
@@ -808,6 +798,8 @@ def dashboard(request, student_id=None):
             'points_details': points_details,
             'streak_details': streak_details,
             'level_details': level_details,
+            'student_below_average': student_below_average,
+            'vocational_guidance_cards': vocational_guidance_cards,
             'vocational_guidance_groups': vocational_guidance_groups,
             'vocational_guidance_section_url': vocational_guidance_section_url,
             'below_area_vocational_urls': below_area_vocational_urls_map,
@@ -1292,7 +1284,21 @@ def class10_combined_report(request, user_id=None):
                 min_length=min_length,
             )
         )
-        
+
+        from app.report_visibility import should_show_extended_career_pathways
+        from app.vocational_recommendations import vocational_guidance_context_for_below_areas
+
+        context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
+        context['student_below_average'] = not should_show_extended_career_pathways(below)
+        if should_show_extended_career_pathways(below):
+            from app.stream_sorter_guidance import build_report_stream_guidance
+            context['stream_sorter_guidance'] = build_report_stream_guidance(
+                streamsubject,
+                top_category=top_category,
+            )
+        else:
+            context['stream_sorter_guidance'] = None
+
         resp = render(request, 'template20/app/class10_combined_report_new.html', context)
         return _add_no_cache_headers(resp)
         
@@ -1449,7 +1455,20 @@ def class10_report_download_pdf(request, user_id=None):
             'avg': avg,
             'above_avg': above_avg,
         }
-        
+        from app.report_visibility import should_show_extended_career_pathways
+        from app.vocational_recommendations import vocational_guidance_context_for_below_areas
+
+        context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
+        context['student_below_average'] = not should_show_extended_career_pathways(below)
+        if should_show_extended_career_pathways(below):
+            from app.stream_sorter_guidance import build_report_stream_guidance
+            context['stream_sorter_guidance'] = build_report_stream_guidance(
+                streamsubject,
+                top_category=top_category,
+            )
+        else:
+            context['stream_sorter_guidance'] = None
+
         # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
         pdf_template_name = 'template20/app/class10_combined_report_pdf.html'
         try:

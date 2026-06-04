@@ -1,0 +1,105 @@
+{# Extended career pathways — production layout for combined report / PDF #}
+{% macro stream_pathway_cards(groups, variant='recommended') %}
+  {% for group in groups %}
+  <article class="stream-pathways-stream-card stream-pathways-stream-card--{{ variant }}">
+    <div class="stream-pathways-stream-card__head">
+      <h3>{{ group.stream }}</h3>
+    </div>
+    <ul class="stream-pathways-career-list">
+      {% for career in group.careers %}
+      <li>
+        {% if career.url %}
+        <a href="{{ career.url }}" class="stream-pathways-career-pill stream-pathways-career-pill--{{ variant }} stream-pathways-career-pill--linked">{{ career.name }}</a>
+        {% else %}
+        <span class="stream-pathways-career-pill stream-pathways-career-pill--{{ variant }}">{{ career.name }}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </article>
+  {% endfor %}
+{% endmacro %}
+
+<div class="chapterPage stream-pathways-section" data-stream-pathways-section>
+  <div class="page-header" style="width:650px;">
+    <div class="page-header-content">
+      <img style="width:120px;" src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+    </div>
+    <hr class="page-header-line" style="width: 100%;" />
+  </div>
+
+  <div class="stream-pathways-hero">
+    <h1>Extended career pathways</h1>
+    {% if stream_sorter_guidance.integration_intro %}
+    <p class="stream-pathways-lead">{{ stream_sorter_guidance.integration_intro }}</p>
+    {% endif %}
+    {% if stream_sorter_guidance.filter_mode == 'recommended' and stream_sorter_guidance.streams_shown_count %}
+    <p class="stream-pathways-meta">
+      Showing {{ stream_sorter_guidance.streams_shown_count }} of {{ stream_sorter_guidance.streams_total_count }} stream catalogues aligned with your profile.
+      {% if stream_sorter_guidance.show_other_streams_toggle %}
+      Use <strong>View more</strong> below to explore premium careers for other streams.
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+
+  <div class="stream-pathways-block">
+    <h2 class="stream-pathways-block-title">{{ stream_sorter_guidance.stream_wise_title }}</h2>
+
+    <div class="stream-pathways-zone stream-pathways-zone--recommended">
+      <div class="stream-pathways-zone-heading stream-pathways-zone-heading--recommended">
+        <h3 class="stream-pathways-recommended-title">Recommended streams</h3>
+        <p class="stream-pathways-recommended-subtitle">Aligned with your Stream Sorter profile</p>
+      </div>
+      <div class="stream-pathways-stream-grid stream-pathways-stream-grid--recommended">
+        {{ stream_pathway_cards(stream_sorter_guidance.stream_wise_premium_careers, 'recommended') }}
+      </div>
+    </div>
+
+    {% if stream_sorter_guidance.show_other_streams_toggle %}
+    <div class="stream-pathways-toggle-wrap">
+      <button
+        type="button"
+        class="stream-pathways-toggle-btn"
+        data-stream-pathways-toggle
+        aria-expanded="false"
+        aria-controls="stream-pathways-other-streams"
+        data-collapsed-label="View more ({{ stream_sorter_guidance.other_streams_count }} other stream{{ 's' if stream_sorter_guidance.other_streams_count != 1 else '' }})"
+      >
+        View more ({{ stream_sorter_guidance.other_streams_count }} other stream{{ 's' if stream_sorter_guidance.other_streams_count != 1 else '' }})
+      </button>
+    </div>
+    <div
+      class="stream-pathways-zone stream-pathways-zone--other is-collapsed"
+      data-stream-pathways-other
+      id="stream-pathways-other-streams"
+      hidden
+    >
+      <div class="stream-pathways-zone-heading stream-pathways-zone-heading--other">
+        <h3 class="stream-pathways-other-title">Additional stream options</h3>
+        <p class="stream-pathways-other-subtitle">Explore premium careers for streams beyond your recommendations.</p>
+      </div>
+      <div class="stream-pathways-stream-grid stream-pathways-stream-grid--other">
+        {{ stream_pathway_cards(stream_sorter_guidance.stream_wise_other_careers, 'other') }}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if stream_sorter_guidance.future_relevant_careers %}
+  <div class="stream-pathways-block">
+    <h2 class="stream-pathways-block-title">{{ stream_sorter_guidance.future_relevant_title }}</h2>
+    <ul class="stream-pathways-future-grid">
+      {% for career in stream_sorter_guidance.future_relevant_careers %}
+      <li>
+        {% if career.url %}
+        <a href="{{ career.url }}" class="stream-pathways-future-item stream-pathways-future-item--linked">{{ career.name }}</a>
+        {% else %}
+        <span class="stream-pathways-future-item">{{ career.name }}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>

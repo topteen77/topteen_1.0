@@ -1,0 +1,327 @@
+/* Extended career pathways — Class 10 combined report */
+.stream-pathways-section {
+  --pathways-primary: #3f37c9;
+  --pathways-primary-soft: #eef2ff;
+  --pathways-text: #1e293b;
+  --pathways-muted: #64748b;
+  --pathways-border: #e2e8f0;
+  --pathways-link: #1e40af;
+  max-width: 100%;
+}
+
+.stream-pathways-hero {
+  margin-bottom: 1.25rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f8faff 0%, #eef2ff 55%, #faf5ff 100%);
+  border: 1px solid #c7d2fe;
+}
+
+.stream-pathways-hero h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--pathways-primary);
+  letter-spacing: -0.02em;
+}
+
+.stream-pathways-hero .stream-pathways-lead {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--pathways-muted);
+}
+
+.stream-pathways-hero .stream-pathways-meta {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pathways-primary);
+}
+
+.stream-pathways-block {
+  margin-bottom: 1.5rem;
+}
+
+.stream-pathways-block-title {
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--pathways-primary);
+  border-bottom: 2px solid var(--pathways-primary-soft);
+}
+
+/* Recommended vs other stream zones */
+.stream-pathways-zone {
+  margin-bottom: 1rem;
+  padding: 1rem 1rem 0.875rem;
+  border-radius: 14px;
+}
+
+.stream-pathways-zone--recommended {
+  background: linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 55%, #fff 100%);
+  border: 1px solid #6ee7b7;
+  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
+}
+
+.stream-pathways-zone--other {
+  background: linear-gradient(180deg, #fff7ed 0%, #fffbeb 50%, #fff 100%);
+  border: 1px solid #fdba74;
+  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.06);
+}
+
+.stream-pathways-zone--other.is-collapsed {
+  display: none;
+}
+
+.stream-pathways-zone-heading--recommended,
+.stream-pathways-zone-heading--other {
+  display: block;
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.625rem;
+}
+
+.stream-pathways-zone-heading--recommended {
+  border-bottom: 2px solid #6ee7b7;
+}
+
+.stream-pathways-zone-heading--other {
+  border-bottom: 2px solid #fed7aa;
+}
+
+.stream-pathways-recommended-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #047857;
+  letter-spacing: -0.01em;
+}
+
+.stream-pathways-recommended-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #4b5563;
+}
+
+.stream-pathways-other-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #9a3412;
+  letter-spacing: -0.01em;
+}
+
+.stream-pathways-other-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #78716c;
+}
+
+.stream-pathways-stream-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+}
+
+.stream-pathways-toggle-wrap {
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+.stream-pathways-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.125rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--pathways-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.stream-pathways-toggle-btn:hover {
+  background: var(--pathways-primary-soft);
+  border-color: #a5b4fc;
+}
+
+.stream-pathways-toggle-btn:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+@media print {
+  .stream-pathways-zone--other.is-collapsed {
+    display: block;
+  }
+
+  .stream-pathways-zone--other[hidden] {
+    display: block !important;
+  }
+
+  .stream-pathways-toggle-wrap {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .stream-pathways-stream-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stream-pathways-stream-card {
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.stream-pathways-stream-card--recommended {
+  border: 1px solid #6ee7b7;
+}
+
+.stream-pathways-stream-card--other {
+  border: 1px solid #fdba74;
+}
+
+.stream-pathways-stream-card__head {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid transparent;
+}
+
+.stream-pathways-stream-card--recommended .stream-pathways-stream-card__head {
+  background: linear-gradient(90deg, #d1fae5 0%, #fff 100%);
+  border-bottom-color: #a7f3d0;
+}
+
+.stream-pathways-stream-card--other .stream-pathways-stream-card__head {
+  background: linear-gradient(90deg, #ffedd5 0%, #fff 100%);
+  border-bottom-color: #fed7aa;
+}
+
+.stream-pathways-stream-card__head h3 {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.stream-pathways-stream-card--recommended .stream-pathways-stream-card__head h3 {
+  color: #047857;
+}
+
+.stream-pathways-stream-card--other .stream-pathways-stream-card__head h3 {
+  color: #c2410c;
+}
+
+.stream-pathways-career-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.625rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+}
+
+.stream-pathways-career-list li {
+  margin: 0;
+}
+
+.stream-pathways-career-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.stream-pathways-career-pill--recommended {
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+}
+
+.stream-pathways-career-pill--other {
+  color: #7c2d12;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+}
+
+.stream-pathways-career-pill--recommended.stream-pathways-career-pill--linked {
+  color: #047857;
+  background: #d1fae5;
+  border-color: #34d399;
+  text-decoration: none;
+}
+
+.stream-pathways-career-pill--other.stream-pathways-career-pill--linked {
+  color: #c2410c;
+  background: #ffedd5;
+  border-color: #fb923c;
+  text-decoration: none;
+}
+
+.stream-pathways-career-pill--linked:hover {
+  text-decoration: underline;
+  filter: brightness(0.97);
+}
+
+.stream-pathways-future-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 900px) {
+  .stream-pathways-future-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .stream-pathways-future-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stream-pathways-future-grid li {
+  margin: 0;
+}
+
+.stream-pathways-future-item {
+  display: block;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--pathways-text);
+  background: #fff;
+  border: 1px solid var(--pathways-border);
+  text-align: center;
+}
+
+.stream-pathways-future-item--linked {
+  color: var(--pathways-link);
+  background: #f8fafc;
+  text-decoration: none;
+}
+
+.stream-pathways-future-item--linked:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}

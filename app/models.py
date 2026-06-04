@@ -122,3 +122,144 @@ class Stream(models.Model):
 
     def __str__(self):
         return f"{self.stream_name}: {self.subjects}"
+
+
+class Class10ReportGuidanceSettings(models.Model):
+    """Section titles for Class 10 combined report appendix (singleton)."""
+
+    stream_wise_title = models.CharField(
+        max_length=255,
+        default='Stream-Wise Premium Career Options',
+    )
+    future_relevant_title = models.CharField(
+        max_length=255,
+        default='Most Future-Relevant Careers Across All Streams',
+    )
+
+    class Meta:
+        verbose_name = 'Class 10 report guidance settings'
+        verbose_name_plural = 'Class 10 report guidance settings'
+
+    def __str__(self):
+        return 'Class 10 combined report career guidance'
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class Class10PremiumStream(models.Model):
+    """Premium career catalogue per subject stream (combined report only)."""
+
+    STREAM_CODE_CHOICES = [
+        ('PCM', 'PCM'),
+        ('PCB', 'PCB'),
+        ('CWM', 'CWM (Commerce with Maths)'),
+        ('CWOM', 'CWOM (Commerce without Maths)'),
+        ('HUM', 'HUM (Humanities)'),
+        ('FINEARTS', 'Fine Arts / Design'),
+    ]
+
+    stream_code = models.CharField(max_length=20, choices=STREAM_CODE_CHOICES, unique=True)
+    display_label = models.CharField(
+        max_length=255,
+        help_text='Shown in the combined report, e.g. PCM (Physics, Chemistry, Mathematics)',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('sort_order', 'stream_code')
+        verbose_name = 'Premium stream (Class 10 report)'
+        verbose_name_plural = 'Premium streams (Class 10 report)'
+
+    def __str__(self):
+        return self.display_label or self.stream_code
+
+
+class Class10PremiumStreamCareer(models.Model):
+    stream = models.ForeignKey(
+        Class10PremiumStream,
+        on_delete=models.CASCADE,
+        related_name='careers',
+    )
+    career = models.ForeignKey(
+        'careers.Career',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='class10_premium_stream_slots',
+        verbose_name='Career name',
+        help_text='Search and select a published career from the site catalog.',
+    )
+    career_name = models.CharField(
+        max_length=255,
+        blank=True,
+        editable=False,
+        help_text='Auto-filled from the selected career (report cache).',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('sort_order', 'career__name')
+        verbose_name = 'Premium stream career'
+        verbose_name_plural = 'Premium stream careers'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['stream', 'career'],
+                condition=models.Q(career__isnull=False),
+                name='unique_class10_premium_stream_career',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.career_id:
+            self.career_name = self.career.name or ''
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.career.name if self.career_id else self.career_name
+
+
+class Class10FutureRelevantCareer(models.Model):
+    """Cross-stream future careers section (combined report only)."""
+
+    career = models.ForeignKey(
+        'careers.Career',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='class10_future_relevant_slots',
+        verbose_name='Career name',
+        help_text='Search and select a published career from the site catalog.',
+    )
+    career_name = models.CharField(
+        max_length=255,
+        blank=True,
+        editable=False,
+        help_text='Auto-filled from the selected career (report cache).',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('sort_order', 'career__name')
+        verbose_name = 'Future-relevant career (Class 10 report)'
+        verbose_name_plural = 'Future-relevant careers (Class 10 report)'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['career'],
+                condition=models.Q(career__isnull=False),
+                name='unique_class10_future_relevant_career',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.career_id:
+            self.career_name = self.career.name or ''
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.career.name if self.career_id else self.career_name
