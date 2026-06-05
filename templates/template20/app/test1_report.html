@@ -219,7 +219,7 @@
   }
   
   .box-i.onebox {
-    background: #ffe5e6;
+    background: #f6f5ff;
     border-radius: 10px;
     text-align: center;
     border-right: 4px solid #3F37C9;
@@ -452,7 +452,7 @@
       {% for result in personality_data.top_categories %}
       <div class="threebox-col">
         <div class="box-i onebox">
-          <p style="color: #120d77;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ result.score }}</p>
+          <p style="color: #120d77;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ (result.score|replace('%', '')|float)|round|int }}%</p>
           <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px;">{{ result.category }}</p>
         </div>
       </div>

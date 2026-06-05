@@ -578,7 +578,10 @@ def build_report_stream_guidance(
             'Compare pathways aligned with your Stream Sorter profile.'
         )
 
+    hero_image = catalog.get('hero_image') or 'images_new/careers/preimum-img.svg'
+
     return {
+        'hero_image': hero_image,
         'stream_wise_title': titles.get('stream_wise', 'Stream-Wise Premium Career Options'),
         'future_relevant_title': titles.get(
             'future_relevant',

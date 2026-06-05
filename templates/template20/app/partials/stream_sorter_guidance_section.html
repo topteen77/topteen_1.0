@@ -1,4 +1,5 @@
 {# Extended career pathways — production layout for combined report / PDF #}
+{% set pathways_is_pdf = show_student_info_on_cover is defined and show_student_info_on_cover %}
 {% macro stream_pathway_cards(groups, variant='recommended') %}
   {% for group in groups %}
   <article class="stream-pathways-stream-card stream-pathways-stream-card--{{ variant }}">
@@ -28,18 +29,48 @@
     <hr class="page-header-line" style="width: 100%;" />
   </div>
 
-  <div class="stream-pathways-hero">
-    <h1>Extended career pathways</h1>
-    {% if stream_sorter_guidance.integration_intro %}
-    <p class="stream-pathways-lead">{{ stream_sorter_guidance.integration_intro }}</p>
-    {% endif %}
-    {% if stream_sorter_guidance.filter_mode == 'recommended' and stream_sorter_guidance.streams_shown_count %}
-    <p class="stream-pathways-meta">
-      Showing {{ stream_sorter_guidance.streams_shown_count }} of {{ stream_sorter_guidance.streams_total_count }} stream catalogues aligned with your profile.
-      {% if stream_sorter_guidance.show_other_streams_toggle %}
-      Use <strong>View more</strong> below to explore premium careers for other streams.
+  <div class="stream-pathways-hero{% if pathways_is_pdf %} stream-pathways-hero--pdf{% endif %}">
+    <div class="stream-pathways-hero__content">
+      <span class="stream-pathways-hero__badge">
+        <svg class="stream-pathways-hero__badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M5 16L2 7l5.2 3.9L12 5l4.8 5.9L22 7l-3 9H5zm14 2H5v2h14v-2z"/>
+        </svg>
+        Premium career catalog
+      </span>
+      <h1>Extended career pathways</h1>
+      {% if stream_sorter_guidance.integration_intro %}
+      <p class="stream-pathways-lead">{{ stream_sorter_guidance.integration_intro }}</p>
       {% endif %}
-    </p>
+      {% if stream_sorter_guidance.filter_mode == 'recommended' and stream_sorter_guidance.streams_shown_count %}
+        {% if pathways_is_pdf %}
+        <p class="stream-pathways-hero__pdf-note">
+          Showing {{ stream_sorter_guidance.streams_shown_count }} of {{ stream_sorter_guidance.streams_total_count }} stream catalogues aligned with your profile.
+        </p>
+        {% else %}
+        <div class="stream-pathways-hero__meta">
+          <span class="stream-pathways-hero__chip">
+            <span class="stream-pathways-hero__chip-value">{{ stream_sorter_guidance.streams_shown_count }}</span>
+            of {{ stream_sorter_guidance.streams_total_count }} streams aligned
+          </span>
+          {% if stream_sorter_guidance.show_other_streams_toggle %}
+          <span class="stream-pathways-hero__chip stream-pathways-hero__chip--hint">
+            Use <strong>View more</strong> below for other streams
+          </span>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% if stream_sorter_guidance.hero_image %}
+    <div class="stream-pathways-hero__media">
+      <img
+        class="stream-pathways-hero__image"
+        src="{{ static(stream_sorter_guidance.hero_image) }}"
+        alt=""
+        role="presentation"
+        {% if not pathways_is_pdf %}loading="lazy"{% endif %}
+      />
+    </div>
     {% endif %}
   </div>
 

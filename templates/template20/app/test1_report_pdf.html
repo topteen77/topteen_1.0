@@ -376,7 +376,7 @@
     {% for result in top_categories %}
     <div class="threebox-col">
       <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; float: left; width:190px; height:100px;">
-        <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ result.score if result.score else 0 }}</p>
+        <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ (result.score|replace('%', '')|float)|round|int if result.score else 0 }}%</p>
         <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px;">{{ result.category if result.category else 'N/A' }}</p>
       </div>
     </div>

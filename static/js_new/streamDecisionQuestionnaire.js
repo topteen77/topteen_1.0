@@ -28,6 +28,11 @@
   const userId = popup.dataset.userId || "guest";
   const storageKey = "streamDecisionQuestionnaireMinimized:" + userId;
   const legacyStorageKey = storageKey;
+  const shakeDelayMs = 20000;
+  const prefersReducedMotion =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let pendingShakeTimer = null;
 
   const questionKeys = [
     "preferred_stream",
@@ -97,7 +102,84 @@
     };
   };
 
+  const isPendingButtonVisible = function () {
+    if (!pendingWrap) {
+      return false;
+    }
+    if (pendingWrap.classList.contains("d-none")) {
+      return false;
+    }
+    return window.getComputedStyle(pendingWrap).display !== "none";
+  };
+
+  const clearPendingShakeTimer = function () {
+    if (pendingShakeTimer) {
+      clearTimeout(pendingShakeTimer);
+      pendingShakeTimer = null;
+    }
+  };
+
+  const clearPendingShake = function () {
+    clearPendingShakeTimer();
+    if (pendingWrap) {
+      pendingWrap.classList.remove("stream-decision-pending-shake");
+    }
+  };
+
+  const isShakeAnimation = function (animationName) {
+    return (
+      animationName === "streamDecisionPendingBtnShake" ||
+      (animationName && animationName.indexOf("streamDecisionPendingBtnShake") !== -1)
+    );
+  };
+
+  const triggerPendingShake = function () {
+    if (!pendingWrap || !pendingBtn || !isPendingButtonVisible() || prefersReducedMotion) {
+      return;
+    }
+    let shakeFinished = false;
+    const finishShake = function () {
+      if (shakeFinished) {
+        return;
+      }
+      shakeFinished = true;
+      pendingWrap.classList.remove("stream-decision-pending-shake");
+      if (pendingBtn) {
+        pendingBtn.removeEventListener("animationend", onShakeEnd);
+      }
+    };
+
+    const onShakeEnd = function (event) {
+      if (event.target !== pendingBtn || !isShakeAnimation(event.animationName)) {
+        return;
+      }
+      finishShake();
+    };
+
+    pendingWrap.classList.remove("stream-decision-pending-shake");
+    void pendingBtn.offsetWidth;
+    pendingWrap.classList.add("stream-decision-pending-shake");
+    pendingBtn.addEventListener("animationend", onShakeEnd);
+    setTimeout(finishShake, 900);
+  };
+
+  const schedulePendingShake = function () {
+    clearPendingShakeTimer();
+    if (!pendingWrap || prefersReducedMotion) {
+      return;
+    }
+    pendingShakeTimer = setTimeout(function () {
+      pendingShakeTimer = null;
+      if (!isPendingButtonVisible()) {
+        return;
+      }
+      triggerPendingShake();
+      schedulePendingShake();
+    }, shakeDelayMs);
+  };
+
   const showPopup = function () {
+    clearPendingShake();
     popup.classList.remove("d-none");
     popup.setAttribute("aria-hidden", "false");
     if (pendingWrap) {
@@ -113,6 +195,7 @@
   const showPendingButton = function () {
     if (pendingWrap) {
       pendingWrap.classList.remove("d-none");
+      schedulePendingShake();
     }
   };
 
@@ -128,6 +211,7 @@
   };
 
   const clearMinimizedState = function () {
+    clearPendingShake();
     try {
       window.sessionStorage.removeItem(storageKey);
       window.localStorage.removeItem(legacyStorageKey);

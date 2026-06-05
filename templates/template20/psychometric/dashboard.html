@@ -1430,7 +1430,7 @@
 
   .student-dash-main-col {padding:0px;}
 </style>
-<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=12">
+<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=19">
 {% endblock %}
 
 {% block student_main %}
@@ -1455,7 +1455,7 @@
             <div class="my-md-6 my-4">
               <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
               {% if top_intelligence_label %}
-              <p class="fs-13 text-gray mb-3">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold">{{ top_intelligence_label|lower }}</span></p>
+              <p class="fs-13 text-gray mb-3">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold text-purple">{{ top_intelligence_label|lower }}</span></p>
               {% endif %}
 
               {% if stream_questionnaire_completed and stream_questionnaire_answers %}
@@ -1544,7 +1544,7 @@
                     <div class="modern-bar-row">
                       <span>{{ item.label }}</span>
                       <div class="modern-bar-track"><div class="modern-bar-fill personality psych-dynamic-width {{ riasec_bar }}" data-score="{{ item.score_pct }}"></div></div>
-                      <strong class="modern-bar-mark">{{ item.score_pct }}/100%</strong>
+                      <strong class="modern-bar-mark">{{ item.score_pct }}%</strong>
                     </div>
                     {% endif %}
                   {% endfor %}
@@ -1831,7 +1831,7 @@
       {% endif %}
 
 
-      {% if below|default([]) or vocational_guidance_groups|default([]) %}
+      {% if student_below_average|default(false) %}
       <div class="mb-4">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Improvement Recommendations</h2>
         {% if below|default([]) %}
@@ -2180,6 +2180,6 @@
 
 {% block student_additionaljs %}
 {% if show_stream_questionnaire %}
-<script src="{{ static('js_new/streamDecisionQuestionnaire.js') }}?v=7" defer></script>
+<script src="{{ static('js_new/streamDecisionQuestionnaire.js') }}?v=12" defer></script>
 {% endif %}
 {% endblock %}

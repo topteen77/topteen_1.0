@@ -38,18 +38,36 @@
   }
 }
 
-.stream-decision-popup-header {
+.stream-decision-popup-hero {
+  padding: 24px 24px 5px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #c9c9c9;
+}
+
+.stream-decision-popup-hero-bar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 0;
-  padding: 24px 24px 0;
-  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+
+.stream-decision-popup-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
+  gap: 16px;
+  align-items: start;
+}
+
+.stream-decision-popup-hero-copy {
+  min-width: 0;
 }
 
 .stream-decision-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
   color: #3f37c9;
@@ -58,6 +76,14 @@
   padding: 4px 10px;
   border-radius: 999px;
   margin-bottom: 8px;
+}
+
+.stream-decision-badge-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  color: #3f37c9;
 }
 
 .stream-decision-popup-title {
@@ -73,7 +99,6 @@
   font-size: 0.875rem;
   color: #64748b;
   line-height: 1.5;
-  max-width: 36rem;
 }
 
 .stream-decision-popup-minimize {
@@ -97,7 +122,7 @@
   border: 1px solid #dbeafe;
   border-radius: 14px;
   padding: 12px 14px;
-  margin: 16px 24px 0;
+  margin: 0;
   flex-shrink: 0;
 }
 
@@ -112,7 +137,7 @@
 
 .stream-decision-stream-chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
   gap: 8px;
 }
 
@@ -123,10 +148,12 @@
   background: #ffffff;
   border: 1px solid #c7d2fe;
   border-radius: 999px;
-  padding: 5px 12px;
+  padding: 6px 12px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
 }
 
 .stream-decision-chip strong {
@@ -343,6 +370,10 @@
   border: 1px solid #cbd5e1;
 }
 
+.stream-decision-pending-wrap.d-none {
+  display: none !important;
+}
+
 .stream-decision-pending-wrap {
   --sdp-btn-dark: #0a0a0a;
   --sdp-btn-mid: #1a1a1a;
@@ -441,6 +472,47 @@
   }
 }
 
+.stream-decision-pending-wrap.stream-decision-pending-shake {
+  animation: streamDecisionPulse 3.6s ease-in-out infinite;
+}
+
+.stream-decision-pending-wrap.stream-decision-pending-shake .stream-decision-pending-btn {
+  animation: streamDecisionPendingBtnShake 0.75s ease-in-out;
+}
+
+@keyframes streamDecisionPendingBtnShake {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  10% {
+    transform: translateX(-8px) rotate(-3deg);
+  }
+  20% {
+    transform: translateX(8px) rotate(3deg);
+  }
+  30% {
+    transform: translateX(-6px) rotate(-2deg);
+  }
+  40% {
+    transform: translateX(6px) rotate(2deg);
+  }
+  50% {
+    transform: translateX(-4px) rotate(-1.5deg);
+  }
+  60% {
+    transform: translateX(4px) rotate(1.5deg);
+  }
+  70% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  80% {
+    transform: translateX(3px) rotate(1deg);
+  }
+  90% {
+    transform: translateX(-1px) rotate(0deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stream-decision-pending-wrap::before {
     animation-duration: 8s;
@@ -449,28 +521,144 @@
   .stream-decision-pending-wrap {
     animation: none;
   }
-}
 
-@media (max-width: 575px) {
-  .stream-decision-popup-card {
-    max-height: calc(100vh - 20px);
-    border-radius: 16px;
+  .stream-decision-pending-wrap.stream-decision-pending-shake {
+    animation: none;
   }
 
-  .stream-decision-popup-header {
+  .stream-decision-pending-wrap.stream-decision-pending-shake .stream-decision-pending-btn {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .stream-decision-popup-card {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  .stream-decision-popup-hero {
     padding: 18px 16px 0;
   }
 
+  .stream-decision-popup-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stream-decision-stream-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .stream-decision-chip {
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  .stream-decision-badge {
+    font-size: 12px;
+    padding: 5px 11px;
+  }
+
+  .stream-decision-badge-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .stream-decision-popup-title {
+    font-size: 1.3rem;
+    line-height: 1.3;
+  }
+
+  .stream-decision-popup-subtitle {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    max-width: none;
+  }
+
+  .stream-decision-suggested-label {
+    font-size: 0.8125rem;
+  }
+
+  .stream-decision-chip {
+    font-size: 0.9375rem;
+    padding: 7px 14px;
+  }
+
+  .stream-decision-question-text {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .stream-decision-option-label {
+    font-size: 0.9375rem;
+  }
+
+  .stream-decision-option-meta {
+    font-size: 0.8125rem;
+  }
+
+  .stream-decision-option span:not(.stream-decision-option-content):not(.stream-decision-option-label):not(.stream-decision-option-meta):not(.stream-decision-score-badge) {
+    font-size: 0.9375rem;
+  }
+
+  .stream-decision-score-badge {
+    font-size: 0.75rem;
+    padding: 5px 11px;
+  }
+
+  .stream-decision-other-title {
+    font-size: 0.875rem;
+  }
+
+  .stream-decision-form-error {
+    font-size: 0.875rem;
+  }
+
+  .stream-decision-btn-primary,
+  .stream-decision-btn-secondary {
+    font-size: 0.9375rem;
+    padding: 11px 18px;
+  }
+}
+
+@media (max-width: 575px) {
+  .stream-decision-popup-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .stream-decision-popup-card {
+    max-height: calc(100vh - 16px);
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .stream-decision-popup-hero {
+    padding: 16px 14px 0;
+  }
+
+  .stream-decision-popup-hero-bar {
+    margin-bottom: 12px;
+  }
+
+  .stream-decision-popup-minimize {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+  }
+
   .stream-decision-suggested-streams {
-    margin: 12px 16px 0;
+    padding: 14px;
   }
 
   .stream-decision-popup-body {
-    padding: 12px 16px 10px;
+    padding: 12px 14px 10px;
   }
 
   .stream-decision-popup-footer {
-    padding: 12px 16px 16px;
+    padding: 12px 14px 14px;
   }
 
   .stream-decision-popup-actions {
@@ -483,18 +671,102 @@
     justify-content: center;
   }
 
+  .stream-decision-badge {
+    font-size: 13px;
+  }
+
+  .stream-decision-badge-icon {
+    width: 14px;
+    height: 14px;
+  }
+
   .stream-decision-popup-title {
-    font-size: 1.15rem;
+    font-size: 1.35rem;
+  }
+
+  .stream-decision-popup-subtitle {
+    font-size: 1rem;
+  }
+
+  .stream-decision-suggested-label {
+    font-size: 0.875rem;
+    margin-bottom: 10px;
+  }
+
+  .stream-decision-chip {
+    font-size: 1rem;
+    padding: 8px 15px;
+  }
+
+  .stream-decision-question {
+    padding: 12px;
+  }
+
+  .stream-decision-question-text {
+    font-size: 1.0625rem;
+  }
+
+  .stream-decision-option {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .stream-decision-option-label {
+    font-size: 1rem;
+  }
+
+  .stream-decision-option-meta {
+    font-size: 0.875rem;
+  }
+
+  .stream-decision-option span:not(.stream-decision-option-content):not(.stream-decision-option-label):not(.stream-decision-option-meta):not(.stream-decision-score-badge) {
+    font-size: 1rem;
+  }
+
+  .stream-decision-score-badge {
+    align-self: flex-start;
+    margin-left: 26px;
+    font-size: 0.8125rem;
+  }
+
+  .stream-decision-btn-primary,
+  .stream-decision-btn-secondary {
+    font-size: 1rem;
+    padding: 12px 18px;
   }
 
   .stream-decision-pending-wrap {
     bottom: 18px !important;
+    left: 50% !important;
   }
 
   .stream-decision-pending-btn {
-    padding: 11px 16px;
-    font-size: 0.8125rem;
-    max-width: calc(100vw - 36px);
+    padding: 12px 18px;
+    font-size: 0.9375rem;
+    max-width: calc(100vw - 32px);
+  }
+
+  .stream-decision-result-section {
+    padding: 16px;
+  }
+
+  .stream-decision-result-badge {
+    font-size: 12px;
+  }
+
+  .stream-decision-result-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .stream-decision-result-value {
+    font-size: 1.2rem;
+  }
+
+  .stream-decision-result-match,
+  .stream-decision-result-label,
+  .stream-decision-result-meta {
+    font-size: 0.875rem;
   }
 }
 

@@ -174,10 +174,10 @@
   }
   
   .test-title {
-    color: #000;
-    font-size: 16px;
-    font-weight: 600;
-    margin-top: 10px;
+    color: #000 !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  margin-top: 10px;
   }
 
   .interest-areas-stack {
@@ -193,7 +193,7 @@
   }
 
   .interest-area-block .test-title {
-    float: none !important;
+    /* float: none !important; */
     width: 100% !important;
   }
   
@@ -217,6 +217,32 @@
     color: #3F37C9;
     margin-bottom: 20px;
   }
+
+
+  .riasec-mini-card0-list {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	width: 100%;
+  align-items: center;
+}
+
+.riasec-mini-card0-list .test-title {
+	text-align: center;
+	width: 100% !important;
+}
+
+
+.riasec-mini-card0-list span {
+	display: flex;
+	justify-content: center;
+	background: #fafaff;
+	width: 315px;
+	padding: 7px 8px;
+	border-radius: 20px;
+	/* font-size: 26px !important; */
+}
+
 </style>
 {% endblock %}
 
@@ -248,12 +274,17 @@
       <p>This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
     </div>
 
+    <div class="riasec-mini-card0-list">
+
     <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
       Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
     </div>
     {% if dominant_interest_labels %}
-    <p style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</p>
+    <span style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</span>
     {% endif %}
+
+
+    </div>
 
     <!-- Display Highest Interest (all tied top scores) -->
     <div class="interest-areas-stack">

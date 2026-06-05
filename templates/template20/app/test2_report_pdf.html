@@ -75,6 +75,7 @@
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
+   
     }
     ul { list-style-type: none; padding: 0; }
     li { margin-bottom: 5px; }
@@ -125,15 +126,44 @@
     .img-info { width: 100%; text-align: center; margin-top:30px; }
     .boxthree { margin: 20px 0 40px 0; float:left; width: 100%; }
     .graph { width:100%; text-align: center; margin-top: 40px; float: left; }
+
+    .riasec-mini-card0-list {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	width: 100%;
+  align-items: center;
+}
+
+.riasec-mini-card0-list .test-title {
+	text-align: center;
+	width: 100% !important;
+}
+
+
+.riasec-mini-card0-list span {
+	display: flex;
+	justify-content: center;
+	background: #fafaff;
+	width: 315px;
+	padding: 7px 8px;
+	border-radius: 20px;
+margin-bottom:0px !important;
+}
+
+
+
   </style>
 </head>
 <body>
+
   <div class="page-header">
     <div class="page-header-content">
-      <img style="width: 90px;" src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
+      <img style="width: 90px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
     </div>
     <hr class="page-header-line" />
   </div>
+
   <div class="coverPage">
     <div class="img-top" style="width: 100%; text-align: center;">
       <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
@@ -146,7 +176,7 @@
     </div>
 
     {% if user_profile %}
-    <div class="student-detail-info" style="width:650px; margin-bottom:30px;">
+    <div class="student-detail-info" style="width:600px; margin-bottom:30px;">
       <div class="top-info">
         <div class="info-box">
           <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
@@ -163,14 +193,14 @@
       </div>
       <div class="top-info">
         <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
+          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px; "> Grade</div>
           <div class="output" style="margin-bottom: 0px;">
             <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
           </div>
         </div>
-        <div class="info-box" style="margin-bottom: 0px;">
-          <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
-          <div class="output">
+        <div class="info-box" style="margin-bottom: 0px; height: 47px;">
+          <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px; "> Date of Test </div>
+          <div class="output" style="margin-bottom: 0px;">
             <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
           </div>
         </div>
@@ -265,22 +295,28 @@
   </div>
 
   <div class="chapterPage">
-    <div class="text-color-top">
+    <div class="text-color-top" style="margin-bottom:0px !important;">
       <div class="top-layout" style="font-size: 16px;">Part -2</div>
     </div>
     <div class="db-header" style="margin-top: 5px;">
       <h1 style="color: #3F37C9; margin:0px;">CAREER INTEREST INVENTORY REPORT</h1>
     </div>
     <div class="text-info-paragraph">
-      <p>This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
+      <p style="font-size:14px;">This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
     </div>
 
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
-      Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
-    </div>
-    {% if dominant_interest_labels %}
-    <p style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</p>
-    {% endif %}
+
+
+    <div class="riasec-mini-card0-list">
+      <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px; margin-bottom:0px;">
+        Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
+      </div>
+      {% if dominant_interest_labels %} 
+      <span style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</span>    {% endif %}
+          </div>
+  
+
+
 
     {% if dominant_interest_codes %}
     {% if 'R' in dominant_interest_codes %}
@@ -291,7 +327,7 @@
       </div>
     </div>
     <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-    <div style="width:100%; float: left; background:#C9EDF8; border: 1px solid #057190; border-radius: 5px; padding: 10px;">
+    <div style="width:600px; float: left; background:#C9EDF8; border: 1px solid #057190; border-radius: 5px; padding: 10px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Practical Skills:</strong> You excel at hands-on tasks, including working with machinery, tools, and materials.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Mechanical Aptitude:</strong> You have a natural ability to understand and operate mechanical systems and tools.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#057190;">• Physical Strength:</strong> You possess physical endurance and strength, beneficial for manual labor and outdoor activities.</div>
@@ -299,7 +335,7 @@
       <div style="width:100%; float: left; margin:2px 0; font-size: 14px;"><strong style="color: #057190;">• Independence:</strong> You prefer working independently or with minimal supervision, often thriving in environments that require self-reliance.</div>
     </div>
     <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-    <div style="width:100%; float: left; background: #C9EDF8; border: 1px solid #057190; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+    <div style="width:600px; float: left; background: #C9EDF8; border: 1px solid #057190; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Mechanical Engineering</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#057190;">• Construction Management</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Aviation (Pilots)</strong></div>
@@ -319,7 +355,7 @@
       </div>
     </div>
     <div class="test-title" style="color:#A92CAF; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-    <div style="width:100%; float: left; background:#FEECFF; border: 1px solid #A92CAF; border-radius: 5px; padding: 10px;">
+    <div style="width:600px; float: left; background:#FEECFF; border: 1px solid #A92CAF; border-radius: 5px; padding: 10px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Analytical Skills:</strong> You are adept at analyzing data, identifying patterns, and solving complex problems.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Curiosity:</strong> You have a strong desire to understand how things work, driving you to explore, research, and learn.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#A92CAF;">• Critical Thinking:</strong> You are capable of evaluating situations and information critically, often leading to innovative solutions.</div>
@@ -327,7 +363,7 @@
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Intellectual Pursuits:</strong> You enjoy intellectual challenges and pursuits, often excelling in academic and research settings.</div>
     </div>
     <div class="test-title" style="color:#A92CAF; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-    <div style="width:100%; float: left; background: #FEECFF; border: 1px solid #A92CAF; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+    <div style="width:600px; float: left; background: #FEECFF; border: 1px solid #A92CAF; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Research and Development</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Data Science and Analytics</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF">• Biotechnology and Life Sciences</strong></div>
@@ -347,7 +383,7 @@
       </div>
     </div>
     <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-    <div style="width:100%; float: left; background:#EDFFE7; border: 1px solid #2A740E; border-radius: 5px; padding: 10px;">
+    <div style=" width:600px; float: left; background:#EDFFE7; border: 1px solid #2A740E; border-radius: 5px; padding: 10px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Creativity:</strong> You are highly creative and excel in expressing yourself through various art forms.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Originality:</strong> You have a unique perspective and can generate original ideas and concepts.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#2A740E;">• Aesthetic Sensibility:</strong> You possess a keen sense of aesthetics, which helps you create visually appealing work.</div>
@@ -355,7 +391,7 @@
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Flexibility:</strong> You are comfortable with ambiguity and open to exploring different methods and styles in your creative processes.</div>
     </div>
     <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-    <div style="width:100%; float: left; background: #EDFFE7; border: 1px solid #2A740E; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+    <div style=" width:600px; float: left; background: #EDFFE7; border: 1px solid #2A740E; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Graphic Design</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#2A740E;">• Writing and Publishing</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Music and Performing Arts</strong></div>
@@ -375,7 +411,7 @@
       </div>
     </div>
     <div class="test-title" style="color:#6D5C04; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-    <div style="width:100%; float: left; background:#FFFAE2; border: 1px solid #6D5C04; border-radius: 5px; padding: 10px;">
+    <div style="width:600px; float: left; background:#FFFAE2; border: 1px solid #6D5C04; border-radius: 5px; padding: 10px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Interpersonal Skills:</strong>You have strong communication and interpersonal skills, making you effective in building relationships.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Empathy:</strong> You possess a high degree of empathy, enabling you to understand and respond to the needs of others.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#6D5C04;">• Teamwork:</strong> You excel in collaborative environments and are often a team player who contributes positively to group dynamics.</div>
@@ -383,7 +419,7 @@
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Conflict Resolution:</strong> You are capable of mediating conflicts and facilitating harmonious interactions among individuals or groups.</div>
     </div>
     <div class="test-title" style="color:#6D5C04; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-    <div style="width:100%; float: left; background: #FFFAE2; border: 1px solid #6D5C04; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+    <div style="width:600px; float: left; background: #FFFAE2; border: 1px solid #6D5C04; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Counseling and Therapy</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#6D5C04;">• Education and Teaching</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Healthcare (e.g., Nursing, Physician Assistant)</strong></div>
@@ -403,7 +439,7 @@
       </div>
     </div>
     <div class="test-title" style="color:#A22717; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-    <div style="width:100%; float: left; background:#FFFAE2; border: 1px solid #A22717; border-radius: 5px; padding: 10px;">
+    <div style="width:600px;  float: left; background:#FFFAE2; border: 1px solid #A22717; border-radius: 5px; padding: 10px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Leadership:</strong>You are a natural leader who excels at motivating and guiding others.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Persuasion:</strong> You are persuasive and can effectively influence and convince others.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#A22717;">• Ambition:</strong> You are highly driven and ambitious, often seeking out new opportunities and challenges.</div>
@@ -411,7 +447,7 @@
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Decision-Making:</strong> You are decisive and capable of making strategic decisions, often under pressure.</div>
     </div>
     <div class="test-title" style="color:#A22717; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-    <div style="width:100%; float: left; background: #FFFAE2; border: 1px solid #A22717; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+    <div style=" width:600px; float: left; background: #FFFAE2; border: 1px solid #A22717; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Entrepreneurship</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#A22717;">• Marketing and Sales</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Real Estate</strong></div>
@@ -431,7 +467,7 @@
       </div>
     </div>
     <div class="test-title" style="color:#0B5BA1; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-    <div style="width:100%; float: left; background:#EBF6FF; border: 1px solid #0B5BA1; border-radius: 5px; padding: 10px;">
+    <div style="width:600px; float: left; background:#EBF6FF; border: 1px solid #0B5BA1; border-radius: 5px; padding: 10px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Organizational Skills:</strong> You are highly organized and excel at managing details and maintaining order.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Attention to Detail:</strong> You have a meticulous approach to tasks, ensuring accuracy and precision.</div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#0B5BA1;">• Dependability:</strong> You are known for your reliability and consistency in completing tasks and meeting deadlines.</div>
@@ -439,7 +475,7 @@
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Preference for Structure:</strong> You thrive in structured environments with clear rules and procedures, ensuring efficiency and predictability.</div>
     </div>
     <div class="test-title" style="color:#0B5BA1; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-    <div style="width:100%; float: left; background: #EBF6FF; border: 1px solid #0B5BA1; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
+    <div style=" width:600px;float: left; background: #EBF6FF; border: 1px solid #0B5BA1; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Accounting and Finance</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#0B5BA1;">• Administrative and Office Management</strong></div>
       <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Data Analysis</strong></div>
@@ -475,7 +511,7 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Seek Guidance:</strong> Talk to career counselors, mentors, and professionals in your fields of interest for advice and guidance.</div>
       </div>
       <div class="text-info-paragraph" style="width: 550px; margin: 0px auto;">
-        <p style="font-style: italic; text-align: center;">By aligning your career choices with your interests, you can find a fulfilling and rewarding career that leverages your strengths and passions. <strong style="color:#FF7D04;">Best wishes!</strong></p>
+        <p style="font-style: italic; text-align: center; font-size:14px;">By aligning your career choices with your interests, you can find a fulfilling and rewarding career that leverages your strengths and passions. <strong style="color:#FF7D04;">Best wishes!</strong></p>
       </div>
     </div>
   </div>

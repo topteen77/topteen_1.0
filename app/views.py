@@ -555,10 +555,10 @@ def dashboard(request, student_id=None):
             skill_readiness_index = []
 
         # Vocational careers for below-average reasoning areas (DB-backed mappings).
-        from app.report_visibility import student_has_below_average_areas
+        from app.report_visibility import student_all_growth_areas
         from app.vocational_recommendations import vocational_guidance_context_for_below_areas
 
-        student_below_average = student_has_below_average_areas(below)
+        student_below_average = student_all_growth_areas(below, avg, above_avg)
         vocational_ctx = vocational_guidance_context_for_below_areas(below, user=request.user)
         vocational_guidance_cards = vocational_ctx['vocational_guidance_cards']
         vocational_guidance_groups = vocational_ctx['vocational_guidance_groups']
@@ -1274,6 +1274,8 @@ def class10_combined_report(request, user_id=None):
             'no_results': False,
             'viewing_as_admin': user_id is not None and user_id != request.user.id,
             'user_id': user_id if user_id else target_user.id,
+            'user_name': _student_name,
+            'user_ID': target_user.id,
             'embed_mode': embed_mode,
         }
         from app.interest_report_utils import interest_report_context_fields
@@ -1289,8 +1291,8 @@ def class10_combined_report(request, user_id=None):
         from app.vocational_recommendations import vocational_guidance_context_for_below_areas
 
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
-        context['student_below_average'] = not should_show_extended_career_pathways(below)
-        if should_show_extended_career_pathways(below):
+        context['student_below_average'] = not should_show_extended_career_pathways(below, avg, above_avg)
+        if should_show_extended_career_pathways(below, avg, above_avg):
             from app.stream_sorter_guidance import build_report_stream_guidance
             context['stream_sorter_guidance'] = build_report_stream_guidance(
                 streamsubject,
@@ -1431,12 +1433,16 @@ def class10_report_download_pdf(request, user_id=None):
             created_date = getattr(target_user, 'date_joined', None)
         now = datetime.now()
 
+        graph_user_name = getattr(target_user, 'name', None) or target_user.email
+
         # Build context for PDF (same as HTML report so content include matches)
         # show_student_info_on_cover: only True for PDF so student info appears on first page of download only
         context = {
             'user': target_user,
             'user_profile': user_profile,
             'user_id': target_user.id,
+            'user_name': graph_user_name,
+            'user_ID': target_user.id,
             'show_student_info_on_cover': True,
             'student_name': student_name,
             'created_date': created_date,
@@ -1459,8 +1465,8 @@ def class10_report_download_pdf(request, user_id=None):
         from app.vocational_recommendations import vocational_guidance_context_for_below_areas
 
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
-        context['student_below_average'] = not should_show_extended_career_pathways(below)
-        if should_show_extended_career_pathways(below):
+        context['student_below_average'] = not should_show_extended_career_pathways(below, avg, above_avg)
+        if should_show_extended_career_pathways(below, avg, above_avg):
             from app.stream_sorter_guidance import build_report_stream_guidance
             context['stream_sorter_guidance'] = build_report_stream_guidance(
                 streamsubject,
@@ -1468,6 +1474,15 @@ def class10_report_download_pdf(request, user_id=None):
             )
         else:
             context['stream_sorter_guidance'] = None
+
+        from app.interest_report_utils import interest_report_context_fields
+        context.update(
+            interest_report_context_fields(
+                scores=test2_result.scores if test2_result and test2_result.scores else None,
+                max_length=max_length,
+                min_length=min_length,
+            )
+        )
 
         # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
         pdf_template_name = 'template20/app/class10_combined_report_pdf.html'
@@ -1477,6 +1492,7 @@ def class10_report_download_pdf(request, user_id=None):
         except (KeyError, Exception):
             template = get_template(pdf_template_name)
         html = template.render(context)
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
         
         # Debug: return raw HTML to verify template/CSS (?debug=true)
         if request.GET.get('debug') == 'true':

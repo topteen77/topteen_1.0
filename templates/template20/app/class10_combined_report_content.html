@@ -18,6 +18,48 @@
     }
 
 
+    table.pr-table tr th {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+
+
+.cat-box.cat-one-box ul li::before {
+    top: 7px !important;
+}
+
+    .riasec-mini-card0-list {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	width: 100%;
+  align-items: center;
+}
+
+.riasec-mini-card0-list .test-title {
+	text-align: center;
+	width: 100% !important;
+}
+
+.two-box {
+	border-bottom: 1px solid #cdcbcb;
+	padding: 13px 0 29px 0px;
+	margin-bottom: 20px !important;
+}
+
+
+.riasec-mini-card0-list span {
+	display: flex;
+	justify-content: center;
+	background: #fafaff;
+	width: 315px;
+	padding: 7px 8px;
+	border-radius: 20px;
+	/* font-size: 26px !important; */
+}
+
+
     </style>
 
 
@@ -98,7 +140,7 @@
         </div>
       </div>
 
-      <table style="margin-bottom: 30px; margin-top:25px;">
+      <table style="margin-bottom: 30px; margin-top:25px;" class="pr-table">
         <thead>
           <tr >
             <th style="border-top-left-radius: 15px;">Part</th>
@@ -170,15 +212,18 @@
         <h1>PERSONALITY ASSESSMENT REPORT</h1>
       </div>
       <div class="text-info-paragraph">
-        <p style="font-size: 12px;">This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+        <p style="font-size: 14px;">This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
       </div>
-      <div class="test-title" style="with:100%; text-align: center;">Holland's Code description</div>
-      <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
+
+
+      <!-- hidden comobine report -->
+      <div class="test-title" style="with:100%; text-align: center; display: none !important;">Holland's Code description</div>
+      <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px; display: none !important;">
         <img style="width:600px;" src="{{ static('images/riasec-ig.png') }}" alt="riasec" />
       </div>
 
       
-    <table style="margin-bottom: 30px; margin-top:0px;">
+    <table style="margin-bottom: 30px; margin-top:0px; display: none !important;">
       <thead>
         <tr>
           <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">Holland Code</th>
@@ -236,19 +281,16 @@
         </tr>
       </tbody>
     </table>
-    </div>
 
 
+      <!-- hidden comobine report -->
 
-    <div class="chapterPage">
-      <div class="page-header" style="width:650px ;">
-        <div class="page-header-content">
-          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
-        </div>
-              <hr class="page-header-line" style="width: 100%;" />
-      </div>
+
+      <!-- New update section this page -->
+
+        
       <div class="db-header">
-        <h1>Interpretation & Recommendations</h1>
+        <h1 style="color: #121216;     font-size: 20px;     font-weight: 700;">Interpretation & Recommendations</h1>
       </div>
       <div class="text-info-paragraph" style="margin-bottom: 0px; text-align: center;">
         <p>Based on your test results, your strongest areas of interest are:</p>
@@ -267,7 +309,7 @@
         {% for result in personality_data.top_categories %}
         <div class="threebox-col">
           <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; float: left; width:190px; height:100px;">
-            <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px; margin-top: 0px;">{{ result.score }}</p>
+            <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px; margin-top: 0px;">{{ (result.score|replace('%', '')|float)|round|int }}%</p>
             <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px; margin-top: 0px;">{{ result.category }}</p>
           </div>
         </div>
@@ -281,12 +323,17 @@
       </div>
       {% endif %}
 
-      {% if user and user_id %}
+      {% if user_name and user_ID %}
       <div class="graph" style="width:100%; text-align: center; margin:20px 0; float: left;">
-        <img style="width:550px;" src="/media/graph_images/{{ user.name if user.name else user.email }}-{{ user_id }}_personality_Assessment.png" alt="graph" />
+        <img style="width:550px;" src="/media/graph_images/{{ user_name }}-{{ user_ID }}_personality_Assessment.png" alt="graph" />
       </div>
       {% endif %}
+
+
     </div>
+
+
+
 
     <div class="chapterPage">
       <div class="page-header" style="width:650px ;">
@@ -365,12 +412,21 @@
         <p>This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
       </div>
 
-      <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
-        Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
-      </div>
-      {% if dominant_interest_labels %}
-      <p style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</p>
-      {% endif %}
+
+      <div class="riasec-mini-card0-list">
+
+        <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
+          Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
+        </div>
+        {% if dominant_interest_labels %}
+        <span style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</span>
+        {% endif %}
+    
+    
+        </div>
+
+
+ 
 
       <!-- Display Highest Interest (all tied top scores) -->
       <div class="interest-areas-stack">
@@ -407,7 +463,7 @@
       <!--I-->
       {% if 'I' in dominant_interest_codes %}
     <div class="interest-area-block">
-      <div class="text-color-top" style="display: flex; justify-content: center;">
+      <div class="text-color-top" style="display: flex; justify-content: center; width:100%; float: left;">
         <div class="top-layout" style="background: #A92CAF; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
           Investigative (I)
         </div>
@@ -436,7 +492,7 @@
       <!--A-->
       {% if 'A' in dominant_interest_codes %}
     <div class="interest-area-block">
-      <div class="text-color-top" style="display: flex; justify-content: center;">
+      <div class="text-color-top" style="display: flex; justify-content: center; width:100%; float: left;">
         <div class="top-layout" style="background: #2A740E; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
           Artistic (A)
         </div>
@@ -465,7 +521,7 @@
       <!--S-->
       {% if 'S' in dominant_interest_codes %}
     <div class="interest-area-block">
-      <div class="text-color-top" style="display: flex; justify-content: center;">
+      <div class="text-color-top" style="display: flex; justify-content: center; width:100%; float: left;">
         <div class="top-layout" style="background: #6D5C04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
           Social (S)
         </div>
@@ -494,7 +550,7 @@
       <!--E-->
       {% if 'E' in dominant_interest_codes %}
     <div class="interest-area-block">
-      <div class="text-color-top" style="display: flex; justify-content: center;">
+      <div class="text-color-top" style="display: flex; justify-content: center; width:100%; float: left;">
         <div class="top-layout" style="background: #A22717; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
           Enterprising (E)
         </div>
@@ -523,7 +579,7 @@
       <!--C-->
       {% if 'C' in dominant_interest_codes %}
     <div class="interest-area-block">
-      <div class="text-color-top" style="display: flex; justify-content: center;">
+      <div class="text-color-top" style="display: flex; justify-content: center; width:100%; float: left;">
         <div class="top-layout" style="background: #0B5BA1; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
           Conventional (C)
         </div>
@@ -553,9 +609,9 @@
       {% endif %}
 
 
-      {% if user and user_id %}
-      <div style="width:100%; text-align: center; margin-top: 30px; float: left; margin-bottom: 30px;">
-        <img style="width:550px;" src="/media/graph_images/{{ user.name if user.name else user.email }}-{{ user_id }}_interest_Assessment.png" alt="graph" />
+      {% if user_name and user_ID %}
+      <div class="graph" style="width:100%; text-align: center; margin-top: 30px; float: left; margin-bottom: 30px;">
+        <img style="width:550px;" src="/media/graph_images/{{ user_name }}-{{ user_ID }}_interest_Assessment.png" alt="graph" />
       </div>
       {% endif %}
 
@@ -566,7 +622,7 @@
             Next Steps
           </div>
         </div>
-        <div style="width:900px; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin:0px auto;">
+        <div style="width:100%; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin:0px auto;">
           <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
             <strong style="color: #FF7D04;">• Explore Careers:</strong> Research the careers mentioned in this report to learn more about what they entail.
           </div>
@@ -604,14 +660,19 @@
       <div class="db-header" style="margin-top: 0px;">
         <h1 style="color: #3F37C9; margin-top: 10px;">APTITUDE ASSESSMENT REPORT</h1>
       </div>
-      <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 10px;">
+
+      <!-- hidden Reprot -->
+
+      <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 10px; display:none;">
         <p>An aptitude test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of aptitude to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an aptitude test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
       </div>
 
-      <div class="test-title" style="color:#000; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">
+
+
+      <div class="test-title" style="color:#000; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px; display:none;">
         Reasoning type description
       </div>
-      <table style="margin-bottom: 30px; margin-top:0px;">
+      <table style="margin-bottom: 30px; margin-top:0px; display: none;">
         <thead>
           <tr>
             <th style="border-top-left-radius: 15px; font-size: 16px;">Reasoning Type</th>
@@ -712,19 +773,16 @@
           </tr>
         </tbody>
       </table>
-    </div>
 
-    <div class="chapterPage">
-      <div class="page-header" style="width:650px ;">
-        <div class="page-header-content">
-          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
-        </div>
-              <hr class="page-header-line" style="width: 100%;" />
-      </div>
+
+      <!-- hidden Reprot -->
+
+
+
       <div class="db-header" style="margin-top: 10px;">
-        <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
+        <h3 style="color: #121216; font-size:20px; font-weight: 700;">Interpretation & Recommendations</h1>
       </div>
-      <div class="text-info-paragraph">
+      <div class="text-info-paragraph" style="text-align: center;">
         <p>Based on your test results, your strongest Reasoning Area is:</p>
       </div>
       <div class="text-color-top" style="display: flex; justify-content: center;">
@@ -734,43 +792,37 @@
       </div>
       <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
         {% if intelligence_data.above_avg and intelligence_data.above_avg|length > 0 %}
-        <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
-          <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
-            {% for above in intelligence_data.above_avg %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ above }}</li>
-            {% endfor %}
-          </ul>
+        <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 190px; min-height: 190px;">
+          <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin: 0 0 6px 0; text-align: center;">Above Average</p>
+          {% for above in intelligence_data.above_avg %}
+          <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ above }}</p>
+          {% endfor %}
         </div>
         {% endif %}
 
         {% if intelligence_data.average and intelligence_data.average|length > 0 %}
-        <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
-          <p class="aptitude-summary-label" style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
-            {% for average in intelligence_data.average %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ average }}</li>
-            {% endfor %}
-          </ul>
+        <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 190px; min-height: 190px;">
+          <p class="aptitude-summary-label" style="color: #3F37C9; font-weight: 700; font-size: 16px; margin: 0 0 6px 0; text-align: center;">Average</p>
+          {% for average in intelligence_data.average %}
+          <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ average }}</p>
+          {% endfor %}
         </div>
         {% endif %}
 
         {% if intelligence_data.below_avg %}
-        <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
+        <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 190px; min-height: 190px;">
           {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
-          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">{{ "Below Average"|aptitude_tier_label }}</p>
-          <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
-            {% for belowavg in intelligence_data.below_avg %}
-            <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>
-            {% endfor %}
-          </ul>
+          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin: 0 0 6px 0; text-align: center;">{{ "Below Average"|aptitude_tier_label }}</p>
+          {% for belowavg in intelligence_data.below_avg %}
+          <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ belowavg }}</p>
+          {% endfor %}
         </div>
         {% endif %}
       </div>
 
-      {% if user and user_id %}
+      {% if user_name and user_ID %}
       <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
-        <img style="width:500px;" src="/media/graph_images/{{ user.name if user.name else user.email }}-{{ user_id }}_intelligence_Assessment.png" alt="graph" />
+        <img style="width:500px;" src="/media/graph_images/{{ user_name }}-{{ user_ID }}_intelligence_Assessment.png" alt="graph" />
       </div>
       {% endif %}
 
@@ -807,7 +859,11 @@
           </tr>
         </tbody>
       </table>
+
+
     </div>
+
+
 
     <!-- Above Average Reasoning Types -->
     {% if intelligence_data.above_avg %}

@@ -172,6 +172,29 @@
     .img-info { margin-top: 16px !important; }
     .graph { width: 100%; text-align: center; }
     .onebox { }
+    /* Aptitude summary boxes: block layout for WeasyPrint (float+flex caused overlapping text) */
+    .box-i.onebox.aptitude-summary--above,
+    .box-i.onebox.aptitude-summary--average,
+    .box-i.onebox.aptitude-summary--below {
+      display: block !important;
+      width: 190px !important;
+      height: auto !important;
+      min-height: 190px !important;
+      padding: 8px 4px !important;
+      box-sizing: border-box !important;
+      text-align: center !important;
+      float: none !important;
+    }
+    .box-i.onebox.aptitude-summary--above .aptitude-summary-label,
+    .box-i.onebox.aptitude-summary--average .aptitude-summary-label,
+    .box-i.onebox.aptitude-summary--below .aptitude-summary-label,
+    .box-i.onebox.aptitude-summary--above .aptitude-summary-item,
+    .box-i.onebox.aptitude-summary--average .aptitude-summary-item,
+    .box-i.onebox.aptitude-summary--below .aptitude-summary-item {
+      float: none !important;
+      width: 100% !important;
+      display: block !important;
+    }
     /* Screen 2: tighten vertical spacing in Part 2 / interest / aptitude sections */
     .report-container .text-color-top .top-layout { margin-top: 6px !important; }
     .report-container div[style*="margin-top: 30px"] { margin-top: 16px !important; }
@@ -179,6 +202,150 @@
     .report-container div[style*="margin-bottom: 30px"] { margin-bottom: 16px !important; }
     .report-container .two-box-in { padding: 6px; }
     .report-container p { word-wrap: break-word; overflow-wrap: break-word; }
+    /* Vocational guidance — PDF: full career lists, allow natural page breaks */
+    .below-average-guidance-report--pdf {
+      page-break-before: auto;
+      clear: both;
+      float: none;
+      width: 100%;
+      padding: 12px 16px;
+      box-sizing: border-box;
+    }
+    .below-average-guidance-report--pdf > .db-header h1 {
+      font-size: 14px;
+      margin: 0 0 8px;
+    }
+    .below-average-guidance-report--pdf .db-header h1 {
+      font-size: 14px;
+      margin: 0 0 8px;
+    }
+    .vocational-guidance-panel {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 0;
+      page-break-inside: auto;
+    }
+    .vocational-guidance-heading {
+      page-break-after: avoid;
+    }
+    .vocational-guidance-heading h1 {
+      margin-bottom: 10px !important;
+    }
+    .vocational-guidance-grid {
+      display: block;
+    }
+    .vocational-guidance-card {
+      margin: 0 0 14px;
+      padding: 0;
+      border: 0;
+      page-break-inside: auto;
+    }
+    .vocational-guidance-card:last-child {
+      margin-bottom: 0;
+    }
+    .vocational-guidance-card-head {
+      margin: 0 0 6px;
+      page-break-after: avoid;
+    }
+    .vocational-guidance-area-badge {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #fff;
+      background: #A22717;
+      text-align: left;
+    }
+    .vocational-guidance-card--verbal .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-card--logical .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-card--spatial .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-card--language .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-card--numerical .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-card--mechanical .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-card--critical .vocational-guidance-area-badge { background: #A22717; }
+    .vocational-guidance-careers--pdf {
+      list-style: none;
+      margin: 0;
+      padding: 0 2px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 14px;
+    }
+    .vocational-guidance-careers--pdf li {
+      font-size: 10px;
+      line-height: 1.45;
+      break-inside: auto;
+      page-break-inside: auto;
+      padding: 1px 0 1px 12px;
+      position: relative;
+    }
+    .vocational-guidance-careers--pdf li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #1e40af;
+      font-weight: 700;
+    }
+    .vocational-guidance-career-name {
+      color: #1e40af;
+      font-weight: 500;
+    }
+    .vocational-guidance-more-note { display: none; }
+
+    /* Extended career pathways hero — WeasyPrint-safe layout */
+    .stream-pathways-hero,
+    .stream-pathways-hero--pdf {
+      display: table !important;
+      width: 100%;
+      table-layout: fixed;
+      page-break-inside: avoid;
+    }
+    .stream-pathways-hero__content,
+    .stream-pathways-hero__media {
+      display: table-cell !important;
+      vertical-align: middle;
+    }
+    .stream-pathways-hero__content {
+      width: 70%;
+      padding-right: 10px;
+    }
+    .stream-pathways-hero__media {
+      width: 30%;
+      text-align: right;
+    }
+    .stream-pathways-hero__image {
+      display: block;
+      width: 96px;
+      max-width: 96px;
+      height: auto;
+      margin-left: auto;
+    }
+    .stream-pathways-hero__badge {
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .stream-pathways-hero__badge-icon {
+      display: inline-block;
+      vertical-align: middle;
+      width: 11px;
+      height: 11px;
+    }
+    .stream-pathways-hero__pdf-note {
+      margin: 6px 0 0;
+      font-size: 9pt;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #3f37c9;
+    }
+    .stream-pathways-hero__meta {
+      display: none !important;
+    }
   </style>
 </head>
 <body class="combined-report-page">

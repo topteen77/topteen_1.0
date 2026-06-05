@@ -7,34 +7,42 @@
   data-user-id="{{ request.user.id }}"
 >
   <div class="stream-decision-popup-card" role="dialog" aria-modal="true" aria-labelledby="streamDecisionPopupTitle">
-    <div class="stream-decision-popup-header">
-      <div>
-        <span class="stream-decision-badge">Stream decision</span>
-        <h3 id="streamDecisionPopupTitle" class="stream-decision-popup-title">
-          Suggested Streams from Intelligence
-        </h3>
-        <p class="stream-decision-popup-subtitle">
-          {% if top_intelligence_label %}
-          Based on your strongest aptitude area:
-          <strong class="text-capitalize">{{ top_intelligence_label|lower }}</strong>.
-          {% endif %}
-          Each option shows your intelligence match score. Choose the stream that fits you best.
-        </p>
-      </div>
-      <button type="button" class="stream-decision-popup-minimize" id="streamDecisionPopupMinimize" aria-label="Minimize questionnaire">
-        <i class='bx bx-minus'></i>
-      </button>
-    </div>
-
-    <div class="stream-decision-suggested-streams">
-      <p class="stream-decision-suggested-label">Top suggested streams</p>
-      <div class="stream-decision-stream-chips">
-        {% for combo in stream_questionnaire_suggested|default(suitable_subject_combinations) %}
-        <span class="stream-decision-chip">
-          {{ combo.stream|default(combo.label) }}
-          <strong>{{ combo.match_score|default('—') }}%</strong>
+    <div class="stream-decision-popup-hero">
+      <div class="stream-decision-popup-hero-bar">
+        <span class="stream-decision-badge">
+          <svg class="stream-decision-badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7z"/>
+          </svg>
+          Stream decision
         </span>
-        {% endfor %}
+        <button type="button" class="stream-decision-popup-minimize" id="streamDecisionPopupMinimize" aria-label="Minimize questionnaire">
+          <i class='bx bx-minus'></i>
+        </button>
+      </div>
+      <div class="stream-decision-popup-hero-grid">
+        <div class="stream-decision-popup-hero-copy">
+          <h3 id="streamDecisionPopupTitle" class="stream-decision-popup-title">
+            Suggested Streams from Intelligence
+          </h3>
+          <p class="stream-decision-popup-subtitle">
+            {% if top_intelligence_label %}
+            Based on your strongest aptitude area:
+            <strong class="text-capitalize text-purple">{{ top_intelligence_label|lower }}</strong>.
+            {% endif %}
+            Each option shows your intelligence match score. Choose the stream that fits you best.
+          </p>
+        </div>
+        <div class="stream-decision-suggested-streams">
+          <p class="stream-decision-suggested-label">Top suggested streams</p>
+          <div class="stream-decision-stream-chips">
+            {% for combo in stream_questionnaire_suggested|default(suitable_subject_combinations) %}
+            <span class="stream-decision-chip">
+              {{ combo.stream|default(combo.label) }}
+              <strong>{{ combo.match_score|default('—') }}%</strong>
+            </span>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </div>
 

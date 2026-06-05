@@ -128,7 +128,6 @@
   }
 
   .interest-area-block .test-title {
-    float: none !important;
     width: 100% !important;
   }
 
@@ -171,7 +170,9 @@
     color: #3F37C9;
     font-size: 24pt;
     margin: 0 0 10px 0;
+    font-weight: 700;
   }
+
 
   .intro-box {
     background: #E7FEFF;
@@ -412,6 +413,99 @@
   .sticky-back-btn:hover {
     background: #3F37C9;
     color: white;
+  }
+
+  /* Vocational guidance — web: 4 careers per area, card layout */
+  .vocational-guidance-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fafbff 0%, #fff 100%);
+    padding: 14px;
+  }
+  .vocational-guidance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 720px) {
+    .vocational-guidance-grid { grid-template-columns: 1fr; }
+  }
+  .vocational-guidance-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  }
+  .vocational-guidance-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .vocational-guidance-area-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: #A22717;
+  }
+  .vocational-guidance-card--verbal .vocational-guidance-area-badge { background: linear-gradient(145deg, #2563eb, #3b82f6); }
+  .vocational-guidance-card--logical .vocational-guidance-area-badge { background: linear-gradient(145deg, #7c3aed, #8b5cf6); }
+  .vocational-guidance-card--spatial .vocational-guidance-area-badge { background: linear-gradient(145deg, #db2777, #ec4899); }
+  .vocational-guidance-card--language .vocational-guidance-area-badge { background: linear-gradient(145deg, #0d9488, #14b8a6); }
+  .vocational-guidance-card--numerical .vocational-guidance-area-badge { background: linear-gradient(145deg, #ea580c, #f97316); }
+  .vocational-guidance-card--mechanical .vocational-guidance-area-badge { background: linear-gradient(145deg, #ca8a04, #eab308); }
+  .vocational-guidance-card--critical .vocational-guidance-area-badge { background: linear-gradient(145deg, #dc2626, #ef4444); }
+  .vocational-guidance-browse-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: #3F37C9;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .vocational-guidance-browse-link:hover { text-decoration: underline; }
+  .vocational-guidance-careers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .vocational-guidance-careers li {
+    font-size: 13px;
+    line-height: 1.45;
+    padding: 4px 0 4px 14px;
+    border-bottom: 1px solid #f8fafc;
+    position: relative;
+  }
+  .vocational-guidance-careers li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #1e40af;
+    font-weight: 700;
+  }
+  .vocational-guidance-careers li:last-child { border-bottom: 0; }
+  .vocational-guidance-career-link {
+    color: #1e40af;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .vocational-guidance-career-link:hover { text-decoration: underline; }
+  .vocational-guidance-more-note {
+    margin: 8px 0 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
   }
 </style>
 {% include 'template20/app/partials/aptitude_tier_styles.html' %}

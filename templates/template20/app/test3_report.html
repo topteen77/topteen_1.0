@@ -33,6 +33,7 @@
     /* Contain legacy float:left blocks so site footer stays below the report */
     display: flow-root;
     overflow-x: hidden;
+    margin-bottom: 75px;
   }
 
   .report-container .ct-resultbox,
@@ -181,8 +182,9 @@
   
   .db-header h1 {
     color: #3F37C9;
-    font-size: 24pt;
-    margin: 0 0 10px 0;
+    font-size: 20pt;
+    margin: 50px 0 10px 0 !important;
+    font-weight: 600;
   }
   
   .text-info-paragraph {
@@ -304,7 +306,11 @@
     margin-bottom: 20px;
   }
 
-
+  .two-box {
+    border-bottom: 1px solid #cdcbcb;
+    padding: 13px 0 29px 0px;
+    margin-bottom: 20px !important;
+}
   @media (max-width: 768px) {
 
     .threebox-col {
@@ -482,7 +488,7 @@ table {
     <div class="db-header" style="margin-top: 10px;">
       <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
     </div>
-    <div class="text-info-paragraph">
+    <div class="text-info-paragraph" style="text-align: center;">
       <p>Based on your test results, your strongest Reasoning Area is:</p>
     </div>
     <div class="text-color-top" style="display: flex; justify-content: center;">
