@@ -1428,9 +1428,178 @@
     padding: 4px 10px;
   }
 
+  .psych-stream-intelligence-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .psych-stream-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .psych-stream-columns--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .psych-stream-part {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  }
+
+  .psych-stream-part-head {
+    margin-bottom: 14px;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .psych-stream-part-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #3f37c9;
+    background: #eef1ff;
+    border: 1px solid #d8defa;
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-bottom: 8px;
+  }
+
+  .psych-stream-part--suggested .psych-stream-part-kicker {
+    color: #0369a1;
+    background: #e0f2fe;
+    border-color: #bae6fd;
+  }
+
+  .psych-stream-part-title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+
+  .psych-stream-part-desc {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .psych-stream-part-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .psych-stream-suggested-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+
+  .psych-stream-suggested-list .stream-card {
+    width: 100%;
+    min-height: 88px;
+    height: 100%;
+  }
+
+  @media (max-width: 575px) {
+    .psych-stream-suggested-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .psych-stream-part--decision .stream-decision-result-section {
+    margin-bottom: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-shell {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-shell::after,
+  .psych-stream-part--decision .stream-decision-result-border {
+    display: none;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-inner {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: none;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-top {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 220px);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-highlight {
+    background: #ffffff;
+    border: none;
+    border-left: 1px solid #e7ecfb;
+    border-radius: 0;
+    padding: 4px 0 4px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-meta {
+    margin-top: auto;
+    padding-top: 14px;
+  }
+
+  @media (max-width: 991px) {
+    .psych-stream-columns {
+      grid-template-columns: 1fr;
+    }
+
+    .psych-stream-part--decision .stream-decision-result-top {
+      grid-template-columns: 1fr;
+    }
+
+    .psych-stream-part--decision .stream-decision-result-highlight {
+      border-left: none;
+      border-top: 1px solid #e7ecfb;
+      padding: 14px 0 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .psych-stream-part {
+      padding: 14px;
+    }
+  }
+
   .student-dash-main-col {padding:0px;}
 </style>
-<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=19">
+<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=22">
 {% endblock %}
 
 {% block student_main %}
@@ -1452,52 +1621,94 @@
 
             <!-- Suggested Streams based on Aptitude (strongest intelligence area) -->
             {% if suitable_subject_combinations %}
-            <div class="my-md-6 my-4">
-              <h3 class="psych-section-title mb-3"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
+            <div class="my-md-6 my-4 psych-stream-intelligence-section">
+              <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
               {% if top_intelligence_label %}
-              <p class="fs-13 text-gray mb-3">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold text-purple">{{ top_intelligence_label|lower }}</span></p>
+              <p class="fs-13 text-gray mb-4">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold text-purple">{{ top_intelligence_label|lower }}</span></p>
               {% endif %}
 
+              <div class="psych-stream-columns{% if not stream_questionnaire_completed or not stream_questionnaire_answers %} psych-stream-columns--single{% endif %}">
               {% if stream_questionnaire_completed and stream_questionnaire_answers %}
-              <div class="stream-decision-result-section mb-4">
-                <div class="stream-decision-result-header">
-                  <span class="stream-decision-result-badge">Your stream decision</span>
-                  <p class="stream-decision-result-subtitle mb-0">You submitted your stream choice based on your intelligence results.</p>
+              <section class="psych-stream-part psych-stream-part--decision" aria-labelledby="psychStreamDecisionPartTitle">
+                <div class="psych-stream-part-head">
+                  <span class="psych-stream-part-kicker">
+                    <i class='bx bx-edit-alt' aria-hidden="true"></i>
+                    Part 1
+                  </span>
+                  <h4 id="psychStreamDecisionPartTitle" class="psych-stream-part-title">Your stream decision</h4>
+                  <p class="psych-stream-part-desc">The stream you submitted after reviewing your intelligence results.</p>
                 </div>
-                <div class="stream-decision-result-body">
-                  <div class="stream-decision-result-choice">
-                    <span class="stream-decision-result-label">Chosen stream</span>
-                    <span class="stream-decision-result-value">{{ stream_questionnaire_answers.preferred_stream }}</span>
-                    {% if stream_questionnaire_answers.preferred_stream_match_score and stream_questionnaire_answers.preferred_stream_match_score != '0' %}
-                    <span class="stream-decision-result-match">{{ stream_questionnaire_answers.preferred_stream_match_score }}% match</span>
-                    {% endif %}
+                <div class="psych-stream-part-body">
+                  <div class="stream-decision-result-section">
+                    <div class="stream-decision-result-shell">
+                      <div class="stream-decision-result-border" aria-hidden="true"></div>
+                      <div class="stream-decision-result-inner">
+                        <div class="stream-decision-result-top">
+                          <div class="stream-decision-result-header">
+                            <span class="stream-decision-result-badge">
+                              <svg class="stream-decision-result-badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7z"/>
+                              </svg>
+                              Submitted choice
+                            </span>
+                            <p class="stream-decision-result-subtitle mb-0">You confirmed this stream through the decision questionnaire.</p>
+                          </div>
+                          <div class="stream-decision-result-highlight">
+                            <span class="stream-decision-result-label">Chosen stream</span>
+                            <div class="stream-decision-result-stream-row">
+                              <span class="stream-decision-result-value">{{ stream_questionnaire_answers.preferred_stream }}</span>
+                              {% if stream_questionnaire_answers.preferred_stream_match_score and stream_questionnaire_answers.preferred_stream_match_score != '0' %}
+                              <span class="stream-decision-result-match">{{ stream_questionnaire_answers.preferred_stream_match_score }}% match</span>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                        {% if stream_questionnaire_answers.confidence_level %}
+                        <div class="stream-decision-result-meta">
+                          <span class="stream-decision-result-meta-item">
+                            <i class='bx bx-check-shield' aria-hidden="true"></i>
+                            Confidence: {{ stream_questionnaire_answers.confidence_level }}
+                          </span>
+                          {% if stream_questionnaire_completed_at %}
+                          <span class="stream-decision-result-meta-item">
+                            <i class='bx bx-calendar' aria-hidden="true"></i>
+                            Submitted: {{ stream_questionnaire_completed_at[:10] }}
+                          </span>
+                          {% endif %}
+                        </div>
+                        {% endif %}
+                      </div>
+                    </div>
                   </div>
-                  {% if stream_questionnaire_answers.confidence_level %}
-                  <div class="stream-decision-result-meta">
-                    <span>Confidence: {{ stream_questionnaire_answers.confidence_level }}</span>
-                    {% if stream_questionnaire_completed_at %}
-                    <span>Submitted: {{ stream_questionnaire_completed_at[:10] }}</span>
-                    {% endif %}
-                  </div>
-                  {% endif %}
                 </div>
-              </div>
+              </section>
               {% endif %}
 
-              <div class="row g-3">
-                {% for combo in suitable_subject_combinations %}
-                <div class="col-6 col-md-4">
-                  <div class="stream-card">
-                    <div class="stream-card-icon">
-                      <i class='bx bx-search-alt fs-28 text-primary'></i>
+              <section class="psych-stream-part psych-stream-part--suggested" aria-labelledby="psychStreamSuggestedPartTitle">
+                <div class="psych-stream-part-head">
+                  <span class="psych-stream-part-kicker">
+                    <i class='bx bx-target-lock' aria-hidden="true"></i>
+                    {% if stream_questionnaire_completed and stream_questionnaire_answers %}Part 2{% else %}Suggested{% endif %}
+                  </span>
+                  <h4 id="psychStreamSuggestedPartTitle" class="psych-stream-part-title">Top suggested streams</h4>
+                  <p class="psych-stream-part-desc">Intelligence-based stream options ranked for your profile.</p>
+                </div>
+                <div class="psych-stream-part-body">
+                  <div class="psych-stream-suggested-list">
+                    {% for combo in suitable_subject_combinations %}
+                    <div class="stream-card">
+                      <div class="stream-card-icon">
+                        <i class='bx bx-search-alt fs-28 text-primary'></i>
+                      </div>
+                      <div>
+                        <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
+                        <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
-                      <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
-                    </div>
+                    {% endfor %}
                   </div>
                 </div>
-                {% endfor %}
+              </section>
               </div>
             </div>
             {% endif %}

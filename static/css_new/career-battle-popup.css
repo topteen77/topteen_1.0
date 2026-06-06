@@ -10,18 +10,118 @@
   padding: 20px;
 }
 
+.career-battle-popup-shell {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: visible;
+  animation: popupSlideFromTop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 20px 70px rgba(23, 42, 88, 0.22));
+  transition: filter 0.45s ease;
+}
+
+.career-battle-popup-shell::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 34px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 138, 0, 0.28),
+    rgba(255, 214, 0, 0.18),
+    rgba(173, 255, 0, 0.16),
+    rgba(0, 194, 255, 0.22),
+    rgba(143, 0, 255, 0.24)
+  );
+  opacity: 0;
+  filter: blur(16px);
+  transition: opacity 0.45s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.career-battle-popup-shell:hover {
+  filter:
+    drop-shadow(0 20px 70px rgba(23, 42, 88, 0.22))
+    drop-shadow(0 0 32px rgba(66, 133, 244, 0.2))
+    drop-shadow(0 0 48px rgba(143, 0, 255, 0.14));
+}
+
+.career-battle-popup-shell:hover::after {
+  opacity: 1;
+}
+
+.career-battle-popup-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.career-battle-popup-shell:hover .career-battle-popup-border {
+  opacity: 1;
+}
+
+.career-battle-popup-border::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220%;
+  height: 220%;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 138, 0, 0.92),
+    rgba(255, 214, 0, 0.88),
+    rgba(173, 255, 0, 0.82),
+    rgba(0, 194, 255, 0.9),
+    rgba(66, 133, 244, 0.88),
+    rgba(143, 0, 255, 0.9),
+    rgba(234, 67, 53, 0.85),
+    rgba(255, 138, 0, 0.92)
+  );
+  opacity: 0.95;
+  animation: careerBattleGradientSpin 3.5s linear infinite;
+  animation-play-state: paused;
+  will-change: transform, opacity;
+}
+
+.career-battle-popup-shell:hover .career-battle-popup-border::before {
+  animation-play-state: running;
+}
+
 .career-battle-popup-card {
   position: relative;
+  z-index: 1;
   /* width: min(100%, 980px); */
   max-height: calc(100vh - 40px);
-  border-radius: 24px;
+  margin: 3px;
+  border-radius: 23px;
   padding: 28px 28px 24px;
   background: #ffffff;
   color: #1a2340;
-  box-shadow: 0 20px 70px rgba(23, 42, 88, 0.22);
   border: 1px solid #e7ecfb;
-  animation: popupSlideFromTop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
   overflow: visible;
+  transition: border-color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.career-battle-popup-shell:hover .career-battle-popup-card {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+
+@keyframes careerBattleGradientSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 .career-battle-popup-layout {
@@ -187,13 +287,44 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .career-battle-popup-border::before {
+    animation: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    transform: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 138, 0, 0.55),
+      rgba(255, 214, 0, 0.45),
+      rgba(0, 194, 255, 0.5),
+      rgba(143, 0, 255, 0.55)
+    );
+  }
+
+  .career-battle-popup-shell:hover .career-battle-popup-border::before {
+    animation-play-state: paused;
+  }
+}
+
 @media (max-width: 640px) {
   .career-battle-popup-overlay {
     align-items: flex-start;
     padding: 12px;
   }
 
+  .career-battle-popup-shell {
+    filter: drop-shadow(0 16px 40px rgba(23, 42, 88, 0.2));
+  }
+
+  .career-battle-popup-border {
+    border-radius: 20px;
+  }
+
   .career-battle-popup-card {
+    margin: 2px;
     border-radius: 18px;
     padding: 16px 14px 14px;
     max-height: calc(100vh - 24px);
