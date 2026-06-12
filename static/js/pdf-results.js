@@ -143,9 +143,7 @@ function handlePersonalityResults(result, index) {
   // Sort dimensions by score (highest first)
   dimensions.sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
 
-  // Get top 3 and lowest dimension
   const topThree = dimensions.slice(0, 2);
-  const lowest = dimensions[dimensions.length - 1];
 
   // Create HEXACO code from top 3
   const hexacoCode = topThree.map(dim => dim.code);
@@ -168,28 +166,19 @@ function handlePersonalityResults(result, index) {
 
   dimensionsContainer.appendChild(hexacoCodeElement);
 
-  // Create section for top 3 dimensions
   const topSection = document.createElement('div');
   topSection.className = 'top-dimensions-section';
   topSection.innerHTML = '<h4 style="color: #3F37C9; margin: 15px 0;">Your Top 2 Personality Dimensions:</h4>';
   dimensionsContainer.appendChild(topSection);
 
-  
-  // Add top 3 dimension cards
+  const topCardsRow = document.createElement('div');
+  topCardsRow.className = 'top-dimensions-cards';
+  topSection.appendChild(topCardsRow);
+
   topThree.forEach((dim, index) => {
     const card = createPersonalityDimensionCard(dim, index + 1);
-    topSection.appendChild(card);
+    topCardsRow.appendChild(card);
   });
-
-  // Create section for lowest dimension
-  const lowestSection = document.createElement('div');
-  lowestSection.className = 'lowest-dimension-section';
-  lowestSection.innerHTML = '<h4 style="color: #c94837ff; margin: 20px 0 15px 0;">Your Lowest Dimension:</h4>';
-  dimensionsContainer.appendChild(lowestSection);
-
-  // Add lowest dimension card
-  const lowestCard = createPersonalityDimensionCard(lowest, 'lowest');
-  lowestSection.appendChild(lowestCard);
 
   // Create personality chart with all dimensions
   createPersonalityChart(labels, scores, index);
@@ -269,9 +258,11 @@ function handleCareerResults(result, index) {
 
   careerPage.style.display = 'block';
 
+  const summaryContainer = document.getElementById('career-summary-row');
   const dimensionsContainer = document.getElementById('career-dimensions');
-  if (!dimensionsContainer) return;
+  if (!summaryContainer || !dimensionsContainer) return;
 
+  summaryContainer.innerHTML = '';
   dimensionsContainer.innerHTML = '';
 
   // Log the result structure for debugging
@@ -291,6 +282,7 @@ function handleCareerResults(result, index) {
     'E': 'Enterprising',
     'C': 'Conventional'
   };
+  const riasecOrder = ['R', 'I', 'A', 'S', 'E', 'C'];
 
   // Try to get result data - handle different possible structures
   let resultData = result.result_data || {};
@@ -384,8 +376,13 @@ function handleCareerResults(result, index) {
     });
   }
 
-  // Sort dimensions by score (highest first)
-  dimensions.sort((a, b) => b.score - a.score);
+  // Sort by score, then canonical RIASEC order for ties
+  dimensions.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return riasecOrder.indexOf(a.code) - riasecOrder.indexOf(b.code);
+  });
 
   // Get top 3
   const topThree = dimensions.slice(0, 3);
@@ -400,7 +397,7 @@ function handleCareerResults(result, index) {
     <h3 style="color: #3F37C9; text-align: center; margin: 20px 0;">Test Time Duration : <strong>${result.duration_minutes} minutes </strong></h3>
   `;
 
-  dimensionsContainer.appendChild(timeDurationElement);
+  summaryContainer.appendChild(timeDurationElement);
 
   // Display RIASEC code
   const riasecCodeElement = document.createElement('div');
@@ -408,7 +405,7 @@ function handleCareerResults(result, index) {
   riasecCodeElement.innerHTML = `
     <h3 style="color: #362C64; text-align: center; margin: 20px 0;">Your RIASEC Code: <strong style="font-size: 25px;color: green;">${riasecCode}</strong></h3>
   `;
-  dimensionsContainer.appendChild(riasecCodeElement);
+  summaryContainer.appendChild(riasecCodeElement);
 
   // Create section for top 3 interests
   const topSection = document.createElement('div');
@@ -443,34 +440,22 @@ function handleCareerResults(result, index) {
 
 // Handle Aptitude Test Results
 function handleAptitudeResults(result, index) {
-  const aptitudePage = document.getElementById('aptitude-results-page');
-  if (!aptitudePage) return;
-
-  aptitudePage.style.display = 'block';
-
-  const timersectionsContainer = document.getElementById('timer-sections');
-  if (!timersectionsContainer) return;
-
-  timersectionsContainer.innerHTML = '';
-
   const sectionsContainer = document.getElementById('aptitude-sections');
   if (!sectionsContainer) return;
 
   sectionsContainer.innerHTML = '';
 
+  const timersectionsContainer = document.getElementById('timer-sections');
+  if (timersectionsContainer) {
+    timersectionsContainer.innerHTML = '';
+  }
+
   // Log the result structure for debugging
   console.log('Aptitude test result:', result);
   
-  const timerSection = document.createElement('div');
-  timerSection.className = 'test-timing';
-
-  const testTimer = `
-    <p>
-      <span style="font-weight: bold;">Test Time Duration :</span>
-      <span> ${result.duration_minutes} minutes</span>
-    </p>`;
-
-  timersectionsContainer.innerHTML = testTimer;
+  if (timersectionsContainer) {
+    timersectionsContainer.innerHTML = '<div class="chart-container" style="width:100%; clear: both;"><canvas id="aptitude-chart"></canvas></div>';
+  }
 
   const sectionScores = result.result_data || {};
   const responses = result.responses || [];
@@ -625,8 +610,8 @@ function handleAptitudeResults(result, index) {
 
 // Populate the existing average-cards div with performance boxes
 function populateAverageCards(sectionsData) {
-  // Find the existing average-cards div
-  const averageCardsContainer = document.querySelector('.average-cards');
+  const averageCardsContainer = document.querySelector('.aptitude-tier-cards') ||
+    document.querySelector('.average-cards');
   if (!averageCardsContainer) {
     console.error('average-cards div not found');
     return;
@@ -696,31 +681,46 @@ function populateAverageCards(sectionsData) {
   }
 }
 
-// Create individual performance box using your exact HTML structure
+function getAptitudeTierClass(level) {
+  if (level === 'Above Average') return 'aptitude-summary--above';
+  if (level === 'Average') return 'aptitude-summary--average';
+  return 'aptitude-summary--below';
+}
+
+// Create individual performance tier card
 function createCustomPerformanceBox(level, sections, colors) {
   const box = document.createElement('div');
-  box.className = 'box-i onebox';
+  const isCompactIntro = !!document.querySelector('.aptitude-interpret-intro-page');
+  const tierClass = getAptitudeTierClass(level);
 
-  box.style.cssText = `
-    background: ${colors.background};
-    margin: 20px 8px;
-    border-radius: 10px;
-    border-right: 4px solid ${colors.borderColor};
-    border-bottom: 4px solid ${colors.borderColor};
-    width: 210px;
-    padding: 15px;
-    height:auto;
+  box.className = isCompactIntro
+    ? `box-i onebox aptitude-tier-card ${tierClass}`
+    : 'box-i onebox';
+
+  if (!isCompactIntro) {
+    box.style.cssText = `
+      background: ${colors.background};
+      margin: 20px 8px;
+      border-radius: 10px;
+      border-right: 4px solid ${colors.borderColor};
+      border-bottom: 4px solid ${colors.borderColor};
+      width: 210px;
+      padding: 15px;
+      height: auto;
+    `;
+    const title = `<p style="color: ${colors.textColor}; font-weight: 700; font-size: 16px; margin-bottom: 10px;">${level}</p>`;
+    const sectionsList = sections.map(section =>
+      `<p style="color: #494949; font-size: 12px; font-weight: 600; margin-bottom: 5px; text-align: center;">${section}</p>`
+    ).join('');
+    box.innerHTML = title + sectionsList;
+    return box;
+  }
+
+  const items = sections.map(section => `<li>${section}</li>`).join('');
+  box.innerHTML = `
+    <p class="aptitude-summary-label">${level}</p>
+    <ul class="aptitude-summary-list">${items}</ul>
   `;
-
-  // Create the title
-  const title = `<p style="color: ${colors.textColor}; font-weight: 700; font-size: 16px; margin-bottom: 10px;">${level}</p>`;
-
-  // Create sections list using your exact paragraph structure
-  const sectionsList = sections.map(section =>
-    `<p style="color: #494949; font-size: 12px; font-weight: 600; margin-bottom: 5px; text-align: center;">${section}</p>`
-  ).join('');
-
-  box.innerHTML = title + sectionsList;
 
   return box;
 }
@@ -852,11 +852,51 @@ function createEnhancedAptitudeSectionCard(section) {
 // Add CSS styles for the custom boxes
 const customBoxStyles = `
   <style>
-    .average-cards {
+    .average-cards,
+    .aptitude-tier-cards {
       display: flex !important;
       justify-content: center !important;
       margin: 30px 0 !important;
       flex-wrap: wrap;
+    }
+
+    .aptitude-interpret-intro-page .aptitude-tier-cards {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      gap: 10px;
+      width: 100% !important;
+      margin: 10px 0 !important;
+    }
+
+    .aptitude-interpret-intro-page .aptitude-tier-card {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+      width: auto !important;
+      height: auto !important;
+      display: block !important;
+      margin: 0 !important;
+    }
+
+    .aptitude-performance-grid {
+      overflow: hidden;
+    }
+
+    .aptitude-performance-grid .section-card {
+      float: left;
+      width: calc(50% - 6px);
+      margin: 0 6px 8px 0;
+      box-sizing: border-box;
+    }
+
+    .aptitude-performance-grid .section-card:nth-child(2n) {
+      margin-right: 0;
+    }
+
+    .aptitude-performance-grid::after {
+      content: "";
+      display: block;
+      clear: both;
     }
     
     .box-i.onebox {

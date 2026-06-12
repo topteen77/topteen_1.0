@@ -1326,48 +1326,79 @@ def _get_psychometric_test_result(user):
 
 def _get_post_matric_test_result(user, test_sessions):
     """Handle post-matric students (class 11-12) using TestSession/TestResult."""
-    from app_post_matric.models import TestSession
     from django.urls import reverse
-    
+
     try:
-        # Initialize test completion status for 4 tests
         test_completion = {
-            1: False,  # Personality Assessment
-            2: False,  # Motivation Assessment
-            3: False,  # Career Interest Inventory  
-            4: False   # Aptitude Assessment
+            "personality_assessment": False,
+            "motivation_assessment": False,
+            "career_interest_inventory": False,
+            "aptitude_assessment": False,
         }
-        
-        # Check completed sessions
-        completed_sessions = test_sessions.filter(is_completed=True)
-        for session in completed_sessions:
-            test_id = session.test.id
-            if test_id in test_completion:
-                test_completion[test_id] = True
-        
-        # Count completed tests
-        completed_tests = sum(test_completion.values())
+
+        for session in test_sessions or []:
+            test_obj = getattr(session, "test", None)
+            has_result_payload = False
+            try:
+                sr = getattr(session, "result", None)
+                if sr and (
+                    getattr(sr, "score", None) is not None
+                    or bool(getattr(sr, "result_data", None))
+                    or bool(getattr(sr, "category_counts", None))
+                ):
+                    has_result_payload = True
+            except Exception:
+                has_result_payload = False
+            if not ((getattr(session, "is_completed", False) or has_result_payload) and test_obj):
+                continue
+            test_title = (getattr(test_obj, "title", "") or "").strip().lower()
+            matched = False
+            if test_title:
+                if "aptitude" in test_title:
+                    test_completion["aptitude_assessment"] = True
+                    matched = True
+                elif "motivation" in test_title:
+                    test_completion["motivation_assessment"] = True
+                    matched = True
+                elif "career interest" in test_title:
+                    test_completion["career_interest_inventory"] = True
+                    matched = True
+                elif "personality" in test_title or "career assessment" in test_title:
+                    test_completion["personality_assessment"] = True
+                    matched = True
+            if not matched:
+                legacy_map = {
+                    1: "personality_assessment",
+                    2: "motivation_assessment",
+                    3: "career_interest_inventory",
+                    4: "aptitude_assessment",
+                }
+                key = legacy_map.get(getattr(test_obj, "id", None))
+                if key:
+                    test_completion[key] = True
+
+        completed_tests = sum(1 for v in test_completion.values() if v)
         
         # Determine overall status and create detailed tooltip
         completed_list = []
         not_completed_list = []
         
-        if test_completion[1]:
+        if test_completion["personality_assessment"]:
             completed_list.append("Personality")
         else:
             not_completed_list.append("Personality")
-            
-        if test_completion[2]:
+
+        if test_completion["motivation_assessment"]:
             completed_list.append("Motivation")
         else:
             not_completed_list.append("Motivation")
-            
-        if test_completion[3]:
+
+        if test_completion["career_interest_inventory"]:
             completed_list.append("Career Interest")
         else:
             not_completed_list.append("Career Interest")
-            
-        if test_completion[4]:
+
+        if test_completion["aptitude_assessment"]:
             completed_list.append("Aptitude")
         else:
             not_completed_list.append("Aptitude")
@@ -1401,14 +1432,19 @@ def _get_post_matric_test_result(user, test_sessions):
             "test_status": test_status,
             "test_labels": ["Personality", "Motivation", "Career Interest", "Aptitude"],
             "test_details": {
-                "test1": test_completion[1],
-                "test2": test_completion[2],
-                "test3": test_completion[3],
-                "test4": test_completion[4]
+                "test1": test_completion["personality_assessment"],
+                "test2": test_completion["motivation_assessment"],
+                "test3": test_completion["career_interest_inventory"],
+                "test4": test_completion["aptitude_assessment"],
+                "personality_assessment": test_completion["personality_assessment"],
+                "career_assessment": test_completion["personality_assessment"],
+                "motivation_assessment": test_completion["motivation_assessment"],
+                "career_interest_inventory": test_completion["career_interest_inventory"],
+                "aptitude_assessment": test_completion["aptitude_assessment"],
             },
             "tooltip": tooltip
         }
-            
+
     except Exception as e:
         print(f"Error in _get_post_matric_test_result: {e}")
         return {
@@ -1422,7 +1458,12 @@ def _get_post_matric_test_result(user, test_sessions):
                 "test1": False,
                 "test2": False,
                 "test3": False,
-                "test4": False
+                "test4": False,
+                "personality_assessment": False,
+                "career_assessment": False,
+                "motivation_assessment": False,
+                "career_interest_inventory": False,
+                "aptitude_assessment": False,
             },
             "tooltip": "Error loading test data"
         }

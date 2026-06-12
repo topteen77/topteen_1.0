@@ -19,19 +19,25 @@
 
     <style>
         .highlighted-description {
-            background: #DDF2FF;
-            border-left: 5px solid #3B82F6;
-            padding: 20px;
-            margin: 20px auto;
-            max-width: 800px;
-            border-radius: 10px;
-            text-align: left;
-            font-size: 15px;
-            /* font-style: italic; */
-            color: #1E3A8A;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-            transition: transform 0.3s ease;
+            background: #E8FFE7;
+  border-left: 5px solid #008000;
+  padding: 12px;
+  margin: 20px auto;
+    margin-top: 20px;
+  max-width: 800px;
+  border-radius: 10px;
+  text-align: left;
+  font-size: 14px;
+  font-style: italic;
+  color: #003800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease;
+  margin-top: 14px !important;
+  border: 1px solid #a4daa3;
         }
+
+        
+
 
         .highlighted-description:hover {
             transform: scale(1.02);
@@ -323,11 +329,26 @@
             width: 689px;
         }
 
+        .motivation-box .category.motivation-style-category {
+            width: 100%;
+        }
+
         .motivation-box ul {
             display: grid;
             grid-template-columns: 331px 331px;
             margin: 0 3px;
             grid-gap: 0 9px;
+        }
+
+        .motivation-box .category.motivation-style-category ul {
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+
+        .motivation-box .category.motivation-style-category ul li {
+            white-space: nowrap;
+            width: 100%;
         }
 
         .career-categories.rs.motivation-box {
@@ -476,6 +497,10 @@
             border-bottom: 0px;
             margin-bottom: 0px;
         }
+
+        .summary-card-description ul li::first-letter {
+	text-transform: capitalize;
+}
 
         .small-margin .time-duration-display {
             height: 60px;
@@ -802,8 +827,8 @@
         }
 
         .recommended-courses-info .header-text .imgpact, .recommended-courses-info-above-average .header-text .imgpact {
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             background: #ffff;
             border-radius: 100px;
             padding: 14px;
@@ -813,11 +838,20 @@
             margin-right: 12px;
         }
 
+        .real-description {
+	padding: 0 11px;
+}
+
 
         .recommended-courses-info .header-text .imgpact img, .recommended-courses-info-above-average .header-text .imgpact img {
-            width: 50px;
-            height: 50px;
+            width: 35px;
+            height: 35px;
         }
+
+        .real-description p {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
 
         .real-description h4 {
             display: flex;
@@ -836,40 +870,74 @@
 
         .real-description ul {
             list-style: disc;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0 20px;
-            margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 20px;
+  margin-bottom: 10px;
+  margin-top: 0px;
 
         }
 
         .real-description ul li {
-            font-size: 14px;
-            margin-bottom: 0px;
-            padding: 0px;
-            border: 0px;
-            line-height: 18px;
+            font-size: 13px;
+  margin-bottom: 4px;
+  padding: 0px;
+  border: 0px;
+  line-height: 16px;
         }
 
 
         .impact-box {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 13px;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 13px 0;
+            margin-top: 13px;
         }
+
+        .impact-box .impact-info {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .impact-box .impact-info:only-child {
+            display: block;
+            width: 100%;
+        }
+
+        .impact-info.stra-nar {
+	margin: 0 11px;
+	padding: 12px;
+}
+
+.impact-info.stra-nar ul {
+	list-style: none;
+	padding-left: 0;
+}
 
         .impact-info {
             background: #fff;
             padding: 17px;
             border-radius: 17px;
+            border: 1px solid #c7c6d8;
         }
-
         .impact-info h4 {
-            display: flex;
-            align-items: center;
-            font-size: 17px;
-            color: #433ccb;
-            margin-bottom: 15px;
+  font-size: 15px;
+  color: #433ccb;
+  margin: 0 0 5px 0;
+  line-height: 30px;
+}
+
+.impact-info p {
+	margin-bottom: 0px;
+	font-size: 13px;
+}
+
+        .impact-info h4 .car-img {
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .real-sign-box {
@@ -892,15 +960,21 @@
 
         .impact-info ul {
             list-style: disc;
+            margin-top: 0;
         }
+
+        .no-list-style {
+	list-style: none !important;
+	padding-left: 1px;
+}
 
         .impact-info ul li {
-            border: 0px;
-            font-size: 14px;
-            margin-bottom: 0;
-            padding: 1px 0px;
-        }
-
+	border: 0px;
+	font-size: 13px;
+    margin-bottom: 2px;
+	padding: 1px 0px;
+	line-height: 15px;
+}
 
 
         /** updated css **/
@@ -929,9 +1003,20 @@
 
 
 
-        .top-dimensions-section,
-        .lowest-dimension-section {
+        .top-dimensions-section {
             margin-bottom: 20px;
+        }
+
+        .top-dimensions-cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .top-dimensions-cards {
+                grid-template-columns: 1fr;
+            }
         }
 
         .dimension-card {
@@ -1012,11 +1097,187 @@
             margin: 20px 0;
         }
 
-        div#aptitude-sections {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+        div#aptitude-sections,
+        .aptitude-performance-grid {
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .aptitude-performance-grid .section-card {
+            float: left;
+            width: calc(50% - 6px);
+            margin: 0 6px 8px 0;
+            box-sizing: border-box;
+        }
+
+        .aptitude-performance-grid .section-card:nth-child(2n) {
+            margin-right: 0;
+        }
+
+        .aptitude-performance-grid::after {
+            content: "";
+            display: block;
+            clear: both;
+        }
+
+        .aptitude-interpret-intro-page .fixex-top-logo img {
+            width: 90px !important;
+        }
+
+        .aptitude-interpret-intro-page hr {
+            margin: 4px 0 6px;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-cards {
+            display: flex !important;
+            flex-direction: row;
+            align-items: stretch;
             justify-content: center;
-            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin: 10px 0 !important;
+            padding: 0;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-cards > .box-i {
+            width: auto !important;
+            height: auto !important;
+            display: block !important;
+            flex: 1 1 0;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        .print-mode .aptitude-interpret-intro-page .aptitude-tier-cards {
+            display: flex !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-cards .aptitude-tier-card {
+            flex: 1 1 0;
+            min-width: 0;
+            width: auto !important;
+            height: auto !important;
+            min-height: 110px;
+            display: block !important;
+            margin: 0 !important;
+            padding: 12px 10px !important;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            border-right-width: 4px;
+            border-bottom-width: 4px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card .aptitude-summary-label {
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            margin: 0 0 8px 0 !important;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card .aptitude-summary-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card .aptitude-summary-list li {
+            color: #494949;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card .aptitude-summary-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card.aptitude-summary--above {
+            background: #E7E5FF !important;
+            border-color: #3F37C9 !important;
+            border-right-color: #3F37C9 !important;
+            border-bottom-color: #3F37C9 !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card.aptitude-summary--above .aptitude-summary-label {
+            color: #3F37C9 !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card.aptitude-summary--average {
+            background: #E5F9FF !important;
+            border-color: #2E8AA6 !important;
+            border-right-color: #2E8AA6 !important;
+            border-bottom-color: #2E8AA6 !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card.aptitude-summary--average .aptitude-summary-label {
+            color: #2E8AA6 !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card.aptitude-summary--below {
+            background: #FFE5E5 !important;
+            border-color: #C24E4E !important;
+            border-right-color: #C24E4E !important;
+            border-bottom-color: #C24E4E !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-tier-card.aptitude-summary--below .aptitude-summary-label {
+            color: #A22717 !important;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-profile-banner {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 8px 0 10px;
+            text-align: left;
+        }
+
+        .aptitude-interpret-intro-page .aptitude-profile-banner p {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .aptitude-interpret-intro-page .section-card {
+            background: #fff;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 8px;
+        }
+
+        .aptitude-interpret-intro-page .section-header {
+            margin-bottom: 4px;
+        }
+
+        .aptitude-interpret-intro-page .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.25;
+        }
+
+        .aptitude-interpret-intro-page .section-score {
+            font-size: 10px;
+            padding: 2px 8px;
+        }
+
+        .aptitude-interpret-intro-page .question-breakdown h5 {
+            font-size: 11px;
+            margin: 2px 0 4px;
+        }
+
+        .aptitude-interpret-intro-page .question-item {
+            font-size: 10px;
+            padding: 2px 0;
         }
 
         .section-card {
@@ -1025,11 +1286,6 @@
             border-radius: 8px;
             border: 1px solid #dee2e6;
             transition: all 0.2s ease;
-            /* width: 293px; */
-            float: left;
-            margin-right: 20px;
-            margin-bottom: 20px;
-
         }
 
         .section-card:hover {
@@ -1136,6 +1392,12 @@
             margin: 20px 0;
         }
 
+        .personality-results .time-duration-display,
+        .personality-results .hexaco-code-display,
+        .personality-results .top-dimensions-section {
+            grid-column: 1 / -1;
+        }
+
         .dimension-card {
             background: white;
             padding: 15px;
@@ -1207,11 +1469,24 @@
             margin: 20px 0;
         }
 
-        .career-dimensions {
+        .career-dimensions,
+        .career-summary-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin: 20px 0;
+        }
+
+        .career-summary-row {
+            margin-bottom: 0;
+        }
+
+        .riasec-code-explanation {
+            margin: 0 0 20px;
+        }
+
+        .riasec-code-explanation .highlighted-description {
+            margin-top: 0;
         }
 
         .career-dimension-card {
@@ -2668,13 +2943,13 @@
                     <div class="summary-card">
 
 
-                        <div class="hexaco-code-explanation">
+                        <div class="hexaco-code-explanation d-none">
                             <h3 style="color: #3F37C9;">Explanation of your Dominent Personality Dimensions</h3>
                         </div>
 
 
 
-                        <div class="scard-bodys card-one emotionality grid-col-2">
+                        <div class="scard-bodys card-one emotionality grid-col- d-none">
                             <div class="summary-card-header">
                                 <div class="summary-card-header-img dp-visual-wrap">
                                     <img src="/static/images/report_img/river.png" alt="Emotionality illustration">
@@ -3027,7 +3302,7 @@
                     <div class="s-motivation-summary">
 
                         <h3>
-                            {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} ({{ motivation_key_description|get_item:"Motivation Style" }})
+                            {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} <br>({{ motivation_key_description|get_item:"Motivation Style" }})
                         </h3>
 
                         <h4>Narrative Explanation</h4>
@@ -3151,7 +3426,7 @@
 
                     <div class="career-categories rs motivation-box">
                         {% for category, careers in motivation_careers_to_opt.items %}
-                        <div class="category">
+                        <div class="category{% if category == 'Motivation Style' %} motivation-style-category{% endif %}">
                             <h5>{{ category }}</h5>
                             <!-- <h5>{{ careers }}</h5> -->
                             <ul>
@@ -3373,14 +3648,32 @@
                     <div class="text-info-paragraph" style="text-align: center;">
                         <p><strong>Your RIASEC Profile:</strong> Career interests based on Holland's model</p>
                     </div>
+                    <div id="career-summary-row" class="career-summary-row">
+                        <!-- Test duration and RIASEC code cards -->
+                    </div>
+
+                    {% if career_code_discription %}
+                    <div class="riasec-code-explanation">
+                        {% for category_dict in career_code_discription %}
+                        {% for category, data in category_dict.items %}
+                        {% if data.Description %}
+                        <div class="highlighted-description" style="flex: 1 1 100%;">
+                            <strong>{{ category }} : </strong> {{ data.Description }}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <div id="career-dimensions" class="career-dimensions">
-                        <!-- Dynamic career dimensions will be inserted here -->
+                        <!-- Top 3 interests and chart -->
                     </div>
 
                     {% if riasec_key_descriptions %}
                     <!-- INTERPRETATION & RECOMMENDATIONS Section -->
                     <div class="hexaco-code-explanation"
-                        style="border-top:1px solid #f9d7d7;margin-top: 39px;float: left;width: 100%;">
+                        style="border-top:1px solid #f9d7d7;margin-top: 10px;float: left;width: 100%;">
                         <h3>Explanation of your Career Interest Code</h3>
                     </div>
                     <div class="cards-wrapper">
@@ -3451,8 +3744,23 @@
                         <canvas id="career-chart"></canvas>
                     </div>
 
+
+
+                    <div class="career-categories rs">
+                        {% for category, careers in riasec_careers_to_opt.items %}
+                        <div class="category">
+                            <h5>{{ category }} Careers</h5>
+                            <ul>
+                                {% for career in careers %}
+                                <li><i class="fas fa-briefcase me-2"></i> {{ career }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+
                 </div>
-                <div class="accordion-body">
+                <div class="accordion-body d-none">
 
 
                     <div class="text-info-paragraph" style="text-align: center;">
@@ -3481,16 +3789,16 @@
                         </div>
                         {% endif %}
                         {% endfor %}
-
-                        {% if data.Description %}
-                        <div class="highlighted-description" style="flex: 1 1 100%;">
-                            <strong>{{ category }} : </strong> {{ data.Description }}
-                        </div>
-                        {% endif %}
                         {% endfor %}
                         {% endfor %}
                     </div>
                 </div>
+
+
+
+
+
+
             </div>
 
 
@@ -3498,32 +3806,7 @@
 
             <!-- page 13 n -->
 
-            <div class="chapterPage">
-                <div class="fixex-top-logo" style="width: 100%;"> <img style="width:150px;"
-                        src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-
-                <div class="accordion-body">
-
-
-                    
-
-
-                    <div class="career-categories rs">
-                        {% for category, careers in riasec_careers_to_opt.items %}
-                        <div class="category">
-                            <h5>{{ category }} Careers</h5>
-                            <ul>
-                                {% for career in careers %}
-                                <li><i class="fas fa-briefcase me-2"></i> {{ career }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+          
         </div>
 
 
@@ -3668,32 +3951,35 @@
 
             <!-- page 15 end — Aptitude Area and Description table omitted for test 4 -->
 
-            <div class="chapterPage" >
+            <div class="chapterPage aptitude-interpret-intro-page">
                 <div class="fixex-top-logo" style="width: 100%;">
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
                 </div>
                 <hr />
 
-                <div class="db-header" style="margin-top: 0px; text-align: center;">
-                    <h1 style="color: #3F37C9; margin-top: 10px;">Interpretation & Recommendations</h1>
+                <div class="db-header" style="margin-top: 0; text-align: center;">
+                    <h1 style="color: #3F37C9; margin-top: 6px; margin-bottom: 8px; font-size: 22px;">Interpretation & Recommendations</h1>
                 </div>
 
-
-                <div class="text-info-paragraph " style="margin-bottom: 0px;text-align:center;">
-                    <p style="font-weight: 600;">Based on your test results, your strongest areas of interest are:</p>
+                <div class="text-info-paragraph" style="margin-bottom: 8px; text-align: center;">
+                    <p style="font-weight: 600; margin: 0; font-size: 13px;">Based on your test results, your strongest areas of interest are:</p>
                 </div>
 
+                <div class="average-cards aptitude-tier-cards"></div>
 
-
-                <div class="average-cards" style="display: flex; justify-content: center; margin: 30px 0;">
+                <div class="aptitude-profile-banner">
+                    <p><strong>Your Aptitude Profile:</strong> Natural abilities across 7 key areas</p>
                 </div>
-                <div class="dynamic-results">
-                    <div class="text-info-paragraph">
-                        <p><strong>Your Aptitude Profile:</strong> Natural abilities across 7 key areas</p>
+
+                <div id="aptitude-sections" class="section-resultsn aptitude-performance-grid">
+                    <!-- Performance summary cards injected by pdf-results.js -->
+                </div>
+
+                <div id="timer-sections" class="d-none">
+                    <div class="chart-container" style="width:100%; clear: both;">
+                        <canvas id="aptitude-chart"></canvas>
                     </div>
                 </div>
-
-               
             </div>
 
                     <!-- Aptitude Interpretations -->
@@ -3710,17 +3996,23 @@
                     
                     <div class="{% if interpretation.Area in above_list %} recommended-courses-info-above-average{% else %} recommended-courses-info{% endif %}" style="margin-top: 20px;margin-bottom: 10px;">
 
-                        <div class="header-text">
-        
+                      <!-- box header -->
+                      
+                        <div class="header-text">        
                             <h3>
                                 <div class="imgpact">
                                     <img src="{% static interpretation.Image %}" alt="img">
                                 </div>
         
                                 {{ interpretation.Title }}
-                            </h3>
-        
+                            </h3>        
                         </div>
+
+                            <!-- box header -->
+
+
+
+                            <!-- box content -->
         
         
                         <div class="real-description">
@@ -3780,6 +4072,89 @@
                             </div>
                             {% endif %}
                         </div>
+
+                        <!-- Strength Narrative -->
+                        {% for strength in aptitude_strength_narrative %}
+                        {% if strength.Area == interpretation.Area %}
+                        <div class="impact-info stra-nar" style="margin-top: 13px;">
+                            <h4>
+                              
+                                Strength Narrative:
+                            </h4>
+                            <ul>
+                                {% for remark in strength.Major_points %}
+                                <li>
+                                    {% if interpretation.Area in above_list %}
+                                    <i style="color: #3F37C9;" class="fas fa-briefcase me-2"></i>
+                                    {% else %}
+                                    <i style="color: rgb(46, 138, 166);" class="fas fa-briefcase me-2"></i>
+                                    {% endif %}
+                                    {{ remark }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        <div class="impact-box aptitude-reco-two-col">
+                            {% for college in aptitude_Recommended_College_Courses %}
+                            {% if college.Area == interpretation.Area %}
+                            <div class="impact-info">
+                                <h4>
+                                 
+                                    Recommended College Courses:
+                                </h4>
+                                <ul class="no-list-style">
+                                    {% for course in college.Recommended_College %}
+                                    <li>
+                                        {% if interpretation.Area in above_list %}
+                                        <i style="color: #3F37C9;" class="fas fa-briefcase me-2"></i>
+                                        {% else %}
+                                        <i style="color: rgb(46, 138, 166);" class="fas fa-briefcase me-2"></i>
+                                        {% endif %}
+                                        {{ course }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% for item in aptitude_roles_guidance %}
+                            {% if item.Area == interpretation.Area %}
+                            <div class="impact-info">
+                                <h4>
+                                   
+                                    Career Recommendations:
+                                </h4>
+                                <ul class="no-list-style">
+                                    {% for rec in item.Recommendations %}
+                                    <li>
+                                        {% if interpretation.Area in above_list %}
+                                        <i style="color: #3F37C9;" class="fas fa-briefcase me-2"></i>
+                                        {% else %}
+                                        <i style="color: rgb(46, 138, 166);" class="fas fa-briefcase me-2"></i>
+                                        {% endif %}
+                                        {{ rec.Role }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+         <!-- box content -->
+
+
+
+         
+
+
+
+
+
                     </div>
             </div>
             {% endfor %}
@@ -3799,331 +4174,6 @@
 
 
             {% endif %}
-            <div class="chapterPage" id="aptitude-results-page" >
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-            
-
-                <div id="timer-sections" class="text-info-paragraph d-none">
-
-                    
-
-                    <div class="chart-container" style="width:100%; clear: both;">
-                        <canvas id="aptitude-chart"></canvas>
-                    </div>
-
-                </div>
-                <div id="aptitude-sections" class="section-resultsn">
-                    <!-- Dynamic aptitude sections will be inserted here -->
-                </div>
-            </div>
-
-            <!-- Strength Narrative -->
-            {% if aptitude_strength_narrative %}
-            {% with strength_items=aptitude_strength_narrative|slice:":7" %}
-            <div class="chapterPage result-four">
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <p class="section-title">Strength Narrative</p>
-                <div class="card-container">
-                    {% for strength in strength_items|slice:":4" %}
-                    {% if strength.Area in above_list|slice:":7" %}
-                    <!-- Above Average -->
-                    <div class="card above-card">
-                        <h3>{{ strength.Area }}</h3>
-                        <ul>
-                            {% for remark in strength.Major_points %}
-                            <li><i style=" color: #3F37C9;"  class="fas fa-briefcase me-2 icon-above"></i> {{ remark }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% elif strength.Area in average_list|slice:":7" %}
-                    <!-- Average -->
-                    <div class="card average-card">
-                        <h3>{{ strength.Area }}</h3>
-                        <ul>
-                            {% for remark in strength.Major_points %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% else %}
-                    <!-- Default -->
-                    <div class="card average-card">
-                        <h3>{{ strength.Area }}</h3>
-                        <ul>
-                            {% for remark in strength.Major_points %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% if strength_items|length > 4 %}
-            <div class="chapterPage result-four">
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <div class="card-container card-container--split">
-                    {% for strength in strength_items|slice:"4:7" %}
-                    {% if strength.Area in above_list|slice:":7" %}
-                    <div class="card above-card">
-                        <h3>{{ strength.Area }}</h3>
-                        <ul>
-                            {% for remark in strength.Major_points %}
-                            <li><i style=" color: #3F37C9;"  class="fas fa-briefcase me-2 icon-above"></i> {{ remark }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% elif strength.Area in average_list|slice:":7" %}
-                    <div class="card average-card">
-                        <h3>{{ strength.Area }}</h3>
-                        <ul>
-                            {% for remark in strength.Major_points %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% else %}
-                    <div class="card average-card">
-                        <h3>{{ strength.Area }}</h3>
-                        <ul>
-                            {% for remark in strength.Major_points %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ remark }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            {% endwith %}
-            {% endif %}
-
-            
-            <!-- Recommended College Courses -->
-            {% if aptitude_Recommended_College_Courses %}
-            {% with college_items=aptitude_Recommended_College_Courses|slice:":7" %}
-            <div class="chapterPage result-four">
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <p class="section-title">Recommended College Courses</p>
-
-                <p style="text-align:center;width:100% !important; margin-top:5px;">
-                    Based on your strongest domains, here are programme options after Class 12.
-                </p>
-                <div class="card-container strenght-report">
-                    {% for college in college_items|slice:":4" %}
-                    {% if college.Area in above_list|slice:":7" %}
-                    <!-- Above Average -->
-                    <div class="card above-card">
-                        <h3>{{ college.Area }}</h3>
-                        <ul>
-                            {% for course in college.Recommended_College %}
-                            <li><i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i> {{ course }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% elif college.Area in average_list|slice:":7" %}
-                    <!-- Average -->
-                    <div class="card average-card">
-                        <h3>{{ college.Area }}</h3>
-                        <ul>
-                            {% for course in college.Recommended_College %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% else %}
-                    <!-- Default -->
-                    <div class="card average-card">
-                        <h3>{{ college.Area }}</h3>
-                        <ul>
-                            {% for course in college.Recommended_College %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% if college_items|length > 4 %}
-            <div class="chapterPage result-four">
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <div class="card-container strenght-report card-container--split">
-                    {% for college in college_items|slice:"4:7" %}
-                    {% if college.Area in above_list|slice:":7" %}
-                    <div class="card above-card">
-                        <h3>{{ college.Area }}</h3>
-                        <ul>
-                            {% for course in college.Recommended_College %}
-                            <li><i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i> {{ course }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% elif college.Area in average_list|slice:":7" %}
-                    <div class="card average-card">
-                        <h3>{{ college.Area }}</h3>
-                        <ul>
-                            {% for course in college.Recommended_College %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% else %}
-                    <div class="card average-card">
-                        <h3>{{ college.Area }}</h3>
-                        <ul>
-                            {% for course in college.Recommended_College %}
-                            <li><i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i> {{ course }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            {% endwith %}
-            {% endif %}
-
-            
-
-            <!-- Career Role Guidance 1-4 Areas -->
-            {% if aptitude_roles_guidance %}
-            {% with career_items=aptitude_roles_guidance|slice:":7" %}
-            <div class="chapterPage result-four">
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <p class="section-title">Career Recommendations — Aptitude Report</p>
-                <div class="card-container strenght-report">
-                    {% for item in career_items|slice:":4" %}
-
-                    {% if item.Area in above_list %}
-                    <!-- Above Average -->
-                    <div class="card above-card">
-                        <h3>{{ item.Area }}</h3>
-                        <p><strong>{{ item.Guidance }}</strong></p>
-                        <ul>
-                            {% for rec in item.Recommendations %}
-                            <li>
-                                <i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i>
-                                {{ rec.Role }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    {% elif item.Area in average_list|slice:":7" %}
-                    <!-- Average -->
-                    <div class="card average-card">
-                        <h3>{{ item.Area }}</h3>
-                        <p><strong>{{ item.Guidance }}</strong></p>
-                        <ul>
-                            {% for rec in item.Recommendations %}
-                            <li>
-                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
-                                {{ rec.Role }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    {% else %}
-                    <!-- Default -->
-                    <div class="card average-card">
-                        <h3>{{ item.Area }}</h3>
-                        <p><strong>{{ item.Guidance }}</strong></p>
-                        <ul>
-                            {% for rec in item.Recommendations %}
-                            <li>
-                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
-                                <strong>{{ rec.Role }}</strong>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    {% endfor %}
-                </div>
-            </div>
-            {% if career_items|length > 4 %}
-            <div class="chapterPage result-four">
-                <div class="fixex-top-logo" style="width: 100%;">
-                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
-                </div>
-                <hr />
-                <div class="card-container strenght-report card-container--split">
-                    {% for item in career_items|slice:"4:7" %}
-
-                    {% if item.Area in above_list %}
-                    <div class="card above-card">
-                        <h3>{{ item.Area }}</h3>
-                        <p><strong>{{ item.Guidance }}</strong></p>
-                        <ul>
-                            {% for rec in item.Recommendations %}
-                            <li>
-                                <i style=" color: #3F37C9;" class="fas fa-briefcase me-2 icon-above"></i>
-                                {{ rec.Role }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    {% elif item.Area in average_list|slice:":7" %}
-                    <div class="card average-card">
-                        <h3>{{ item.Area }}</h3>
-                        <p><strong>{{ item.Guidance }}</strong></p>
-                        <ul>
-                            {% for rec in item.Recommendations %}
-                            <li>
-                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
-                                {{ rec.Role }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    {% else %}
-                    <div class="card average-card">
-                        <h3>{{ item.Area }}</h3>
-                        <p><strong>{{ item.Guidance }}</strong></p>
-                        <ul>
-                            {% for rec in item.Recommendations %}
-                            <li>
-                                <i style=" color: rgb(46, 138, 166);"  class="fas fa-briefcase me-2 icon-average"></i>
-                                <strong>{{ rec.Role }}</strong>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            {% endwith %}
-            {% endif %}
 
             <!-- Improvement Plan 1-4 reas -->
             <div class="chapterPage result-four">
@@ -4133,7 +4183,7 @@
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
                 </div>
                 <hr />
-                <p class="section-title imp-title">Improvement Plan for Weaker Areas </p>
+                <p class="section-title imp-title">Strategic Plan for Growth Area </p>
                 <div class="card-container improve-report">
                     {% for plan in aptitude_improvement_plan|slice:":4" %}
                         <div class="card {% if plan.Category == 'Below Average' %}below-average{% endif %}">
@@ -4344,16 +4394,23 @@
                         // Convert canvas to image data
                         const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-                        // Calculate image dimensions to fit A4 (595pt width, 842pt height)
-                        const imgWidth = 515; // A4 width minus margins (595 - 40 - 40)
-                        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
+                        const maxImgWidth = 515;
+                        const maxImgHeight = 762;
+                        let imgWidth = maxImgWidth;
+                        let imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-                        // Add image to PDF content
+                        if (imgHeight > maxImgHeight) {
+                            imgHeight = maxImgHeight;
+                            imgWidth = (canvas.width * imgHeight) / canvas.height;
+                        }
+
                         docDefinition.content.push({
                             image: imgData,
                             width: imgWidth,
-                            margin: [0, 0, 0, 0], // No extra margins within the page
-                            startOnNewPage: true // Force each image to start on a new page
+                            height: imgHeight,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 0],
+                            startOnNewPage: true
                         });
                     } catch (pageError) {
                         console.error(`Error rendering page ${index + 1}:`, pageError);

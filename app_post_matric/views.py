@@ -86,17 +86,34 @@ def _staff_can_view_student_report(request, student_uid) -> bool:
     except Exception:
         ut = 0
 
-    base = StudentManagement.objects.filter(student_id=sid)
-    if ut == choices.UserType.INSTITUTE:
-        return base.filter(institute__created_by=user).exists()
-    if ut == choices.UserType.MARKETINGGROUPADMIN:
-        return base.filter(
-            institute__marketing_group__marketing_group_admin=user
-        ).exists()
-    if ut == choices.UserType.INSTITUTEGROUPADMIN:
-        return base.filter(
-            institute__institute_group__institute_group_admin=user
-        ).exists()
+    sm = (
+        StudentManagement.objects.filter(student_id=sid)
+        .select_related(
+            "institute",
+            "institute__institute_group",
+            "institute__marketing_group",
+        )
+        .first()
+    )
+    if not sm or not sm.institute_id:
+        return False
+    institute = sm.institute
+    if institute.created_by_id == user.id:
+        return True
+    ig = getattr(institute, "institute_group", None)
+    if ig and getattr(ig, "institute_group_admin_id", None) == user.id:
+        return True
+    mg = getattr(institute, "marketing_group", None)
+    if mg and getattr(mg, "marketing_group_admin_id", None) == user.id:
+        return True
+    if ut == choices.UserType.COUNSELOR:
+        try:
+            from counselor.models import Counselor
+
+            if Counselor.qs_for_institute(institute).filter(coun_user=user).exists():
+                return True
+        except Exception:
+            pass
     return False
 
 
@@ -713,6 +730,20 @@ def enrich_combined_report_cluster_links(context, cluster_resolve_map, cluster_u
                 item['url'] = resolved['url']
         if not item.get('url'):
             item['url'] = _cluster_url_only_lookup(item.get('name') or name, cluster_url_map)
+
+
+def resolve_riasec_high_categories(session, stored_high_category=None):
+    """Derive RIASEC code from TestResult scores; fall back to stored TestTopCategories."""
+    from app.interest_report_utils import riasec_code_string_from_scores
+
+    test_result = TestResult.objects.filter(session=session).first()
+    if test_result and test_result.result_data:
+        code = riasec_code_string_from_scores(test_result.result_data)
+        if code:
+            return code
+    if stored_high_category:
+        return str(stored_high_category).strip("[]").strip()
+    return ''
 
 
 def get_hexaco_or_riasec_career_mapping(latest_session):
@@ -1451,9 +1482,14 @@ def Results(request):
                         high_categories = normalize_aptitude_categories(high_categories)
                 except (TypeError, ValueError):
                     high_categories = {}
+            elif latest_session.test.title == 'Career Interest Inventory':
+                high_categories = resolve_riasec_high_categories(
+                    latest_session,
+                    categories_record.high_category,
+                )
             else:
                 high_categories = categories_record.high_category
-                high_categories = high_categories.strip("[]").strip() if high_categories else []
+                high_categories = high_categories.strip("[]").strip() if high_categories else ''
 
             low_category = categories_record.low_category
 
@@ -1746,9 +1782,22 @@ def CombinedReport(request, user_id=None):
         route_student_id = int(user_id) if user_id else None
 
         if route_student_id and not _staff_can_view_student_report(request, route_student_id):
-            from django.http import HttpResponseForbidden
-
-            return HttpResponseForbidden("You do not have permission to view this report.")
+            return render(
+                request,
+                "template20/app_post_matric/combined_report.html",
+                {
+                    "error": "You do not have permission to view this report.",
+                    "no_results": True,
+                    "embed_mode": embed_mode,
+                    "report_student_id": route_student_id,
+                    "profile_user": None,
+                    "breadcrumb": get_breadcrumb([
+                        {"text": "Tests", "url": reverse("post_matric:tests")},
+                        {"text": "Results", "url": reverse("post_matric:results_list")},
+                        {"text": "Combined Report", "url": ""},
+                    ]),
+                },
+            )
 
         # Get the target user (student) whose report we want to view
         if route_student_id:
@@ -1769,8 +1818,12 @@ def CombinedReport(request, user_id=None):
                 'error': 'No completed test found',
                 'no_results': True,
                 'user': target_user,
+                'profile_user': target_user,
                 'report_student_id': report_student_id,
                 'embed_mode': embed_mode,
+                'viewing_student_report': bool(
+                    route_student_id and route_student_id != int(request.user.id)
+                ),
                 'breadcrumb': get_breadcrumb([
                     {'text': 'Tests', 'url': reverse('post_matric:tests')},
                     {'text': 'Results', 'url': reverse('post_matric:results_list')},
@@ -1833,12 +1886,17 @@ def CombinedReport(request, user_id=None):
             print("UserProfile does not exist.")
 
         # Initialize context and containers
+        viewing_student_report = bool(
+            route_student_id is not None and route_student_id != int(request.user.id)
+        )
         context = {
             'user': target_user,  # Use the target user, not request.user
+            'profile_user': target_user,
             'report_student_id': report_student_id,
             'completed_tests': [],
             'no_results': False,
-            'viewing_as_admin': route_student_id is not None and route_student_id != int(request.user.id),
+            'viewing_as_admin': viewing_student_report,
+            'viewing_student_report': viewing_student_report,
             'embed_mode': embed_mode,
             # Add user profile information
             'created_date': created_date if 'created_date' in locals() else None,
@@ -1867,6 +1925,10 @@ def CombinedReport(request, user_id=None):
                     'completed_at_display': _format_ui_datetime(session.end_time),
                     'test_id': session.test.id
                 })
+
+        context['completed_tests'].sort(
+            key=lambda t: {1: 0, 2: 1, 3: 2, 4: 3}.get(t.get('test_id'), 99)
+        )
 
         # -------------------- Build data for client charts (for target_user) --------------------
         # This allows institute users to view a student's charts without hitting /api/results/
@@ -2073,7 +2135,10 @@ def CombinedReport(request, user_id=None):
                 
                 if categories_record:
                     try:
-                        high_categories = categories_record.high_category.strip("[]").strip()
+                        high_categories = resolve_riasec_high_categories(
+                            career_session,
+                            categories_record.high_category,
+                        )
                         low_category = categories_record.low_category
                         
                         hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, career_session)
@@ -2753,6 +2818,9 @@ def CombinedReport(request, user_id=None):
             'traceback': trace,
             'no_results': True,
             'embed_mode': (request.GET.get("embed") or "").strip() == "1",
+            'report_student_id': user_id,
+            'profile_user': None,
+            'viewing_student_report': False,
             'breadcrumb': get_breadcrumb([
                 {'text': 'Tests', 'url': reverse('post_matric:tests')},
                 {'text': 'Results', 'url': reverse('post_matric:results_list')},
@@ -3268,9 +3336,14 @@ def Test_results(request, id):
                 except (json.JSONDecodeError, TypeError) as e:
                     print(f"Error parsing high_categories JSON: {e}")
                     high_categories = {}
+            elif latest_session.test.title == 'Career Interest Inventory':
+                high_categories = resolve_riasec_high_categories(
+                    latest_session,
+                    categories_record.high_category,
+                )
             else:
                 high_categories = categories_record.high_category
-                high_categories = high_categories.strip("[]").strip()
+                high_categories = high_categories.strip("[]").strip() if high_categories else ''
 
             low_category = categories_record.low_category
 
@@ -3678,9 +3751,14 @@ def download_test_results_pdf(request, id):
                 except (json.JSONDecodeError, TypeError) as e:
                     print(f"Error parsing high_categories JSON: {e}")
                     high_categories = {}
+            elif latest_session.test.title == 'Career Interest Inventory':
+                high_categories = resolve_riasec_high_categories(
+                    latest_session,
+                    categories_record.high_category,
+                )
             else:
                 high_categories = categories_record.high_category
-                high_categories = high_categories.strip("[]").strip()
+                high_categories = high_categories.strip("[]").strip() if high_categories else ''
             
             low_category = categories_record.low_category
         
@@ -4456,8 +4534,10 @@ class TestSessionViewSet(viewsets.ModelViewSet):
             reverse=True
         )
         
-        # Get top 3 and lowest 1
-        top_3_categories = [dim[0] for dim in sorted_dimensions[:3]]
+        from app.interest_report_utils import top_riasec_codes_from_scores
+
+        # Get top 3 and lowest 1 (ties broken by canonical RIASEC order)
+        top_3_categories = top_riasec_codes_from_scores(result_data, limit=3)
         lowest_category = sorted_dimensions[-1][0] if sorted_dimensions else None
         
         # Delete existing entries
@@ -4930,7 +5010,10 @@ def get_career_recommendations_from_tests(user):
             ).first()
             
             if categories_record:
-                high_categories = categories_record.high_category.strip("[]").strip()
+                high_categories = resolve_riasec_high_categories(
+                    riasec_session,
+                    categories_record.high_category,
+                )
                 low_category = categories_record.low_category
                 
                 debug_log(f"RIASEC Code: {high_categories}")

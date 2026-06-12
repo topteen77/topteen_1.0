@@ -624,7 +624,7 @@ def dashboard(request, student_id=None):
                 'NUMERICAL': ['Finance & Accounting', 'Data Science & Analytics', 'Statistics', 'Actuarial Science'],
                 'VERBAL': ['Law', 'Journalism', 'Content Strategy', 'Public Communication'],
                 'LOGICAL': ['Engineering', 'Computer Science', 'IT & Programming', 'Software Development'],
-                'MECHANICAL': ['Mechanical Engineering', 'Automobile Engineering', 'Industrial Design', 'Production Engineering'],
+                'MECHANICAL': ['Mechanical Engineer', 'Automobile Engineer', 'Industrial Engineer', 'Aerospace Engineer', 'Production Engineer'],
                 'SPATIAL': ['Architecture & Design', 'Urban Planning', 'Geography & Cartography', 'Interior Design'],
                 'LANGUAGE': ['Media & Communication', 'Linguistics', 'Teaching', 'Translation Studies'],
                 'CRITICAL': ['Policy Analysis', 'Law', 'Research', 'Strategic Analysis'],
@@ -665,6 +665,40 @@ def dashboard(request, student_id=None):
             aptitude_suggested_career_groups = []
             suitable_subject_combinations = []
 
+        personality_suggested_careers = []
+        personality_suggested_career_groups = []
+        personality_display_name = ''
+        try:
+            if top_category:
+                personality_display_name = (
+                    getattr(top_category, 'fullname', None)
+                    or getattr(top_category, 'category_name', None)
+                    or getattr(top_category, 'category', None)
+                    or ''
+                )
+            for section in get_stream_career_sections(top_category):
+                careers = list(section.get('careers') or [])
+                if not careers:
+                    continue
+                personality_suggested_career_groups.append({
+                    'code': section.get('code', ''),
+                    'name': section.get('code', 'Suggested stream'),
+                    'careers': careers,
+                })
+            if not personality_suggested_career_groups and courseName:
+                personality_suggested_career_groups.append({
+                    'code': str(getattr(top_category, 'category', '') or 'P').upper()[:1],
+                    'name': personality_display_name or 'Personality match',
+                    'careers': sorted(courseName),
+                })
+            personality_suggested_careers = [
+                c for g in personality_suggested_career_groups for c in g.get('careers', [])
+            ]
+        except Exception:
+            personality_suggested_careers = []
+            personality_suggested_career_groups = []
+            personality_display_name = ''
+
         try:
             from app.dashboard_area_links import enrich_career_groups_chip_urls
             interest_suggested_career_groups = enrich_career_groups_chip_urls(
@@ -673,11 +707,17 @@ def dashboard(request, student_id=None):
             aptitude_suggested_career_groups = enrich_career_groups_chip_urls(
                 aptitude_suggested_career_groups
             )
+            personality_suggested_career_groups = enrich_career_groups_chip_urls(
+                personality_suggested_career_groups
+            )
             interest_suggested_careers = [
                 c for g in interest_suggested_career_groups for c in g.get('careers', [])
             ]
             aptitude_suggested_careers = [
                 c for g in aptitude_suggested_career_groups for c in g.get('careers', [])
+            ]
+            personality_suggested_careers = [
+                c for g in personality_suggested_career_groups for c in g.get('careers', [])
             ]
         except Exception:
             pass
@@ -785,7 +825,7 @@ def dashboard(request, student_id=None):
             'dominant_interest_codes': dominant_interest_codes,
             'lowest_interest_name': lowest_interest_name,
             'interest_avoid_careers': interest_avoid_careers,
-            'intelligence_breakdown': intelligence_breakdown[:6],
+            'intelligence_breakdown': intelligence_breakdown[:7],
             'top_intelligence_label': top_intelligence_label,
             'top_intelligence_band': top_intelligence_band,
             'trophies_unlocked': trophies_unlocked,
@@ -807,6 +847,9 @@ def dashboard(request, student_id=None):
             'interest_suggested_career_groups': interest_suggested_career_groups,
             'aptitude_suggested_careers': aptitude_suggested_careers,
             'aptitude_suggested_career_groups': aptitude_suggested_career_groups,
+            'personality_suggested_careers': personality_suggested_careers,
+            'personality_suggested_career_groups': personality_suggested_career_groups,
+            'personality_display_name': personality_display_name,
             'career_suggestions_preview_count': 2,
             'suitable_subject_combinations': suitable_subject_combinations,
             'skill_readiness_index': skill_readiness_index,

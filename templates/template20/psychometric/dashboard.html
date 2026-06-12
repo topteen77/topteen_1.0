@@ -829,9 +829,9 @@
     border-radius: 999px;
     font-size: 0.68rem;
     font-weight: 600;
-    color: #9a3412;
-    background: #ffedd5;
-    border: 1px solid #fdba74;
+    color: #166534;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
     margin: 0;
     vertical-align: middle;
   }
@@ -899,24 +899,24 @@
     line-height: 1.45;
     flex: 1;
   }
-  .riasec-mini-card.riasec-r .riasec-mini-icon { background: linear-gradient(145deg, #df8b17, #eda432); }
-  .riasec-mini-card.riasec-r .riasec-mini-code { color: #c2410c; background: #fff7ed; border: 1px solid #fdba74; }
-  .riasec-mini-card.riasec-r .career-chip { color: #9a3412; background: #fff7ed; border-color: #fed7aa; }
-  .riasec-mini-card.riasec-i .riasec-mini-icon { background: linear-gradient(145deg, #7c3aed, #8b5cf6); }
-  .riasec-mini-card.riasec-i .riasec-mini-code { color: #6d28d9; background: #f5f3ff; border: 1px solid #ddd6fe; }
-  .riasec-mini-card.riasec-i .career-chip { color: #5b21b6; background: #f5f3ff; border-color: #ddd6fe; }
-  .riasec-mini-card.riasec-a .riasec-mini-icon { background: linear-gradient(145deg, #c65687, #db729f); }
-  .riasec-mini-card.riasec-a .riasec-mini-code { color: #9d174d; background: #fce7f3; border: 1px solid #f9a8d4; }
-  .riasec-mini-card.riasec-a .career-chip { color: #9d174d; background: #fce7f3; border-color: #f9a8d4; }
-  .riasec-mini-card.riasec-s .riasec-mini-icon { background: linear-gradient(145deg, #1f9d77, #2ab08c); }
-  .riasec-mini-card.riasec-s .riasec-mini-code { color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; }
-  .riasec-mini-card.riasec-s .career-chip { color: #065f46; background: #ecfdf5; border-color: #a7f3d0; }
-  .riasec-mini-card.riasec-e .riasec-mini-icon { background: linear-gradient(145deg, #bf562f, #d56e45); }
-  .riasec-mini-card.riasec-e .riasec-mini-code { color: #9a3412; background: #ffedd5; border: 1px solid #fdba74; }
-  .riasec-mini-card.riasec-e .career-chip { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
-  .riasec-mini-card.riasec-c .riasec-mini-icon { background: linear-gradient(145deg, #ea580c, #f97316); }
-  .riasec-mini-card.riasec-c .riasec-mini-code { color: #c2410c; background: #fff7ed; border: 1px solid #fdba74; }
-  .riasec-mini-card.riasec-c .career-chip { color: #c2410c; background: #fff7ed; border-color: #fed7aa; }
+  .riasec-mini-card .riasec-mini-icon {
+    background: linear-gradient(145deg, #22c55e, #4ade80);
+  }
+  .riasec-mini-card .riasec-mini-code {
+    color: #166534;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+  }
+  .riasec-mini-card .career-chip {
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+  .riasec-mini-card .career-chip.career-chip-more {
+    color: #15803d;
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
   .career-chip-grid {
     display: flex;
     flex-wrap: wrap;
@@ -955,8 +955,92 @@
     transition: opacity 0.15s ease, transform 0.15s ease;
   }
   a.career-chip:hover { opacity: 0.88; }
-  .sc-block--aptitude .sc-block-header {
+  .sc-block--personality .sc-block-header {
     margin-bottom: 0.75rem;
+  }
+  .sc-block--personality .career-type-pill {
+    color: #6d28d9;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+  .personality-career-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 767px) {
+    .personality-career-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .personality-career-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #ddd6fe;
+    background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 50%, #ede9fe 100%);
+    box-shadow: 0 1px 3px rgba(109, 40, 217, 0.06);
+  }
+  .personality-career-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .personality-career-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #ddd6fe;
+    color: #7c3aed;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.12);
+    overflow: hidden;
+  }
+  .personality-career-icon-img {
+    width: 27px;
+    height: 27px;
+    object-fit: contain;
+    display: block;
+  }
+  .personality-career-card-head strong {
+    display: block;
+    font-size: 0.92rem;
+    color: #0f172a;
+    margin-bottom: 2px;
+  }
+  .personality-career-card-head span {
+    display: flex;
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  .personality-career-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
+    align-content: flex-start;
+  }
+  .personality-career-chips .career-chip {
+    width: auto;
+    max-width: 100%;
+    line-height: 1.25;
+    color: #6d28d9;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+  .personality-career-chips a.career-chip:hover {
+    border-color: #c4b5fd;
+    background: #ede9fe;
+    opacity: 1;
   }
   .aptitude-career-row {
     display: flex;
@@ -973,14 +1057,14 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: linear-gradient(145deg, #64748b, #94a3b8);
+    background: linear-gradient(145deg, #22c55e, #4ade80);
     color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 1.25rem;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(100, 116, 139, 0.25);
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
   }
   .aptitude-career-main {
     flex: 1;
@@ -1017,14 +1101,14 @@
     justify-content: flex-end;
   }
   .aptitude-career-chips .career-chip {
-    color: #2563eb;
-    background: #fff;
-    border-color: #bfdbfe;
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
   a.aptitude-career-chips .career-chip:hover {
-    border-color: #93c5fd;
-    background: #f8fafc;
+    border-color: #86efac;
+    background: #f0fdf4;
     opacity: 1;
   }
   @media (max-width: 767px) {
@@ -1519,6 +1603,36 @@
     height: 100%;
   }
 
+  .psych-stream-career-match {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e7ecfb;
+  }
+
+  .psych-stream-career-label {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .psych-stream-career-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .psych-stream-career-chips .career-chip {
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+
+  a.psych-stream-career-chips .career-chip:hover {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
   @media (max-width: 575px) {
     .psych-stream-suggested-list {
       grid-template-columns: 1fr;
@@ -1599,7 +1713,7 @@
 
   .student-dash-main-col {padding:0px;}
 </style>
-<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=22">
+<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=24">
 {% endblock %}
 
 {% block student_main %}
@@ -1623,14 +1737,12 @@
             {% if suitable_subject_combinations %}
             <div class="my-md-6 my-4 psych-stream-intelligence-section">
               <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
-              {% if top_intelligence_label %}
-              <p class="fs-13 text-gray mb-4">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold text-purple">{{ top_intelligence_label|lower }}</span></p>
-              {% endif %}
+       
 
               <div class="psych-stream-columns{% if not stream_questionnaire_completed or not stream_questionnaire_answers %} psych-stream-columns--single{% endif %}">
               {% if stream_questionnaire_completed and stream_questionnaire_answers %}
               <section class="psych-stream-part psych-stream-part--decision" aria-labelledby="psychStreamDecisionPartTitle">
-                <div class="psych-stream-part-head">
+                <div class="psych-stream-part-head d-none">
                   <span class="psych-stream-part-kicker">
                     <i class='bx bx-edit-alt' aria-hidden="true"></i>
                     Part 1
@@ -1663,11 +1775,11 @@
                             </div>
                           </div>
                         </div>
-                        {% if stream_questionnaire_answers.confidence_level %}
-                        <div class="stream-decision-result-meta">
+                        {% if stream_questionnaire_answers.reports_reviewed %}
+                        <div class="stream-decision-result-meta d-none">
                           <span class="stream-decision-result-meta-item">
                             <i class='bx bx-check-shield' aria-hidden="true"></i>
-                            Confidence: {{ stream_questionnaire_answers.confidence_level }}
+                            Reports reviewed: {{ stream_questionnaire_answers.reports_reviewed }}
                           </span>
                           {% if stream_questionnaire_completed_at %}
                           <span class="stream-decision-result-meta-item">
@@ -1686,13 +1798,15 @@
 
               <section class="psych-stream-part psych-stream-part--suggested" aria-labelledby="psychStreamSuggestedPartTitle">
                 <div class="psych-stream-part-head">
-                  <span class="psych-stream-part-kicker">
+                  <!-- <span class="psych-stream-part-kicker">
                     <i class='bx bx-target-lock' aria-hidden="true"></i>
                     {% if stream_questionnaire_completed and stream_questionnaire_answers %}Part 2{% else %}Suggested{% endif %}
-                  </span>
-                  <h4 id="psychStreamSuggestedPartTitle" class="psych-stream-part-title">Top suggested streams</h4>
-                  <p class="psych-stream-part-desc">Intelligence-based stream options ranked for your profile.</p>
-                </div>
+                  </span> -->
+
+                  {% if top_intelligence_label %}
+                  <p class="fs-13 text-gray mb-0 ">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold text-purple">{{ top_intelligence_label|lower }} Reasoning</span></p>
+                  {% endif %}
+                            </div>
                 <div class="psych-stream-part-body">
                   <div class="psych-stream-suggested-list">
                     {% for combo in suitable_subject_combinations %}
@@ -1707,6 +1821,24 @@
                     </div>
                     {% endfor %}
                   </div>
+
+                  {% if aptitude_suggested_career_groups %}
+                  <div class="psych-stream-career-match">
+                    <p class="psych-stream-career-label mb-0 text-uppercase">Suggested careers</p>
+
+                    {% for group in aptitude_suggested_career_groups %}
+                    <div class="psych-stream-career-chips career-chip-grid">
+                      {% for item in group.career_items|default([]) %}
+                      <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                      {% else %}
+                      {% for career in group.careers %}
+                      <span class="career-chip">{{ career }}</span>
+                      {% endfor %}
+                      {% endfor %}
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
                 </div>
               </section>
               </div>
@@ -1870,7 +2002,6 @@
               <div class="modern-bars">
                 {% if intelligence_breakdown %}
                   {% for item in intelligence_breakdown %}
-                    {% if loop.index <= 6 %}
                     <div class="modern-bar-row">
                       <span>{{ item.label }}</span>
                       <div class="modern-bar-track">
@@ -1878,7 +2009,6 @@
                       </div>
                       <strong class="modern-bar-mark {% if item.band == 'Below' %}below{% elif item.band == 'Above Avg' %}high{% else %}avg{% endif %}">{{ item.band|aptitude_tier_label }}</strong>
                     </div>
-                    {% endif %}
                   {% endfor %}
                 {% endif %}
               </div>
@@ -1925,21 +2055,83 @@
         'FINE ARTS': 'bx-palette',
         'Fine Arts': 'bx-palette'
       } %}
-      {% if interest_suggested_career_groups or aptitude_suggested_career_groups %}
+      {% set stream_icon_images = {
+        'PCM': 'images/pcm-icon.png',
+        'PCB': 'images/pcb-icon.png',
+        'HUM': 'images/hum-icon.png',
+        'HWL': 'images/hum-icon.png',
+        'CWM': 'images/cwm-icon.png',
+        'CWOM': 'images/cwm-icon.png',
+        'CS': 'images/computer-sci-icon.png',
+        'FINE ARTS': 'images/fine-arts-icon.png',
+        'Fine Arts': 'images/fine-arts-icon.png'
+      } %}
+      {% if interest_suggested_career_groups or personality_suggested_career_groups %}
       <div class="mb-4">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Careers</h2>
         <div class="suggested-careers-panel">
+          <div class="sc-block sc-block--personality">
+            <div class="sc-block-header">
+              <h3>
+                Personality Test Findings 
+                {% if personality_display_name %}
+                <span class="career-type-pill">{{ personality_display_name }}</span>
+                {% elif top_category %}
+                <span class="career-type-pill">{{ top_category.fullname|default(top_category.category) }}</span>
+                {% endif %}
+              </h3>
+              <p>Career suggestions based on your dominant personality from the assessment report.</p>
+            </div>
+
+            {% if personality_suggested_career_groups %}
+            <div class="personality-career-grid">
+            {% for group in personality_suggested_career_groups %}
+            {% set group_items = group.career_items|default([]) %}
+            {% set stream_key = group.code|string|upper|trim %}
+            {% set stream_icon_img = stream_icon_images.get(stream_key) %}
+            <article class="personality-career-card">
+              <div class="personality-career-card-head">
+                <span class="personality-career-icon" aria-hidden="true">
+                  {% if stream_icon_img %}
+                  <img src="{{ static(stream_icon_img) }}" alt="" class="personality-career-icon-img">
+                  {% else %}
+                  <i class="bx {{ stream_combo_icons.get(stream_key, 'bx-book-open') }}"></i>
+                  {% endif %}
+                </span>
+                <div>
+                  <strong>{{ group.name }}</strong>
+                  <span>{% if group.code %}Suggested careers — {{ group.code }}{% else %}Roles matched to your personality profile{% endif %}</span>
+                </div>
+              </div>
+              <div class="personality-career-chips career-chip-grid">
+                {% for item in group_items %}
+                <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                {% else %}
+                {% for career in group.careers %}
+                <span class="career-chip">{{ career }}</span>
+                {% endfor %}
+                {% endfor %}
+              </div>
+            </article>
+            {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No personality-based career suggestions found.</p>
+            {% endif %}
+          </div>
+          
+          
           <div class="sc-block">
             <div class="sc-block-header">
               <h3>
-                From Interest Area (RIASEC)
+                Interest Test Findings
                 {% if dominant_interest_display %}
                 <span class="career-type-pill">{{ dominant_interest_display }}</span>
                 {% elif dominant_interest_name %}
                 <span class="career-type-pill">{{ dominant_interest_name }}</span>
                 {% endif %}
               </h3>
-              <p>Career paths aligned with each dominant Holland interest type from your Career Interest Inventory.</p>
+              <p>Career paths aligned with each dominant interest type from your Career Interest Inventory.</p>
             </div>
 
             {% if interest_suggested_career_groups %}
@@ -1991,52 +2183,7 @@
             {% endif %}
           </div>
 
-          <div class="sc-block sc-block--aptitude">
-            <div class="sc-block-header">
-              <h3>From Aptitude</h3>
-              <p>Roles matched to your strongest reasoning area on the intelligence assessment.</p>
-            </div>
-
-            {% if aptitude_suggested_career_groups %}
-            {% for group in aptitude_suggested_career_groups %}
-            {% set apt_code = group.code|replace('_', ' ')|title if group.code else '' %}
-            <div class="aptitude-career-row">
-              <span class="aptitude-career-icon" aria-hidden="true"><i class="bx bx-brain"></i></span>
-              <div class="aptitude-career-main">
-                {% if apt_code %}<span class="aptitude-career-badge d-none">{{ apt_code }}</span>{% endif %}
-                <strong>{{ group.name }}</strong>
-                <span>Roles matched to your strongest reasoning area</span>
-              </div>
-              <div class="aptitude-career-chips career-chip-grid">
-                {% for item in group.career_items|default([]) %}
-                <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
-                {% else %}
-                {% for career in group.careers %}
-                <span class="career-chip">{{ career }}</span>
-                {% endfor %}
-                {% endfor %}
-              </div>
-            </div>
-            {% endfor %}
-            {% else %}
-            <p class="text-muted small mb-0">No aptitude career suggestions found.</p>
-            {% endif %}
-          </div>
-
-          {% if suitable_subject_combinations %}
-          <div class="sc-subjects-section">
-            <p class="sc-subjects-label">Suitable subject combinations</p>
-            <div class="subject-combo-row">
-              {% for combo in suitable_subject_combinations %}
-              {% set stream_key = combo.stream|default(combo.label)|string|upper %}
-              <span class="subject-combo-pill {{ combo.color_class|default('') }}">
-                <i class="bx {{ stream_combo_icons.get(stream_key, stream_combo_icons.get(combo.stream|default(''), 'bx-book-open')) }}" aria-hidden="true"></i>
-                {{ combo.label|default(combo) }}
-              </span>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
+         
         </div>
       </div>
       {% endif %}
@@ -2323,11 +2470,13 @@
         })();
 
         (function initCareerViewMore() {
-          var previewCount = 5;
           document.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
             var grid = btn.previousElementSibling;
             if (!grid || !grid.matches('[data-career-group-chips]')) return;
-            var hiddenCount = Math.max(0, grid.querySelectorAll('.career-chip').length - previewCount);
+            var previewCount = parseInt(
+              btn.getAttribute('data-career-preview') || grid.getAttribute('data-career-preview') || '5',
+              10
+            );
             btn.addEventListener('click', function () {
               grid.classList.remove('is-collapsed');
               btn.hidden = true;
@@ -2391,6 +2540,6 @@
 
 {% block student_additionaljs %}
 {% if show_stream_questionnaire %}
-<script src="{{ static('js_new/streamDecisionQuestionnaire.js') }}?v=12" defer></script>
+<script src="{{ static('js_new/streamDecisionQuestionnaire.js') }}?v=14" defer></script>
 {% endif %}
 {% endblock %}

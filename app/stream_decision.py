@@ -1,12 +1,18 @@
 """Stream decision questionnaire storage helpers."""
 
 QUESTION_KEYS = (
+    'reports_reviewed',
     'preferred_stream',
-    'confidence_level',
-    'biggest_concern',
-    'discussed_with_adult',
-    'decision_readiness',
 )
+
+VALID_STREAMS = frozenset({
+    'PCM',
+    'PCB',
+    'CWM',
+    'CWOM',
+    'HUM-L',
+    'HUM',
+})
 
 QUESTIONNAIRE_KEY = 'stream_decision_questionnaire'
 
@@ -27,20 +33,14 @@ def validate_answers(answers):
     missing = [key for key in QUESTION_KEYS if not str(answers.get(key, '')).strip()]
     if missing:
         return 'Please answer all questions before submitting.'
-    source = str(answers.get('preferred_stream_source', '')).strip()
     stream = str(answers.get('preferred_stream', '')).strip()
-    if source == 'not_sure' or stream == 'Not sure yet':
+    if stream not in VALID_STREAMS:
         return 'Please select a stream.'
     return None
 
 
 def build_saved_answers(answers):
-    saved = {key: str(answers.get(key, '')).strip() for key in QUESTION_KEYS}
-    if answers.get('preferred_stream_source'):
-        saved['preferred_stream_source'] = str(answers.get('preferred_stream_source')).strip()
-    if answers.get('preferred_stream_match_score'):
-        saved['preferred_stream_match_score'] = str(answers.get('preferred_stream_match_score')).strip()
-    return saved
+    return {key: str(answers.get(key, '')).strip() for key in QUESTION_KEYS}
 
 
 def save_questionnaire(test3_result, answers, completed_at=None):

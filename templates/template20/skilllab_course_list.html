@@ -637,22 +637,6 @@ learning today to stay ahead!
 
   }
 
-  .skilllab-enrol-check.purple {
-    background: var(--sl-purple);
-  }
-
-  .skilllab-enrol-check.green {
-    background: var(--sl-green);
-  }
-
-  .skilllab-enrol-check.orange {
-    background: var(--sl-orange);
-  }
-
-  .skilllab-enrol-check.pink {
-    background: #ec4899;
-  }
-
   .skilllab-enrol-item p {
 
     margin: 0;
@@ -776,7 +760,7 @@ learning today to stay ahead!
 
   .skill-course .text-in span {
 
-    background: linear-gradient(90deg, #7c3aed, #ec4899);
+    background: linear-gradient(90deg, #7c3aed, #4038c9);
 
     color: #fff;
 
@@ -917,6 +901,8 @@ learning today to stay ahead!
 
   }
 </style>
+
+<link rel="stylesheet" href="{{ static('css_new/international-online-courses.css') }}">
 
 <main class="skilllab-page">
 
@@ -1089,7 +1075,13 @@ learning today to stay ahead!
 
           <div class="skilllab-enrol-item">
 
-            <span class="skilllab-enrol-check purple"><i class='bx bx-check'></i></span>
+            <span class="skilllab-enrol-check purple">
+              
+              
+              <img src="{{ static('images_new/small-blue-tick.png') }}" alt="small blue tick" />
+            
+            
+            </span>
 
             <p>Students after 10th or 12th grade seeking skill enhancement</p>
 
@@ -1097,7 +1089,11 @@ learning today to stay ahead!
 
           <div class="skilllab-enrol-item">
 
-            <span class="skilllab-enrol-check green"><i class='bx bx-check'></i></span>
+            <span class="skilllab-enrol-check green">
+              <img src="{{ static('images_new/small-blue-tick.png') }}" alt="small blue tick" />
+
+
+            </span>
 
             <p>Young learners (Classes 7-8) preparing for future challenges</p>
 
@@ -1105,7 +1101,11 @@ learning today to stay ahead!
 
           <div class="skilllab-enrol-item">
 
-            <span class="skilllab-enrol-check orange"><i class='bx bx-check'></i></span>
+            <span class="skilllab-enrol-check orange">
+              
+              <img src="{{ static('images_new/small-blue-tick.png') }}" alt="small blue tick" />
+
+            </span>
 
             <p>Students preparing for college and career transitions</p>
 
@@ -1113,7 +1113,11 @@ learning today to stay ahead!
 
           <div class="skilllab-enrol-item">
 
-            <span class="skilllab-enrol-check pink"><i class='bx bx-check'></i></span>
+            <span class="skilllab-enrol-check pink">
+              
+              <img src="{{ static('images_new/small-blue-tick.png') }}" alt="small blue tick" />
+
+            </span>
 
             <p>Anyone looking to develop 21st-century competencies</p>
 
@@ -1294,6 +1298,21 @@ learning today to stay ahead!
 
     </div>
 
+  </section>
+
+  <section class="intl-courses-section pb-10">
+    <div class="container">
+      <h2 class="intl-courses-preview-title">Free International Online Courses</h2>
+      <p class="intl-courses-preview-sub">Discover trending programs and certifications from leading universities.</p>
+
+      {% with courses=intl_courses %}
+      {% include 'template20/includes/international_course_cards.html' %}
+      {% endwith %}
+
+      <div class="intl-courses-more-wrap">
+        <a href="{{ url('skilllabcourse:internationalonlinecourses') }}" class="intl-courses-more-btn">Explore More Courses</a>
+      </div>
+    </div>
   </section>
 
 </main>

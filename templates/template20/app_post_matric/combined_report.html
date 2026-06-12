@@ -5,7 +5,7 @@
 
 {% block footer_cta %}{% endblock %}
 
-{% block student_bodyclass %}combined-report-page user-dashboard user-dashboard-fullscreen{% if embed_mode %} report-embed-mode{% endif %}{% endblock %}
+{% block student_bodyclass %}combined-report-page user-dashboard user-dashboard-fullscreen{% if embed_mode %} report-embed-mode ttv2-staff-report-embed{% endif %}{% endblock %}
 
 {% block student_shell_topbar %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
 
@@ -28,18 +28,31 @@
 {{ super() }}
 {% if embed_mode %}
 <style>
-  body.report-embed-mode {
-    background: #fff;
+  body.report-embed-mode.ttv2-staff-report-embed {
+    margin: 0;
+    padding: 0;
+    background: #f4f6fb;
+    overflow-y: auto;
+    min-height: auto !important;
   }
   body.report-embed-mode .std-shell-main {
-    padding-top: 0;
+    padding-top: 0 !important;
+    min-height: auto !important;
+  }
+  body.report-embed-mode .combined-report-page {
+    min-height: auto !important;
+    background: #f4f6fb;
   }
   body.report-embed-mode .combined-report-wrap {
     margin-top: 0 !important;
   }
   body.report-embed-mode .report-shell {
-    margin-top: 0;
+    margin-top: 0 !important;
     padding-top: 12px !important;
+    padding-bottom: 24px !important;
+  }
+  body.report-embed-mode #studentDashboardShell {
+    min-height: auto !important;
   }
   body.report-embed-mode #pc-fab,
   body.report-embed-mode #pc-win,
@@ -389,7 +402,8 @@
     font-size: 11px;
     font-weight: 700;
     line-height: 1.2;
-    color: #fff;
+    color: #1e293b;
+    border: 1px solid rgba(148, 163, 184, 0.35);
   }
 
   .riasec-legend {
@@ -1399,7 +1413,6 @@
         type="application/json">{% if test_results_json %}{{ test_results_json|safe }}{% else %}[]{% endif %}</script>
 <script id="aptitude-band-json"
         type="application/json">{% if aptitude_band_json %}{{ aptitude_band_json|safe }}{% else %}{"above":[],"average":[],"below":[]} {% endif %}</script>
-
       <div class="kpi-grid mt-4">
         <div class="kpi-card kpi-tests">
           <div class="kpi-label">Completed Assessments</div>
@@ -1432,17 +1445,12 @@
               <div class="d-flex align-items-center justify-content-between w-100">
               <div class="test-title">{{ test.title }}</div>
               <div class="status-pill"> Completed</div>
-
-              </div>
-              
-          
-            </div>
-
+              </div>            
+        </div>
             <div class="test-date">
               <i class="fas fa-calendar me-1"></i>
               {% if test.completed_at_display %}{{ test.completed_at_display }}{% elif test.completed_at %}{{ test.completed_at }}{% else %}Date unavailable{% endif %}
-            </div>
-    
+            </div>    
             <!-- <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div> -->
             <div class="timeline-card-actions">
               <a href="{{ url('post_matric:results') }}?test_id={{ test.test_id }}&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}"
@@ -1461,7 +1469,10 @@
         {% endif %}
       </div>
 
-      <div class="chart-grid mt-4">
+
+      <!-- hide section -->
+
+      <div class="chart-grid mt-4 d-none">
         <div class="chart-card">
           <div class="chart-title">Assessment Completion Overview</div>
           <div class="chart-wrap completion-chart-wrap" id="completionChartWrap">
@@ -1485,9 +1496,13 @@
         </div>
       </div>
 
+            <!-- hide section -->
+
       <div class="mt-4">
         <h3 class="section-title">Assessment Deep Dive</h3>
-        <div class="data-status mb-3">
+        
+      <!-- hide section -->
+        <div class="data-status mb-3 d-none">
           <div class="data-status-item">
             <span class="data-status-icon source"><i class='bx bx-data'></i></span>
             <span class="data-status-meta">
@@ -1509,8 +1524,26 @@
               <span class="data-status-value" id="jsonChartsCount">0</span>
             </span>
           </div>
-        </div>
+        </div>        
+      <!-- hide section -->
         <div class="deep-dive-grid">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=1&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Personality Traits Profile</div>
+            <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
+            <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
+            <div class="personality-top-block" id="personalityTopBlock">Top Personality Dimensions: --</div>
+          </div>
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=2&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Motivation Driver Mix</div>
+            <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
+            <div class="motivation-primary-block" id="motivationPrimaryBlock">Your Primary Motivation: --</div>
+            <div class="data-note" id="motivationDeepNote">Loading assessment details...</div>
+          </div>
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=3&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Career Interest Dimensions</div>
+            <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
+            <div class="data-note" id="careerDeepNote">Loading assessment details...</div>
+          </div>
           <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=4&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
             <div class="chart-title">Aptitude Section Scores</div>
             <div class="chart-wrap aptitude-chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
@@ -1522,33 +1555,11 @@
             </div>
             <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
           </div>
-       
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=3&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
-            <div class="chart-title">Career Interest Dimensions</div>
-            <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
-            <div class="data-note" id="careerDeepNote">Loading assessment details...</div>
-          </div>
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=2&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
-            <div class="chart-title">Motivation Driver Mix</div>
-            <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
-            <div class="motivation-primary-block" id="motivationPrimaryBlock">Your Primary Motivation: --</div>
-            <div class="data-note" id="motivationDeepNote">Loading assessment details...</div>
-          </div>
-
-
-             
-          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=1&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
-            <div class="chart-title">Personality Traits Profile</div>
-            <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
-            <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
-            <div class="personality-top-block" id="personalityTopBlock">Top Personality Dimensions: --</div>
-          </div>
-        
         </div>
       </div>
 
       {% if riasec_careers_to_opt or careers_to_opt or motivation_careers_to_opt %}
-      <div class="mt-4">
+      <div class="mt-4 d-none">
         <div class="career-spotlight">
           <h3 class="section-title">Recommended Career Paths</h3>
           {% if aptitude_roles_guidance %}
@@ -1604,7 +1615,7 @@
       </div>
       {% endif %}
       {% if aptitude_Recommended_College_Courses %}
-      <div class="mt-4">
+      <div class="mt-4 d-none">
         <div class="career-spotlight">
           <h3 class="section-title">Recommended College Courses</h3>
           <p class="career-spotlight-subtitle mt-1">Curated course options aligned with your aptitude profile and career direction.</p>
@@ -1759,7 +1770,7 @@
       {% if aptitude_mapping and (aptitude_mapping.clusters or aptitude_mapping.roles or aptitude_mapping.pathways) %}
       <div class="mt-4">
         <h3 class="section-title">Aptitude Mapped Opportunities</h3>
-        <p class="muted-small mb-3">Combination Code: {{ aptitude_mapping.aptitude_code }}{% if
+        <p class="muted-small mb-3 d-none">Combination Code: {{ aptitude_mapping.aptitude_code }}{% if
           aptitude_mapping.aptitude_areas %} | Areas: {{ aptitude_mapping.aptitude_areas }}{% endif %}</p>
         <div class="mapping-grid">
           <div class="mapping-card">
@@ -1866,7 +1877,7 @@
       {% endif %}
 
       {% if aptitude_strength_narrative or aptitude_improvement_plan or career_code_discription %}
-      <div class="mt-4">
+      <div class="mt-4 d-none">
         <h3 class="section-title">Additional Insights</h3>
         <div class="mapping-grid">
           {% if aptitude_strength_narrative %}
@@ -1964,7 +1975,7 @@
       </div>
       {% endif %}
 
-      <div class="actions-section d-flex justify-content-center mt-3">
+      <div class="actions-section d-flex justify-content-center mt-3 d-none">
         <!-- <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
           <i class="fas fa-arrow-left"></i>
           Back to Results
@@ -2214,7 +2225,9 @@
       if (noteEl) noteEl.textContent = text;
     }
 
-    function updatePersonalityScoreNote(labels, values) {
+    const personalityColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
+
+    function updatePersonalityScoreNote(labels, values, colors) {
       const noteEl = document.getElementById('personalityDeepNote');
       const topEl = document.getElementById('personalityTopBlock');
       if (!noteEl) return;
@@ -2229,8 +2242,6 @@
         score: Number(values[idx] || 0)
       }));
       const ranked = [...scored].sort((a, b) => b.score - a.score);
-      const top1Idx = ranked[0] ? ranked[0].idx : -1;
-      const top2Idx = ranked[1] ? ranked[1].idx : -1;
       const fullNameMap = {
         H: 'Honesty-Humility',
         E: 'Emotionality',
@@ -2243,8 +2254,7 @@
       const chips = labels
         .map((label, idx) => {
           const score = Number(values[idx] || 0);
-          let color = '#64748b';
-          if (idx === top1Idx || idx === top2Idx) color = '#16a34a';
+          const color = (colors && colors[idx]) || personalityColors[idx] || '#64748b';
           return `<span class="hexaco-chip" style="background:${color}">${label}: ${score}</span>`;
         })
         .join('');
@@ -2454,38 +2464,12 @@
       const ctx = document.getElementById('personalityDeepChart');
       if (ctx) {
         chartInstances.push(new Chart(ctx, {
-          type: 'radar',
+          type: 'polarArea',
           data: {
             labels: personalitySeries.labels,
             datasets: [{
-              label: 'HEXACO Score',
-              data: personalitySeries.values,
-              borderColor: '#4f46e5',
-              backgroundColor: 'rgba(79, 70, 229, 0.2)',
-              pointBackgroundColor: '#4f46e5'
-            }]
-          },
-          options: { ...commonOptions, scales: { r: { beginAtZero: true } } }
-        }));
-        updatePersonalityScoreNote(personalitySeries.labels, personalitySeries.values);
-      }
-    } else {
-      updatePersonalityScoreNote([], []);
-    }
-
-    const careerSeries = extractRiasecSeries(careerData ? careerData.result_data : null);
-    if (careerSeries.labels.length) {
-      const ctx = document.getElementById('careerDeepChart');
-      if (ctx) {
-        const riasecColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
-        const riasecCode = getRiasecCodeFromReport(careerData ? careerData.result_data : null, careerSeries.keys, careerSeries.values);
-        chartInstances.push(new Chart(ctx, {
-          type: 'polarArea',
-          data: {
-            labels: careerSeries.labels,
-            datasets: [{
-              data: careerSeries.values.map((v) => v == null ? 0 : v),
-              backgroundColor: riasecColors
+              data: personalitySeries.values.map((v) => v == null ? 0 : v),
+              backgroundColor: personalityColors
             }]
           },
           options: {
@@ -2495,6 +2479,32 @@
               legend: { display: false }
             }
           }
+        }));
+        updatePersonalityScoreNote(personalitySeries.labels, personalitySeries.values, personalityColors);
+      }
+    } else {
+      updatePersonalityScoreNote([], [], personalityColors);
+    }
+
+    const careerSeries = extractRiasecSeries(careerData ? careerData.result_data : null);
+    if (careerSeries.labels.length) {
+      const ctx = document.getElementById('careerDeepChart');
+      if (ctx) {
+        const riasecColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
+        const riasecCode = getRiasecCodeFromReport(careerData ? careerData.result_data : null, careerSeries.keys, careerSeries.values);
+        chartInstances.push(new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: careerSeries.labels,
+            datasets: [{
+              label: 'RIASEC Score',
+              data: careerSeries.values.map((v) => v == null ? 0 : v),
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.2)',
+              pointBackgroundColor: '#4f46e5'
+            }]
+          },
+          options: { ...commonOptions, scales: { r: { beginAtZero: true } } }
         }));
         updateRiasecNote(careerSeries.keys, careerSeries.labels, careerSeries.values, riasecColors, riasecCode);
       }

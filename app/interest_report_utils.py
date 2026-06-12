@@ -1,5 +1,7 @@
 """Helpers for test2 / combined report interest (RIASEC) display."""
 
+import re
+
 RIASEC_ORDER = ('R', 'I', 'A', 'S', 'E', 'C')
 
 RIASEC_NAME_TO_CODE = {
@@ -110,6 +112,44 @@ def career_suggestion_groups(codes, career_map, fallback_careers=None, fallback_
             'careers': list(fallback_careers),
         })
     return groups
+
+
+def _score_value(raw):
+    if isinstance(raw, dict):
+        for key in ('score', 'total', 'average'):
+            if key in raw and raw[key] is not None:
+                return float(raw[key])
+        return 0.0
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _dimension_code(key):
+    code = re.sub(r'\d+$', '', str(key).strip())[:1].upper()
+    return code if code in RIASEC_CODE_TO_NAME else ''
+
+
+def top_riasec_codes_from_scores(scores, limit=3):
+    """
+    Return top RIASEC letter codes from a scores mapping.
+    Ties are broken using canonical RIASEC order (R, I, A, S, E, C).
+    """
+    pairs = []
+    for key, value in (scores or {}).items():
+        if str(key).startswith('_'):
+            continue
+        code = _dimension_code(key)
+        if not code:
+            continue
+        pairs.append((code, _score_value(value)))
+    pairs.sort(key=lambda item: (-item[1], RIASEC_ORDER.index(item[0])))
+    return [code for code, _ in pairs[:limit]]
+
+
+def riasec_code_string_from_scores(scores, limit=3):
+    return ''.join(top_riasec_codes_from_scores(scores, limit=limit))
 
 
 def interest_report_context_fields(scores=None, max_length='', min_length=''):

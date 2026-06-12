@@ -50,13 +50,8 @@ def _mark_all_tests_complete(user):
 
 def _sample_answers(**overrides):
     answers = {
+        'reports_reviewed': 'Yes, I have reviewed them thoroughly',
         'preferred_stream': 'PCM',
-        'preferred_stream_source': 'suggested',
-        'preferred_stream_match_score': '40',
-        'confidence_level': 'Very confident',
-        'biggest_concern': 'Matching my interests',
-        'discussed_with_adult': 'Yes, already discussed',
-        'decision_readiness': 'Yes, I am ready',
     }
     answers.update(overrides)
     return answers
@@ -74,18 +69,15 @@ class StreamDecisionHelpersTest(TestCase):
 
     def test_validate_answers_requires_all_fields(self):
         answers = _sample_answers()
-        answers.pop('confidence_level')
+        answers.pop('reports_reviewed')
         self.assertEqual(
             validate_answers(answers),
             'Please answer all questions before submitting.',
         )
 
-    def test_validate_answers_rejects_not_sure(self):
+    def test_validate_answers_rejects_invalid_stream(self):
         self.assertEqual(
-            validate_answers(_sample_answers(
-                preferred_stream='Not sure yet',
-                preferred_stream_source='not_sure',
-            )),
+            validate_answers(_sample_answers(preferred_stream='Invalid')),
             'Please select a stream.',
         )
 
@@ -131,7 +123,7 @@ class StreamDecisionSubmitViewTest(TestCase):
 
     def test_submit_rejects_missing_answers(self):
         answers = _sample_answers()
-        answers.pop('confidence_level')
+        answers.pop('reports_reviewed')
         response = self.client.post(
             self.url,
             data=json.dumps({'answers': answers}),
@@ -141,13 +133,10 @@ class StreamDecisionSubmitViewTest(TestCase):
         payload = response.json()
         self.assertIn('Please answer all questions', payload['message'])
 
-    def test_submit_rejects_not_sure(self):
+    def test_submit_rejects_invalid_stream(self):
         response = self.client.post(
             self.url,
-            data=json.dumps({'answers': _sample_answers(
-                preferred_stream='Not sure yet',
-                preferred_stream_source='not_sure',
-            )}),
+            data=json.dumps({'answers': _sample_answers(preferred_stream='Arts')}),
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 400)
@@ -157,7 +146,7 @@ class StreamDecisionSubmitViewTest(TestCase):
         save_questionnaire(self.test3_result, _sample_answers())
         response = self.client.post(
             self.url,
-            data=json.dumps({'answers': _sample_answers(preferred_stream='Fine Arts')}),
+            data=json.dumps({'answers': _sample_answers(preferred_stream='PCB')}),
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 400)

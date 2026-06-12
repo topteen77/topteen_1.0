@@ -20,7 +20,7 @@
 .meta-item { display: flex; align-items: center; color: #666; }
 .meta-item i { margin-right: 0.5rem; color: #5249DF; }
 .course-tabs { margin-bottom: 2rem; border: 1px solid #eee;  border-radius: 10px;}
-.tab-buttons { display: flex; border-bottom: 2px solid #eee; margin-bottom: 2rem; gap: 0; }
+.tab-buttons { display: flex; border-bottom: 2px solid #eee; margin-bottom: 2rem; gap: 0;background: #f6f6f6; }
 .tab-button { background: none; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; position: relative; top: 2px; display: flex; align-items: center; gap: 0.5rem; }
 .tab-button:hover { color: #5249DF; }
 .tab-button.active { color: #5249DF; border-bottom-color: #5249DF; }
@@ -35,21 +35,17 @@
 .course-introduction p + ul { margin-top: 0.25rem; }
 .course-introduction ul li { position: relative; padding-left: 2rem; margin-bottom: 0.6rem; line-height: 1.7; }
 .course-introduction ul li::before {
-  content: "✓";
+  content: "";
   position: absolute;
   left: 0;
-  top: 2px;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: bold;
-  width: 1.25rem;
-  height: 1.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #5249DF;
+  top: 5px;
+  width: 19px;
+  height: 18px;
+  background-image: url('{{ static('images_new/icons/small-blue-tick.png') }}');
   border-radius: 50%;
-  line-height: 1; }
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center; }
 .course-introduction ol { padding-left: 1.5rem; margin: 1rem 0; }
 .course-introduction ol li { margin-bottom: 0.5rem; line-height: 1.7; }
 .course-introduction * { max-width: 100%; box-sizing: border-box; }
@@ -70,21 +66,17 @@
 .accordion-content ul { list-style: none; padding-left: 0; margin: 0; }
 .accordion-content ul li { padding: 0.75rem 0; padding-left: 2rem; position: relative; color: #555; border-bottom: 1px solid #f0f0f0; }
 .accordion-content ul li:last-child { border-bottom: none; }
-.accordion-content ul li::before {  content: "✓";
+.accordion-content ul li::before {   content: "";
   position: absolute;
   left: 0;
-  top:15px;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: bold;
-  width: 1.25rem;
-  height: 1.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #5249DF;
+  top: 17px;
+  width: 19px;
+  height: 18px;
+  background-image: url('{{ static('images_new/icons/small-blue-tick.png') }}');
   border-radius: 50%;
-  line-height: 1; }
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center; }
 .course-index-preamble { margin-bottom: 1.5rem; }
 .payment-card { background-color: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); padding: 1.5rem; position: sticky; top: 100px; }
 .price-container { display: flex; align-items: center; margin-bottom: 1.5rem; }
@@ -187,7 +179,7 @@
           </div>
 
           <!-- Introduction Tab (course_intro_html) -->
-          <div id="tab-introduction" class="tab-content active">
+          <div id="tab-introduction" class="tab-content active p-3">
             <div class="course-introduction ckeditorStyles">
               {% if skilllab.course_intro_html %}
               {{ skilllab.course_intro_html|safe }}
@@ -200,7 +192,7 @@
           </div>
 
           <!-- Course Index Tab (course_index_html) -->
-          <div id="tab-index" class="tab-content">
+          <div id="tab-index" class="tab-content p-3">
             {% if skilllab.course_index_html %}
             <div id="course-index-html-wrapper" class="course-index-from-html">
               <div class="course-introduction ckeditorStyles">

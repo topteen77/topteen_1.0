@@ -23,7 +23,12 @@
   const laterBtn = document.getElementById("streamDecisionPopupLater");
   const form = document.getElementById("streamDecisionQuestionnaireForm");
   const submitBtn = document.getElementById("streamDecisionSubmitBtn");
+  const nextBtn = document.getElementById("streamDecisionNextBtn");
+  const backBtn = document.getElementById("streamDecisionBackBtn");
+  const stepLabel = document.getElementById("streamDecisionStepLabel");
   const errorEl = document.getElementById("streamDecisionFormError");
+  const step1Question = form ? form.querySelector('.stream-decision-question[data-step="1"]') : null;
+  const step2Question = document.getElementById("streamDecisionStreamQuestion");
   const submitUrl = popup.dataset.submitUrl || "";
   const userId = popup.dataset.userId || "guest";
   const storageKey = "streamDecisionQuestionnaireMinimized:" + userId;
@@ -33,17 +38,9 @@
     window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let pendingShakeTimer = null;
+  let currentStep = 1;
 
-  const questionKeys = [
-    "preferred_stream",
-    "confidence_level",
-    "biggest_concern",
-    "discussed_with_adult",
-    "decision_readiness",
-  ];
-
-  const otherPanel = document.getElementById("streamDecisionOtherPanel");
-  const otherTrigger = document.getElementById("preferredStreamOtherTrigger");
+  const questionKeys = ["reports_reviewed", "preferred_stream"];
 
   const readMinimizedState = function () {
     try {
@@ -59,47 +56,66 @@
     return false;
   };
 
-  const toggleOtherPanel = function () {
-    if (!otherPanel || !otherTrigger || !form) {
-      return;
+  const goToStep = function (step) {
+    currentStep = step;
+
+    if (step1Question) {
+      const showStep1 = step === 1;
+      step1Question.classList.toggle("d-none", !showStep1);
+      step1Question.setAttribute("aria-hidden", showStep1 ? "false" : "true");
     }
-    const showOther = otherTrigger.checked;
-    otherPanel.classList.toggle("d-none", !showOther);
-    otherPanel.setAttribute("aria-hidden", showOther ? "false" : "true");
-    if (!showOther) {
-      form.querySelectorAll('input[name="preferred_stream_other"]').forEach(function (input) {
-        input.checked = false;
-      });
+
+    if (step2Question) {
+      const showStep2 = step === 2;
+      step2Question.classList.toggle("d-none", !showStep2);
+      step2Question.setAttribute("aria-hidden", showStep2 ? "false" : "true");
     }
+
+    if (nextBtn) {
+      nextBtn.classList.toggle("d-none", step !== 1);
+    }
+    if (backBtn) {
+      backBtn.classList.toggle("d-none", step !== 2);
+    }
+    if (submitBtn) {
+      submitBtn.classList.toggle("d-none", step !== 2);
+    }
+    if (stepLabel) {
+      stepLabel.textContent = "Step " + step + " of 2";
+    }
+
+    hideError();
+    clearQuestionErrors();
   };
 
-  const resolvePreferredStream = function () {
-    if (!form) {
-      return { stream: "", source: "", matchScore: "" };
-    }
-    const choice = form.querySelector('input[name="preferred_stream_choice"]:checked');
-    if (!choice) {
-      return { stream: "", source: "", matchScore: "" };
-    }
+  const validateStep = function (step) {
+    clearQuestionErrors();
 
-    if (choice.value === "__OTHER__") {
-      const otherChoice = form.querySelector('input[name="preferred_stream_other"]:checked');
-      if (!otherChoice) {
-        return { stream: "", source: "other", matchScore: "" };
+    if (step === 1) {
+      const selected = form && form.querySelector('input[name="reports_reviewed"]:checked');
+      if (!selected) {
+        markQuestionInvalid("reports_reviewed");
+        return {
+          valid: false,
+          message: "Please answer question 1: Have you reviewed your reports thoroughly?",
+        };
       }
-      return {
-        stream: otherChoice.value,
-        source: "other",
-        matchScore: otherChoice.dataset.matchScore || "",
-      };
+      return { valid: true, message: "" };
     }
 
-    const streamValue = choice.dataset.stream || choice.value.replace(/^suggested:/, "");
-    return {
-      stream: streamValue,
-      source: "suggested",
-      matchScore: choice.dataset.matchScore || "",
-    };
+    if (step === 2) {
+      const selected = form && form.querySelector('input[name="preferred_stream"]:checked');
+      if (!selected) {
+        markQuestionInvalid("preferred_stream");
+        return {
+          valid: false,
+          message: "Please select your most suitable stream before submitting.",
+        };
+      }
+      return { valid: true, message: "" };
+    }
+
+    return { valid: true, message: "" };
   };
 
   const isPendingButtonVisible = function () {
@@ -185,6 +201,7 @@
     if (pendingWrap) {
       pendingWrap.classList.add("d-none");
     }
+    goToStep(1);
   };
 
   const hidePopup = function () {
@@ -259,57 +276,15 @@
   };
 
   const collectAnswers = function () {
-    const preferred = resolvePreferredStream();
-    const answers = {
-      preferred_stream: preferred.stream,
-      preferred_stream_source: preferred.source,
-      preferred_stream_match_score: preferred.matchScore,
-    };
+    const answers = {};
     if (!form) {
       return answers;
     }
-    questionKeys.slice(1).forEach(function (key) {
+    questionKeys.forEach(function (key) {
       const selected = form.querySelector('input[name="' + key + '"]:checked');
       answers[key] = selected ? selected.value : "";
     });
     return answers;
-  };
-
-  const validateAnswers = function (answers) {
-    clearQuestionErrors();
-
-    if (!String(answers.preferred_stream || "").trim()) {
-      markQuestionInvalid("preferred_stream");
-      if (answers.preferred_stream_source === "other") {
-        return {
-          valid: false,
-          message: "Please choose one stream from the other combinations list.",
-        };
-      }
-      return {
-        valid: false,
-        message: "Please select a suggested stream before submitting.",
-      };
-    }
-
-    for (let i = 1; i < questionKeys.length; i += 1) {
-      const key = questionKeys[i];
-      if (!String(answers[key] || "").trim()) {
-        markQuestionInvalid(key);
-        if (key === "confidence_level") {
-          return {
-            valid: false,
-            message: "Please answer question 2: How confident are you that these suggestions fit your career goals?",
-          };
-        }
-        return {
-          valid: false,
-          message: "Please answer all questions before submitting.",
-        };
-      }
-    }
-
-    return { valid: true, message: "" };
   };
 
   const getCsrfToken = function () {
@@ -329,15 +304,24 @@
     pendingBtn.addEventListener("click", showPopup);
   }
 
-  if (form) {
-    form.querySelectorAll('input[name="preferred_stream_choice"]').forEach(function (input) {
-      input.addEventListener("change", function () {
-        hideError();
-        clearQuestionErrors();
-        toggleOtherPanel();
-      });
+  if (nextBtn) {
+    nextBtn.addEventListener("click", function () {
+      const validation = validateStep(1);
+      if (!validation.valid) {
+        showError(validation.message);
+        return;
+      }
+      goToStep(2);
     });
+  }
 
+  if (backBtn) {
+    backBtn.addEventListener("click", function () {
+      goToStep(1);
+    });
+  }
+
+  if (form) {
     form.querySelectorAll('input[type="radio"]').forEach(function (input) {
       input.addEventListener("change", function () {
         hideError();
@@ -352,12 +336,23 @@
       event.preventDefault();
       hideError();
 
-      const answers = collectAnswers();
-      const validation = validateAnswers(answers);
-      if (!validation.valid) {
-        showError(validation.message);
+      if (currentStep === 1) {
+        const stepOneValidation = validateStep(1);
+        if (!stepOneValidation.valid) {
+          showError(stepOneValidation.message);
+          return;
+        }
+        goToStep(2);
         return;
       }
+
+      const stepTwoValidation = validateStep(2);
+      if (!stepTwoValidation.valid) {
+        showError(stepTwoValidation.message);
+        return;
+      }
+
+      const answers = collectAnswers();
 
       if (!submitUrl) {
         showError("Unable to submit responses right now. Please refresh and try again.");
@@ -403,6 +398,8 @@
         });
     });
   }
+
+  goToStep(1);
 
   if (readMinimizedState()) {
     hidePopup();

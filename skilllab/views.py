@@ -30,6 +30,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from core.s3_utils import get_s3_upload_service
+from .international_courses_data import (
+    INTERNATIONAL_COURSES,
+    INTERNATIONAL_COURSE_SUBJECTS,
+    INTERNATIONAL_COURSE_INSTITUTES,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -56,6 +61,7 @@ class SkillLabCourseList(TemplateView):
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Skill Lab Course', 'url': ''}])
         ctx['course_count'] = SkillLabCourse.objects.count()
+        ctx['intl_courses'] = INTERNATIONAL_COURSES[:4]
         return ctx
     
     def get_fallback_context(self, request):
@@ -78,6 +84,52 @@ class SkillLabCourseList(TemplateView):
     
     def get(self, request,*args, **kwargs):      
         return render(request, self.template_name, self.get_context(request,args, kwargs))
+
+
+class InternationalOnlineCourseList(TemplateView):
+    template_name = "template20/international_online_courses.html"
+    per_page = 8
+
+    def html_head(self):
+        name = 'Free International Online Courses'
+        return build_html_head(title=name, description=name)
+
+    def get_context(self, request, *args, **kwargs):
+        from django.urls import reverse
+        from django.core.paginator import Paginator
+
+        selected_subject = request.GET.get('subject', '').strip()
+        selected_institute = request.GET.get('institute', '').strip()
+
+        courses = INTERNATIONAL_COURSES
+        if selected_subject:
+            courses = [course for course in courses if course['subject'] == selected_subject]
+        if selected_institute:
+            courses = [course for course in courses if course['institute'] == selected_institute]
+
+        paginator = Paginator(courses, self.per_page)
+        page_obj = paginator.get_page(request.GET.get('page'))
+
+        query_params = request.GET.copy()
+        if 'page' in query_params:
+            query_params.pop('page')
+
+        return {
+            'html_head': self.html_head(),
+            'breadcrumb': get_breadcrumb([
+                {'text': 'Skill Lab Courses', 'url': reverse('skilllabcourse:skilllabcourselist')},
+                {'text': 'International Online Courses', 'url': ''},
+            ]),
+            'courses': page_obj,
+            'subjects': INTERNATIONAL_COURSE_SUBJECTS,
+            'institutes': INTERNATIONAL_COURSE_INSTITUTES,
+            'selected_subject': selected_subject,
+            'selected_institute': selected_institute,
+            'filter_query': query_params.urlencode(),
+        }
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
              
 class SkillLabCourseDetail(TemplateView):
     template_name = "template20/skilllab_course_detail.html"

@@ -148,6 +148,61 @@
     return out;
   }
 
+  function makeDonutCenterTextPlugin(primary, secondary) {
+    return {
+      id: "ttv2DonutCenterText",
+      beforeDraw: function (chart) {
+        var meta = chart.getDatasetMeta(0);
+        var arc = meta && meta.data && meta.data[0];
+        if (!arc) return;
+        var ctx = chart.ctx;
+        var textColor = cssVar("--c-text", "#f0f2ff");
+        var subColor = cssVar("--c-text3", "rgba(146,153,176,0.95)");
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "800 22px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif";
+        ctx.fillStyle = textColor;
+        ctx.fillText(String(primary), arc.x, arc.y - 8);
+        ctx.font = "600 10px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif";
+        ctx.fillStyle = subColor;
+        ctx.fillText(String(secondary), arc.x, arc.y + 12);
+        ctx.restore();
+      },
+    };
+  }
+
+  function buildDonutSeries(labels, values, colors) {
+    var outLabels = [];
+    var outValues = [];
+    var outColors = [];
+    var len = Math.max(labels.length, values.length);
+    for (var i = 0; i < len; i++) {
+      var val = Math.max(0, Number(values[i]) || 0);
+      if (val <= 0) continue;
+      outLabels.push(String(labels[i] != null ? labels[i] : "—"));
+      outValues.push(val);
+      outColors.push(colors[i] || colors[colors.length - 1] || "#6c7dff");
+    }
+    if (!outValues.length) {
+      outLabels = ["No data"];
+      outValues = [1];
+      outColors = ["rgba(128, 140, 255, 0.22)"];
+    }
+    return { labels: outLabels, values: outValues, colors: outColors };
+  }
+
+  function updatePsychStatFoot(done, pending, pct) {
+    var root = document.querySelector('[data-ttv2-chart-stats="psych"]');
+    if (!root) return;
+    var elDone = root.querySelector("[data-ttv2-stat-completed]");
+    var elPend = root.querySelector("[data-ttv2-stat-pending]");
+    var elPct = root.querySelector("[data-ttv2-stat-pct]");
+    if (elDone) elDone.textContent = String(done);
+    if (elPend) elPend.textContent = String(pending);
+    if (elPct) elPct.textContent = String(pct);
+  }
+
   function fillTableBody(tbodyId, rows) {
     var tbody = document.getElementById(tbodyId);
     if (!tbody) return;
@@ -247,7 +302,7 @@
 
       var accent = cssVar("--c-accent", "#6c7dff");
       var ok = "#34d399";
-      var pending = "#facc15";
+      var pending = "#b45309";
       var warn = "#fb923c";
       var border = cssVar("--c-border", "rgba(255,255,255,.12)");
       var muted = cssVar("--c-text3", "rgba(146,153,176,0.85)");
@@ -260,12 +315,27 @@
 
       var p = ch.psych_donut || {};
       var pDone = Number(p.completed || 0);
-      var pPend = Number(p.pending != null ? p.pending : (p.total || 0) - pDone);
+      var pTotal = Number(p.total != null ? p.total : pDone + Number(p.pending || 0));
+      var pPend = Number(
+        p.pending != null ? p.pending : Math.max(0, pTotal - pDone)
+      );
       if (pPend < 0) pPend = 0;
       var psychLabels =
         Array.isArray(p.labels) && p.labels.length >= 2
           ? p.labels
           : ["Completed", "Pending"];
+      var kpi = data.kpi || {};
+      var pPct =
+        kpi.psych_pct != null
+          ? Number(kpi.psych_pct) || 0
+          : pTotal
+            ? Math.round((100 * pDone) / pTotal)
+            : 0;
+      var psychSeries = buildDonutSeries(
+        psychLabels,
+        [pDone, pPend],
+        [ok, pending]
+      );
 
       var sl = ch.sessions_line || {};
       var cl = ch.clarity_line || {};
@@ -286,29 +356,60 @@
       runChartFast("psych", function () {
       var elP = document.getElementById("ttv2DaPsych");
       if (elP) {
+        var centerSub =
+          pTotal > 0
+            ? pDone + " of " + pTotal + " students"
+            : "No students assigned";
+        elP.setAttribute(
+          "aria-label",
+          "Psychometric completion " +
+            pPct +
+            "%. " +
+            pDone +
+            " completed, " +
+            pPend +
+            " pending."
+        );
         _charts.psych = new Chart(elP.getContext("2d"), {
           type: "doughnut",
           data: {
-            labels: psychLabels,
+            labels: psychSeries.labels,
             datasets: [
               {
-                data: [pDone, pPend],
-                backgroundColor: [ok, pending],
+                data: psychSeries.values,
+                backgroundColor: psychSeries.colors,
                 borderWidth: 0,
+                hoverOffset: 4,
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: "70%",
+            cutout: "68%",
+            interaction: { mode: "nearest", intersect: true },
             plugins: {
-              legend: { position: "bottom", labels: { boxWidth: 10, color: muted } },
-              tooltip: { enabled: true },
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 10, color: muted, padding: 14 },
+              },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: function (ctx) {
+                    var val = Number(ctx.parsed) || 0;
+                    var sum = pTotal > 0 ? pTotal : pDone + pPend;
+                    var share = sum ? Math.round((100 * val) / sum) : 0;
+                    return ctx.label + ": " + val + " (" + share + "%)";
+                  },
+                },
+              },
             },
           },
+          plugins: [makeDonutCenterTextPlugin(pPct + "%", centerSub)],
         });
       }
+      updatePsychStatFoot(pDone, pPend, pPct);
       fillTableBody("ttv2DaTblPsych", toRows(psychLabels, [pDone, pPend]));
       });
 
@@ -471,6 +572,15 @@
 
       CHART_KEYS.forEach(function (k) {
         setCardView(k, "chart");
+      });
+      requestAnimationFrame(function () {
+        Object.keys(_charts).forEach(function (k) {
+          try {
+            if (_charts[k] && typeof _charts[k].resize === "function") {
+              _charts[k].resize();
+            }
+          } catch (eResize) {}
+        });
       });
       bindPdfExportOnce();
       clearChartAreaLoading();

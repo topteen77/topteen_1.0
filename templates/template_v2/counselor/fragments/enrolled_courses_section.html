@@ -1,53 +1,80 @@
-<div class="ttv2-card">
-  <div class="card-title">Enrolled courses</div>
-  <div style="font-size:11px;color:var(--c-text3);margin-bottom:10px">
-    Your career counseling course and quick access to curriculum.
+<div class="ttv2-card ttv2-enrolled-courses-card">
+  <div class="ttv2-enrolled-courses-head">
+    <div class="ttv2-enrolled-courses-head__icon" aria-hidden="true">
+      <i class="bx bx-book-open"></i>
+    </div>
+    <div class="ttv2-enrolled-courses-head__text">
+      <h2 class="ttv2-enrolled-courses-title">Enrolled courses</h2>
+      <p class="ttv2-enrolled-courses-sub">Your career counseling course and quick access to curriculum.</p>
+    </div>
   </div>
 
   {% if enrolled_courses %}
-    {% for c in enrolled_courses %}
-      <div class="ttv2-course-card {% if not loop.first %}mt-2{% endif %}">
-        <div class="ttv2-course-thumb" aria-hidden="true">
-          <img src="{{ static('images_new/counselor/cc-detail-img.png') }}" alt="" />
-        </div>
+    <div class="ttv2-enrolled-courses-list">
+      {% for c in enrolled_courses %}
+        {% set _progress = c.progress_pct|default(0) %}
+        {% set _cta = c.cta|default('Start') %}
+        {% set _is_complete = _progress >= 100 or _cta == 'Completed' %}
+        <article class="ttv2-course-card{% if _is_complete %} ttv2-course-card--complete{% endif %}">
+          <div class="ttv2-course-card__thumb" aria-hidden="true">
+            <img src="{{ static('images_new/counselor/cc-detail-img.png') }}" alt="" loading="lazy" />
+            {% if _is_complete %}
+              <span class="ttv2-course-card__complete-badge"><i class="bx bx-check"></i></span>
+            {% endif %}
+          </div>
 
-        <div class="ttv2-course-main min-w-0">
-          <div class="ttv2-course-title" title="{{ c.title }}">{{ c.title }}</div>
-          <div class="ttv2-course-sub">{% if c.enrolled %}Career counseling{% else %}Not enrolled yet{% endif %}</div>
-
-          <div class="ttv2-course-progress">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="ttv2-course-progress-label">COURSE PROGRESS</span>
-              <span class="ttv2-course-progress-val">{{ c.progress_pct|default(0) }}%</span>
+          <div class="ttv2-course-card__content">
+            <div class="ttv2-course-card__top">
+              <h3 class="ttv2-course-card__title" title="{{ c.title }}">{{ c.title }}</h3>
+              <span class="ttv2-course-card__tag">{% if c.enrolled %}Career counseling{% else %}Not enrolled yet{% endif %}</span>
             </div>
-            <div class="ttv2-course-progress-bar" role="progressbar"
-                 aria-valuenow="{{ c.progress_pct|default(0) }}" aria-valuemin="0" aria-valuemax="100">
-              <div class="ttv2-course-progress-fill" style="width: {{ c.progress_pct|default(0) }}%;"></div>
+            <div class="ttv2-course-card__progress">
+              <div class="ttv2-course-card__progress-head">
+                <span class="ttv2-course-card__progress-label">Course progress</span>
+                <strong class="ttv2-course-card__progress-val">{{ _progress }}%</strong>
+              </div>
+              <div class="ttv2-course-card__progress-track"
+                   role="progressbar"
+                   aria-valuenow="{{ _progress }}"
+                   aria-valuemin="0"
+                   aria-valuemax="100"
+                   aria-label="Course progress {{ _progress }} percent">
+                <div class="ttv2-course-card__progress-fill" style="width: {{ _progress }}%;"></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="ttv2-course-actions">
-          <a href="{{ c.curriculum_url }}" class="btn fw-semibold counselor-btn-fixed text-center blue-button">
-            <i class='bx bx-list-ul align-middle me-1'></i>Curriculum
-          </a>
-          <a href="{% if c.enrolled %}{{ c.start_url }}{% else %}{{ c.enroll_url }}{% endif %}"
-             class="btn text-white fw-semibold counselor-btn-fixed text-center"
-             style="background:#5249DF;border-bottom:4px solid #3a30ca;">
-            {{ c.cta|default('Start') }}
-          </a>
-          {% if c.certificate_url %}
-            <a href="{{ c.certificate_url }}" class="btn fw-semibold counselor-btn-fixed text-center"
-               style="background:#2e9d5c;border-bottom:4px solid #247a48;color:#fff;"
-               target="_blank" rel="noopener noreferrer">
-              <i class="bx bx-award me-1" aria-hidden="true"></i>Certificate
+          <div class="ttv2-course-card__actions">
+            <a href="{{ c.curriculum_url }}" class="ttv2-course-action ttv2-course-action--curriculum">
+              <i class="bx bx-list-ul" aria-hidden="true"></i>
+              <span>Curriculum</span>
             </a>
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
+            {% if _is_complete %}
+              <span class="ttv2-course-action ttv2-course-action--status">
+                <i class="bx bx-check-circle" aria-hidden="true"></i>
+                <span>Completed</span>
+              </span>
+            {% else %}
+              <a href="{% if c.enrolled %}{{ c.start_url }}{% else %}{{ c.enroll_url }}{% endif %}"
+                 class="ttv2-course-action ttv2-course-action--primary">
+                <i class="bx {% if _cta == 'Enroll' %}bx-user-plus{% elif _cta == 'Resume' %}bx-play-circle{% else %}bx-play{% endif %}" aria-hidden="true"></i>
+                <span>{{ _cta }}</span>
+              </a>
+            {% endif %}
+            {% if c.certificate_url %}
+              <a href="{{ c.certificate_url }}"
+                 class="ttv2-course-action ttv2-course-action--cert"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                <i class="bx bx-award" aria-hidden="true"></i>
+                <span>Certificate</span>
+              </a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
   {% else %}
-    <div class="text-muted" style="font-size:12px;color:var(--c-text3)!important;">No courses found.</div>
+    <div class="ttv2-enrolled-courses-empty">No courses found.</div>
   {% endif %}
 </div>
-

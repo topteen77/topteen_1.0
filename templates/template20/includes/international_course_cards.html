@@ -1,0 +1,20 @@
+<div class="{{ grid_class|default('intl-courses-grid') }}">
+  {% for course in courses %}
+  <article class="intl-course-card">
+    <div class="intl-course-card-media">
+      <img src="{{ static(course.image) }}" alt="{{ course.title }}">
+      <span class="intl-course-card-logo">
+        <img src="{{ static(course.logo) }}" alt="Course partner">
+      </span>
+      <button type="button" class="intl-course-bookmark" aria-label="Save course">
+        <i class='bx bx-bookmark'></i>
+      </button>
+    </div>
+    <div class="intl-course-card-body">
+      <h3 class="intl-course-card-title">{{ course.title }}</h3>
+      <p class="intl-course-card-desc">{{ course.description }}</p>
+      <a href="{{ course.url }}" class="btn custom-button purple-button" target="_blank" rel="noopener noreferrer">View Course</a>
+    </div>
+  </article>
+  {% endfor %}
+</div>

@@ -117,8 +117,8 @@
 
   {# Chart rows: per-chart donut loaders (see ttv2_dashboard_analytics.js). #}
   <div class="ttv2-da-charts-area" data-ttv2-charts-area>
-  {% set _single_row_charts = (_ttv2_role == 'institute' or _ttv2_role == 'institute_group') %}
-  <div class="row g-3">
+  {% set _single_row_charts = (_ttv2_role == 'institute' or _ttv2_role == 'institute_group' or _ttv2_role == 'counselor') %}
+  <div class="row g-3{% if _single_row_charts %} ttv2-chart-row-equal{% endif %}">
     <div class="col-12 {% if _single_row_charts %}col-xl-4{% else %}col-xl-5{% endif %}">
       <div class="ttv2-card ttv2-chart-card">
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
@@ -128,7 +128,10 @@
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="psych" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
-        <div data-ttv2-chart-wrap="psych" style="position:relative;height:220px">
+        {% set _psych_done = ttv2_analytics.charts.psych_donut.completed|default(0) %}
+        {% set _psych_pend = ttv2_analytics.charts.psych_donut.pending|default(0) %}
+        {% set _psych_pct = ttv2_analytics.kpi.psych_pct|default(0) %}
+        <div data-ttv2-chart-wrap="psych">
           <div class="ttv2-chart-slot-loader"
                data-ttv2-chart-loader="psych"
                role="progressbar"
@@ -143,9 +146,20 @@
             </div>
             <span class="ttv2-chart-slot-loader__status" data-ttv2-load-status>Queued</span>
           </div>
-          <canvas id="ttv2DaPsych" aria-label="Psychometric chart"></canvas>
+          <canvas id="ttv2DaPsych" aria-label="Psychometric completion chart"></canvas>
         </div>
-        <div data-ttv2-table-wrap="psych" class="table-responsive" style="display:none;max-height:220px;overflow:auto;">
+        <div class="ttv2-chart-stat-foot" data-ttv2-chart-stats="psych" aria-label="Psychometric completion summary">
+          <span class="ttv2-chart-stat-foot__item ttv2-chart-stat-foot__item--ok">
+            <strong data-ttv2-stat-completed>{{ _psych_done }}</strong> completed
+          </span>
+          <span class="ttv2-chart-stat-foot__item ttv2-chart-stat-foot__item--pending">
+            <strong data-ttv2-stat-pending>{{ _psych_pend }}</strong> pending
+          </span>
+          <span class="ttv2-chart-stat-foot__item ttv2-chart-stat-foot__item--rate">
+            <strong data-ttv2-stat-pct>{{ _psych_pct }}</strong>% completion rate
+          </span>
+        </div>
+        <div data-ttv2-table-wrap="psych" class="table-responsive ttv2-chart-table-wrap" style="display:none;">
           <table class="table table-sm mb-0"><thead><tr><th>Label</th><th class="text-end">Count</th></tr></thead><tbody id="ttv2DaTblPsych"></tbody></table>
         </div>
       </div>
@@ -159,7 +173,7 @@
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="sess" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
-        <div data-ttv2-chart-wrap="sess" style="position:relative;height:220px">
+        <div data-ttv2-chart-wrap="sess">
           <div class="ttv2-chart-slot-loader"
                data-ttv2-chart-loader="sess"
                role="progressbar"
@@ -176,7 +190,7 @@
           </div>
           <canvas id="ttv2DaSess" aria-label="Sessions trend"></canvas>
         </div>
-        <div data-ttv2-table-wrap="sess" class="table-responsive" style="display:none;max-height:220px;overflow:auto;">
+        <div data-ttv2-table-wrap="sess" class="table-responsive ttv2-chart-table-wrap" style="display:none;">
           <table class="table table-sm mb-0"><thead><tr><th>Period</th><th class="text-end">Sessions</th></tr></thead><tbody id="ttv2DaTblSess"></tbody></table>
         </div>
       </div>
@@ -191,7 +205,7 @@
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="clar" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
-        <div data-ttv2-chart-wrap="clar" style="position:relative;height:220px">
+        <div data-ttv2-chart-wrap="clar">
           <div class="ttv2-chart-slot-loader"
                data-ttv2-chart-loader="clar"
                role="progressbar"
@@ -208,7 +222,7 @@
           </div>
           <canvas id="ttv2DaClarity" aria-label="Clarity gap"></canvas>
         </div>
-        <div data-ttv2-table-wrap="clar" class="table-responsive" style="display:none;max-height:220px;overflow:auto;">
+        <div data-ttv2-table-wrap="clar" class="table-responsive ttv2-chart-table-wrap" style="display:none;">
           <table class="table table-sm mb-0"><thead><tr><th>Period</th><th class="text-end">Gap (%)</th></tr></thead><tbody id="ttv2DaTblClar"></tbody></table>
         </div>
       </div>
@@ -216,7 +230,7 @@
     {% endif %}
   </div>
   {% if not _single_row_charts %}
-  <div class="row g-3 mt-0">
+  <div class="row g-3 mt-0 ttv2-chart-row--compact">
     <div class="col-12 col-xl-4">
       <div class="ttv2-card ttv2-chart-card">
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2 ttv2-chart-card-head">
@@ -226,7 +240,7 @@
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="clar" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
-        <div data-ttv2-chart-wrap="clar" style="position:relative;height:200px">
+        <div data-ttv2-chart-wrap="clar">
           <div class="ttv2-chart-slot-loader"
                data-ttv2-chart-loader="clar"
                role="progressbar"
@@ -243,7 +257,7 @@
           </div>
           <canvas id="ttv2DaClarity" aria-label="Clarity gap"></canvas>
         </div>
-        <div data-ttv2-table-wrap="clar" class="table-responsive" style="display:none;max-height:200px;overflow:auto;">
+        <div data-ttv2-table-wrap="clar" class="table-responsive ttv2-chart-table-wrap" style="display:none;">
           <table class="table table-sm mb-0"><thead><tr><th>Period</th><th class="text-end">Gap (%)</th></tr></thead><tbody id="ttv2DaTblClar"></tbody></table>
         </div>
       </div>
@@ -257,7 +271,7 @@
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="risk" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
-        <div data-ttv2-chart-wrap="risk" style="position:relative;height:200px">
+        <div data-ttv2-chart-wrap="risk">
           <div class="ttv2-chart-slot-loader"
                data-ttv2-chart-loader="risk"
                role="progressbar"
@@ -274,7 +288,7 @@
           </div>
           <canvas id="ttv2DaRisk" aria-label="Risk"></canvas>
         </div>
-        <div data-ttv2-table-wrap="risk" class="table-responsive" style="display:none;max-height:200px;overflow:auto;">
+        <div data-ttv2-table-wrap="risk" class="table-responsive ttv2-chart-table-wrap" style="display:none;">
           <table class="table table-sm mb-0"><thead><tr><th>Status</th><th class="text-end">Count</th></tr></thead><tbody id="ttv2DaTblRisk"></tbody></table>
         </div>
       </div>
@@ -288,7 +302,7 @@
             <button type="button" class="btn btn-outline-secondary" data-ttv2-view-btn data-target="cred" data-view="table" title="Table view"><i class="bx bx-table"></i></button>
           </div>
         </div>
-        <div data-ttv2-chart-wrap="cred" style="position:relative;height:200px">
+        <div data-ttv2-chart-wrap="cred">
           <div class="ttv2-chart-slot-loader"
                data-ttv2-chart-loader="cred"
                role="progressbar"
@@ -305,7 +319,7 @@
           </div>
           <canvas id="ttv2DaCredit" aria-label="Credits"></canvas>
         </div>
-        <div data-ttv2-table-wrap="cred" class="table-responsive" style="display:none;max-height:200px;overflow:auto;">
+        <div data-ttv2-table-wrap="cred" class="table-responsive ttv2-chart-table-wrap" style="display:none;">
           <table class="table table-sm mb-0"><thead><tr><th>Type</th><th class="text-end">Credits</th></tr></thead><tbody id="ttv2DaTblCred"></tbody></table>
         </div>
       </div>

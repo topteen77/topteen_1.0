@@ -167,11 +167,17 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         <h5 class="modal-title" id="ttv2StudentReportModalTitle">Student report</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body p-0 px-4 bg-white" style="min-height:70vh;">
+      <div class="modal-body p-0 ttv2-student-report-modal-body">
+        <div id="ttv2StudentReportModalLoader" class="ttv2-student-report-modal-loader" aria-hidden="true">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading report…</span>
+          </div>
+          <span class="ttv2-student-report-modal-loader__text">Loading report…</span>
+        </div>
         <iframe id="ttv2StudentReportModalFrame"
                 title="Student report"
                 src="about:blank"
-                style="border:0;width:100%;height:70vh;display:block;"></iframe>
+                class="ttv2-student-report-modal-frame"></iframe>
       </div>
     </div>
   </div>
@@ -380,9 +386,22 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         return url;
       }
     }
+    function setStudentReportModalLoading(isLoading) {
+      var loader = document.getElementById('ttv2StudentReportModalLoader');
+      var frame = document.getElementById('ttv2StudentReportModalFrame');
+      if (loader) {
+        loader.classList.toggle('is-active', !!isLoading);
+        loader.setAttribute('aria-hidden', isLoading ? 'false' : 'true');
+      }
+      if (frame) {
+        frame.classList.toggle('is-loading', !!isLoading);
+      }
+    }
+
     window.ttv2OpenStudentReportModal = function(url, title, studentId){
       try {
         var embedUrl = getEmbeddedReportUrl(url || '', studentId);
+        if (!embedUrl) return;
         if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
           window.open(embedUrl, '_blank', 'noopener');
           return;
@@ -391,7 +410,20 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         var f = document.getElementById('ttv2StudentReportModalFrame');
         var t = document.getElementById('ttv2StudentReportModalTitle');
         if (t) t.textContent = title || 'Student report';
-        if (f) f.src = embedUrl || 'about:blank';
+        if (f) {
+          setStudentReportModalLoading(true);
+          f.onload = function () {
+            setStudentReportModalLoading(false);
+          };
+          f.onerror = function () {
+            setStudentReportModalLoading(false);
+          };
+          f.removeAttribute('srcdoc');
+          f.src = 'about:blank';
+          window.setTimeout(function () {
+            f.src = embedUrl;
+          }, 0);
+        }
         bootstrap.Modal.getOrCreateInstance(m).show();
       } catch (e) {
         window.open(getEmbeddedReportUrl(url || '', studentId), '_blank', 'noopener');
@@ -403,7 +435,12 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       try {
         if (!ev || !ev.target || ev.target.id !== 'ttv2StudentReportModal') return;
         var f = document.getElementById('ttv2StudentReportModalFrame');
-        if (f) f.src = 'about:blank';
+        if (f) {
+          f.onload = null;
+          f.onerror = null;
+          f.src = 'about:blank';
+        }
+        setStudentReportModalLoading(false);
       } catch(e) {}
     });
   })();

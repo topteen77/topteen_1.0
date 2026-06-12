@@ -1,0 +1,139 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Free International Online Courses | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Discover trending programs, professional certificates, and expert-led courses from leading global institutions.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ static('css_new/international-online-courses.css') }}">
+
+<main class="intl-courses-page">
+  <section class="intl-courses-hero hero-section-inner pt-md-18 pt-14 pb-0">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          {% include 'template20/includes/breadcrumb.html' %}
+        </div>
+      </div>
+
+      <div class="row align-items-center g-4 intl-courses-hero-row mb-6">
+        <div class="col-lg-6">
+          <h1 class="intl-courses-hero-title">
+            <span class="intl-title-purple">Free International</span>
+            <span class="intl-title-second-line">
+              <span class="intl-title-line">Online</span> Courses
+            </span>
+          </h1>
+          <p class="intl-courses-hero-sub">
+            Discover trending programs, professional certificates, and expert-led courses from leading global institutions. Build in-demand skills and take the next step in your educational and career journey.
+          </p>
+        </div>
+        <div class="col-lg-6">
+          <div class="intl-courses-hero-visual">
+            <img src="{{ static('images_new/thirdparty/intl-courses-hero.svg') }}" alt="" class="intl-courses-hero-img">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="intl-courses-main">
+    <div class="container">
+      <form class="intl-courses-filter" method="get" action="{{ url('skilllabcourse:internationalonlinecourses') }}">
+        <div class="intl-filter-fields">
+          <div class="intl-filter-group">
+            <label for="intl-subject">Choose Your Subject</label>
+            <div class="intl-filter-select-wrap">
+              <select id="intl-subject" name="subject" class="intl-filter-select">
+                <option value="">Select A Subject</option>
+                {% for subject in subjects %}
+                <option value="{{ subject }}" {% if selected_subject == subject %}selected{% endif %}>{{ subject }}</option>
+                {% endfor %}
+              </select>
+              <i class='bx bx-chevron-down intl-filter-chevron'></i>
+            </div>
+          </div>
+
+          <div class="intl-filter-group">
+            <label for="intl-institute">Choose an institute</label>
+            <div class="intl-filter-select-wrap">
+              <select id="intl-institute" name="institute" class="intl-filter-select">
+                <option value="">Select a Institute</option>
+                {% for institute in institutes %}
+                <option value="{{ institute }}" {% if selected_institute == institute %}selected{% endif %}>{{ institute }}</option>
+                {% endfor %}
+              </select>
+              <i class='bx bx-chevron-down intl-filter-chevron'></i>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="intl-filter-btn">Explore Courses</button>
+      </form>
+
+      {% if courses.object_list %}
+      {% include 'template20/includes/international_course_cards.html' %}
+
+      {% if courses.paginator.num_pages > 1 %}
+      <nav class="intl-courses-pagination" aria-label="International courses pagination">
+        <ul class="intl-pagination-list">
+          {% if courses.has_previous() %}
+          <li>
+            <a class="intl-pagination-arrow" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ courses.number - 1 }}" aria-label="Previous page">
+              <i class='bx bx-chevron-left'></i>
+            </a>
+          </li>
+          {% else %}
+          <li>
+            <span class="intl-pagination-arrow is-disabled" aria-hidden="true">
+              <i class='bx bx-chevron-left'></i>
+            </span>
+          </li>
+          {% endif %}
+
+          {% for page_num in courses.paginator.page_range %}
+            {% if page_num == courses.number %}
+            <li><span class="intl-pagination-num is-active">{{ page_num }}</span></li>
+            {% else %}
+            <li>
+              <a class="intl-pagination-num" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
+            </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if courses.has_next() %}
+          <li>
+            <a class="intl-pagination-arrow" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ courses.number + 1 }}" aria-label="Next page">
+              <i class='bx bx-chevron-right'></i>
+            </a>
+          </li>
+          {% else %}
+          <li>
+            <span class="intl-pagination-arrow is-disabled" aria-hidden="true">
+              <i class='bx bx-chevron-right'></i>
+            </span>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+      {% else %}
+      <div class="intl-courses-empty">
+        <img src="{{ static('images_new/icons/no-results.svg') }}" alt="" class="intl-courses-empty-img">
+        <h3>No courses found</h3>
+        <p>Try changing your subject or institute filters.</p>
+        <a href="{{ url('skilllabcourse:internationalonlinecourses') }}" class="intl-filter-btn intl-filter-btn-inline">View All Courses</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+{% endblock %}
