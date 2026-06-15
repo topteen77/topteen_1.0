@@ -308,7 +308,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  max-width: 100%;
 }
 
 .intl-pagination-list > li {

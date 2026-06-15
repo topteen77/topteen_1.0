@@ -41,6 +41,26 @@
   let currentStep = 1;
 
   const questionKeys = ["reports_reviewed", "preferred_stream"];
+  const reportsReviewedNo = "No, not yet";
+
+  const clearReportsReviewedSelection = function () {
+    if (!form) {
+      return;
+    }
+    form.querySelectorAll('input[name="reports_reviewed"]').forEach(function (input) {
+      input.checked = false;
+    });
+  };
+
+  const hasDeclinedReportReview = function () {
+    const selected = form && form.querySelector('input[name="reports_reviewed"]:checked');
+    return Boolean(selected && selected.value === reportsReviewedNo);
+  };
+
+  const minimizeBecauseReportsNotReviewed = function () {
+    clearReportsReviewedSelection();
+    minimizePopup();
+  };
 
   const readMinimizedState = function () {
     try {
@@ -99,6 +119,10 @@
           valid: false,
           message: "Please answer question 1: Have you reviewed your reports thoroughly?",
         };
+      }
+      if (selected.value === reportsReviewedNo) {
+        minimizeBecauseReportsNotReviewed();
+        return { valid: false, message: "" };
       }
       return { valid: true, message: "" };
     }
@@ -329,6 +353,14 @@
         if (question) {
           question.classList.remove("stream-decision-question-invalid");
         }
+
+        if (
+          input.name === "reports_reviewed" &&
+          input.value === reportsReviewedNo &&
+          input.checked
+        ) {
+          minimizeBecauseReportsNotReviewed();
+        }
       });
     });
 
@@ -353,6 +385,11 @@
       }
 
       const answers = collectAnswers();
+
+      if (answers.reports_reviewed === reportsReviewedNo) {
+        minimizeBecauseReportsNotReviewed();
+        return;
+      }
 
       if (!submitUrl) {
         showError("Unable to submit responses right now. Please refresh and try again.");

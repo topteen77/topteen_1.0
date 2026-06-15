@@ -973,8 +973,29 @@
 	font-size: 13px;
     margin-bottom: 2px;
 	padding: 1px 0px;
-	line-height: 15px;
+	line-height: 1.55;
 }
+
+        .impact-info.stra-nar ul li,
+        .impact-info ul.no-list-style li,
+        .improve-report ul li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .impact-info.stra-nar ul li > i,
+        .impact-info ul.no-list-style li > i,
+        .improve-report ul li > i {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .aptitude-remark-text {
+            flex: 1;
+            min-width: 0;
+            text-wrap: pretty;
+        }
 
 
         /** updated css **/
@@ -4089,7 +4110,7 @@
                                     {% else %}
                                     <i style="color: rgb(46, 138, 166);" class="fas fa-briefcase me-2"></i>
                                     {% endif %}
-                                    {{ remark }}
+                                    <span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span>
                                 </li>
                                 {% endfor %}
                             </ul>
@@ -4191,7 +4212,7 @@
                             <p><strong>Duration:</strong> {{ plan.Duration }}</p>
                             <ul>
                                 {% for remark in plan.Remarks %}
-                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i> {{ remark }}</li>
+                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i><span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span></li>
                                     
                                 {% endfor %}
                             </ul>
@@ -4216,7 +4237,7 @@
                             <p><strong>Duration:</strong> {{ plan.Duration }}</p>
                             <ul>
                                 {% for remark in plan.Remarks %}
-                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i> {{ remark }}</li>
+                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i><span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span></li>
                                     
                                 {% endfor %}
                             </ul>

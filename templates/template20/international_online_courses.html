@@ -98,12 +98,14 @@ Discover trending programs, professional certificates, and expert-led courses fr
           {% endif %}
 
           {% for page_num in courses.paginator.page_range %}
-            {% if page_num == courses.number %}
+            {% if courses.number == page_num %}
             <li><span class="intl-pagination-num is-active">{{ page_num }}</span></li>
-            {% else %}
+            {% elif page_num <= 3 or page_num > courses.paginator.num_pages - 3 or (page_num >= courses.number - 2 and page_num <= courses.number + 2) %}
             <li>
               <a class="intl-pagination-num" href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
             </li>
+            {% elif page_num == 4 or page_num == courses.paginator.num_pages - 3 %}
+            <li><span class="intl-pagination-ellipsis" aria-hidden="true">…</span></li>
             {% endif %}
           {% endfor %}
 

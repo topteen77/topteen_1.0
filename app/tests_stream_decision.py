@@ -67,6 +67,12 @@ class StreamDecisionHelpersTest(TestCase):
             results={},
         )
 
+    def test_validate_answers_rejects_reports_not_reviewed(self):
+        self.assertEqual(
+            validate_answers(_sample_answers(reports_reviewed='No, not yet')),
+            'Please review your reports before submitting your stream decision.',
+        )
+
     def test_validate_answers_requires_all_fields(self):
         answers = _sample_answers()
         answers.pop('reports_reviewed')
@@ -120,6 +126,17 @@ class StreamDecisionSubmitViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.test3_result.refresh_from_db()
         self.assertTrue(is_questionnaire_completed(self.test3_result.results))
+
+    def test_submit_rejects_reports_not_reviewed(self):
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'answers': _sample_answers(reports_reviewed='No, not yet')}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('review your reports', response.json()['message'])
+        self.test3_result.refresh_from_db()
+        self.assertFalse(is_questionnaire_completed(self.test3_result.results))
 
     def test_submit_rejects_missing_answers(self):
         answers = _sample_answers()

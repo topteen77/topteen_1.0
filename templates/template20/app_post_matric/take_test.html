@@ -950,7 +950,7 @@ $(document).ready(function() {
       });
       
       const testData = await testResponse.json();
-      $('#testTitle').text(testData.title);
+      $('#testTitle').text(testData.display_title || testData.title);
       
       // Load questions
       const questionsResponse = await fetch(`/api/questions/?test=${testId}`, {

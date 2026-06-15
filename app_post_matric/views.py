@@ -13,6 +13,7 @@ from .aptitude_area_labels import (
     normalize_aptitude_categories,
     resolve_aptitude_json_area,
 )
+from .test_display_labels import test_display_title
 from .models import (
     TestCategory, Test, Question, Answer,
     TestSession, UserResponse, TestResult, Sections, SectionSession, TestTopCategories,
@@ -744,6 +745,31 @@ def resolve_riasec_high_categories(session, stored_high_category=None):
     if stored_high_category:
         return str(stored_high_category).strip("[]").strip()
     return ''
+
+
+def normalize_test_result_data_for_charts(stored_data, is_aptitude=False):
+    """Normalize personality/career scores for chart JSON; keep metadata keys (e.g. _top_3_categories)."""
+    if not isinstance(stored_data, dict):
+        return stored_data
+    if is_aptitude:
+        return stored_data.copy()
+    normalized_data = {}
+    for key, value in stored_data.items():
+        if str(key).startswith('_'):
+            normalized_data[key] = value
+            continue
+        if isinstance(value, dict):
+            if 'score' in value:
+                normalized_data[key] = {'score': value['score']}
+            elif isinstance(value, (int, float)):
+                normalized_data[key] = {'score': value}
+            else:
+                normalized_data[key] = value
+        elif isinstance(value, (int, float)):
+            normalized_data[key] = {'score': value}
+        else:
+            normalized_data[key] = {'score': 0}
+    return normalized_data
 
 
 def get_hexaco_or_riasec_career_mapping(latest_session):
@@ -1547,7 +1573,7 @@ def Results(request):
             'all_tests_completed': all_tests_completed,
             'high_categories': high_categories,
             'low_category': low_category,
-            'test_name': latest_session.test.title,
+            'test_name': test_display_title(latest_session.test.title),
             'test_type': latest_session.test.title,
             'completed_at': latest_session.end_time,
             'completed_at_display': _format_ui_datetime(latest_session.end_time),
@@ -1665,23 +1691,10 @@ def Results(request):
             if test_result and test_result.result_data:
                 stored_data = test_result.result_data
                 if isinstance(stored_data, dict):
-                    if 'Aptitude' in title:
-                        test_data['result_data'] = stored_data.copy()
-                    else:
-                        normalized_data = {}
-                        for key, value in stored_data.items():
-                            if isinstance(value, dict):
-                                if 'score' in value:
-                                    normalized_data[key] = {'score': value['score']}
-                                elif isinstance(value, (int, float)):
-                                    normalized_data[key] = {'score': value}
-                                else:
-                                    normalized_data[key] = value
-                            elif isinstance(value, (int, float)):
-                                normalized_data[key] = {'score': value}
-                            else:
-                                normalized_data[key] = {'score': 0}
-                        test_data['result_data'] = normalized_data
+                    test_data['result_data'] = normalize_test_result_data_for_charts(
+                        stored_data,
+                        is_aptitude='Aptitude' in title,
+                    )
                 if test_result.category_counts:
                     test_data['category_counts'] = test_result.category_counts.copy()
             else:
@@ -1921,6 +1934,7 @@ def CombinedReport(request, user_id=None):
                 latest_sessions[test_title] = session
                 context['completed_tests'].append({
                     'title': test_title,
+                    'display_title': test_display_title(test_title),
                     'completed_at': session.end_time,
                     'completed_at_display': _format_ui_datetime(session.end_time),
                     'test_id': session.test.id
@@ -1954,30 +1968,10 @@ def CombinedReport(request, user_id=None):
                     # Use stored result_data if available
                     stored_data = test_result.result_data
                     if isinstance(stored_data, dict):
-                        # For Aptitude tests, keep direct numeric values (section names -> scores)
-                        if 'Aptitude' in title:
-                            test_data['result_data'] = stored_data.copy()
-                        else:
-                            # For Personality and Career: normalize to {'score': X} structure
-                            normalized_data = {}
-                            for key, value in stored_data.items():
-                                if isinstance(value, dict):
-                                    # If it has 'score' key, use it directly
-                                    if 'score' in value:
-                                        normalized_data[key] = {'score': value['score']}
-                                    # If value is just a number, wrap it
-                                    elif isinstance(value, (int, float)):
-                                        normalized_data[key] = {'score': value}
-                                    else:
-                                        # Otherwise keep as is
-                                        normalized_data[key] = value
-                                elif isinstance(value, (int, float)):
-                                    # Wrap numeric values for Personality/Career
-                                    normalized_data[key] = {'score': value}
-                                else:
-                                    # Fallback for other types
-                                    normalized_data[key] = {'score': 0}
-                            test_data['result_data'] = normalized_data
+                        test_data['result_data'] = normalize_test_result_data_for_charts(
+                            stored_data,
+                            is_aptitude='Aptitude' in title,
+                        )
                     if test_result.category_counts:
                         test_data['category_counts'] = test_result.category_counts.copy()
                 else:
@@ -3418,7 +3412,7 @@ def Test_results(request, id):
             'all_tests_completed': all_tests_completed,
             'high_categories': high_categories,
             'low_category': low_category,
-            'test_name': latest_session.test.title,
+            'test_name': test_display_title(latest_session.test.title),
             'test_type': latest_session.test.title,
             'completed_at': latest_session.end_time,
             'completed_at_display': _format_ui_datetime(latest_session.end_time),
@@ -3539,23 +3533,10 @@ def Test_results(request, id):
             if test_result and test_result.result_data:
                 stored_data = test_result.result_data
                 if isinstance(stored_data, dict):
-                    if 'Aptitude' in title:
-                        test_data['result_data'] = stored_data.copy()
-                    else:
-                        normalized_data = {}
-                        for key, value in stored_data.items():
-                            if isinstance(value, dict):
-                                if 'score' in value:
-                                    normalized_data[key] = {'score': value['score']}
-                                elif isinstance(value, (int, float)):
-                                    normalized_data[key] = {'score': value}
-                                else:
-                                    normalized_data[key] = value
-                            elif isinstance(value, (int, float)):
-                                normalized_data[key] = {'score': value}
-                            else:
-                                normalized_data[key] = {'score': 0}
-                        test_data['result_data'] = normalized_data
+                    test_data['result_data'] = normalize_test_result_data_for_charts(
+                        stored_data,
+                        is_aptitude='Aptitude' in title,
+                    )
                 if test_result.category_counts:
                     test_data['category_counts'] = test_result.category_counts.copy()
             else:
@@ -3717,7 +3698,7 @@ def download_test_results_pdf(request, id):
         # For now, we'll build a simplified context for PDF
         from datetime import datetime
         context = {
-            'test_name': latest_session.test.title,
+            'test_name': test_display_title(latest_session.test.title),
             'test_type': latest_session.test.title,
             'completed_at': latest_session.end_time,
             'user': target_user,

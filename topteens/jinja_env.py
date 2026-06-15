@@ -30,6 +30,24 @@ def starts_with_bullet(value):
     except Exception:
         return False
 
+
+_APTITUDE_REMARK_PHRASE_FIXES = (
+    (re.compile(r'—with\s+ease\b', re.I), '—with\u00a0ease'),
+    (re.compile(r'\bwith\s+ease\b', re.I), 'with\u00a0ease'),
+)
+
+
+def aptitude_remark_text(value):
+    text = str(value or '')
+    for pattern, replacement in _APTITUDE_REMARK_PHRASE_FIXES:
+        text = pattern.sub(replacement, text)
+    return text
+
+
+def test_display_title_filter(value):
+    from app_post_matric.test_display_labels import test_display_title
+    return test_display_title(value)
+
 def img_tag(*args,**kwargs):
     src = kwargs['src']
     # print("src",type(src))
@@ -370,6 +388,8 @@ def environment(**options):
     env.filters['escapejs'] = _escapejs
     env.filters['get_item'] = get_item
     env.filters['starts_with_bullet'] = starts_with_bullet
+    env.filters['aptitude_remark_text'] = aptitude_remark_text
+    env.filters['test_display_title'] = test_display_title_filter
     env.filters['tojson'] = tojson_filter
     env.filters['tojson_for_script'] = tojson_for_script
     env.filters['tojson_pretty'] = tojson_pretty

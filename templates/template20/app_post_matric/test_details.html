@@ -273,7 +273,7 @@ $(document).ready(function() {
       <div class="test-details-card">
         <div class="test-header">
           <div class="test-category">${test.category ? test.category.name : 'Assessment'}</div>
-          <h1 class="test-title">${test.title || 'Test'}</h1>
+          <h1 class="test-title">${test.display_title || test.title || 'Test'}</h1>
         </div>
 
         <div class="test-info-grid">

@@ -46,14 +46,32 @@
   .lsd-question-nav-btn.lsd-answered { background: #4F46E5; color: #ffffff; border-color: #4F46E5; }
   .lsd-question-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
   .lsd-question-text { font-size: 15px; color: #4b5563; margin-bottom: 16px; }
-  .lsd-option-btn { width: 100%; text-align: left; border-radius: 14px; border: 2px solid #e5e7eb; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: #fff; cursor: pointer; transition: all 0.25s ease; font-size: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-  .lsd-option-btn:hover { border-color: #a5b4fc; box-shadow: 0 4px 16px rgba(79,70,229,0.15); background: #faf5ff; }
-  .lsd-option-btn.lsd-selected { border-color: #7755EE; background: linear-gradient(135deg, rgba(119,85,238,0.12) 0%, rgba(63,55,201,0.08) 100%); box-shadow: 0 4px 20px rgba(119,85,238,0.2); }
-  .lsd-option-btn.lsd-selected::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #7755EE 0%, #3F37C9 100%); border-radius: 14px 0 0 14px; }
-  .lsd-option-letter { width: 32px; height: 32px; min-width: 32px; border-radius: 10px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #6b7280; flex-shrink: 0; background: #f9fafb; transition: all 0.25s ease; }
-  .lsd-option-btn.lsd-selected .lsd-option-letter { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); border-color: #7755EE; color: #fff; box-shadow: 0 2px 8px rgba(119,85,238,0.35); }
-  .lsd-option-text { color: #4b5563; font-size: 15px; line-height: 1.45; flex: 1; }
-  .lsd-option-btn.lsd-selected .lsd-option-text { color: #1f2937; font-weight: 500; }
+  .ei-statement-card { padding: 16px 18px 18px; margin-bottom: 14px; border: 1px solid #e0e7ff; background: #fafaff; transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
+  .ei-statement-card.ei-answered { border-color: #c7d2fe; background: #fff; box-shadow: 0 2px 12px rgba(79, 70, 229, 0.06); }
+  .ei-statement-card.ei-statement-invalid { border: 2px solid #dc2626; background: rgba(239, 68, 68, 0.08); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
+  .ei-statement-text { font-size: 15px; color: #1f2937; margin-bottom: 12px; line-height: 1.5; font-weight: 500; }
+  .ei-scale-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .ei-scale-option { display: flex; width: 100%; margin-bottom: 0; min-height: 76px; padding: 10px 6px 8px; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; text-align: center; border-radius: 12px; border: 2px solid #e5e7eb; background: #fff; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04); position: relative; overflow: hidden; }
+  .ei-scale-option:focus-visible { outline: 2px solid #7755EE; outline-offset: 2px; }
+  .ei-scale-option:not(.lsd-selected):hover { border-color: #a5b4fc; background: #f5f3ff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.12); }
+  .ei-scale-option .lsd-option-letter { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; min-width: 34px; border-radius: 10px; border: 2px solid #c7d2fe; background: #eef2ff; color: #4338ca; font-size: 15px; font-weight: 700; }
+  .ei-scale-option .lsd-option-text { font-size: 11px; line-height: 1.25; color: #6b7280; font-weight: 500; flex: none; }
+  .ei-scale-option.lsd-selected { border-color: #7755EE; background: linear-gradient(160deg, rgba(119, 85, 238, 0.16) 0%, rgba(63, 55, 201, 0.1) 100%); box-shadow: 0 4px 18px rgba(119, 85, 238, 0.22); transform: none; opacity: 1; }
+  .ei-scale-option.lsd-selected::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #7755EE 0%, #3F37C9 100%); }
+  .ei-scale-option.lsd-selected .lsd-option-letter { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); border-color: #7755EE; color: #fff; box-shadow: 0 2px 8px rgba(119, 85, 238, 0.35); }
+  .ei-scale-option.lsd-selected .lsd-option-text { color: #312e81; font-weight: 600; }
+  .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) { opacity: 0.38; border-color: #e5e7eb; background: #f3f4f6; box-shadow: none; transform: none; }
+  .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) .lsd-option-letter { border-color: #e5e7eb; background: #f9fafb; color: #9ca3af; }
+  .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) .lsd-option-text { color: #9ca3af; }
+  .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected):hover { opacity: 0.62; border-color: #c7d2fe; background: #f5f3ff; transform: none; }
+  @media (max-width: 767px) {
+    .ei-scale-row { gap: 6px; }
+    .ei-scale-option { min-height: 58px; padding: 8px 4px 6px; }
+    .ei-scale-option .lsd-option-letter { width: 30px; height: 30px; min-width: 30px; font-size: 13px; }
+    .ei-scale-option .lsd-option-text { font-size: 0; line-height: 0; }
+    .ei-scale-option .lsd-option-text::before { content: attr(data-short); font-size: 9px; line-height: 1.2; display: block; color: inherit; }
+    .ei-scale-option.lsd-selected .lsd-option-text::before { color: #312e81; }
+  }
   .lsd-wizard-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
   .lsd-wizard-buttons { display: flex; gap: 8px; }
   .lsd-complete-badge { font-size: 13px; color: #059669; font-weight: 600; display: none; align-items: center; gap: 6px; }
@@ -79,7 +97,6 @@
   .lsd-download-note { font-size: 12px; color: #6b7280; margin-top: 6px; }
   .lsd-validation-message { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #b91c1c; font-size: 14px; font-weight: 500; }
   .lsd-validation-message.lsd-validation-visible { display: block; }
-  .lsd-card.ei-statement-invalid { border: 2px solid #dc2626; background: rgba(239, 68, 68, 0.08); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
 </style>
 {% endblock %}
 
@@ -370,7 +387,7 @@
     validationEl.setAttribute("hidden", "");
     validationEl.classList.remove("lsd-validation-visible");
     if (levelContainer) {
-      var cards = levelContainer.querySelectorAll(".lsd-card.ei-statement-invalid");
+      var cards = levelContainer.querySelectorAll(".ei-statement-card.ei-statement-invalid");
       for (var c = 0; c < cards.length; c++) cards[c].classList.remove("ei-statement-invalid");
     }
   }
@@ -381,7 +398,7 @@
     for (var j = 0; j < level.items.length; j++) {
       var itemId = level.items[j].id;
       if (!responses[itemId]) {
-        var card = levelContainer.querySelector(".lsd-card[data-item-id='" + itemId + "']");
+        var card = levelContainer.querySelector(".ei-statement-card[data-item-id='" + itemId + "']");
         if (card) card.classList.add("ei-statement-invalid");
       }
     }
@@ -392,7 +409,7 @@
   for (var _kr in savedResponses) responses[_kr] = savedResponses[_kr];
   var scoresCache = null;
 
-  function renderLevelNav() {
+  function renderLevelNav(scrollNav) {
     if (!levelNav) return;
     levelNav.innerHTML = "";
     for (var li = 0; li < levels.length; li++) {
@@ -407,16 +424,29 @@
         btn.addEventListener("click", function() {
           currentLevelIndex = idx;
           clearValidation();
-          renderCurrentLevel();
+          renderCurrentLevel(true);
         });
       })(li);
       levelNav.appendChild(btn);
     }
-    var curBtn = levelNav.querySelector(".lsd-question-nav-btn.lsd-current");
-    if (curBtn) curBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    if (scrollNav) {
+      var curBtn = levelNav.querySelector(".lsd-question-nav-btn.lsd-current");
+      if (curBtn) curBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
   }
 
-  function updateProgress() {
+  function scrollAssessmentToTop() {
+    var card = document.getElementById("eiAssessmentCard");
+    if (card) {
+      var top = card.getBoundingClientRect().top + window.pageYOffset - 24;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function updateProgress(opts) {
+    opts = opts || {};
     var totalLevels = levels.length;
     var level = levels[currentLevelIndex];
     var percent = Math.round(((currentLevelIndex + 1) / totalLevels) * 100);
@@ -431,13 +461,14 @@
       completeBadge.classList.remove("lsd-visible");
     }
     syncResultsTabEnabledState();
-    renderLevelNav();
+    renderLevelNav(!!opts.scrollNav);
   }
 
-  function createLikertOption(questionId, value, label) {
+  var shortLabels = ["SD", "D", "N", "A", "SA"];
+
+  function createLikertOption(questionId, value, label, scaleRow, statementCard) {
     var wrapper = document.createElement("label");
-    wrapper.className = "lsd-option-btn";
-    wrapper.style.marginBottom = "0";
+    wrapper.className = "lsd-option-btn ei-scale-option";
     var input = document.createElement("input");
     input.type = "radio";
     input.name = questionId;
@@ -449,25 +480,32 @@
     var textSpan = document.createElement("span");
     textSpan.className = "lsd-option-text";
     textSpan.textContent = label;
+    textSpan.setAttribute("data-short", shortLabels[value - 1]);
     wrapper.appendChild(input);
     wrapper.appendChild(badge);
     wrapper.appendChild(textSpan);
-    wrapper.addEventListener("click", function() {
-      var groupInputs = document.querySelectorAll("input[name='" + questionId + "']");
+    wrapper.addEventListener("click", function(e) {
+      e.preventDefault();
+      var groupInputs = scaleRow.querySelectorAll("input[name='" + questionId + "']");
       for (var i = 0; i < groupInputs.length; i++) {
         var p = groupInputs[i].parentElement;
-        if (p && p.classList.contains("lsd-option-btn")) p.classList.remove("lsd-selected");
+        if (p && p.classList.contains("ei-scale-option")) p.classList.remove("lsd-selected");
       }
       input.checked = true;
       wrapper.classList.add("lsd-selected");
+      scaleRow.classList.add("ei-has-selection");
+      if (statementCard) {
+        statementCard.classList.add("ei-answered");
+        statementCard.classList.remove("ei-statement-invalid");
+      }
       responses[questionId] = value;
       clearValidation();
-      updateProgress();
+      updateProgress({ scrollNav: false });
     });
     return wrapper;
   }
 
-  function renderCurrentLevel() {
+  function renderCurrentLevel(scrollToTop) {
     var level = levels[currentLevelIndex];
     levelContainer.innerHTML = "";
     var titleEl = document.createElement("h2");
@@ -483,20 +521,17 @@
     for (var i = 0; i < level.items.length; i++) {
       var item = level.items[i];
       var card = document.createElement("div");
-      card.className = "lsd-card";
+      card.className = "lsd-card ei-statement-card";
       card.setAttribute("data-item-id", item.id);
+      if (responses[item.id]) card.classList.add("ei-answered");
       var qText = document.createElement("p");
-      qText.className = "lsd-question-text";
-      qText.style.marginBottom = "10px";
+      qText.className = "ei-statement-text";
       qText.textContent = (i + 1) + ". " + item.text;
       var scaleRow = document.createElement("div");
-      scaleRow.style.display = "grid";
-      scaleRow.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
-      scaleRow.style.gap = "8px";
+      scaleRow.className = "ei-scale-row";
+      if (responses[item.id]) scaleRow.classList.add("ei-has-selection");
       for (var v = 1; v <= 5; v++) {
-        var opt = createLikertOption(item.id, v, labels[v - 1]);
-        opt.style.padding = "10px 8px";
-        opt.style.justifyContent = "center";
+        var opt = createLikertOption(item.id, v, labels[v - 1], scaleRow, card);
         if (responses[item.id] === v) {
           opt.classList.add("lsd-selected");
           opt.querySelector("input[type='radio']").checked = true;
@@ -508,10 +543,8 @@
       levelContainer.appendChild(card);
     }
     if (validationEl) levelContainer.appendChild(validationEl);
-    updateProgress();
-    if (levelContainer && levelContainer.firstChild) {
-      levelContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    updateProgress({ scrollNav: scrollToTop });
+    if (scrollToTop) scrollAssessmentToTop();
   }
 
   function validateLevelCompleted(idx) {
@@ -648,7 +681,7 @@
         introCard.style.display = "none";
         if (mainArea) mainArea.style.display = "block";
         currentLevelIndex = 0;
-        renderCurrentLevel();
+        renderCurrentLevel(true);
         var savedScores = {
           subscaleScores: savedEq.subscale_scores,
           EI_total: savedEq.ei_total,
@@ -689,7 +722,7 @@
       if (mainArea) mainArea.style.display = "block";
       setActiveTab("questions");
       currentLevelIndex = 0;
-      renderCurrentLevel();
+      renderCurrentLevel(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
@@ -697,7 +730,7 @@
     if (currentLevelIndex > 0) {
       currentLevelIndex--;
       clearValidation();
-      renderCurrentLevel();
+      renderCurrentLevel(true);
     }
   });
   nextBtn.addEventListener("click", function() {
@@ -709,7 +742,7 @@
     clearValidation();
     if (currentLevelIndex < levels.length - 1) {
       currentLevelIndex++;
-      renderCurrentLevel();
+      renderCurrentLevel(true);
     } else {
       if (!validateAllCompleted()) {
         showValidation("Please make sure all 36 statements have been answered.");

@@ -840,6 +840,241 @@
     line-height: 1.35;
   }
 
+  .career-dashboard-panel {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .cr-dashboard-card {
+    background: #fff;
+    border: 1px solid #e1e8ff;
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  .cr-dashboard-card--personality {
+    border-color: #e9e3ff;
+  }
+
+  .cr-dashboard-card--motivation {
+    border-color: #dbeafe;
+  }
+
+  .cr-dashboard-card--interest {
+    border-color: #d1fae5;
+  }
+
+  .cr-dashboard-head {
+    margin-bottom: 12px;
+  }
+
+  .cr-dashboard-head-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin: -14px -14px 10px;
+    border-radius: 13px 13px 0 0;
+  }
+
+  .cr-dashboard-head--personality .cr-dashboard-head-bar {
+    background: #6d28d9;
+  }
+
+  .cr-dashboard-head--motivation .cr-dashboard-head-bar {
+    background: #1d4ed8;
+  }
+
+  .cr-dashboard-head--interest .cr-dashboard-head-bar {
+    background: #047857;
+  }
+
+  .cr-dashboard-head-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  }
+
+  .cr-dashboard-head-icon i {
+    line-height: 1;
+  }
+
+  .cr-dashboard-head--personality .cr-dashboard-head-icon {
+    color: #7c3aed;
+    background: #fff;
+    border-color: #ddd6fe;
+  }
+
+  .cr-dashboard-head--motivation .cr-dashboard-head-icon {
+    color: #2563eb;
+    background: #fff;
+    border-color: #bfdbfe;
+  }
+
+  .cr-dashboard-head--interest .cr-dashboard-head-icon {
+    color: #059669;
+    background: #fff;
+    border-color: #a7f3d0;
+  }
+
+  .cr-dashboard-head h4 {
+    font-size: 16px;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+    color:#fff;
+  }
+
+  /* .cr-dashboard-head--personality h4 {
+    color: #6d28d9;
+  }
+
+  .cr-dashboard-head--motivation h4 {
+    color: #1d4ed8;
+  }
+
+  .cr-dashboard-head--interest h4 {
+    color: #047857;
+  } */
+
+  .cr-dashboard-head p {
+    font-size: 12px;
+    color: #5b647f;
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .cr-dashboard-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+
+  .cr-dashboard-pill--personality {
+    color: #6d28d9;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+
+  .cr-dashboard-pill--motivation {
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-color: #93c5fd;
+  }
+
+  .cr-dashboard-pill--interest {
+    color: #15803d;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+
+  .cr-dashboard-group {
+    margin-bottom: 12px;
+  }
+
+  .cr-dashboard-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .cr-dashboard-group-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+
+  .cr-dashboard-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .cr-dashboard-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    line-height: 1.3;
+  }
+
+  .cr-dashboard-chip-more {
+    cursor: pointer;
+    font-weight: 700;
+    border-style: dashed;
+    background: transparent;
+    margin-top: 0;
+  }
+
+  .cr-dashboard-card--personality .cr-dashboard-chip {
+    color: #5b21b6;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+
+  .cr-dashboard-card--personality .cr-dashboard-chip-more {
+    color: #6d28d9;
+    border-color: #c4b5fd;
+  }
+
+  .cr-dashboard-card--motivation .cr-dashboard-chip {
+    color: #1e40af;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+  }
+
+  .cr-dashboard-card--motivation .cr-dashboard-chip-more {
+    color: #2563eb;
+    border-color: #93c5fd;
+  }
+
+  .cr-dashboard-card--interest .cr-dashboard-chip {
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+
+  .cr-dashboard-card--interest .cr-dashboard-chip-more {
+    color: #15803d;
+    border-color: #86efac;
+  }
+
+  .cr-dashboard-chip-grid.is-collapsed .cr-dashboard-chip--hidden {
+    display: none;
+  }
+
+  .cr-dashboard-empty {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+  }
+
   .course-reco-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1283,6 +1518,7 @@
     .deep-dive-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
   }
 
   @media (max-width: 767px) {
@@ -1303,6 +1539,10 @@
     }
 
     .deep-dive-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .career-dashboard-panel {
       grid-template-columns: 1fr;
     }
   }
@@ -1413,7 +1653,9 @@
         type="application/json">{% if test_results_json %}{{ test_results_json|safe }}{% else %}[]{% endif %}</script>
 <script id="aptitude-band-json"
         type="application/json">{% if aptitude_band_json %}{{ aptitude_band_json|safe }}{% else %}{"above":[],"average":[],"below":[]} {% endif %}</script>
-      <div class="kpi-grid mt-4">
+      
+      <!-- hide section -->
+        <div class="kpi-grid mt-4 d-none">
         <div class="kpi-card kpi-tests">
           <div class="kpi-label">Completed Assessments</div>
           <div class="kpi-value">{{ completed_tests|default([], true)|length }}/4</div>
@@ -1431,7 +1673,7 @@
           <div class="kpi-value">{{ below_list|default([], true)|length }}</div>
         </div>
       </div>
-
+      <!-- hide section -->
       <div class="mt-4">
         <div class="timeline-head mb-6">
           <h3 class="section-title mb-0">Assessment Timeline</h3>
@@ -1443,7 +1685,7 @@
             <div class="test-card-header">
 
               <div class="d-flex align-items-center justify-content-between w-100">
-              <div class="test-title">{{ test.title }}</div>
+              <div class="test-title">{{ test.display_title|default(test.title) }}</div>
               <div class="status-pill"> Completed</div>
               </div>            
         </div>
@@ -1455,7 +1697,7 @@
             <div class="timeline-card-actions">
               <a href="{{ url('post_matric:results') }}?test_id={{ test.test_id }}&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}"
                  class="mini-btn report-btn ttv2-report-open"
-                 data-report-title="{{ test.title }}"
+                 data-report-title="{{ test.display_title|default(test.title) }}"
                  data-student-id="{{ report_student_id }}">
                 <i class="fas fa-file-alt"></i>
                 View Report
@@ -1554,6 +1796,155 @@
               <span class="aptitude-band-chip"><span class="aptitude-band-dot below"></span>{{ "Below Average"|aptitude_tier_label }}</span>
             </div>
             <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
+          </div>
+        </div>
+      </div>
+
+      {% set career_preview = 5 %}
+      {% set career_interest_preview = 3 %}
+      {% set personality_ns = namespace(groups=[]) %}
+      {% if careers_to_opt is mapping %}
+        {% for trait_name, career_list in careers_to_opt.items() %}
+          {% if career_list %}
+            {% set _ = personality_ns.groups.append({'label': trait_name, 'careers': career_list}) %}
+          {% endif %}
+        {% endfor %}
+      {% elif careers_to_opt %}
+        {% set _ = personality_ns.groups.append({'label': 'Suggested Careers', 'careers': careers_to_opt}) %}
+      {% endif %}
+
+      {% set riasec_ns = namespace(groups=[]) %}
+      {% if riasec_careers_to_opt is mapping %}
+        {% for category in ['Traditional', 'Trending', 'Futuristic'] %}
+          {% set category_careers = riasec_careers_to_opt.get(category, []) %}
+          {% if category_careers %}
+            {% set _ = riasec_ns.groups.append({'label': category, 'careers': category_careers}) %}
+          {% endif %}
+        {% endfor %}
+      {% elif riasec_careers_to_opt %}
+        {% set _ = riasec_ns.groups.append({'label': 'Suggested Careers', 'careers': riasec_careers_to_opt}) %}
+      {% endif %}
+
+      {% set motivation_ns = namespace(groups=[]) %}
+      {% if motivation_careers_to_opt is mapping %}
+        {% set motivation_roles = motivation_careers_to_opt.get('Career Category & Roles', []) %}
+        {% if motivation_roles %}
+          {% set _ = motivation_ns.groups.append({'label': 'Recommended Roles', 'careers': motivation_roles}) %}
+        {% endif %}
+      {% elif motivation_careers_to_opt %}
+        {% set _ = motivation_ns.groups.append({'label': 'Recommended Roles', 'careers': motivation_careers_to_opt}) %}
+      {% endif %}
+
+      <div class="mt-4">
+        <h3 class="section-title">Career Recommendations </h3>
+        <p class="career-spotlight-subtitle mt-1 mb-3">Career paths linked to your Personality Assessment, Motivation, and Career Interest results.</p>
+        <div class="career-dashboard-panel">
+          <div class="cr-dashboard-card cr-dashboard-card--personality">
+            <div class="cr-dashboard-head cr-dashboard-head--personality">
+              <div class="cr-dashboard-head-bar">
+                <span class="cr-dashboard-head-icon" aria-hidden="true"><i class="bx bx-brain"></i></span>
+                <h4>
+                  Personality Assessment
+                  {% if high_traits %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--personality">{{ high_traits|join(' & ') }}</span>
+                  {% elif high_categories %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--personality">{{ high_categories|join(' & ') }}</span>
+                  {% endif %}
+                </h4>
+              </div>
+              <p>Roles aligned with your dominant personality traits.</p>
+            </div>
+            {% if personality_ns.groups %}
+              {% for group in personality_ns.groups %}
+              {% set group_careers = group.careers %}
+              {% set group_total = group_careers|length %}
+              <div class="cr-dashboard-group">
+                {% if personality_ns.groups|length > 1 %}
+                <div class="cr-dashboard-group-label">{{ group.label }}</div>
+                {% endif %}
+                <div class="cr-dashboard-chip-grid {% if group_total > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for career in group_careers %}
+                  <span class="cr-dashboard-chip{% if loop.index > career_preview and group_total > career_preview %} cr-dashboard-chip--hidden{% endif %}">{{ career }}</span>
+                  {% endfor %}
+                  {% if group_total > career_preview %}
+                  <button type="button" class="cr-dashboard-chip cr-dashboard-chip-more" data-career-view-more aria-expanded="false">+{{ group_total - career_preview }} more</button>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="cr-dashboard-empty">Complete the Personality Assessment to see career suggestions.</p>
+            {% endif %}
+          </div>
+
+          <div class="cr-dashboard-card cr-dashboard-card--motivation">
+            <div class="cr-dashboard-head cr-dashboard-head--motivation">
+              <div class="cr-dashboard-head-bar">
+                <span class="cr-dashboard-head-icon" aria-hidden="true"><i class="bx bx-bolt-circle"></i></span>
+                <h4>
+                  Motivation
+                  {% if motivation_high_category %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--motivation">{{ motivation_high_category }}</span>
+                  {% endif %}
+                </h4>
+              </div>
+              <p>Careers that match your primary motivation driver.</p>
+            </div>
+            {% if motivation_ns.groups %}
+              {% for group in motivation_ns.groups %}
+              {% set group_careers = group.careers %}
+              {% set group_total = group_careers|length %}
+              <div class="cr-dashboard-group">
+                {% if motivation_ns.groups|length > 1 %}
+                <div class="cr-dashboard-group-label">{{ group.label }}</div>
+                {% endif %}
+                <div class="cr-dashboard-chip-grid {% if group_total > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for career in group_careers %}
+                  <span class="cr-dashboard-chip{% if loop.index > career_preview and group_total > career_preview %} cr-dashboard-chip--hidden{% endif %}">{{ career }}</span>
+                  {% endfor %}
+                  {% if group_total > career_preview %}
+                  <button type="button" class="cr-dashboard-chip cr-dashboard-chip-more" data-career-view-more aria-expanded="false">+{{ group_total - career_preview }} more</button>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="cr-dashboard-empty">Complete the Motivation Assessment to see career suggestions.</p>
+            {% endif %}
+          </div>
+
+          <div class="cr-dashboard-card cr-dashboard-card--interest">
+            <div class="cr-dashboard-head cr-dashboard-head--interest">
+              <div class="cr-dashboard-head-bar">
+                <span class="cr-dashboard-head-icon" aria-hidden="true"><i class="bx bx-compass"></i></span>
+                <h4>
+                  Career Interest
+                  {% if riasec_high_categories %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--interest">{{ riasec_high_categories }}</span>
+                  {% endif %}
+                </h4>
+              </div>
+              <p>Roles based on your RIASEC interest profile.</p>
+            </div>
+            {% if riasec_ns.groups %}
+              {% for group in riasec_ns.groups %}
+              {% set group_careers = group.careers %}
+              {% set group_total = group_careers|length %}
+              <div class="cr-dashboard-group">
+                <div class="cr-dashboard-group-label">{{ group.label }}</div>
+                <div class="cr-dashboard-chip-grid {% if group_total > career_interest_preview %}is-collapsed{% endif %}" data-career-group-chips data-preview="3">
+                  {% for career in group_careers %}
+                  <span class="cr-dashboard-chip{% if loop.index > career_interest_preview and group_total > career_interest_preview %} cr-dashboard-chip--hidden{% endif %}">{{ career }}</span>
+                  {% endfor %}
+                  {% if group_total > career_interest_preview %}
+                  <button type="button" class="cr-dashboard-chip cr-dashboard-chip-more" data-career-view-more aria-expanded="false">+{{ group_total - career_interest_preview }} more</button>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="cr-dashboard-empty">Complete the Career Interest Assessment to see career suggestions.</p>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -2266,6 +2657,7 @@
     }
 
     const riasecCodeFromContext = "{{ riasec_high_categories|default('', true)|escapejs }}";
+    const riasecOrder = ['R', 'I', 'A', 'S', 'E', 'C'];
 
     function normalizeRiasecCode(code) {
       const raw = String(code || '').trim();
@@ -2336,15 +2728,16 @@
         if (topCode) return topCode;
       }
 
+      if (contextCode) return contextCode;
+
       const ranked = keys.map((key, idx) => ({
         key,
         score: values[idx] == null ? -Infinity : Number(values[idx])
       }))
         .filter((row) => Number.isFinite(row.score))
-        // Deterministic tie-break: alphabetical code order (I before R, etc.)
         .sort((a, b) => {
           if (b.score !== a.score) return b.score - a.score;
-          return String(a.key || '').localeCompare(String(b.key || ''));
+          return riasecOrder.indexOf(a.key) - riasecOrder.indexOf(b.key);
         })
         .slice(0, 3)
         .map((row) => row.key);
@@ -2474,6 +2867,14 @@
           },
           options: {
             ...commonOptions,
+            scales: {
+              r: {
+                beginAtZero: true,
+                ticks: {
+                  display: false
+                }
+              }
+            },
             plugins: {
               ...commonOptions.plugins,
               legend: { display: false }
@@ -2551,7 +2952,7 @@
           data: {
             labels: aptitudeLabels,
             datasets: [{
-              label: 'Section score (out of 15)',
+              label: '',
               data: aptitudeSeries.values,
               borderRadius: 8,
               backgroundColor: aptitudeColors
@@ -2576,14 +2977,13 @@
                 beginAtZero: true,
                 max: 15,
                 ticks: {
-                  precision: 0,
-                  stepSize: 1,
-                  autoSkip: false
+                  display: false
                 }
               }
             },
             plugins: {
               ...commonOptions.plugins,
+              legend: { display: false },
               tooltip: {
                 callbacks: {
                   title: function (tooltipItems) {
@@ -2594,7 +2994,7 @@
                   label: function (context) {
                     const score = Number(context.parsed.y || 0);
                     const band = aptitudeBandsByIndex[context.dataIndex] || 'Average';
-                    return `${score}/15 - ${band}`;
+                    return `${score} - ${band}`;
                   }
                 }
               }
@@ -2708,6 +3108,16 @@
           : "<i class='fas fa-chevron-down'></i> Show More Courses";
       });
     }
+
+    document.querySelectorAll('[data-career-view-more]').forEach((btn) => {
+      const grid = btn.closest('[data-career-group-chips]') || btn.previousElementSibling;
+      if (!grid || !grid.matches('[data-career-group-chips]')) return;
+      btn.addEventListener('click', () => {
+        grid.classList.remove('is-collapsed');
+        btn.hidden = true;
+        btn.setAttribute('aria-expanded', 'true');
+      });
+    });
 
   })();
 </script>

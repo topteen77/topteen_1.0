@@ -122,6 +122,26 @@
     font-size: 14px;
     line-height: 1.6;
   }
+  .strength-narrative-grid {
+    grid-template-columns: 1fr;
+  }
+  .aptitude-remark-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: #666;
+    line-height: 1.6;
+  }
+  .aptitude-remark-icon {
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .aptitude-remark-text {
+    flex: 1;
+    min-width: 0;
+    text-wrap: pretty;
+  }
   .careers-section {
     margin-bottom: 32px;
   }
@@ -528,15 +548,16 @@
         {% if aptitude_strength_narrative %}
         <div class="categories-section">
           <h3 class="section-title">Strength Narrative</h3>
-          <div class="category-grid">
+          <div class="category-grid strength-narrative-grid">
             {% for strength in aptitude_strength_narrative %}
             {% if strength.Area in above_list %}
             <div class="category-card high">
               <div class="category-name">{{ strength.Area }}</div>
               <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
                 {% for remark in strength.Major_points %}
-                <li style="margin-bottom: 8px; color: #666;">
-                  <i class="fas fa-briefcase me-2" style="color: #3f37c9;"></i> {{ remark }}
+                <li class="aptitude-remark-item">
+                  <i class="fas fa-briefcase aptitude-remark-icon" style="color: #3f37c9;"></i>
+                  <span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -546,8 +567,9 @@
               <div class="category-name">{{ strength.Area }}</div>
               <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
                 {% for remark in strength.Major_points %}
-                <li style="margin-bottom: 8px; color: #666;">
-                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ remark }}
+                <li class="aptitude-remark-item">
+                  <i class="fas fa-briefcase aptitude-remark-icon" style="color: rgb(46, 138, 166);"></i>
+                  <span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -557,8 +579,9 @@
               <div class="category-name">{{ strength.Area }}</div>
               <ul style="list-style: none; padding-left: 0; margin-top: 12px;">
                 {% for remark in strength.Major_points %}
-                <li style="margin-bottom: 8px; color: #666;">
-                  <i class="fas fa-briefcase me-2" style="color: rgb(46, 138, 166);"></i> {{ remark }}
+                <li class="aptitude-remark-item">
+                  <i class="fas fa-briefcase aptitude-remark-icon" style="color: rgb(46, 138, 166);"></i>
+                  <span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -675,8 +698,9 @@
               </p>
               <ul style="list-style: none; padding-left: 0;">
                 {% for remark in plan.Remarks %}
-                <li style="margin-bottom: 8px; color: #666;">
-                  <i class="fas fa-briefcase me-2" style="color: #C24E4E;"></i> {{ remark }}
+                <li class="aptitude-remark-item">
+                  <i class="fas fa-briefcase aptitude-remark-icon" style="color: #C24E4E;"></i>
+                  <span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span>
                 </li>
                 {% endfor %}
               </ul>

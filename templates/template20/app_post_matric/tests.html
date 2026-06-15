@@ -935,7 +935,7 @@
 
     // Set basic test information
     card.querySelector('.category-badge').textContent = test.category_name || 'Uncategorized';
-    card.querySelector('.test-title').textContent = test.title;
+    card.querySelector('.test-title').textContent = test.display_title || test.title;
 
     // Set description with truncation
     const descriptionElement = card.querySelector('.test-description');

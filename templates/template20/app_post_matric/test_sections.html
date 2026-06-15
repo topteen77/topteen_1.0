@@ -717,7 +717,7 @@
                 // Get test details
                 const testRes = await fetch(`/api/tests/${testId}/`);
                 const test = await testRes.json();
-                document.getElementById('test-title').textContent = test.title;
+                document.getElementById('test-title').textContent = test.display_title || test.title;
                 document.getElementById('test-description').textContent = test.description;
 
                 // Get section sessions to check completion status

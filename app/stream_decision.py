@@ -5,6 +5,9 @@ QUESTION_KEYS = (
     'preferred_stream',
 )
 
+REPORTS_REVIEWED_YES = 'Yes, I have reviewed them thoroughly'
+REPORTS_REVIEWED_NO = 'No, not yet'
+
 VALID_STREAMS = frozenset({
     'PCM',
     'PCB',
@@ -33,6 +36,9 @@ def validate_answers(answers):
     missing = [key for key in QUESTION_KEYS if not str(answers.get(key, '')).strip()]
     if missing:
         return 'Please answer all questions before submitting.'
+    reports_reviewed = str(answers.get('reports_reviewed', '')).strip()
+    if reports_reviewed != REPORTS_REVIEWED_YES:
+        return 'Please review your reports before submitting your stream decision.'
     stream = str(answers.get('preferred_stream', '')).strip()
     if stream not in VALID_STREAMS:
         return 'Please select a stream.'

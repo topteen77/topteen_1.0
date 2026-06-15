@@ -26,7 +26,7 @@
   .lsd-btn-primary:hover { filter: brightness(1.05); color: #fff; }
   .lsd-btn-outline { border-color: #d1d5db; background: #ffffff; color: #374151; }
   .lsd-btn-outline:hover { border-color: #4b5563; background: #f9fafb; }
-  .lsd-btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
+  .lsd-btn-outline:disabled { opacity: 0.45; cursor: not-allowed; color: #9ca3af; border-color: #e5e7eb; background: #f9fafb; }
   .lsd-main-area { margin-bottom: 20px; }
   .lsd-tabs-row { display: flex; gap: 8px; margin-bottom: 14px; padding: 4px; border-radius: 14px; background: #eef2ff; border: 1px solid #e0e7ff; }
   .lsd-tab { flex: 1; border: none; border-radius: 12px; padding: 12px 16px; font-size: 15px; font-weight: 600; cursor: pointer; background: transparent; color: #6b7280; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
@@ -44,17 +44,20 @@
   .lsd-question-nav-btn { width: 30px; height: 30px; border-radius: 999px; border: 1px solid #e5e7eb; background: #ffffff; font-size: 12px; color: #4b5563; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; flex: 0 0 auto; }
   .lsd-question-nav-btn.lsd-current { border-color: #4F46E5; }
   .lsd-question-nav-btn.lsd-answered { background: #4F46E5; color: #ffffff; border-color: #4F46E5; }
-  .lsd-question-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
-  .lsd-question-text { font-size: 15px; color: #4b5563; margin-bottom: 16px; }
+  .lsd-question-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 6px; }
+  .lsd-question-text { font-size: 15px; color: #374151; margin-bottom: 18px; line-height: 1.55; font-weight: 500; }
   .lsd-options-list { list-style: none; padding: 0; margin: 0 0 12px 0; }
-  .lsd-option-btn { width: 100%; text-align: left; border-radius: 14px; border: 2px solid #e5e7eb; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: #ffffff; cursor: pointer; transition: all 0.25s ease; font-size: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
-  .lsd-option-btn:hover { border-color: #a5b4fc; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.15); background: #faf5ff; }
-  .lsd-option-btn.lsd-selected { border-color: #7755EE; background: linear-gradient(135deg, rgba(119, 85, 238, 0.12) 0%, rgba(63, 55, 201, 0.08) 100%); box-shadow: 0 4px 20px rgba(119, 85, 238, 0.2); border-width: 2px; }
+  .lsd-option-btn { width: 100%; text-align: left; border-radius: 14px; border: 2px solid #c7d2fe; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: #ffffff; color: #111827; cursor: pointer; transition: all 0.25s ease; font-size: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(79, 70, 229, 0.08); appearance: none; -webkit-appearance: none; }
+  .lsd-option-btn:not(.lsd-selected):hover { border-color: #7755EE; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.18); background: #f5f3ff; transform: translateY(-1px); }
+  .lsd-option-btn:not(.lsd-selected):hover .lsd-option-letter { border-color: #7755EE; color: #4338ca; background: #ede9fe; }
+  .lsd-option-btn:not(.lsd-selected):hover .lsd-option-text { color: #111827; }
+  .lsd-option-btn:focus-visible { outline: 2px solid #7755EE; outline-offset: 2px; }
+  .lsd-option-btn.lsd-selected { border-color: #7755EE; background: linear-gradient(135deg, rgba(119, 85, 238, 0.14) 0%, rgba(63, 55, 201, 0.1) 100%); box-shadow: 0 4px 20px rgba(119, 85, 238, 0.22); border-width: 2px; }
   .lsd-option-btn.lsd-selected::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #7755EE 0%, #3F37C9 100%); border-radius: 14px 0 0 14px; }
-  .lsd-option-letter { width: 32px; height: 32px; min-width: 32px; border-radius: 10px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #6b7280; flex-shrink: 0; background: #f9fafb; transition: all 0.25s ease; }
+  .lsd-option-letter { width: 32px; height: 32px; min-width: 32px; border-radius: 10px; border: 2px solid #a5b4fc; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #4338ca; flex-shrink: 0; background: #eef2ff; transition: all 0.25s ease; }
   .lsd-option-btn.lsd-selected .lsd-option-letter { background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); border-color: #7755EE; color: #ffffff; box-shadow: 0 2px 8px rgba(119, 85, 238, 0.35); }
-  .lsd-option-text { color: #4b5563; font-size: 15px; line-height: 1.45; flex: 1; }
-  .lsd-option-btn.lsd-selected .lsd-option-text { color: #1f2937; font-weight: 500; }
+  .lsd-option-text { color: #1f2937; font-size: 15px; line-height: 1.45; flex: 1; font-weight: 500; }
+  .lsd-option-btn.lsd-selected .lsd-option-text { color: #111827; font-weight: 600; }
   .lsd-option-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
   .lsd-option-btn:not(.lsd-selected) .lsd-option-check { display: none; }
   .lsd-wizard-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
@@ -91,7 +94,7 @@
   .lsd-download-note { font-size: 12px; color: #6b7280; margin-top: 6px; }
   .lsd-validation-message { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #b91c1c; font-size: 14px; font-weight: 500; }
   .lsd-validation-message.lsd-validation-visible { display: block; }
-  .lsd-question-wrapper { padding: 20px 22px 22px; border-radius: 20px; transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease; }
+  .lsd-question-wrapper { padding: 20px 22px 22px; border-radius: 20px; background: #fafaff; border: 1px solid #e0e7ff; transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease; }
   .lsd-question-wrapper.lsd-question-invalid { border: 2px solid #dc2626; background: rgba(239, 68, 68, 0.08); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
   .lsd-options-list.lsd-options-invalid { outline: 2px solid #dc2626; outline-offset: 2px; border-radius: 12px; background: rgba(239, 68, 68, 0.04); }
   @media (max-width: 767px) { .lsd-style-grid { grid-template-columns: 1fr; } }
@@ -160,11 +163,11 @@
           <div id="lsdQuestionContainer"></div>
           <div id="lsdValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
           <div class="lsd-wizard-footer">
-            <div class="lsd-complete-badge" id="lsdCompleteBadge">
+            <div class="lsd-complete-badge w-100" id="lsdCompleteBadge">
               <i class='bx bx-check-circle'></i>
               <span>All questions answered! Open the Results tab to see your summary.</span>
             </div>
-            <div class="lsd-wizard-buttons px-5">
+            <div class="lsd-wizard-buttons justify-content-end w-100 mt-3">
               <button type="button" class="lsd-btn lsd-btn-outline" id="lsdPrevBtn">
                 <i class='bx bx-chevron-left'></i>
                 Previous

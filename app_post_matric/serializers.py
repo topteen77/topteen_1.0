@@ -210,14 +210,19 @@ class SectionSessionSerializer(serializers.ModelSerializer):
 
 class TestSerializer(serializers.ModelSerializer):
     questions_count = serializers.SerializerMethodField()
+    display_title = serializers.SerializerMethodField()
 
     class Meta:
         model = Test
-        fields = ['id', 'category', 'title', 'description', 'time_limit', 'is_active', 'questions_count']
+        fields = ['id', 'category', 'title', 'display_title', 'description', 'time_limit', 'is_active', 'questions_count']
         read_only_fields = ['id']
 
     def get_questions_count(self, obj):
         return obj.questions.count()
+
+    def get_display_title(self, obj):
+        from .test_display_labels import test_display_title
+        return test_display_title(obj.title)
 
 
 class TestDetailSerializer(TestSerializer):
@@ -225,7 +230,7 @@ class TestDetailSerializer(TestSerializer):
 
     class Meta:
         model = Test
-        fields = ['id', 'category', 'title', 'description', 'time_limit', 'is_active', 'questions_count', 'questions']
+        fields = ['id', 'category', 'title', 'display_title', 'description', 'time_limit', 'is_active', 'questions_count', 'questions']
         read_only_fields = ['id']
 
 
@@ -364,7 +369,9 @@ class TestResultSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def get_test_title(self, obj):
-        return obj.session.test.title if obj.session and obj.session.test else ''
+        from .test_display_labels import test_display_title
+        raw = obj.session.test.title if obj.session and obj.session.test else ''
+        return test_display_title(raw)
 
     def get_category_name(self, obj):
         if obj.session and obj.session.test and obj.session.test.category:
