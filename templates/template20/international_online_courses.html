@@ -12,6 +12,8 @@ Discover trending programs, professional certificates, and expert-led courses fr
 
 {% block content %}
 <link rel="stylesheet" href="{{ static('css_new/international-online-courses.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
 
 <main class="intl-courses-page">
   <section class="intl-courses-hero hero-section-inner pt-md-18 pt-14 pb-0">
@@ -50,8 +52,8 @@ Discover trending programs, professional certificates, and expert-led courses fr
           <div class="intl-filter-group">
             <label for="intl-subject">Choose Your Subject</label>
             <div class="intl-filter-select-wrap">
-              <select id="intl-subject" name="subject" class="intl-filter-select">
-                <option value="">Select A Subject</option>
+              <select id="intl-subject" name="subject" class="intl-filter-select intl-filter-select-search" data-placeholder="Select A Subject">
+                <option value=""></option>
                 {% for subject in subjects %}
                 <option value="{{ subject }}" {% if selected_subject == subject %}selected{% endif %}>{{ subject }}</option>
                 {% endfor %}
@@ -63,8 +65,8 @@ Discover trending programs, professional certificates, and expert-led courses fr
           <div class="intl-filter-group">
             <label for="intl-institute">Choose an institute</label>
             <div class="intl-filter-select-wrap">
-              <select id="intl-institute" name="institute" class="intl-filter-select">
-                <option value="">Select a Institute</option>
+              <select id="intl-institute" name="institute" class="intl-filter-select intl-filter-select-search" data-placeholder="Select an Institute">
+                <option value=""></option>
                 {% for institute in institutes %}
                 <option value="{{ institute }}" {% if selected_institute == institute %}selected{% endif %}>{{ institute }}</option>
                 {% endfor %}
@@ -138,4 +140,40 @@ Discover trending programs, professional certificates, and expert-led courses fr
   </section>
 </main>
 
+{% endblock %}
+
+{% block additionaljs %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+(function () {
+  function initIntlFilterSelect2() {
+    if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
+      setTimeout(initIntlFilterSelect2, 100);
+      return;
+    }
+
+    jQuery('.intl-filter-select-search').each(function () {
+      var $el = jQuery(this);
+      if ($el.hasClass('select2-hidden-accessible')) {
+        return;
+      }
+
+      $el.select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: $el.data('placeholder') || 'Select an option',
+        allowClear: true,
+        minimumResultsForSearch: 0,
+        dropdownParent: $el.closest('.intl-filter-select-wrap')
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initIntlFilterSelect2);
+  } else {
+    initIntlFilterSelect2();
+  }
+})();
+</script>
 {% endblock %}

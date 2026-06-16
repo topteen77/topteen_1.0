@@ -96,17 +96,33 @@
       margin-bottom: 14px;
     }
 
+    .lp-question-wrapper {
+      padding: 20px 22px 22px;
+      border-radius: 20px;
+      background: #fafaff;
+      border: 1px solid #e0e7ff;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .lp-question-wrapper.lp-question-invalid {
+      border: 2px solid #dc2626;
+      background: rgba(239, 68, 68, 0.08);
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+    }
+
     .lp-question-title {
       font-size: 18px;
       font-weight: 700;
       color: #111827;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .lp-question-text {
       font-size: 15px;
-      color: #4b5563;
-      margin-bottom: 16px;
+      color: #374151;
+      margin-bottom: 18px;
+      line-height: 1.55;
+      font-weight: 500;
     }
 
     .lp-options-list {
@@ -119,31 +135,50 @@
       width: 100%;
       text-align: left;
       border-radius: 14px;
-      border: 2px solid #e5e7eb;
+      border: 2px solid #c7d2fe;
       padding: 14px 18px;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 14px;
       background: #ffffff;
+      color: #111827;
       cursor: pointer;
       transition: all 0.25s ease;
       font-size: 15px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      box-shadow: 0 1px 4px rgba(79, 70, 229, 0.08);
+      appearance: none;
+      -webkit-appearance: none;
     }
 
-    .lp-option-btn:hover {
-      border-color: #a5b4fc;
-      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.15);
-      background: #faf5ff;
+    .lp-option-btn:not(.lp-selected):hover {
+      border-color: #7755EE;
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.18);
+      background: #f5f3ff;
+      transform: translateY(-1px);
+    }
+
+    .lp-option-btn:not(.lp-selected):hover .lp-option-letter {
+      border-color: #7755EE;
+      color: #4338ca;
+      background: #ede9fe;
+    }
+
+    .lp-option-btn:not(.lp-selected):hover .lp-option-text {
+      color: #111827;
+    }
+
+    .lp-option-btn:focus-visible {
+      outline: 2px solid #7755EE;
+      outline-offset: 2px;
     }
 
     .lp-option-btn.lp-selected {
       border-color: #7755EE;
-      background: linear-gradient(135deg, rgba(119, 85, 238, 0.12) 0%, rgba(63, 55, 201, 0.08) 100%);
-      box-shadow: 0 4px 20px rgba(119, 85, 238, 0.2);
+      background: linear-gradient(135deg, rgba(119, 85, 238, 0.14) 0%, rgba(63, 55, 201, 0.1) 100%);
+      box-shadow: 0 4px 20px rgba(119, 85, 238, 0.22);
       border-width: 2px;
     }
 
@@ -163,15 +198,15 @@
       height: 32px;
       min-width: 32px;
       border-radius: 10px;
-      border: 2px solid #d1d5db;
+      border: 2px solid #a5b4fc;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       font-size: 14px;
-      color: #6b7280;
+      color: #4338ca;
       flex-shrink: 0;
-      background: #f9fafb;
+      background: #eef2ff;
       transition: all 0.25s ease;
     }
 
@@ -183,15 +218,16 @@
     }
 
     .lp-option-btn.lp-selected .lp-option-text {
-      color: #1f2937;
-      font-weight: 500;
+      color: #111827;
+      font-weight: 600;
     }
 
     .lp-option-text {
-      color: #4b5563;
+      color: #1f2937;
       font-size: 15px;
       line-height: 1.45;
       flex: 1;
+      font-weight: 500;
     }
 
     .lp-option-check {
@@ -222,7 +258,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 4px;
+      margin-top: 24px;
     }
 
     .lp-wizard-buttons {
@@ -249,8 +285,16 @@
       color: #374151;
     }
 
-    .lp-btn-outline:hover {
+    .lp-btn-outline:hover:not(:disabled) {
       border-color: #4b5563;
+      background: #f9fafb;
+    }
+
+    .lp-btn-outline:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: #9ca3af;
+      border-color: #e5e7eb;
       background: #f9fafb;
     }
 
@@ -1097,7 +1141,8 @@
       display: block;
     }
     .lp-options-list.lp-options-invalid {
-      outline: 2px solid rgba(239, 68, 68, 0.4);
-      outline-offset: 4px;
+      outline: 2px solid #dc2626;
+      outline-offset: 2px;
       border-radius: 12px;
+      background: rgba(239, 68, 68, 0.04);
     }

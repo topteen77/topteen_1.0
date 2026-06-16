@@ -148,6 +148,76 @@
   pointer-events: none;
 }
 
+.intl-filter-select-wrap:has(.select2-container) .intl-filter-chevron {
+  display: none;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 {
+  width: 100% !important;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-selection--single {
+  min-height: 54px;
+  border: 1px solid #d4d0f8;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding-left: 0;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+  color: #9ca3af;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.intl-filter-select-wrap .select2-container--bootstrap-5.select2-container--open .select2-selection {
+  border-color: var(--intl-purple);
+  box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.12);
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+  height: 100%;
+  right: 0.65rem;
+}
+
+.intl-filter-select-wrap .select2-dropdown {
+  border: 1px solid #d4d0f8;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(82, 73, 223, 0.12);
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+  border: 1px solid #d4d0f8;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus {
+  border-color: var(--intl-purple);
+  box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.12);
+  outline: none;
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-results__option--highlighted {
+  background: rgba(82, 73, 223, 0.1);
+  color: var(--intl-heading);
+}
+
+.intl-filter-select-wrap .select2-container--bootstrap-5 .select2-results__option--selected {
+  background: var(--intl-purple);
+  color: #fff;
+}
+
 .intl-filter-btn {
   border: none;
   border-radius: 10px;
