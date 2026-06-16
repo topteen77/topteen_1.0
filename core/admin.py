@@ -2,6 +2,10 @@ from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
 from core.choices import (
+    CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES,
+    CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
+    CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+    CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
     COURSE_MINDMAP_CONFIG_CHOICES,
     MINDMAP_TYPE_CHOICES,
     coerce_default_mindmap_type,
@@ -93,6 +97,21 @@ class PsychometricSettingsForm(forms.Form):
         required=False,
         label='Show validation message (missing answers)',
         help_text='When enabled, shows "Unanswered Questions" confirmation on submit and the missing-answers palette when user clicks "Review Answers". When disabled, submit is allowed without this validation.',
+    )
+
+
+class Class10AptitudeReportSettingsForm(forms.Form):
+    """Class 10 intelligence report stream recommendation display (Admin-managed)."""
+
+    CLASS10_APTITUDE_STREAM_DISPLAY_MODE = forms.ChoiceField(
+        choices=CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES,
+        required=True,
+        label='Stream recommendation basis',
+        help_text=(
+            'Combined: use Above Average and Average areas together. '
+            'Single - Above Average: use Above Average only when present, otherwise Average; '
+            'if every area is Below Average, show the improvement note only.'
+        ),
     )
 
 
@@ -198,6 +217,15 @@ class ConfigurationAdminForm(forms.ModelForm):
             return '8'
         return '8'
 
+    @staticmethod
+    def _class10_aptitude_mode_to_choice(stored: str) -> str:
+        raw = str(stored or '').strip().lower()
+        if raw in (CLASS10_APTITUDE_STREAM_MODE_COMBINED, CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY):
+            return raw
+        if raw in ('single', 'single_above_average', 'above_average', 'above_avg'):
+            return CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY
+        return CLASS10_APTITUDE_STREAM_MODE_COMBINED
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         cfg_key = None
@@ -232,6 +260,21 @@ class ConfigurationAdminForm(forms.ModelForm):
             )
             if self.instance.pk:
                 self.fields['value'].initial = self._course_mindmap_value_to_choice(self.instance.value)
+            return
+
+        if cfg_key == CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY:
+            self.fields['value'] = forms.ChoiceField(
+                choices=CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES,
+                label='Value',
+                required=True,
+                help_text=(
+                    'Combined: use Above Average and Average together for stream recommendations. '
+                    'Single - Above Average: use Above Average first, otherwise Average; '
+                    'if all areas are Below Average, show the improvement note only.'
+                ),
+            )
+            if self.instance.pk:
+                self.fields['value'].initial = self._class10_aptitude_mode_to_choice(self.instance.value)
 
 
 class ConfigurationAdmin(admin.ModelAdmin):
@@ -255,6 +298,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
             label_by_value = dict(COURSE_MINDMAP_CONFIG_CHOICES)
             choice_val = ConfigurationAdminForm._course_mindmap_value_to_choice(obj.value)
             return label_by_value.get(choice_val, obj.value)
+        if obj.key == CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY:
+            choice_val = ConfigurationAdminForm._class10_aptitude_mode_to_choice(obj.value)
+            return dict(CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES).get(choice_val, obj.value)
         return obj.value
 
     def get_fields(self, request, obj=None):
@@ -286,6 +332,11 @@ class ConfigurationAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom = [
             path('psychometric-settings/', self.admin_site.admin_view(self.psychometric_settings_view), name='core_configuration_psychometric_settings'),
+            path(
+                'class10-aptitude-report-settings/',
+                self.admin_site.admin_view(self.class10_aptitude_report_settings_view),
+                name='core_configuration_class10_aptitude_report_settings',
+            ),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
@@ -358,6 +409,43 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/psychometric_settings.html', context)
+
+    def class10_aptitude_report_settings_view(self, request):
+        """Custom admin view for Class 10 aptitude report stream display settings."""
+        if request.method == 'POST':
+            form = Class10AptitudeReportSettingsForm(request.POST)
+            if form.is_valid():
+                val = (form.cleaned_data.get('CLASS10_APTITUDE_STREAM_DISPLAY_MODE') or '').strip()
+                if val not in dict(CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES):
+                    val = CLASS10_APTITUDE_STREAM_MODE_COMBINED
+                config, _ = Configuration.objects.get_or_create(
+                    key=CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
+                    defaults={'value': val, 'editable': True},
+                )
+                config.value = val
+                config.save()
+                messages.success(request, 'Class 10 aptitude report settings saved successfully.')
+                return redirect('admin:core_configuration_class10_aptitude_report_settings')
+        else:
+            stored = Configuration.get(
+                CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
+                CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+                editable=True,
+            )
+            mode = str(stored or '').strip().lower()
+            if mode not in dict(CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES):
+                mode = CLASS10_APTITUDE_STREAM_MODE_COMBINED
+            form = Class10AptitudeReportSettingsForm(initial={
+                'CLASS10_APTITUDE_STREAM_DISPLAY_MODE': mode,
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Class 10 Aptitude Report Settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/class10_aptitude_report_settings.html', context)
 
     def website_settings_view(self, request):
         """Custom admin view for Core website settings (e.g. mindmap)."""

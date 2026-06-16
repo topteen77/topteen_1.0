@@ -33,6 +33,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from app.models import Category, Course, Stream
+from app.aptitude_stream_selection import recommend_streams_from_tiers
 
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
@@ -264,8 +265,6 @@ def _build_stream_questionnaire_options(intelligence_scores_by_code, primary_apt
     scored_other.sort(key=lambda item: item.get('match_score', 0), reverse=True)
     return scored_suggested, scored_other
 
-
-from django.shortcuts import render, redirect, get_object_or_404
 
 @login_required(login_url=reverse_lazy('users:login'))
 def dashboard(request, student_id=None):
@@ -3308,7 +3307,8 @@ def test3_report_html(request, user_id=None):
             'user_name': target_user.name if target_user.name else target_user.email,
             'user_ID': target_user.id,
             'no_results': False,
-            'viewing_as_admin': user_id is not None and user_id != request.user.id
+            'viewing_as_admin': user_id is not None and user_id != request.user.id,
+            'stream_recommendation': recommend_streams_from_tiers(above_avg, avg, below_avg=below),
         }
         
         resp = render(request, 'template20/app/test3_report.html', context)
@@ -3742,6 +3742,7 @@ def test3_report_pdf(request, user_id=None):
             'student_name': student_name,
             'created_date': created_date,
             'now': datetime.now(),
+            'stream_recommendation': recommend_streams_from_tiers(above_avg, avg, below_avg=below),
         }
         
         # Render HTML template

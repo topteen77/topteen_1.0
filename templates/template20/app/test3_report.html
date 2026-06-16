@@ -585,18 +585,7 @@ table {
   {% include 'template20/app/partials/aptitude_avg.html' %}
   {% endif %}
 
-  <!-- changes required by management (01-Jun-2025): Below Average → Development Areas (note section) -->
-  {% if intelligence_data.below_avg %}
-  <div class="chapterPage">
-    <hr />
-    <div class="db-header" style="margin-top: 10px;">
-      <h1 style="color: #A22717; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
-        {# changes required by management (01-Jun-2025): Below Average → focus areas for skill strengthening #}
-        <span>NOTE-</span> {{ aptitude_improvement_note }}
-      </h1>
-    </div>
-  </div>
-  {% endif %}
+  {% include 'template20/app/partials/aptitude_final_streams.html' %}
   {% endif %}
   
   {% endif %}

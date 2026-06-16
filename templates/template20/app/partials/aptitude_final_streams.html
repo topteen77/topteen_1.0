@@ -1,0 +1,65 @@
+{% if stream_recommendation and stream_recommendation.note_only %}
+<div class="chapterPage aptitude-final-streams aptitude-final-streams--note-only" style="clear: both; width: 100%; float: left; margin-top: 24px;">
+  <div class="db-header" style="margin-top: 10px; text-align: center;">
+    <h1 style="color: #A22717; font-size: 16px; margin-bottom: 16px; text-transform: capitalize; font-weight: 600;">
+      <span>NOTE-</span> {{ aptitude_improvement_note }}
+    </h1>
+  </div>
+</div>
+{% elif stream_recommendation and stream_recommendation.primary %}
+<div class="chapterPage aptitude-final-streams" style="clear: both; width: 100%; float: left; margin-top: 24px;">
+  <div class="db-header" style="margin-top: 10px; text-align: center;">
+    <h1 style="color: #3F37C9; margin-bottom: 5px;">Recommended Streams for You</h1>
+    <p style="color: #494949; font-size: 14px; max-width: 720px; margin: 8px auto 0;">
+      Based on your {{ stream_recommendation.profile_label }}
+      {% if stream_recommendation.reasoning_codes %}
+        ({{ stream_recommendation.reasoning_codes | join(', ') }})
+      {% endif %}
+    </p>
+  </div>
+
+  {% if stream_recommendation.all_seven_note %}
+  <div style="max-width: 720px; margin: 16px auto 0; padding: 12px 16px; background: #F5F4FF; border: 1px solid #3F37C9; border-radius: 8px; font-size: 14px; color: #2720A7; text-align: center;">
+    {{ stream_recommendation.all_seven_note }}
+  </div>
+  {% endif %}
+
+  <div class="two-box aptitude-final-streams-box" style="margin-top: 24px; width: 900px; max-width: 100%; margin-left: auto; margin-right: auto; float: none; display: flex !important; justify-content: center; flex-wrap: wrap; gap: 12px; border-bottom: none; padding-bottom: 0;">
+    <div class="two-box-in aptitude-final-stream-card" style="height: 110px; flex-direction: row; background: #F5F4FF; border-right: 3px solid #3F37C9; border-bottom: 3px solid #3F37C9;">
+      <div class="img-tow" style="margin-top: 0;">
+        <img style="width:58px; margin-right: 10px;" src="{{ static('images/' ~ stream_recommendation.primary.icon) }}" alt="{{ stream_recommendation.primary.display }}">
+      </div>
+      <div style="text-align: left;">
+        <p style="margin: 0 0 4px; font-size: 12px; font-weight: 700; color: #3F37C9; text-transform: uppercase;">Best Fit Stream</p>
+        <h5 style="color: #000; font-size: 16px; margin: 0 0 4px;">{{ stream_recommendation.primary.display }}</h5>
+        <p style="margin: 0; font-size: 12px; color: #494949;">{{ stream_recommendation.primary.description }}</p>
+      </div>
+    </div>
+    <div class="two-box-in aptitude-final-stream-card" style="height: 110px; flex-direction: row; background: #F5F4FF; border-right: 3px solid #3F37C9; border-bottom: 3px solid #3F37C9;">
+      <div class="img-tow" style="margin-top: 0;">
+        <img style="width:58px; margin-right: 10px;" src="{{ static('images/' ~ stream_recommendation.secondary.icon) }}" alt="{{ stream_recommendation.secondary.display }}">
+      </div>
+      <div style="text-align: left;">
+        <p style="margin: 0 0 4px; font-size: 12px; font-weight: 700; color: #3F37C9; text-transform: uppercase;">Alternative Stream</p>
+        <h5 style="color: #000; font-size: 16px; margin: 0 0 4px;">{{ stream_recommendation.secondary.display }}</h5>
+        <p style="margin: 0; font-size: 12px; color: #494949;">{{ stream_recommendation.secondary.description }}</p>
+      </div>
+    </div>
+  </div>
+
+  {% if stream_recommendation.tertiary %}
+  <div style="text-align: center; margin-top: 12px; font-size: 13px; color: #494949;">
+    <strong style="color: #3F37C9;">Third emerging option:</strong>
+    {{ stream_recommendation.tertiary.display }} — {{ stream_recommendation.tertiary.description }}
+  </div>
+  {% endif %}
+
+  {% if stream_recommendation.has_development_areas and (intelligence_data.below_avg or below) %}
+  <div class="db-header" style="margin-top: 24px; text-align: center;">
+    <h1 style="color: #A22717; font-size: 16px; margin-bottom: 0; text-transform: capitalize; font-weight: 600;">
+      <span>NOTE-</span> {{ aptitude_improvement_note }}
+    </h1>
+  </div>
+  {% endif %}
+</div>
+{% endif %}

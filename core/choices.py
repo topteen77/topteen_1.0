@@ -537,3 +537,14 @@ class ReasoningArea:
     @classmethod
     def is_valid(cls, code):
         return code in cls.ALL
+
+
+# Class 10 intelligence (test3) report — stream recommendation input tiers (Admin → Psychometric Test Settings)
+CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY = 'CLASS10_APTITUDE_STREAM_DISPLAY_MODE'
+CLASS10_APTITUDE_STREAM_MODE_COMBINED = 'combined'
+CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY = 'tier_priority'
+
+CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES = (
+    (CLASS10_APTITUDE_STREAM_MODE_COMBINED, 'Combined'),
+    (CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY, 'Single - Above Average'),
+)

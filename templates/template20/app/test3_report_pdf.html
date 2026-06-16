@@ -108,6 +108,8 @@
     .two-box { display: flex; justify-content: center; margin: 32px 0; }
     .two-box-in { width: 210px; height: 138px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; grid-gap: 1rem; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9; }
     .two-box-in p { list-style: none; padding: 0; margin: 5px 0 0 0; }
+    .chapterPage .two-box { display: none !important; }
+    .aptitude-final-streams-box { display: flex !important; justify-content: center; flex-wrap: wrap; margin: 24px 0; }
     .img-tow { margin-top: 0; }
     .cat-box { display: flex; flex-direction: column; justify-content: center; margin-bottom: 31px; }
     .cat-head { display: flex; justify-content: center; align-items: center; flex-direction: column; background: #3F37C9; border-radius: 7px 7px 0 0; padding: 13px 0; color: #fff; }
@@ -1173,16 +1175,7 @@
   </div>
   {% endif %}
 
-  {% if below %}
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: RED; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
-        {# changes required by management (01-Jun-2025): Below Average → focus areas for skill strengthening #}
-        <span>NOTE-</span> {{ aptitude_improvement_note }}
-      </h1>
-    </div>
-  </div>
-  {% endif %}
+  {% include 'template20/app/partials/aptitude_final_streams.html' %}
 </body>
 </html>
 
