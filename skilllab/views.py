@@ -4,7 +4,7 @@ from .models import (
     SkillLabCourse, SkillLabCourseActivity, SkillLabCourseChapter, SkillLabCourseProgress,
     SkillLabCourseProgressSummary, SkillLabCourseResume, SkillLabWorksheetProgress, SkillLabMCQAttempt,
     SkillLabMCQ, SkillLabMCQQuestion, SkillLabMCQAnswer, SkillLabChapterSection,
-    SkillLabUserHighlight, SkillLabUserNote, SkillLabUserBookmark,
+    SkillLabUserHighlight, SkillLabUserNote, SkillLabUserBookmark, InternationalOnlineCourse,
 )
 from django.views.generic import TemplateView,View
 from django.urls import reverse_lazy
@@ -30,11 +30,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from core.s3_utils import get_s3_upload_service
-from .international_courses_data import (
-    INTERNATIONAL_COURSES,
-    INTERNATIONAL_COURSE_SUBJECTS,
-    INTERNATIONAL_COURSE_INSTITUTES,
-)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -61,7 +56,7 @@ class SkillLabCourseList(TemplateView):
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Skill Lab Course', 'url': ''}])
         ctx['course_count'] = SkillLabCourse.objects.count()
-        ctx['intl_courses'] = INTERNATIONAL_COURSES[:4]
+        ctx['intl_courses'] = InternationalOnlineCourse.objects.all()[:4]
         return ctx
     
     def get_fallback_context(self, request):
@@ -101,11 +96,11 @@ class InternationalOnlineCourseList(TemplateView):
         selected_subject = request.GET.get('subject', '').strip()
         selected_institute = request.GET.get('institute', '').strip()
 
-        courses = INTERNATIONAL_COURSES
+        courses = InternationalOnlineCourse.objects.all()
         if selected_subject:
-            courses = [course for course in courses if course['subject'] == selected_subject]
+            courses = courses.filter(subject=selected_subject)
         if selected_institute:
-            courses = [course for course in courses if course['institute'] == selected_institute]
+            courses = courses.filter(institute=selected_institute)
 
         paginator = Paginator(courses, self.per_page)
         page_obj = paginator.get_page(request.GET.get('page'))
@@ -121,8 +116,8 @@ class InternationalOnlineCourseList(TemplateView):
                 {'text': 'International Online Courses', 'url': ''},
             ]),
             'courses': page_obj,
-            'subjects': INTERNATIONAL_COURSE_SUBJECTS,
-            'institutes': INTERNATIONAL_COURSE_INSTITUTES,
+            'subjects': InternationalOnlineCourse.objects.values_list('subject', flat=True).distinct().order_by('subject'),
+            'institutes': InternationalOnlineCourse.objects.values_list('institute', flat=True).distinct().order_by('institute'),
             'selected_subject': selected_subject,
             'selected_institute': selected_institute,
             'filter_query': query_params.urlencode(),

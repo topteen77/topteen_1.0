@@ -335,6 +335,36 @@ class SkillLabUserBookmark(BaseModel):
         super().save(*args, **kwargs)
 
 
+class InternationalOnlineCourse(BaseModel):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    url = models.URLField(max_length=500)
+    image = models.CharField(
+        max_length=255,
+        default="images_new/thirdparty/course-img-1.png",
+        help_text="Static image path, e.g. images_new/thirdparty/course-img-1.png",
+    )
+    logo = models.CharField(
+        max_length=255,
+        default="images_new/thirdparty/logo.png",
+        help_text="Static logo path for the institute",
+    )
+    subject = models.CharField(max_length=120, db_index=True)
+    institute = models.CharField(max_length=120, db_index=True)
+    priority = models.PositiveIntegerField(default=0, help_text="Lower values appear first")
+
+    class Meta:
+        ordering = ["priority", "title"]
+        verbose_name = "International Online Course"
+        verbose_name_plural = "International Online Courses"
+        indexes = [
+            models.Index(fields=["subject", "institute"]),
+        ]
+
+    def __str__(self):
+        return self.title
+
+
 class SkilllabCoursePayment(BaseModel,BaseMoneyModel):
     skilllab_course = models.ForeignKey(SkillLabCourse,null=True,on_delete=models.SET_NULL,related_name="skilllabcourpayment")
     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="userskillabcourse")

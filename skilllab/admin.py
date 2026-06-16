@@ -14,6 +14,7 @@ from .models import (
     SkillLabMCQ,
     SkillLabMCQQuestion,
     SkillLabMCQAnswer,
+    InternationalOnlineCourse,
 )
 
 
@@ -285,6 +286,19 @@ class SkillLabCourseProgressSummaryAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     raw_id_fields = ["user", "skilllab_course"]
     readonly_fields = ["progress_percentage", "completed_sections_count", "total_sections_count", "updated_at"]
     ordering = ["user", "-progress_percentage"]
+
+
+@admin.register(InternationalOnlineCourse)
+class InternationalOnlineCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["title", "subject", "institute", "priority", "object_status", "modified"]
+    list_filter = ["subject", "institute", "object_status"]
+    search_fields = ["title", "description", "subject", "institute"]
+    list_editable = ["priority", "object_status"]
+    ordering = ["priority", "title"]
+    fieldsets = (
+        (None, {"fields": ("title", "description", "url", "subject", "institute", "priority", "object_status")}),
+        ("Images", {"fields": ("image", "logo")}),
+    )
 
 
 @admin.register(SkilllabCoursePayment)
