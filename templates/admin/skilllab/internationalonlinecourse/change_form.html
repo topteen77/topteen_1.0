@@ -1,0 +1,8 @@
+{% extends "admin/change_form.html" %}
+
+{% block after_field_sets %}
+{{ block.super }}
+<p class="intl-admin-preview-note">
+  Choose a new image or logo file to see an instant preview below. After saving, the preview refreshes from S3 with the latest file.
+</p>
+{% endblock %}

@@ -37,6 +37,7 @@ from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from users.decorators import institute_dashboard_roles_only
+from users.session_utils import apply_login_session_expiry
 from django.views.decorators.csrf import ensure_csrf_cookie
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
@@ -614,7 +615,7 @@ class DemoLoginView(View):
         if not user.get_user_status():
             messages.error(request, 'Account is blocked or inactive.')
             return self._login_fallback_url(request)
-        request.session.set_expiry(0)
+        apply_login_session_expiry(request, demo=True)
         login(request, user, backend='users.backends.CustomUserBackend')
         redirect_url = self._redirect_url(request, user)
         return redirect(redirect_url)
@@ -1789,6 +1790,7 @@ class SignUpVerifyOTP(APIView):
                     from django.contrib.auth import login
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
+                    apply_login_session_expiry(request)
                     login(request, user, backend='users.backends.CustomUserBackend')
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
@@ -1953,6 +1955,7 @@ class SignUpPassword(APIView):
                         # Auto-login the user
                         from django.contrib.auth import login
                         # Specify backend since multiple backends are configured
+                        apply_login_session_expiry(request)
                         login(request, user, backend='users.backends.CustomUserBackend')
                         _link_current_analytics_session(request, user)
                     except Exception as login_error:
@@ -2054,6 +2057,7 @@ class LoginOTP(APIView):
                     from django.contrib.auth import login
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
+                    apply_login_session_expiry(request)
                     login(request, user, backend='users.backends.CustomUserBackend')
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
@@ -2140,10 +2144,7 @@ class LoginPassword(APIView):
                 # Master password login - authenticate user directly
                 if user.get_user_status():
                     remember_me = request.POST.get('remember_me', False)
-                    if remember_me:
-                        request.session.set_expiry(2592000)
-                    else:
-                        request.session.set_expiry(0)
+                    apply_login_session_expiry(request, remember_me=remember_me)
                     
                     login(request, user, backend='users.backends.CustomUserBackend')
                     _link_current_analytics_session(request, user)
@@ -2172,12 +2173,7 @@ class LoginPassword(APIView):
                 # If master password was not used, do normal authentication
                 if not is_master_password:
                     remember_me = request.POST.get('remember_me', False)
-                    if remember_me:
-                        # Set session to expire in 30 days (2592000 seconds)
-                        request.session.set_expiry(2592000)
-                    else:
-                        # Use default session expiry (browser session)
-                        request.session.set_expiry(0)
+                    apply_login_session_expiry(request, remember_me=remember_me)
                     
                     # Use CustomUserBackend for login
                     login(request, user, backend='users.backends.CustomUserBackend')
@@ -2568,6 +2564,7 @@ class SetPassword(APIView):
             
             # Re-authenticate with new password to update session
             from django.contrib.auth import login
+            apply_login_session_expiry(request)
             login(request, user, backend='users.backends.CustomUserBackend')
             
             data['success'] = True
@@ -2650,6 +2647,7 @@ class ChangeOwnPasswordView(View):
         try:
             user.set_password(new_password)
             user.save(update_fields=["password"])
+            apply_login_session_expiry(request)
             login(request, user, backend="users.backends.CustomUserBackend")
         except Exception:
             return respond(False, "Could not update password. Please try again.", 500)

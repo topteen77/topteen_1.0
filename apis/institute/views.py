@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 import re
 
 from users.models import User
+from users.session_utils import apply_login_session_expiry
 from institute.models import (
     Institute,
     InstituteMarketingGroup,
@@ -214,11 +215,7 @@ class InstituteLoginAPI(APIView):
                     data['errMsg'] = 'No institute group found for this account'
                     return Response(data, status=status.HTTP_200_OK)
                 
-                # Set session expiry
-                if remember_me:
-                    request.session.set_expiry(2592000)  # 30 days
-                else:
-                    request.session.set_expiry(0)  # Browser session
+                apply_login_session_expiry(request, remember_me=remember_me)
 
                 # Login user
                 login(request, user, backend='users.backends.CustomUserBackend')
@@ -250,11 +247,7 @@ class InstituteLoginAPI(APIView):
                 return Response(data, status=status.HTTP_200_OK)
             
             elif institute.institute_status == choices.InstituteStatus.APPROVED:
-                # Set session expiry
-                if remember_me:
-                    request.session.set_expiry(2592000)  # 30 days
-                else:
-                    request.session.set_expiry(0)  # Browser session
+                apply_login_session_expiry(request, remember_me=remember_me)
 
                 # Login user
                 login(request, user, backend='users.backends.CustomUserBackend')

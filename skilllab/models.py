@@ -381,7 +381,25 @@ class InternationalOnlineCourse(BaseModel):
     def __str__(self):
         return self.title
 
+    def _media_url_with_cache_buster(self, url):
+        if not url or not self.modified:
+            return url
+        separator = "&" if "?" in url else "?"
+        return f"{url}{separator}v={int(self.modified.timestamp())}"
+
     def save(self, *args, **kwargs):
+        old_image_name = ""
+        old_logo_name = ""
+        if self.pk:
+            previous = (
+                InternationalOnlineCourse.objects.filter(pk=self.pk)
+                .values_list("image", "logo")
+                .first()
+            )
+            if previous:
+                old_image_name = previous[0] or ""
+                old_logo_name = previous[1] or ""
+
         if not self.pk:
             pending_image = self.image
             pending_logo = self.logo
@@ -403,16 +421,35 @@ class InternationalOnlineCourse(BaseModel):
                     self.logo = pending_logo
                 super().save(update_fields=["image", "logo", "modified"])
             return
+
         super().save(*args, **kwargs)
+
+        new_image_name = self.image.name if self.image else ""
+        new_logo_name = self.logo.name if self.logo else ""
+        if old_image_name and new_image_name != old_image_name:
+            self._delete_stored_file(old_image_name)
+        if old_logo_name and new_logo_name != old_logo_name:
+            self._delete_stored_file(old_logo_name)
+
+    def _delete_stored_file(self, name):
+        if not name:
+            return
+        from django.core.files.storage import default_storage
+
+        try:
+            if default_storage.exists(name):
+                default_storage.delete(name)
+        except Exception:
+            pass
 
     def get_image_url(self):
         if self.image and self.image.name:
-            return self.image.url
+            return self._media_url_with_cache_buster(self.image.url)
         return static(DEFAULT_INTL_COURSE_IMAGE)
 
     def get_logo_url(self):
         if self.logo and self.logo.name:
-            return self.logo.url
+            return self._media_url_with_cache_buster(self.logo.url)
         return static(DEFAULT_INTL_COURSE_LOGO)
 
     def _delete_uploaded_files(self):

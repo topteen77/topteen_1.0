@@ -326,6 +326,7 @@ class InternationalOnlineCourseAdminForm(forms.ModelForm):
 @admin.register(InternationalOnlineCourse)
 class InternationalOnlineCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     form = InternationalOnlineCourseAdminForm
+    change_form_template = "admin/skilllab/internationalonlinecourse/change_form.html"
     list_display = ["title", "subject", "institute", "priority", "object_status", "modified"]
     list_filter = ["subject", "institute", "object_status"]
     search_fields = ["title", "description", "subject", "institute"]
@@ -337,6 +338,10 @@ class InternationalOnlineCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
         ("Images", {"fields": ("image", "image_preview", "logo", "logo_preview")}),
     )
 
+    class Media:
+        css = {"all": ("skilllab/css/admin_international_course.css",)}
+        js = ("skilllab/js/admin_international_course.js",)
+
     def delete_model(self, request, obj):
         obj.delete(hard_delete=True)
 
@@ -344,17 +349,28 @@ class InternationalOnlineCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
         for obj in queryset:
             obj.delete(hard_delete=True)
 
-    @admin.display(description="Image")
-    def image_preview(self, obj):
+    def _preview_html(self, obj, field_name):
         if not obj or not obj.pk:
             return "-"
-        return format_html('<img src="{}" style="max-height:80px;max-width:160px;" />', obj.get_image_url())
+        url = obj.get_image_url() if field_name == "image" else obj.get_logo_url()
+        max_height = "80px" if field_name == "image" else "48px"
+        preview_id = f"intl-course-{field_name}-preview"
+        return format_html(
+            '<img id="{}" src="{}" data-preview-field="{}" '
+            'style="max-height:{};max-width:160px;border:1px solid #ddd;border-radius:4px;padding:2px;" />',
+            preview_id,
+            url,
+            field_name,
+            max_height,
+        )
 
-    @admin.display(description="Logo")
+    @admin.display(description="Image preview")
+    def image_preview(self, obj):
+        return self._preview_html(obj, "image")
+
+    @admin.display(description="Logo preview")
     def logo_preview(self, obj):
-        if not obj or not obj.pk:
-            return "-"
-        return format_html('<img src="{}" style="max-height:48px;max-width:120px;" />', obj.get_logo_url())
+        return self._preview_html(obj, "logo")
 
 
 @admin.register(SkilllabCoursePayment)

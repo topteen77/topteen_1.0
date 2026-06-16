@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from users.models import User
+from users.session_utils import apply_login_session_expiry
 from counselor.models import primary_counselor_for_user
 from core import choices
 
@@ -81,11 +82,7 @@ class CounselorLoginAPI(APIView):
                 data['errMsg'] = 'No counselor profile found for this account'
                 return Response(data, status=status.HTTP_200_OK)
 
-            # Set session expiry
-            if remember_me:
-                request.session.set_expiry(2592000)  # 30 days
-            else:
-                request.session.set_expiry(0)  # Browser session
+            apply_login_session_expiry(request, remember_me=remember_me)
 
             # Login user
             login(request, user, backend='users.backends.CustomUserBackend')

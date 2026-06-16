@@ -7,6 +7,11 @@ from core import choices
 from institute.models import InstituteMarketingGroup, StudentManagement
 from app.models import TestCompletion
 from users.models import User, UserProfile
+from users.session_utils import (
+    DEFAULT_LOGIN_SESSION_AGE,
+    REMEMBER_ME_SESSION_AGE,
+    apply_login_session_expiry,
+)
 from users.views import _apply_institute_student_mobile_gate, get_dashboard_url_for_user
 
 
@@ -259,3 +264,43 @@ class TestResumeAiDesignRouteRemoved(SimpleTestCase):
             with self.subTest(path=path):
                 with self.assertRaises(Resolver404):
                     resolve(path)
+
+
+class TestLoginSessionExpiry(SimpleTestCase):
+    class _SessionStub:
+        def __init__(self):
+            self.expiry = None
+
+        def set_expiry(self, value):
+            self.expiry = value
+
+        def get_expiry_age(self):
+            return self.expiry
+
+    def _request_with_session(self):
+        request = RequestFactory().get("/")
+        request.session = self._SessionStub()
+        return request
+
+    def test_default_login_uses_persistent_age_not_browser_session(self):
+        request = self._request_with_session()
+        apply_login_session_expiry(request, remember_me=False)
+        self.assertEqual(request.session.get_expiry_age(), DEFAULT_LOGIN_SESSION_AGE)
+
+    def test_remember_me_uses_longer_session(self):
+        request = self._request_with_session()
+        apply_login_session_expiry(request, remember_me=True)
+        self.assertEqual(request.session.get_expiry_age(), REMEMBER_ME_SESSION_AGE)
+
+    def test_demo_login_uses_browser_session(self):
+        request = self._request_with_session()
+        apply_login_session_expiry(request, demo=True)
+        self.assertEqual(request.session.get_expiry_age(), 0)
+
+    def test_session_settings_keep_users_signed_in_during_browsing(self):
+        from django.conf import settings
+
+        self.assertTrue(settings.SESSION_SAVE_EVERY_REQUEST)
+        self.assertFalse(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
+        self.assertGreaterEqual(settings.SESSION_COOKIE_AGE, DEFAULT_LOGIN_SESSION_AGE)
+
