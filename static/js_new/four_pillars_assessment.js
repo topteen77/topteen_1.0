@@ -30,6 +30,23 @@
         validationEl.textContent = "";
         validationEl.setAttribute("hidden", "");
         validationEl.classList.remove("lp-validation-visible");
+        clearQuestionInvalidState();
+      }
+
+      function clearQuestionInvalidState() {
+        var list = questionContainer && questionContainer.querySelector(".lp-options-list");
+        if (list) {
+          list.classList.remove("lp-options-invalid");
+          if (list.parentElement) list.parentElement.classList.remove("lp-question-invalid");
+        }
+      }
+
+      function highlightMissingAnswer() {
+        var list = questionContainer && questionContainer.querySelector(".lp-options-list");
+        if (list) {
+          list.classList.add("lp-options-invalid");
+          if (list.parentElement) list.parentElement.classList.add("lp-question-invalid");
+        }
       }
 
       function updateProgress() {
@@ -76,6 +93,7 @@
         const selected = answers[currentIndex] || null;
 
         const wrapper = document.createElement("div");
+        wrapper.className = "lp-question-wrapper";
 
         const titleEl = document.createElement("h2");
         titleEl.className = "lp-question-title";
@@ -282,15 +300,11 @@
 
         if (answers[currentIndex] == null) {
           showValidation("Please select an answer before continuing.");
-          if (questionContainer && questionContainer.querySelector(".lp-options-list")) {
-            questionContainer.querySelector(".lp-options-list").classList.add("lp-options-invalid");
-          }
+          highlightMissingAnswer();
           return;
         }
 
-        if (questionContainer && questionContainer.querySelector(".lp-options-list")) {
-          questionContainer.querySelector(".lp-options-list").classList.remove("lp-options-invalid");
-        }
+        clearQuestionInvalidState();
 
         if (!isLastQuestion) {
           currentIndex++;
@@ -312,6 +326,7 @@
             renderQuestion();
             renderQuestionNav();
             updateProgress();
+            highlightMissingAnswer();
           }
         }
       });
