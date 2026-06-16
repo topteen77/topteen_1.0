@@ -7,31 +7,30 @@
 <div class="breadcrumbs">
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:core_configuration_changelist' %}">Configuration</a>
-&rsaquo; Psychometric Test Settings
+&rsaquo; Class 10 Aptitude Report Settings
 </div>
 {% endblock %}
 
 {% block content %}
-<p style="margin-bottom: 20px; color: #666;">Manage psychometric test features. Changes take effect immediately.</p>
-
-<p style="margin-bottom: 20px;">
-  <a href="{% url 'admin:core_configuration_class10_aptitude_report_settings' %}" class="historylink">
-    Class 10 Aptitude Report Settings
-  </a>
-  — configure stream recommendation basis (Combined vs Above Average / Average).
+<p style="margin-bottom: 20px; color: #666;">
+  Configure how recommended streams are calculated at the end of the Class 10 intelligence (test3) report.
+  Changes take effect immediately on the next report view.
 </p>
 
-<form method="post" id="psychometric-settings-form">
+<form method="post" id="class10-aptitude-report-settings-form">
   {% csrf_token %}
   <fieldset class="module aligned">
-    <h2>Test Page Features</h2>
+    <h2>Stream recommendation display</h2>
     {% for field in form %}
     <div class="form-row">
       <div>
+        <label for="{{ field.id_for_label }}" style="font-weight: 600;">{{ field.label }}</label>
         {{ field }}
-        <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
         {% if field.help_text %}
-        <p class="help" style="margin: 5px 0 0 24px; color: #666; font-size: 12px;">{{ field.help_text }}</p>
+        <p class="help" style="margin: 8px 0 0 0; color: #666; font-size: 12px;">{{ field.help_text }}</p>
+        {% endif %}
+        {% if field.errors %}
+        <ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>
         {% endif %}
       </div>
     </div>

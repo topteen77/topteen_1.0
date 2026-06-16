@@ -4,6 +4,10 @@ These settings can then be managed via Django Admin > Configuration.
 """
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from core.choices import (
+    CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
+    CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+)
 from core.models import Configuration
 
 
@@ -21,11 +25,20 @@ PSYCHOMETRIC_SETTINGS = [
 ]
 
 
+CLASS10_APTITUDE_REPORT_SETTINGS = [
+    {
+        'key': CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
+        'value': CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+        'description': 'Class 10 aptitude report stream recommendation display mode',
+    },
+]
+
+
 class Command(BaseCommand):
     help = 'Initialize psychometric test site settings in Configuration (manageable via Admin)'
 
     def handle(self, *args, **options):
-        for item in PSYCHOMETRIC_SETTINGS:
+        for item in PSYCHOMETRIC_SETTINGS + CLASS10_APTITUDE_REPORT_SETTINGS:
             config, created = Configuration.objects.get_or_create(
                 key=item['key'],
                 defaults={
