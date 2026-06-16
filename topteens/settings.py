@@ -523,6 +523,17 @@ if _USE_S3:
         MEDIA_URL = "/media/"
     else:
         MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{S3_MEDIA_LOCATION}/"
+    # Django 4.0 uses DEFAULT_FILE_STORAGE (STORAGES is Django 4.2+).
+    DEFAULT_FILE_STORAGE = (
+        "core.storage_backends.S3MediaStorage"
+        if _use_proxy
+        else "storages.backends.s3.S3Storage"
+    )
+    AWS_S3_REGION_NAME = AWS_REGION
+    AWS_LOCATION = S3_MEDIA_LOCATION
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_QUERYSTRING_AUTH = _querystring_auth
+    AWS_S3_QUERYSTRING_EXPIRE = 3600
 else:
     STORAGES = {
         "default": {
@@ -532,6 +543,7 @@ else:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 # Suppress CKEditor 4 deprecation warning
 # Note: CKEditor 4 is deprecated but still in use. Consider migrating to django-ckeditor-5 in the future.

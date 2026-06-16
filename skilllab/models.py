@@ -1,4 +1,5 @@
 from django.db import models
+from django.templatetags.static import static
 from django.utils.text import slugify
 from core.models import BaseModel,BaseMoneyModel, SeoModel,SlugModel
 from ckeditor.fields import RichTextField
@@ -11,6 +12,18 @@ from communication.com_service import ComService
 def skill_lab_image_directory(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'upload/skill_lab/{0}/{1}'.format(instance.id, filename)
+
+
+def international_course_image_directory(instance, filename):
+    return 'upload/international_courses/{0}/image/{1}'.format(instance.pk, filename)
+
+
+def international_course_logo_directory(instance, filename):
+    return 'upload/international_courses/{0}/logo/{1}'.format(instance.pk, filename)
+
+
+DEFAULT_INTL_COURSE_IMAGE = "images_new/thirdparty/course-img-1.png"
+DEFAULT_INTL_COURSE_LOGO = "images_new/thirdparty/logo.png"
 
 # Create your models here.
 
@@ -339,15 +352,19 @@ class InternationalOnlineCourse(BaseModel):
     title = models.CharField(max_length=255)
     description = models.TextField()
     url = models.URLField(max_length=500)
-    image = models.CharField(
-        max_length=255,
-        default="images_new/thirdparty/course-img-1.png",
-        help_text="Static image path, e.g. images_new/thirdparty/course-img-1.png",
+    image = models.ImageField(
+        upload_to=international_course_image_directory,
+        null=True,
+        blank=True,
+        max_length=250,
+        help_text="Course card image. Leave empty to use the default placeholder.",
     )
-    logo = models.CharField(
-        max_length=255,
-        default="images_new/thirdparty/logo.png",
-        help_text="Static logo path for the institute",
+    logo = models.ImageField(
+        upload_to=international_course_logo_directory,
+        null=True,
+        blank=True,
+        max_length=250,
+        help_text="Institute logo shown on the course card. Leave empty to use the default placeholder.",
     )
     subject = models.CharField(max_length=120, db_index=True)
     institute = models.CharField(max_length=120, db_index=True)
@@ -363,6 +380,53 @@ class InternationalOnlineCourse(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            pending_image = self.image
+            pending_logo = self.logo
+            image_is_new = bool(
+                pending_image and hasattr(pending_image, "_committed") and not pending_image._committed
+            )
+            logo_is_new = bool(
+                pending_logo and hasattr(pending_logo, "_committed") and not pending_logo._committed
+            )
+            if image_is_new:
+                self.image = None
+            if logo_is_new:
+                self.logo = None
+            super().save(*args, **kwargs)
+            if image_is_new or logo_is_new:
+                if image_is_new:
+                    self.image = pending_image
+                if logo_is_new:
+                    self.logo = pending_logo
+                super().save(update_fields=["image", "logo", "modified"])
+            return
+        super().save(*args, **kwargs)
+
+    def get_image_url(self):
+        if self.image and self.image.name:
+            return self.image.url
+        return static(DEFAULT_INTL_COURSE_IMAGE)
+
+    def get_logo_url(self):
+        if self.logo and self.logo.name:
+            return self.logo.url
+        return static(DEFAULT_INTL_COURSE_LOGO)
+
+    def _delete_uploaded_files(self):
+        for field in (self.image, self.logo):
+            if field and field.name:
+                try:
+                    field.delete(save=False)
+                except Exception:
+                    pass
+
+    def delete(self, hard_delete=False):
+        if hard_delete:
+            self._delete_uploaded_files()
+        super().delete(hard_delete=hard_delete)
 
 
 class SkilllabCoursePayment(BaseModel,BaseMoneyModel):

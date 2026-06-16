@@ -1,4 +1,7 @@
+from django import forms
+from django.conf import settings
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count
@@ -288,17 +291,70 @@ class SkillLabCourseProgressSummaryAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     ordering = ["user", "-progress_percentage"]
 
 
+class InternationalOnlineCourseAdminForm(forms.ModelForm):
+    class Meta:
+        model = InternationalOnlineCourse
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        max_size_mb = getattr(settings, "S3_MAX_FILE_SIZE_MB", 2)
+        for field_name in ("image", "logo"):
+            if field_name in self.fields:
+                self.fields[field_name].required = False
+                self.fields[field_name].help_text = (
+                    f"Optional. Max size: {max_size_mb} MB. "
+                    "Leave empty to use the default placeholder on the website."
+                )
+
+    def _validate_upload_size(self, uploaded_file, label):
+        if not uploaded_file or not hasattr(uploaded_file, "size"):
+            return uploaded_file
+        max_size_mb = getattr(settings, "S3_MAX_FILE_SIZE_MB", 2)
+        max_bytes = max_size_mb * 1024 * 1024
+        if uploaded_file.size > max_bytes:
+            raise ValidationError(f"{label} must be {max_size_mb} MB or less.")
+        return uploaded_file
+
+    def clean_image(self):
+        return self._validate_upload_size(self.cleaned_data.get("image"), "Image")
+
+    def clean_logo(self):
+        return self._validate_upload_size(self.cleaned_data.get("logo"), "Logo")
+
+
 @admin.register(InternationalOnlineCourse)
 class InternationalOnlineCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    form = InternationalOnlineCourseAdminForm
     list_display = ["title", "subject", "institute", "priority", "object_status", "modified"]
     list_filter = ["subject", "institute", "object_status"]
     search_fields = ["title", "description", "subject", "institute"]
     list_editable = ["priority", "object_status"]
     ordering = ["priority", "title"]
+    readonly_fields = ["image_preview", "logo_preview"]
     fieldsets = (
         (None, {"fields": ("title", "description", "url", "subject", "institute", "priority", "object_status")}),
-        ("Images", {"fields": ("image", "logo")}),
+        ("Images", {"fields": ("image", "image_preview", "logo", "logo_preview")}),
     )
+
+    def delete_model(self, request, obj):
+        obj.delete(hard_delete=True)
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete(hard_delete=True)
+
+    @admin.display(description="Image")
+    def image_preview(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+        return format_html('<img src="{}" style="max-height:80px;max-width:160px;" />', obj.get_image_url())
+
+    @admin.display(description="Logo")
+    def logo_preview(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+        return format_html('<img src="{}" style="max-height:48px;max-width:120px;" />', obj.get_logo_url())
 
 
 @admin.register(SkilllabCoursePayment)

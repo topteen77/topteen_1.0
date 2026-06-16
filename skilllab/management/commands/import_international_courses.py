@@ -28,8 +28,6 @@ class Command(BaseCommand):
                 defaults={
                     "description": course["description"],
                     "url": course["url"],
-                    "image": course.get("image", "images_new/thirdparty/course-img-1.png"),
-                    "logo": course.get("logo", "images_new/thirdparty/logo.png"),
                     "subject": course["subject"],
                     "priority": priority,
                 },

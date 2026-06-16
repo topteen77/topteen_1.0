@@ -2,9 +2,9 @@
   {% for course in courses %}
   <article class="intl-course-card">
     <div class="intl-course-card-media">
-      <img src="{{ static(course.image) }}" alt="{{ course.title }}">
+      <img src="{{ course.get_image_url() }}" alt="{{ course.title }}">
       <span class="intl-course-card-logo">
-        <img src="{{ static(course.logo) }}" alt="Course partner">
+        <img src="{{ course.get_logo_url() }}" alt="Course partner">
       </span>
       <button type="button" class="intl-course-bookmark" aria-label="Save course">
         <i class='bx bx-bookmark'></i>
