@@ -97,6 +97,325 @@
   .lsd-download-note { font-size: 12px; color: #6b7280; margin-top: 6px; }
   .lsd-validation-message { display: none; margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #b91c1c; font-size: 14px; font-weight: 500; }
   .lsd-validation-message.lsd-validation-visible { display: block; }
+  .ei-subscale-section { margin: 8px 0 20px; }
+  .ei-subscale-heading { font-size: 16px; font-weight: 700; color: #1f2937; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .ei-subscale-heading i { color: #7755EE; font-size: 20px; }
+  .ei-subscale-table-wrap {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e0e7ff;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.08);
+    background: #fff;
+  }
+  .ei-subscale-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 14px; }
+  .ei-subscale-table th, .ei-subscale-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #eef2ff; }
+  .ei-subscale-table th:last-child,
+  .ei-subscale-table td:last-child { width: 130px; text-align: center; }
+  .ei-subscale-table th { background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%); color: #4338ca; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .ei-subscale-table tbody tr { transition: background 0.2s ease; }
+  .ei-subscale-table tbody tr:hover { background: #fafaff; }
+  .ei-subscale-table tbody tr:last-child td { border-bottom: none; }
+  .ei-area-code { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%); color: #fff; font-size: 12px; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
+  .ei-area-name { font-weight: 600; color: #1f2937; line-height: 1.35; }
+  .ei-area-cell { display: flex; align-items: center; }
+  .ei-score-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; height: 36px; padding: 0 12px; border-radius: 10px; background: #f3f4f6; color: #111827; font-weight: 700; font-size: 15px; }
+  .ei-band-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 118px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  .ei-band-pill.ei-band-highest { background: #d1fae5; color: #047857; border: 1px solid #6ee7b7; }
+  .ei-band-pill.ei-band-high { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+  .ei-band-pill.ei-band-average { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
+  .ei-band-pill.ei-band-growth-area { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #b91c1c; border: 1px solid #f87171; }
+  .ei-band-pill.ei-band-growth-area::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #dc2626; flex-shrink: 0; }
+  .ei-subscale-table tbody tr.ei-row-growth { background: linear-gradient(90deg, rgba(239, 68, 68, 0.07) 0%, rgba(255, 255, 255, 0) 100%); }
+  .ei-subscale-table tbody tr.ei-row-growth:hover { background: linear-gradient(90deg, rgba(239, 68, 68, 0.11) 0%, #fafaff 100%); }
+  .ei-tips-card {
+    margin-top: 24px;
+    padding: 0;
+    border-radius: 18px;
+    border: 1px solid #fecaca;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.1);
+    overflow: hidden;
+    position: relative;
+  }
+  .ei-tips-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ef4444 0%, #f97316 50%, #f59e0b 100%);
+  }
+  .ei-tips-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 22px 22px 18px;
+    background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 45%, #ffffff 100%);
+    border-bottom: 1px solid #fee2e2;
+  }
+  .ei-tips-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.28);
+  }
+  .ei-tips-title { font-size: 18px; font-weight: 700; color: #991b1b; margin: 0 0 6px; }
+  .ei-tips-subtitle { font-size: 13px; color: #7f1d1d; margin: 0; line-height: 1.5; opacity: 0.85; }
+  .ei-tips-body { padding: 18px 20px 22px; }
+  .ei-tips-area {
+    margin-bottom: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+  .ei-tips-area-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: linear-gradient(90deg, rgba(254, 226, 226, 0.65) 0%, rgba(255, 255, 255, 0.9) 100%);
+    border: 1px solid #fecaca;
+  }
+  .ei-tips-area-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #7f1d1d;
+    margin: 0;
+  }
+  .ei-tips-area-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .ei-tips-area-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 118px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #b91c1c;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #f87171;
+    box-sizing: border-box;
+  }
+  .ei-tips-area-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #dc2626;
+    flex-shrink: 0;
+  }
+  .ei-tips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 767px) {
+    .ei-tips-grid { grid-template-columns: 1fr; }
+  }
+  .ei-tip-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 14px 14px 12px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid #fee2e2;
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.06);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .ei-tip-item:hover {
+    border-color: #fca5a5;
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+    transform: translateY(-1px);
+  }
+  .ei-tip-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .ei-tip-content { flex: 1; min-width: 0; }
+  .ei-tip-label { display: block; font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 4px; line-height: 1.35; }
+  .ei-tip-text { display: block; font-size: 12px; color: #6b7280; line-height: 1.5; margin: 0; }
+  .ei-score-highlight {
+    border: 1px solid #c7d2fe;
+    background: linear-gradient(160deg, #eef2ff 0%, #f8faff 55%, #ffffff 100%);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin: 12px 0 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .ei-score-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #7755EE 0%, #38BDF8 100%);
+  }
+  .ei-score-highlight .ei-score-label { display: block; font-size: 13px; font-weight: 600; color: #4338ca; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .ei-score-highlight .ei-score-value { font-size: 42px; line-height: 1.1; font-weight: 800; color: #312e81; }
+  .ei-score-highlight .ei-score-band { display: inline-block; margin-top: 10px; padding: 6px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #047857; background: #d1fae5; border: 1px solid #6ee7b7; }
+  .ei-score-highlight .ei-score-desc { margin-top: 12px; font-size: 14px; color: #4b5563; line-height: 1.55; max-width: 520px; margin-left: auto; margin-right: auto; }
+  @media (max-width: 767px) {
+    .lsd-assessment-section,
+    .lsd-assessment-section .container,
+    .lsd-main-area,
+    .lsd-results-section,
+    .lsd-results-card,
+    #eiResultsSummary,
+    .ei-score-highlight,
+    .ei-subscale-section,
+    .ei-subscale-table-wrap,
+    .ei-tips-card {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .lsd-results-badge {
+      display: flex;
+      max-width: 100%;
+      white-space: normal;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .lsd-results-type { font-size: 18px; }
+    .lsd-download-buttons { width: 100%; }
+    .lsd-download-buttons .lsd-download-btn { width: 100%; justify-content: center; }
+    .ei-subscale-heading { font-size: 15px; margin-bottom: 10px; }
+    .ei-subscale-table-wrap {
+      overflow: visible;
+      border-radius: 14px;
+    }
+    .ei-subscale-table,
+    .ei-subscale-table tbody {
+      display: block;
+      width: 100%;
+    }
+    .ei-subscale-table thead { display: none; }
+    .ei-subscale-table tbody tr {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 12px;
+      padding: 14px;
+      border-bottom: 1px solid #eef2ff;
+    }
+    .ei-subscale-table tbody tr:last-child { border-bottom: none; }
+    .ei-subscale-table td {
+      display: block;
+      padding: 0;
+      border: none;
+      width: auto !important;
+      text-align: left !important;
+    }
+    .ei-td-area { flex: 1 1 100%; }
+    .ei-area-cell { align-items: flex-start; }
+    .ei-area-name { font-size: 13px; line-height: 1.4; }
+    .ei-td-score,
+    .ei-td-level {
+      flex: 1 1 calc(50% - 6px);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .ei-td-score { align-items: flex-start; }
+    .ei-td-level { align-items: flex-end; }
+    .ei-td-score::before,
+    .ei-td-level::before {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+    }
+    .ei-td-score::before { content: 'Score'; }
+    .ei-td-level::before { content: 'Level'; }
+    .ei-band-pill {
+      min-width: 0;
+      width: 100%;
+      max-width: 132px;
+      font-size: 11px;
+      padding: 6px 10px;
+    }
+    .ei-score-highlight {
+      padding: 18px 16px;
+      margin: 10px 0 16px;
+      border-radius: 14px;
+    }
+    .ei-score-highlight .ei-score-value { font-size: 34px; }
+    .ei-score-highlight .ei-score-band { font-size: 13px; padding: 5px 14px; }
+    .ei-score-highlight .ei-score-desc { font-size: 13px; }
+    .ei-tips-header { padding: 16px; gap: 12px; }
+    .ei-tips-icon { width: 42px; height: 42px; font-size: 20px; }
+    .ei-tips-title { font-size: 16px; }
+    .ei-tips-subtitle { font-size: 12px; }
+    .ei-tips-body { padding: 14px 14px 18px; }
+    .ei-tips-area-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+    .ei-tips-area-badge { width: 100%; max-width: 140px; }
+    .ei-tip-item { padding: 12px; }
+    .lsd-results-card { padding: 16px 14px; }
+    .lsd-wizard-footer { flex-direction: column; align-items: stretch; gap: 12px; }
+    .lsd-wizard-buttons { width: 100%; justify-content: space-between; }
+    .lsd-wizard-buttons .lsd-btn { flex: 1; justify-content: center; }
+  }
 </style>
 {% endblock %}
 
@@ -193,19 +512,19 @@
             <div class="lsd-results-type" id="eiResultsTypeHeading" style="display:none;">Your EQ Profile</div>
             <div id="eiResultsSummary"></div>
           </div>
-          <div class="lsd-results-card">
+          <div class="lsd-results-card d-none">
             <div class="lsd-guide-title">
               <i class='bx bx-help-circle'></i>
               <span>How the Scoring System Works</span>
             </div>
             <p class="lsd-guide-text">
-              Your emotional intelligence score is built from six subscales. Each subscale contains six statements rated from 1–5. Some items are reverse scored (higher agreement reduces the score). The system converts your answers to subscale scores between 6 and 30.
+              Your emotional intelligence score is built from six subscales. Each subscale contains six statements rated from 1–5. Some items are reverse scored (higher agreement reduces the score). Each subscale score ranges from 6 to 30.
             </p>
             <p class="lsd-guide-text">
-              After calculating subscale scores, weights are applied to create a composite EQ score: SA × 1.0, SC × 1.3, EM × 1.2, CR × 1.1, SM × 1.2, AC × 1.0. From there we also compute a <strong>Profile Balance Index (PBI)</strong>, <strong>Intrapersonal EQ</strong>, <strong>Interpersonal EQ</strong>, and <strong>Adaptive EQ</strong>.
+              Your <strong>Total EI Score</strong> is the sum of all six subscale scores. Interpretation bands: 120–150+ = Exceptional EI, 90–119 = Strong EI, 60–89 = Moderate EI, 30–59 = Low EI.
             </p>
             <p class="lsd-guide-text" style="margin-top: 12px;">
-              Interpretation bands for the composite EQ score: ≥ 160 = Exceptional (Top 10%), 140–159 = High (65–89th Percentile), 115–139 = Average (35–64th Percentile), 95–114 = Low (15–34th Percentile), ≤ 94 = Very Low (Bottom 14%).
+              Per-area bands: 24–30 = Highest, 18–23 = High, 12–17 = Average, 6–11 = Growth Area. Growth areas include personalised improvement tips in your results.
             </p>
           </div>
           <div class="lsd-download-card">
@@ -214,7 +533,7 @@
               <div>
                 <div class="lsd-download-title">Download Your Scoring System &amp; Results</div>
                 <div class="lsd-download-text">
-                  Download a personalised scoring report showing all subscale scores, weighted scores, composite EQ, balance index, and cluster indices. You can share or print this for coaching, counseling, or personal reflection.
+                  Download a personalised scoring report showing your total EI score, subscale scores with interpretation bands, and improvement tips for growth areas.
                 </div>
               </div>
             </div>
@@ -311,6 +630,77 @@
       { id: "Q36", text: "I often stay silent even when I want to express my views.", reverse: true }
     ]}
   ];
+
+  var subscaleMeta = {
+    SA: { name: "Self-Awareness & Self-Esteem" },
+    SC: { name: "Self-Control & Emotional Regulation" },
+    EM: { name: "Empathy & Understanding Others" },
+    CR: { name: "Conflict Resolution & Interpersonal Skills" },
+    SM: { name: "Self-Motivation & Resilience" },
+    AC: { name: "Assertiveness & Communication" }
+  };
+
+  var subscaleBands = [
+    { min: 24, max: 30, label: "Highest" },
+    { min: 18, max: 23, label: "High" },
+    { min: 12, max: 17, label: "Average" },
+    { min: 6, max: 11, label: "Growth Area" },
+    { min: 1, max: 5, label: "Growth Area" }
+  ];
+
+  var totalBands = [
+    { min: 120, max: 180, label: "Exceptional EI", description: "Highly skilled in managing emotions, handling relationships, and staying motivated." },
+    { min: 90, max: 119, label: "Strong EI", description: "Generally good emotional awareness, but some areas may need refinement." },
+    { min: 60, max: 89, label: "Moderate EI", description: "Some strengths, but could benefit from emotional skill development." },
+    { min: 30, max: 59, label: "Low EI", description: "Likely struggles with emotional regulation, social interactions, or motivation." }
+  ];
+
+  var lowSubscaleThreshold = 12;
+
+  var improvementTips = {
+    SA: [
+      "Practice Self-Reflection – Keep a journal to track emotions and thoughts daily.",
+      "Ask for Feedback – Request honest opinions from friends or mentors to understand how you come across.",
+      "Mindfulness & Meditation – Spend 5–10 minutes daily observing thoughts without judgment.",
+      "Self-Affirmations – Repeat positive affirmations like \"I am capable and worthy.\"",
+      "Strength Analysis – List your top 5 strengths and use them daily."
+    ],
+    SC: [
+      "Pause Before Reacting – Take deep breaths or count to 10 before responding in emotional situations.",
+      "Use Healthy Outlets – Engage in physical exercise, writing, or music to release emotions.",
+      "Identify Triggers – Notice patterns in what makes you angry or upset and develop coping strategies.",
+      "Practice Reframing – Instead of thinking, \"This is unfair,\" say \"What can I learn from this?\"",
+      "Develop a Relaxation Routine – Try yoga, listening to calming music, or progressive muscle relaxation."
+    ],
+    EM: [
+      "Active Listening – Focus entirely on the speaker, nod, and paraphrase to show understanding.",
+      "Put Yourself in Others' Shoes – Ask, \"How would I feel in their situation?\"",
+      "Observe Non-Verbal Cues – Pay attention to body language, tone, and facial expressions.",
+      "Read Fiction & Watch Dramas – These improve emotional perspective-taking.",
+      "Volunteer or Help Others – Engaging in acts of kindness fosters deeper empathy."
+    ],
+    CR: [
+      "Stay Calm During Disputes – Breathe deeply and maintain a neutral tone.",
+      "Use \"I\" Statements – Say \"I feel concerned when deadlines are missed,\" instead of blaming.",
+      "Find Common Ground – Focus on shared interests rather than differences.",
+      "Practice Assertiveness – Clearly express needs while respecting others' opinions.",
+      "Seek Mediation if Needed – If conflicts persist, involve a neutral third party."
+    ],
+    SM: [
+      "Set Clear, Achievable Goals – Break big goals into smaller tasks for steady progress.",
+      "Develop a Growth Mind-set – View failures as learning experiences.",
+      "Visualize Success – Imagine achieving your goals and the feeling of accomplishment.",
+      "Stay Accountable – Share goals with a friend or mentor for motivation.",
+      "Celebrate Small Wins – Acknowledge progress, no matter how minor."
+    ],
+    AC: [
+      "Practice Speaking Up – Start with small, everyday situations (e.g., ordering food confidently).",
+      "Use Clear & Direct Language – Avoid excessive apologies or hesitations.",
+      "Maintain Confident Body Language – Stand tall, make eye contact, and use a firm but respectful tone.",
+      "Say \"No\" Without Guilt – Set boundaries and don't over-explain your decisions.",
+      "Role-Play Assertive Conversations – Practice with a friend or in front of a mirror."
+    ]
+  };
 
   var introCard = document.getElementById("eiIntroCard");
   var startBtn = document.getElementById("eiStartBtn");
@@ -564,6 +954,35 @@
     return true;
   }
 
+  function getSubscaleBand(score) {
+    for (var i = 0; i < subscaleBands.length; i++) {
+      if (score >= subscaleBands[i].min && score <= subscaleBands[i].max) return subscaleBands[i].label;
+    }
+    if (score >= 30) return "Highest";
+    return "Growth Area";
+  }
+
+  function normalizeSubscaleBand(label) {
+    if (!label) return "";
+    if (label === "Low" || label === "Lowest") return "Growth Area";
+    return label;
+  }
+
+  function getTotalBand(total) {
+    var rounded = Math.round(total);
+    for (var i = 0; i < totalBands.length; i++) {
+      if (rounded >= totalBands[i].min && rounded <= totalBands[i].max) return totalBands[i];
+    }
+    if (rounded >= 180) return totalBands[0];
+    return totalBands[totalBands.length - 1];
+  }
+
+  function bandClassName(label) {
+    label = normalizeSubscaleBand(label);
+    if (label === "Growth Area") return "ei-band-growth-area";
+    return "ei-band-" + String(label || "").toLowerCase().replace(/\s+/g, "-");
+  }
+
   function calculateScores() {
     var subscaleScores = { SA: 0, SC: 0, EM: 0, CR: 0, SM: 0, AC: 0 };
     for (var L = 0; L < levels.length; L++) {
@@ -576,21 +995,22 @@
       }
       subscaleScores[level.code] = sum;
     }
-    var weights = { SA: 1.0, SC: 1.3, EM: 1.2, CR: 1.1, SM: 1.2, AC: 1.0 };
-    var weighted = {};
-    var EI_total = 0;
+    var EI_total = subscaleScores.SA + subscaleScores.SC + subscaleScores.EM + subscaleScores.CR + subscaleScores.SM + subscaleScores.AC;
+    var totalBand = getTotalBand(EI_total);
+    var subscaleBandMap = {};
+    var lowAreas = [];
     for (var code in subscaleScores) {
-      weighted[code] = subscaleScores[code] * weights[code];
-      EI_total += weighted[code];
+      subscaleBandMap[code] = getSubscaleBand(subscaleScores[code]);
+      if (subscaleScores[code] < lowSubscaleThreshold) lowAreas.push(code);
     }
-    var vals = [subscaleScores.SA, subscaleScores.SC, subscaleScores.EM, subscaleScores.CR, subscaleScores.SM, subscaleScores.AC];
-    var PBI = Math.max.apply(null, vals) - Math.min.apply(null, vals);
-    var SA = subscaleScores.SA, SC = subscaleScores.SC, EM = subscaleScores.EM, CR = subscaleScores.CR, SM = subscaleScores.SM, AC = subscaleScores.AC;
-    var intrapersonalEQ = SA + SC + SM;
-    var interpersonalEQ = EM + CR + AC;
-    var adaptiveEQ = SC + SM;
-    var bandLabel = EI_total >= 160 ? "Exceptional (Top 10%)" : EI_total >= 140 ? "High (65–89th Percentile)" : EI_total >= 115 ? "Average (35–64th Percentile)" : EI_total >= 95 ? "Low (15–34th Percentile)" : "Very Low (Bottom 14%)";
-    return { subscaleScores: subscaleScores, weighted: weighted, EI_total: EI_total, PBI: PBI, intrapersonalEQ: intrapersonalEQ, interpersonalEQ: interpersonalEQ, adaptiveEQ: adaptiveEQ, bandLabel: bandLabel };
+    return {
+      subscaleScores: subscaleScores,
+      subscaleBands: subscaleBandMap,
+      EI_total: EI_total,
+      bandLabel: totalBand.label,
+      bandDescription: totalBand.description,
+      lowAreas: lowAreas
+    };
   }
 
   function normalizeBandLabel(label) {
@@ -599,30 +1019,109 @@
   }
 
   function renderResults(scores, skipSave) {
+    if (!scores || !scores.subscaleScores) {
+      if (validateAllCompleted()) scores = calculateScores();
+      else return;
+    }
     if (resultIntro) resultIntro.style.display = scores ? "none" : "";
     if (resultsBadgeEl) resultsBadgeEl.style.display = scores ? "inline-flex" : "none";
     if (resultsTypeHeading) resultsTypeHeading.style.display = scores ? "block" : "none";
     resultsSummary.innerHTML = "";
     var s = scores.subscaleScores;
-    var compositeEl = document.createElement("p");
-    compositeEl.className = "lsd-results-summary";
+    var bands = scores.subscaleBands || {};
     var safeBandLabel = normalizeBandLabel(scores.bandLabel);
-    compositeEl.innerHTML = "<strong>Composite EQ Score: </strong>" + scores.EI_total.toFixed(1) + " <span style='color:#059669;font-weight:600;'>(" + safeBandLabel + ")</span>";
-    var pbiEl = document.createElement("p");
-    pbiEl.className = "lsd-results-summary";
-    pbiEl.innerHTML = "<strong>Profile Balance Index (PBI): </strong>" + scores.PBI.toFixed(1) + " – lower values indicate a more balanced EQ profile across subscales.";
-    var subscaleTable = document.createElement("div");
-    subscaleTable.className = "lsd-results-counts";
-    subscaleTable.style.background = "#eef2ff";
-    subscaleTable.style.borderColor = "#a5b4fc";
-    subscaleTable.innerHTML = "<strong>Subscale Scores (6–30 each):</strong><br>SA: " + s.SA + ", SC: " + s.SC + ", EM: " + s.EM + ", CR: " + s.CR + ", SM: " + s.SM + ", AC: " + s.AC;
-    var clusterEl = document.createElement("p");
-    clusterEl.className = "lsd-results-summary";
-    clusterEl.innerHTML = "<strong>Cluster Indices:</strong> Intrapersonal EQ (SA + SC + SM) = " + scores.intrapersonalEQ + ", Interpersonal EQ (EM + CR + AC) = " + scores.interpersonalEQ + ", Adaptive EQ (SC + SM) = " + scores.adaptiveEQ + ".";
-    resultsSummary.appendChild(compositeEl);
-    resultsSummary.appendChild(pbiEl);
-    resultsSummary.appendChild(subscaleTable);
-    resultsSummary.appendChild(clusterEl);
+    if (!scores.bandDescription) {
+      var totalBand = getTotalBand(scores.EI_total);
+      safeBandLabel = safeBandLabel || totalBand.label;
+      scores.bandDescription = totalBand.description;
+    }
+    var highlight = document.createElement("div");
+    highlight.className = "ei-score-highlight";
+    highlight.innerHTML =
+      "<span class='ei-score-label'>Total EI Score</span>" +
+      "<div class='ei-score-value'>" + Math.round(scores.EI_total) + "</div>" +
+      "<div class='ei-score-band'>" + safeBandLabel + "</div>" +
+      "<div class='ei-score-desc'>" + (scores.bandDescription || "") + "</div>";
+    var section = document.createElement("div");
+    section.className = "ei-subscale-section";
+    section.innerHTML = "<h3 class='ei-subscale-heading'><i class='bx bx-grid-alt'></i><span>Your Six EQ Areas</span></h3>";
+    var tableWrap = document.createElement("div");
+    tableWrap.className = "ei-subscale-table-wrap";
+    var table = document.createElement("table");
+    table.className = "ei-subscale-table";
+    table.innerHTML = "<thead><tr><th>Area</th><th>Score</th><th>Level</th></tr></thead>";
+    var tbody = document.createElement("tbody");
+    var codes = ["SA", "SC", "EM", "CR", "SM", "AC"];
+    for (var ci = 0; ci < codes.length; ci++) {
+      var c = codes[ci];
+      var bandLabel = normalizeSubscaleBand(bands[c] || getSubscaleBand(s[c]));
+      var tr = document.createElement("tr");
+      if (bandLabel === "Growth Area") tr.className = "ei-row-growth";
+      var nameCell = document.createElement("td");
+      nameCell.className = "ei-td-area";
+      nameCell.innerHTML = "<div class='ei-area-cell'><span class='ei-area-code'>" + c + "</span><span class='ei-area-name'>" + (subscaleMeta[c] ? subscaleMeta[c].name : c) + "</span></div>";
+      var scoreCell = document.createElement("td");
+      scoreCell.className = "ei-td-score";
+      scoreCell.innerHTML = "<span class='ei-score-pill'>" + s[c] + "</span>";
+      var bandCell = document.createElement("td");
+      bandCell.className = "ei-td-level";
+      bandCell.innerHTML = "<span class='ei-band-pill " + bandClassName(bandLabel) + "'>" + bandLabel + "</span>";
+      tr.appendChild(nameCell);
+      tr.appendChild(scoreCell);
+      tr.appendChild(bandCell);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    section.appendChild(tableWrap);
+    resultsSummary.appendChild(highlight);
+    resultsSummary.appendChild(section);
+    if (scores.lowAreas && scores.lowAreas.length) {
+      var tipsCard = document.createElement("div");
+      tipsCard.className = "ei-tips-card";
+      var tipsHeader = document.createElement("div");
+      tipsHeader.className = "ei-tips-header";
+      tipsHeader.innerHTML =
+        "<div class='ei-tips-icon'><i class='bx bx-target-lock'></i></div>" +
+        "<div><div class='ei-tips-title'>Personalised Growth Plan</div>" +
+        "<p class='ei-tips-subtitle'>Practical steps to strengthen your growth areas and build balanced emotional intelligence.</p></div>";
+      tipsCard.appendChild(tipsHeader);
+      var tipsBody = document.createElement("div");
+      tipsBody.className = "ei-tips-body";
+      for (var ti = 0; ti < scores.lowAreas.length; ti++) {
+        var areaCode = scores.lowAreas[ti];
+        var areaName = subscaleMeta[areaCode] ? subscaleMeta[areaCode].name : areaCode;
+        var areaBlock = document.createElement("div");
+        areaBlock.className = "ei-tips-area mb-4";
+        var areaHeader = document.createElement("div");
+        areaHeader.className = "ei-tips-area-header";
+        areaHeader.innerHTML =
+          "<h4 class='ei-tips-area-title'><span class='ei-tips-area-code'>" + areaCode + "</span><span>" + areaName + "</span></h4>" +
+          "<span class='ei-tips-area-badge'>Growth Area</span>";
+        var tipGrid = document.createElement("div");
+        tipGrid.className = "ei-tips-grid";
+        var tips = improvementTips[areaCode] || [];
+        for (var tj = 0; tj < tips.length; tj++) {
+          var tipParts = tips[tj].split(" – ");
+          var tipTitle = tipParts[0] || tips[tj];
+          var tipDesc = tipParts.slice(1).join(" – ") || "";
+          var tipItem = document.createElement("div");
+          tipItem.className = "ei-tip-item";
+          tipItem.innerHTML =
+            "<span class='ei-tip-num'>" + (tj + 1) + "</span>" +
+            "<div class='ei-tip-content'>" +
+            "<span class='ei-tip-label'>" + tipTitle + "</span>" +
+            (tipDesc ? "<span class='ei-tip-text'>" + tipDesc + "</span>" : "") +
+            "</div>";
+          tipGrid.appendChild(tipItem);
+        }
+        areaBlock.appendChild(areaHeader);
+        areaBlock.appendChild(tipGrid);
+        tipsBody.appendChild(areaBlock);
+      }
+      tipsCard.appendChild(tipsBody);
+      resultsSummary.appendChild(tipsCard);
+    }
     if (panelResults) panelResults.scrollIntoView({ behavior: "smooth", block: "start" });
     if (!skipSave && eqConfig.saveUrl && eqConfig.csrfToken) {
       fetch(eqConfig.saveUrl, {
@@ -631,12 +1130,7 @@
         body: JSON.stringify({
           responses: responses,
           subscale_scores: scores.subscaleScores,
-          weighted: scores.weighted,
           EI_total: scores.EI_total,
-          PBI: scores.PBI,
-          intrapersonalEQ: scores.intrapersonalEQ,
-          interpersonalEQ: scores.interpersonalEQ,
-          adaptiveEQ: scores.adaptiveEQ,
           bandLabel: safeBandLabel
         }),
         credentials: "same-origin"
@@ -647,29 +1141,29 @@
   }
 
   function buildDownloadFile(scores) {
-    var s = scores.subscaleScores, w = scores.weighted;
+    var s = scores.subscaleScores, bands = scores.subscaleBands || {};
     var lines = [
       "Emotional Intelligence Assessment – Scoring Report",
       "===============================================", "",
-      "Subscale Scores (each range: 6–30):",
-      "SA (Self-Awareness & Self-Esteem): " + s.SA,
-      "SC (Self-Control & Emotional Regulation): " + s.SC,
-      "EM (Empathy & Understanding Others): " + s.EM,
-      "CR (Conflict Resolution & Interpersonal Skills): " + s.CR,
-      "SM (Self-Motivation & Resilience): " + s.SM,
-      "AC (Assertiveness & Communication): " + s.AC, "",
-      "Weighted Scores:",
-      "SA × 1.0 = " + w.SA.toFixed(1), "SC × 1.3 = " + w.SC.toFixed(1), "EM × 1.2 = " + w.EM.toFixed(1),
-      "CR × 1.1 = " + w.CR.toFixed(1), "SM × 1.2 = " + w.SM.toFixed(1), "AC × 1.0 = " + w.AC.toFixed(1), "",
-      "Composite EQ Score (EI_total): " + scores.EI_total.toFixed(1),
-      "Band: " + scores.bandLabel, "",
-      "Profile Balance Index (PBI): " + scores.PBI.toFixed(1),
-      "PBI = Highest Subscale Score – Lowest Subscale Score", "",
-      "Cluster Indices:",
-      "Intrapersonal EQ = SA + SC + SM = " + scores.intrapersonalEQ,
-      "Interpersonal EQ = EM + CR + AC = " + scores.interpersonalEQ,
-      "Adaptive EQ = SC + SM = " + scores.adaptiveEQ
+      "Total EI Score: " + Math.round(scores.EI_total),
+      "Band: " + scores.bandLabel,
+      scores.bandDescription || "", "",
+      "Subscale Scores (each range: 6–30):"
     ];
+    var codes = ["SA", "SC", "EM", "CR", "SM", "AC"];
+    for (var i = 0; i < codes.length; i++) {
+      var c = codes[i];
+      lines.push(c + " (" + subscaleMeta[c].name + "): " + s[c] + " – " + normalizeSubscaleBand(bands[c] || getSubscaleBand(s[c])));
+    }
+    if (scores.lowAreas && scores.lowAreas.length) {
+      lines.push("", "Growth Areas – How to Improve:");
+      for (var j = 0; j < scores.lowAreas.length; j++) {
+        var code = scores.lowAreas[j];
+        lines.push("", subscaleMeta[code].name + ":");
+        var tips = improvementTips[code] || [];
+        for (var k = 0; k < tips.length; k++) lines.push("  • " + tips[k]);
+      }
+    }
     return lines.join("\r\n");
   }
 
@@ -677,24 +1171,14 @@
   if (savedEqResultEl && savedEqResultEl.textContent && savedEqResultEl.textContent !== "null") {
     try {
       var savedEq = JSON.parse(savedEqResultEl.textContent);
-      if (savedEq && savedEq.ei_total != null && savedEq.subscale_scores && Object.keys(responses).length === 36) {
+      if (savedEq && savedEq.subscale_scores && Object.keys(responses).length === 36) {
         introCard.style.display = "none";
         if (mainArea) mainArea.style.display = "block";
         currentLevelIndex = 0;
-        renderCurrentLevel(true);
-        var savedScores = {
-          subscaleScores: savedEq.subscale_scores,
-          EI_total: savedEq.ei_total,
-          PBI: savedEq.pbi != null ? savedEq.pbi : 0,
-          bandLabel: normalizeBandLabel(savedEq.band_label || ""),
-          intrapersonalEQ: savedEq.intrapersonal_eq != null ? savedEq.intrapersonal_eq : 0,
-          interpersonalEQ: savedEq.interpersonal_eq != null ? savedEq.interpersonal_eq : 0,
-          adaptiveEQ: savedEq.adaptive_eq != null ? savedEq.adaptive_eq : 0,
-          weighted: savedEq.weighted || {}
-        };
-        scoresCache = savedScores;
+        renderCurrentLevel(false);
+        scoresCache = calculateScores();
         syncResultsTabEnabledState();
-        renderResults(savedScores, true);
+        renderResults(scoresCache, true);
         setActiveTab("results");
       }
     } catch (e) {}
@@ -708,9 +1192,9 @@
   if (tabResults) {
     tabResults.addEventListener("click", function() {
       if (tabResults.disabled) return;
-      if (validateAllCompleted() && !scoresCache) {
+      if (validateAllCompleted()) {
         scoresCache = calculateScores();
-        renderResults(scoresCache, false);
+        renderResults(scoresCache, true);
       }
       setActiveTab("results");
     });

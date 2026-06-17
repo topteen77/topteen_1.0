@@ -1124,14 +1124,19 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
             latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
             if latest:
                 ctx["saved_eq_responses"] = json.dumps(latest.responses)
+                from core.eq_scoring import calculate_eq_result, get_subscale_band
+                recalc = calculate_eq_result(latest.responses or {})
+                subscale_bands = recalc.get("subscale_bands") or {
+                    code: get_subscale_band((latest.subscale_scores or {}).get(code, 0))
+                    for code in ("SA", "SC", "EM", "CR", "SM", "AC")
+                }
                 ctx["saved_eq_result"] = json.dumps({
-                    "subscale_scores": latest.subscale_scores,
-                    "ei_total": latest.ei_total,
-                    "pbi": latest.pbi,
-                    "band_label": expand_eq_band_percentile(latest.band_label),
-                    "intrapersonal_eq": latest.intrapersonal_eq,
-                    "interpersonal_eq": latest.interpersonal_eq,
-                    "adaptive_eq": latest.adaptive_eq,
+                    "subscale_scores": recalc["subscale_scores"],
+                    "subscale_bands": subscale_bands,
+                    "ei_total": recalc["ei_total"],
+                    "band_label": recalc["band_label"],
+                    "band_description": recalc["band_description"],
+                    "low_areas": recalc["low_areas"],
                 })
         if not ctx.get("saved_eq_responses"):
             ctx["saved_eq_responses"] = "null"
@@ -2281,6 +2286,8 @@ def save_mi_assessment(request):
 @require_POST
 def save_eq_assessment(request):
     """Save EQ assessment result for the current user. Requires login."""
+    from core.eq_scoring import calculate_eq_result
+
     if not getattr(request, "user", None) or not request.user.is_authenticated:
         return JsonResponse({"ok": False, "error": "Login required to save."}, status=401)
     try:
@@ -2288,27 +2295,29 @@ def save_eq_assessment(request):
     except Exception:
         return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
     responses = data.get("responses")
-    subscale_scores = data.get("subscale_scores")
-    ei_total = data.get("EI_total")
-    pbi = data.get("PBI")
-    intrapersonal_eq = data.get("intrapersonalEQ")
-    interpersonal_eq = data.get("interpersonalEQ")
-    adaptive_eq = data.get("adaptiveEQ")
-    band_label = expand_eq_band_percentile(data.get("bandLabel", ""))
-    if not isinstance(responses, dict) or not isinstance(subscale_scores, dict) or ei_total is None:
+    if not isinstance(responses, dict):
         return JsonResponse({"ok": False, "error": "Missing or invalid fields."}, status=400)
     if len(responses) != 36:
         return JsonResponse({"ok": False, "error": "All 36 statements must be answered."}, status=400)
+    result = calculate_eq_result(responses)
+    subscale_scores = result["subscale_scores"]
+    ei_total = result["ei_total"]
+    band_label = result["band_label"]
+    s = subscale_scores
+    intrapersonal_eq = float(s.get("SA", 0) + s.get("SC", 0) + s.get("SM", 0))
+    interpersonal_eq = float(s.get("EM", 0) + s.get("CR", 0) + s.get("AC", 0))
+    vals = [s.get(c, 0) for c in ("SA", "SC", "EM", "CR", "SM", "AC")]
+    pbi = float(max(vals) - min(vals)) if vals else 0.0
     EQAssessmentResult.objects.create(
         user=request.user,
         responses=responses,
         subscale_scores=subscale_scores,
-        weighted=data.get("weighted"),
+        weighted=None,
         ei_total=float(ei_total),
-        pbi=float(pbi or 0),
-        intrapersonal_eq=float(intrapersonal_eq or 0),
-        interpersonal_eq=float(interpersonal_eq or 0),
-        adaptive_eq=float(adaptive_eq or 0),
+        pbi=pbi,
+        intrapersonal_eq=intrapersonal_eq,
+        interpersonal_eq=interpersonal_eq,
+        adaptive_eq=float(s.get("SC", 0) + s.get("SM", 0)),
         band_label=str(band_label) if band_label is not None else "",
     )
     return JsonResponse({"ok": True})
@@ -2581,12 +2590,17 @@ def mi_report_pdf(request, user_id=None):
 @login_required(login_url=None)
 def eq_report_pdf(request, user_id=None):
     """Generate and download EQ report PDF from docx content + user's latest result."""
+    from core.eq_scoring import EQ_LEVELS, IMPROVEMENT_TIPS, LOW_SUBSCALE_THRESHOLD, calculate_eq_result
+
     target_user, denied = _resolve_assessment_report_user(request, user_id)
     if denied:
         return denied
     latest = EQAssessmentResult.objects.filter(user=target_user).order_by("-updated_at").first()
     if not latest:
         return HttpResponse("No EQ assessment result found. Complete the assessment first.", status=404)
+    result = calculate_eq_result(latest.responses or {})
+    subscale_scores = result["subscale_scores"]
+    subscale_bands = result["subscale_bands"]
     base = getattr(settings, "ASSESSMENT_REFERENCE_BASE", None) or ""
     docx_path = Path(base) / "eq" / "EQ_Assessment_and_Scoring.docx"
     html_parts = []
@@ -2595,6 +2609,28 @@ def eq_report_pdf(request, user_id=None):
         if docx_html:
             html_parts.append(docx_html)
     logo_url = request.build_absolute_uri("/static/images/logo.png")
+    subscale_rows = []
+    for level in EQ_LEVELS:
+        code = level["code"]
+        score = subscale_scores.get(code, 0)
+        band = subscale_bands.get(code, "")
+        subscale_rows.append(
+            "<tr><td>%s (%s)</td><td>%s</td><td>%s</td></tr>"
+            % (code, level["name"], score, band)
+        )
+    tips_html = ""
+    for level in EQ_LEVELS:
+        code = level["code"]
+        score = subscale_scores.get(code, 0)
+        if score >= LOW_SUBSCALE_THRESHOLD:
+            continue
+        tips = IMPROVEMENT_TIPS.get(code, [])
+        if not tips:
+            continue
+        tips_html += "<h4>%s – How to Improve</h4><ul>" % level["name"]
+        for tip in tips:
+            tips_html += "<li>%s</li>" % tip.replace("<", "&lt;").replace(">", "&gt;")
+        tips_html += "</ul>"
     result_block = """
     <div class="result-card">
       <div class="topteen-watermark">
@@ -2602,38 +2638,32 @@ def eq_report_pdf(request, user_id=None):
       </div>
       <h2>Your EQ Result</h2>
       <div class="score-highlight">
-        <span class="label">Composite EQ Score</span>
-        <div class="score-value">%.1f</div>
+        <span class="label">Total EI Score</span>
+        <div class="score-value">%d</div>
         <div class="score-band">%s</div>
-      </div>
-
-      <div class="metric-grid">
-        <div class="metric-item"><span>Profile Balance Index (PBI)</span><strong>%.1f</strong></div>
-        <div class="metric-item"><span>Intrapersonal EQ</span><strong>%s</strong></div>
-        <div class="metric-item"><span>Interpersonal EQ</span><strong>%s</strong></div>
-        <div class="metric-item"><span>Adaptive EQ</span><strong>%s</strong></div>
+        <div class="score-band-desc">%s</div>
       </div>
 
       <h3>Subscale Scores</h3>
       <table class="subscale-table">
         <thead>
           <tr>
-            <th>SA</th><th>SC</th><th>EM</th><th>CR</th><th>SM</th><th>AC</th>
+            <th>Area</th><th>Score (6–30)</th><th>Band</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
-          </tr>
+          %s
         </tbody>
       </table>
+      %s
     </div>
     """ % (
         logo_url,
-        latest.ei_total, expand_eq_band_percentile(latest.band_label), latest.pbi,
-        latest.intrapersonal_eq, latest.interpersonal_eq, latest.adaptive_eq,
-        latest.subscale_scores.get("SA"), latest.subscale_scores.get("SC"), latest.subscale_scores.get("EM"),
-        latest.subscale_scores.get("CR"), latest.subscale_scores.get("SM"), latest.subscale_scores.get("AC"),
+        int(round(result["ei_total"])),
+        result["band_label"],
+        result["band_description"],
+        "\n".join(subscale_rows),
+        ("<div class=\"tips-section\">%s</div>" % tips_html) if tips_html else "",
     )
     html_parts.append(result_block)
     full_html = """<!DOCTYPE html>
@@ -2702,16 +2732,12 @@ def eq_report_pdf(request, user_id=None):
         }
         .score-highlight .label { display: block; color: #4338ca; font-weight: 600; }
         .score-value { font-size: 30px; line-height: 1.1; font-weight: 800; color: #312e81; margin-top: 2px; }
-        .score-band { margin-top: 4px; font-size: 12px; color: #4b5563; }
-        .metric-grid { margin: 4px 0 14px; }
-        .metric-item {
-          display: table;
-          width: 100%%;
-          border-bottom: 1px solid #e5e7eb;
-          padding: 6px 0;
-        }
-        .metric-item span, .metric-item strong { display: table-cell; }
-        .metric-item strong { text-align: right; color: #111827; }
+        .score-band { margin-top: 4px; font-size: 12px; color: #4b5563; font-weight: 600; }
+        .score-band-desc { margin-top: 6px; font-size: 12px; color: #4b5563; }
+        .tips-section { margin-top: 14px; }
+        .tips-section h4 { margin: 10px 0 6px; font-size: 14px; color: #111827; }
+        .tips-section ul { margin: 0 0 8px 18px; padding: 0; }
+        .tips-section li { margin-bottom: 4px; }
         .subscale-table {
           width: 100%%;
           border-collapse: collapse;
