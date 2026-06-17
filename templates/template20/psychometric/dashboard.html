@@ -920,7 +920,8 @@
   .career-chip-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px 10px;
+    align-items: center;
   }
   .career-chip {
     display: inline-flex;
@@ -937,14 +938,18 @@
     cursor: pointer;
     font-weight: 700;
     border-style: dashed;
-    width:70px;
+    min-width: 70px;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
-  .career-group-chips.is-collapsed .career-chip:nth-child(n+6) {
+  .career-group-chips.is-collapsed .career-chip:not(.career-chip-more):nth-child(n+6) {
     display: none;
   }
   .career-chip-more-trigger {
     display: inline-flex;
-    margin-top: 6px;
+  }
+  .career-chip-grid > .career-chip-more-trigger {
+    margin-top: 0;
   }
   .career-chip-more-trigger[hidden] {
     display: none !important;
@@ -1592,43 +1597,65 @@
   .psych-stream-suggested-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 14px;
     flex: 1 1 auto;
     align-items: stretch;
   }
 
-  .psych-stream-suggested-list .stream-card {
-    width: 100%;
-    min-height: 88px;
-    height: 100%;
-  }
-
-  .psych-stream-career-match {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e7ecfb;
-  }
-
-  .psych-stream-career-label {
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
-
-  .psych-stream-career-chips {
+  .psych-stream-combined-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    height: 100%;
+    min-height: 88px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
-  .psych-stream-career-chips .career-chip {
+  .psych-stream-combined-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(76, 201, 240, 0.12);
+    border-color: rgba(76, 201, 240, 0.35);
+  }
+
+  .psych-stream-combined-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .psych-stream-combined-careers {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e7ecfb;
+    flex: 1 1 auto;
+  }
+
+  .psych-stream-career-panel-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 10px;
+  }
+
+  .psych-stream-combined-card .career-chip {
     color: #166534;
     background: #ecfdf5;
     border-color: #a7f3d0;
   }
 
-  a.psych-stream-career-chips .career-chip:hover {
+  .psych-stream-combined-card .career-chip.career-chip-more {
+    color: #15803d;
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
+  a.psych-stream-combined-card .career-chip:hover {
     background: #f0fdf4;
     border-color: #86efac;
   }
@@ -1734,6 +1761,29 @@
       {% include 'template20/includes/psychometric_dashboard_statistics_section.html' %}
 
             <!-- Suggested Streams based on aptitude best fit + alternative -->
+            {% set career_preview = 5 %}
+            {% set stream_combo_icons = {
+              'PCM': 'bx-flask',
+              'PCB': 'bx-test-tube',
+              'HUM': 'bx-book-open',
+              'HWL': 'bx-book-open',
+              'CWM': 'bx-calculator',
+              'CWOM': 'bx-calculator',
+              'CS': 'bx-chip',
+              'FINE ARTS': 'bx-palette',
+              'Fine Arts': 'bx-palette'
+            } %}
+            {% set stream_icon_images = {
+              'PCM': 'images/pcm-icon.png',
+              'PCB': 'images/pcb-icon.png',
+              'HUM': 'images/hum-icon.png',
+              'HWL': 'images/hum-icon.png',
+              'CWM': 'images/cwm-icon.png',
+              'CWOM': 'images/cwm-icon.png',
+              'CS': 'images/computer-sci-icon.png',
+              'FINE ARTS': 'images/fine-arts-icon.png',
+              'Fine Arts': 'images/fine-arts-icon.png'
+            } %}
             {% if suitable_subject_combinations %}
             <div class="my-md-6 my-4 psych-stream-intelligence-section">
               <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
@@ -1815,44 +1865,50 @@
                 <div class="psych-stream-part-body">
                   <div class="psych-stream-suggested-list">
                     {% for combo in suitable_subject_combinations %}
-                    <div class="stream-card">
-                      <div class="stream-card-icon">
-                        {% if combo.icon %}
-                        <img src="{{ static('images/' ~ combo.icon) }}" alt="{{ combo.stream|default(combo.label) }}" style="width: 42px; height: 42px; object-fit: contain;">
-                        {% else %}
-                        <i class='bx bx-search-alt fs-28 text-primary'></i>
-                        {% endif %}
+                    {% set group = aptitude_suggested_career_groups[loop.index0] if aptitude_suggested_career_groups and loop.index0 < aptitude_suggested_career_groups|length else none %}
+                    {% if group %}
+                    {% set group_items = group.career_items|default([]) %}
+                    {% set career_total = group_items|length if group_items else group.careers|length %}
+                    {% endif %}
+                    <article class="psych-stream-combined-card">
+                      <div class="psych-stream-combined-head">
+                        <div class="stream-card-icon">
+                          {% if combo.icon %}
+                          <img src="{{ static('images/' ~ combo.icon) }}" alt="{{ combo.stream|default(combo.label) }}" style="width: 42px; height: 42px; object-fit: contain;">
+                          {% else %}
+                          <i class='bx bx-search-alt fs-28 text-primary'></i>
+                          {% endif %}
+                        </div>
+                        <div>
+                          {% if combo.stream_tier == 'best_fit' %}
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Best fit stream</p>
+                          {% elif combo.stream_tier == 'alternative' %}
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Alternative stream</p>
+                          {% endif %}
+                          <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
+                          <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
+                        </div>
                       </div>
-                      <div>
-                        {% if combo.stream_tier == 'best_fit' %}
-                        <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Best fit stream</p>
-                        {% elif combo.stream_tier == 'alternative' %}
-                        <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Alternative stream</p>
-                        {% endif %}
-                        <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
-                        <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
+                      {% if group %}
+                      <div class="psych-stream-combined-careers">
+                        <p class="psych-stream-career-panel-label">Suggested careers</p>
+                        <div class="career-chip-grid career-group-chips{% if career_total > career_preview %} is-collapsed{% endif %}" data-career-group-chips>
+                          {% for item in group_items %}
+                          <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                          {% else %}
+                          {% for career in group.careers %}
+                          <span class="career-chip">{{ career }}</span>
+                          {% endfor %}
+                          {% endfor %}
+                          {% if career_total > career_preview %}
+                          <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
+                          {% endif %}
+                        </div>
                       </div>
-                    </div>
+                      {% endif %}
+                    </article>
                     {% endfor %}
                   </div>
-
-                  {% if aptitude_suggested_career_groups %}
-                  <div class="psych-stream-career-match">
-                    <p class="psych-stream-career-label mb-0 text-uppercase">Suggested careers</p>
-
-                    {% for group in aptitude_suggested_career_groups %}
-                    <div class="psych-stream-career-chips career-chip-grid">
-                      {% for item in group.career_items|default([]) %}
-                      <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
-                      {% else %}
-                      {% for career in group.careers %}
-                      <span class="career-chip">{{ career }}</span>
-                      {% endfor %}
-                      {% endfor %}
-                    </div>
-                    {% endfor %}
-                  </div>
-                  {% endif %}
                 </div>
               </section>
               </div>
@@ -2178,10 +2234,10 @@
                   <span class="career-chip">{{ career }}</span>
                   {% endfor %}
                   {% endfor %}
+                  {% if career_total > career_preview %}
+                  <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
+                  {% endif %}
                 </div>
-                {% if career_total > career_preview %}
-                <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
-                {% endif %}
               </article>
               {% endfor %}
             </div>
@@ -2485,12 +2541,11 @@
 
         (function initCareerViewMore() {
           document.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
-            var grid = btn.previousElementSibling;
-            if (!grid || !grid.matches('[data-career-group-chips]')) return;
-            var previewCount = parseInt(
-              btn.getAttribute('data-career-preview') || grid.getAttribute('data-career-preview') || '5',
-              10
-            );
+            var grid = btn.closest('[data-career-group-chips]');
+            if (!grid && btn.previousElementSibling && btn.previousElementSibling.matches('[data-career-group-chips]')) {
+              grid = btn.previousElementSibling;
+            }
+            if (!grid) return;
             btn.addEventListener('click', function () {
               grid.classList.remove('is-collapsed');
               btn.hidden = true;
